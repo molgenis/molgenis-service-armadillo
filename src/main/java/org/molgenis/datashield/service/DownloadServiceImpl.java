@@ -3,10 +3,10 @@ package org.molgenis.datashield.service;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
-import io.swagger.client.model.Attribute;
-import io.swagger.client.model.AttributeData;
-import io.swagger.client.model.AttributeData.TypeEnum;
-import io.swagger.client.model.EntityType;
+import org.molgenis.api.metadata.model.Attribute;
+import org.molgenis.api.metadata.model.AttributeData;
+import org.molgenis.api.metadata.model.AttributeData.TypeEnum;
+import org.molgenis.api.metadata.model.EntityType;
 import java.util.List;
 import java.util.Map;
 import org.molgenis.datashield.service.model.Column;
