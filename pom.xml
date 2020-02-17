@@ -1,110 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.4.RELEASE</version>
-    <relativePath/> <!-- lookup parent from repository -->
-  </parent>
-  <groupId>org.molgenis</groupId>
-  <artifactId>datashield-service</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>datashield-service</name>
-  <description>DataSHIELD service</description>
-
-  <properties>
-    <java.version>11</java.version>
-    <auto-value.version>1.7</auto-value.version>
-    <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-annotations</artifactId>
-      <version>2.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auto.value</groupId>
-      <artifactId>auto-value-annotations</artifactId>
-      <version>${auto-value.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>28.2-jre</version>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>com.google.auto.value</groupId>
-              <artifactId>auto-value</artifactId>
-              <version>${auto-value.version}</version>
-            </path>
-            <!--
-            Manually pull in auto-service-annotations so that it is part of the
-            processor path because auto-value has it set to provided scope.
-            This dependency is needed due to the retention change in
-            https://github.com/google/auto/commit/628df548685b4fc0f2a9af856f97cc2a68da246b
-            where the RetentionPolicy changed from SOURCE to CLASS.
-            Due to the RetentionPolicy change to CLASS we must have the
-            annotations available on the processor path otherwise the following
-            will error will be thrown. (This is a particular problem with the
-            annotation processor configuration in IntelliJ)
-            Error:java: java.lang.NoClassDefFoundError: com/google/auto/service/AutoService
-              com.google.auto.service.AutoService
-            -->
-            <path>
-              <groupId>com.google.auto.service</groupId>
-              <artifactId>auto-service-annotations</artifactId>
-              <version>${auto-service-annotations.version}</version>
-            </path>
-          </annotationProcessorPaths>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.4.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>org.molgenis</groupId>
+    <artifactId>datashield-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>datashield-service</name>
+    <description>DataSHIELD service</description>
+
+    <properties>
+        <java.version>11</java.version>
+        <auto-value.version>1.7</auto-value.version>
+        <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
+
+        <RServe.version>1.8.1</RServe.version>
+        <REngine.version>2.1.0</REngine.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value-annotations</artifactId>
+            <version>${auto-value.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>Rserve</artifactId>
+            <version>${RServe.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>REngine</artifactId>
+            <version>${REngine.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.2-jre</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.auto.value</groupId>
+                            <artifactId>auto-value</artifactId>
+                            <version>${auto-value.version}</version>
+                        </path>
+                        <!--
+                        Manually pull in auto-service-annotations so that it is part of the
+                        processor path because auto-value has it set to provided scope.
+                        This dependency is needed due to the retention change in
+                        https://github.com/google/auto/commit/628df548685b4fc0f2a9af856f97cc2a68da246b
+                        where the RetentionPolicy changed from SOURCE to CLASS.
+                        Due to the RetentionPolicy change to CLASS we must have the
+                        annotations available on the processor path otherwise the following
+                        will error will be thrown. (This is a particular problem with the
+                        annotation processor configuration in IntelliJ)
+                        Error:java: java.lang.NoClassDefFoundError: com/google/auto/service/AutoService
+                          com.google.auto.service.AutoService
+                        -->
+                        <path>
+                            <groupId>com.google.auto.service</groupId>
+                            <artifactId>auto-service-annotations</artifactId>
+                            <version>${auto-service-annotations.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
