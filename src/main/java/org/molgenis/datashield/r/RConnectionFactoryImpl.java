@@ -74,14 +74,11 @@ public class RConnectionFactoryImpl implements RConnectionFactory
 	private static RConnection newConnection(String host, int port) throws RserveException {
 		logger.debug("Creating new RConnection");
 
-		RConnection con;
-		con = new RConnection(host, port);
-//		RLogger.log(con, "New connection from WPS4R");
+		RConnection con = new RConnection(host, port);
 
 		REXP sessionInfo = con.eval("capture.output(sessionInfo())");
 		try {
-			logger.info("NEW CONNECTION");
-			sessionInfo.asList().values();
+			logger.info("NEW CONNECTION >>> sessionInfo:\n" + Arrays.deepToString(sessionInfo.asStrings()));
 		}
 		catch (REXPMismatchException e) {
 			logger.warn("Error creating session info.", e);

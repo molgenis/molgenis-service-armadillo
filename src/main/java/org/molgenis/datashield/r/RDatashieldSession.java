@@ -8,47 +8,36 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.function.Consumer;
+import java.util.Objects;
 
 @Component
 @Scope(WebApplicationContext.SCOPE_SESSION)
-public class RDatashieldSession
-{
-	private RSession rSession = null;
+public class RDatashieldSession {
+  private RSession rSession = null;
 
-	@Autowired
-	private RConnectionFactory rConnectionFactory;
+  private RConnectionFactory rConnectionFactory;
 
-	public <T> T execute(RConnectionConsumer<T> consumer) throws RserveException
-	{
-		RConnection connection = getRConnection();
-		try
-		{
-			return consumer.accept(connection);
-		}
-		finally
-		{
-			rSession = connection.detach();
-		}
+  public RDatashieldSession(RConnectionFactory rConnectionFactory) {
+    this.rConnectionFactory = Objects.requireNonNull(rConnectionFactory);
+  }
 
-	}
+  public <T> T execute(RConnectionConsumer<T> consumer) throws RserveException {
+    RConnection connection = getRConnection();
+    try {
+      return consumer.accept(connection);
+    } finally {
+      rSession = connection.detach();
+    }
+  }
 
-	private RConnection getRConnection()
-	{
-		try
-		{
-			if (rSession == null)
-			{
-
-				return rConnectionFactory.getNewConnection(false);
-
-			}
-			return rSession.attach();
-		}
-		catch (RserveException err)
-		{
-			throw new RuntimeException("foutje");
-		}
-	}
-
+  private RConnection getRConnection() {
+    try {
+      if (rSession == null) {
+        return rConnectionFactory.getNewConnection(false);
+      }
+      return rSession.attach();
+    } catch (RserveException err) {
+      throw new RuntimeException("foutje", err);
+    }
+  }
 }

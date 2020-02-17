@@ -3,14 +3,11 @@ package org.molgenis.datashield.r;
 import org.junit.jupiter.api.Test;
 import org.rosuda.REngine.Rserve.RserveException;
 
-class RConnectionFactoryImplTest
-{
+class RConnectionFactoryImplTest {
+  private RConnectionFactory connectionFactory = new RConnectionFactoryImpl();
 
-	private RConnectionFactoryImpl connector = new RConnectionFactoryImpl();
-
-	@Test
-	public void testGetNewConnection() throws RserveException
-	{
-		connector.getNewConnection(false);
-	}
+  @Test
+  public void testGetNewConnection() throws RserveException {
+	  connectionFactory.getNewConnection(false);
+  }
 }
