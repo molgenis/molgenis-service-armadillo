@@ -1,4 +1,4 @@
-package org.molgenis.datashield.service;
+package org.molgenis.datashield;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
