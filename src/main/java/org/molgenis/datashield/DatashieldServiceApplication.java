@@ -1,4 +1,4 @@
-package org.molgenis.datashield.service;
+package org.molgenis.datashield;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
