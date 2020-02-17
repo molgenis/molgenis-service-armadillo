@@ -31,7 +31,8 @@ public class RExecutorServiceImpl {
     outputStream.close();
 
     ensurePackage("readr", connection);
-    REXP rexp = connection.eval(String.format("readr::read_csv('%s')", DATA_FILE_NAME));
+    REXP rexp = connection.eval(String.format("base::is.null(base::assign('%s', readr::read_csv('%s')))", table.name(), DATA_FILE_NAME));
+
     connection.eval(String.format("base::unlink('%s')", DATA_FILE_NAME));
 
     return rexp.toString();
