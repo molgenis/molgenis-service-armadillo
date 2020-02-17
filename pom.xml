@@ -17,6 +17,8 @@
 
   <properties>
     <java.version>11</java.version>
+    <auto-value.version>1.7</auto-value.version>
+    <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
 
  <RServe.version>1.8.1</RServe.version>
         <REngine.version>2.1.0</REngine.version>
@@ -39,6 +41,11 @@
       <groupId>io.swagger.core.v3</groupId>
       <artifactId>swagger-annotations</artifactId>
       <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.auto.value</groupId>
+      <artifactId>auto-value-annotations</artifactId>
+      <version>${auto-value.version}</version>
     </dependency>
 <dependency>
             <groupId>org.rosuda.REngine</groupId>
@@ -67,6 +74,11 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>28.2-jre</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -74,6 +86,36 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>com.google.auto.value</groupId>
+              <artifactId>auto-value</artifactId>
+              <version>${auto-value.version}</version>
+            </path>
+            <!--
+            Manually pull in auto-service-annotations so that it is part of the
+            processor path because auto-value has it set to provided scope.
+            This dependency is needed due to the retention change in
+            https://github.com/google/auto/commit/628df548685b4fc0f2a9af856f97cc2a68da246b
+            where the RetentionPolicy changed from SOURCE to CLASS.
+            Due to the RetentionPolicy change to CLASS we must have the
+            annotations available on the processor path otherwise the following
+            will error will be thrown. (This is a particular problem with the
+            annotation processor configuration in IntelliJ)
+            Error:java: java.lang.NoClassDefFoundError: com/google/auto/service/AutoService
+              com.google.auto.service.AutoService
+            -->
+            <path>
+              <groupId>com.google.auto.service</groupId>
+              <artifactId>auto-service-annotations</artifactId>
+              <version>${auto-service-annotations.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -5,47 +5,92 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 import io.swagger.client.model.Attribute;
 import io.swagger.client.model.AttributeData;
+import io.swagger.client.model.AttributeData.TypeEnum;
 import io.swagger.client.model.EntityType;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import org.apache.tomcat.util.http.fileupload.util.Streams;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.molgenis.datashield.service.model.Column;
+import org.molgenis.datashield.service.model.ColumnType;
+import org.molgenis.datashield.service.model.Table;
+import org.molgenis.datashield.service.model.Table.Builder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.ResourceHttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
-import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+@Component
 public class DownloadServiceImpl {
-
-  private RestTemplate restTemplate;
   private static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
   private static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
 
-  public DownloadServiceImpl(RestTemplate restTemplate) {
-    this.restTemplate = restTemplate;
+  @Autowired
+  private RestTemplate restTemplate;
+
+  /**
+   * Retrieves metadata for entity type.
+   * @param entityTypeId the ID of the entity type
+   * @return the retrieved {@link EntityType}
+   */
+  public Table getMetadata(String entityTypeId) {
+    EntityType entityType = restTemplate.getForObject(METADATA_URL, EntityType.class, entityTypeId);
+    Builder tableBuilder = Table.builder().setName(entityTypeId);
+    entityType.getData().getAttributes().getItems().stream()
+        .map(Attribute::getData)
+        .filter(attributeData -> attributeData.getType()!= TypeEnum.COMPOUND)
+        .map(this::toColumn).forEach(tableBuilder::addColumn);
+    return tableBuilder.build();
   }
 
-  public EntityType getMetadata(String entityTypeId) {
-    return restTemplate.getForObject(METADATA_URL, EntityType.class, entityTypeId);
+  private Column toColumn(AttributeData attribute) {
+    return Column.builder()
+      .setName(attribute.getName())
+      .setType(toColumnType(attribute)).build();
+  }
+
+  private ColumnType toColumnType(AttributeData attributeData) {
+    switch (attributeData.getType()) {
+      case INT:
+        return ColumnType.INT;
+      case BOOL:
+        return ColumnType.BOOL;
+      case DATE:
+        return ColumnType.DATE;
+      case SCRIPT:
+      case STRING:
+      case TEXT:
+      case HTML:
+        return ColumnType.STRING;
+      case XREF:
+      case CATEGORICAL:
+        String refEntityLink = attributeData.getRefEntityType().getSelf();
+        EntityType refEntityType = restTemplate.getForObject(refEntityLink+"?flattenAttributes=true", EntityType.class);
+        AttributeData refEntityIdAttribute = refEntityType.getData()
+            .getAttributes()
+            .getItems()
+            .stream()
+            .map(Attribute::getData)
+            .filter(AttributeData::isIdAttribute)
+            .findFirst().orElseThrow();
+        return toColumnType(refEntityIdAttribute);
+      default:
+        throw new IllegalArgumentException("Cannot convert type " + attributeData.getType().getValue());
+    }
   }
 
   /**
    * Downloads CSV for entity type.
-   * @param entityTypeId the ID of the entity type.
+   * @param table the Table to download
    * @return ResponseEntity to stream the CSV from
    */
-  public ResponseEntity<Resource> download(String entityTypeId, List<String> attributeNames) {
-    Map<String, Object> request = Map.of("entityTypeId", entityTypeId,
+  public ResponseEntity<Resource> download(Table table) {
+    List<String> columnNames = table.columns().stream().map(Column::name).collect(toList());
+    Map<String, Object> request = Map.of("entityTypeId", table.name(),
         "query", Map.of("rules", List.of(List.of())),
-        "attributeNames", attributeNames,
+        "attributeNames", columnNames,
         "colNames", "ATTRIBUTE_NAMES",
         "entityValues", "ENTITY_IDS",
         "downloadType", "DOWNLOAD_TYPE_CSV");
@@ -56,27 +101,5 @@ public class DownloadServiceImpl {
     headers.setContentType(MULTIPART_FORM_DATA);
     HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(params, headers);
     return restTemplate.postForEntity(DOWNLOAD_URL, requestEntity, Resource.class);
-  }
-
-  public static void main(String... args) throws IOException {
-    String token = "test";
-    String server = "https://latest.test.molgenis.org";
-    String entityTypeId = "aaaac4buj5fdzlvl6uxmg6iaae";
-    RestTemplate restTemplate =
-        new RestTemplateBuilder()
-            .messageConverters(
-                List.of(new GsonHttpMessageConverter(),
-                  new AllEncompassingFormHttpMessageConverter(),
-                  new ResourceHttpMessageConverter(true)))
-            .defaultHeader("X-Molgenis-Token", token)
-            .rootUri(server)
-            .build();
-    DownloadServiceImpl downloadService = new DownloadServiceImpl(restTemplate);
-    EntityType metadata = downloadService.getMetadata(entityTypeId);
-    List<String> attributeNames = metadata.getData().getAttributes().getItems().stream()
-        .map(Attribute::getData).map(AttributeData::getName).collect(toList());
-    ResponseEntity<Resource> responseEntity = downloadService.download("aaaac4buj5fdzlvl6uxmg6iaae", attributeNames);
-    InputStream inputStream = responseEntity.getBody().getInputStream();
-    Logger.getAnonymousLogger().info(Streams.asString(inputStream));
   }
 }
