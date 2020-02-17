@@ -17,6 +17,9 @@
 
   <properties>
     <java.version>11</java.version>
+
+ <RServe.version>1.8.1</RServe.version>
+        <REngine.version>2.1.0</REngine.version>
   </properties>
 
   <dependencies>
@@ -37,6 +40,16 @@
       <artifactId>swagger-annotations</artifactId>
       <version>2.0.0</version>
     </dependency>
+<dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>Rserve</artifactId>
+            <version>${RServe.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>REngine</artifactId>
+            <version>${REngine.version}</version>
+        </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>

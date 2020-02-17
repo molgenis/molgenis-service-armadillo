@@ -6,6 +6,6 @@ services:
       - 3000:8080
   rserver:
     image: obiba/opal-rserver:1.6
-    expose:
-      - 6311
-      - 6312
+    ports:
+      - 6311:6311
+      - 6312:6312
