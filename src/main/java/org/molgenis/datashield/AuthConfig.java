@@ -15,8 +15,7 @@ public class AuthConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
 
-    if(!csrfEnabled)
-    {
+    if (!csrfEnabled) {
       http.csrf().disable();
     }
   }
