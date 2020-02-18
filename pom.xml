@@ -27,6 +27,12 @@
         <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
         <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar</dockerfile.jarfile>
 
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>molgenis</sonar.organization>
+        <sonar.github.repository>molgenis/molgenis-service-datashield</sonar.github.repository>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
+
         <auto-value.version>1.7</auto-value.version>
         <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
 
