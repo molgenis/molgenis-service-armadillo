@@ -17,6 +17,22 @@
 
     <properties>
         <java.version>11</java.version>
+
+        <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
+        <sonar-maven-plugin.version>3.5.0.1254</sonar-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+
+        <dockerfile.tag>${project.version}</dockerfile.tag>
+        <dockerfile.repository>registry.hub.docker.com/molgenis/molgenis-app</dockerfile.repository>
+        <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
+        <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar</dockerfile.jarfile>
+
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>molgenis</sonar.organization>
+        <sonar.github.repository>molgenis/molgenis-service-datashield</sonar.github.repository>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
+
         <auto-value.version>1.7</auto-value.version>
         <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
 
@@ -119,6 +135,29 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>${dockerfile-maven-plugin.version}</version>
+                <configuration>
+                    <repository>${dockerfile.repository}</repository>
+                    <tag>${dockerfile.tag}</tag>
+                    <buildArgs>
+                        <JAR_FILE>${dockerfile.jarfile}</JAR_FILE>
+                    </buildArgs>
+                    <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
