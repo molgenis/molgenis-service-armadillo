@@ -24,8 +24,6 @@ pipeline {
                         env.DOCKERHUB_AUTH = sh(script: "vault read -field=value secret/gcc/token/dockerhub", returnStdout: true)
                     }
                 }
-                sh "git remote set-url origin https://${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
-                sh "git fetch --tags"
             }
         }
         stage('Steps [ PR ]') {
