@@ -8,6 +8,7 @@ pipeline {
         REPOSITORY = 'molgenis/datashield-service'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
         CHART_VERSION = '0.0.1'
+        TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
     }
     stages {
         stage('Prepare') {
@@ -18,12 +19,18 @@ pipeline {
                 container('vault') {
                     script {
                         sh "mkdir ${JENKINS_AGENT_WORKDIR}/.rancher"
+                        sh "mkdir ${JENKINS_AGENT_WORKDIR}/.m2"
                         sh(script: "vault read -field=value secret/ops/jenkins/rancher/cli2.json > ${JENKINS_AGENT_WORKDIR}/.rancher/cli2.json")
+                        sh(script: "vault read -field=value secret/ops/jenkins/maven/settings.xml > ${JENKINS_AGENT_WORKDIR}/.m2/settings.xml")
                         env.GITHUB_TOKEN = sh(script: "vault read -field=value secret/ops/token/github", returnStdout: true)
                         env.SONAR_TOKEN = sh(script: 'vault read -field=value secret/ops/token/sonar', returnStdout: true)
-                        env.NEXUS_AUTH = sh(script: "vault read -field=base64 secret/ops/account/nexus", returnStdout: true)
-                        env.DOCKERHUB_AUTH = sh(script: "vault read -field=value secret/gcc/token/dockerhub", returnStdout: true)
                     }
+                }
+                dir("${JENKINS_AGENT_WORKDIR}/.m2") {
+                    stash includes: 'settings.xml', name: 'maven-settings'
+                }
+                dir("${JENKINS_AGENT_WORKDIR}/.rancher") {
+                    stash includes: 'cli2.json', name: 'rancher-config'
                 }
             }
         }
