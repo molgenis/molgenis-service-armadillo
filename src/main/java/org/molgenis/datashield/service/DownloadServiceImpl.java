@@ -31,18 +31,23 @@ public class DownloadServiceImpl {
   private RestTemplate restTemplate;
 
   /**
-   * Retrieves metadata for entity type.
-   * @param entityTypeId the ID of the entity type
-   * @return the retrieved {@link EntityType}
+   * Retrieves metadata for entity type and maps to datashield {@link Table}.
+   * @param entityTypeId the ID of the entity type, dots will be replaced with underscores
+   * @return the {@link Table}
    */
   public Table getMetadata(String entityTypeId) {
-    EntityType entityType = restTemplate.getForObject(METADATA_URL, EntityType.class, entityTypeId);
+
+    EntityType entityType = restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
         .map(Attribute::getData)
         .filter(attributeData -> attributeData.getType()!= TypeEnum.COMPOUND)
         .map(this::toColumn).forEach(tableBuilder::addColumn);
     return tableBuilder.build();
+  }
+
+  public static String normalize(String entityTypeId) {
+    return entityTypeId.replace('.', '_');
   }
 
   private Column toColumn(AttributeData attribute) {
@@ -88,7 +93,7 @@ public class DownloadServiceImpl {
    */
   public ResponseEntity<Resource> download(Table table) {
     List<String> columnNames = table.columns().stream().map(Column::name).collect(toList());
-    Map<String, Object> request = Map.of("entityTypeId", table.name(),
+    Map<String, Object> request = Map.of("entityTypeId", normalize(table.name()),
         "query", Map.of("rules", List.of(List.of())),
         "attributeNames", columnNames,
         "colNames", "ATTRIBUTE_NAMES",
