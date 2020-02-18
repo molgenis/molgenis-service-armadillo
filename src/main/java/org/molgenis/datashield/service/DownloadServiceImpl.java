@@ -34,7 +34,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 @Component
 public class DownloadServiceImpl implements DownloadService
 {
-  private static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
+  public static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
   public static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
 
   private final RestTemplate restTemplate;

@@ -1,20 +1,34 @@
 package org.molgenis.datashield.service;
 
-import net.bytebuddy.implementation.bind.MethodDelegationBinder;
+import com.google.common.io.Resources;
+import com.google.gson.Gson;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.api.metadata.model.*;
+import org.molgenis.api.metadata.model.EntityType;
+import org.molgenis.datashield.service.model.Column;
+import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DownloadServiceImplTest {
@@ -23,19 +37,35 @@ class DownloadServiceImplTest {
 
   @Mock private RestTemplate restTemplate;
 
-//  @BeforeEach
-//  void before() {
-//
-//    downloadService = new DownloadServiceImpl(restTemplate);
-//    Mockito.when(restTemplate.getForObject(DownloadServiceImpl.METADATA_URL, EntityType.class, "aaabbbcccddd")).thenReturn(entityType);
-//  }
 
-  @Test
-  void getMetadata() {
-//    Table entityMetaData = downloadService.getMetadata("aaabbbcccddd");
-//    System.out.println(entityMetaData.name());
+  @BeforeEach
+  void before()
+  {
+    downloadService = new DownloadServiceImpl(restTemplate);
   }
 
   @Test
-  void download() {}
+  void testGetMetadata() {
+    EntityType entityType = TestUtils.getEntityType("metadata_patients.json");
+    when(restTemplate.getForObject(DownloadServiceImpl.METADATA_URL, EntityType.class, "aaabbbcccddd")).thenReturn(entityType);
+
+    Table entityMetaData = downloadService.getMetadata("aaabbbcccddd");
+
+    assertEquals("aaabbbcccddd", entityMetaData.name());
+  }
+
+
+  @Test
+  void testDownload() {
+    Column henk = Column.builder().setName("column_henk").setType(ColumnType.INT).build();
+    Table table = Table.builder().setName("table_bofke").addColumn(henk).build();
+    when(restTemplate.postForEntity(eq(DownloadServiceImpl.DOWNLOAD_URL), any(HttpEntity.class), eq(Resource.class))).thenReturn(ResponseEntity.ok().build());
+
+    downloadService.download(table);
+  }
+
+
+
+
+
 }
