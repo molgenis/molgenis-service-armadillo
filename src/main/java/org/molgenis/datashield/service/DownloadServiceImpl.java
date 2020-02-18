@@ -64,16 +64,21 @@ public class DownloadServiceImpl implements DownloadService {
   private ColumnType toColumnType(AttributeData attributeData) {
     switch (attributeData.getType()) {
       case INT:
-        return ColumnType.INT;
+      case LONG:
+        return ColumnType.INTEGER;
       case BOOL:
-        return ColumnType.BOOL;
+        return ColumnType.LOGICAL;
       case DATE:
         return ColumnType.DATE;
+      case DATE_TIME:
+        return ColumnType.DATE_TIME;
       case SCRIPT:
       case STRING:
       case TEXT:
       case HTML:
-        return ColumnType.STRING;
+        return ColumnType.CHARACTER;
+      case DECIMAL:
+        return ColumnType.DOUBLE;
       case XREF:
       case CATEGORICAL:
         String refEntityLink = attributeData.getRefEntityType().getSelf();

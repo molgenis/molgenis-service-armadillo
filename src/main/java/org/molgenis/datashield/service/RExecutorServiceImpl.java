@@ -1,18 +1,27 @@
 package org.molgenis.datashield.service;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
+import org.molgenis.datashield.service.model.Column;
+import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RExecutorServiceImpl implements RExecutorService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
 
   private static final String R_PACKAGE_REPO_URL = "http://cran.r-project.org";
 
@@ -49,7 +58,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   @SuppressWarnings("SameParameterValue")
   private void ensurePackage(String packageName, RConnection connection) throws RserveException {
     String cmd =
-        String.format(
+        format(
             "if (!require(%s)) { install.packages('%s', repos=c('%s'), dependencies=TRUE) }",
             packageName, packageName, R_PACKAGE_REPO_URL);
     connection.eval(cmd);
@@ -57,14 +66,48 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   private String assignTable(Table table, String dataFileName, RConnection connection)
       throws RserveException {
-    REXP rexp =
-        connection.eval(
-            String.format(
-                "base::is.null(base::assign('%s', readr::read_csv('%s')))",
-                table.name(), dataFileName));
-
-    connection.eval(String.format("base::unlink('%s')", dataFileName));
+    String colTypes = getColTypes(table);
+    String command =
+        format(
+            "base::is.null(base::assign('%s', readr::read_csv('%s', col_types = %s)))",
+            table.name(), dataFileName, colTypes);
+    LOGGER.debug("Executing: {}", command);
+    REXP rexp = connection.eval(command);
+    connection.eval(format("base::unlink('%s')", dataFileName));
 
     return rexp.toString();
+  }
+
+  public static String getColTypes(Table table) {
+    return format(
+        "cols ( %s )",
+        table.columns().stream()
+            .map(RExecutorServiceImpl::getColNameAndType)
+            .collect(joining(", ")));
+  }
+
+  private static String getColNameAndType(Column column) {
+    return column.name() + " = " + getColType(column.type());
+  }
+
+  public static String getColType(ColumnType type) {
+    switch (type) {
+      case LOGICAL:
+        return "col_logical()";
+      case INTEGER:
+        return "col_integer()";
+      case CHARACTER:
+        return "col_character()";
+      case DATE:
+        return "col_date()";
+      case DATE_TIME:
+        return "col_datetime()";
+      case DOUBLE:
+        return "col_double()";
+      case FACTOR:
+        throw new IllegalArgumentException("Factor columns not yet supported");
+      default:
+        throw new EnumConstantNotPresentException(ColumnType.class, type.name());
+    }
   }
 }
