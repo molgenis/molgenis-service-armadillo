@@ -80,10 +80,9 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
 
     RConnection con = new RConnection(host, port);
 
-    REXP sessionInfo = con.eval("capture.output(sessionInfo())");
+    REXP rSessionInfo = con.eval("capture.output(sessionInfo())");
     try {
-      logger.info(
-          "NEW CONNECTION >>> sessionInfo:\n{}", Arrays.deepToString(sessionInfo.asStrings()));
+      logger.info("New connection\n{}", String.join("\n", rSessionInfo.asStrings()));
     } catch (REXPMismatchException e) {
       logger.warn("Error creating session info.", e);
     }
