@@ -1,6 +1,7 @@
 package org.molgenis.datashield.service.model;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 
 @AutoValue
 public abstract class Column {
@@ -18,6 +19,13 @@ public abstract class Column {
 
     public abstract Builder setType(ColumnType type);
 
-    public abstract Column build();
+    abstract Column autoBuild();
+
+    public Column build() {
+      Column column = autoBuild();
+      Preconditions.checkState(
+          column.name().matches("[\\w#]+(-[a-z]{2,3})??$"), "Invalid column name");
+      return column;
+    }
   }
 }
