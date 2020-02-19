@@ -31,11 +31,13 @@ public class DownloadServiceImpl {
 
   /**
    * Retrieves metadata for entity type and maps to datashield {@link Table}.
+   *
    * @param entityTypeId the ID of the entity type, dots will be replaced with underscores
    * @return the {@link Table}
    */
   public Table getMetadata(String entityTypeId) {
-    EntityType entityType = restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
+    EntityType entityType =
+        restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
         .map(Attribute::getData)
@@ -92,12 +94,20 @@ public class DownloadServiceImpl {
    */
   public ResponseEntity<Resource> download(Table table) {
     List<String> columnNames = table.columns().stream().map(Column::name).collect(toList());
-    Map<String, Object> request = Map.of("entityTypeId", normalize(table.name()),
-        "query", Map.of("rules", List.of(List.of())),
-        "attributeNames", columnNames,
-        "colNames", "ATTRIBUTE_NAMES",
-        "entityValues", "ENTITY_IDS",
-        "downloadType", "DOWNLOAD_TYPE_CSV");
+    Map<String, Object> request =
+        Map.of(
+            "entityTypeId",
+            normalize(table.name()),
+            "query",
+            Map.of("rules", List.of(List.of())),
+            "attributeNames",
+            columnNames,
+            "colNames",
+            "ATTRIBUTE_NAMES",
+            "entityValues",
+            "ENTITY_IDS",
+            "downloadType",
+            "DOWNLOAD_TYPE_CSV");
     LinkedMultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
     params.add("dataRequest", request);
     HttpHeaders headers = new HttpHeaders();
