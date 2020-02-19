@@ -1,0 +1,64 @@
+{
+  "links": {
+    "self": "http://localhost/api/metadata/project_visits"
+  },
+  "data": {
+    "id": "project_visits",
+    "label": "visits",
+    "package": {
+      "links": {
+        "self": "http://localhost/api/data/sys_md_Package/project"
+      }
+    },
+    "attributes": {
+      "links": {
+        "self": "http://localhost/api/metadata/project_visits/attributes"
+      },
+      "items": [
+        {
+          "link": {
+            "self": "http://localhost/api/metadata/project_visits/attributes/aaaac4c46zhw7tx2rw4axjyab4"
+          },
+          "data": {
+            "id": "aaaac4c46zhw7tx2rw4axjyab4",
+            "label": "id",
+            "name": "id",
+            "sequenceNr": 0,
+            "type": "string",
+            "idAttribute": true,
+            "labelAttribute": true,
+            "lookupAttributeIndex": 0,
+            "nullable": false,
+            "auto": false,
+            "visible": true,
+            "unique": true,
+            "readOnly": true,
+            "aggregatable": false
+          }
+        },
+        {
+          "link": {
+            "self": "http://localhost/api/metadata/project_visits/attributes/aaaac4c46zhw7tx2rw4axjyaca"
+          },
+          "data": {
+            "id": "aaaac4c46zhw7tx2rw4axjyaca",
+            "label": "Label",
+            "name": "label",
+            "sequenceNr": 1,
+            "type": "string",
+            "idAttribute": false,
+            "labelAttribute": false,
+            "nullable": true,
+            "auto": false,
+            "visible": true,
+            "unique": false,
+            "readOnly": false,
+            "aggregatable": false
+          }
+        }
+      ]
+    },
+    "abstract": false,
+    "indexingDepth": 1
+  }
+}

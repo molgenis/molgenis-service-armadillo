@@ -1,5 +1,6 @@
 package org.molgenis.datashield.service;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
@@ -13,7 +14,6 @@ import org.molgenis.datashield.service.model.Column;
 import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
 import org.molgenis.datashield.service.model.Table.Builder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,11 +23,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-public class DownloadServiceImpl {
-  private static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
-  private static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
+public class DownloadServiceImpl implements DownloadService {
+  public static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
+  public static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
 
-  @Autowired private RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
+
+  public DownloadServiceImpl(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+  }
 
   /**
    * Retrieves metadata for entity type and maps to datashield {@link Table}.
@@ -35,9 +39,11 @@ public class DownloadServiceImpl {
    * @param entityTypeId the ID of the entity type, dots will be replaced with underscores
    * @return the {@link Table}
    */
+  @Override
   public Table getMetadata(String entityTypeId) {
     EntityType entityType =
         restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
+    requireNonNull(entityType);
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
         .map(Attribute::getData)
@@ -73,6 +79,7 @@ public class DownloadServiceImpl {
         String refEntityLink = attributeData.getRefEntityType().getSelf();
         EntityType refEntityType =
             restTemplate.getForObject(refEntityLink + "?flattenAttributes=true", EntityType.class);
+        requireNonNull(refEntityType);
         AttributeData refEntityIdAttribute =
             refEntityType.getData().getAttributes().getItems().stream()
                 .map(Attribute::getData)
@@ -92,6 +99,7 @@ public class DownloadServiceImpl {
    * @param table the Table to download
    * @return ResponseEntity to stream the CSV from
    */
+  @Override
   public ResponseEntity<Resource> download(Table table) {
     List<String> columnNames = table.columns().stream().map(Column::name).collect(toList());
     Map<String, Object> request =
