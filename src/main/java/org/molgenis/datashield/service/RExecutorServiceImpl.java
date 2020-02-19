@@ -69,7 +69,7 @@ public class RExecutorServiceImpl implements RExecutorService {
     String colTypes = getColTypes(table);
     String command =
         format(
-            "base::is.null(base::assign('%s', readr::read_csv('%s', col_types = %s)))",
+            "base::is.null(base::assign('%s', readr::read_csv('%s', col_types = %s, na = c(''))))",
             table.name(), dataFileName, colTypes);
     LOGGER.debug("Executing: {}", command);
     REXP rexp = connection.eval(command);
