@@ -64,8 +64,4 @@ class DownloadServiceImplTest {
     downloadService.download(table);
   }
 
-
-
-
-
 }

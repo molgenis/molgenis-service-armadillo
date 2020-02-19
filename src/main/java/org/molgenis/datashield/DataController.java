@@ -57,7 +57,7 @@ public class DataController {
 
     return datashieldSession.execute(
         connection -> {
-          return executorService.exec(cmd, connection);
+          return executorService.execute(cmd, connection);
         });
   }
 }

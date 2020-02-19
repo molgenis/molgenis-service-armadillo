@@ -12,14 +12,17 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RExecutorServiceImpl {
+public class RExecutorServiceImpl implements RExecutorService
+{
 
-  public String exec(String cmd, RConnection connection)
+  @Override
+  public String execute(String cmd, RConnection connection)
       throws RserveException, REXPMismatchException {
     REXP value = connection.eval(cmd);
     return value.asString();
   }
 
+  @Override
   public String assign(InputStream csv, Table table, RConnection connection)
       throws IOException, RserveException {
     String DATA_FILE_NAME = table.name() + ".csv";
