@@ -22,7 +22,8 @@ public class MolgenisConfig {
   public RestTemplate restTemplate() {
     return new RestTemplateBuilder()
         .messageConverters(
-            List.of(new GsonHttpMessageConverter(),
+            List.of(
+                new GsonHttpMessageConverter(),
                 new AllEncompassingFormHttpMessageConverter(),
                 new ResourceHttpMessageConverter(true)))
         .defaultHeader("X-Molgenis-Token", token)

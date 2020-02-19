@@ -1,5 +1,7 @@
 package org.molgenis.datashield.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.REXP;
@@ -8,9 +10,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @Component
 public class RExecutorServiceImpl {
@@ -31,7 +30,11 @@ public class RExecutorServiceImpl {
     outputStream.close();
 
     ensurePackage("readr", connection);
-    REXP rexp = connection.eval(String.format("base::is.null(base::assign('%s', readr::read_csv('%s')))", table.name(), DATA_FILE_NAME));
+    REXP rexp =
+        connection.eval(
+            String.format(
+                "base::is.null(base::assign('%s', readr::read_csv('%s')))",
+                table.name(), DATA_FILE_NAME));
 
     connection.eval(String.format("base::unlink('%s')", DATA_FILE_NAME));
 
