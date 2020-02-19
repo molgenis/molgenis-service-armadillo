@@ -1,5 +1,6 @@
 package org.molgenis.datashield.service;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
@@ -42,6 +43,7 @@ public class DownloadServiceImpl implements DownloadService {
   public Table getMetadata(String entityTypeId) {
     EntityType entityType =
         restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
+    requireNonNull(entityType);
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
         .map(Attribute::getData)
@@ -77,6 +79,7 @@ public class DownloadServiceImpl implements DownloadService {
         String refEntityLink = attributeData.getRefEntityType().getSelf();
         EntityType refEntityType =
             restTemplate.getForObject(refEntityLink + "?flattenAttributes=true", EntityType.class);
+        requireNonNull(refEntityType);
         AttributeData refEntityIdAttribute =
             refEntityType.getData().getAttributes().getItems().stream()
                 .map(Attribute::getData)

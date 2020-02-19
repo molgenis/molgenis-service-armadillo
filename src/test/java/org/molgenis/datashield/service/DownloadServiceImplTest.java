@@ -1,5 +1,6 @@
 package org.molgenis.datashield.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,24 +34,29 @@ class DownloadServiceImplTest {
 
   @Test
   void testGetMetadata() {
-    EntityType entityType = TestUtils.getEntityType("metadata_patients.json");
+    EntityType patients = TestUtils.getEntityType("project_patients.json");
+    EntityType visits = TestUtils.getEntityType("project_visits.json");
     when(restTemplate.getForObject(
-            DownloadServiceImpl.METADATA_URL, EntityType.class, "aaabbbcccddd"))
-        .thenReturn(entityType);
+            DownloadServiceImpl.METADATA_URL, EntityType.class, "project_patients"))
+        .thenReturn(patients);
+    when(restTemplate.getForObject(
+            "http://localhost/api/metadata/project_visits?flattenAttributes=true",
+            EntityType.class))
+        .thenReturn(visits);
 
-    Table entityMetaData = downloadService.getMetadata("aaabbbcccddd");
+    Table entityMetaData = downloadService.getMetadata("project.patients");
 
-    assertEquals("aaabbbcccddd", entityMetaData.name());
+    assertEquals("project.patients", entityMetaData.name());
   }
 
   @Test
   void testDownload() {
-    Column henk = Column.builder().setName("column_henk").setType(ColumnType.INT).build();
-    Table table = Table.builder().setName("table_bofke").addColumn(henk).build();
+    Column id = Column.builder().setName("column_id").setType(ColumnType.INT).build();
+    Table table = Table.builder().setName("table_patients").addColumn(id).build();
     when(restTemplate.postForEntity(
             eq(DownloadServiceImpl.DOWNLOAD_URL), any(HttpEntity.class), eq(Resource.class)))
         .thenReturn(ResponseEntity.ok().build());
 
-    downloadService.download(table);
+    assertDoesNotThrow(() -> downloadService.download(table));
   }
 }
