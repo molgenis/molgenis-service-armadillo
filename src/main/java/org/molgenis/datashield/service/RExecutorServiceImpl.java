@@ -12,8 +12,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RExecutorServiceImpl implements RExecutorService
-{
+public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public String execute(String cmd, RConnection connection)

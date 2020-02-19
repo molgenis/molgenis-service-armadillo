@@ -1,13 +1,10 @@
 package org.molgenis.datashield.service;
 
-<<<<<<< HEAD
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 import java.util.List;
 import java.util.Map;
-=======
->>>>>>> aacb9d2... tests: added test deps and first downloadservice test
 import org.molgenis.api.metadata.model.Attribute;
 import org.molgenis.api.metadata.model.AttributeData;
 import org.molgenis.api.metadata.model.AttributeData.TypeEnum;
@@ -16,7 +13,6 @@ import org.molgenis.datashield.service.model.Column;
 import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
 import org.molgenis.datashield.service.model.Table.Builder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,27 +21,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
-
 @Component
-public class DownloadServiceImpl implements DownloadService
-{
+public class DownloadServiceImpl implements DownloadService {
   public static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
   public static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
 
   private final RestTemplate restTemplate;
 
-<<<<<<< HEAD
-  @Autowired private RestTemplate restTemplate;
-=======
   public DownloadServiceImpl(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
->>>>>>> aacb9d2... tests: added test deps and first downloadservice test
 
   /**
    * Retrieves metadata for entity type.

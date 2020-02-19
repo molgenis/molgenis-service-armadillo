@@ -1,8 +1,10 @@
 package org.molgenis.datashield.service;
 
-import com.google.common.io.Resources;
-import com.google.gson.Gson;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,19 +19,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class DownloadServiceImplTest {
 
@@ -37,31 +26,31 @@ class DownloadServiceImplTest {
 
   @Mock private RestTemplate restTemplate;
 
-
   @BeforeEach
-  void before()
-  {
+  void before() {
     downloadService = new DownloadServiceImpl(restTemplate);
   }
 
   @Test
   void testGetMetadata() {
     EntityType entityType = TestUtils.getEntityType("metadata_patients.json");
-    when(restTemplate.getForObject(DownloadServiceImpl.METADATA_URL, EntityType.class, "aaabbbcccddd")).thenReturn(entityType);
+    when(restTemplate.getForObject(
+            DownloadServiceImpl.METADATA_URL, EntityType.class, "aaabbbcccddd"))
+        .thenReturn(entityType);
 
     Table entityMetaData = downloadService.getMetadata("aaabbbcccddd");
 
     assertEquals("aaabbbcccddd", entityMetaData.name());
   }
 
-
   @Test
   void testDownload() {
     Column henk = Column.builder().setName("column_henk").setType(ColumnType.INT).build();
     Table table = Table.builder().setName("table_bofke").addColumn(henk).build();
-    when(restTemplate.postForEntity(eq(DownloadServiceImpl.DOWNLOAD_URL), any(HttpEntity.class), eq(Resource.class))).thenReturn(ResponseEntity.ok().build());
+    when(restTemplate.postForEntity(
+            eq(DownloadServiceImpl.DOWNLOAD_URL), any(HttpEntity.class), eq(Resource.class)))
+        .thenReturn(ResponseEntity.ok().build());
 
     downloadService.download(table);
   }
-
 }
