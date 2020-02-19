@@ -13,16 +13,14 @@ import org.springframework.web.context.annotation.SessionScope;
 public class RDatashieldSession {
   private RSession rSession = null;
 
-  @Autowired
-  private RConnectionFactory rConnectionFactory;
+  @Autowired private RConnectionFactory rConnectionFactory;
 
-  public <T> T execute(RConnectionConsumer<T> consumer) throws RserveException, REXPMismatchException
-  {
+  public <T> T execute(RConnectionConsumer<T> consumer)
+      throws RserveException, REXPMismatchException {
     RConnection connection = getRConnection();
     try {
       return consumer.accept(connection);
-    }
-    finally {
+    } finally {
       rSession = connection.detach();
     }
   }

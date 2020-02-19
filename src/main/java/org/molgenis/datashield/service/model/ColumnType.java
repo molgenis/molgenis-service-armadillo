@@ -10,6 +10,7 @@ public enum ColumnType {
   STRING("string");
 
   private String name;
+
   ColumnType(String name) {
     this.name = name;
   }

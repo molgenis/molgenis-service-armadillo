@@ -3,12 +3,12 @@ package org.molgenis.datashield.service;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
+import java.util.List;
+import java.util.Map;
 import org.molgenis.api.metadata.model.Attribute;
 import org.molgenis.api.metadata.model.AttributeData;
 import org.molgenis.api.metadata.model.AttributeData.TypeEnum;
 import org.molgenis.api.metadata.model.EntityType;
-import java.util.List;
-import java.util.Map;
 import org.molgenis.datashield.service.model.Column;
 import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
@@ -27,13 +27,19 @@ public class DownloadServiceImpl {
   private static final String DOWNLOAD_URL = "/menu/main/dataexplorer/download";
   private static final String METADATA_URL = "/api/metadata/{entityTypeId}?flattenAttributes=true";
 
-  @Autowired
-  private RestTemplate restTemplate;
+  @Autowired private RestTemplate restTemplate;
 
   /**
+<<<<<<< HEAD
    * Retrieves metadata for entity type and maps to datashield {@link Table}.
    * @param entityTypeId the ID of the entity type, dots will be replaced with underscores
    * @return the {@link Table}
+=======
+   * Retrieves metadata for entity type.
+   *
+   * @param entityTypeId the ID of the entity type
+   * @return the retrieved {@link EntityType}
+>>>>>>> blessed/master
    */
   public Table getMetadata(String entityTypeId) {
 
@@ -41,8 +47,9 @@ public class DownloadServiceImpl {
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
         .map(Attribute::getData)
-        .filter(attributeData -> attributeData.getType()!= TypeEnum.COMPOUND)
-        .map(this::toColumn).forEach(tableBuilder::addColumn);
+        .filter(attributeData -> attributeData.getType() != TypeEnum.COMPOUND)
+        .map(this::toColumn)
+        .forEach(tableBuilder::addColumn);
     return tableBuilder.build();
   }
 
@@ -51,9 +58,7 @@ public class DownloadServiceImpl {
   }
 
   private Column toColumn(AttributeData attribute) {
-    return Column.builder()
-      .setName(attribute.getName())
-      .setType(toColumnType(attribute)).build();
+    return Column.builder().setName(attribute.getName()).setType(toColumnType(attribute)).build();
   }
 
   private ColumnType toColumnType(AttributeData attributeData) {
@@ -72,39 +77,59 @@ public class DownloadServiceImpl {
       case XREF:
       case CATEGORICAL:
         String refEntityLink = attributeData.getRefEntityType().getSelf();
-        EntityType refEntityType = restTemplate.getForObject(refEntityLink+"?flattenAttributes=true", EntityType.class);
-        AttributeData refEntityIdAttribute = refEntityType.getData()
-            .getAttributes()
-            .getItems()
-            .stream()
-            .map(Attribute::getData)
-            .filter(AttributeData::isIdAttribute)
-            .findFirst().orElseThrow();
+        EntityType refEntityType =
+            restTemplate.getForObject(refEntityLink + "?flattenAttributes=true", EntityType.class);
+        AttributeData refEntityIdAttribute =
+            refEntityType.getData().getAttributes().getItems().stream()
+                .map(Attribute::getData)
+                .filter(AttributeData::isIdAttribute)
+                .findFirst()
+                .orElseThrow();
         return toColumnType(refEntityIdAttribute);
       default:
-        throw new IllegalArgumentException("Cannot convert type " + attributeData.getType().getValue());
+        throw new IllegalArgumentException(
+            "Cannot convert type " + attributeData.getType().getValue());
     }
   }
 
   /**
    * Downloads CSV for entity type.
+   *
    * @param table the Table to download
    * @return ResponseEntity to stream the CSV from
    */
   public ResponseEntity<Resource> download(Table table) {
     List<String> columnNames = table.columns().stream().map(Column::name).collect(toList());
+<<<<<<< HEAD
     Map<String, Object> request = Map.of("entityTypeId", normalize(table.name()),
         "query", Map.of("rules", List.of(List.of())),
         "attributeNames", columnNames,
         "colNames", "ATTRIBUTE_NAMES",
         "entityValues", "ENTITY_IDS",
         "downloadType", "DOWNLOAD_TYPE_CSV");
+=======
+    Map<String, Object> request =
+        Map.of(
+            "entityTypeId",
+            table.name(),
+            "query",
+            Map.of("rules", List.of(List.of())),
+            "attributeNames",
+            columnNames,
+            "colNames",
+            "ATTRIBUTE_NAMES",
+            "entityValues",
+            "ENTITY_IDS",
+            "downloadType",
+            "DOWNLOAD_TYPE_CSV");
+>>>>>>> blessed/master
 
     LinkedMultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
     params.add("dataRequest", request);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MULTIPART_FORM_DATA);
-    HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(params, headers);
+    HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity =
+        new HttpEntity<>(params, headers);
     return restTemplate.postForEntity(DOWNLOAD_URL, requestEntity, Resource.class);
   }
 }

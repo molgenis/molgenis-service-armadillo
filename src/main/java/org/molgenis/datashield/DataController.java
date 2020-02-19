@@ -1,5 +1,7 @@
 package org.molgenis.datashield;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.molgenis.datashield.r.RDatashieldSession;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.RExecutorServiceImpl;
@@ -11,9 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @RestController
 public class DataController {
