@@ -2,6 +2,7 @@ package org.molgenis.datashield;
 
 import java.io.IOException;
 import java.io.InputStream;
+import org.molgenis.datashield.exceptions.DatashieldRequestFailedException;
 import org.molgenis.datashield.r.RDatashieldSession;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.RExecutorServiceImpl;
@@ -12,7 +13,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class DataController {
@@ -33,7 +39,7 @@ public class DataController {
   @GetMapping("/load/{entityTypeId}")
   @ResponseStatus(HttpStatus.OK)
   public void load(@PathVariable String entityTypeId)
-      throws REXPMismatchException, RserveException, IOException {
+      throws REXPMismatchException, RserveException {
     Table table = downloadService.getMetadata(entityTypeId);
     ResponseEntity<Resource> response = downloadService.download(table);
 
@@ -43,7 +49,7 @@ public class DataController {
             InputStream csvStream = response.getBody().getInputStream();
             return executorService.assign(csvStream, table, connection);
           } catch (IOException err) {
-            throw new RuntimeException(err.getMessage(), err);
+            throw new DatashieldRequestFailedException(err.getMessage(), err);
           }
         });
   }
@@ -54,10 +60,6 @@ public class DataController {
       produces = MediaType.TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public String execute(@RequestBody String cmd) throws REXPMismatchException, RserveException {
-
-    return datashieldSession.execute(
-        connection -> {
-          return executorService.execute(cmd, connection);
-        });
+    return datashieldSession.execute(connection -> executorService.execute(cmd, connection));
   }
 }
