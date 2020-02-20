@@ -1,6 +1,6 @@
 package org.molgenis.datashield.r;
 
-import org.molgenis.datashield.exceptions.DatashieldNoSessionException;
+import org.molgenis.datashield.exceptions.DatashieldSessionException;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
@@ -42,7 +42,7 @@ public class RDatashieldSession {
       }
       return rSession.attach();
     } catch (RserveException err) {
-      throw new RuntimeException("foutje", err);
+      throw new DatashieldSessionException("Could not attach connection to RSession", err);
     }
   }
 
@@ -55,7 +55,7 @@ public class RDatashieldSession {
         connection.close();
       }
     } catch (RserveException err) {
-      throw new DatashieldNoSessionException("Closing session and/or connection failed", err);
+      throw new DatashieldSessionException("Closing session and/or connection failed", err);
     }
   }
 }
