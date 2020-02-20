@@ -1,13 +1,13 @@
 package org.molgenis.datashield.service.model;
 
 public enum ColumnType {
-  BOOL("bool"),
+  LOGICAL("logical"),
   DATE("date"),
   DATE_TIME("date_time"),
-  DECIMAL("decimal"),
-  INT("int"),
-  LONG("long"),
-  STRING("string");
+  DOUBLE("double"),
+  INTEGER("integer"),
+  CHARACTER("character"),
+  FACTOR("factor");
 
   private String name;
 

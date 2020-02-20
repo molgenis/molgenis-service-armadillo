@@ -51,7 +51,7 @@ class DownloadServiceImplTest {
 
   @Test
   void testDownload() {
-    Column id = Column.builder().setName("column_id").setType(ColumnType.INT).build();
+    Column id = Column.builder().setName("column_id").setType(ColumnType.INTEGER).build();
     Table table = Table.builder().setName("table_patients").addColumn(id).build();
     when(restTemplate.postForEntity(
             eq(DownloadServiceImpl.DOWNLOAD_URL), any(HttpEntity.class), eq(Resource.class)))
