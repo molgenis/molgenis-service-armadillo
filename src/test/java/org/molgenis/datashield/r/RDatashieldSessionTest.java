@@ -13,17 +13,15 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 @ExtendWith(MockitoExtension.class)
 class RDatashieldSessionTest {
-
-  @MockBean private RConnectionFactory rConnectionFactory;
 
   private RDatashieldSession rDatashieldSession;
   @Mock private RConnection rConnection;
   @Mock private RSession rSession;
   @Mock private RConnectionConsumer rConnectionConsumer;
+  @Mock private RConnectionFactory rConnectionFactory;
 
   @BeforeEach
   public void before() {
@@ -35,7 +33,6 @@ class RDatashieldSessionTest {
   void execute() throws REXPMismatchException, RserveException {
     when(rConnectionFactory.getNewConnection(false)).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
-    when(rSession.attach()).thenReturn(rConnection);
 
     rDatashieldSession.execute(rConnectionConsumer);
 
