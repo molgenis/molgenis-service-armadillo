@@ -1,0 +1,19 @@
+molgenis:
+  uri: https://latest.test.molgenis.org
+  token: test
+
+rserve:
+  port: 6312
+  host: localhost
+  connect:
+    attempts: 5
+    interval: 1000
+
+spring:
+  security:
+    user:
+      name: admin
+      password: admin
+
+security:
+  enable-csrf: false
