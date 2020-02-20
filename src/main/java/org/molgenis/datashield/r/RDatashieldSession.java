@@ -1,10 +1,13 @@
 package org.molgenis.datashield.r;
 
+import javax.annotation.PreDestroy;
+import org.molgenis.datashield.exceptions.DatashieldSessionException;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -13,9 +16,15 @@ import org.springframework.web.context.annotation.SessionScope;
 public class RDatashieldSession {
   private RSession rSession = null;
 
-  @Autowired private RConnectionFactory rConnectionFactory;
+  private static final Logger logger = LoggerFactory.getLogger(RDatashieldSession.class);
 
-  public <T> T execute(RConnectionConsumer<T> consumer)
+  private final RConnectionFactory rConnectionFactory;
+
+  public RDatashieldSession(RConnectionFactory rConnectionFactory) {
+    this.rConnectionFactory = rConnectionFactory;
+  }
+
+  public synchronized <T> T execute(RConnectionConsumer<T> consumer)
       throws RserveException, REXPMismatchException {
     RConnection connection = getRConnection();
     try {
@@ -32,7 +41,20 @@ public class RDatashieldSession {
       }
       return rSession.attach();
     } catch (RserveException err) {
-      throw new RuntimeException("foutje", err);
+      throw new DatashieldSessionException("Could not attach connection to RSession", err);
+    }
+  }
+
+  @PreDestroy
+  public synchronized void sessionCleanup() {
+    try {
+      if (rSession != null) {
+        logger.debug("Cleanup session");
+        RConnection connection = rSession.attach();
+        connection.close();
+      }
+    } catch (RserveException err) {
+      throw new DatashieldSessionException("Closing session and/or connection failed", err);
     }
   }
 }

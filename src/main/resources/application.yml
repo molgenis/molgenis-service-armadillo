@@ -3,7 +3,7 @@ molgenis:
   token: test
 
 rserve:
-  port: 6312
+  port: 6311
   host: localhost
   connect:
     attempts: 5
