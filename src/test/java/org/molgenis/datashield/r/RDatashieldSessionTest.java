@@ -1,21 +1,21 @@
 package org.molgenis.datashield.r;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.rosuda.REngine.REXP;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class RDatashieldSessionTest {
 
   @MockBean private RConnectionFactory rConnectionFactory;
@@ -26,17 +26,21 @@ class RDatashieldSessionTest {
   @Mock private RConnectionConsumer rConnectionConsumer;
 
   @BeforeEach
-  public void before() throws RserveException {
+  public void before() {
     this.rDatashieldSession = new RDatashieldSession(rConnectionFactory);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void execute() throws REXPMismatchException, RserveException {
     when(rConnectionFactory.getNewConnection(false)).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
     when(rSession.attach()).thenReturn(rConnection);
-  }
 
-  @Test
-  void execute() throws REXPMismatchException, RserveException {
     rDatashieldSession.execute(rConnectionConsumer);
-    verify(rConnectionConsumer.accept(rConnection));
+
+    assertAll(
+        () -> verify(rConnectionConsumer).accept(rConnection), () -> verify(rConnection).detach());
   }
 
   @Test

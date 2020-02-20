@@ -2,8 +2,6 @@ package org.molgenis.datashield;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,7 +15,6 @@ import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.molgenis.datashield.exceptions.DatashieldRequestFailedException;
-import org.molgenis.datashield.r.RConnectionConsumer;
 import org.molgenis.datashield.r.RDatashieldSession;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.RExecutorServiceImpl;
@@ -100,6 +97,4 @@ class DataControllerTest {
 
     verify(executorService).execute("mean(age)", rConnection);
   }
-
-
 }
