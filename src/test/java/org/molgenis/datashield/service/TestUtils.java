@@ -22,15 +22,15 @@ public class TestUtils {
 
   @SuppressWarnings("unchecked")
   public static RConnection mockDatashieldSessionConsumer(RDatashieldSession datashieldSession)
-          throws org.rosuda.REngine.Rserve.RserveException, org.rosuda.REngine.REXPMismatchException {
+      throws org.rosuda.REngine.Rserve.RserveException, org.rosuda.REngine.REXPMismatchException {
     RConnection rConnection = mock(RConnection.class);
     doAnswer(
             answer -> {
               RConnectionConsumer<String> consumer = answer.getArgument(0);
               return consumer.accept(rConnection);
             })
-            .when(datashieldSession)
-            .execute(any(RConnectionConsumer.class));
+        .when(datashieldSession)
+        .execute(any(RConnectionConsumer.class));
     return rConnection;
   }
 }
