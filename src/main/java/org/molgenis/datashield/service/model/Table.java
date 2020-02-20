@@ -1,6 +1,7 @@
 package org.molgenis.datashield.service.model;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 @AutoValue
@@ -24,6 +25,12 @@ public abstract class Table {
       return this;
     }
 
-    public abstract Table build();
+    abstract Table autoBuild();
+
+    public Table build() {
+      Table table = autoBuild();
+      Preconditions.checkState(table.name().matches("^[\\w\\-.]+$"), "Invalid table name");
+      return table;
+    }
   }
 }
