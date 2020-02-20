@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.molgenis.datashield.service.TestUtils.mockDatashieldSessionConsumer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,7 +54,7 @@ class DataControllerTest {
     when(resource.getInputStream()).thenReturn(csvStream);
     when(downloadService.getMetadata("project.patients")).thenReturn(table);
     when(downloadService.download(table)).thenReturn(response);
-    RConnection rConnection = mockDatashieldSessionConsumer();
+    RConnection rConnection = mockDatashieldSessionConsumer(datashieldSession);
 
     mockMvc.perform(get("/load/project.patients")).andExpect(status().isOk());
 
@@ -75,7 +76,7 @@ class DataControllerTest {
     when(resource.getInputStream()).thenReturn(csvStream);
     when(downloadService.getMetadata("project.patients")).thenReturn(table);
     when(downloadService.download(table)).thenReturn(response);
-    RConnection rConnection = mockDatashieldSessionConsumer();
+    RConnection rConnection = mockDatashieldSessionConsumer(datashieldSession);
     IOException exception = new IOException("test");
     when(executorService.assign(csvStream, table, rConnection)).thenThrow(exception);
 
@@ -91,7 +92,7 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecute() throws Exception {
-    RConnection rConnection = mockDatashieldSessionConsumer();
+    RConnection rConnection = mockDatashieldSessionConsumer(datashieldSession);
 
     mockMvc
         .perform(post("/execute").contentType(MediaType.TEXT_PLAIN).content("mean(age)"))
@@ -100,17 +101,5 @@ class DataControllerTest {
     verify(executorService).execute("mean(age)", rConnection);
   }
 
-  @SuppressWarnings("unchecked")
-  private RConnection mockDatashieldSessionConsumer()
-      throws org.rosuda.REngine.Rserve.RserveException, org.rosuda.REngine.REXPMismatchException {
-    RConnection rConnection = mock(RConnection.class);
-    doAnswer(
-            answer -> {
-              RConnectionConsumer<String> consumer = answer.getArgument(0);
-              return consumer.accept(rConnection);
-            })
-        .when(datashieldSession)
-        .execute(any(RConnectionConsumer.class));
-    return rConnection;
-  }
+
 }
