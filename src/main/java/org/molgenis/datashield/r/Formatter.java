@@ -11,6 +11,7 @@ import org.apache.commons.text.translate.CharSequenceTranslator;
 import org.apache.commons.text.translate.LookupTranslator;
 import org.apache.commons.text.translate.UnicodeEscaper;
 
+/** Formats Java objects to executable R strings. */
 public class Formatter {
   // See https://stat.ethz.ch/R-manual/R-devel/library/base/html/Quotes.html
   public static final ImmutableMap<CharSequence, CharSequence> R_CTRL_CHARS_ESCAPE =
