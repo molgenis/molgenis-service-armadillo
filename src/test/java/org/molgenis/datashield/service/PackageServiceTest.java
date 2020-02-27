@@ -33,7 +33,9 @@ class PackageServiceTest {
 
   @Test
   public void testGetInstalledPackages() throws REXPMismatchException, RserveException {
-    when(rConnection.eval("installed.packages(fields=c())")).thenReturn(rexp);
+    when(rConnection.eval(
+            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
+        .thenReturn(rexp);
     when(rexpParser.toStringMap(rexp))
         .thenReturn(
             List.of(
@@ -56,5 +58,29 @@ class PackageServiceTest {
                     "LibPath",
                     DESC.libPath())));
     assertEquals(List.of(BASE, DESC), packageService.getInstalledPackages(rConnection));
+  }
+
+  @Test
+  public void testParseSimpleOptions() throws REXPMismatchException, RserveException {
+    when(rConnection.eval(
+            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
+        .thenReturn(rexp);
+    when(rexpParser.toStringMap(rexp))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Package",
+                    "p",
+                    "Version",
+                    "v",
+                    "Built",
+                    "b",
+                    "LibPath",
+                    "l",
+                    "Options",
+                    "default.nfilter.string=80,default.nfilter.kNN=3")));
+    assertEquals(
+        Map.of("default.nfilter.string", "80", "default.nfilter.kNN", "3"),
+        packageService.getInstalledPackages(rConnection).get(0).options());
   }
 }

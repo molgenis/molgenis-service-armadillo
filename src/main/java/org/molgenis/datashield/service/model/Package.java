@@ -6,6 +6,9 @@ import static java.lang.Character.isLetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.springframework.lang.Nullable;
 
 @AutoValue
 @JsonSerialize(as = Package.class)
@@ -23,6 +26,18 @@ public abstract class Package {
   @JsonProperty("built")
   public abstract String built();
 
+  @Nullable
+  @JsonProperty("assignMethods")
+  public abstract ImmutableSet<String> assignMethods();
+
+  @Nullable
+  @JsonProperty("aggregateMethods")
+  public abstract ImmutableSet<String> aggregateMethods();
+
+  @Nullable
+  @JsonProperty("options")
+  public abstract ImmutableMap<String, String> options();
+
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setName(String name);
@@ -32,6 +47,12 @@ public abstract class Package {
     public abstract Builder setBuilt(String built);
 
     public abstract Builder setVersion(String version);
+
+    public abstract Builder setAssignMethods(ImmutableSet<String> assignMethods);
+
+    public abstract Builder setAggregateMethods(ImmutableSet<String> aggregateMethods);
+
+    public abstract Builder setOptions(ImmutableMap<String, String> options);
 
     abstract Package autoBuild();
 
