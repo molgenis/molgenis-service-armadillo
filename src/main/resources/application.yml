@@ -1,13 +1,10 @@
 molgenis:
-  uri: https://latest.test.molgenis.org
+  uri: https://datashield-backend.dev.molgenis.org
   token: test
 
 rserve:
   port: 6311
   host: localhost
-  connect:
-    attempts: 5
-    interval: 1000
 
 spring:
   security:

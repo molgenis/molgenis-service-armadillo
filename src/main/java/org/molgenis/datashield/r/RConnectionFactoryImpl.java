@@ -7,6 +7,8 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,12 +20,6 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
   @Value("${rserve.host}")
   private String rserveHost;
 
-  @Value("${rserve.connect.interval}")
-  private long startAttemptSleep;
-
-  @Value("${rserve.connect.attempts}")
-  private int startAttemptCount = 5;
-
   private static final Logger logger = LoggerFactory.getLogger(RConnectionFactoryImpl.class);
 
   @Override
@@ -34,51 +30,21 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
         rserveHost,
         rservePort);
 
-    RConnection con = null;
-    try {
-      con = newConnection(rserveHost, rservePort);
-    } catch (RserveException rse) {
-      logger.debug("Could not connect to RServe: {}", rse.getMessage());
-
-      if (rse.getMessage().startsWith("Cannot connect") && enableBatchStart) {
-        logger.info("Attempting to start RServe.");
-
-        try {
-          con = attemptStarts(rserveHost, rservePort);
-        } catch (Exception e) {
-          logger.error("Attempted to start RServe and establish a connection failed", e);
-        }
-      } else throw rse;
-    }
-
-    return con;
+    return enableBatchStart ? retryNewConnection() : newConnection();
   }
 
-  private RConnection attemptStarts(String host, int port)
-      throws InterruptedException, RserveException {
-    int attempt = 1;
-    RConnection con = null;
-    while (attempt <= startAttemptCount) {
-      try {
-        Thread.sleep(startAttemptSleep); // wait for R to startup, then establish connection
-        con = newConnection(host, port);
-        break;
-      } catch (RserveException rse) {
-        if (attempt >= 5) {
-          throw rse;
-        }
-
-        attempt++;
-      }
-    }
-    return con;
+  @Retryable(
+      exceptionExpression = "message.startsWith('Cannot connect')",
+      value = {RserveException.class},
+      maxAttempts = 5,
+      backoff = @Backoff(delay = 1000))
+  protected RConnection retryNewConnection() throws RserveException {
+    logger.info("retryNewConnection");
+    return newConnection();
   }
 
-  private static RConnection newConnection(String host, int port) throws RserveException {
-    logger.debug("Creating new RConnection");
-
-    RConnection con = new RConnection(host, port);
-
+  private RConnection newConnection() throws RserveException {
+    RConnection con = new RConnection(rserveHost, rservePort);
     REXP rSessionInfo = con.eval("capture.output(sessionInfo())");
     try {
       logger.info("New connection\n{}", String.join("\n", rSessionInfo.asStrings()));

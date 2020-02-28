@@ -2,6 +2,7 @@ package org.molgenis.datashield.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -41,12 +42,11 @@ class RExecutorServiceImplTest {
   void execute() throws RserveException, REXPMismatchException {
     RConnection rConnection = mock(RConnection.class);
     REXP rexp = mock(REXP.class);
-    when(rexp.asString()).thenReturn("36.6");
     when(rConnection.eval("mean(age)")).thenReturn(rexp);
 
-    String result = executorService.execute("mean(age)", rConnection);
+    REXP result = executorService.execute("mean(age)", rConnection);
 
-    assertEquals("36.6", result);
+    assertSame(rexp, result);
   }
 
   @ParameterizedTest()
