@@ -6,8 +6,10 @@ import static java.util.stream.Collectors.toMap;
 import static org.molgenis.datashield.r.Formatter.stringVector;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.molgenis.datashield.r.REXPParser;
 import org.molgenis.datashield.service.model.Package;
@@ -47,14 +49,30 @@ public class PackageService {
             .setVersion(row.get("Version"))
             .setBuilt(row.get("Built"));
     if (row.containsKey("Options")) {
-      // TODO: check out DataShieldROptionsParser, things are more complicated than this
-      String[] options = row.get("Options").split(",");
-      Map<String, String> optionsMap =
-          stream(options)
-              .map(it -> it.split("="))
-              .collect(toMap(it -> it[0].trim(), it -> it[1].trim()));
-      builder.setOptions(ImmutableMap.copyOf(optionsMap));
+      builder.setOptions(parseOptions(row.get("Options")));
+    }
+    if (row.containsKey("AssignMethods")) {
+      builder.setAssignMethods(parseMethods(row.get("AssignMethods")));
+    }
+    if (row.containsKey("AggregateMethods")) {
+      builder.setAggregateMethods(parseMethods(row.get("AggregateMethods")));
     }
     return builder.build();
+  }
+
+  // TODO: check out DataShieldROptionsParser in opal, values can contain commas?
+  static ImmutableMap<String, String> parseOptions(String options1) {
+    String[] options = options1.split(",");
+    Map<String, String> optionsMap =
+        stream(options)
+            .map(it -> it.split("="))
+            .collect(toMap(it -> it[0].trim(), it -> it[1].trim()));
+    return ImmutableMap.copyOf(optionsMap);
+  }
+
+  static ImmutableSet<String> parseMethods(String aggregateMethods) {
+    String[] methods = aggregateMethods.split(",");
+    Set<String> methodSet = stream(methods).map(String::trim).collect(Collectors.toSet());
+    return ImmutableSet.copyOf(methodSet);
   }
 }

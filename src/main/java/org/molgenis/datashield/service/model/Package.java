@@ -3,6 +3,8 @@ package org.molgenis.datashield.service.model;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Character.isLetter;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
@@ -12,6 +14,7 @@ import org.springframework.lang.Nullable;
 
 @AutoValue
 @JsonSerialize(as = Package.class)
+@JsonInclude(Include.NON_NULL)
 public abstract class Package {
 
   @JsonProperty("name")

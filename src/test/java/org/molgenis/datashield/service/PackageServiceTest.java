@@ -7,6 +7,7 @@ import static org.molgenis.datashield.service.model.PackageTest.DESC;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,5 +83,53 @@ class PackageServiceTest {
     assertEquals(
         Map.of("default.nfilter.string", "80", "default.nfilter.kNN", "3"),
         packageService.getInstalledPackages(rConnection).get(0).options());
+  }
+
+  @Test
+  public void testParseAssignMethods() throws REXPMismatchException, RserveException {
+    when(rConnection.eval(
+            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
+        .thenReturn(rexp);
+    when(rexpParser.toStringMap(rexp))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Package",
+                    "p",
+                    "Version",
+                    "v",
+                    "Built",
+                    "b",
+                    "LibPath",
+                    "l",
+                    "AssignMethods",
+                    "subsetByClassDS, cbind=base::cbind")));
+    assertEquals(
+        Set.of("subsetByClassDS", "cbind=base::cbind"),
+        packageService.getInstalledPackages(rConnection).get(0).assignMethods());
+  }
+
+  @Test
+  public void testParseAggregateMethods() throws REXPMismatchException, RserveException {
+    when(rConnection.eval(
+            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
+        .thenReturn(rexp);
+    when(rexpParser.toStringMap(rexp))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Package",
+                    "p",
+                    "Version",
+                    "v",
+                    "Built",
+                    "b",
+                    "LibPath",
+                    "l",
+                    "AggregateMethods",
+                    "is.numeric=base::is.numeric,meanSdGpDS")));
+    assertEquals(
+        Set.of("is.numeric=base::is.numeric", "meanSdGpDS"),
+        packageService.getInstalledPackages(rConnection).get(0).aggregateMethods());
   }
 }
