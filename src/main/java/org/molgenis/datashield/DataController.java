@@ -7,9 +7,9 @@ import java.io.InputStream;
 import java.util.List;
 import org.molgenis.datashield.exceptions.DatashieldRequestFailedException;
 import org.molgenis.datashield.r.RDatashieldSession;
-import org.molgenis.datashield.service.DownloadServiceImpl;
+import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.PackageService;
-import org.molgenis.datashield.service.RExecutorServiceImpl;
+import org.molgenis.datashield.service.RExecutorService;
 import org.molgenis.datashield.service.model.Package;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.REXPMismatchException;
@@ -28,14 +28,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataController {
 
-  final DownloadServiceImpl downloadService;
-  final RExecutorServiceImpl executorService;
+  final DownloadService downloadService;
+  final RExecutorService executorService;
   final RDatashieldSession datashieldSession;
   final PackageService packageService;
 
   public DataController(
-      DownloadServiceImpl downloadService,
-      RExecutorServiceImpl executorService,
+      DownloadService downloadService,
+      RExecutorService executorService,
       RDatashieldSession datashieldSession,
       PackageService packageService) {
     this.downloadService = downloadService;

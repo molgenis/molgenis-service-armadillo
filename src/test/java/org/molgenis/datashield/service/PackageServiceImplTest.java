@@ -20,7 +20,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class PackageServiceTest {
+class PackageServiceImplTest {
   @Mock private REXPParser rexpParser;
   @Mock private REXPString rexp;
   @Mock private RConnection rConnection;
@@ -29,7 +29,7 @@ class PackageServiceTest {
 
   @BeforeEach
   void before() {
-    packageService = new PackageService(rexpParser);
+    packageService = new PackageServiceImpl(rexpParser);
   }
 
   @Test
