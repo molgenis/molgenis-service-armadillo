@@ -5,9 +5,6 @@ molgenis:
 rserve:
   port: 6311
   host: localhost
-  connect:
-    attempts: 5
-    interval: 1000
 
 spring:
   security:
