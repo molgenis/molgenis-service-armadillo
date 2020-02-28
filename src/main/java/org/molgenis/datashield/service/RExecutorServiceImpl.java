@@ -10,7 +10,6 @@ import org.molgenis.datashield.service.model.Column;
 import org.molgenis.datashield.service.model.ColumnType;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -26,10 +25,8 @@ public class RExecutorServiceImpl implements RExecutorService {
   private static final String R_PACKAGE_REPO_URL = "http://cran.r-project.org";
 
   @Override
-  public String execute(String cmd, RConnection connection)
-      throws RserveException, REXPMismatchException {
-    REXP value = connection.eval(cmd);
-    return value.asString();
+  public REXP execute(String cmd, RConnection connection) throws RserveException {
+    return connection.eval(cmd);
   }
 
   @Override

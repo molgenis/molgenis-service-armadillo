@@ -24,6 +24,8 @@ import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.PackageService;
 import org.molgenis.datashield.service.RExecutorServiceImpl;
 import org.molgenis.datashield.service.model.Table;
+import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -106,14 +108,30 @@ class DataControllerTest {
 
   @Test
   @WithMockUser
-  void testExecute() throws Exception {
+  void testExecuteIntResult() throws Exception {
     RConnection rConnection = mockDatashieldSessionConsumer();
+    when(executorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
 
     mockMvc
-        .perform(post("/execute").contentType(MediaType.TEXT_PLAIN).content("mean(age)"))
-        .andExpect(status().isOk());
+        .perform(post("/execute").contentType(MediaType.TEXT_PLAIN).content("dsMean(D$age)"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("36.6"));
+  }
 
-    verify(executorService).execute("mean(age)", rConnection);
+  @Test
+  @WithMockUser
+  void testExecuteNullResult() throws Exception {
+    RConnection rConnection = mockDatashieldSessionConsumer();
+    when(executorService.execute("install.package('dsBase')", rConnection))
+        .thenReturn(new REXPNull());
+
+    mockMvc
+        .perform(
+            post("/execute").contentType(MediaType.TEXT_PLAIN).content("install.package('dsBase')"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("null"));
+
+    verify(executorService).execute("install.package('dsBase')", rConnection);
   }
 
   @SuppressWarnings("unchecked")

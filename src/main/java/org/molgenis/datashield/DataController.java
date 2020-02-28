@@ -12,6 +12,7 @@ import org.molgenis.datashield.service.PackageService;
 import org.molgenis.datashield.service.RExecutorService;
 import org.molgenis.datashield.service.model.Package;
 import org.molgenis.datashield.service.model.Table;
+import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.Resource;
@@ -68,7 +69,8 @@ public class DataController {
       produces = MediaType.TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public String execute(@RequestBody String cmd) throws REXPMismatchException, RserveException {
-    return datashieldSession.execute(connection -> executorService.execute(cmd, connection));
+    REXP result = datashieldSession.execute(connection -> executorService.execute(cmd, connection));
+    return result.isNull() ? "null" : result.asString();
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
