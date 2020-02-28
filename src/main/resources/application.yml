@@ -1,5 +1,5 @@
 molgenis:
-  uri: https://latest.test.molgenis.org
+  uri: https://datashield-backend.dev.molgenis.org
   token: test
 
 rserve:
