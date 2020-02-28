@@ -4,18 +4,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.molgenis.datashield.service.model.PackageTest.BASE;
+import static org.molgenis.datashield.service.model.PackageTest.DESC;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.molgenis.datashield.exceptions.DatashieldRequestFailedException;
 import org.molgenis.datashield.r.RConnectionConsumer;
 import org.molgenis.datashield.r.RDatashieldSession;
 import org.molgenis.datashield.service.DownloadServiceImpl;
+import org.molgenis.datashield.service.PackageService;
 import org.molgenis.datashield.service.RExecutorServiceImpl;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -37,6 +43,7 @@ class DataControllerTest {
   @MockBean private DownloadServiceImpl downloadService;
   @MockBean private RExecutorServiceImpl executorService;
   @MockBean private RDatashieldSession datashieldSession;
+  @MockBean private PackageService packageService;
 
   @SuppressWarnings({"unchecked"})
   @Test
@@ -58,6 +65,18 @@ class DataControllerTest {
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
         () -> verify(executorService).assign(csvStream, table, rConnection));
+  }
+
+  @Test
+  @WithMockUser
+  void testGetPackages() throws Exception {
+    RConnection rConnection = mockDatashieldSessionConsumer();
+    when(packageService.getInstalledPackages(rConnection)).thenReturn(List.of(BASE, DESC));
+    mockMvc
+        .perform(get("/packages"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
   }
 
   @SuppressWarnings({"unchecked"})

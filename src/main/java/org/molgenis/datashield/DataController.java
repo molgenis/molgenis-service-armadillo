@@ -1,11 +1,16 @@
 package org.molgenis.datashield;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import org.molgenis.datashield.exceptions.DatashieldRequestFailedException;
 import org.molgenis.datashield.r.RDatashieldSession;
-import org.molgenis.datashield.service.DownloadServiceImpl;
-import org.molgenis.datashield.service.RExecutorServiceImpl;
+import org.molgenis.datashield.service.DownloadService;
+import org.molgenis.datashield.service.PackageService;
+import org.molgenis.datashield.service.RExecutorService;
+import org.molgenis.datashield.service.model.Package;
 import org.molgenis.datashield.service.model.Table;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -23,17 +28,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataController {
 
-  final DownloadServiceImpl downloadService;
-  final RExecutorServiceImpl executorService;
+  final DownloadService downloadService;
+  final RExecutorService executorService;
   final RDatashieldSession datashieldSession;
+  final PackageService packageService;
 
   public DataController(
-      DownloadServiceImpl downloadService,
-      RExecutorServiceImpl executorService,
-      RDatashieldSession datashieldSession) {
+      DownloadService downloadService,
+      RExecutorService executorService,
+      RDatashieldSession datashieldSession,
+      PackageService packageService) {
     this.downloadService = downloadService;
     this.executorService = executorService;
     this.datashieldSession = datashieldSession;
+    this.packageService = packageService;
   }
 
   @GetMapping("/load/{entityTypeId}")
@@ -61,5 +69,10 @@ public class DataController {
   @ResponseStatus(HttpStatus.OK)
   public String execute(@RequestBody String cmd) throws REXPMismatchException, RserveException {
     return datashieldSession.execute(connection -> executorService.execute(cmd, connection));
+  }
+
+  @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
+  public List<Package> getPackages() throws REXPMismatchException, RserveException {
+    return datashieldSession.execute(packageService::getInstalledPackages);
   }
 }
