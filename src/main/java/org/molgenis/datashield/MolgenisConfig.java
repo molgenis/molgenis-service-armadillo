@@ -1,7 +1,7 @@
 package org.molgenis.datashield;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,13 +10,11 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
+@ConfigurationProperties(prefix = "molgenis")
 @Configuration
 public class MolgenisConfig {
-  @Value("${molgenis.token}")
   private String token;
-
-  @Value("${molgenis.uri}")
-  private String molgenisRootUri;
+  private String uri;
 
   @Bean
   public RestTemplate restTemplate() {
@@ -27,7 +25,23 @@ public class MolgenisConfig {
                 new AllEncompassingFormHttpMessageConverter(),
                 new ResourceHttpMessageConverter(true)))
         .defaultHeader("X-Molgenis-Token", token)
-        .rootUri(molgenisRootUri)
+        .rootUri(uri)
         .build();
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  public String getUri() {
+    return uri;
+  }
+
+  public void setUri(String uri) {
+    this.uri = uri;
   }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.datashield.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
@@ -43,12 +44,13 @@ class RDatashieldSessionTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  void executeFails() throws REXPMismatchException, RserveException {
+  void executeFails() {
+    RserveException cause = new RserveException(rConnection, "foutje");
     when(rConnectionFactory.getNewConnection(false))
-        .thenThrow(new RserveException(rConnection, "foutje"));
+        .thenThrow(new ConnectionCreationFailedException(cause));
 
     Assertions.assertThatThrownBy(() -> rDatashieldSession.execute(rConnectionConsumer))
-        .hasCause(new RserveException(rConnection, "foutje"));
+        .hasCause(cause);
   }
 
   @SuppressWarnings("unchecked")

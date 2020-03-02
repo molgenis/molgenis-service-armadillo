@@ -3,8 +3,11 @@ molgenis:
   token: test
 
 rserve:
-  port: 6311
-  host: localhost
+# Allows you to override the default DataSHIELD options
+#  options:
+#    default:
+#      nfilter:
+#        string: 90
 
 spring:
   security:
