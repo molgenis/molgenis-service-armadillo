@@ -25,10 +25,17 @@ public class PackageServiceImpl implements PackageService {
 
   private final REXPParser rexpParser;
 
-  public static final String INSTALLED_PACKAGES =
+  public static final String FIELD_PACKAGE = "Package";
+  public static final String FIELD_LIB_PATH = "LibPath";
+  public static final String FIELD_VERSION = "Version";
+  public static final String FIELD_BUILT = "Built";
+  public static final String FIELD_AGGREGATE_METHODS = "AggregateMethods";
+  public static final String FIELD_ASSIGN_METHODS = "AssignMethods";
+  public static final String FIELD_OPTIONS = "Options";
+  public static final String COMMAND_INSTALLED_PACKAGES =
       format(
           "installed.packages(fields=%s)",
-          stringVector("AggregateMethods", "AssignMethods", "Options"));
+          stringVector(FIELD_AGGREGATE_METHODS, FIELD_ASSIGN_METHODS, FIELD_OPTIONS));
 
   public PackageServiceImpl(REXPParser rexpParser) {
     this.rexpParser = rexpParser;
@@ -37,7 +44,7 @@ public class PackageServiceImpl implements PackageService {
   @Override
   public List<Package> getInstalledPackages(RConnection connection)
       throws RserveException, REXPMismatchException {
-    REXPString matrix = (REXPString) connection.eval(INSTALLED_PACKAGES);
+    REXPString matrix = (REXPString) connection.eval(COMMAND_INSTALLED_PACKAGES);
     List<Map<String, String>> rows = rexpParser.toStringMap(matrix);
     return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
   }
@@ -45,18 +52,18 @@ public class PackageServiceImpl implements PackageService {
   public static Package toPackage(Map<String, String> row) {
     Package.Builder builder =
         Package.builder()
-            .setName(row.get("Package"))
-            .setLibPath(row.get("LibPath"))
-            .setVersion(row.get("Version"))
-            .setBuilt(row.get("Built"));
-    if (row.containsKey("Options")) {
-      builder.setOptions(parseOptions(row.get("Options")));
+            .setName(row.get(FIELD_PACKAGE))
+            .setLibPath(row.get(FIELD_LIB_PATH))
+            .setVersion(row.get(FIELD_VERSION))
+            .setBuilt(row.get(FIELD_BUILT));
+    if (row.containsKey(FIELD_OPTIONS)) {
+      builder.setOptions(parseOptions(row.get(FIELD_OPTIONS)));
     }
-    if (row.containsKey("AssignMethods")) {
-      builder.setAssignMethods(parseMethods(row.get("AssignMethods")));
+    if (row.containsKey(FIELD_ASSIGN_METHODS)) {
+      builder.setAssignMethods(parseMethods(row.get(FIELD_ASSIGN_METHODS)));
     }
-    if (row.containsKey("AggregateMethods")) {
-      builder.setAggregateMethods(parseMethods(row.get("AggregateMethods")));
+    if (row.containsKey(FIELD_AGGREGATE_METHODS)) {
+      builder.setAggregateMethods(parseMethods(row.get(FIELD_AGGREGATE_METHODS)));
     }
     return builder.build();
   }

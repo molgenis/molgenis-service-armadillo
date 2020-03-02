@@ -13,6 +13,11 @@ import org.apache.commons.text.translate.UnicodeEscaper;
 
 /** Formats Java objects to executable R strings. */
 public class Formatter {
+
+  private Formatter() {
+    throw new IllegalStateException("Utility class");
+  }
+
   // See https://stat.ethz.ch/R-manual/R-devel/library/base/html/Quotes.html
   public static final ImmutableMap<CharSequence, CharSequence> R_CTRL_CHARS_ESCAPE =
       ImmutableMap.<CharSequence, CharSequence>builder()
