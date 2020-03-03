@@ -65,8 +65,10 @@ pipeline {
                 stage('Push to registries [ PR ]') {
                     steps {
                         container('maven') {
-                            script {
-                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -T1C"
+                            dir('datashield') {
+                                script {
+                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -T1C"
+                                }
                             }
                         }
                     }
@@ -108,7 +110,7 @@ pipeline {
                     steps {
                         milestone(ordinal: 100, label: 'deploy to datashield.dev.molgenis.org')
                         container('rancher') {
-                            sh "rancher apps upgrade --set image.tag=${TAG} datashield ${CHART_VERSION}"
+                            sh "rancher apps upgrade --set server.image.tag=${TAG} datashield ${CHART_VERSION}"
                         }
                     }
                 }
