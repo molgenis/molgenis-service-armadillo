@@ -13,11 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.molgenis.datashield.exceptions.DataShieldRequestFailedException;
+import org.mockito.Mock;
 import org.molgenis.datashield.service.DownloadServiceImpl;
+import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.RConnectionConsumer;
+import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.model.Table;
 import org.molgenis.r.service.PackageService;
@@ -25,6 +29,7 @@ import org.molgenis.r.service.RExecutorServiceImpl;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -34,6 +39,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.IdGenerator;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = DataController.class)
@@ -60,6 +66,9 @@ class DataControllerTest {
   @MockBean private RExecutorServiceImpl executorService;
   @MockBean private DataShieldSession datashieldSession;
   @MockBean private PackageService packageService;
+  @MockBean private StorageService storageService;
+  @MockBean private IdGenerator idGenerator;
+  @Mock private RFileInputStream inputStream;
 
   @SuppressWarnings({"unchecked"})
   @Test
@@ -68,9 +77,7 @@ class DataControllerTest {
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
     Resource resource = mock(Resource.class);
-    InputStream csvStream = mock(InputStream.class);
     when(response.getBody()).thenReturn(resource);
-    when(resource.getInputStream()).thenReturn(csvStream);
     when(downloadService.getMetadata("project.patients")).thenReturn(table);
     when(downloadService.download(table)).thenReturn(response);
     RConnection rConnection = mockDatashieldSessionConsumer();
@@ -80,7 +87,7 @@ class DataControllerTest {
     assertAll(
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
-        () -> verify(executorService).assign(csvStream, table, rConnection));
+        () -> verify(executorService).assign(resource, table, rConnection));
   }
 
   @Test
@@ -95,6 +102,49 @@ class DataControllerTest {
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
   }
 
+  @Test
+  @WithMockUser
+  void testSaveWorkspace() throws Exception {
+    RConnection rConnection = mockDatashieldSessionConsumer();
+    UUID uuid = new UUID(123, 456);
+    when(idGenerator.generateId()).thenReturn(uuid);
+    when(rConnection.openFile(".RData")).thenReturn(inputStream);
+    doAnswer(
+            invocation -> {
+              Consumer<InputStream> consumer = invocation.getArgument(1);
+              consumer.accept(inputStream);
+              return null;
+            })
+        .when(executorService)
+        .saveWorkspace(eq(rConnection), any());
+
+    mockMvc
+        .perform(post("/save-workspace"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("00000000-0000-007b-0000-0000000001c8"));
+
+    verify(storageService)
+        .save(
+            inputStream,
+            "00000000-0000-007b-0000-0000000001c8/.RData",
+            MediaType.APPLICATION_OCTET_STREAM);
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadWorkspace() throws Exception {
+    RConnection rConnection = mockDatashieldSessionConsumer();
+    when(rConnection.openFile(".RData")).thenReturn(inputStream);
+    when(storageService.load("00000000-0000-007b-0000-0000000001c8/.RData"))
+        .thenReturn(inputStream);
+
+    mockMvc
+        .perform(post("/load-workspace/00000000-0000-007b-0000-0000000001c8"))
+        .andExpect(status().isOk());
+
+    verify(executorService).loadWorkspace(eq(rConnection), any());
+  }
+
   @SuppressWarnings({"unchecked"})
   @Test
   @WithMockUser
@@ -102,22 +152,20 @@ class DataControllerTest {
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
     Resource resource = mock(Resource.class);
-    InputStream csvStream = mock(InputStream.class);
     when(response.getBody()).thenReturn(resource);
-    when(resource.getInputStream()).thenReturn(csvStream);
     when(downloadService.getMetadata("project.patients")).thenReturn(table);
     when(downloadService.download(table)).thenReturn(response);
     RConnection rConnection = mockDatashieldSessionConsumer();
-    IOException exception = new IOException("test");
-    when(executorService.assign(csvStream, table, rConnection)).thenThrow(exception);
+    RExecutionException exception = new RExecutionException(new IOException("test"));
+    when(executorService.assign(resource, table, rConnection)).thenThrow(exception);
 
     assertThatThrownBy(() -> mockMvc.perform(get("/load/project.patients")))
-        .hasCause(new DataShieldRequestFailedException("test", exception));
+        .hasCauseReference(exception);
 
     assertAll(
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
-        () -> verify(executorService).assign(csvStream, table, rConnection));
+        () -> verify(executorService).assign(resource, table, rConnection));
   }
 
   @Test

@@ -83,6 +83,11 @@
                 <artifactId>springdoc-openapi-ui</artifactId>
                 <version>1.2.30</version>
             </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>6.0.13</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
