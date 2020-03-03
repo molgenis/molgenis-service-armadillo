@@ -1,0 +1,19 @@
+molgenis:
+  uri: https://datashield-backend.dev.molgenis.org
+  token: test
+
+datashield:
+# Allows you to override the default DataSHIELD options
+#  options:
+#    default:
+#      nfilter:
+#        string: 90
+
+spring:
+  security:
+    user:
+      name: admin
+      password: admin
+
+security:
+  enable-csrf: false
