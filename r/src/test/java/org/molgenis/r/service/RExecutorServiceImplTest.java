@@ -1,8 +1,6 @@
 package org.molgenis.r.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,10 +17,12 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.Column;
 import org.molgenis.r.model.ColumnType;
 import org.molgenis.r.model.Table;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
@@ -51,7 +51,16 @@ class RExecutorServiceImplTest {
 
     REXP result = executorService.execute("mean(age)", rConnection);
 
-    Assertions.assertSame(rexp, result);
+    assertSame(rexp, result);
+  }
+
+  @Test
+  void executeFail() throws RserveException {
+    when(rConnection.eval("mean(ages)")).thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
+
+    RExecutionException rExecutionException = assertThrows(RExecutionException.class, () -> executorService.execute("mean(ages)", rConnection),
+            "Ages is not a valid column");
+    assertTrue(rExecutionException.getMessage().contains("Ages is not a valid column"));
   }
 
   @Test
