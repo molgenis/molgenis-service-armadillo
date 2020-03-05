@@ -7,8 +7,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,10 +21,6 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
   }
 
   @Override
-  @Retryable(
-      value = {ConnectionCreationFailedException.class},
-      maxAttempts = 5,
-      backoff = @Backoff(delay = 1000))
   public RConnection retryCreateConnection() {
     logger.info("retryCreateConnection");
     return createConnection();
