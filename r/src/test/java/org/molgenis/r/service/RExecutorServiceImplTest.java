@@ -22,7 +22,6 @@ import org.molgenis.r.model.Column;
 import org.molgenis.r.model.ColumnType;
 import org.molgenis.r.model.Table;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
@@ -56,9 +55,13 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeFail() throws RserveException {
-    when(rConnection.eval("mean(ages)")).thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
+    when(rConnection.eval("mean(ages)"))
+        .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
 
-    RExecutionException rExecutionException = assertThrows(RExecutionException.class, () -> executorService.execute("mean(ages)", rConnection),
+    RExecutionException rExecutionException =
+        assertThrows(
+            RExecutionException.class,
+            () -> executorService.execute("mean(ages)", rConnection),
             "Ages is not a valid column");
     assertTrue(rExecutionException.getMessage().contains("Ages is not a valid column"));
   }
