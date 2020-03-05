@@ -8,8 +8,8 @@ import org.springframework.retry.annotation.Retryable;
 public interface RConnectionFactory {
   @Retryable(
       value = {ConnectionCreationFailedException.class},
-      maxAttempts = 5,
-      backoff = @Backoff(delay = 1000))
+      maxAttempts = 10,
+      backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000))
   RConnection retryCreateConnection();
 
   RConnection createConnection();

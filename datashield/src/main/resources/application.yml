@@ -1,25 +1,35 @@
-molgenis:
-  uri: https://datashield-backend.dev.molgenis.org
-  token: test
-
-datashield:
-# Allows you to override the default DataSHIELD options
-#  options:
-#    default:
-#      nfilter:
-#        string: 90
-
+security:
+  enable-csrf: false
+---
 spring:
+  profiles: development
   security:
     user:
       name: admin
       password: admin
+molgenis:
+  uri: https://datashield-backend.dev.molgenis.org
+  token: test
 minio:
   url: http://localhost
   port: 9000
   access-key: molgenis
   secret-key: molgenis
   bucket: datashield
-
-security:
-  enable-csrf: false
+---
+spring:
+  profiles: (development | test)
+datashield:
+  options:
+    default:
+      nfilter:
+        string: 0
+        kNN: 0
+        tab: 0
+        stringShort: 0
+        noise: 0
+        levels: 0
+        glm: 0
+        subset: 0
+    datashield:
+      privacyLevel: 0
