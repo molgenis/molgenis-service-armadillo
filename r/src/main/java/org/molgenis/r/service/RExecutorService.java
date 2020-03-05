@@ -1,16 +1,18 @@
 package org.molgenis.r.service;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Consumer;
 import org.molgenis.r.model.Table;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
+import org.springframework.core.io.Resource;
 
 public interface RExecutorService {
-  REXP execute(String cmd, RConnection connection) throws RserveException, REXPMismatchException;
+  REXP execute(String cmd, RConnection connection);
 
-  String assign(InputStream csv, Table table, RConnection connection)
-      throws IOException, RserveException;
+  String assign(Resource resource, Table table, RConnection connection);
+
+  void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer);
+
+  void loadWorkspace(RConnection connection, Resource resource);
 }
