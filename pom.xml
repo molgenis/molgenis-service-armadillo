@@ -33,6 +33,7 @@
         <sonar.github.repository>molgenis/molgenis-service-datashield</sonar.github.repository>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
+        <sonar.coverage.exclusions>**/*Config.*</sonar.coverage.exclusions>
 
         <auto-value.version>1.7</auto-value.version>
         <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
@@ -82,6 +83,11 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-ui</artifactId>
                 <version>1.2.30</version>
+            </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>6.0.13</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -147,6 +153,11 @@
                             </goals>
                         </execution>
                     </executions>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/*Config.*</exclude>
+                        </excludes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>

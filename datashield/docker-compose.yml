@@ -1,5 +1,13 @@
 version: "3.4"
 services:
+  minio:
+    image: minio/minio:latest
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_ACCESS_KEY: molgenis
+      MINIO_SECRET_KEY: molgenis
+    command: server /data
   datashield:
     build: .
     ports:
