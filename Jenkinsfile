@@ -112,7 +112,7 @@ pipeline {
                     steps {
                         milestone(ordinal: 100, label: 'deploy to datashield.dev.molgenis.org')
                         container('rancher') {
-                            sh "rancher apps upgrade --set server.image.tag=${TAG} datashield ${CHART_VERSION}"
+                            sh "rancher apps upgrade --set 'server.image.tag=${TAG}' datashield ${CHART_VERSION}"
                         }
                     }
                 }
