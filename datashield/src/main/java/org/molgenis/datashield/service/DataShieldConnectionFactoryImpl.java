@@ -24,6 +24,7 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
   public RConnection createConnection() {
     try {
       RConnection connection = rConnectionFactory.createConnection();
+      loadDsBase(connection);
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {
@@ -35,5 +36,9 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
       con.eval(String.format("options(%s = %s)", option.getKey(), option.getValue()));
     }
+  }
+
+  private void loadDsBase(RConnection connection) throws RserveException {
+    connection.eval("library(dsBase)");
   }
 }
