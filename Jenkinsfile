@@ -7,7 +7,7 @@ pipeline {
     environment {
         REPOSITORY = 'molgenis/datashield-service'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
-        CHART_VERSION = '0.0.1'
+        CHART_VERSION = '0.0.2'
         TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
     }
     stages {
@@ -99,9 +99,11 @@ pipeline {
                 stage('Push to registries [ master ]') {
                     steps {
                         container('maven') {
-                            script {
-                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
-                                sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
+                            dir('datashield') {
+                                script {
+                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
+                                    sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
+                                }
                             }
                         }
                     }
