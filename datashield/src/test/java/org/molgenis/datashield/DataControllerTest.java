@@ -1,6 +1,5 @@
 package org.molgenis.datashield;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -204,13 +203,14 @@ class DataControllerTest {
   void testExecuteRawResult() throws Exception {
     RConnection rConnection = mockDatashieldSessionConsumer();
     String serializedCmd = serializeCommand("print(\"raw response\")");
-    when(executorService.execute(serializedCmd, rConnection))
-        .thenReturn(new REXPRaw(new byte[0]));
+    when(executorService.execute(serializedCmd, rConnection)).thenReturn(new REXPRaw(new byte[0]));
 
     mockMvc
-            .perform(
-                    post("/execute/raw").contentType(MediaType.TEXT_PLAIN).content("print(\"raw response\")"))
-            .andExpect(status().isOk());
+        .perform(
+            post("/execute/raw")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("print(\"raw response\")"))
+        .andExpect(status().isOk());
 
     verify(executorService).execute(serializedCmd, rConnection);
   }

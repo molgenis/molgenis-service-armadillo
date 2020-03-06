@@ -1,5 +1,12 @@
 package org.molgenis.datashield;
 
+import static org.molgenis.datashield.DataShieldUtils.createRawResponse;
+import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
+import static org.springframework.http.MediaType.*;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.UUID;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.Package;
@@ -15,15 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.IdGenerator;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
-
-import static java.lang.String.format;
-import static org.molgenis.datashield.DataShieldUtils.createRawResponse;
-import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
-import static org.springframework.http.MediaType.*;
 
 @RestController
 public class DataController {
@@ -61,10 +59,7 @@ public class DataController {
         connection -> executorService.assign(response.getBody(), table, connection));
   }
 
-  @PostMapping(
-      value = "/execute",
-      consumes = TEXT_PLAIN_VALUE,
-      produces = TEXT_PLAIN_VALUE)
+  @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public String execute(@RequestBody String cmd) throws REXPMismatchException, RserveException {
     REXP result = datashieldSession.execute(connection -> executorService.execute(cmd, connection));
@@ -72,13 +67,14 @@ public class DataController {
   }
 
   @PostMapping(
-          value = "/execute/raw",
-          consumes = TEXT_PLAIN_VALUE,
-          produces = APPLICATION_OCTET_STREAM_VALUE)
+      value = "/execute/raw",
+      consumes = TEXT_PLAIN_VALUE,
+      produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public byte[] executeRaw(@RequestBody String cmd) throws RserveException, REXPMismatchException
-  {
-    REXP result = datashieldSession.execute(connection -> executorService.execute(serializeCommand(cmd), connection));
+  public byte[] executeRaw(@RequestBody String cmd) throws RserveException, REXPMismatchException {
+    REXP result =
+        datashieldSession.execute(
+            connection -> executorService.execute(serializeCommand(cmd), connection));
     return createRawResponse(result);
   }
 
