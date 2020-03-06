@@ -7,7 +7,7 @@ pipeline {
     environment {
         REPOSITORY = 'molgenis/datashield-service'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
-        CHART_VERSION = '0.0.2'
+        CHART_VERSION = '0.1.0'
         TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
     }
     stages {
