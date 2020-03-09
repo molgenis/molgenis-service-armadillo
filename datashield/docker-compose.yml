@@ -23,7 +23,7 @@ services:
     ports:
       - 3000:8080
   rserver:
-    image: obiba/opal-rserver:1.6
+    image: molgenis/ds-51-rserver-363:ds-51-rserver-363-release-2020-03-06_09-51-26
     ports:
       - "6311:6311"
       - "6312:6312"

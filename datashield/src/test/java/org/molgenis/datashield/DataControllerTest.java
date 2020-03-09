@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +29,7 @@ import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorServiceImpl;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPNull;
+import org.rosuda.REngine.REXPRaw;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -194,6 +196,23 @@ class DataControllerTest {
         .andExpect(content().string("null"));
 
     verify(executorService).execute("install.package('dsBase')", rConnection);
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteRawResult() throws Exception {
+    RConnection rConnection = mockDatashieldSessionConsumer();
+    String serializedCmd = serializeCommand("print(\"raw response\")");
+    when(executorService.execute(serializedCmd, rConnection)).thenReturn(new REXPRaw(new byte[0]));
+
+    mockMvc
+        .perform(
+            post("/execute/raw")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("print(\"raw response\")"))
+        .andExpect(status().isOk());
+
+    verify(executorService).execute(serializedCmd, rConnection);
   }
 
   @SuppressWarnings("unchecked")
