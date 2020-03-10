@@ -39,7 +39,8 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
-  public String assign(Resource resource, String assignSymbol, Table table, RConnection connection) {
+  public String assign(
+      Resource resource, String assignSymbol, Table table, RConnection connection) {
     try {
       String dataFileName = table.name() + ".csv";
       copyFile(resource, dataFileName, connection);
@@ -79,7 +80,8 @@ public class RExecutorServiceImpl implements RExecutorService {
     }
   }
 
-  private String assignTable(String assignSymbol, List<Column> columns, String dataFileName, RConnection connection)
+  private String assignTable(
+      String assignSymbol, List<Column> columns, String dataFileName, RConnection connection)
       throws RserveException {
     String colTypes = getColTypes(columns);
     String command =
@@ -96,9 +98,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   public static String getColTypes(List<Column> columns) {
     return String.format(
         "cols ( %s )",
-        columns.stream()
-            .map(RExecutorServiceImpl::getColNameAndType)
-            .collect(joining(", ")));
+        columns.stream().map(RExecutorServiceImpl::getColNameAndType).collect(joining(", ")));
   }
 
   private static String getColNameAndType(Column column) {
