@@ -1,3 +1,7 @@
+install.packages('devtools')
+library(devtools)
+
+install_github('datashield/dsBaseClient', ref = "v6.0-dev")
 install.packages(c('DSI','DSMolgenis'), repos = 'https://registry.molgenis.org/repository/r-hosted')
 
 library(DSI)
@@ -17,7 +21,7 @@ logindata <- data.frame(server,url,user,password,table,driver)
 molgenises <- datashield.login(logins=logindata,assign=F)
 
 # assign some data in R
-datashield.assign.table(conns = molgenises, table = "datashield.PATIENT", symbol = "datashield.PATIENT")
+datashield.assign.table(conns = molgenises, table = "datashield.PATIENT", symbol = "D")
 
 # Do some statistical analysis, execute:
-ds.mean('datashield.PATIENT$age')
+ds.mean('D$age')
