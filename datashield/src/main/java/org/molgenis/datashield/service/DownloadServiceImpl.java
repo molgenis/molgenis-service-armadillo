@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -41,8 +42,7 @@ public class DownloadServiceImpl implements DownloadService {
    */
   @Override
   public Table getMetadata(String entityTypeId) {
-    EntityType entityType =
-        restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
+    EntityType entityType = getEntityType(entityTypeId);
     requireNonNull(entityType);
     Builder tableBuilder = Table.builder().setName(entityTypeId);
     entityType.getData().getAttributes().getItems().stream()
@@ -51,6 +51,22 @@ public class DownloadServiceImpl implements DownloadService {
         .map(this::toColumn)
         .forEach(tableBuilder::addColumn);
     return tableBuilder.build();
+  }
+
+  @Override
+  public boolean metadataExists(String entityTypeId) {
+    try {
+      getEntityType(entityTypeId);
+    } catch (HttpStatusCodeException ex) {
+      if (ex.getRawStatusCode() == 404) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private EntityType getEntityType(String entityTypeId) {
+    return restTemplate.getForObject(METADATA_URL, EntityType.class, normalize(entityTypeId));
   }
 
   public static String normalize(String entityTypeId) {

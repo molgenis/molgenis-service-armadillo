@@ -3,7 +3,11 @@ package org.molgenis.datashield;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -102,6 +106,16 @@ class DataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
+  }
+
+  @Test
+  @WithMockUser
+  void testExists() throws Exception {
+    when(downloadService.metadataExists("project.patients")).thenReturn(true);
+    mockMvc
+        .perform(get("/exists/project.patients"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("true"));
   }
 
   @Test

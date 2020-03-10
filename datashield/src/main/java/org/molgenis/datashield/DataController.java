@@ -2,7 +2,10 @@ package org.molgenis.datashield;
 
 import static org.molgenis.datashield.DataShieldUtils.createRawResponse;
 import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.io.InputStream;
 import java.util.List;
@@ -21,7 +24,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.IdGenerator;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class DataController {
@@ -81,6 +89,11 @@ public class DataController {
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
   public List<Package> getPackages() throws REXPMismatchException, RserveException {
     return datashieldSession.execute(packageService::getInstalledPackages);
+  }
+
+  @GetMapping("/exists/{entityTypeId}")
+  public boolean exists(@PathVariable String entityTypeId) {
+    return downloadService.metadataExists(entityTypeId);
   }
 
   @PostMapping(value = "/save-workspace", produces = TEXT_PLAIN_VALUE)

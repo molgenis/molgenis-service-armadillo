@@ -2,6 +2,8 @@ package org.molgenis.datashield.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -17,7 +19,9 @@ import org.molgenis.r.model.ColumnType;
 import org.molgenis.r.model.Table;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,29 @@ class DownloadServiceImplTest {
     Table entityMetaData = downloadService.getMetadata("project.patients");
 
     assertEquals("project.patients", entityMetaData.name());
+  }
+
+  @Test
+  void testMetadataExists() {
+    EntityType patients = TestUtils.getEntityType("project_patients.json");
+    when(restTemplate.getForObject(
+            DownloadServiceImpl.METADATA_URL, EntityType.class, "project_patients"))
+        .thenReturn(patients);
+
+    boolean result = downloadService.metadataExists("project.patients");
+
+    assertTrue(result);
+  }
+
+  @Test
+  void testMetadataNotExists() {
+    when(restTemplate.getForObject(
+            DownloadServiceImpl.METADATA_URL, EntityType.class, "henkies_dataset"))
+        .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+    boolean result = downloadService.metadataExists("henkies.dataset");
+
+    assertFalse(result);
   }
 
   @Test
