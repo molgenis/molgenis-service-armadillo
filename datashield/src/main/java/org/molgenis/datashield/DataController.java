@@ -48,15 +48,15 @@ public class DataController {
     this.idGenerator = idGenerator;
   }
 
-  @GetMapping("/load/{entityTypeId}")
+  @GetMapping("/load/{entityTypeId}/{assignSymbol}")
   @ResponseStatus(HttpStatus.OK)
-  public void load(@PathVariable String entityTypeId)
+  public void load(@PathVariable String entityTypeId, @PathVariable String assignSymbol)
       throws REXPMismatchException, RserveException {
     Table table = downloadService.getMetadata(entityTypeId);
     ResponseEntity<Resource> response = downloadService.download(table);
 
     datashieldSession.execute(
-        connection -> executorService.assign(response.getBody(), table, connection));
+        connection -> executorService.assign(response.getBody(), assignSymbol, table, connection));
   }
 
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = TEXT_PLAIN_VALUE)
