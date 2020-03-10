@@ -38,6 +38,7 @@ class DataShieldConnectionFactoryImplTest {
     doReturn(rConnection).when(rConnectionFactory).createConnection();
     when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("a", "80.0"));
     when(rConnection.eval("library(dsBase)")).thenReturn(new REXPNull());
+    when(rConnection.eval("library(readr)")).thenReturn(new REXPNull());
     when(rConnection.eval("options(a = 80.0)")).thenReturn(new REXPNull());
 
     assertEquals(rConnection, dataShieldConnectionFactory.createConnection());
