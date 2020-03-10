@@ -24,7 +24,7 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
   public RConnection createConnection() {
     try {
       RConnection connection = rConnectionFactory.createConnection();
-      loadDsBase(connection);
+      loadSessionContextPackages(connection);
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {
@@ -38,7 +38,8 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
     }
   }
 
-  private void loadDsBase(RConnection connection) throws RserveException {
+  private void loadSessionContextPackages(RConnection connection) throws RserveException {
     connection.eval("library(dsBase)");
+    connection.eval("library(readr)");
   }
 }

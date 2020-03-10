@@ -126,19 +126,16 @@ class RExecutorServiceImplTest {
     Resource csv = new InputStreamResource(inputStream);
     when(rConnection.eval(ArgumentMatchers.any())).thenReturn(Mockito.mock(REXP.class));
 
-    executorService.assign(csv, table, rConnection);
+    executorService.assign(csv, "D", table, rConnection);
 
-    String expectedPackageEval =
-        "if (!require(readr)) { install.packages('readr', repos=c('http://cran.r-project.org'), dependencies=TRUE) }";
     String expectedAssignEval =
-        "base::is.null(base::assign('table_patients', readr::read_csv('table_patients.csv', "
+        "base::is.null(base::assign('D', read_csv('table_patients.csv', "
             + "col_types = cols ( id = col_character(), name = col_character(), age = col_integer() ), "
             + "na = c(''))))";
     String expectedUnlinkEval = "base::unlink('table_patients.csv')";
     Assertions.assertAll(
         () -> verify(rConnection).createFile("table_patients.csv"),
         () -> verify(rFileOutputStream).close(),
-        () -> verify(rConnection).eval(expectedPackageEval),
         () -> verify(rConnection).eval(expectedAssignEval),
         () -> verify(rConnection).eval(expectedUnlinkEval));
   }

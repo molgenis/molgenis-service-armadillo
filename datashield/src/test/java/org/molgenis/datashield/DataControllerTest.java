@@ -3,7 +3,11 @@ package org.molgenis.datashield;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -76,6 +80,7 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testLoad() throws Exception {
+    String assignSymbol = "D";
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
     Resource resource = mock(Resource.class);
@@ -84,12 +89,12 @@ class DataControllerTest {
     when(downloadService.download(table)).thenReturn(response);
     RConnection rConnection = mockDatashieldSessionConsumer();
 
-    mockMvc.perform(get("/load/project.patients")).andExpect(status().isOk());
+    mockMvc.perform(get("/load/project.patients/D")).andExpect(status().isOk());
 
     assertAll(
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
-        () -> verify(executorService).assign(resource, table, rConnection));
+        () -> verify(executorService).assign(resource, assignSymbol, table, rConnection));
   }
 
   @Test
@@ -102,6 +107,16 @@ class DataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
+  }
+
+  @Test
+  @WithMockUser
+  void testExists() throws Exception {
+    when(downloadService.metadataExists("project.patients")).thenReturn(true);
+    mockMvc
+        .perform(get("/exists/project.patients"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("true"));
   }
 
   @Test
@@ -151,6 +166,7 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testLoadFailed() throws Exception {
+    String assignSymbol = "D";
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
     Resource resource = mock(Resource.class);
@@ -159,15 +175,15 @@ class DataControllerTest {
     when(downloadService.download(table)).thenReturn(response);
     RConnection rConnection = mockDatashieldSessionConsumer();
     RExecutionException exception = new RExecutionException(new IOException("test"));
-    when(executorService.assign(resource, table, rConnection)).thenThrow(exception);
+    when(executorService.assign(resource, assignSymbol, table, rConnection)).thenThrow(exception);
 
-    assertThatThrownBy(() -> mockMvc.perform(get("/load/project.patients")))
+    assertThatThrownBy(() -> mockMvc.perform(get("/load/project.patients/D")))
         .hasCauseReference(exception);
 
     assertAll(
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
-        () -> verify(executorService).assign(resource, table, rConnection));
+        () -> verify(executorService).assign(resource, assignSymbol, table, rConnection));
   }
 
   @Test

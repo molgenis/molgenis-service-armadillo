@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.r.exceptions.RExecutionException;
@@ -38,12 +39,12 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
-  public String assign(Resource resource, Table table, RConnection connection) {
+  public String assign(
+      Resource resource, String assignSymbol, Table table, RConnection connection) {
     try {
       String dataFileName = table.name() + ".csv";
       copyFile(resource, dataFileName, connection);
-      ensurePackage("readr", connection);
-      return assignTable(table, dataFileName, connection);
+      return assignTable(assignSymbol, table.columns(), dataFileName, connection);
     } catch (IOException | RserveException e) {
       throw new RExecutionException(e);
     }
@@ -79,28 +80,14 @@ public class RExecutorServiceImpl implements RExecutorService {
     }
   }
 
-  /**
-   * Ensure that a R package is installed: check it is available, if not install it.
-   *
-   * @param packageName the name of the R package
-   * @throws RserveException when installation fails
-   */
-  @SuppressWarnings("SameParameterValue")
-  private void ensurePackage(String packageName, RConnection connection) throws RserveException {
-    String cmd =
-        format(
-            "if (!require(%s)) { install.packages('%s', repos=c('%s'), dependencies=TRUE) }",
-            packageName, packageName, R_PACKAGE_REPO_URL);
-    connection.eval(cmd);
-  }
-
-  private String assignTable(Table table, String dataFileName, RConnection connection)
+  private String assignTable(
+      String assignSymbol, List<Column> columns, String dataFileName, RConnection connection)
       throws RserveException {
-    String colTypes = getColTypes(table);
+    String colTypes = getColTypes(columns);
     String command =
         String.format(
-            "base::is.null(base::assign('%s', readr::read_csv('%s', col_types = %s, na = c(''))))",
-            table.name(), dataFileName, colTypes);
+            "base::is.null(base::assign('%s', read_csv('%s', col_types = %s, na = c(''))))",
+            assignSymbol, dataFileName, colTypes);
     LOGGER.debug("Executing: {}", command);
     REXP rexp = connection.eval(command);
     connection.eval(format("base::unlink('%s')", dataFileName));
@@ -108,12 +95,10 @@ public class RExecutorServiceImpl implements RExecutorService {
     return rexp.toString();
   }
 
-  public static String getColTypes(Table table) {
+  public static String getColTypes(List<Column> columns) {
     return String.format(
         "cols ( %s )",
-        table.columns().stream()
-            .map(RExecutorServiceImpl::getColNameAndType)
-            .collect(joining(", ")));
+        columns.stream().map(RExecutorServiceImpl::getColNameAndType).collect(joining(", ")));
   }
 
   private static String getColNameAndType(Column column) {

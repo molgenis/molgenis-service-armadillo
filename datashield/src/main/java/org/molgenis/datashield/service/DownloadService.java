@@ -7,5 +7,7 @@ import org.springframework.http.ResponseEntity;
 public interface DownloadService {
   Table getMetadata(String entityTypeId);
 
+  boolean metadataExists(String entityTyped);
+
   ResponseEntity<Resource> download(Table table);
 }
