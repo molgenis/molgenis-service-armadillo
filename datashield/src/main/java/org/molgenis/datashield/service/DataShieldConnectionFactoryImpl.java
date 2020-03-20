@@ -39,7 +39,7 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
   }
 
   private void loadSessionContextPackages(RConnection connection) throws RserveException {
-    connection.eval("library(dsBase)");
+    //    connection.eval("library(dsBase)");
     connection.eval("library(readr)");
   }
 }

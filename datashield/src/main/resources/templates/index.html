@@ -1,9 +1,15 @@
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <title>MOLGENIS DataSHIELD Service</title>
 </head>
 <body>
   <h1>Welcome</h1>
+
+  Logged user: <span sec:authentication="name"></span><br/>
+<!--  Principal's authorities: <span sec:authentication="principal.authorities"></span>-->
+  authorities: <span sec:authentication="authorities"></span><br/>
+
   <p>
     This is DataSHIELD server that allows you to query MOLGENIS data from
     <em><span th:text="${@environment.getProperty('molgenis.uri')}"></span></em>.

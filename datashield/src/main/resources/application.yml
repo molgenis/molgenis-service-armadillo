@@ -1,12 +1,28 @@
-security:
-  enable-csrf: false
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
 ---
+server.servlet.session.cookie.name: MYSESSIONID
+
 spring:
   profiles: development
   security:
-    user:
-      name: admin
-      password: admin
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: 'http://localhost:9011'
+      client:
+        registration:
+          fusion:
+            client-id: 'fba0db38-e92a-4e9d-9ead-c70eeb00a752'
+            client-secret: '8LzuFH6uW26LoAXHfGX3JHVTkPYxI81bnP48qrcSle4'
+            provider: fusion
+        provider:
+          fusion:
+            issuer-uri: 'http://localhost:9011'
+
 molgenis:
   uri: https://datashield-backend.dev.molgenis.org
   token: test
