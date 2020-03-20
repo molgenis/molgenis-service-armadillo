@@ -1,9 +1,16 @@
 package org.molgenis.datashield;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.PreDestroy;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.RConnectionConsumer;
+import org.molgenis.r.exceptions.RExecutionException;
+import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
@@ -21,22 +28,47 @@ public class DataShieldSession {
   private static final Logger logger = LoggerFactory.getLogger(DataShieldSession.class);
 
   private final DataShieldConnectionFactory connectionFactory;
+  private final ExecutorService executorService;
 
-  public DataShieldSession(DataShieldConnectionFactory connectionFactory) {
-    this.connectionFactory = connectionFactory;
+  @SuppressWarnings("java:S3077") // CompletableFuture is thread-safe and the REXP is immutable
+  private volatile CompletableFuture<REXP> lastExecution;
+
+  public DataShieldSession(
+      DataShieldConnectionFactory connectionFactory, ExecutorService executorService) {
+    this.connectionFactory = requireNonNull(connectionFactory);
+    this.executorService = requireNonNull(executorService);
   }
 
-  public synchronized <T> T execute(RConnectionConsumer<T> consumer)
-      throws RserveException, REXPMismatchException {
+  public CompletableFuture<REXP> getLastExecution() {
+    return lastExecution;
+  }
+
+  public synchronized CompletableFuture<REXP> schedule(RConnectionConsumer<REXP> consumer) {
+    lastExecution = supplyAsync(() -> execute(consumer), executorService);
+    return lastExecution;
+  }
+
+  public synchronized <T> T execute(RConnectionConsumer<T> consumer) {
     RConnection connection = getRConnection();
     try {
       return consumer.accept(connection);
+    } catch (RserveException | REXPMismatchException e) {
+      throw new RExecutionException(e);
     } finally {
-      rSession = connection.detach();
+      tryDetachRConnection(connection);
     }
   }
 
-  private RConnection getRConnection() {
+  void tryDetachRConnection(RConnection connection) {
+    try {
+      rSession = connection.detach();
+    } catch (RserveException e) {
+      logger.error("Failed to detach connection", e);
+      rSession = null;
+    }
+  }
+
+  RConnection getRConnection() {
     try {
       if (rSession == null) {
         return connectionFactory.createConnection();
