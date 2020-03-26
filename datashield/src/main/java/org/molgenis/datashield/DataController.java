@@ -3,7 +3,9 @@ package org.molgenis.datashield;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
 import static org.springframework.http.MediaType.*;
+import static org.springframework.http.ResponseEntity.created;
 import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 import java.io.InputStream;
 import java.util.List;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,23 +92,32 @@ public class DataController {
   }
 
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  public CompletableFuture<Object> execute(@RequestBody String cmd) {
+  public CompletableFuture<ResponseEntity<Object>> execute(
+      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
     CompletableFuture<REXP> result =
         datashieldSession.schedule(connection -> rExecutorService.execute(cmd, connection));
-    return result.thenApply(DataShieldUtils::asNativeJavaObject);
+    return async
+        ? createdLastResult()
+        : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
   }
 
   @PostMapping(
       value = "/execute",
       consumes = TEXT_PLAIN_VALUE,
       produces = APPLICATION_OCTET_STREAM_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  public CompletableFuture<byte[]> executeRaw(@RequestBody String cmd) {
+  public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
+      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
             connection -> rExecutorService.execute(serializeCommand(cmd), connection));
-    return result.thenApply(DataShieldUtils::createRawResponse);
+    return async
+        ? createdLastResult()
+        : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
+  }
+
+  private static <R> CompletableFuture<ResponseEntity<R>> createdLastResult() {
+    return completedFuture(
+        created(fromCurrentContextPath().replacePath("/lastresult").build().toUri()).body(null));
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)

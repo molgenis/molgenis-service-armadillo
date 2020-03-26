@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
@@ -224,6 +225,27 @@ class DataControllerTest {
         () -> verify(downloadService).getMetadata("project.patients"),
         () -> verify(downloadService).download(table),
         () -> verify(rExecutorService).assign(resource, assignSymbol, table, rConnection));
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteAsync() throws Exception {
+    mockDatashieldScheduleSessionConsumer();
+    when(rExecutorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/execute?async=true")
+                    .contentType(TEXT_PLAIN)
+                    .content("dsMean(D$age)")
+                    .accept(APPLICATION_JSON))
+            .andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isCreated())
+        .andExpect(header().string("Location", "http://localhost/lastresult"))
+        .andExpect(content().string(""));
   }
 
   @Test
