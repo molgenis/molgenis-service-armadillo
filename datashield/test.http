@@ -1,0 +1,14 @@
+POST http://localhost:8080/login?username=admin&password=admin
+
+###
+POST http://localhost:8080/execute
+accept: application/json
+Content-Type: text/plain
+
+'Hello there'
+
+###
+GET http://localhost:8080/lastresult
+accept: application/json
+
+###
