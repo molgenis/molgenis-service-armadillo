@@ -2,10 +2,14 @@ package org.molgenis.datashield;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +26,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.IdGenerator;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,9 +118,92 @@ public class DataController {
     return datashieldSession.execute(packageService::getInstalledPackages);
   }
 
+  /**
+   * @return a list of (fully qualified) table identifiers available for DataSHIELD operations.
+   */
+  @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
+  public List<String> getTables() {
+    //TODO implement
+    return Collections.emptyList();
+  }
+
+  /**
+   * @return true if the the table exists and is available for DataSHIELD operations.
+   */
   @GetMapping("/exists/{entityTypeId}")
   public boolean exists(@PathVariable String entityTypeId) {
     return downloadService.metadataExists(entityTypeId);
+  }
+
+  /**
+   * @return a list of assigned symbols
+   */
+  @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
+  public List<String> getSymbols() {
+    //TODO implement
+    return Collections.emptyList();
+  }
+
+  /**
+   * Assign the result of the evaluation of an expression to a symbol.
+   */
+  @PostMapping(value = "/symbols",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE)
+  public CompletableFuture<Object> assignSymbol(@RequestBody String symbol,
+      @RequestBody String expression) {
+    //TODO implement
+    return null;
+  }
+
+  /**
+   * Assign the result of the evaluation of an expression to a symbol.
+   */
+  @PostMapping(value = "/symbols",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_OCTET_STREAM_VALUE)
+  public CompletableFuture<byte[]> assignSymbolRaw(@RequestBody String symbol,
+      @RequestBody String expression) {
+    //TODO implement
+    return null;
+  }
+
+  /**
+   * Removes a symbol, making the assigned data inaccessible
+   */
+  @DeleteMapping(value = "/symbols/{symbol}")
+  @ResponseStatus(HttpStatus.OK)
+  public void removeSymbol(@PathVariable String symbol) {
+    //TODO implement
+  }
+
+  /**
+   * @return a list of available methods (with name, type ('aggregate' or 'assign'), class ('function'
+   * or 'script'), value, package, version.
+   */
+  @GetMapping(value = "/methods", produces = APPLICATION_JSON_VALUE)
+  public List<String> getMethods() {
+    //TODO implement
+    return Collections.emptyList();
+  }
+
+  /**
+   * @return a list of workspaces (with lastAccessDate and size)
+   */
+  @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
+  public List<String> getWorkspaces() {
+    //TODO implement
+    return Collections.emptyList();
+  }
+
+  /**
+   * Deletes a workspace (fails silently if the workspace doesn't exist)
+   * @param id the id of the saved workspace
+   */
+  @DeleteMapping(value = "/workspaces/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  public void removeWorkspace(@PathVariable String id) {
+    //TODO implement
   }
 
   @PostMapping(value = "/save-workspace", produces = TEXT_PLAIN_VALUE)
@@ -141,5 +229,14 @@ public class DataController {
           rExecutorService.loadWorkspace(connection, new InputStreamResource(inputStream));
           return null;
         });
+  }
+
+  /**
+   * @return status object (with repo.version and repo.name, the db.name, username, host, port, etc.)
+   */
+  @GetMapping(value = "/info", produces = APPLICATION_JSON_VALUE)
+  public String getInfo() {
+    //TODO implement
+    return null;
   }
 }
