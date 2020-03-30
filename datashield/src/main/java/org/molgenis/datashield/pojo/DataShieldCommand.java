@@ -1,48 +1,86 @@
 package org.molgenis.datashield.pojo;
 
+import static java.time.Instant.now;
+import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.*;
+
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class DataShieldCommand<T> {
-
+  private final Instant createDate;
+  private final UUID id;
+  private final String expression;
+  private final boolean withResult;
   private CompletableFuture<T> result;
-  private Instant startDate;
-  private Instant createDate;
-  private Instant endDate;
-  private UUID id;
-  private String expression;
-  private boolean withResult;
-  private DataShieldCommandStatus status;
+  private Optional<Instant> startDate = Optional.empty();
+  private Optional<Instant> endDate = Optional.empty();
 
-  public DataShieldCommand(CompletableFuture<T> result, String expression) {
-    this.result = result;
+  public enum DataShieldCommandStatus {
+    COMPLETED,
+    FAILED,
+    PENDING,
+    IN_PROGRESS
+  }
+
+  public DataShieldCommand(String expression) {
     this.expression = expression;
     this.withResult = true;
-    this.createDate = Instant.now();
+    this.createDate = now();
     this.id = UUID.randomUUID();
-    this.status = DataShieldCommandStatus.PENDING;
+  }
 
-    result.thenAccept(this::finish).exceptionally(this::failed);
+  public void setResult(CompletableFuture<T> result) {
+    this.result = result;
   }
 
   public void start() {
-    this.startDate = Instant.now();
-    this.status = DataShieldCommandStatus.IN_PROGRESS;
+    this.startDate = Optional.of(now());
   }
 
-  private void finish(T result) {
-    this.endDate = Instant.now();
-    this.status = DataShieldCommandStatus.COMPLETED;
-  }
-
-  private Void failed(Throwable failure) {
-    this.status = DataShieldCommandStatus.FAILED;
-
-    return null;
+  public void complete() {
+    this.endDate = Optional.of(now());
   }
 
   public CompletableFuture<T> getResult() {
     return this.result;
+  }
+
+  public Optional<Instant> getStartDate() {
+    return startDate;
+  }
+
+  public Instant getCreateDate() {
+    return createDate;
+  }
+
+  public Optional<Instant> getEndDate() {
+    return endDate;
+  }
+
+  public UUID getId() {
+    return id;
+  }
+
+  public String getExpression() {
+    return expression;
+  }
+
+  public boolean isWithResult() {
+    return withResult;
+  }
+
+  public DataShieldCommandStatus getStatus() {
+    if (startDate.isEmpty()) {
+      return PENDING;
+    }
+    if (result.isCompletedExceptionally() || result.isCancelled()) {
+      return FAILED;
+    }
+    if (result.isDone()) {
+      return COMPLETED;
+    }
+    return IN_PROGRESS;
   }
 }

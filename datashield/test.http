@@ -1,7 +1,7 @@
 POST http://localhost:8080/login?username=admin&password=admin
 
 ###
-POST http://localhost:8080/execute
+POST http://localhost:8080/execute?async=true
 accept: application/json
 Content-Type: text/plain
 
@@ -9,6 +9,10 @@ Content-Type: text/plain
 
 ###
 GET http://localhost:8080/lastresult
+accept: application/json
+
+###
+GET http://localhost:8080/lastcommand
 accept: application/json
 
 ###

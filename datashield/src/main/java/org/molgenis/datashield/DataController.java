@@ -67,8 +67,7 @@ public class DataController {
   @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public CompletableFuture<ResponseEntity<byte[]>> lastResultRaw() {
-    return Optional.ofNullable(datashieldSession.getLastCommand())
-        .map(DataShieldCommand::getResult)
+    return Optional.ofNullable(datashieldSession.getLastExecution())
         .map(
             execution ->
                 execution
@@ -80,8 +79,7 @@ public class DataController {
   @GetMapping(value = "/lastresult", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public CompletableFuture<ResponseEntity<Object>> lastResultString() {
-    return Optional.ofNullable(datashieldSession.getLastCommand())
-        .map(DataShieldCommand::getResult)
+    return Optional.ofNullable(datashieldSession.getLastExecution())
         .map(
             execution ->
                 execution

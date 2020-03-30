@@ -1,7 +1,7 @@
 package org.molgenis.datashield;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +33,7 @@ public class DataShieldSession {
   private final ExecutorService executorService;
   private final RExecutorService rExecutorService;
 
+  // TODO: Check thread safety of the command
   private volatile DataShieldCommand<REXP> lastCommand;
 
   public DataShieldSession(
@@ -44,16 +45,22 @@ public class DataShieldSession {
     this.rExecutorService = requireNonNull(rExecutorService);
   }
 
+  public CompletableFuture<REXP> getLastExecution() {
+    return getLastCommand().getResult();
+  }
+
   public DataShieldCommand<REXP> getLastCommand() {
     return lastCommand;
   }
 
-  public synchronized DataShieldCommand<REXP> schedule(String command) {
+  public synchronized DataShieldCommand<REXP> schedule(String expression) {
+    DataShieldCommand<REXP> command = new DataShieldCommand<>(expression);
     CompletableFuture<REXP> result =
-        supplyAsync(
-            () -> execute(connection -> rExecutorService.execute(command, connection)),
-            executorService);
-    lastCommand = new DataShieldCommand<>(result, command);
+        runAsync(command::start, executorService)
+            .thenApply(x -> execute(connection -> rExecutorService.execute(expression, connection)))
+            .whenComplete((t, u) -> command.complete());
+    command.setResult(result);
+    lastCommand = command;
     return lastCommand;
   }
 

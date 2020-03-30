@@ -27,11 +27,10 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
 
-  private static final String R_PACKAGE_REPO_URL = "http://cran.r-project.org";
-
   @Override
   public REXP execute(String cmd, RConnection connection) {
     try {
+      LOGGER.debug("Evaluate {}", cmd);
       return connection.eval(cmd);
     } catch (RserveException e) {
       throw new RExecutionException(e);
@@ -42,6 +41,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   public String assign(
       Resource resource, String assignSymbol, Table table, RConnection connection) {
     try {
+      LOGGER.debug("Assign {} <- {}", assignSymbol, table.name());
       String dataFileName = table.name() + ".csv";
       copyFile(resource, dataFileName, connection);
       return assignTable(assignSymbol, table.columns(), dataFileName, connection);
@@ -53,6 +53,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   @Override
   public void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer) {
     try {
+      LOGGER.debug("Save workspace");
       connection.eval("base::save.image()");
       try (RFileInputStream is = connection.openFile(".RData")) {
         inputStreamConsumer.accept(is);
@@ -64,6 +65,7 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void loadWorkspace(RConnection connection, Resource resource) {
+    LOGGER.debug("Load workspace");
     try {
       copyFile(resource, ".RData", connection);
       connection.eval("base::load(file='.RData')");

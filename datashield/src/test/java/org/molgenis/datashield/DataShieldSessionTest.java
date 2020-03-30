@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,9 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
+import org.molgenis.datashield.pojo.DataShieldCommand;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
+import org.molgenis.r.exceptions.RExecutionException;
+import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -36,15 +38,17 @@ class DataShieldSessionTest {
   @Mock private RConnectionConsumer<REXP> rConnectionConsumer;
   @Mock private DataShieldConnectionFactory connectionFactory;
   @Mock private REXP rexp;
+  @Mock private RExecutorService rExecutorService;
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   @BeforeEach
   public void before() {
-    this.dataShieldSession = new DataShieldSession(connectionFactory, executorService);
+    this.dataShieldSession =
+        new DataShieldSession(connectionFactory, executorService, rExecutorService);
   }
 
   @Test
-  void testGetRConnectionFromFactory() throws RserveException {
+  void testGetRConnectionFromFactory() {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     assertSame(rConnection, dataShieldSession.getRConnection());
   }
@@ -75,32 +79,32 @@ class DataShieldSessionTest {
   }
 
   @Test
-  void testSchedule()
-      throws REXPMismatchException, RserveException, ExecutionException, InterruptedException {
+  void testSchedule() throws RserveException, ExecutionException, InterruptedException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
-    when(rConnectionConsumer.accept(rConnection)).thenReturn(rexp);
-    var result = dataShieldSession.schedule(rConnectionConsumer);
-    assertSame(rexp, result.get());
-    assertSame(rexp, dataShieldSession.getLastExecution().get());
+    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+
+    var result = dataShieldSession.schedule("ls()");
+
+    assertSame(rexp, result.getResult().get());
+    assertSame(rexp, dataShieldSession.getLastCommand().getResult().get());
   }
 
   @Test
   void testScheduleThrowingConsumer() throws REXPMismatchException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
+    when(rExecutorService.execute("ls()", rConnection))
+        .thenThrow(new RExecutionException(new REXPMismatchException(rexp, "access")));
 
-    doThrow(new REXPMismatchException(rexp, "blah")).when(rConnectionConsumer).accept(rConnection);
+    DataShieldCommand<REXP> command = dataShieldSession.schedule("ls()");
 
-    CompletableFuture<REXP> result = dataShieldSession.schedule(rConnectionConsumer);
-
-    assertThrows(ExecutionException.class, result::get);
+    assertThrows(ExecutionException.class, command.getResult()::get);
     verify(rConnection).detach();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  void execute() throws REXPMismatchException, RserveException {
+  void execute() throws RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
 
@@ -110,7 +114,6 @@ class DataShieldSessionTest {
         () -> verify(rConnectionConsumer).accept(rConnection), () -> verify(rConnection).detach());
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   void executeFails() {
     RserveException cause = new RserveException(rConnection, "foutje");
@@ -121,7 +124,6 @@ class DataShieldSessionTest {
         .hasCause(cause);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   void sessionCleanup() throws RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
@@ -134,7 +136,6 @@ class DataShieldSessionTest {
     assertAll(() -> verify(rSession).attach(), () -> verify(rConnection).close());
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   void sessionCleanupFails() throws RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
