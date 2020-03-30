@@ -7,9 +7,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PreDestroy;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
+import org.molgenis.datashield.pojo.DataShieldCommand;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.exceptions.RExecutionException;
+import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -29,23 +31,30 @@ public class DataShieldSession {
 
   private final DataShieldConnectionFactory connectionFactory;
   private final ExecutorService executorService;
+  private final RExecutorService rExecutorService;
 
-  @SuppressWarnings("java:S3077") // CompletableFuture is thread-safe and the REXP is immutable
-  private volatile CompletableFuture<REXP> lastExecution;
+  private volatile DataShieldCommand<REXP> lastCommand;
 
   public DataShieldSession(
-      DataShieldConnectionFactory connectionFactory, ExecutorService executorService) {
+      DataShieldConnectionFactory connectionFactory,
+      ExecutorService executorService,
+      RExecutorService rExecutorService) {
     this.connectionFactory = requireNonNull(connectionFactory);
     this.executorService = requireNonNull(executorService);
+    this.rExecutorService = requireNonNull(rExecutorService);
   }
 
-  public CompletableFuture<REXP> getLastExecution() {
-    return lastExecution;
+  public DataShieldCommand<REXP> getLastCommand() {
+    return lastCommand;
   }
 
-  public synchronized CompletableFuture<REXP> schedule(RConnectionConsumer<REXP> consumer) {
-    lastExecution = supplyAsync(() -> execute(consumer), executorService);
-    return lastExecution;
+  public synchronized DataShieldCommand<REXP> schedule(String command) {
+    CompletableFuture<REXP> result =
+        supplyAsync(
+            () -> execute(connection -> rExecutorService.execute(command, connection)),
+            executorService);
+    lastCommand = new DataShieldCommand<>(result, command);
+    return lastCommand;
   }
 
   public synchronized <T> T execute(RConnectionConsumer<T> consumer) {
