@@ -41,8 +41,8 @@ public class RExecutorServiceImpl implements RExecutorService {
   public String assign(
       Resource resource, String assignSymbol, Table table, RConnection connection) {
     try {
-      LOGGER.debug("Assign {} <- {}", assignSymbol, table.name());
       String dataFileName = table.name() + ".csv";
+      LOGGER.debug("Assign {} <- {}", assignSymbol, dataFileName);
       copyFile(resource, dataFileName, connection);
       return assignTable(assignSymbol, table.columns(), dataFileName, connection);
     } catch (IOException | RserveException e) {
