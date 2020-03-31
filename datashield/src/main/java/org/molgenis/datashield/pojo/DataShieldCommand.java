@@ -13,9 +13,12 @@ public class DataShieldCommand<T> {
   private final UUID id;
   private final String expression;
   private final boolean withResult;
-  private CompletableFuture<T> result;
-  private Optional<Instant> startDate = Optional.empty();
-  private Optional<Instant> endDate = Optional.empty();
+  @SuppressWarnings("java:S3077") // CompletableFuture is thread-safe
+  private volatile CompletableFuture<T> result;
+  @SuppressWarnings("java:S3077") // Optional is immutable
+  private volatile Optional<Instant> startDate = Optional.empty();
+  @SuppressWarnings("java:S3077") // Optional is immutable
+  private volatile Optional<Instant> endDate = Optional.empty();
 
   public enum DataShieldCommandStatus {
     COMPLETED,

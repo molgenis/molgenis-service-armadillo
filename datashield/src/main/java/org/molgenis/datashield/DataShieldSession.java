@@ -33,7 +33,7 @@ public class DataShieldSession {
   private final ExecutorService executorService;
   private final RExecutorService rExecutorService;
 
-  // TODO: Check thread safety of the command
+  @SuppressWarnings("java:S3077") // DataShieldCommand is thread-safe
   private volatile DataShieldCommand<REXP> lastCommand;
 
   public DataShieldSession(
