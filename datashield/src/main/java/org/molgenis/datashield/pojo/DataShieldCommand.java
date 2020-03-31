@@ -1,8 +1,9 @@
 package org.molgenis.datashield.pojo;
 
-import static java.time.Instant.now;
+import static java.time.Clock.systemUTC;
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.*;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,10 +14,14 @@ public class DataShieldCommand<T> {
   private final UUID id;
   private final String expression;
   private final boolean withResult;
+  private final Clock clock;
+
   @SuppressWarnings("java:S3077") // CompletableFuture is thread-safe
   private volatile CompletableFuture<T> result;
+
   @SuppressWarnings("java:S3077") // Optional is immutable
   private volatile Optional<Instant> startDate = Optional.empty();
+
   @SuppressWarnings("java:S3077") // Optional is immutable
   private volatile Optional<Instant> endDate = Optional.empty();
 
@@ -28,10 +33,16 @@ public class DataShieldCommand<T> {
   }
 
   public DataShieldCommand(String expression) {
+    this(expression, systemUTC());
+  }
+
+  // For test purposes, allow the clock to be mocked
+  DataShieldCommand(String expression, Clock clock) {
     this.expression = expression;
     this.withResult = true;
-    this.createDate = now();
+    this.createDate = clock.instant();
     this.id = UUID.randomUUID();
+    this.clock = clock;
   }
 
   public void setResult(CompletableFuture<T> result) {
@@ -39,11 +50,11 @@ public class DataShieldCommand<T> {
   }
 
   public void start() {
-    this.startDate = Optional.of(now());
+    this.startDate = Optional.of(clock.instant());
   }
 
   public void complete() {
-    this.endDate = Optional.of(now());
+    this.endDate = Optional.of(clock.instant());
   }
 
   public CompletableFuture<T> getResult() {
@@ -75,7 +86,7 @@ public class DataShieldCommand<T> {
   }
 
   public DataShieldCommandStatus getStatus() {
-    if (startDate.isEmpty()) {
+    if (result == null) {
       return PENDING;
     }
     if (result.isCompletedExceptionally() || result.isCancelled()) {
@@ -83,6 +94,9 @@ public class DataShieldCommand<T> {
     }
     if (result.isDone()) {
       return COMPLETED;
+    }
+    if (startDate.isEmpty()) {
+      return PENDING;
     }
     return IN_PROGRESS;
   }

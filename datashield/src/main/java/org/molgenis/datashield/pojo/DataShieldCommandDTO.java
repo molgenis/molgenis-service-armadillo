@@ -8,7 +8,6 @@ import com.google.auto.value.AutoValue;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.rosuda.REngine.REXP;
 
 @AutoValue
 @JsonSerialize(as = DataShieldCommandDTO.class)
@@ -39,7 +38,7 @@ public abstract class DataShieldCommandDTO {
     return new AutoValue_DataShieldCommandDTO.Builder();
   }
 
-  public static DataShieldCommandDTO create(DataShieldCommand<REXP> command) {
+  public static DataShieldCommandDTO create(DataShieldCommand<?> command) {
     Builder builder =
         builder()
             .createDate(command.getCreateDate())
