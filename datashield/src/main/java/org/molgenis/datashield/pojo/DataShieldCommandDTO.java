@@ -38,21 +38,6 @@ public abstract class DataShieldCommandDTO {
     return new AutoValue_DataShieldCommandDTO.Builder();
   }
 
-  public static DataShieldCommandDTO create(DataShieldCommand<?> command) {
-    synchronized (command) {
-      Builder builder =
-          builder()
-              .createDate(command.getCreateDate())
-              .expression(command.getExpression())
-              .id(command.getId())
-              .status(command.getStatus())
-              .withResult(command.isWithResult());
-      command.getStartDate().ifPresent(builder::startDate);
-      command.getEndDate().ifPresent(builder::endDate);
-      return builder.build();
-    }
-  }
-
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder startDate(Instant startDate);

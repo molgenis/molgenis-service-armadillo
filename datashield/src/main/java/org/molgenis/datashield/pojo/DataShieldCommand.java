@@ -2,12 +2,14 @@ package org.molgenis.datashield.pojo;
 
 import static java.time.Clock.systemUTC;
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.*;
+import static org.molgenis.datashield.pojo.DataShieldCommandDTO.builder;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.datashield.pojo.DataShieldCommandDTO.Builder;
 
 public class DataShieldCommand<T> {
   private final Instant createDate;
@@ -85,7 +87,7 @@ public class DataShieldCommand<T> {
     return withResult;
   }
 
-  public DataShieldCommandStatus getStatus() {
+  public synchronized DataShieldCommandStatus getStatus() {
     if (result == null) {
       return PENDING;
     }
@@ -99,5 +101,18 @@ public class DataShieldCommand<T> {
       return PENDING;
     }
     return IN_PROGRESS;
+  }
+
+  public synchronized DataShieldCommandDTO asDto() {
+    Builder builder =
+        builder()
+            .createDate(getCreateDate())
+            .expression(getExpression())
+            .id(getId())
+            .status(getStatus())
+            .withResult(isWithResult());
+    getStartDate().ifPresent(builder::startDate);
+    getEndDate().ifPresent(builder::endDate);
+    return builder.build();
   }
 }

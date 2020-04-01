@@ -11,6 +11,7 @@ import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandSt
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.FAILED;
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.IN_PROGRESS;
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.PENDING;
+import static org.molgenis.datashield.pojo.DataShieldCommandDTO.builder;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -107,5 +108,41 @@ class DataShieldCommandTest {
     command.setResult(completedFuture(42));
 
     assertEquals(COMPLETED, command.getStatus());
+  }
+
+  @Test
+  void asDtoPending() {
+    DataShieldCommandDTO actual = command.asDto();
+
+    DataShieldCommandDTO expected =
+        builder()
+            .createDate(command.getCreateDate())
+            .expression(command.getExpression())
+            .status(PENDING)
+            .id(command.getId())
+            .withResult(true)
+            .build();
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void asDtoCompleted() {
+    command.start();
+    command.setResult(completedFuture(42));
+    command.complete();
+
+    DataShieldCommandDTO actual = command.asDto();
+
+    DataShieldCommandDTO expected =
+        builder()
+            .createDate(command.getCreateDate())
+            .startDate(((Optional<Instant>) command.getStartDate()).get())
+            .endDate(((Optional<Instant>) command.getEndDate()).get())
+            .expression(command.getExpression())
+            .status(COMPLETED)
+            .id(command.getId())
+            .withResult(true)
+            .build();
+    assertEquals(expected, actual);
   }
 }
