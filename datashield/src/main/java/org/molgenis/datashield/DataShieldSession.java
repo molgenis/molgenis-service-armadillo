@@ -52,7 +52,7 @@ public class DataShieldSession {
   }
 
   public Optional<DataShieldCommandDTO> getLastCommand() {
-    return Optional.ofNullable(lastCommand).map(it -> it.asDto());
+    return Optional.ofNullable(lastCommand).map(DataShieldCommand::asDto);
   }
 
   public synchronized CompletableFuture<REXP> schedule(String expression) {
