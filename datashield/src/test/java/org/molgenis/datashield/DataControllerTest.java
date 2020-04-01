@@ -9,7 +9,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
+import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -295,7 +295,7 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteRawResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
-    String serializedCmd = serializeCommand("print(\"raw response\")");
+    String serializedCmd = serializeExpression("print(\"raw response\")");
 
     when(rExecutorService.execute(serializedCmd, rConnection)).thenReturn(new REXPRaw(new byte[0]));
 

@@ -1,7 +1,7 @@
 package org.molgenis.datashield;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
+import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
@@ -98,9 +98,9 @@ public class DataController {
 
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public CompletableFuture<ResponseEntity<Object>> execute(
-      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
+      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
     CompletableFuture<REXP> result =
-        datashieldSession.schedule(connection -> rExecutorService.execute(cmd, connection));
+        datashieldSession.schedule(connection -> rExecutorService.execute(expression, connection));
     return async
         ? createdLastResult()
         : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
@@ -111,10 +111,10 @@ public class DataController {
       consumes = TEXT_PLAIN_VALUE,
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
-      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
+      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
-            connection -> rExecutorService.execute(serializeCommand(cmd), connection));
+            connection -> rExecutorService.execute(serializeExpression(expression), connection));
     return async
         ? createdLastResult()
         : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
