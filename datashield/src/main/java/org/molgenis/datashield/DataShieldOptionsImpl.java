@@ -13,7 +13,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
-@Component
 /**
  * Retrieves and combines datashield options. These are defined by:
  *
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Component;
  *   <li>The rserve.options application properties
  * </ol>
  */
+@Component
 public class DataShieldOptionsImpl implements DataShieldOptions {
   private final DataShieldProperties dataShieldProperties;
   private final PackageService packageService;

@@ -14,12 +14,32 @@
 
   <properties>
     <dockerfile.tag>${project.version}</dockerfile.tag>
-    <dockerfile.repository>registry.hub.docker.com/molgenis/datashield-service</dockerfile.repository>
+    <dockerfile.repository>registry.hub.docker.com/molgenis/datashield-service
+    </dockerfile.repository>
     <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
-    <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar</dockerfile.jarfile>
+    <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar
+    </dockerfile.jarfile>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>obiba</id>
+      <name>obiba</name>
+      <url>https://dl.bintray.com/obiba/maven</url>
+    </repository>
+  </repositories>
+
   <dependencies>
+    <dependency>
+      <groupId>org.obiba.datashield</groupId>
+      <artifactId>ds4j-core</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.obiba.datashield</groupId>
+      <artifactId>ds4j-r</artifactId>
+      <version>1.0.2</version>
+    </dependency>
     <dependency>
       <groupId>org.molgenis</groupId>
       <artifactId>r</artifactId>

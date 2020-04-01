@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.datashield.service.DataShieldExpressionRewriterImpl;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.Package;
@@ -40,23 +41,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataController {
 
-  final DownloadService downloadService;
-  final RExecutorService rExecutorService;
-  final DataShieldSession datashieldSession;
-  final PackageService packageService;
-  final IdGenerator idGenerator;
-  final StorageService storageService;
+  private final DownloadService downloadService;
+  private final RExecutorService rExecutorService;
+  private final DataShieldSession datashieldSession;
+  private final DataShieldExpressionRewriterImpl expressionRewriter;
+  private final PackageService packageService;
+  private final IdGenerator idGenerator;
+  private final StorageService storageService;
 
   public DataController(
       DownloadService downloadService,
       RExecutorService rExecutorService,
       DataShieldSession datashieldSession,
+      DataShieldExpressionRewriterImpl expressionRewriter,
       PackageService packageService,
       StorageService storageService,
       IdGenerator idGenerator) {
     this.downloadService = downloadService;
     this.rExecutorService = rExecutorService;
     this.datashieldSession = datashieldSession;
+    this.expressionRewriter = expressionRewriter;
     this.packageService = packageService;
     this.storageService = storageService;
     this.idGenerator = idGenerator;
@@ -99,8 +103,10 @@ public class DataController {
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public CompletableFuture<ResponseEntity<Object>> execute(
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+    String rewrittenExpression = expressionRewriter.rewrite(expression);
     CompletableFuture<REXP> result =
-        datashieldSession.schedule(connection -> rExecutorService.execute(expression, connection));
+        datashieldSession.schedule(
+            connection -> rExecutorService.execute(rewrittenExpression, connection));
     return async
         ? createdLastResult()
         : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
@@ -112,9 +118,11 @@ public class DataController {
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+    String rewrittenExpression = expressionRewriter.rewrite(expression);
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
-            connection -> rExecutorService.execute(serializeExpression(expression), connection));
+            connection -> rExecutorService.execute(serializeExpression(rewrittenExpression),
+                connection));
     return async
         ? createdLastResult()
         : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
