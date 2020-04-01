@@ -90,6 +90,7 @@ class DataShieldSessionTest {
     var result = dataShieldSession.schedule("ls()");
 
     assertSame(rexp, result.get());
+    assertSame(result, dataShieldSession.getLastExecution());
   }
 
   @Test
