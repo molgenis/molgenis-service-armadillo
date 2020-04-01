@@ -49,11 +49,11 @@ public class DataShieldCommand<T> {
     this.result = result;
   }
 
-  public void start() {
+  public synchronized void start() {
     this.startDate = Optional.of(clock.instant());
   }
 
-  public void complete() {
+  public synchronized void complete() {
     this.endDate = Optional.of(clock.instant());
   }
 

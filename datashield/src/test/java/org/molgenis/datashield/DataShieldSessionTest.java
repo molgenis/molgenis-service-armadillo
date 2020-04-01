@@ -1,12 +1,15 @@
 package org.molgenis.datashield;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.COMPLETED;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
-import org.molgenis.datashield.pojo.DataShieldCommand;
+import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
@@ -86,8 +89,21 @@ class DataShieldSessionTest {
 
     var result = dataShieldSession.schedule("ls()");
 
-    assertSame(rexp, result.getResult().get());
-    assertSame(rexp, dataShieldSession.getLastCommand().getResult().get());
+    assertSame(rexp, result.get());
+  }
+
+  @Test
+  void getLastCommand() throws RserveException, ExecutionException, InterruptedException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(rConnection.detach()).thenReturn(rSession);
+    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    // schedule and await completion
+    dataShieldSession.schedule("ls()").get();
+
+    DataShieldCommandDTO command = dataShieldSession.getLastCommand().get();
+
+    assertEquals("ls()", command.expression());
+    assertEquals(COMPLETED, command.status());
   }
 
   @Test
@@ -97,9 +113,9 @@ class DataShieldSessionTest {
     when(rExecutorService.execute("ls()", rConnection))
         .thenThrow(new RExecutionException(new REXPMismatchException(rexp, "access")));
 
-    DataShieldCommand<REXP> command = dataShieldSession.schedule("ls()");
+    CompletableFuture<REXP> result = dataShieldSession.schedule("ls()");
 
-    assertThrows(ExecutionException.class, command.getResult()::get);
+    assertThrows(ExecutionException.class, result::get);
     verify(rConnection).detach();
   }
 

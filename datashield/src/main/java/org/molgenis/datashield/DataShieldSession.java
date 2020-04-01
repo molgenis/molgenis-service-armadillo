@@ -3,11 +3,13 @@ package org.molgenis.datashield;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PreDestroy;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
 import org.molgenis.datashield.pojo.DataShieldCommand;
+import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.exceptions.RExecutionException;
@@ -46,14 +48,14 @@ public class DataShieldSession {
   }
 
   public CompletableFuture<REXP> getLastExecution() {
-    return getLastCommand().getResult();
+    return lastCommand.getResult();
   }
 
-  public DataShieldCommand<REXP> getLastCommand() {
-    return lastCommand;
+  public Optional<DataShieldCommandDTO> getLastCommand() {
+    return Optional.ofNullable(lastCommand).map(DataShieldCommandDTO::create);
   }
 
-  public synchronized DataShieldCommand<REXP> schedule(String expression) {
+  public synchronized CompletableFuture<REXP> schedule(String expression) {
     DataShieldCommand<REXP> command = new DataShieldCommand<>(expression);
     CompletableFuture<REXP> result =
         runAsync(command::start, executorService)
@@ -61,7 +63,7 @@ public class DataShieldSession {
             .whenComplete((t, u) -> command.complete());
     command.setResult(result);
     lastCommand = command;
-    return lastCommand;
+    return result;
   }
 
   public synchronized <T> T execute(RConnectionConsumer<T> consumer) {

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.datashield.pojo.DataShieldCommand;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
@@ -91,13 +90,10 @@ public class DataController {
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public CompletableFuture<ResponseEntity<Object>> execute(
       @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
-    DataShieldCommand<REXP> command = datashieldSession.schedule(cmd);
+    CompletableFuture<REXP> result = datashieldSession.schedule(cmd);
     return async
         ? createdLastCommand()
-        : command
-            .getResult()
-            .thenApply(DataShieldUtils::asNativeJavaObject)
-            .thenApply(ResponseEntity::ok);
+        : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
   }
 
   @PostMapping(
@@ -106,13 +102,10 @@ public class DataController {
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
       @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
-    DataShieldCommand<REXP> command = datashieldSession.schedule(serializeCommand(cmd));
+    CompletableFuture<REXP> result = datashieldSession.schedule(serializeCommand(cmd));
     return async
         ? createdLastCommand()
-        : command
-            .getResult()
-            .thenApply(DataShieldUtils::createRawResponse)
-            .thenApply(ResponseEntity::ok);
+        : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
   }
 
   private static <R> CompletableFuture<ResponseEntity<R>> createdLastCommand() {
@@ -123,10 +116,7 @@ public class DataController {
   /** @return command object (with expression and status) */
   @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DataShieldCommandDTO> getLastCommand() {
-    return Optional.ofNullable(datashieldSession.getLastCommand())
-        .map(DataShieldCommandDTO::create)
-        .map(ResponseEntity::ok)
-        .orElse(notFound().build());
+    return ResponseEntity.of(datashieldSession.getLastCommand());
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)

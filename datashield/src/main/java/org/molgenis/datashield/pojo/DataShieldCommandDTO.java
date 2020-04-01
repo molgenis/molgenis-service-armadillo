@@ -39,16 +39,18 @@ public abstract class DataShieldCommandDTO {
   }
 
   public static DataShieldCommandDTO create(DataShieldCommand<?> command) {
-    Builder builder =
-        builder()
-            .createDate(command.getCreateDate())
-            .expression(command.getExpression())
-            .id(command.getId())
-            .status(command.getStatus())
-            .withResult(command.isWithResult());
-    command.getStartDate().ifPresent(builder::startDate);
-    command.getEndDate().ifPresent(builder::endDate);
-    return builder.build();
+    synchronized (command) {
+      Builder builder =
+          builder()
+              .createDate(command.getCreateDate())
+              .expression(command.getExpression())
+              .id(command.getId())
+              .status(command.getStatus())
+              .withResult(command.isWithResult());
+      command.getStartDate().ifPresent(builder::startDate);
+      command.getEndDate().ifPresent(builder::endDate);
+      return builder.build();
+    }
   }
 
   @AutoValue.Builder
@@ -67,6 +69,6 @@ public abstract class DataShieldCommandDTO {
 
     public abstract Builder status(DataShieldCommand.DataShieldCommandStatus status);
 
-    abstract DataShieldCommandDTO build();
+    public abstract DataShieldCommandDTO build();
   }
 }
