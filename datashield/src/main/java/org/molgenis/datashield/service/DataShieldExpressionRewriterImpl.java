@@ -10,6 +10,7 @@ import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
+import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
 import org.obiba.datashield.r.expr.DataShieldGrammar;
 import org.obiba.datashield.r.expr.ParseException;
@@ -29,15 +30,22 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
 
-  DSEnvironment environment = new DatashieldEnvironment();
+  private final DSEnvironment aggregateEnvironment;
+  private final DSEnvironment assignEnvironment;
 
-  private RScriptGenerator rScriptGenerator;
+  private final RScriptGenerator rAggregateScriptGenerator;
+  private final RScriptGenerator rAssignScriptGenerator;
 
   public DataShieldExpressionRewriterImpl(PackageService packageService,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
-    this.rScriptGenerator = new RScriptGenerator(environment);
+
+    this.aggregateEnvironment = new DatashieldEnvironment(DSMethodType.AGGREGATE);
+    this.assignEnvironment = new DatashieldEnvironment(DSMethodType.ASSIGN);
+
+    this.rAggregateScriptGenerator = new RScriptGenerator(aggregateEnvironment);
+    this.rAssignScriptGenerator = new RScriptGenerator(assignEnvironment);
   }
 
   @PostConstruct
@@ -50,14 +58,14 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
         .filter(Objects::nonNull)
         .flatMap(Set::stream)
         .map(this::toDSMethod)
-        .forEach(this::addToEnvironment);
+        .forEach(m -> addToEnvironment(m, aggregateEnvironment));
 
     packages.stream()
         .map(Package::assignMethods)
         .filter(Objects::nonNull)
         .flatMap(Set::stream)
         .map(this::toDSMethod)
-        .forEach(this::addToEnvironment);
+        .forEach(m -> addToEnvironment(m, assignEnvironment));
   }
 
   private PackagedFunctionDSMethod toDSMethod(String method) {
@@ -69,13 +77,24 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
     }
   }
 
-  private void addToEnvironment(PackagedFunctionDSMethod dsMethod) {
+  private void addToEnvironment(PackagedFunctionDSMethod dsMethod,
+      DSEnvironment environment) {
     environment.addOrUpdate(dsMethod);
-    LOGGER.info("Registered method '{}' to environment", dsMethod.getFunction());
+    LOGGER.info("Registered method '{}' to '{}' environment", dsMethod.getFunction(),
+        environment.getMethodType());
   }
 
   @Override
-  public String rewrite(String expression) {
+  public String rewriteAssign(String expression) {
+    return rewrite(expression, rAssignScriptGenerator);
+  }
+
+  @Override
+  public String rewriteAggregate(String expression) {
+    return rewrite(expression, rAggregateScriptGenerator);
+  }
+
+  private String rewrite(String expression, RScriptGenerator rScriptGenerator) {
     DataShieldGrammar g = new DataShieldGrammar(new StringReader(expression));
 
     try {

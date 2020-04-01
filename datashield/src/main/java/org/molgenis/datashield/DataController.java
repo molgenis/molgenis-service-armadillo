@@ -103,7 +103,7 @@ public class DataController {
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public CompletableFuture<ResponseEntity<Object>> execute(
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
-    String rewrittenExpression = expressionRewriter.rewrite(expression);
+    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
             connection -> rExecutorService.execute(rewrittenExpression, connection));
@@ -118,7 +118,7 @@ public class DataController {
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
-    String rewrittenExpression = expressionRewriter.rewrite(expression);
+    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
             connection -> rExecutorService.execute(serializeExpression(rewrittenExpression),
