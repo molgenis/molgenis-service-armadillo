@@ -1,4 +1,4 @@
-# 2. Deploy both on a virtual machine and Kubernetes
+# 5. Deploy both on a virtual machine and Kubernetes
 
 Date: 2020-04-01
 
