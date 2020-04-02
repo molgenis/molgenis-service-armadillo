@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.datashield.service.DataShieldExpressionRewriterImpl;
+import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.Package;
@@ -44,7 +44,7 @@ public class DataController {
   private final DownloadService downloadService;
   private final RExecutorService rExecutorService;
   private final DataShieldSession datashieldSession;
-  private final DataShieldExpressionRewriterImpl expressionRewriter;
+  private final DataShieldExpressionRewriter expressionRewriter;
   private final PackageService packageService;
   private final IdGenerator idGenerator;
   private final StorageService storageService;
@@ -53,7 +53,7 @@ public class DataController {
       DownloadService downloadService,
       RExecutorService rExecutorService,
       DataShieldSession datashieldSession,
-      DataShieldExpressionRewriterImpl expressionRewriter,
+      DataShieldExpressionRewriter expressionRewriter,
       PackageService packageService,
       StorageService storageService,
       IdGenerator idGenerator) {

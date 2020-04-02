@@ -24,11 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.RConnectionConsumer;
@@ -81,7 +81,7 @@ class DataControllerTest {
   @MockBean private PackageService packageService;
   @MockBean private StorageService storageService;
   @MockBean private IdGenerator idGenerator;
-  @MockBean private ExecutorService executorService;
+  @MockBean private DataShieldExpressionRewriter expressionRewriter;
   @Mock private RFileInputStream inputStream;
   @Mock private RConnection rConnection;
 
@@ -171,11 +171,11 @@ class DataControllerTest {
     when(idGenerator.generateId()).thenReturn(uuid);
     when(rConnection.openFile(".RData")).thenReturn(inputStream);
     doAnswer(
-            invocation -> {
-              Consumer<InputStream> consumer = invocation.getArgument(1);
-              consumer.accept(inputStream);
-              return null;
-            })
+        invocation -> {
+          Consumer<InputStream> consumer = invocation.getArgument(1);
+          consumer.accept(inputStream);
+          return null;
+        })
         .when(rExecutorService)
         .saveWorkspace(eq(rConnection), any());
 
@@ -206,7 +206,7 @@ class DataControllerTest {
   @SuppressWarnings({"unchecked"})
   @Test
   @WithMockUser
-  void testLoadFailed() throws Exception {
+  void testLoadFailed() {
     String assignSymbol = "D";
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
@@ -231,14 +231,14 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteAsync() throws Exception {
     mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
+    when(rExecutorService.execute("meanDS(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
 
     MvcResult result =
         mockMvc
             .perform(
                 post("/execute?async=true")
                     .contentType(TEXT_PLAIN)
-                    .content("dsMean(D$age)")
+                    .content("meanDS(D$age)")
                     .accept(APPLICATION_JSON))
             .andReturn();
     mockMvc
@@ -252,14 +252,16 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteDoubleResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
+    when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
+    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection)).thenReturn(
+        new REXPDouble(36.6));
 
     MvcResult result =
         mockMvc
             .perform(
                 post("/execute")
                     .contentType(TEXT_PLAIN)
-                    .content("dsMean(D$age)")
+                    .content("meanDS(D$age)")
                     .accept(APPLICATION_JSON))
             .andReturn();
     mockMvc
@@ -272,7 +274,8 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteNullResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("install.package('dsBase')", rConnection))
+    when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
+    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection))
         .thenReturn(new REXPNull());
 
     MvcResult result =
@@ -281,21 +284,22 @@ class DataControllerTest {
                 post("/execute")
                     .contentType(TEXT_PLAIN)
                     .accept(APPLICATION_JSON)
-                    .content("install.package('dsBase')"))
+                    .content("meanDS(D$age)"))
             .andReturn();
     mockMvc
         .perform(asyncDispatch(result))
         .andExpect(status().isOk())
         .andExpect(content().string(""));
 
-    verify(rExecutorService).execute("install.package('dsBase')", rConnection);
+    verify(rExecutorService).execute("dsBase::meanDS(D$age)", rConnection);
   }
 
   @Test
   @WithMockUser
   void testExecuteRawResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
-    String serializedCmd = serializeExpression("print(\"raw response\")");
+    when(expressionRewriter.rewriteAggregate("dsBase(D$age)")).thenReturn("dsBase::dsBase(D$age)");
+    String serializedCmd = serializeExpression("dsBase::dsBase(D$age)");
 
     when(rExecutorService.execute(serializedCmd, rConnection)).thenReturn(new REXPRaw(new byte[0]));
 
@@ -304,7 +308,7 @@ class DataControllerTest {
             post("/execute")
                 .accept(APPLICATION_OCTET_STREAM)
                 .contentType(TEXT_PLAIN)
-                .content("print(\"raw response\")"))
+                .content("dsBase(D$age)"))
         .andExpect(status().isOk());
 
     verify(rExecutorService).execute(serializedCmd, rConnection);
@@ -320,9 +324,9 @@ class DataControllerTest {
   @SuppressWarnings("unchecked")
   private void mockDatashieldScheduleSessionConsumer() {
     doAnswer(
-            answer ->
-                completedFuture(
-                    answer.<RConnectionConsumer<REXP>>getArgument(0).accept(rConnection)))
+        answer ->
+            completedFuture(
+                answer.<RConnectionConsumer<REXP>>getArgument(0).accept(rConnection)))
         .when(datashieldSession)
         .schedule(any(RConnectionConsumer.class));
   }
