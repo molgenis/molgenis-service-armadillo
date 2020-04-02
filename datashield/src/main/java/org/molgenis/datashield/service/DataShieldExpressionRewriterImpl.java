@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRewriter {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      DataShieldExpressionRewriterImpl.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(DataShieldExpressionRewriterImpl.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
 
@@ -36,8 +36,8 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
   private final RScriptGenerator rAggregateScriptGenerator;
   private final RScriptGenerator rAssignScriptGenerator;
 
-  public DataShieldExpressionRewriterImpl(PackageService packageService,
-      RConnectionFactory rConnectionFactory) {
+  public DataShieldExpressionRewriterImpl(
+      PackageService packageService, RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
 
@@ -70,8 +70,8 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
 
   /**
    * Method strings come in two forms: either without a package ('meanDS'), meaning they belong to
-   * the 'dsBase' package, or with a name and a package ('dim=base::dim'), meaning they are part
-   * of another package instead of 'dsBase'.
+   * the 'dsBase' package, or with a name and a package ('dim=base::dim'), meaning they are part of
+   * another package instead of 'dsBase'.
    */
   private PackagedFunctionDSMethod toDSMethod(String method) {
     if (method.contains("=")) {
@@ -82,10 +82,11 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
     }
   }
 
-  private void addToEnvironment(PackagedFunctionDSMethod dsMethod,
-      DSEnvironment environment) {
+  private void addToEnvironment(PackagedFunctionDSMethod dsMethod, DSEnvironment environment) {
     environment.addOrUpdate(dsMethod);
-    LOGGER.info("Registered method '{}' to '{}' environment", dsMethod.getFunction(),
+    LOGGER.info(
+        "Registered method '{}' to '{}' environment",
+        dsMethod.getFunction(),
         environment.getMethodType());
   }
 

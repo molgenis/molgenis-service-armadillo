@@ -47,13 +47,14 @@ class DataShieldExpressionRewriterImplTest {
 
   @Test
   void testRewriteAssignUnknown() {
-    assertThrows(NoSuchDSMethodException.class,
-        () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
+    assertThrows(
+        NoSuchDSMethodException.class, () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
   }
 
   @Test
   void testRewriteAggregateDsBase() {
-    assertEquals("dsBase::scatterPlotDs(D$age, D$potatoes_a_day)",
+    assertEquals(
+        "dsBase::scatterPlotDs(D$age, D$potatoes_a_day)",
         expressionRewriter.rewriteAggregate("scatterPlotDs(D$age, D$potatoes_a_day)"));
   }
 
@@ -64,8 +65,8 @@ class DataShieldExpressionRewriterImplTest {
 
   @Test
   void testRewriteFaultyExpression() {
-    assertThrows(DataShieldExpressionException.class,
-        () -> expressionRewriter.rewriteAggregate("meanDS(="));
+    assertThrows(
+        DataShieldExpressionException.class, () -> expressionRewriter.rewriteAggregate("meanDS(="));
   }
 
   private void populateEnvironments() throws REXPMismatchException, RserveException {
@@ -77,17 +78,18 @@ class DataShieldExpressionRewriterImplTest {
     String aggregateDsBase = "scatterPlotDs";
     String aggregateNonDsBase = "is.character=base::is.character";
 
-    Package pack = Package.builder()
-        .setAggregateMethods(ImmutableSet.of(aggregateDsBase, aggregateNonDsBase))
-        .setAssignMethods(ImmutableSet.of(assignDsBase, assignNonDsBase))
-        .setLibPath("test")
-        .setVersion("test")
-        .setName("test")
-        .setBuilt("test")
-        .build();
+    Package pack =
+        Package.builder()
+            .setAggregateMethods(ImmutableSet.of(aggregateDsBase, aggregateNonDsBase))
+            .setAssignMethods(ImmutableSet.of(assignDsBase, assignNonDsBase))
+            .setLibPath("test")
+            .setVersion("test")
+            .setName("test")
+            .setBuilt("test")
+            .build();
 
-    when(packageService.getInstalledPackages(rConnection)).thenReturn(
-        Collections.singletonList(pack));
+    when(packageService.getInstalledPackages(rConnection))
+        .thenReturn(Collections.singletonList(pack));
 
     expressionRewriter.populateEnvironments();
   }

@@ -121,8 +121,8 @@ public class DataController {
     String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
     CompletableFuture<REXP> result =
         datashieldSession.schedule(
-            connection -> rExecutorService.execute(serializeExpression(rewrittenExpression),
-                connection));
+            connection ->
+                rExecutorService.execute(serializeExpression(rewrittenExpression), connection));
     return async
         ? createdLastResult()
         : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);

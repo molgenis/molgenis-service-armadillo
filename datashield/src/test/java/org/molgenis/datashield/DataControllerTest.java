@@ -171,11 +171,11 @@ class DataControllerTest {
     when(idGenerator.generateId()).thenReturn(uuid);
     when(rConnection.openFile(".RData")).thenReturn(inputStream);
     doAnswer(
-        invocation -> {
-          Consumer<InputStream> consumer = invocation.getArgument(1);
-          consumer.accept(inputStream);
-          return null;
-        })
+            invocation -> {
+              Consumer<InputStream> consumer = invocation.getArgument(1);
+              consumer.accept(inputStream);
+              return null;
+            })
         .when(rExecutorService)
         .saveWorkspace(eq(rConnection), any());
 
@@ -253,8 +253,8 @@ class DataControllerTest {
   void testExecuteDoubleResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
     when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
-    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection)).thenReturn(
-        new REXPDouble(36.6));
+    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection))
+        .thenReturn(new REXPDouble(36.6));
 
     MvcResult result =
         mockMvc
@@ -275,8 +275,7 @@ class DataControllerTest {
   void testExecuteNullResult() throws Exception {
     mockDatashieldScheduleSessionConsumer();
     when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
-    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection))
-        .thenReturn(new REXPNull());
+    when(rExecutorService.execute("dsBase::meanDS(D$age)", rConnection)).thenReturn(new REXPNull());
 
     MvcResult result =
         mockMvc
@@ -324,9 +323,9 @@ class DataControllerTest {
   @SuppressWarnings("unchecked")
   private void mockDatashieldScheduleSessionConsumer() {
     doAnswer(
-        answer ->
-            completedFuture(
-                answer.<RConnectionConsumer<REXP>>getArgument(0).accept(rConnection)))
+            answer ->
+                completedFuture(
+                    answer.<RConnectionConsumer<REXP>>getArgument(0).accept(rConnection)))
         .when(datashieldSession)
         .schedule(any(RConnectionConsumer.class));
   }
