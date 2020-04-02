@@ -49,7 +49,7 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
   }
 
   @PostConstruct
-  public void init() throws RserveException, REXPMismatchException {
+  public void populateEnvironments() throws RserveException, REXPMismatchException {
     RConnection connection = rConnectionFactory.retryCreateConnection();
     List<Package> packages = packageService.getInstalledPackages(connection);
 
@@ -68,6 +68,11 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
         .forEach(m -> addToEnvironment(m, assignEnvironment));
   }
 
+  /**
+   * Method strings come in two forms: either without a package ('meanDS'), meaning they belong to
+   * the 'dsBase' package, or with a name and a package ('dim=base::dim'), meaning they are part
+   * of another package instead of 'dsBase'.
+   */
   private PackagedFunctionDSMethod toDSMethod(String method) {
     if (method.contains("=")) {
       String[] nonDsBaseMethod = method.split("=");
