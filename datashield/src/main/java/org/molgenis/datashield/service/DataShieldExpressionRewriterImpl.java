@@ -105,7 +105,7 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
 
     try {
       String script = rScriptGenerator.toScript(g.root());
-      LOGGER.info("Interpreted expression '{}' as '{}'", expression, script);
+      LOGGER.debug("Generated script '{}'", script);
       return script;
     } catch (ParseException e) {
       throw new DataShieldExpressionException(e);
