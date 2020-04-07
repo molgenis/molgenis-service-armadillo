@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DataShieldOptionsImpl implements DataShieldOptions {
+
   private final DataShieldProperties dataShieldProperties;
   private final PackageService packageService;
   private Map<String, String> options;
@@ -39,13 +40,20 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
 
   @PostConstruct
   public void init() throws RserveException, REXPMismatchException {
-    RConnection connection = rConnectionFactory.retryCreateConnection();
-    options =
-        packageService.getInstalledPackages(connection).stream()
-            .map(Package::options)
-            .filter(Objects::nonNull)
-            .collect(HashMap::new, Map::putAll, Map::putAll);
-    options.putAll(dataShieldProperties.getOptions());
+    RConnection connection = null;
+    try {
+      connection = rConnectionFactory.retryCreateConnection();
+      options =
+          packageService.getInstalledPackages(connection).stream()
+              .map(Package::options)
+              .filter(Objects::nonNull)
+              .collect(HashMap::new, Map::putAll, Map::putAll);
+      options.putAll(dataShieldProperties.getOptions());
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
   }
 
   @Override

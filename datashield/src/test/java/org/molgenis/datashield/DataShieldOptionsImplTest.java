@@ -2,6 +2,7 @@ package org.molgenis.datashield;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataControllerTest.BASE;
 
@@ -55,5 +56,6 @@ class DataShieldOptionsImplTest {
     options.init();
     assertEquals(
         options.getValue(), ImmutableMap.of("a", "overrideA", "b", "defaultB", "c", "overrideC"));
+    verify(rConnection).close();
   }
 }
