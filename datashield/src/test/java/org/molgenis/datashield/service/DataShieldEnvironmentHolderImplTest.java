@@ -45,8 +45,8 @@ class DataShieldEnvironmentHolderImplTest {
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.AGGREGATE);
 
     assertEquals(
-        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()),
-        asList("scatterPlotDs", "is.character"));
+        asList("scatterPlotDs", "is.character"),
+        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()));
   }
 
   @Test
@@ -56,8 +56,8 @@ class DataShieldEnvironmentHolderImplTest {
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
 
     assertEquals(
-        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()),
-        asList("meanDS", "dim"));
+        asList("meanDS", "dim"),
+        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()));
   }
 
   @Test
