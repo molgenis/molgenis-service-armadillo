@@ -2,10 +2,7 @@ package org.molgenis.datashield;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.http.MediaType.*;
 import static org.springframework.http.ResponseEntity.created;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
@@ -16,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
@@ -29,14 +27,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.IdGenerator;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class DataController {
@@ -104,11 +95,9 @@ public class DataController {
   public CompletableFuture<ResponseEntity<Object>> execute(
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
     String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
-    CompletableFuture<REXP> result =
-        datashieldSession.schedule(
-            connection -> rExecutorService.execute(rewrittenExpression, connection));
+    CompletableFuture<REXP> result = datashieldSession.schedule(rewrittenExpression);
     return async
-        ? createdLastResult()
+        ? createdLastCommand()
         : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
   }
 
@@ -120,24 +109,21 @@ public class DataController {
       @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
     String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
     CompletableFuture<REXP> result =
-        datashieldSession.schedule(
-            connection ->
-                rExecutorService.execute(serializeExpression(rewrittenExpression), connection));
+        datashieldSession.schedule(serializeExpression(rewrittenExpression));
     return async
-        ? createdLastResult()
+        ? createdLastCommand()
         : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
   }
 
-  private static <R> CompletableFuture<ResponseEntity<R>> createdLastResult() {
+  private static <R> CompletableFuture<ResponseEntity<R>> createdLastCommand() {
     return completedFuture(
-        created(fromCurrentContextPath().replacePath("/lastresult").build().toUri()).body(null));
+        created(fromCurrentContextPath().replacePath("/lastcommand").build().toUri()).body(null));
   }
 
   /** @return command object (with expression and status) */
   @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
-  public String getLastCommand() {
-    // TODO implement
-    return null;
+  public ResponseEntity<DataShieldCommandDTO> getLastCommand() {
+    return ResponseEntity.of(datashieldSession.getLastCommand());
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
