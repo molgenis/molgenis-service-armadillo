@@ -1,5 +1,6 @@
 package org.molgenis.datashield;
 
+import static java.time.Instant.now;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -18,17 +19,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus;
+import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.RConnectionConsumer;
@@ -37,7 +41,6 @@ import org.molgenis.r.model.Package;
 import org.molgenis.r.model.Table;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorServiceImpl;
-import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPRaw;
@@ -81,7 +84,6 @@ class DataControllerTest {
   @MockBean private PackageService packageService;
   @MockBean private StorageService storageService;
   @MockBean private IdGenerator idGenerator;
-  @MockBean private ExecutorService executorService;
   @Mock private RFileInputStream inputStream;
   @Mock private RConnection rConnection;
 
@@ -151,6 +153,32 @@ class DataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
         .andExpect(content().bytes(bytes));
+  }
+
+  @Test
+  @WithMockUser
+  void testGetLastCommandNotFound() throws Exception {
+    mockMvc.perform(get("/lastcommand").accept(APPLICATION_JSON)).andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockUser
+  void testGetLastCommand() throws Exception {
+    DataShieldCommandDTO command =
+        DataShieldCommandDTO.builder()
+            .createDate(now())
+            .status(DataShieldCommandStatus.PENDING)
+            .expression("expression")
+            .id(UUID.randomUUID())
+            .withResult(true)
+            .build();
+    when(datashieldSession.getLastCommand()).thenReturn(Optional.of(command));
+
+    mockMvc
+        .perform(get("/lastcommand").accept(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(jsonPath("status").value("PENDING"));
   }
 
   @Test
@@ -230,8 +258,8 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteAsync() throws Exception {
-    mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
+    when(datashieldSession.schedule("dsMean(D$age)"))
+        .thenReturn(completedFuture(new REXPDouble(36.6)));
 
     MvcResult result =
         mockMvc
@@ -244,15 +272,15 @@ class DataControllerTest {
     mockMvc
         .perform(asyncDispatch(result))
         .andExpect(status().isCreated())
-        .andExpect(header().string("Location", "http://localhost/lastresult"))
+        .andExpect(header().string("Location", "http://localhost/lastcommand"))
         .andExpect(content().string(""));
   }
 
   @Test
   @WithMockUser
   void testExecuteDoubleResult() throws Exception {
-    mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("dsMean(D$age)", rConnection)).thenReturn(new REXPDouble(36.6));
+    when(datashieldSession.schedule("dsMean(D$age)"))
+        .thenReturn(completedFuture(new REXPDouble(36.6)));
 
     MvcResult result =
         mockMvc
@@ -271,9 +299,8 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteNullResult() throws Exception {
-    mockDatashieldScheduleSessionConsumer();
-    when(rExecutorService.execute("install.package('dsBase')", rConnection))
-        .thenReturn(new REXPNull());
+    when(datashieldSession.schedule("install.package('dsBase')"))
+        .thenReturn(completedFuture(new REXPNull()));
 
     MvcResult result =
         mockMvc
@@ -287,17 +314,15 @@ class DataControllerTest {
         .perform(asyncDispatch(result))
         .andExpect(status().isOk())
         .andExpect(content().string(""));
-
-    verify(rExecutorService).execute("install.package('dsBase')", rConnection);
   }
 
   @Test
   @WithMockUser
   void testExecuteRawResult() throws Exception {
-    mockDatashieldScheduleSessionConsumer();
     String serializedCmd = serializeCommand("print(\"raw response\")");
 
-    when(rExecutorService.execute(serializedCmd, rConnection)).thenReturn(new REXPRaw(new byte[0]));
+    when(datashieldSession.schedule(serializedCmd))
+        .thenReturn(completedFuture(new REXPRaw(new byte[0])));
 
     mockMvc
         .perform(
@@ -306,8 +331,6 @@ class DataControllerTest {
                 .contentType(TEXT_PLAIN)
                 .content("print(\"raw response\")"))
         .andExpect(status().isOk());
-
-    verify(rExecutorService).execute(serializedCmd, rConnection);
   }
 
   @SuppressWarnings("unchecked")
@@ -315,15 +338,5 @@ class DataControllerTest {
     doAnswer(answer -> answer.<RConnectionConsumer<String>>getArgument(0).accept(rConnection))
         .when(datashieldSession)
         .execute(any(RConnectionConsumer.class));
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockDatashieldScheduleSessionConsumer() {
-    doAnswer(
-            answer ->
-                completedFuture(
-                    answer.<RConnectionConsumer<REXP>>getArgument(0).accept(rConnection)))
-        .when(datashieldSession)
-        .schedule(any(RConnectionConsumer.class));
   }
 }
