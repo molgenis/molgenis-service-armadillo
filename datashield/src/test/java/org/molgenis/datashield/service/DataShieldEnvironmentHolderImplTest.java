@@ -40,8 +40,9 @@ class DataShieldEnvironmentHolderImplTest {
 
   @BeforeEach
   public void beforeEach() {
-    environmentHolder = new DataShieldEnvironmentHolderImpl(packageService, rConnectionFactory,
-        dataShieldProperties);
+    environmentHolder =
+        new DataShieldEnvironmentHolderImpl(
+            packageService, rConnectionFactory, dataShieldProperties);
   }
 
   @Test
@@ -93,9 +94,7 @@ class DataShieldEnvironmentHolderImplTest {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         IllegalRPackageException.class,
-        () ->
-            populateEnvironment(
-                ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
+        () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
   }
 
   private void populateEnvironment(

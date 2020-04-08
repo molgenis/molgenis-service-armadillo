@@ -37,7 +37,8 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   private final DSEnvironment assignEnvironment;
 
   public DataShieldEnvironmentHolderImpl(
-      PackageService packageService, RConnectionFactory rConnectionFactory,
+      PackageService packageService,
+      RConnectionFactory rConnectionFactory,
       DataShieldProperties dataShieldProperties) {
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
@@ -54,9 +55,10 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
     populateEnvironment(packages.stream().map(Package::assignMethods), assignEnvironment);
   }
 
-  private void populateEnvironment(Stream<ImmutableSet<String>> methods,
-      DSEnvironment environment) {
-    methods.filter(Objects::nonNull)
+  private void populateEnvironment(
+      Stream<ImmutableSet<String>> methods, DSEnvironment environment) {
+    methods
+        .filter(Objects::nonNull)
         .flatMap(Set::stream)
         .map(this::toDSMethod)
         .filter(this::validatePackageWhitelisted)
@@ -100,8 +102,8 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
       throw new IllegalRMethodStringException(method);
     }
 
-    return new PackagedFunctionDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0],
-        null);
+    return new PackagedFunctionDSMethod(
+        nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0], null);
   }
 
   private boolean validatePackageWhitelisted(PackagedFunctionDSMethod dsMethod) {
@@ -111,8 +113,8 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
     return true;
   }
 
-  private boolean validateMethodIsUnique(PackagedFunctionDSMethod dsMethod,
-      DSEnvironment environment) {
+  private boolean validateMethodIsUnique(
+      PackagedFunctionDSMethod dsMethod, DSEnvironment environment) {
     if (environment.getMethods().stream()
         .map(DSMethod::getName)
         .anyMatch(name -> dsMethod.getName().equals(name))) {
