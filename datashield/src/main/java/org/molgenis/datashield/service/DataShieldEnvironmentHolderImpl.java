@@ -1,12 +1,15 @@
 package org.molgenis.datashield.service;
 
-import static java.lang.String.format;
-
+import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import org.molgenis.datashield.DataShieldProperties;
+import org.molgenis.datashield.exceptions.DuplicateRMethodException;
+import org.molgenis.datashield.exceptions.IllegalRMethodStringException;
+import org.molgenis.datashield.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.service.PackageService;
@@ -47,20 +50,18 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   @PostConstruct
   public void populateEnvironments() throws RserveException, REXPMismatchException {
     List<Package> packages = getPackages();
+    populateEnvironment(packages.stream().map(Package::aggregateMethods), aggregateEnvironment);
+    populateEnvironment(packages.stream().map(Package::assignMethods), assignEnvironment);
+  }
 
-    packages.stream()
-        .map(Package::aggregateMethods)
-        .filter(Objects::nonNull)
+  private void populateEnvironment(Stream<ImmutableSet<String>> methods,
+      DSEnvironment environment) {
+    methods.filter(Objects::nonNull)
         .flatMap(Set::stream)
         .map(this::toDSMethod)
-        .forEach(m -> addToEnvironment(m, aggregateEnvironment));
-
-    packages.stream()
-        .map(Package::assignMethods)
-        .filter(Objects::nonNull)
-        .flatMap(Set::stream)
-        .map(this::toDSMethod)
-        .forEach(m -> addToEnvironment(m, assignEnvironment));
+        .filter(this::validatePackageWhitelisted)
+        .filter(m -> validateMethodIsUnique(m, environment))
+        .forEach(m -> addToEnvironment(m, environment));
   }
 
   private List<Package> getPackages() throws RserveException, REXPMismatchException {
@@ -82,34 +83,45 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
    */
   private PackagedFunctionDSMethod toDSMethod(String method) {
     if (method.contains("=")) {
-      String[] nonDsBaseMethod = method.split("=");
-      if (nonDsBaseMethod.length != 2) {
-        throw new IllegalArgumentException(method);
-      }
-      return createDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1]);
+      return createNonDsBaseMethod(method);
     } else {
-      return createDSMethod(method, "dsBase::" + method);
+      return new PackagedFunctionDSMethod(method, "dsBase::" + method, "dsBase", null);
     }
   }
 
-  private PackagedFunctionDSMethod createDSMethod(String name, String function) {
-    String package_ = function.split("::")[0];
-    if (!dataShieldProperties.getWhitelist().contains(package_)) {
-      throw new IllegalArgumentException(
-          format("Error while registering function '%s': package '%s' is not whitelisted", function,
-              package_));
+  private PackagedFunctionDSMethod createNonDsBaseMethod(String method) {
+    String[] nonDsBaseMethod = method.split("=");
+    if (nonDsBaseMethod.length != 2) {
+      throw new IllegalRMethodStringException(method);
     }
-    return new PackagedFunctionDSMethod(name, function);
+
+    String[] functionParts = nonDsBaseMethod[1].split("::");
+    if (functionParts.length != 2) {
+      throw new IllegalRMethodStringException(method);
+    }
+
+    return new PackagedFunctionDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0],
+        null);
   }
 
-  private void addToEnvironment(PackagedFunctionDSMethod dsMethod, DSEnvironment environment) {
+  private boolean validatePackageWhitelisted(PackagedFunctionDSMethod dsMethod) {
+    if (!dataShieldProperties.getWhitelist().contains(dsMethod.getPackage())) {
+      throw new IllegalRPackageException(dsMethod.getFunction(), dsMethod.getPackage());
+    }
+    return true;
+  }
+
+  private boolean validateMethodIsUnique(PackagedFunctionDSMethod dsMethod,
+      DSEnvironment environment) {
     if (environment.getMethods().stream()
         .map(DSMethod::getName)
         .anyMatch(name -> dsMethod.getName().equals(name))) {
-      throw new IllegalArgumentException(
-          format("Method name already registered: %s", dsMethod.getName()));
+      throw new DuplicateRMethodException(dsMethod);
     }
+    return true;
+  }
 
+  private void addToEnvironment(PackagedFunctionDSMethod dsMethod, DSEnvironment environment) {
     environment.addOrUpdate(dsMethod);
     LOGGER.info(
         "Registered method '{}' to '{}' environment",

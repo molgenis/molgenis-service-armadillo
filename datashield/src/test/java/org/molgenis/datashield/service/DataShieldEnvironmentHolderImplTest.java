@@ -17,6 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.datashield.DataShieldProperties;
+import org.molgenis.datashield.exceptions.DuplicateRMethodException;
+import org.molgenis.datashield.exceptions.IllegalRMethodStringException;
+import org.molgenis.datashield.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.service.PackageService;
@@ -69,7 +72,7 @@ class DataShieldEnvironmentHolderImplTest {
   @Test
   public void testPopulateIllegalMethodName() {
     assertThrows(
-        IllegalArgumentException.class,
+        IllegalRMethodStringException.class,
         () ->
             populateEnvironment(
                 ImmutableSet.of("method=base::method=base::method"), ImmutableSet.of()));
@@ -77,9 +80,9 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateDuplicateMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("base"));
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("base", "other"));
     assertThrows(
-        IllegalArgumentException.class,
+        DuplicateRMethodException.class,
         () ->
             populateEnvironment(
                 ImmutableSet.of("dim=base::dim", "dim=other::dim"), ImmutableSet.of()));
@@ -89,7 +92,7 @@ class DataShieldEnvironmentHolderImplTest {
   public void testPopulateMethodFromNonWhitelistedPackage() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
-        IllegalArgumentException.class,
+        IllegalRPackageException.class,
         () ->
             populateEnvironment(
                 ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
