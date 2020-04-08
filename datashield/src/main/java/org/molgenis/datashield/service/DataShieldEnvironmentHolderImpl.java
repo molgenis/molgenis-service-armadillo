@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import org.molgenis.datashield.DataShieldProperties;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.service.PackageService;
@@ -27,14 +28,17 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
       LoggerFactory.getLogger(DataShieldEnvironmentHolderImpl.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
+  private DataShieldProperties dataShieldProperties;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
 
   public DataShieldEnvironmentHolderImpl(
-      PackageService packageService, RConnectionFactory rConnectionFactory) {
+      PackageService packageService, RConnectionFactory rConnectionFactory,
+      DataShieldProperties dataShieldProperties) {
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
+    this.dataShieldProperties = dataShieldProperties;
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
@@ -82,10 +86,20 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
       if (nonDsBaseMethod.length != 2) {
         throw new IllegalArgumentException(method);
       }
-      return new PackagedFunctionDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1]);
+      return createDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1]);
     } else {
-      return new PackagedFunctionDSMethod(method, "dsBase::" + method);
+      return createDSMethod(method, "dsBase::" + method);
     }
+  }
+
+  private PackagedFunctionDSMethod createDSMethod(String name, String function) {
+    String package_ = function.split("::")[0];
+    if (!dataShieldProperties.getWhitelist().contains(package_)) {
+      throw new IllegalArgumentException(
+          format("Error while registering function '%s': package '%s' is not whitelisted", function,
+              package_));
+    }
+    return new PackagedFunctionDSMethod(name, function);
   }
 
   private void addToEnvironment(PackagedFunctionDSMethod dsMethod, DSEnvironment environment) {

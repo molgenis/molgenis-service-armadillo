@@ -33,3 +33,7 @@ datashield:
         subset: 0
     datashield:
       privacyLevel: 0
+  whitelist:
+    - dsBase
+    - base
+    - stats

@@ -9,12 +9,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.datashield.DataShieldProperties;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.Package;
 import org.molgenis.r.service.PackageService;
@@ -30,15 +32,18 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
+  @Mock DataShieldProperties dataShieldProperties;
   private DataShieldEnvironmentHolderImpl environmentHolder;
 
   @BeforeEach
   public void beforeEach() {
-    environmentHolder = new DataShieldEnvironmentHolderImpl(packageService, rConnectionFactory);
+    environmentHolder = new DataShieldEnvironmentHolderImpl(packageService, rConnectionFactory,
+        dataShieldProperties);
   }
 
   @Test
   public void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase", "base"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
@@ -51,6 +56,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase", "base"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
@@ -71,11 +77,22 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateDuplicateMethodName() {
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("base"));
     assertThrows(
         IllegalArgumentException.class,
         () ->
             populateEnvironment(
                 ImmutableSet.of("dim=base::dim", "dim=other::dim"), ImmutableSet.of()));
+  }
+
+  @Test
+  public void testPopulateMethodFromNonWhitelistedPackage() {
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            populateEnvironment(
+                ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
   }
 
   private void populateEnvironment(
