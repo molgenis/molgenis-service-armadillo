@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-We need some way of being sure that there is no malicious script execution on the DataSHIELD environment
+We need some way of being sure that there is no malicious script execution on the DataSHIELD environment.
 
 ## Decision
 

@@ -8,14 +8,14 @@ Accepted
 
 ## Context
 
-Because of the diversity in landscape we need to be able to deploy on different environments
+Because of the diversity in landscape we need to be able to deploy on different environments.
 
 ## Decision
 
 We are going to create deployments for virtual machines based on CentOS (>=8) using Ansible and Vagrant. 
-Besides that we are going to create a chart which allows you to deploy on Kubernetes  
+Besides that we are going to create a chart which allows you to deploy on Kubernetes.
 
 ## Consequences
 
-- Some of the VM environments are not serviced (Ubuntu, Suse, other operating systems)
-- Some other container orchestrators are not met as well eg docker-swarm
+- Some of the VM environments are not serviced (Ubuntu, Suse, other operating systems).
+- Some other container orchestrators are not implemented e.g. docker-swarm.
