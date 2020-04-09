@@ -51,7 +51,8 @@ class DataShieldExpressionRewriterImplTest {
   void testRewriteAssignUnknown() {
     when(mockEnvironment.getMethod("banana")).thenThrow(NoSuchDSMethodException.class);
     assertThrows(
-        NoSuchDSMethodException.class, () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
+        DataShieldExpressionException.class,
+        () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
   }
 
   @Test
