@@ -1,5 +1,8 @@
 security:
   enable-csrf: false
+datashield:
+  whitelist:
+    - dsBase
 ---
 spring:
   profiles: development
@@ -33,7 +36,3 @@ datashield:
         subset: 0
     datashield:
       privacyLevel: 0
-  whitelist:
-    - dsBase
-    - base
-    - stats

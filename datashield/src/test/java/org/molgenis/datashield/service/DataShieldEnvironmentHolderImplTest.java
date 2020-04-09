@@ -47,7 +47,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase", "base"));
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
@@ -60,7 +60,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase", "base"));
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
@@ -72,6 +72,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateIllegalMethodName() {
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         IllegalRMethodStringException.class,
         () ->
@@ -81,7 +82,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateDuplicateMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("base", "other"));
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         DuplicateRMethodException.class,
         () ->
@@ -91,7 +92,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateMethodFromNonWhitelistedPackage() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
     assertThrows(
         IllegalRPackageException.class,
         () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
@@ -109,7 +110,7 @@ class DataShieldEnvironmentHolderImplTest {
             .setAssignMethods(assignMethods)
             .setLibPath("test")
             .setVersion("test")
-            .setName("test")
+            .setName("dsBase")
             .setBuilt("test")
             .build();
 

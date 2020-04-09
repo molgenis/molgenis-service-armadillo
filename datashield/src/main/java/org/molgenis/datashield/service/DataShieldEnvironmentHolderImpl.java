@@ -2,8 +2,6 @@ package org.molgenis.datashield.service;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import org.molgenis.datashield.DataShieldProperties;
@@ -51,19 +49,14 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   @PostConstruct
   public void populateEnvironments() throws RserveException, REXPMismatchException {
     List<Package> packages = getPackages();
-    populateEnvironment(packages.stream().map(Package::aggregateMethods), aggregateEnvironment);
-    populateEnvironment(packages.stream().map(Package::assignMethods), assignEnvironment);
-  }
-
-  private void populateEnvironment(
-      Stream<ImmutableSet<String>> methods, DSEnvironment environment) {
-    methods
-        .filter(Objects::nonNull)
-        .flatMap(Set::stream)
-        .map(this::toDSMethod)
-        .filter(this::validatePackageWhitelisted)
-        .filter(m -> validateMethodIsUnique(m, environment))
-        .forEach(m -> addToEnvironment(m, environment));
+    packages.stream()
+        .flatMap(rPackage -> toDsMethods(rPackage.aggregateMethods(), rPackage.name()))
+        .filter(dsMethod -> validateMethodIsUnique(dsMethod, aggregateEnvironment))
+        .forEach(dsMethod -> addToEnvironment(dsMethod, aggregateEnvironment));
+    packages.stream()
+        .flatMap(rPackage -> toDsMethods(rPackage.assignMethods(), rPackage.name()))
+        .filter(dsMethod -> validateMethodIsUnique(dsMethod, assignEnvironment))
+        .forEach(dsMethod -> addToEnvironment(dsMethod, assignEnvironment));
   }
 
   private List<Package> getPackages() throws RserveException, REXPMismatchException {
@@ -78,20 +71,30 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
     }
   }
 
-  /**
-   * Method strings come in two forms: either without a package ('meanDS'), meaning they belong to
-   * the 'dsBase' package, or with a name and a package ('dim=base::dim'), meaning they are part of
-   * another package instead of 'dsBase'.
-   */
-  private PackagedFunctionDSMethod toDSMethod(String method) {
-    if (method.contains("=")) {
-      return createNonDsBaseMethod(method);
+  private Stream<PackagedFunctionDSMethod> toDsMethods(
+      ImmutableSet<String> methods, String rPackageName) {
+    if (methods != null) {
+      validatePackageWhitelisted(rPackageName);
+      return methods.stream().map(method -> toDsMethod(rPackageName, method));
     } else {
-      return new PackagedFunctionDSMethod(method, "dsBase::" + method, "dsBase", null);
+      return Stream.empty();
     }
   }
 
-  private PackagedFunctionDSMethod createNonDsBaseMethod(String method) {
+  /**
+   * Method strings come in two forms: either without a package ('meanDS'), meaning they belong to
+   * the current package, or with a name and a package ('dim=base::dim'), meaning they are part of
+   * the package described in the string.
+   */
+  private PackagedFunctionDSMethod toDsMethod(String packageName, String method) {
+    if (method.contains("=")) {
+      return toExternalDsMethod(method);
+    } else {
+      return new PackagedFunctionDSMethod(method, packageName + method, packageName, null);
+    }
+  }
+
+  private PackagedFunctionDSMethod toExternalDsMethod(String method) {
     String[] nonDsBaseMethod = method.split("=");
     if (nonDsBaseMethod.length != 2) {
       throw new IllegalRMethodStringException(method);
@@ -106,11 +109,10 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
         nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0], null);
   }
 
-  private boolean validatePackageWhitelisted(PackagedFunctionDSMethod dsMethod) {
-    if (!dataShieldProperties.getWhitelist().contains(dsMethod.getPackage())) {
-      throw new IllegalRPackageException(dsMethod.getFunction(), dsMethod.getPackage());
+  private void validatePackageWhitelisted(String rPackageName) {
+    if (!dataShieldProperties.getWhitelist().contains(rPackageName)) {
+      throw new IllegalRPackageException(rPackageName);
     }
-    return true;
   }
 
   private boolean validateMethodIsUnique(
