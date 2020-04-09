@@ -3,6 +3,7 @@ package org.molgenis.datashield.service;
 import java.io.StringReader;
 import org.molgenis.datashield.exceptions.DataShieldExpressionException;
 import org.obiba.datashield.core.DSMethodType;
+import org.obiba.datashield.core.NoSuchDSMethodException;
 import org.obiba.datashield.r.expr.DataShieldGrammar;
 import org.obiba.datashield.r.expr.ParseException;
 import org.obiba.datashield.r.expr.RScriptGenerator;
@@ -37,13 +38,14 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
   }
 
   private String rewrite(String expression, RScriptGenerator rScriptGenerator) {
-    DataShieldGrammar g = new DataShieldGrammar(new StringReader(expression));
-
     try {
+      DataShieldGrammar g = new DataShieldGrammar(new StringReader(expression));
       String script = rScriptGenerator.toScript(g.root());
       LOGGER.debug("Generated script '{}'", script);
       return script;
     } catch (ParseException e) {
+      throw new DataShieldExpressionException(e);
+    } catch (NoSuchDSMethodException e) {
       throw new DataShieldExpressionException(e);
     }
   }
