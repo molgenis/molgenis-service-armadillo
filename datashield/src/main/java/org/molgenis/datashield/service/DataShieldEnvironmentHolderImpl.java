@@ -1,5 +1,7 @@
 package org.molgenis.datashield.service;
 
+import static java.lang.String.format;
+
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.stream.Stream;
@@ -86,15 +88,16 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
    * the current package, or with a name and a package ('dim=base::dim'), meaning they are part of
    * the package described in the string.
    */
-  private PackagedFunctionDSMethod toDsMethod(String packageName, String method) {
+  private static PackagedFunctionDSMethod toDsMethod(String packageName, String method) {
     if (method.contains("=")) {
       return toExternalDsMethod(method);
     } else {
-      return new PackagedFunctionDSMethod(method, packageName + method, packageName, null);
+      return new PackagedFunctionDSMethod(
+          method, format("%s::%s", packageName, method), packageName, null);
     }
   }
 
-  private PackagedFunctionDSMethod toExternalDsMethod(String method) {
+  private static PackagedFunctionDSMethod toExternalDsMethod(String method) {
     String[] nonDsBaseMethod = method.split("=");
     if (nonDsBaseMethod.length != 2) {
       throw new IllegalRMethodStringException(method);
