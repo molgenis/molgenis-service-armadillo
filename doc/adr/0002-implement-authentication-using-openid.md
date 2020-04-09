@@ -18,7 +18,7 @@ We intent to use JWTs which are machine-readable bearer tokens, to integrate ext
 ## Consequences
 
 - Use an ID-provider to authenticate in the DataSHIELD service.
-- We intend to use the role mechanism in the ID-provider to authorise. The roles that we can think of now are:
+- We intend to use the role mechanism in the ID-provider to authorise. The roles that we can think of at this moment are:
   - Local data manager
   - Researcher
   - Administrator
