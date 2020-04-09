@@ -10,7 +10,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
+import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO;
+import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadServiceImpl;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.RConnectionConsumer;
@@ -84,6 +85,7 @@ class DataControllerTest {
   @MockBean private PackageService packageService;
   @MockBean private StorageService storageService;
   @MockBean private IdGenerator idGenerator;
+  @MockBean private DataShieldExpressionRewriter expressionRewriter;
   @Mock private RFileInputStream inputStream;
   @Mock private RConnection rConnection;
 
@@ -234,7 +236,7 @@ class DataControllerTest {
   @SuppressWarnings({"unchecked"})
   @Test
   @WithMockUser
-  void testLoadFailed() throws Exception {
+  void testLoadFailed() {
     String assignSymbol = "D";
     Table table = mock(Table.class);
     ResponseEntity<Resource> response = mock(ResponseEntity.class);
@@ -258,7 +260,7 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteAsync() throws Exception {
-    when(datashieldSession.schedule("dsMean(D$age)"))
+    when(datashieldSession.schedule("meanDS(D$age)"))
         .thenReturn(completedFuture(new REXPDouble(36.6)));
 
     MvcResult result =
@@ -266,7 +268,7 @@ class DataControllerTest {
             .perform(
                 post("/execute?async=true")
                     .contentType(TEXT_PLAIN)
-                    .content("dsMean(D$age)")
+                    .content("meanDS(D$age)")
                     .accept(APPLICATION_JSON))
             .andReturn();
     mockMvc
@@ -279,7 +281,10 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteDoubleResult() throws Exception {
-    when(datashieldSession.schedule("dsMean(D$age)"))
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
+    when(datashieldSession.schedule(rewrittenExpression))
         .thenReturn(completedFuture(new REXPDouble(36.6)));
 
     MvcResult result =
@@ -287,7 +292,7 @@ class DataControllerTest {
             .perform(
                 post("/execute")
                     .contentType(TEXT_PLAIN)
-                    .content("dsMean(D$age)")
+                    .content(expression)
                     .accept(APPLICATION_JSON))
             .andReturn();
     mockMvc
@@ -299,7 +304,10 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteNullResult() throws Exception {
-    when(datashieldSession.schedule("install.package('dsBase')"))
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
+    when(datashieldSession.schedule(rewrittenExpression))
         .thenReturn(completedFuture(new REXPNull()));
 
     MvcResult result =
@@ -308,7 +316,7 @@ class DataControllerTest {
                 post("/execute")
                     .contentType(TEXT_PLAIN)
                     .accept(APPLICATION_JSON)
-                    .content("install.package('dsBase')"))
+                    .content(expression))
             .andReturn();
     mockMvc
         .perform(asyncDispatch(result))
@@ -319,9 +327,12 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteRawResult() throws Exception {
-    String serializedCmd = serializeCommand("print(\"raw response\")");
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
+    String serializedExpression = serializeExpression(rewrittenExpression);
 
-    when(datashieldSession.schedule(serializedCmd))
+    when(datashieldSession.schedule(serializedExpression))
         .thenReturn(completedFuture(new REXPRaw(new byte[0])));
 
     mockMvc
@@ -329,7 +340,7 @@ class DataControllerTest {
             post("/execute")
                 .accept(APPLICATION_OCTET_STREAM)
                 .contentType(TEXT_PLAIN)
-                .content("print(\"raw response\")"))
+                .content(expression))
         .andExpect(status().isOk());
   }
 

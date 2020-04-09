@@ -7,7 +7,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
 public class DataShieldUtils {
-  public static String serializeCommand(String cmd) {
+  public static String serializeExpression(String cmd) {
     return format("try(serialize({%s}, NULL))", cmd);
   }
 

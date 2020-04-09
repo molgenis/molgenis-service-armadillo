@@ -1,7 +1,7 @@
 package org.molgenis.datashield;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.datashield.DataShieldUtils.serializeCommand;
+import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.http.ResponseEntity.created;
 import static org.springframework.http.ResponseEntity.notFound;
@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO;
+import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.Package;
@@ -31,23 +32,26 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class DataController {
 
-  final DownloadService downloadService;
-  final RExecutorService rExecutorService;
-  final DataShieldSession datashieldSession;
-  final PackageService packageService;
-  final IdGenerator idGenerator;
-  final StorageService storageService;
+  private final DownloadService downloadService;
+  private final RExecutorService rExecutorService;
+  private final DataShieldSession datashieldSession;
+  private final DataShieldExpressionRewriter expressionRewriter;
+  private final PackageService packageService;
+  private final IdGenerator idGenerator;
+  private final StorageService storageService;
 
   public DataController(
       DownloadService downloadService,
       RExecutorService rExecutorService,
       DataShieldSession datashieldSession,
+      DataShieldExpressionRewriter expressionRewriter,
       PackageService packageService,
       StorageService storageService,
       IdGenerator idGenerator) {
     this.downloadService = downloadService;
     this.rExecutorService = rExecutorService;
     this.datashieldSession = datashieldSession;
+    this.expressionRewriter = expressionRewriter;
     this.packageService = packageService;
     this.storageService = storageService;
     this.idGenerator = idGenerator;
@@ -89,8 +93,9 @@ public class DataController {
 
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public CompletableFuture<ResponseEntity<Object>> execute(
-      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
-    CompletableFuture<REXP> result = datashieldSession.schedule(cmd);
+      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
+    CompletableFuture<REXP> result = datashieldSession.schedule(rewrittenExpression);
     return async
         ? createdLastCommand()
         : result.thenApply(DataShieldUtils::asNativeJavaObject).thenApply(ResponseEntity::ok);
@@ -101,8 +106,10 @@ public class DataController {
       consumes = TEXT_PLAIN_VALUE,
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
-      @RequestBody String cmd, @RequestParam(defaultValue = "false") boolean async) {
-    CompletableFuture<REXP> result = datashieldSession.schedule(serializeCommand(cmd));
+      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
+    CompletableFuture<REXP> result =
+        datashieldSession.schedule(serializeExpression(rewrittenExpression));
     return async
         ? createdLastCommand()
         : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
