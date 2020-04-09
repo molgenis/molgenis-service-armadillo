@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -45,7 +45,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
       connection = rConnectionFactory.retryCreateConnection();
       options =
           packageService.getInstalledPackages(connection).stream()
-              .map(Package::options)
+              .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
       options.putAll(dataShieldProperties.getOptions());
