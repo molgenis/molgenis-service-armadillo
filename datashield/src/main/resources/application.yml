@@ -10,9 +10,6 @@ spring:
     user:
       name: admin
       password: admin
-molgenis:
-  uri: https://datashield-backend.dev.molgenis.org
-  token: test
 minio:
   url: http://localhost
   port: 9000
