@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.COMPLETED;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -90,7 +91,19 @@ class DataShieldSessionTest {
     var result = dataShieldSession.schedule("ls()");
 
     assertSame(rexp, result.get());
-    assertSame(result, dataShieldSession.getLastExecution());
+    assertSame(result, dataShieldSession.getLastExecution().get());
+  }
+
+  @Test
+  void testAssign() throws RserveException, ExecutionException, InterruptedException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(rConnection.detach()).thenReturn(rSession);
+
+    dataShieldSession.assign("D", "1:5").get();
+
+    verify(rExecutorService).execute("D <- 1:5", rConnection);
+    assertEquals(COMPLETED, dataShieldSession.getLastCommand().get().status());
+    assertEquals(Optional.empty(), dataShieldSession.getLastExecution());
   }
 
   @Test

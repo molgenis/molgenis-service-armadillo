@@ -34,14 +34,14 @@ public class DataShieldCommand<T> {
     IN_PROGRESS
   }
 
-  public DataShieldCommand(String expression) {
-    this(expression, systemUTC());
+  public DataShieldCommand(String expression, boolean withResult) {
+    this(expression, withResult, systemUTC());
   }
 
   // For test purposes, allow the clock to be mocked
-  DataShieldCommand(String expression, Clock clock) {
+  DataShieldCommand(String expression, boolean withResult, Clock clock) {
     this.expression = expression;
-    this.withResult = true;
+    this.withResult = withResult;
     this.createDate = clock.instant();
     this.id = UUID.randomUUID();
     this.clock = clock;

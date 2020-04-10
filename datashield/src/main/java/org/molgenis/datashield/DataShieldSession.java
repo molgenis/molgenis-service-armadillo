@@ -1,5 +1,6 @@
 package org.molgenis.datashield;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
@@ -36,7 +37,7 @@ public class DataShieldSession {
   private final RExecutorService rExecutorService;
 
   @SuppressWarnings("java:S3077") // DataShieldCommand is thread-safe
-  private volatile DataShieldCommand<REXP> lastCommand;
+  private volatile DataShieldCommand lastCommand;
 
   public DataShieldSession(
       DataShieldConnectionFactory connectionFactory,
@@ -47,8 +48,10 @@ public class DataShieldSession {
     this.rExecutorService = requireNonNull(rExecutorService);
   }
 
-  public CompletableFuture<REXP> getLastExecution() {
-    return lastCommand.getResult();
+  public Optional<CompletableFuture<REXP>> getLastExecution() {
+    return Optional.ofNullable(lastCommand)
+        .filter(DataShieldCommand::isWithResult)
+        .map(DataShieldCommand::getResult);
   }
 
   public Optional<DataShieldCommandDTO> getLastCommand() {
@@ -56,10 +59,28 @@ public class DataShieldSession {
   }
 
   public synchronized CompletableFuture<REXP> schedule(String expression) {
-    DataShieldCommand<REXP> command = new DataShieldCommand<>(expression);
+    DataShieldCommand<REXP> command = new DataShieldCommand<>(expression, true);
     CompletableFuture<REXP> result =
         runAsync(command::start, executorService)
             .thenApply(x -> execute(connection -> rExecutorService.execute(expression, connection)))
+            .whenComplete((t, u) -> command.complete());
+    command.setResult(result);
+    lastCommand = command;
+    return result;
+  }
+
+  public synchronized CompletableFuture<Void> assign(String symbol, String expression) {
+    String statement = format("%s <- %s", symbol, expression);
+    DataShieldCommand<Void> command = new DataShieldCommand<>(statement, false);
+    CompletableFuture<Void> result =
+        runAsync(command::start, executorService)
+            .thenRun(
+                () ->
+                    execute(
+                        connection -> {
+                          rExecutorService.execute(statement, connection);
+                          return null;
+                        }))
             .whenComplete((t, u) -> command.complete());
     command.setResult(result);
     lastCommand = command;

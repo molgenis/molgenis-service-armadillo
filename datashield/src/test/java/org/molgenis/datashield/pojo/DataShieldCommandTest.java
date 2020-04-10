@@ -33,7 +33,7 @@ class DataShieldCommandTest {
   @BeforeEach
   void setUp() {
     when(clock.instant()).thenReturn(createDate);
-    command = new DataShieldCommand("expression", clock);
+    command = new DataShieldCommand("expression", true, clock);
   }
 
   @Test

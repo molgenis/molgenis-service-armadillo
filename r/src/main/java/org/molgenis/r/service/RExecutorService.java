@@ -11,5 +11,5 @@ public interface RExecutorService {
 
   void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer);
 
-  void loadWorkspace(RConnection connection, Resource resource);
+  void loadWorkspace(RConnection connection, Resource resource, String environment);
 }

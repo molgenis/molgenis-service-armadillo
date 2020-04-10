@@ -27,7 +27,7 @@ public class DataShieldUtilsTest {
   public void testSerializeCommand() {
     String cmd = "meanDS(D$age";
     String serializedCommand = DataShieldUtils.serializeExpression(cmd);
-    assertEquals("try(serialize({meanDS(D$age}, NULL))", serializedCommand);
+    assertEquals("try(base::serialize({meanDS(D$age}, NULL))", serializedCommand);
   }
 
   @Test

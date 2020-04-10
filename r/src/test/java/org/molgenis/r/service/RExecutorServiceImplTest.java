@@ -60,9 +60,10 @@ class RExecutorServiceImplTest {
     when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
-    executorService.loadWorkspace(rConnection, resource);
+    executorService.loadWorkspace(rConnection, resource, ".TibbleEnv");
 
-    verify(rConnection).eval("base::load(file='.RData')");
+    verify(rConnection).eval("base::load(file='.RData', envir=.TibbleEnv)");
+    verify(rConnection).eval("base::unlink('.RData')");
   }
 
   @Test
