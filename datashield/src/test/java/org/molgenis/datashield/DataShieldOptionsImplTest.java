@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -43,8 +43,8 @@ class DataShieldOptionsImplTest {
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).retryCreateConnection();
 
-    Package datashieldPackage =
-        Package.builder()
+    RPackage datashieldPackage =
+        RPackage.builder()
             .setName("dsBase")
             .setVersion("1.2.3")
             .setBuilt("3.2.1")

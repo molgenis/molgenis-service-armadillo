@@ -2,8 +2,8 @@ package org.molgenis.r;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.molgenis.r.model.PackageTest.BASE;
-import static org.molgenis.r.model.PackageTest.DESC;
+import static org.molgenis.r.model.RPackageTest.BASE;
+import static org.molgenis.r.model.RPackageTest.DESC;
 
 import java.util.List;
 import java.util.Map;

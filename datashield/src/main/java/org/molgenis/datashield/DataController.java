@@ -17,7 +17,7 @@ import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.model.Table;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorService;
@@ -127,7 +127,7 @@ public class DataController {
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
-  public List<Package> getPackages() {
+  public List<RPackage> getPackages() {
     return datashieldSession.execute(packageService::getInstalledPackages);
   }
 

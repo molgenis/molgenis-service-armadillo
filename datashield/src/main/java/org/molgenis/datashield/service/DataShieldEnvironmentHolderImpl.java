@@ -11,7 +11,7 @@ import org.molgenis.datashield.exceptions.DuplicateRMethodException;
 import org.molgenis.datashield.exceptions.IllegalRMethodStringException;
 import org.molgenis.datashield.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
@@ -50,7 +50,7 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
 
   @PostConstruct
   public void populateEnvironments() throws RserveException, REXPMismatchException {
-    List<Package> packages = getPackages();
+    List<RPackage> packages = getPackages();
     packages.stream()
         .flatMap(rPackage -> toDsMethods(rPackage.aggregateMethods(), rPackage.name()))
         .filter(dsMethod -> validateMethodIsUnique(dsMethod, aggregateEnvironment))
@@ -61,7 +61,7 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
         .forEach(dsMethod -> addToEnvironment(dsMethod, assignEnvironment));
   }
 
-  private List<Package> getPackages() throws RserveException, REXPMismatchException {
+  private List<RPackage> getPackages() throws RserveException, REXPMismatchException {
     RConnection connection = null;
     try {
       connection = rConnectionFactory.retryCreateConnection();
