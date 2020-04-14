@@ -15,15 +15,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
-import org.molgenis.datashield.service.DownloadService;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.RPackage;
-import org.molgenis.r.model.Table;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.IdGenerator;
@@ -32,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class DataController {
 
-  private final DownloadService downloadService;
   private final RExecutorService rExecutorService;
   private final DataShieldSession datashieldSession;
   private final DataShieldExpressionRewriter expressionRewriter;
@@ -41,30 +37,18 @@ public class DataController {
   private final StorageService storageService;
 
   public DataController(
-      DownloadService downloadService,
       RExecutorService rExecutorService,
       DataShieldSession datashieldSession,
       DataShieldExpressionRewriter expressionRewriter,
       PackageService packageService,
       StorageService storageService,
       IdGenerator idGenerator) {
-    this.downloadService = downloadService;
     this.rExecutorService = rExecutorService;
     this.datashieldSession = datashieldSession;
     this.expressionRewriter = expressionRewriter;
     this.packageService = packageService;
     this.storageService = storageService;
     this.idGenerator = idGenerator;
-  }
-
-  @GetMapping("/load/{entityTypeId}/{assignSymbol}")
-  @ResponseStatus(HttpStatus.OK)
-  public void load(@PathVariable String entityTypeId, @PathVariable String assignSymbol) {
-    Table table = downloadService.getMetadata(entityTypeId);
-    ResponseEntity<Resource> response = downloadService.download(table);
-
-    datashieldSession.execute(
-        connection -> rExecutorService.assign(response.getBody(), assignSymbol, table, connection));
   }
 
   @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
@@ -141,7 +125,7 @@ public class DataController {
   /** @return true if the the table exists and is available for DataSHIELD operations. */
   @GetMapping("/exists/{entityTypeId}")
   public boolean exists(@PathVariable String entityTypeId) {
-    return downloadService.metadataExists(entityTypeId);
+    return false;
   }
 
   /** @return a list of assigned symbols */
