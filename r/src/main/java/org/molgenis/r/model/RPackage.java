@@ -10,13 +10,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.molgenis.r.model.AutoValue_Package.Builder;
 import org.springframework.lang.Nullable;
 
 @AutoValue
-@JsonSerialize(as = Package.class)
+@JsonSerialize(as = RPackage.class)
 @JsonInclude(Include.NON_NULL)
-public abstract class Package {
+public abstract class RPackage {
 
   @JsonProperty("name")
   public abstract String name();
@@ -58,10 +57,10 @@ public abstract class Package {
 
     public abstract Builder setOptions(ImmutableMap<String, String> options);
 
-    abstract Package autoBuild();
+    abstract RPackage autoBuild();
 
-    public Package build() {
-      Package pack = autoBuild();
+    public RPackage build() {
+      RPackage pack = autoBuild();
       checkName(pack.name());
       return pack;
     }
@@ -83,6 +82,6 @@ public abstract class Package {
   }
 
   public static Builder builder() {
-    return new AutoValue_Package.Builder();
+    return new AutoValue_RPackage.Builder();
   }
 }

@@ -32,7 +32,7 @@ import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.RConnectionConsumer;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorServiceImpl;
 import org.rosuda.REngine.REXPDouble;
@@ -53,16 +53,16 @@ import org.springframework.util.IdGenerator;
 @WebMvcTest(controllers = DataController.class)
 class DataControllerTest {
 
-  public static Package BASE =
-      Package.builder()
+  public static RPackage BASE =
+      RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")
           .setBuilt("3.6.1")
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  public static Package DESC =
-      Package.builder()
+  public static RPackage DESC =
+      RPackage.builder()
           .setName("desc")
           .setVersion("1.2.0")
           .setBuilt("3.6.1")

@@ -21,7 +21,7 @@ import org.molgenis.datashield.exceptions.DuplicateRMethodException;
 import org.molgenis.datashield.exceptions.IllegalRMethodStringException;
 import org.molgenis.datashield.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
@@ -104,8 +104,8 @@ class DataShieldEnvironmentHolderImplTest {
     RConnection rConnection = mock(RConnection.class);
     when(rConnectionFactory.retryCreateConnection()).thenReturn(rConnection);
 
-    Package pack =
-        Package.builder()
+    RPackage pack =
+        RPackage.builder()
             .setAggregateMethods(aggregateMethods)
             .setAssignMethods(assignMethods)
             .setLibPath("test")

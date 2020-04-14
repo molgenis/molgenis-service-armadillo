@@ -12,14 +12,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.molgenis.r.REXPParser;
-import org.molgenis.r.model.Package;
+import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
-/** Retrieves available {@link Package}s */
+/** Retrieves available {@link RPackage}s */
 @Component
 public class PackageServiceImpl implements PackageService {
 
@@ -42,16 +42,16 @@ public class PackageServiceImpl implements PackageService {
   }
 
   @Override
-  public List<Package> getInstalledPackages(RConnection connection)
+  public List<RPackage> getInstalledPackages(RConnection connection)
       throws RserveException, REXPMismatchException {
     REXPString matrix = (REXPString) connection.eval(COMMAND_INSTALLED_PACKAGES);
     List<Map<String, String>> rows = rexpParser.toStringMap(matrix);
     return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
   }
 
-  public static Package toPackage(Map<String, String> row) {
-    Package.Builder builder =
-        Package.builder()
+  public static RPackage toPackage(Map<String, String> row) {
+    RPackage.Builder builder =
+        RPackage.builder()
             .setName(row.get(FIELD_PACKAGE))
             .setLibPath(row.get(FIELD_LIB_PATH))
             .setVersion(row.get(FIELD_VERSION))
