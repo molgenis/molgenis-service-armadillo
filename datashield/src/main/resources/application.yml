@@ -10,26 +10,31 @@ spring:
     user:
       name: admin
       password: admin
+      roles:
+        - DIABETES_RESEARCHER
+        - SU
 minio:
   url: http://localhost
   port: 9000
   access-key: molgenis
   secret-key: molgenis
   bucket: datashield
+logging:
+  level:
+    org.molgenis: DEBUG
 ---
 spring:
   profiles: (development | test)
 datashield:
   options:
-    default:
-      nfilter:
-        string: 0
-        kNN: 0
-        tab: 0
-        stringShort: 0
-        noise: 0
-        levels: 0
-        glm: 0
-        subset: 0
+    nfilter:
+      string: 0
+      kNN: 0
+      tab: 0
+      stringShort: 0
+      noise: 0
+      levels: 0
+      glm: 0
+      subset: 0
     datashield:
       privacyLevel: 0

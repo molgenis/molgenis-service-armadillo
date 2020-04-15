@@ -7,8 +7,12 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
 public class DataShieldUtils {
+
+  public static final String TABLE_ENV = ".DSTableEnv";
+  public static final String GLOBAL_ENV = ".GlobalEnv";
+
   public static String serializeExpression(String cmd) {
-    return format("try(serialize({%s}, NULL))", cmd);
+    return format("try(base::serialize({%s}, NULL))", cmd);
   }
 
   public static byte[] createRawResponse(REXP result) {

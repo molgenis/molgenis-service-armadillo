@@ -1,5 +1,7 @@
 package org.molgenis.r.service;
 
+import static java.lang.String.format;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
@@ -44,11 +46,12 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
-  public void loadWorkspace(RConnection connection, Resource resource) {
-    LOGGER.debug("Load workspace");
+  public void loadWorkspace(RConnection connection, Resource resource, String environment) {
+    LOGGER.debug("Load workspace into {}", environment);
     try {
       copyFile(resource, ".RData", connection);
-      connection.eval("base::load(file='.RData')");
+      connection.eval(format("base::load(file='.RData', envir=%s)", environment));
+      connection.eval("base::unlink('.RData')");
     } catch (IOException | RserveException e) {
       throw new RExecutionException(e);
     }

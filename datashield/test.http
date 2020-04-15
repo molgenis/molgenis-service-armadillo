@@ -1,18 +1,68 @@
 POST http://localhost:8080/login?username=admin&password=admin
 
 ###
-POST http://localhost:8080/execute?async=true
-accept: application/json
-Content-Type: text/plain
-
-'Hello there'
+POST http://localhost:8080/load-tables/DIABETES/patient
 
 ###
-GET http://localhost:8080/lastresult
-accept: application/json
+POST http://localhost:8080/load-tables/GECKO/patient
+
+###
+GET http://localhost:8080/tables
+
+###
+HEAD http://localhost:8080/tables/datashield.PATIENT
+
+###
+POST http://localhost:8080/symbols/D?table=datashield.PATIENT
+
+###
+POST http://localhost:8080/symbols/D?table=datashield.PATIENT&variables=age,name
+
+###
+POST http://localhost:8080/execute
+Accept: application/octet-stream
+Content-Type: text/plain
+
+colnames(D)
+
+###
+GET http://localhost:8080/symbols
+
+###
+POST http://localhost:8080/execute
+Accept: application/octet-stream
+Content-Type: text/plain
+
+meanDS(D$age)
+
+###
+DELETE http://localhost:8080/symbols/D
+
+###
+POST http://localhost:8080/symbols/D?async=true
+Content-Type: text/plain
+
+0:5
+
+###
+POST http://localhost:8080/debug
+Content-Type: text/plain
+
+dsBase::meanDS(D)$EstimatedMean
+
+###
+POST http://localhost:8080/execute?async=true
+Accept: application/octet-stream
+Content-Type: text/plain
+
+meanDS(D)
 
 ###
 GET http://localhost:8080/lastcommand
 accept: application/json
+
+###
+GET http://localhost:8080/lastresult
+accept: application/octet-stream
 
 ###

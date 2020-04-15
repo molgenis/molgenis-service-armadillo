@@ -12,7 +12,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -23,6 +25,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,8 +38,8 @@ import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorServiceImpl;
+import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
-import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPRaw;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
@@ -78,6 +81,7 @@ class DataControllerTest {
   @MockBean private DataShieldExpressionRewriter expressionRewriter;
   @Mock private RFileInputStream inputStream;
   @Mock private RConnection rConnection;
+  @Mock private REXP rexp;
 
   @Test
   @WithMockUser
@@ -93,29 +97,79 @@ class DataControllerTest {
 
   @Test
   @WithMockUser
+  void getGetTables() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
+
+    mockMvc
+        .perform(get("/tables"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[\"datashield.PATIENT\",\"datashield.SAMPLE\"]"));
+  }
+
+  @Test
+  @WithMockUser
+  void testTableExists() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
+
+    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void testTableNotFound() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {});
+
+    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockUser
+  void getGetSymbols() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {"D"});
+
+    mockMvc
+        .perform(get("/symbols"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[\"D\"]"));
+  }
+
+  @Test
+  @WithMockUser
+  void deleteSymbol() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+
+    mockMvc.perform(delete("/symbols/D")).andExpect(status().isOk());
+
+    verify(rExecutorService).execute("base::rm(D)", rConnection);
+  }
+
+  @Test
+  @WithMockUser
   void testGetLastResultNoResult() throws Exception {
-    MvcResult result = mockMvc.perform(get("/lastresult").accept(APPLICATION_JSON)).andReturn();
+    MvcResult result =
+        mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
   @Test
   @WithMockUser
-  void testGetLastResultJson() throws Exception {
-    when(datashieldSession.getLastExecution()).thenReturn(completedFuture(new REXPDouble(12.34)));
-
-    MvcResult result = mockMvc.perform(get("/lastresult").accept(APPLICATION_JSON)).andReturn();
-    mockMvc
-        .perform(asyncDispatch(result))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[12.34]"));
-  }
-
-  @Test
-  @WithMockUser
-  void testGetLastResultRaw() throws Exception {
+  void testGetLastResult() throws Exception {
     byte[] bytes = {0x0, 0x1, 0x2};
-    when(datashieldSession.getLastExecution()).thenReturn(completedFuture(new REXPRaw(bytes)));
+    when(datashieldSession.getLastExecution())
+        .thenReturn(Optional.of(completedFuture(new REXPRaw(bytes))));
 
     MvcResult result =
         mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
@@ -189,79 +243,12 @@ class DataControllerTest {
         .perform(post("/load-workspace/00000000-0000-007b-0000-0000000001c8"))
         .andExpect(status().isOk());
 
-    verify(rExecutorService).loadWorkspace(eq(rConnection), any());
+    verify(rExecutorService).loadWorkspace(eq(rConnection), any(), eq(".GlobalEnv"));
   }
 
   @Test
   @WithMockUser
-  void testExecuteAsync() throws Exception {
-    when(datashieldSession.schedule("meanDS(D$age)"))
-        .thenReturn(completedFuture(new REXPDouble(36.6)));
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/execute?async=true")
-                    .contentType(TEXT_PLAIN)
-                    .content("meanDS(D$age)")
-                    .accept(APPLICATION_JSON))
-            .andReturn();
-    mockMvc
-        .perform(asyncDispatch(result))
-        .andExpect(status().isCreated())
-        .andExpect(header().string("Location", "http://localhost/lastcommand"))
-        .andExpect(content().string(""));
-  }
-
-  @Test
-  @WithMockUser
-  void testExecuteDoubleResult() throws Exception {
-    String expression = "meanDS(D$age)";
-    String rewrittenExpression = "dsBase::meanDS(D$age)";
-    when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
-    when(datashieldSession.schedule(rewrittenExpression))
-        .thenReturn(completedFuture(new REXPDouble(36.6)));
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/execute")
-                    .contentType(TEXT_PLAIN)
-                    .content(expression)
-                    .accept(APPLICATION_JSON))
-            .andReturn();
-    mockMvc
-        .perform(asyncDispatch(result))
-        .andExpect(status().isOk())
-        .andExpect(content().string("[36.6]"));
-  }
-
-  @Test
-  @WithMockUser
-  void testExecuteNullResult() throws Exception {
-    String expression = "meanDS(D$age)";
-    String rewrittenExpression = "dsBase::meanDS(D$age)";
-    when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
-    when(datashieldSession.schedule(rewrittenExpression))
-        .thenReturn(completedFuture(new REXPNull()));
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/execute")
-                    .contentType(TEXT_PLAIN)
-                    .accept(APPLICATION_JSON)
-                    .content(expression))
-            .andReturn();
-    mockMvc
-        .perform(asyncDispatch(result))
-        .andExpect(status().isOk())
-        .andExpect(content().string(""));
-  }
-
-  @Test
-  @WithMockUser
-  void testExecuteRawResult() throws Exception {
+  void testExecute() throws Exception {
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
@@ -277,6 +264,136 @@ class DataControllerTest {
                 .contentType(TEXT_PLAIN)
                 .content(expression))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteAsync() throws Exception {
+    when(datashieldSession.schedule("meanDS(D$age)"))
+        .thenReturn(completedFuture(new REXPDouble(36.6)));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/execute?async=true")
+                    .contentType(TEXT_PLAIN)
+                    .content("meanDS(D$age)")
+                    .accept(APPLICATION_OCTET_STREAM))
+            .andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isCreated())
+        .andExpect(header().string("Location", "http://localhost/lastcommand"))
+        .andExpect(content().string(""));
+  }
+
+  @Test
+  @WithMockUser
+  void testAssign() throws Exception {
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
+
+    CompletableFuture<Void> assignment = new CompletableFuture<>();
+    when(datashieldSession.assign("E", rewrittenExpression)).thenReturn(assignment);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/symbols/E")
+                    .accept(APPLICATION_OCTET_STREAM)
+                    .contentType(TEXT_PLAIN)
+                    .content(expression))
+            .andReturn();
+
+    assignment.complete(null);
+    mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void testAssignAsync() throws Exception {
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
+
+    when(datashieldSession.assign("E", rewrittenExpression)).thenReturn(new CompletableFuture<>());
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/symbols/E?async=true")
+                    .contentType(TEXT_PLAIN)
+                    .content("meanDS(D$age)")
+                    .accept(APPLICATION_OCTET_STREAM))
+            .andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isCreated())
+        .andExpect(header().string("Location", "http://localhost/lastcommand"))
+        .andExpect(content().string(""));
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadTableDoesNotExist() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {});
+
+    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadTable() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
+
+    when(datashieldSession.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
+        .thenReturn(completedFuture(null));
+
+    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadTableWithVariables() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
+    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
+
+    when(datashieldSession.assign(
+            "D", "base::local(datashield.PATIENT[,c(\"age\")], envir = .DSTableEnv)"))
+        .thenReturn(completedFuture(null));
+
+    mockMvc
+        .perform(post("/symbols/D?table=datashield.PATIENT&variables=age"))
+        .andExpect(status().isOk());
+  }
+
+  @WithMockUser
+  @Test
+  public void testLoadTibblesNotAResearcher() throws Exception {
+    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"DIABETES_RESEARCHER"})
+  @Test
+  public void testLoadTibbles() throws Exception {
+    mockDatashieldExecuteSessionConsumer();
+    when(storageService.load("DIABETES/patient.RData")).thenReturn(inputStream);
+
+    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isOk());
+
+    verify(rExecutorService).loadWorkspace(eq(rConnection), any(), eq(".DSTableEnv"));
   }
 
   @SuppressWarnings("unchecked")

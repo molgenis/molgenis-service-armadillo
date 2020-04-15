@@ -1,5 +1,8 @@
 package org.molgenis.datashield.service;
 
+import static java.lang.String.format;
+import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
+
 import java.util.Map.Entry;
 import org.molgenis.datashield.DataShieldOptions;
 import org.molgenis.r.RConnectionFactory;
@@ -24,7 +27,7 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
   public RConnection createConnection() {
     try {
       RConnection connection = rConnectionFactory.createConnection();
-      loadSessionContextPackages(connection);
+      createTableEnvironment(connection);
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {
@@ -34,12 +37,11 @@ public class DataShieldConnectionFactoryImpl implements DataShieldConnectionFact
 
   private void setDataShieldOptions(RConnection con) throws RserveException {
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
-      con.eval(String.format("options(%s = %s)", option.getKey(), option.getValue()));
+      con.eval(format("base::options(%s = %s)", option.getKey(), option.getValue()));
     }
   }
 
-  private void loadSessionContextPackages(RConnection connection) throws RserveException {
-    connection.eval("library(dsBase)");
-    connection.eval("library(readr)");
+  private void createTableEnvironment(RConnection connection) throws RserveException {
+    connection.eval(format("%s <- base::new.env()", TABLE_ENV));
   }
 }
