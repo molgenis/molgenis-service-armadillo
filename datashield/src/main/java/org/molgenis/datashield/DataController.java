@@ -111,7 +111,7 @@ public class DataController {
   /** @return a list of (fully qualified) table identifiers available for DataSHIELD operations. */
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
   public List<String> getTables() throws REXPMismatchException {
-    final String command = format("local(ls(%s))", TABLE_ENV);
+    final String command = format("base::local(base::ls(%s))", TABLE_ENV);
     REXP result =
         datashieldSession.execute(connection -> rExecutorService.execute(command, connection));
     return asList(result.asStrings());
@@ -128,7 +128,7 @@ public class DataController {
   @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
   public List<String> getSymbols() throws REXPMismatchException {
     REXP result =
-        datashieldSession.execute(connection -> rExecutorService.execute("ls()", connection));
+        datashieldSession.execute(connection -> rExecutorService.execute("base::ls()", connection));
     return asList(result.asStrings());
   }
 
@@ -176,7 +176,7 @@ public class DataController {
   @DeleteMapping(value = "/symbols/{symbol}")
   public void removeSymbol(
       @Valid @Pattern(regexp = "\\p{Alnum}[\\w.]*") @PathVariable String symbol) {
-    String command = format("rm(%s)", symbol);
+    String command = format("base::rm(%s)", symbol);
     datashieldSession.execute(connection -> rExecutorService.execute(command, connection));
   }
 

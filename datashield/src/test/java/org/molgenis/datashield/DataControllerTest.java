@@ -99,7 +99,8 @@ class DataControllerTest {
   @WithMockUser
   void getGetTables() throws Exception {
     mockDatashieldExecuteSessionConsumer();
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
 
     mockMvc
@@ -113,7 +114,8 @@ class DataControllerTest {
   @WithMockUser
   void testTableExists() throws Exception {
     mockDatashieldExecuteSessionConsumer();
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
 
     mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isOk());
@@ -123,7 +125,8 @@ class DataControllerTest {
   @WithMockUser
   void testTableNotFound() throws Exception {
     mockDatashieldExecuteSessionConsumer();
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {});
 
     mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isNotFound());
@@ -133,7 +136,7 @@ class DataControllerTest {
   @WithMockUser
   void getGetSymbols() throws Exception {
     mockDatashieldExecuteSessionConsumer();
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {"D"});
 
     mockMvc
@@ -150,7 +153,7 @@ class DataControllerTest {
 
     mockMvc.perform(delete("/symbols/D")).andExpect(status().isOk());
 
-    verify(rExecutorService).execute("rm(D)", rConnection);
+    verify(rExecutorService).execute("base::rm(D)", rConnection);
   }
 
   @Test
@@ -336,7 +339,8 @@ class DataControllerTest {
   void testLoadTableDoesNotExist() throws Exception {
     mockDatashieldExecuteSessionConsumer();
 
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {});
 
     mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isNotFound());
@@ -347,7 +351,8 @@ class DataControllerTest {
   void testLoadTable() throws Exception {
     mockDatashieldExecuteSessionConsumer();
 
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
 
     when(datashieldSession.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
@@ -361,7 +366,8 @@ class DataControllerTest {
   void testLoadTableWithVariables() throws Exception {
     mockDatashieldExecuteSessionConsumer();
 
-    when(rExecutorService.execute("local(ls(.DSTableEnv))", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::local(base::ls(.DSTableEnv))", rConnection))
+        .thenReturn(rexp);
     when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
 
     when(datashieldSession.assign(

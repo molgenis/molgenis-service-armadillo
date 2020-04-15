@@ -86,9 +86,9 @@ class DataShieldSessionTest {
   void testSchedule() throws RserveException, ExecutionException, InterruptedException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
 
-    var result = dataShieldSession.schedule("ls()");
+    var result = dataShieldSession.schedule("base::ls()");
 
     assertSame(rexp, result.get());
     assertSame(result, dataShieldSession.getLastExecution().get());
@@ -110,13 +110,13 @@ class DataShieldSessionTest {
   void getLastCommand() throws RserveException, ExecutionException, InterruptedException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
     // schedule and await completion
-    dataShieldSession.schedule("ls()").get();
+    dataShieldSession.schedule("base::ls()").get();
 
     DataShieldCommandDTO command = dataShieldSession.getLastCommand().get();
 
-    assertEquals("ls()", command.expression());
+    assertEquals("base::ls()", command.expression());
     assertEquals(COMPLETED, command.status());
   }
 
@@ -124,10 +124,10 @@ class DataShieldSessionTest {
   void testScheduleThrowingConsumer() throws REXPMismatchException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
-    when(rExecutorService.execute("ls()", rConnection))
+    when(rExecutorService.execute("base::ls()", rConnection))
         .thenThrow(new RExecutionException(new REXPMismatchException(rexp, "access")));
 
-    CompletableFuture<REXP> result = dataShieldSession.schedule("ls()");
+    CompletableFuture<REXP> result = dataShieldSession.schedule("base::ls()");
 
     assertThrows(ExecutionException.class, result::get);
     verify(rConnection).detach();
