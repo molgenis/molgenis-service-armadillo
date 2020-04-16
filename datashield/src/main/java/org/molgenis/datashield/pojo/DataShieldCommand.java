@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO.Builder;
 
 public class DataShieldCommand<T> {
@@ -67,6 +68,17 @@ public class DataShieldCommand<T> {
     return startDate;
   }
 
+  public Optional<String> getMessage() {
+    if (getStatus() == FAILED) {
+      try {
+        result.get();
+      } catch (Exception e) {
+        return Optional.of(e).map(ExceptionUtils::getRootCause).map(Throwable::getMessage);
+      }
+    }
+    return Optional.empty();
+  }
+
   public Instant getCreateDate() {
     return createDate;
   }
@@ -111,6 +123,7 @@ public class DataShieldCommand<T> {
             .id(getId())
             .status(getStatus())
             .withResult(isWithResult());
+    getMessage().ifPresent(builder::message);
     getStartDate().ifPresent(builder::startDate);
     getEndDate().ifPresent(builder::endDate);
     return builder.build();

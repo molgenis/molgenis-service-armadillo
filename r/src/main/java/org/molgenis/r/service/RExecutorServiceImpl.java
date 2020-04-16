@@ -1,6 +1,8 @@
 package org.molgenis.r.service;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
@@ -26,8 +29,13 @@ public class RExecutorServiceImpl implements RExecutorService {
   public REXP execute(String cmd, RConnection connection) {
     try {
       LOGGER.debug("Evaluate {}", cmd);
-      return connection.eval(cmd);
-    } catch (RserveException e) {
+      REXP result = connection.eval(format("try(%s)", cmd));
+      if (result.inherits("try-error")) {
+        throw new RExecutionException(
+            stream(result.asStrings()).map(String::trim).collect(joining("; ")));
+      }
+      return result;
+    } catch (RserveException | REXPMismatchException e) {
       throw new RExecutionException(e);
     }
   }

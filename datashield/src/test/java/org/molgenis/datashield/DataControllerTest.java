@@ -302,13 +302,7 @@ class DataControllerTest {
     when(datashieldSession.assign("E", rewrittenExpression)).thenReturn(assignment);
 
     MvcResult result =
-        mockMvc
-            .perform(
-                post("/symbols/E")
-                    .accept(APPLICATION_OCTET_STREAM)
-                    .contentType(TEXT_PLAIN)
-                    .content(expression))
-            .andReturn();
+        mockMvc.perform(post("/symbols/E").contentType(TEXT_PLAIN).content(expression)).andReturn();
 
     assignment.complete(null);
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
@@ -318,6 +312,24 @@ class DataControllerTest {
   @WithMockUser
   void testAssignSyntaxError() throws Exception {
     String expression = "meanDS(D$age";
+    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+        .when(expressionRewriter)
+        .rewriteAssign(expression);
+
+    MvcResult mvcResult =
+        mockMvc
+            .perform(post("/symbols/D").contentType(TEXT_PLAIN).content(expression))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    assertEquals(
+        "Error parsing expression: Missing end bracket",
+        mvcResult.getResolvedException().getMessage());
+  }
+
+  @Test
+  @WithMockUser
+  void testAsyncAssignExecutionFails() throws Exception {
+    String expression = "meanDS(D$age)";
     doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAssign(expression);
