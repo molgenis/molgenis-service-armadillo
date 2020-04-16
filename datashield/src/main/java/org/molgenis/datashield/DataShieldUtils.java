@@ -1,8 +1,9 @@
 package org.molgenis.datashield;
 
 import static java.lang.String.format;
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
-import org.molgenis.r.exceptions.RExecutionException;
+import java.net.URI;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
@@ -27,11 +28,7 @@ public class DataShieldUtils {
     return rawResult;
   }
 
-  public static Object asNativeJavaObject(REXP result) {
-    try {
-      return result.asNativeJavaObject();
-    } catch (REXPMismatchException e) {
-      throw new RExecutionException(e);
-    }
+  static URI getLastCommandLocation() {
+    return fromCurrentContextPath().replacePath("/lastcommand").build().toUri();
   }
 }

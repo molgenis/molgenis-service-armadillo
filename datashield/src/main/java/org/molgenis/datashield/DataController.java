@@ -5,15 +5,17 @@ import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.datashield.DataShieldUtils.GLOBAL_ENV;
 import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
+import static org.molgenis.datashield.DataShieldUtils.getLastCommandLocation;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.molgenis.r.Formatter.stringVector;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.http.ResponseEntity.created;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -65,44 +67,6 @@ public class DataController {
     this.idGenerator = idGenerator;
   }
 
-  @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
-  @ResponseStatus(OK)
-  public CompletableFuture<ResponseEntity<byte[]>> lastResultRaw() {
-    return datashieldSession
-        .getLastExecution()
-        .map(
-            execution ->
-                execution
-                    .thenApply(DataShieldUtils::createRawResponse)
-                    .thenApply(ResponseEntity::ok))
-        .orElse(completedFuture(notFound().build()));
-  }
-
-  @PostMapping(
-      value = "/execute",
-      consumes = TEXT_PLAIN_VALUE,
-      produces = APPLICATION_OCTET_STREAM_VALUE)
-  public CompletableFuture<ResponseEntity<byte[]>> executeRaw(
-      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
-    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
-    CompletableFuture<REXP> result =
-        datashieldSession.schedule(serializeExpression(rewrittenExpression));
-    return async
-        ? createdLastCommand()
-        : result.thenApply(DataShieldUtils::createRawResponse).thenApply(ResponseEntity::ok);
-  }
-
-  private static <R> CompletableFuture<ResponseEntity<R>> createdLastCommand() {
-    return completedFuture(
-        created(fromCurrentContextPath().replacePath("/lastcommand").build().toUri()).body(null));
-  }
-
-  /** @return command object (with expression and status) */
-  @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<DataShieldCommandDTO> getLastCommand() {
-    return ResponseEntity.of(datashieldSession.getLastCommand());
-  }
-
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
   public List<RPackage> getPackages() {
     return datashieldSession.execute(packageService::getInstalledPackages);
@@ -130,6 +94,14 @@ public class DataController {
     REXP result =
         datashieldSession.execute(connection -> rExecutorService.execute("base::ls()", connection));
     return asList(result.asStrings());
+  }
+
+  /** Removes a symbol, making the assigned data inaccessible */
+  @DeleteMapping(value = "/symbols/{symbol}")
+  public void removeSymbol(
+      @Valid @Pattern(regexp = "\\p{Alnum}[\\w.]*") @PathVariable String symbol) {
+    String command = format("base::rm(%s)", symbol);
+    datashieldSession.execute(connection -> rExecutorService.execute(command, connection));
   }
 
   /** Copy (variables of) a table into a symbol. */
@@ -160,24 +132,54 @@ public class DataController {
       @RequestParam(defaultValue = "false") boolean async) {
     String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
     CompletableFuture<Void> result = datashieldSession.assign(symbol, rewrittenExpression);
-    return async ? createdLastCommand() : result.thenApply(ResponseEntity::ok);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+  }
+
+  @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE)
+  public CompletableFuture<ResponseEntity<byte[]>> execute(
+      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+    String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
+    CompletableFuture<REXP> result =
+        datashieldSession.schedule(serializeExpression(rewrittenExpression));
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(DataShieldUtils::createRawResponse)
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+  }
+
+  /** @return command object (with expression and status) */
+  @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<DataShieldCommandDTO> getLastCommand() {
+    return ResponseEntity.of(datashieldSession.getLastCommand());
+  }
+
+  @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @ResponseStatus(OK)
+  public CompletableFuture<ResponseEntity<byte[]>> lastResult() {
+    return datashieldSession
+        .getLastExecution()
+        .map(
+            execution ->
+                execution
+                    .thenApply(DataShieldUtils::createRawResponse)
+                    .thenApply(ResponseEntity::ok)
+                    .exceptionally(ex -> notFound().build()))
+        .orElse(completedFuture(notFound().build()));
   }
 
   /** Debug an expression */
   @PreAuthorize("hasRole('ROLE_SU')")
   @PostMapping(value = "/debug", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public Object debug(@RequestBody String expression) throws REXPMismatchException {
-    REXP result =
-        datashieldSession.execute(connection -> rExecutorService.execute(expression, connection));
-    return result.asNativeJavaObject();
-  }
-
-  /** Removes a symbol, making the assigned data inaccessible */
-  @DeleteMapping(value = "/symbols/{symbol}")
-  public void removeSymbol(
-      @Valid @Pattern(regexp = "\\p{Alnum}[\\w.]*") @PathVariable String symbol) {
-    String command = format("base::rm(%s)", symbol);
-    datashieldSession.execute(connection -> rExecutorService.execute(command, connection));
+    return datashieldSession
+        .execute(connection -> rExecutorService.execute(expression, connection))
+        .asNativeJavaObject();
   }
 
   /**
