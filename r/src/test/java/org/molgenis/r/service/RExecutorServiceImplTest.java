@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
@@ -35,7 +36,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void execute() throws RserveException {
-    when(rConnection.eval("mean(age)")).thenReturn(rexp);
+    when(rConnection.eval("try(mean(age))")).thenReturn(rexp);
 
     REXP result = executorService.execute("mean(age)", rConnection);
 
@@ -44,7 +45,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeFail() throws RserveException {
-    when(rConnection.eval("mean(ages)"))
+    when(rConnection.eval("try(mean(ages))"))
         .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
 
     RExecutionException rExecutionException =
@@ -53,6 +54,19 @@ class RExecutorServiceImplTest {
             () -> executorService.execute("mean(ages)", rConnection),
             "Ages is not a valid column");
     assertTrue(rExecutionException.getMessage().contains("Ages is not a valid column"));
+  }
+
+  @Test
+  void executeTryFails() throws RserveException, REXPMismatchException {
+    when(rConnection.eval("try(mean(age))")).thenReturn(rexp);
+    when(rexp.inherits("try-error")).thenReturn(true);
+    when(rexp.asStrings())
+        .thenReturn(new String[] {"Error in try(mean(age)) : object 'age' not found\n"});
+
+    RExecutionException thrown =
+        assertThrows(
+            RExecutionException.class, () -> executorService.execute("mean(age)", rConnection));
+    assertEquals("Error in try(mean(age)) : object 'age' not found", thrown.getMessage());
   }
 
   @Test

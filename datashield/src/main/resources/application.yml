@@ -22,6 +22,10 @@ minio:
 logging:
   level:
     org.molgenis: DEBUG
+    org:
+      springframework:
+        web:
+          context: DEBUG
 ---
 spring:
   profiles: (development | test)

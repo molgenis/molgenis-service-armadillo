@@ -2,8 +2,10 @@ package org.molgenis.datashield;
 
 import static java.time.Instant.now;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +32,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.molgenis.datashield.exceptions.DataShieldExpressionException;
 import org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus;
 import org.molgenis.datashield.pojo.DataShieldCommandDTO;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
@@ -38,6 +41,7 @@ import org.molgenis.r.RConnectionConsumer;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorServiceImpl;
+import org.obiba.datashield.r.expr.ParseException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
@@ -298,16 +302,68 @@ class DataControllerTest {
     when(datashieldSession.assign("E", rewrittenExpression)).thenReturn(assignment);
 
     MvcResult result =
-        mockMvc
-            .perform(
-                post("/symbols/E")
-                    .accept(APPLICATION_OCTET_STREAM)
-                    .contentType(TEXT_PLAIN)
-                    .content(expression))
-            .andReturn();
+        mockMvc.perform(post("/symbols/E").contentType(TEXT_PLAIN).content(expression)).andReturn();
 
     assignment.complete(null);
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void testAssignSyntaxError() throws Exception {
+    String expression = "meanDS(D$age";
+    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+        .when(expressionRewriter)
+        .rewriteAssign(expression);
+
+    MvcResult mvcResult =
+        mockMvc
+            .perform(post("/symbols/D").contentType(TEXT_PLAIN).content(expression))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    assertEquals(
+        "Error parsing expression: Missing end bracket",
+        mvcResult.getResolvedException().getMessage());
+  }
+
+  @Test
+  @WithMockUser
+  void testAsyncAssignExecutionFails() throws Exception {
+    String expression = "meanDS(D$age)";
+    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+        .when(expressionRewriter)
+        .rewriteAssign(expression);
+
+    MvcResult mvcResult =
+        mockMvc
+            .perform(post("/symbols/D").contentType(TEXT_PLAIN).content(expression))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    assertEquals(
+        "Error parsing expression: Missing end bracket",
+        mvcResult.getResolvedException().getMessage());
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteSyntaxError() throws Exception {
+    String expression = "meanDS(D$age";
+    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+        .when(expressionRewriter)
+        .rewriteAggregate(expression);
+
+    MvcResult mvcResult =
+        mockMvc
+            .perform(
+                post("/execute?async=true")
+                    .accept(APPLICATION_OCTET_STREAM)
+                    .contentType(TEXT_PLAIN)
+                    .content(expression))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    assertEquals(
+        "Error parsing expression: Missing end bracket",
+        mvcResult.getResolvedException().getMessage());
   }
 
   @Test

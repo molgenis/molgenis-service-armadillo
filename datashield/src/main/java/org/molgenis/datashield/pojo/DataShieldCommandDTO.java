@@ -8,6 +8,7 @@ import com.google.auto.value.AutoValue;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonSerialize(as = DataShieldCommandDTO.class)
@@ -32,6 +33,10 @@ public abstract class DataShieldCommandDTO {
   public abstract boolean withResult();
 
   @JsonProperty
+  @Nullable
+  public abstract String message();
+
+  @JsonProperty
   public abstract DataShieldCommand.DataShieldCommandStatus status();
 
   public static Builder builder() {
@@ -53,6 +58,8 @@ public abstract class DataShieldCommandDTO {
     public abstract Builder withResult(boolean withResult);
 
     public abstract Builder status(DataShieldCommand.DataShieldCommandStatus status);
+
+    public abstract Builder message(String message);
 
     public abstract DataShieldCommandDTO build();
   }

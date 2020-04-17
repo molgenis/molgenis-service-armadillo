@@ -47,6 +47,11 @@ class DataShieldCommandTest {
   }
 
   @Test
+  void message() {
+    assertEquals(Optional.empty(), command.getMessage());
+  }
+
+  @Test
   void id() {
     assertNotNull(command.getId());
   }
@@ -98,9 +103,10 @@ class DataShieldCommandTest {
 
   @Test
   void failed() {
-    command.setResult(failedFuture(new RuntimeException()));
+    command.setResult(failedFuture(new RuntimeException("Failed")));
 
     assertEquals(FAILED, command.getStatus());
+    assertEquals(Optional.of("Failed"), command.getMessage());
   }
 
   @Test
@@ -140,6 +146,28 @@ class DataShieldCommandTest {
             .endDate(((Optional<Instant>) command.getEndDate()).get())
             .expression(command.getExpression())
             .status(COMPLETED)
+            .id(command.getId())
+            .withResult(true)
+            .build();
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void asDtoFailed() {
+    command.start();
+    command.setResult(failedFuture(new RuntimeException("Failed")));
+    command.complete();
+
+    DataShieldCommandDTO actual = command.asDto();
+
+    DataShieldCommandDTO expected =
+        builder()
+            .createDate(command.getCreateDate())
+            .startDate(((Optional<Instant>) command.getStartDate()).get())
+            .endDate(((Optional<Instant>) command.getEndDate()).get())
+            .expression(command.getExpression())
+            .status(FAILED)
+            .message("Failed")
             .id(command.getId())
             .withResult(true)
             .build();
