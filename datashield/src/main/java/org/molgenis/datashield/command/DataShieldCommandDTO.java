@@ -1,4 +1,4 @@
-package org.molgenis.datashield.pojo;
+package org.molgenis.datashield.command;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nullable;
+import org.molgenis.datashield.command.Commands.DataShieldCommandStatus;
 
 @AutoValue
 @JsonSerialize(as = DataShieldCommandDTO.class)
@@ -37,7 +38,7 @@ public abstract class DataShieldCommandDTO {
   public abstract String message();
 
   @JsonProperty
-  public abstract DataShieldCommand.DataShieldCommandStatus status();
+  public abstract DataShieldCommandStatus status();
 
   public static Builder builder() {
     return new AutoValue_DataShieldCommandDTO.Builder();
@@ -57,7 +58,7 @@ public abstract class DataShieldCommandDTO {
 
     public abstract Builder withResult(boolean withResult);
 
-    public abstract Builder status(DataShieldCommand.DataShieldCommandStatus status);
+    public abstract Builder status(DataShieldCommandStatus status);
 
     public abstract Builder message(String message);
 

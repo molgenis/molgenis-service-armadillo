@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.molgenis.r.REXPParser;
+import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -42,11 +43,14 @@ public class PackageServiceImpl implements PackageService {
   }
 
   @Override
-  public List<RPackage> getInstalledPackages(RConnection connection)
-      throws RserveException, REXPMismatchException {
-    REXPString matrix = (REXPString) connection.eval(COMMAND_INSTALLED_PACKAGES);
-    List<Map<String, String>> rows = rexpParser.toStringMap(matrix);
-    return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
+  public List<RPackage> getInstalledPackages(RConnection connection) {
+    try {
+      REXPString matrix = (REXPString) connection.eval(COMMAND_INSTALLED_PACKAGES);
+      List<Map<String, String>> rows = rexpParser.toStringMap(matrix);
+      return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
+    } catch (REXPMismatchException | RserveException e) {
+      throw new RExecutionException(e);
+    }
   }
 
   public static RPackage toPackage(Map<String, String> row) {

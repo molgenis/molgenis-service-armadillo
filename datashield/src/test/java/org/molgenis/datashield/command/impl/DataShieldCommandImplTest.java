@@ -1,4 +1,4 @@
-package org.molgenis.datashield.pojo;
+package org.molgenis.datashield.command.impl;
 
 import static java.time.Instant.now;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.COMPLETED;
-import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.FAILED;
-import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.IN_PROGRESS;
-import static org.molgenis.datashield.pojo.DataShieldCommand.DataShieldCommandStatus.PENDING;
-import static org.molgenis.datashield.pojo.DataShieldCommandDTO.builder;
+import static org.molgenis.datashield.command.Commands.DataShieldCommandStatus.COMPLETED;
+import static org.molgenis.datashield.command.Commands.DataShieldCommandStatus.FAILED;
+import static org.molgenis.datashield.command.Commands.DataShieldCommandStatus.IN_PROGRESS;
+import static org.molgenis.datashield.command.Commands.DataShieldCommandStatus.PENDING;
+import static org.molgenis.datashield.command.DataShieldCommandDTO.builder;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -22,18 +22,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.datashield.command.DataShieldCommandDTO;
+import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldCommandTest {
+public class DataShieldCommandImplTest {
 
   @Mock private Clock clock;
-  private DataShieldCommand command;
+  private DataShieldCommandImpl command;
   private Instant createDate = now();
 
   @BeforeEach
   void setUp() {
     when(clock.instant()).thenReturn(createDate);
-    command = new DataShieldCommand("expression", true, clock);
+    command =
+        new DataShieldCommandImpl("expression", true, clock) {
+
+          @Override
+          protected RConnection doWithConnection(RConnection connection) {
+            return connection;
+          }
+        };
   }
 
   @Test
@@ -68,7 +77,7 @@ class DataShieldCommandTest {
 
   @Test
   void statusPendingNotStarted() {
-    command.setResult(new CompletableFuture());
+    command.setExecution(new CompletableFuture());
 
     assertEquals(PENDING, command.getStatus());
   }
@@ -95,7 +104,7 @@ class DataShieldCommandTest {
 
   @Test
   void inProgress() {
-    command.setResult(new CompletableFuture());
+    command.setExecution(new CompletableFuture());
     command.start();
 
     assertEquals(IN_PROGRESS, command.getStatus());
@@ -103,7 +112,7 @@ class DataShieldCommandTest {
 
   @Test
   void failed() {
-    command.setResult(failedFuture(new RuntimeException("Failed")));
+    command.setExecution(failedFuture(new RuntimeException("Failed")));
 
     assertEquals(FAILED, command.getStatus());
     assertEquals(Optional.of("Failed"), command.getMessage());
@@ -111,7 +120,7 @@ class DataShieldCommandTest {
 
   @Test
   void completed() {
-    command.setResult(completedFuture(42));
+    command.setExecution(completedFuture(42));
 
     assertEquals(COMPLETED, command.getStatus());
   }
@@ -134,7 +143,7 @@ class DataShieldCommandTest {
   @Test
   void asDtoCompleted() {
     command.start();
-    command.setResult(completedFuture(42));
+    command.setExecution(completedFuture(42));
     command.complete();
 
     DataShieldCommandDTO actual = command.asDto();
@@ -155,7 +164,7 @@ class DataShieldCommandTest {
   @Test
   void asDtoFailed() {
     command.start();
-    command.setResult(failedFuture(new RuntimeException("Failed")));
+    command.setExecution(failedFuture(new RuntimeException("Failed")));
     command.complete();
 
     DataShieldCommandDTO actual = command.asDto();
