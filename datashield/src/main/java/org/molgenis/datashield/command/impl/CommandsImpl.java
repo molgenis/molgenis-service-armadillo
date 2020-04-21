@@ -83,7 +83,7 @@ class CommandsImpl implements Commands {
   public CompletableFuture<Void> assign(String symbol, String expression) {
     String statement = format("%s <- %s", symbol, expression);
     return schedule(
-        new DataShieldCommandImpl<>(statement, true) {
+        new DataShieldCommandImpl<>(statement, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.execute(statement, connection);
