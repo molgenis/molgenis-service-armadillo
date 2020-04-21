@@ -7,8 +7,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.datashield.exceptions.DataShieldSessionException;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RSession;
@@ -33,9 +30,6 @@ class DataShieldSessionTest {
   @Mock private RSession rSession;
   @Mock private Function<RConnection, REXP> rConnectionConsumer;
   @Mock private DataShieldConnectionFactory connectionFactory;
-  @Mock private REXP rexp;
-  @Mock private RExecutorService rExecutorService;
-  private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   @BeforeEach
   public void before() {
@@ -72,57 +66,6 @@ class DataShieldSessionTest {
 
     dataShieldSession.tryDetachRConnection(rConnection);
   }
-
-  //  @Test
-  //  void testSchedule() throws RserveException, ExecutionException, InterruptedException {
-  //    when(connectionFactory.createConnection()).thenReturn(rConnection);
-  //    when(rConnection.detach()).thenReturn(rSession);
-  //    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
-  //
-  //    var result = dataShieldSession.evaluate("base::ls()");
-  //
-  //    assertSame(rexp, result.get());
-  //    assertSame(result, dataShieldSession.getLastExecution().get());
-  //  }
-  //
-  //  @Test
-  //  void testAssign() throws RserveException, ExecutionException, InterruptedException {
-  //    when(connectionFactory.createConnection()).thenReturn(rConnection);
-  //    when(rConnection.detach()).thenReturn(rSession);
-  //
-  //    dataShieldSession.assign("D", "1:5").get();
-  //
-  //    verify(rExecutorService).execute("D <- 1:5", rConnection);
-  //    assertEquals(COMPLETED, dataShieldSession.getLastCommand().get().status());
-  //    assertEquals(Optional.empty(), dataShieldSession.getLastExecution());
-  //  }
-  //
-  //  @Test
-  //  void getLastCommand() throws RserveException, ExecutionException, InterruptedException {
-  //    when(connectionFactory.createConnection()).thenReturn(rConnection);
-  //    when(rConnection.detach()).thenReturn(rSession);
-  //    when(rExecutorService.execute("base::ls()", rConnection)).thenReturn(rexp);
-  //    // schedule and await completion
-  //    dataShieldSession.evaluate("base::ls()").get();
-  //
-  //    DataShieldCommandDTO command = dataShieldSession.getLastCommand().get();
-  //
-  //    assertEquals("base::ls()", command.expression());
-  //    assertEquals(COMPLETED, command.status());
-  //  }
-  //
-  //  @Test
-  //  void testScheduleThrowingConsumer() throws REXPMismatchException, RserveException {
-  //    when(connectionFactory.createConnection()).thenReturn(rConnection);
-  //    when(rConnection.detach()).thenReturn(rSession);
-  //    when(rExecutorService.execute("base::ls()", rConnection))
-  //        .thenThrow(new RExecutionException(new REXPMismatchException(rexp, "access")));
-  //
-  //    CompletableFuture<REXP> result = dataShieldSession.evaluate("base::ls()");
-  //
-  //    assertThrows(ExecutionException.class, result::get);
-  //    verify(rConnection).detach();
-  //  }
 
   @Test
   void execute() throws RserveException {
