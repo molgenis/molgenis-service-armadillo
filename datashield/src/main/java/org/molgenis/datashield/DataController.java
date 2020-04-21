@@ -8,6 +8,7 @@ import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.molgenis.datashield.DataShieldUtils.getLastCommandLocation;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.molgenis.r.Formatter.stringVector;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.*;
@@ -17,22 +18,22 @@ import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
+import org.molgenis.datashield.model.Workspace;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.IdGenerator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,14 +42,12 @@ import org.springframework.web.bind.annotation.*;
 public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
+  public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
   private final DataShieldExpressionRewriter expressionRewriter;
-  private final IdGenerator idGenerator;
   private final Commands commands;
 
-  public DataController(
-      DataShieldExpressionRewriter expressionRewriter, IdGenerator idGenerator, Commands commands) {
+  public DataController(DataShieldExpressionRewriter expressionRewriter, Commands commands) {
     this.expressionRewriter = expressionRewriter;
-    this.idGenerator = idGenerator;
     this.commands = commands;
   }
 
@@ -179,9 +178,8 @@ public class DataController {
 
   /** @return a list of workspaces (with lastAccessDate and size) */
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
-  public List<String> getWorkspaces() {
-    // TODO implement
-    return Collections.emptyList();
+  public List<Workspace> getWorkspaces(Principal principal) {
+    return commands.listWorkspaces(principal.getName() + "/");
   }
 
   /**
@@ -191,29 +189,31 @@ public class DataController {
    */
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(@PathVariable String id) {
-    // TODO implement
+  public void removeWorkspace(@PathVariable String id, Principal principal) {
+    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
+    commands.removeWorkspace(objectName);
   }
 
-  @PostMapping(value = "/save-workspace", produces = TEXT_PLAIN_VALUE)
-  public String save() throws ExecutionException, InterruptedException {
-    UUID saveId = idGenerator.generateId();
-    commands.saveWorkspace(format("%s/.RData", saveId.toString())).get();
-    return saveId.toString();
+  @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(CREATED)
+  public void saveUserWorkspace(@PathVariable String id, Principal principal)
+      throws ExecutionException, InterruptedException {
+    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
+    commands.saveWorkspace(objectName).get();
   }
 
   @PreAuthorize("hasRole('ROLE_' + #folder + '_RESEARCHER')")
   @PostMapping(value = "/load-tables/{folder}/{name}")
   public void loadTables(@PathVariable String folder, @PathVariable String name)
       throws ExecutionException, InterruptedException {
-    String objectName = format("%s/%s.RData", folder, name);
+    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, folder, name);
     commands.loadWorkspace(objectName, TABLE_ENV).get();
   }
 
-  @PostMapping(value = "/load-workspace/{saveId}")
-  public void loadUserWorkspace(@PathVariable String saveId)
+  @PostMapping(value = "/load-workspace/{id}")
+  public void loadUserWorkspace(@PathVariable String id, Principal principal)
       throws ExecutionException, InterruptedException {
-    String objectName = format("%s/.RData", UUID.fromString(saveId).toString());
+    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
     commands.loadWorkspace(objectName, GLOBAL_ENV).get();
   }
 

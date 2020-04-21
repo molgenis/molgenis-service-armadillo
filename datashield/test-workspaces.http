@@ -1,0 +1,26 @@
+###
+POST http://localhost:8080/login?username=admin&password=admin
+
+###
+GET http://localhost:8080/symbols
+
+###
+POST http://localhost:8080/symbols/D
+Content-Type: text/plain
+
+1:5
+
+###
+DELETE http://localhost:8080/symbols/D
+
+### List user workspaces
+GET http://localhost:8080/workspaces
+
+### Create a user workspace
+POST http://localhost:8080/workspaces/test
+
+### Load a user workspace
+POST http://localhost:8080/load-workspace/test
+
+### Delete a user workspace
+DELETE http://localhost:8080/workspaces/test

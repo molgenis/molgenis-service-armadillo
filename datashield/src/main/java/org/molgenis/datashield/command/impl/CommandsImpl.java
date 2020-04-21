@@ -13,6 +13,7 @@ import org.molgenis.datashield.DataShieldSession;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommand;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
+import org.molgenis.datashield.model.Workspace;
 import org.molgenis.datashield.service.DataShieldConnectionFactory;
 import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.RPackage;
@@ -93,6 +94,11 @@ class CommandsImpl implements Commands {
   }
 
   @Override
+  public List<Workspace> listWorkspaces(String prefix) {
+    return storageService.listWorkspaces(prefix);
+  }
+
+  @Override
   public CompletableFuture<Void> loadWorkspace(String objectName, String environment) {
     return schedule(
         new DataShieldCommandImpl<>("Load " + objectName, false) {
@@ -117,6 +123,11 @@ class CommandsImpl implements Commands {
             return null;
           }
         });
+  }
+
+  @Override
+  public void removeWorkspace(String objectname) {
+    storageService.delete(objectname);
   }
 
   @Override
