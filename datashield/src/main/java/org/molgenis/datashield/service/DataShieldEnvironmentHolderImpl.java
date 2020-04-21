@@ -61,7 +61,7 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
         .forEach(dsMethod -> addToEnvironment(dsMethod, assignEnvironment));
   }
 
-  private List<RPackage> getPackages() throws RserveException, REXPMismatchException {
+  private List<RPackage> getPackages() {
     RConnection connection = null;
     try {
       connection = rConnectionFactory.retryCreateConnection();
