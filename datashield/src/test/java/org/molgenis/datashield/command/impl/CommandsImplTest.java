@@ -1,5 +1,6 @@
 package org.molgenis.datashield.command.impl;
 
+import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -113,7 +114,7 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(storageService.load("GECKO/core.RData")).thenReturn(inputStream);
 
-    commands.loadWorkspace("GECKO/core.RData", ".DSTableEnv").get();
+    commands.loadWorkspaces(asList("GECKO/core.RData")).get();
 
     verify(rExecutorService)
         .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(".DSTableEnv"));

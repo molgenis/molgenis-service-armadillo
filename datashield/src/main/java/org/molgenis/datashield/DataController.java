@@ -1,9 +1,11 @@
 package org.molgenis.datashield;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.datashield.DataShieldUtils.GLOBAL_ENV;
+import static java.util.stream.Collectors.toList;
 import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.molgenis.datashield.DataShieldUtils.getLastCommandLocation;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
@@ -23,7 +25,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
@@ -34,6 +39,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -202,19 +208,19 @@ public class DataController {
     commands.saveWorkspace(objectName).get();
   }
 
-  @PreAuthorize("hasRole('ROLE_' + #folder + '_RESEARCHER')")
-  @PostMapping(value = "/load-tables/{folder}/{name}")
-  public void loadTables(@PathVariable String folder, @PathVariable String name)
+  @PreFilter(
+          "hasRole('ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
+  @PostMapping(value = "/load-tables", produces = APPLICATION_JSON_VALUE)
+  public List<String> loadTables(@RequestParam List<String> workspace)
       throws ExecutionException, InterruptedException {
-    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, folder, name);
-    commands.loadWorkspace(objectName, TABLE_ENV).get();
+    return commands.loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList())).get();
   }
 
-  @PostMapping(value = "/load-workspace/{id}")
-  public void loadUserWorkspace(@PathVariable String id, Principal principal)
+  @PostMapping(value = "/load-workspace")
+  public void loadUserWorkspace(@RequestParam String id, Principal principal)
       throws ExecutionException, InterruptedException {
     String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
-    commands.loadWorkspace(objectName, GLOBAL_ENV).get();
+    commands.loadUserWorkspace(objectName).get();
   }
 
   /**

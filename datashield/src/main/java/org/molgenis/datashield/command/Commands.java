@@ -15,11 +15,13 @@ public interface Commands {
 
   List<Workspace> listWorkspaces(String prefix);
 
-  CompletableFuture<Void> loadWorkspace(String objectName, String environment);
+  CompletableFuture<List<String>> loadWorkspaces(List<String> objectNames);
 
-  CompletableFuture<Void> saveWorkspace(String objectname);
+  CompletableFuture<Void> loadUserWorkspace(String objectName);
 
-  void removeWorkspace(String objectname);
+  CompletableFuture<Void> saveWorkspace(String objectName);
+
+  void removeWorkspace(String objectName);
 
   CompletableFuture<List<RPackage>> getPackages();
 

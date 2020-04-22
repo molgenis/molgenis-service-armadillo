@@ -11,7 +11,7 @@ spring:
       name: admin
       password: admin
       roles:
-        - DIABETES_RESEARCHER
+        - GECKO_RESEARCHER
         - SU
 minio:
   url: http://localhost

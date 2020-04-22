@@ -2,6 +2,8 @@ package org.molgenis.datashield.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.molgenis.datashield.DataShieldUtils.GLOBAL_ENV;
+import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.InputStream;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.molgenis.datashield.DataShieldSession;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommand;
@@ -22,6 +25,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -99,14 +103,35 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadWorkspace(String objectName, String environment) {
+  public CompletableFuture<List<String>> loadWorkspaces(List<String> objectNames) {
+
+    return schedule(
+        new DataShieldCommandImpl<>("Load " + objectNames, false) {
+          @Override
+          protected List<String> doWithConnection(RConnection connection) {
+            objectNames.forEach(loadWorkspace(connection));
+            return objectNames;
+          }
+
+          private Consumer<String> loadWorkspace(RConnection connection) {
+            return objectName -> {
+              InputStream inputStream = storageService.load(objectName);
+              rExecutorService.loadWorkspace(
+                  connection, new InputStreamResource(inputStream), TABLE_ENV);
+            };
+          }
+        });
+  }
+
+  @Override
+  public CompletableFuture<Void> loadUserWorkspace(String objectName) {
     return schedule(
         new DataShieldCommandImpl<>("Load " + objectName, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             InputStream inputStream = storageService.load(objectName);
             rExecutorService.loadWorkspace(
-                connection, new InputStreamResource(inputStream), environment);
+                connection, new InputStreamResource(inputStream), GLOBAL_ENV);
             return null;
           }
         });

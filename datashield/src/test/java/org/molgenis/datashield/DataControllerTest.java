@@ -1,6 +1,7 @@
 package org.molgenis.datashield;
 
 import static java.time.Instant.now;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
@@ -199,9 +200,9 @@ class DataControllerTest {
   @Test
   @WithMockUser(username = "henk")
   void testLoadWorkspace() throws Exception {
-    when(commands.loadWorkspace("henk/blah.RData", ".GlobalEnv")).thenReturn(completedFuture(null));
+    when(commands.loadUserWorkspace("henk/blah.RData")).thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/load-workspace/blah")).andExpect(status().isOk());
+    mockMvc.perform(post("/load-workspace?id=blah")).andExpect(status().isOk());
   }
 
   @Test
@@ -378,17 +379,11 @@ class DataControllerTest {
         .andExpect(status().isOk());
   }
 
-  @WithMockUser
-  @Test
-  public void testLoadTibblesNotAResearcher() throws Exception {
-    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isForbidden());
-  }
-
   @WithMockUser(roles = {"DIABETES_RESEARCHER"})
   @Test
   public void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspace("DIABETES/patient.RData", ".DSTableEnv"))
+    when(commands.loadWorkspaces(asList("DIABETES/patient.RData")))
         .thenReturn(completedFuture(null));
-    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isOk());
+    mockMvc.perform(post("/load-tables?workspace=DIABETES/patient")).andExpect(status().isOk());
   }
 }
