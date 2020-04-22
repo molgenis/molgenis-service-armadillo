@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
 import org.molgenis.datashield.exceptions.DataShieldExpressionException;
+import org.molgenis.datashield.exceptions.IllegalWorkspaceIdException;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.r.expr.ParseException;
@@ -195,6 +196,19 @@ class DataControllerTest {
     when(commands.saveWorkspace("henk/test.RData")).thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/workspaces/test")).andExpect(status().isCreated());
+  }
+
+  @Test
+  @WithMockUser(username = "henk")
+  void testSaveWorkspaceWrongId() throws Exception {
+
+    String id = ")(wrongid";
+
+    mockMvc.perform(post("/workspaces/"+id)).andExpect(status().isBadRequest());
+//
+//    assertEquals(
+//            "Workspace id: '"+id+"' is not supported.. Please use only letters, numbers, dashes or underscores.",
+//            mvcResult.getResolvedException().getMessage());
   }
 
   @Test

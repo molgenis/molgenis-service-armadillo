@@ -27,6 +27,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
+import org.molgenis.datashield.exceptions.IllegalWorkspaceIdException;
 import org.molgenis.datashield.model.Workspace;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -44,6 +45,8 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
+  public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w\\-]+";
+
   private final DataShieldExpressionRewriter expressionRewriter;
   private final Commands commands;
 
@@ -199,6 +202,7 @@ public class DataController {
   @ResponseStatus(CREATED)
   public void saveUserWorkspace(@PathVariable String id, Principal principal)
       throws ExecutionException, InterruptedException {
+    if(!id.matches(WORKSPACE_ID_FORMAT_REGEX)) throw new IllegalWorkspaceIdException(id);
     String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
     commands.saveWorkspace(objectName).get();
   }
