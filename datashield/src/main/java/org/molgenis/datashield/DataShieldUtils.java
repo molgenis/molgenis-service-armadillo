@@ -12,6 +12,8 @@ public class DataShieldUtils {
   public static final String TABLE_ENV = ".DSTableEnv";
   public static final String GLOBAL_ENV = ".GlobalEnv";
 
+  private DataShieldUtils() {}
+
   public static String serializeExpression(String cmd) {
     return format("try(base::serialize({%s}, NULL))", cmd);
   }

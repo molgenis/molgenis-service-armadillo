@@ -8,9 +8,7 @@ import javax.annotation.PostConstruct;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +37,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   }
 
   @PostConstruct
-  public void init() throws RserveException, REXPMismatchException {
+  public void init() {
     RConnection connection = null;
     try {
       connection = rConnectionFactory.retryCreateConnection();
