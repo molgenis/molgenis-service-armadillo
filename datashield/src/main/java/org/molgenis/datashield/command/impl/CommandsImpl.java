@@ -24,15 +24,17 @@ import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
 @Service
 @SessionScope
 class CommandsImpl implements Commands {
-  private final StorageService storageService;
+
+  private final StorageService userStorageService;
+  private final StorageService sharedStorageService;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
   private final DataShieldSession dataShieldSession;
@@ -42,12 +44,14 @@ class CommandsImpl implements Commands {
   private volatile DataShieldCommand lastCommand;
 
   public CommandsImpl(
-      StorageService storageService,
+      @Qualifier("userStorageService") StorageService userStorageService,
+      @Qualifier("sharedStorageService") StorageService sharedStorageService,
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
       DataShieldConnectionFactory connectionFactory) {
-    this.storageService = storageService;
+    this.sharedStorageService = sharedStorageService;
+    this.userStorageService = userStorageService;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.dataShieldSession = new DataShieldSession(connectionFactory);
@@ -99,7 +103,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<Workspace> listWorkspaces(String prefix) {
-    return storageService.listWorkspaces(prefix);
+    return userStorageService.listWorkspaces(prefix);
   }
 
   @Override
@@ -115,7 +119,7 @@ class CommandsImpl implements Commands {
 
           private Consumer<String> loadWorkspace(RConnection connection) {
             return objectName -> {
-              InputStream inputStream = storageService.load(objectName);
+              InputStream inputStream = sharedStorageService.load(objectName);
               rExecutorService.loadWorkspace(
                   connection, new InputStreamResource(inputStream), TABLE_ENV);
             };
@@ -129,7 +133,7 @@ class CommandsImpl implements Commands {
         new DataShieldCommandImpl<>("Load " + objectName, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            InputStream inputStream = storageService.load(objectName);
+            InputStream inputStream = userStorageService.load(objectName);
             rExecutorService.loadWorkspace(
                 connection, new InputStreamResource(inputStream), GLOBAL_ENV);
             return null;
@@ -144,7 +148,8 @@ class CommandsImpl implements Commands {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.saveWorkspace(
-                connection, is -> storageService.save(is, objectname, APPLICATION_OCTET_STREAM));
+                connection,
+                is -> userStorageService.save(is, objectname, APPLICATION_OCTET_STREAM));
             return null;
           }
         });
@@ -152,7 +157,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public void removeWorkspace(String objectname) {
-    storageService.delete(objectname);
+    userStorageService.delete(objectname);
   }
 
   @Override

@@ -6,26 +6,19 @@ import io.minio.errors.InvalidPortException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.IdGenerator;
-import org.springframework.util.JdkIdGenerator;
 
 @Configuration
-@ConfigurationProperties("minio")
-public class MinioConfig {
+@ConfigurationProperties("minio.shared")
+public class MinioSharedStorageConfig {
   private String accessKey;
   private String secretKey;
   private boolean secure = false;
-  private String bucket = "datashield";
+  private String bucket = "shared";
   private String url = "http://localhost";
   private int port = 9000;
   private String region = null;
 
-  @Bean
-  public IdGenerator idGenerator() {
-    return new JdkIdGenerator();
-  }
-
-  @Bean
+  @Bean("sharedStorageClient")
   public MinioClient minioClient() throws InvalidPortException, InvalidEndpointException {
     return new MinioClient(url, port, accessKey, secretKey, region, secure);
   }

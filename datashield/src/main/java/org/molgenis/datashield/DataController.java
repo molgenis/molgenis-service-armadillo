@@ -1,9 +1,7 @@
 package org.molgenis.datashield;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.Arrays.stream;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
@@ -25,10 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
@@ -209,11 +204,13 @@ public class DataController {
   }
 
   @PreFilter(
-          "hasRole('ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
+      "hasRole('ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
   @PostMapping(value = "/load-tables", produces = APPLICATION_JSON_VALUE)
   public List<String> loadTables(@RequestParam List<String> workspace)
       throws ExecutionException, InterruptedException {
-    return commands.loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList())).get();
+    return commands
+        .loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList()))
+        .get();
   }
 
   @PostMapping(value = "/load-workspace")

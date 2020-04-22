@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import org.molgenis.datashield.MinioConfig;
+import org.molgenis.datashield.MinioUserStorageConfig;
 import org.molgenis.datashield.exceptions.StorageException;
 import org.molgenis.datashield.model.Workspace;
 import org.slf4j.Logger;
@@ -28,24 +28,25 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.xmlpull.v1.XmlPullParserException;
 
-@Service
-public class MinioStorageService implements StorageService {
+@Service("userStorageService")
+public class MinioUserStorageService implements StorageService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MinioUserStorageService.class);
 
-  private final MinioClient minioClient;
+  private final MinioClient userStorageClient;
   private final String bucketName;
 
-  public MinioStorageService(MinioClient minioClient, MinioConfig minioConfig) {
-    this.minioClient = minioClient;
+  public MinioUserStorageService(
+      MinioClient userStorageClient, MinioUserStorageConfig minioConfig) {
+    this.userStorageClient = userStorageClient;
     this.bucketName = minioConfig.getBucket();
   }
 
   @PostConstruct
   public void checkBucketExists() {
     try {
-      if (!minioClient.bucketExists(bucketName)) {
-        minioClient.makeBucket(bucketName);
+      if (!userStorageClient.bucketExists(bucketName)) {
+        userStorageClient.makeBucket(bucketName);
         LOGGER.info("Created bucket {}.", bucketName);
       }
       LOGGER.debug("Storing data in bucket {}.", bucketName);
@@ -68,7 +69,8 @@ public class MinioStorageService implements StorageService {
   public void save(InputStream is, String objectName, MediaType mediaType) {
     try {
       LOGGER.info("Putting object {}.", objectName);
-      minioClient.putObject(bucketName, objectName, is, null, null, null, mediaType.toString());
+      userStorageClient.putObject(
+          bucketName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
@@ -88,7 +90,7 @@ public class MinioStorageService implements StorageService {
   public InputStream load(String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
-      return minioClient.getObject(bucketName, objectName);
+      return userStorageClient.getObject(bucketName, objectName);
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
@@ -108,7 +110,7 @@ public class MinioStorageService implements StorageService {
   public void delete(String objectName) {
     try {
       LOGGER.info("Deleting object {}.", objectName);
-      minioClient.removeObject(bucketName, objectName);
+      userStorageClient.removeObject(bucketName, objectName);
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
@@ -150,8 +152,8 @@ public class MinioStorageService implements StorageService {
   public List<Workspace> listWorkspaces(String prefix) {
     try {
       LOGGER.info("List objects {}.", prefix);
-      return Streams.stream(minioClient.listObjects(bucketName, prefix))
-          .map(MinioStorageService::toWorkspace)
+      return Streams.stream(userStorageClient.listObjects(bucketName, prefix))
+          .map(MinioUserStorageService::toWorkspace)
           .map(it -> it.trim(prefix, ".RData"))
           .collect(Collectors.toList());
     } catch (XmlPullParserException e) {

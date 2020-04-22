@@ -14,11 +14,19 @@ spring:
         - GECKO_RESEARCHER
         - SU
 minio:
-  url: http://localhost
-  port: 9000
-  access-key: molgenis
-  secret-key: molgenis
-  bucket: datashield
+  user:
+    url: http://localhost
+    port: 9000
+    access-key: molgenis
+    secret-key: molgenis
+    bucket: user
+  shared:
+    url: http://localhost
+    port: 9000
+    access-key: molgenis
+    secret-key: molgenis
+    bucket: shared
+
 logging:
   level:
     org.molgenis: DEBUG

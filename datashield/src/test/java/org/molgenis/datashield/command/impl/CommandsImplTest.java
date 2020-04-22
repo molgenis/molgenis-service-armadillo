@@ -36,7 +36,8 @@ import org.springframework.core.io.InputStreamResource;
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock StorageService storageService;
+  @Mock StorageService userStorageService;
+  @Mock StorageService sharedStorageService;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock DataShieldConnectionFactory connectionFactory;
@@ -51,7 +52,12 @@ class CommandsImplTest {
   public void beforeEach() {
     commands =
         new CommandsImpl(
-            storageService, packageService, rExecutorService, executorService, connectionFactory);
+            userStorageService,
+            sharedStorageService,
+            packageService,
+            rExecutorService,
+            executorService,
+            connectionFactory);
   }
 
   @Test
@@ -112,7 +118,7 @@ class CommandsImplTest {
   @Test
   public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(storageService.load("GECKO/core.RData")).thenReturn(inputStream);
+    when(sharedStorageService.load("GECKO/core.RData")).thenReturn(inputStream);
 
     commands.loadWorkspaces(asList("GECKO/core.RData")).get();
 
@@ -148,7 +154,7 @@ class CommandsImplTest {
 
   @Test
   public void testListWorkspaces() {
-    when(storageService.listWorkspaces("admin/")).thenReturn(workspaces);
+    when(userStorageService.listWorkspaces("admin/")).thenReturn(workspaces);
 
     assertSame(workspaces, commands.listWorkspaces("admin/"));
   }
@@ -157,6 +163,6 @@ class CommandsImplTest {
   public void testDeleteWorkspace() {
     commands.removeWorkspace("admin/test.RData");
 
-    verify(storageService).delete("admin/test.RData");
+    verify(userStorageService).delete("admin/test.RData");
   }
 }
