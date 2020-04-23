@@ -27,7 +27,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
-import org.molgenis.datashield.exceptions.IllegalWorkspaceIdException;
 import org.molgenis.datashield.model.Workspace;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -200,9 +199,14 @@ public class DataController {
 
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
-  public void saveUserWorkspace(@PathVariable String id, Principal principal)
+  public void saveUserWorkspace(
+      @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @PathVariable
+          String id,
+      Principal principal)
       throws ExecutionException, InterruptedException {
-    if(!id.matches(WORKSPACE_ID_FORMAT_REGEX)) throw new IllegalWorkspaceIdException(id);
     String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
     commands.saveWorkspace(objectName).get();
   }

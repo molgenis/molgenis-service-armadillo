@@ -26,12 +26,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
 import org.molgenis.datashield.exceptions.DataShieldExpressionException;
-import org.molgenis.datashield.exceptions.IllegalWorkspaceIdException;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.r.expr.ParseException;
@@ -42,12 +40,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@ExtendWith(SpringExtension.class)
-@WebMvcTest(controllers = DataController.class)
+@WebMvcTest(DataController.class)
 class DataControllerTest {
 
   public static RPackage BASE =
@@ -199,16 +195,15 @@ class DataControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "henk")
+  @WithMockUser
   void testSaveWorkspaceWrongId() throws Exception {
-
-    String id = ")(wrongid";
-
-    mockMvc.perform(post("/workspaces/"+id)).andExpect(status().isBadRequest());
-//
-//    assertEquals(
-//            "Workspace id: '"+id+"' is not supported.. Please use only letters, numbers, dashes or underscores.",
-//            mvcResult.getResolvedException().getMessage());
+    mockMvc
+        .perform(post("/workspaces/)(wrongid"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.message")
+                .value(
+                    "saveUserWorkspace.id: Please use only letters, numbers, dashes or underscores"));
   }
 
   @Test

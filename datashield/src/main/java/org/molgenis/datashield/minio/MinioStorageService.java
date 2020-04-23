@@ -66,8 +66,7 @@ public class MinioStorageService implements StorageService {
   public void save(InputStream is, String objectName, MediaType mediaType) {
     try {
       LOGGER.info("Putting object {}.", objectName);
-      minioClient.putObject(
-          bucketName, objectName, is, null, null, null, mediaType.toString());
+      minioClient.putObject(bucketName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
