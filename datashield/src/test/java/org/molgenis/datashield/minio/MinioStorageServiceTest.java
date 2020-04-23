@@ -1,8 +1,10 @@
-package org.molgenis.datashield.service;
+package org.molgenis.datashield.minio;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
@@ -19,45 +21,42 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.datashield.MinioSharedStorageConfig;
 import org.molgenis.datashield.exceptions.StorageException;
 import org.molgenis.datashield.model.Workspace;
 
 @ExtendWith(MockitoExtension.class)
-class MinioSharedStorageServiceTest {
+class MinioStorageServiceTest {
 
-  private MinioSharedStorageService minioSharedStorageService;
+  private MinioStorageService minioStorageService;
   @Mock private MinioClient minioClient;
-  @Mock private MinioSharedStorageConfig minioConfig;
   @Mock private InputStream inputStream;
   @Mock private Result<Item> itemResult;
   @Mock private Item item;
 
   @BeforeEach
   public void beforeEach() {
-    when(minioConfig.getBucket()).thenReturn("bucket");
-    minioSharedStorageService = new MinioSharedStorageService(minioClient, minioConfig);
+    minioStorageService = new MinioStorageService(minioClient, "bucket");
   }
 
   @Test
   public void testCheckBucketExistsThrowsExceptionIfMinioDown() throws Exception {
     doThrow(new IOException("blah")).when(minioClient).bucketExists("bucket");
 
-    assertThrows(StorageException.class, minioSharedStorageService::checkBucketExists);
+    assertThrows(StorageException.class, minioStorageService::checkBucketExists);
   }
 
   @Test
   public void testCheckBucketExistsCreatesBucketIfNotFound() throws Exception {
     when(minioClient.bucketExists("bucket")).thenReturn(false);
 
-    minioSharedStorageService.checkBucketExists();
+    minioStorageService.checkBucketExists();
 
     verify(minioClient).makeBucket("bucket");
   }
 
   @Test
   public void save() throws Exception {
-    minioSharedStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM);
+    minioStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM);
 
     verify(minioClient)
         .putObject(
@@ -74,7 +73,7 @@ class MinioSharedStorageServiceTest {
 
     assertThrows(
         StorageException.class,
-        () -> minioSharedStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM));
+        () -> minioStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM));
   }
 
   @Test
@@ -95,19 +94,19 @@ class MinioSharedStorageServiceTest {
     when(item.etag()).thenReturn(workspace.eTag());
     when(item.objectSize()).thenReturn(workspace.size());
 
-    assertEquals(List.of(workspace), minioSharedStorageService.listWorkspaces("admin/"));
+    assertEquals(List.of(workspace), minioStorageService.listWorkspaces("admin/"));
   }
 
   @Test
   public void testLoad() throws Exception {
     when(minioClient.getObject("bucket", "admin/blah.RData")).thenReturn(inputStream);
 
-    assertSame(inputStream, minioSharedStorageService.load("admin/blah.RData"));
+    assertSame(inputStream, minioStorageService.load("admin/blah.RData"));
   }
 
   @Test
   public void testDelete() throws Exception {
-    minioSharedStorageService.delete("admin/blah.RData");
+    minioStorageService.delete("admin/blah.RData");
 
     verify(minioClient).removeObject("bucket", "admin/blah.RData");
   }

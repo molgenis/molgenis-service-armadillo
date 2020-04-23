@@ -14,18 +14,12 @@ spring:
         - GECKO_RESEARCHER
         - SU
 minio:
-  user:
-    url: http://localhost
-    port: 9000
-    access-key: molgenis
-    secret-key: molgenis
-    bucket: user
-  shared:
-    url: http://localhost
-    port: 9000
-    access-key: molgenis
-    secret-key: molgenis
-    bucket: shared
+  url: http://localhost
+  port: 9000
+  access-key: molgenis
+  secret-key: molgenis
+  userBucket: user
+  sharedBucket: shared
 
 logging:
   level:

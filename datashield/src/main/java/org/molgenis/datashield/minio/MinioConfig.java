@@ -1,26 +1,38 @@
-package org.molgenis.datashield;
+package org.molgenis.datashield.minio;
 
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
+import org.molgenis.datashield.service.StorageService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties("minio.shared")
-public class MinioSharedStorageConfig {
+@ConfigurationProperties("minio")
+public class MinioConfig {
   private String accessKey;
   private String secretKey;
   private boolean secure = false;
-  private String bucket = "shared";
+  private String sharedBucket = "shared";
+  private String userBucket = "user";
   private String url = "http://localhost";
   private int port = 9000;
   private String region = null;
 
-  @Bean("sharedStorageClient")
+  @Bean
   public MinioClient minioClient() throws InvalidPortException, InvalidEndpointException {
     return new MinioClient(url, port, accessKey, secretKey, region, secure);
+  }
+
+  @Bean
+  public StorageService userStorageService(MinioClient minioClient) {
+    return new MinioStorageService(minioClient, userBucket);
+  }
+
+  @Bean
+  public StorageService sharedStorageService(MinioClient minioClient) {
+    return new MinioStorageService(minioClient, sharedBucket);
   }
 
   public String getAccessKey() {
@@ -47,12 +59,20 @@ public class MinioSharedStorageConfig {
     this.secure = secure;
   }
 
-  public String getBucket() {
-    return bucket;
+  public String getSharedBucket() {
+    return sharedBucket;
   }
 
-  public void setBucket(String bucket) {
-    this.bucket = bucket;
+  public void setSharedBucket(String bucket) {
+    this.sharedBucket = bucket;
+  }
+
+  public String getUserBucket() {
+    return userBucket;
+  }
+
+  public void setUserBucket(String bucket) {
+    this.userBucket = bucket;
   }
 
   public String getUrl() {
