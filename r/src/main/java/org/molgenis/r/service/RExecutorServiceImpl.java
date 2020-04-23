@@ -3,6 +3,7 @@ package org.molgenis.r.service;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static org.molgenis.r.Formatter.quote;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,14 +42,19 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
-  public void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer) {
+  public void saveWorkspace(
+      String inclusionPattern, RConnection connection, Consumer<InputStream> inputStreamConsumer) {
     try {
       LOGGER.debug("Save workspace");
-      connection.eval("base::save.image()");
+      String command =
+          format(
+              "base::save(list = base::grep(%s, base::ls(all.names=T), perl=T, value=T), file=\".RData\")",
+              quote(inclusionPattern));
+      execute(command, connection);
       try (RFileInputStream is = connection.openFile(".RData")) {
         inputStreamConsumer.accept(is);
       }
-    } catch (RserveException | IOException e) {
+    } catch (IOException e) {
       throw new RExecutionException(e);
     }
   }

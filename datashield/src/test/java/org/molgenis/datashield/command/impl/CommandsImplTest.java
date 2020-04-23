@@ -132,11 +132,11 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     doAnswer(
             invocation -> {
-              invocation.getArgument(1, Consumer.class).accept(inputStream);
+              invocation.getArgument(2, Consumer.class).accept(inputStream);
               return null;
             })
         .when(rExecutorService)
-        .saveWorkspace(eq(rConnection), any(Consumer.class));
+        .saveWorkspace(eq("^(?!\\Q.DSTableEnv\\E).*"), eq(rConnection), any(Consumer.class));
 
     commands.saveWorkspace("GECKO/core.RData").get();
     verify(rConnection).detach();

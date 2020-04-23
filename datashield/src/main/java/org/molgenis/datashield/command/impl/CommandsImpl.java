@@ -2,6 +2,7 @@ package org.molgenis.datashield.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.regex.Pattern.quote;
 import static org.molgenis.datashield.DataShieldUtils.GLOBAL_ENV;
 import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -32,6 +33,8 @@ import org.springframework.web.context.annotation.SessionScope;
 @Service
 @SessionScope
 class CommandsImpl implements Commands {
+
+  private static final String SAVE_PATTERN = format("^(?!%s).*", quote(TABLE_ENV));
 
   private final StorageService userStorageService;
   private final StorageService sharedStorageService;
@@ -148,6 +151,7 @@ class CommandsImpl implements Commands {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.saveWorkspace(
+                SAVE_PATTERN,
                 connection,
                 is -> userStorageService.save(is, objectname, APPLICATION_OCTET_STREAM));
             return null;
