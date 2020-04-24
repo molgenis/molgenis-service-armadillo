@@ -147,7 +147,7 @@ public class MinioStorageService implements StorageService {
   @Override
   public List<Workspace> listWorkspaces(String prefix) {
     try {
-      LOGGER.info("List objects {}.", prefix);
+      LOGGER.debug("List objects.");
       return Streams.stream(minioClient.listObjects(bucketName, prefix))
           .map(MinioStorageService::toWorkspace)
           .map(it -> it.trim(prefix, ".RData"))
