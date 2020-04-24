@@ -1,4 +1,4 @@
-# 6. As a researcher you are able to load multiple RData files
+# 8. As a researcher you are able to load multiple RData files
 
 Date: 2020-04-23
 
@@ -7,13 +7,12 @@ Date: 2020-04-23
 Accepted
 
 ## Context
-
-
+We want to give researchers as much freedom as possible when they're selecting and loading data.
 
 ## Decision
 
-We implement and endpoint to upload and load RData files in the MOLGENIS "Armadillo" service to manage data for the use in DataSHIELD.
+The `/load-tables` endpoint supports loading multiple .RData files at once. These files can be in different folders.
 
 ## Consequences
-- We need a client which is capable to deal with uploading RData files into the MOLGENIS "Armadillo" service
-- MOLGENIS needs to have an RData download option to be able to communicate directly with the MOLGENIS "Armadillo" service
+- Users with multiple roles can load data from multiple folders into their workspace. This will make
+  sharing workspaces between users difficult (because they may not have the same roles). 
