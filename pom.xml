@@ -18,7 +18,11 @@
     <artifactId>datashield-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>datashield-service</name>
-    <description>DataSHIELD service</description>
+    <description>MOLGENIS Armadillo</description>
+    <organization>
+        <name>MOLGENIS</name>
+        <url>http://molgenis.org</url>
+    </organization>
 
     <properties>
         <java.version>11</java.version>
