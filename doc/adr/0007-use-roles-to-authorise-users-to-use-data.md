@@ -10,6 +10,15 @@ Accepted
 
 We need a way to authorise users in the MOLGENIS "Armadillo" service to use data. We want this to be as straightforward as possible.
 
+Other techniques are ACL's for fine grained permissions on resources and ID-based. 
+
+**ACL's**
+It is more time consuming to implement ACL's. With roles the you are less flexible, but we believe this is sufficient to use DataSHIELD.
+
+**ID-based**
+The ID-based approach was suggested as a first solution to make the service secure. A big disadvantage is that anyone with the link can 
+share the data. That means that there has to be a lot of trust between the data manager and the researcher. In practices, this is not feasible.
+
 ## Decision
 
 We will use roles as a basic principle to give users permission on the data they need to have access to. 
