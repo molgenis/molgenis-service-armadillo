@@ -3,6 +3,7 @@ package org.molgenis.datashield.command;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.datashield.model.Workspace;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXP;
 
@@ -12,9 +13,15 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  CompletableFuture<Void> loadWorkspace(String objectName, String environment);
+  List<Workspace> listWorkspaces(String prefix);
 
-  CompletableFuture<Void> saveWorkspace(String objectname);
+  CompletableFuture<List<String>> loadWorkspaces(List<String> objectNames);
+
+  CompletableFuture<Void> loadUserWorkspace(String objectName);
+
+  CompletableFuture<Void> saveWorkspace(String objectName);
+
+  void removeWorkspace(String objectName);
 
   CompletableFuture<List<RPackage>> getPackages();
 

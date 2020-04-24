@@ -1,9 +1,11 @@
 package org.molgenis.datashield;
 
 import static java.time.Instant.now;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -24,33 +26,24 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
 import org.molgenis.datashield.exceptions.DataShieldExpressionException;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
-import org.molgenis.datashield.service.StorageService;
 import org.molgenis.r.model.RPackage;
-import org.molgenis.r.service.PackageService;
-import org.molgenis.r.service.RExecutorServiceImpl;
 import org.obiba.datashield.r.expr.ParseException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.IdGenerator;
 
-@ExtendWith(SpringExtension.class)
-@WebMvcTest(controllers = DataController.class)
+@WebMvcTest(DataController.class)
 class DataControllerTest {
 
   public static RPackage BASE =
@@ -70,15 +63,8 @@ class DataControllerTest {
           .build();
 
   @Autowired private MockMvc mockMvc;
-  @MockBean private RExecutorServiceImpl rExecutorService;
-  @MockBean private DataShieldSession datashieldSession;
-  @MockBean private PackageService packageService;
-  @MockBean private StorageService storageService;
-  @MockBean private IdGenerator idGenerator;
   @MockBean private DataShieldExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
-  @Mock private RFileInputStream inputStream;
-  @Mock private RConnection rConnection;
   @Mock private REXP rexp;
 
   @Test
@@ -193,29 +179,39 @@ class DataControllerTest {
   }
 
   @Test
-  @WithMockUser
+  @WithMockUser(username = "henk")
+  void testDeleteWorkspace() throws Exception {
+    mockMvc.perform(delete("/workspaces/test")).andExpect(status().isOk());
+
+    verify(commands).removeWorkspace("henk/test.RData");
+  }
+
+  @Test
+  @WithMockUser(username = "henk")
   void testSaveWorkspace() throws Exception {
-    UUID uuid = new UUID(123, 456);
-    when(idGenerator.generateId()).thenReturn(uuid);
+    when(commands.saveWorkspace("henk/test.RData")).thenReturn(completedFuture(null));
 
-    when(commands.saveWorkspace("00000000-0000-007b-0000-0000000001c8/.RData"))
-        .thenReturn(completedFuture(null));
-
-    mockMvc
-        .perform(post("/save-workspace"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("00000000-0000-007b-0000-0000000001c8"));
+    mockMvc.perform(post("/workspaces/test")).andExpect(status().isCreated());
   }
 
   @Test
   @WithMockUser
-  void testLoadWorkspace() throws Exception {
-    when(commands.loadWorkspace("00000000-0000-007b-0000-0000000001c8/.RData", ".GlobalEnv"))
-        .thenReturn(completedFuture(null));
-
+  void testSaveWorkspaceWrongId() throws Exception {
     mockMvc
-        .perform(post("/load-workspace/00000000-0000-007b-0000-0000000001c8"))
-        .andExpect(status().isOk());
+        .perform(post("/workspaces/)(wrongid"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.message")
+                .value(
+                    "saveUserWorkspace.id: Please use only letters, numbers, dashes or underscores"));
+  }
+
+  @Test
+  @WithMockUser(username = "henk")
+  void testLoadWorkspace() throws Exception {
+    when(commands.loadUserWorkspace("henk/blah.RData")).thenReturn(completedFuture(null));
+
+    mockMvc.perform(post("/load-workspace?id=blah")).andExpect(status().isOk());
   }
 
   @Test
@@ -392,17 +388,11 @@ class DataControllerTest {
         .andExpect(status().isOk());
   }
 
-  @WithMockUser
-  @Test
-  public void testLoadTibblesNotAResearcher() throws Exception {
-    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isForbidden());
-  }
-
   @WithMockUser(roles = {"DIABETES_RESEARCHER"})
   @Test
   public void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspace("DIABETES/patient.RData", ".DSTableEnv"))
+    when(commands.loadWorkspaces(asList("DIABETES/patient.RData")))
         .thenReturn(completedFuture(null));
-    mockMvc.perform(post("/load-tables/DIABETES/patient")).andExpect(status().isOk());
+    mockMvc.perform(post("/load-tables?workspace=DIABETES/patient")).andExpect(status().isOk());
   }
 }

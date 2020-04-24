@@ -11,6 +11,7 @@ spring:
       name: admin
       password: admin
       roles:
+        - GECKO_RESEARCHER
         - DIABETES_RESEARCHER
         - SU
 minio:
@@ -18,7 +19,9 @@ minio:
   port: 9000
   access-key: molgenis
   secret-key: molgenis
-  bucket: datashield
+  userBucket: user
+  sharedBucket: shared
+
 logging:
   level:
     org.molgenis: DEBUG

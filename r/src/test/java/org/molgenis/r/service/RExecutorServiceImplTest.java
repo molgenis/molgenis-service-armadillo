@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
@@ -82,11 +83,14 @@ class RExecutorServiceImplTest {
 
   @Test
   public void testSaveWorkspace() throws IOException, RserveException {
+    when(rConnection.eval(
+            "try(base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\"))"))
+        .thenReturn(new REXPNull());
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
-        rConnection, inputStream -> assertSame(rFileInputStream, inputStream));
-
-    verify(rConnection).eval("base::save.image()");
+        "^(?!\\Q.DSTableEnv\\E).*",
+        rConnection,
+        inputStream -> assertSame(rFileInputStream, inputStream));
   }
 }
