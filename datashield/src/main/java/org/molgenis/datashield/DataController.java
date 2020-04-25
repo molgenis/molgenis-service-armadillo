@@ -227,13 +227,4 @@ public class DataController {
     String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
     commands.loadUserWorkspace(objectName).get();
   }
-
-  /**
-   * @return info object (with repo.version and repo.name, the db.name, username, host, port, etc.)
-   */
-  @GetMapping(value = "/info", produces = APPLICATION_JSON_VALUE)
-  public String getInfo() {
-    // TODO implement
-    return null;
-  }
 }

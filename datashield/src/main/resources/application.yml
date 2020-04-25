@@ -22,6 +22,12 @@ minio:
   userBucket: user
   sharedBucket: shared
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 logging:
   level:
     org.molgenis: DEBUG

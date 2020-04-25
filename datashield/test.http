@@ -1,6 +1,9 @@
 POST http://localhost:8080/login?username=admin&password=admin
 
 ###
+GET http://localhost:8080/actuator/info
+
+###
 POST http://localhost:8080/load-tables?workspace=DIABETES/patient,GECKO/patient
 
 ###
