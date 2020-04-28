@@ -3,21 +3,25 @@ package org.molgenis.datashield.minio;
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import org.molgenis.datashield.service.StorageService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 @Configuration
 @ConfigurationProperties("minio")
+@Validated
 public class MinioConfig {
-  private String accessKey;
-  private String secretKey;
+  @NotBlank private String accessKey;
+  @NotBlank private String secretKey;
   private boolean secure = false;
-  private String sharedBucket = "shared";
-  private String userBucket = "user";
-  private String url = "http://localhost";
-  private int port = 9000;
+  @NotBlank private String sharedBucket = "shared";
+  @NotBlank private String userBucket = "user";
+  @NotBlank private String url = "http://localhost";
+  @Positive private int port = 9000;
   private String region = null;
 
   @Bean

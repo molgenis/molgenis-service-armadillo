@@ -4,15 +4,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "datashield")
 @Component
+@Validated
 public class DataShieldProperties {
 
   private Map<String, String> options = new HashMap<>();
-  private Set<String> whitelist = new HashSet<>();
+  @NotEmpty private Set<String> whitelist = new HashSet<>();
 
   public Map<String, String> getOptions() {
     return options;
