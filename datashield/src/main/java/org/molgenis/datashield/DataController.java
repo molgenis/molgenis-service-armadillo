@@ -212,7 +212,7 @@ public class DataController {
   }
 
   @PreFilter(
-      "hasRole('ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
+      "hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
   @PostMapping(value = "/load-tables", produces = APPLICATION_JSON_VALUE)
   public List<String> loadTables(@RequestParam List<String> workspace)
       throws ExecutionException, InterruptedException {
