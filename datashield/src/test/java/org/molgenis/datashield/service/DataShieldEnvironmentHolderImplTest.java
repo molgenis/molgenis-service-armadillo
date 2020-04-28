@@ -2,6 +2,7 @@ package org.molgenis.datashield.service;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -9,8 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.Gson;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,7 @@ import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
+import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -55,7 +57,7 @@ class DataShieldEnvironmentHolderImplTest {
 
     assertEquals(
         asList("scatterPlotDs", "is.character"),
-        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()));
+        environment.getMethods().stream().map(DSMethod::getName).collect(toList()));
   }
 
   @Test
@@ -65,9 +67,17 @@ class DataShieldEnvironmentHolderImplTest {
 
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
 
+    var expected =
+        asList(
+            new PackagedFunctionDSMethod("meanDS", "dsBase::meanDS", "dsBase", "1.2.3"),
+            new PackagedFunctionDSMethod("dim", "base::dim", "base", null));
+    var actual = environment.getMethods();
+
+    // TODO: workaround until equals method implemented in DSMethod:
+    Gson gson = new Gson();
     assertEquals(
-        asList("meanDS", "dim"),
-        environment.getMethods().stream().map(DSMethod::getName).collect(Collectors.toList()));
+        expected.stream().map(gson::toJson).collect(toList()),
+        actual.stream().map(gson::toJson).collect(toList()));
   }
 
   @Test
@@ -99,8 +109,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   private void populateEnvironment(
-      ImmutableSet<String> aggregateMethods, ImmutableSet<String> assignMethods)
-      throws REXPMismatchException, RserveException {
+      ImmutableSet<String> aggregateMethods, ImmutableSet<String> assignMethods) {
     RConnection rConnection = mock(RConnection.class);
     when(rConnectionFactory.retryCreateConnection()).thenReturn(rConnection);
 
@@ -112,6 +121,7 @@ class DataShieldEnvironmentHolderImplTest {
             .setVersion("test")
             .setName("dsBase")
             .setBuilt("test")
+            .setVersion("1.2.3")
             .build();
 
     when(packageService.getInstalledPackages(rConnection)).thenReturn(singletonList(pack));

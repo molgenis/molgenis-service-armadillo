@@ -19,7 +19,6 @@ import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -28,8 +27,11 @@ import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
 import org.molgenis.datashield.model.Workspace;
+import org.molgenis.datashield.service.DataShieldEnvironmentHolder;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
+import org.obiba.datashield.core.DSMethod;
+import org.obiba.datashield.core.DSMethodType;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +50,15 @@ public class DataController {
 
   private final DataShieldExpressionRewriter expressionRewriter;
   private final Commands commands;
+  private final DataShieldEnvironmentHolder environments;
 
-  public DataController(DataShieldExpressionRewriter expressionRewriter, Commands commands) {
+  public DataController(
+      DataShieldExpressionRewriter expressionRewriter,
+      Commands commands,
+      DataShieldEnvironmentHolder environments) {
     this.expressionRewriter = expressionRewriter;
     this.commands = commands;
+    this.environments = environments;
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
@@ -174,9 +181,8 @@ public class DataController {
    *     ('function' or 'script'), value, package, version.
    */
   @GetMapping(value = "/methods", produces = APPLICATION_JSON_VALUE)
-  public List<String> getMethods() {
-    // TODO implement
-    return Collections.emptyList();
+  public List<DSMethod> getMethods(@RequestParam DSMethodType type) {
+    return environments.getEnvironment(type).getMethods();
   }
 
   /** @return a list of workspaces (with lastAccessDate and size) */

@@ -17,9 +17,7 @@ import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -49,14 +47,14 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   }
 
   @PostConstruct
-  public void populateEnvironments() throws RserveException, REXPMismatchException {
+  public void populateEnvironments() {
     List<RPackage> packages = getPackages();
     packages.stream()
-        .flatMap(rPackage -> toDsMethods(rPackage.aggregateMethods(), rPackage.name()))
+        .flatMap(rPackage -> toDsMethods(rPackage.aggregateMethods(), rPackage))
         .filter(dsMethod -> validateMethodIsUnique(dsMethod, aggregateEnvironment))
         .forEach(dsMethod -> addToEnvironment(dsMethod, aggregateEnvironment));
     packages.stream()
-        .flatMap(rPackage -> toDsMethods(rPackage.assignMethods(), rPackage.name()))
+        .flatMap(rPackage -> toDsMethods(rPackage.assignMethods(), rPackage))
         .filter(dsMethod -> validateMethodIsUnique(dsMethod, assignEnvironment))
         .forEach(dsMethod -> addToEnvironment(dsMethod, assignEnvironment));
   }
@@ -74,10 +72,10 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   }
 
   private Stream<PackagedFunctionDSMethod> toDsMethods(
-      ImmutableSet<String> methods, String rPackageName) {
+      ImmutableSet<String> methods, RPackage rPackage) {
     if (methods != null) {
-      validatePackageWhitelisted(rPackageName);
-      return methods.stream().map(method -> toDsMethod(rPackageName, method));
+      validatePackageWhitelisted(rPackage.name());
+      return methods.stream().map(method -> toDsMethod(rPackage, method));
     } else {
       return Stream.empty();
     }
@@ -88,12 +86,12 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
    * the current package, or with a name and a package ('dim=base::dim'), meaning they are part of
    * the package described in the string.
    */
-  private static PackagedFunctionDSMethod toDsMethod(String packageName, String method) {
+  private static PackagedFunctionDSMethod toDsMethod(RPackage rPackage, String method) {
     if (method.contains("=")) {
       return toExternalDsMethod(method);
     } else {
       return new PackagedFunctionDSMethod(
-          method, format("%s::%s", packageName, method), packageName, null);
+          method, format("%s::%s", rPackage.name(), method), rPackage.name(), rPackage.version());
     }
   }
 
