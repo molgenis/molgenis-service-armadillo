@@ -4,11 +4,14 @@ import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
+import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
+import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -36,7 +39,6 @@ import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
-import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
 import org.obiba.datashield.r.expr.ParseException;
 import org.rosuda.REngine.REXP;
@@ -139,19 +141,36 @@ class DataControllerTest {
 
   @Test
   @WithMockUser
-  void getMethods() throws Exception {
-    when(environments.getEnvironment(DSMethodType.ASSIGN)).thenReturn(assignEnvironment);
+  void getAssignMethods() throws Exception {
+    when(environments.getEnvironment(ASSIGN)).thenReturn(assignEnvironment);
     DSMethod method = new PackagedFunctionDSMethod("meanDS", "dsBase::meanDS", "dsBase", "1.2.3");
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
 
     mockMvc
-        .perform(get("/methods?type=ASSIGN"))
+        .perform(get("/methods/assign"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value("meanDS"))
         .andExpect(jsonPath("$[0].function").value("dsBase::meanDS"))
         .andExpect(jsonPath("$[0].package").value("dsBase"))
         .andExpect(jsonPath("$[0].version").value("1.2.3"));
+  }
+
+  @Test
+  @WithMockUser
+  void getAggregateMethods() throws Exception {
+    when(environments.getEnvironment(AGGREGATE)).thenReturn(assignEnvironment);
+    DSMethod method = new PackagedFunctionDSMethod("ls", "base::ls", "base", null);
+    when(assignEnvironment.getMethods()).thenReturn(List.of(method));
+
+    mockMvc
+        .perform(get("/methods/aggregate"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].name").value("ls"))
+        .andExpect(jsonPath("$[0].function").value("base::ls"))
+        .andExpect(jsonPath("$[0].package").value("base"))
+        .andExpect(jsonPath("$[0].version", nullValue()));
   }
 
   @Test

@@ -8,6 +8,8 @@ import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.molgenis.datashield.DataShieldUtils.getLastCommandLocation;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.molgenis.r.Formatter.stringVector;
+import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
+import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
@@ -31,7 +33,6 @@ import org.molgenis.datashield.service.DataShieldEnvironmentHolder;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
-import org.obiba.datashield.core.DSMethodType;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
@@ -177,15 +178,23 @@ public class DataController {
   }
 
   /**
-   * @return a list of available methods (with name, type ('aggregate' or 'assign'), class
-   *     ('function' or 'script'), value, package, version.
+   * @return the available assign {@link org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
    */
-  @GetMapping(value = "/methods", produces = APPLICATION_JSON_VALUE)
-  public List<DSMethod> getMethods(@RequestParam DSMethodType type) {
-    return environments.getEnvironment(type).getMethods();
+  @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
+  public List<DSMethod> getAssignMethods() {
+    return environments.getEnvironment(ASSIGN).getMethods();
   }
 
-  /** @return a list of workspaces (with lastAccessDate and size) */
+  /**
+   * @return the available aggregate {@link
+   *     org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
+   */
+  @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
+  public List<DSMethod> getAggregateMethods() {
+    return environments.getEnvironment(AGGREGATE).getMethods();
+  }
+
+  /** @return the available user {@link Workspace}s */
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
     return commands.listWorkspaces(principal.getName() + "/");

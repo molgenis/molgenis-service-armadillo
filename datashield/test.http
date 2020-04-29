@@ -39,10 +39,10 @@ meanDS(D$age)
 DELETE http://localhost:8080/symbols/D
 
 ###
-GET http://localhost:8080/methods?type=AGGREGATE
+GET http://localhost:8080/methods/aggregate
 
 ###
-GET http://localhost:8080/methods?type=ASSIGN
+GET http://localhost:8080/methods/assign
 
 ###
 POST http://localhost:8080/symbols/D?async=true
