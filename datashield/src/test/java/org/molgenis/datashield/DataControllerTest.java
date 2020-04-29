@@ -189,7 +189,8 @@ class DataControllerTest {
   @Test
   @WithMockUser(username = "henk")
   void testSaveWorkspace() throws Exception {
-    when(commands.saveWorkspace("henk/servername:test_dash.RData")).thenReturn(completedFuture(null));
+    when(commands.saveWorkspace("henk/servername:test_dash.RData"))
+        .thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/workspaces/servername:test_dash")).andExpect(status().isCreated());
   }
