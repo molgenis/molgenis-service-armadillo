@@ -44,7 +44,7 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
-  public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w\\-]+";
+  public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
 
   private final DataShieldExpressionRewriter expressionRewriter;
   private final Commands commands;

@@ -189,16 +189,16 @@ class DataControllerTest {
   @Test
   @WithMockUser(username = "henk")
   void testSaveWorkspace() throws Exception {
-    when(commands.saveWorkspace("henk/test.RData")).thenReturn(completedFuture(null));
+    when(commands.saveWorkspace("henk/servername:test_dash.RData")).thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/workspaces/test")).andExpect(status().isCreated());
+    mockMvc.perform(post("/workspaces/servername:test_dash")).andExpect(status().isCreated());
   }
 
   @Test
   @WithMockUser
   void testSaveWorkspaceWrongId() throws Exception {
     mockMvc
-        .perform(post("/workspaces/)(wrongid"))
+        .perform(post("/workspaces/)servername:*wrongid-dash"))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.message")
