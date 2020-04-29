@@ -34,7 +34,6 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -211,14 +210,11 @@ public class DataController {
     commands.saveWorkspace(objectName).get();
   }
 
-  @PreFilter(
-      "hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.substring(0, filterObject.indexOf('/')) + '_RESEARCHER')")
-  @PostMapping(value = "/load-tables", produces = APPLICATION_JSON_VALUE)
-  public List<String> loadTables(@RequestParam List<String> workspace)
+  @PreAuthorize("hasPermission(#workspace, 'Workspace', 'load')")
+  @PostMapping(value = "/load-tables")
+  public void loadTables(@RequestParam List<String> workspace)
       throws ExecutionException, InterruptedException {
-    return commands
-        .loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList()))
-        .get();
+    commands.loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList())).get();
   }
 
   @PostMapping(value = "/load-workspace")
