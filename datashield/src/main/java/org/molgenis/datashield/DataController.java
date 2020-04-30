@@ -8,6 +8,8 @@ import static org.molgenis.datashield.DataShieldUtils.TABLE_ENV;
 import static org.molgenis.datashield.DataShieldUtils.getLastCommandLocation;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.molgenis.r.Formatter.stringVector;
+import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
+import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
@@ -19,7 +21,6 @@ import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -28,8 +29,10 @@ import javax.validation.constraints.Pattern;
 import org.molgenis.datashield.command.Commands;
 import org.molgenis.datashield.command.DataShieldCommandDTO;
 import org.molgenis.datashield.model.Workspace;
+import org.molgenis.datashield.service.DataShieldEnvironmentHolder;
 import org.molgenis.datashield.service.DataShieldExpressionRewriter;
 import org.molgenis.r.model.RPackage;
+import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +51,15 @@ public class DataController {
 
   private final DataShieldExpressionRewriter expressionRewriter;
   private final Commands commands;
+  private final DataShieldEnvironmentHolder environments;
 
-  public DataController(DataShieldExpressionRewriter expressionRewriter, Commands commands) {
+  public DataController(
+      DataShieldExpressionRewriter expressionRewriter,
+      Commands commands,
+      DataShieldEnvironmentHolder environments) {
     this.expressionRewriter = expressionRewriter;
     this.commands = commands;
+    this.environments = environments;
   }
 
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
@@ -170,16 +178,23 @@ public class DataController {
   }
 
   /**
-   * @return a list of available methods (with name, type ('aggregate' or 'assign'), class
-   *     ('function' or 'script'), value, package, version.
+   * @return the available assign {@link org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
    */
-  @GetMapping(value = "/methods", produces = APPLICATION_JSON_VALUE)
-  public List<String> getMethods() {
-    // TODO implement
-    return Collections.emptyList();
+  @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
+  public List<DSMethod> getAssignMethods() {
+    return environments.getEnvironment(ASSIGN).getMethods();
   }
 
-  /** @return a list of workspaces (with lastAccessDate and size) */
+  /**
+   * @return the available aggregate {@link
+   *     org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
+   */
+  @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
+  public List<DSMethod> getAggregateMethods() {
+    return environments.getEnvironment(AGGREGATE).getMethods();
+  }
+
+  /** @return the available user {@link Workspace}s */
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
     return commands.listWorkspaces(principal.getName() + "/");
