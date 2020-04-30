@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.molgenis.datashield.DataShieldUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
@@ -46,13 +47,24 @@ import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
 class DataControllerTest {
+
+  @TestConfiguration
+  static class PermissionBean {
+    @Bean
+    public PermissionEvaluator permissionEvaluator() {
+      return new DataShieldPermissionEvaluator();
+    }
+  }
 
   public static RPackage BASE =
       RPackage.builder()
@@ -433,11 +445,22 @@ class DataControllerTest {
         .andExpect(status().isOk());
   }
 
-  @WithMockUser(roles = {"DIABETES_RESEARCHER"})
+  @WithMockUser(roles = {"DIABETES_RESEARCHER", "GECKO_RESEARCHER"})
   @Test
   public void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspaces(asList("DIABETES/patient.RData")))
+    when(commands.loadWorkspaces(asList("DIABETES/patient.RData", "GECKO/patient.RData")))
         .thenReturn(completedFuture(null));
-    mockMvc.perform(post("/load-tables?workspace=DIABETES/patient")).andExpect(status().isOk());
+    mockMvc
+        .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
+        .andExpect(status().isOk());
+  }
+
+  @WithMockUser(roles = {"DIABETES_RESEARCHER"})
+  @Test
+  public void testLoadTibblesForbidden() throws Exception {
+    mockMvc
+        .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
+        .andExpect(status().isForbidden());
+    verifyNoInteractions(commands);
   }
 }
