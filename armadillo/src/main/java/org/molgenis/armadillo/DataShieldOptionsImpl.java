@@ -20,18 +20,18 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-public class ArmadilloOptionsImpl implements ArmadilloOptions {
+public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final ArmadilloProperties armadilloProperties;
+  private final DataShieldProperties dataShieldProperties;
   private final PackageService packageService;
   private Map<String, String> options;
   private RConnectionFactory rConnectionFactory;
 
-  public ArmadilloOptionsImpl(
-      ArmadilloProperties armadilloProperties,
+  public DataShieldOptionsImpl(
+      DataShieldProperties dataShieldProperties,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
-    this.armadilloProperties = armadilloProperties;
+    this.dataShieldProperties = dataShieldProperties;
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -46,7 +46,7 @@ public class ArmadilloOptionsImpl implements ArmadilloOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      options.putAll(armadilloProperties.getOptions());
+      options.putAll(dataShieldProperties.getOptions());
     } finally {
       if (connection != null) {
         connection.close();

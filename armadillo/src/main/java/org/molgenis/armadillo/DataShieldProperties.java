@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "armadillo")
 @Component
 @Validated
-public class ArmadilloProperties {
+public class DataShieldProperties {
 
   private Map<String, String> options = new HashMap<>();
   @NotEmpty private Set<String> whitelist = new HashSet<>();
