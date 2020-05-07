@@ -39,13 +39,13 @@ spring:
 datashield:
   options:
     nfilter:
-      string: 0
-      kNN: 0
-      tab: 0
-      stringShort: 0
-      noise: 0
-      levels: 0
-      glm: 0
-      subset: 0
+      string: 80
+      kNN: 3
+      tab: 3
+      stringShort: 20
+      noise: 0.25
+      levels: 0.33
+      glm: 5
+      subset: 3
     datashield:
-      privacyLevel: 0
+      privacyLevel: 5
