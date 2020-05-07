@@ -1,19 +1,18 @@
-install.packages('devtools')
-library(devtools)
+install.packages('remotes')
 
-install_github('datashield/dsBaseClient', ref = "v6.0-dev")
+remotes::install_github('datashield/dsBaseClient', ref = "v6.0-dev")
 install.packages(c('DSI','DSMolgenisArmadillo'), repos = 'https://registry.molgenis.org/repository/r-hosted')
 
 library(DSI)
-library(DSMolgenis)
+library(DSMolgenisArmadillo)
 library(dsBaseClient)
 
 # create loginframe
 server <- c("molgenis")
-url <- c("https://datashield.dev.molgenis.org")
+url <- c("https://armadillo.dev.molgenis.org?workspace=GECKO/patient")
 user <- c("admin")
 password <- c("admin")
-driver <- c("MolgenisDriver")
+driver <- c("ArmadilloDriver")
 table <- c("datashield.PATIENT")
 logindata <- data.frame(server,url,user,password,table,driver)
 
