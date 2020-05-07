@@ -6,9 +6,9 @@ import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication(scanBasePackages = "org.molgenis")
 @EnableRetry
-public class DatashieldServiceApplication {
+public class ArmadilloServiceApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(DatashieldServiceApplication.class, args);
+    SpringApplication.run(ArmadilloServiceApplication.class, args);
   }
 }
