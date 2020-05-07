@@ -2,7 +2,7 @@ install.packages('devtools')
 library(devtools)
 
 install_github('datashield/dsBaseClient', ref = "v6.0-dev")
-install.packages(c('DSI','DSMolgenis'), repos = 'https://registry.molgenis.org/repository/r-hosted')
+install.packages(c('DSI','DSMolgenisArmadillo'), repos = 'https://registry.molgenis.org/repository/r-hosted')
 
 library(DSI)
 library(DSMolgenis)
