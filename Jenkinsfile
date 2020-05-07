@@ -5,7 +5,7 @@ pipeline {
         }
     }
     environment {
-        REPOSITORY = 'molgenis/datashield-service'
+        REPOSITORY = 'molgenis/armadillo'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
         CHART_VERSION = '0.1.1'
         TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
@@ -53,7 +53,7 @@ pipeline {
                             sh "mvn -q -B clean verify -Dmaven.test.redirectTestOutputToFile=true"
                             // Fetch the target branch, sonar likes to take a look at it
                             sh "git fetch --no-tags origin ${CHANGE_TARGET}:refs/remotes/origin/${CHANGE_TARGET}"
-                            sh "mvn -q -B sonar:sonar -Dsonar.projectName=armadillo-service -Dsonar.login=${env.SONAR_TOKEN} -Dsonar.github.oauth=${env.GITHUB_TOKEN} -Dsonar.pullrequest.base=${CHANGE_TARGET} -Dsonar.pullrequest.branch=${BRANCH_NAME} -Dsonar.pullrequest.key=${env.CHANGE_ID} -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=molgenis/molgenis-service-armadillo -Dsonar.ws.timeout=120"
+                            sh "mvn -q -B sonar:sonar -Dsonar.login=${env.SONAR_TOKEN} -Dsonar.github.oauth=${env.GITHUB_TOKEN} -Dsonar.pullrequest.base=${CHANGE_TARGET} -Dsonar.pullrequest.branch=${BRANCH_NAME} -Dsonar.pullrequest.key=${env.CHANGE_ID} -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=molgenis/molgenis-service-armadillo -Dsonar.ws.timeout=120"
                         }
                     }
                     post {
@@ -65,7 +65,7 @@ pipeline {
                 stage('Push to registries [ PR ]') {
                     steps {
                         container('maven') {
-                            dir('datashield') {
+                            dir('armadillo') {
                                 script {
                                     sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -T1C"
                                 }
@@ -99,7 +99,7 @@ pipeline {
                 stage('Push to registries [ master ]') {
                     steps {
                         container('maven') {
-                            dir('datashield') {
+                            dir('armadillo') {
                                 script {
                                     sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                     sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
@@ -110,9 +110,9 @@ pipeline {
                 }
                 stage("Deploy to dev [ master ]") {
                     steps {
-                        milestone(ordinal: 100, label: 'deploy to datashield.dev.molgenis.org')
+                        milestone(ordinal: 100, label: 'deploy to armadillo.dev.molgenis.org')
                         container('rancher') {
-                            sh "rancher apps upgrade --set 'server.image.tag=${TAG}' datashield ${CHART_VERSION}"
+                            sh "rancher apps upgrade --set 'server.image.tag=${TAG}' --set 'server.image.repository=${LOCAL_REPOSITORY}' armadillo ${CHART_VERSION}"
                         }
                     }
                 }
