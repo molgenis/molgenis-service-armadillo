@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.DataShieldProperties;
+import org.molgenis.armadillo.ArmadilloProperties;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.exceptions.IllegalRPackageException;
@@ -37,19 +37,19 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock DataShieldProperties dataShieldProperties;
+  @Mock ArmadilloProperties armadilloProperties;
   private DataShieldEnvironmentHolderImpl environmentHolder;
 
   @BeforeEach
   public void beforeEach() {
     environmentHolder =
         new DataShieldEnvironmentHolderImpl(
-            packageService, rConnectionFactory, dataShieldProperties);
+            packageService, rConnectionFactory, armadilloProperties);
   }
 
   @Test
   public void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(armadilloProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
@@ -62,7 +62,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(armadilloProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
     DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
@@ -82,7 +82,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateIllegalMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(armadilloProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         IllegalRMethodStringException.class,
         () ->
@@ -92,7 +92,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateDuplicateMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(armadilloProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         DuplicateRMethodException.class,
         () ->
@@ -102,7 +102,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   public void testPopulateMethodFromNonWhitelistedPackage() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    when(armadilloProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
     assertThrows(
         IllegalRPackageException.class,
         () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));

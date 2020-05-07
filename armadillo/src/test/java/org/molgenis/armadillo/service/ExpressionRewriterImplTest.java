@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.DataShieldExpressionException;
+import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
@@ -18,9 +18,9 @@ import org.obiba.datashield.core.NoSuchDSMethodException;
 import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldExpressionRewriterImplTest {
+class ExpressionRewriterImplTest {
 
-  private DataShieldExpressionRewriterImpl expressionRewriter;
+  private ExpressionRewriterImpl expressionRewriter;
 
   @Mock private DataShieldEnvironmentHolder environmentHolder;
   @Mock private DSEnvironment mockEnvironment;
@@ -28,7 +28,7 @@ class DataShieldExpressionRewriterImplTest {
   @BeforeEach
   public void beforeEach() {
     when(environmentHolder.getEnvironment(any(DSMethodType.class))).thenReturn(mockEnvironment);
-    expressionRewriter = new DataShieldExpressionRewriterImpl(environmentHolder);
+    expressionRewriter = new ExpressionRewriterImpl(environmentHolder);
   }
 
   @Test
@@ -51,8 +51,7 @@ class DataShieldExpressionRewriterImplTest {
   void testRewriteAssignUnknown() {
     when(mockEnvironment.getMethod("banana")).thenThrow(NoSuchDSMethodException.class);
     assertThrows(
-        DataShieldExpressionException.class,
-        () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
+        ExpressionException.class, () -> expressionRewriter.rewriteAggregate("banana(x,y)"));
   }
 
   @Test
@@ -75,7 +74,6 @@ class DataShieldExpressionRewriterImplTest {
 
   @Test
   void testRewriteFaultyExpression() {
-    assertThrows(
-        DataShieldExpressionException.class, () -> expressionRewriter.rewriteAggregate("meanDS(="));
+    assertThrows(ExpressionException.class, () -> expressionRewriter.rewriteAggregate("meanDS(="));
   }
 }

@@ -21,25 +21,25 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldOptionsImplTest {
+class ArmadilloOptionsImplTest {
 
-  private DataShieldProperties dataShieldProperties = new DataShieldProperties();
+  private ArmadilloProperties armadilloProperties = new ArmadilloProperties();
   @Mock private PackageService packageService;
   @Mock private RConnectionFactory rConnectionFactory;
   @Mock private RConnection rConnection;
 
-  DataShieldOptionsImpl options;
+  ArmadilloOptionsImpl options;
 
   @BeforeEach
   public void beforeEach() {
-    options = new DataShieldOptionsImpl(dataShieldProperties, packageService, rConnectionFactory);
+    options = new ArmadilloOptionsImpl(armadilloProperties, packageService, rConnectionFactory);
   }
 
   @Test
   void init() throws REXPMismatchException, RserveException {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
-    dataShieldProperties.setOptions(configOptions);
+    armadilloProperties.setOptions(configOptions);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).retryCreateConnection();
 

@@ -14,8 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldPermissionEvaluatorTest {
-  private DataShieldPermissionEvaluator permissionEvaluator = new DataShieldPermissionEvaluator();
+class ArmadilloPermissionEvaluatorTest {
+  private ArmadilloPermissionEvaluator permissionEvaluator = new ArmadilloPermissionEvaluator();
   @Mock Authentication authentication;
 
   @Test

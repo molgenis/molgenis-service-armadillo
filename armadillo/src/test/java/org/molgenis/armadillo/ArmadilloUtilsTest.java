@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.DataShieldUtils.createRawResponse;
+import static org.molgenis.armadillo.ArmadilloUtils.createRawResponse;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,14 +15,14 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPRaw;
 
 @ExtendWith(MockitoExtension.class)
-public class DataShieldUtilsTest {
+public class ArmadilloUtilsTest {
 
   @Mock REXP rexp;
 
   @Test
   public void testSerializeCommand() {
     String cmd = "meanDS(D$age";
-    String serializedCommand = DataShieldUtils.serializeExpression(cmd);
+    String serializedCommand = ArmadilloUtils.serializeExpression(cmd);
     assertEquals("try(base::serialize({meanDS(D$age}, NULL))", serializedCommand);
   }
 

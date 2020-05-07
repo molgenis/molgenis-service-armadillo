@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldConnectionFactory;
+import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -40,7 +40,7 @@ class CommandsImplTest {
   @Mock StorageService sharedStorageService;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
-  @Mock DataShieldConnectionFactory connectionFactory;
+  @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock InputStream inputStream;
   @Mock List<Workspace> workspaces;
@@ -63,8 +63,8 @@ class CommandsImplTest {
   @Test
   public void testSchedule() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
-    DataShieldCommandImpl<REXP> command =
-        new DataShieldCommandImpl<>("expression", true) {
+    ArmadilloCommandImpl<REXP> command =
+        new ArmadilloCommandImpl<>("expression", true) {
           @Override
           protected REXP doWithConnection(RConnection connection) {
             assertSame(rConnection, connection);
@@ -83,8 +83,8 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     IllegalStateException exception = new IllegalStateException("Error");
 
-    DataShieldCommandImpl<REXP> command =
-        new DataShieldCommandImpl<>("expression", true) {
+    ArmadilloCommandImpl<REXP> command =
+        new ArmadilloCommandImpl<>("expression", true) {
           @Override
           protected REXP doWithConnection(RConnection connection) {
             assertSame(rConnection, connection);

@@ -7,12 +7,12 @@ import java.net.URI;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
-public class DataShieldUtils {
+public class ArmadilloUtils {
 
   public static final String TABLE_ENV = ".DSTableEnv";
   public static final String GLOBAL_ENV = ".GlobalEnv";
 
-  private DataShieldUtils() {}
+  private ArmadilloUtils() {}
 
   public static String serializeExpression(String cmd) {
     return format("try(base::serialize({%s}, NULL))", cmd);

@@ -12,7 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DataShieldPermissionEvaluator implements PermissionEvaluator {
+public class ArmadilloPermissionEvaluator implements PermissionEvaluator {
 
   public static final String WORKSPACE = "Workspace";
   public static final String ROLE_SU = "ROLE_SU";

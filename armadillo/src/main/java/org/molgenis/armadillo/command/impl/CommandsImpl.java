@@ -3,8 +3,8 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.regex.Pattern.quote;
-import static org.molgenis.armadillo.DataShieldUtils.GLOBAL_ENV;
-import static org.molgenis.armadillo.DataShieldUtils.TABLE_ENV;
+import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.InputStream;
@@ -13,12 +13,12 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import org.molgenis.armadillo.DataShieldSession;
+import org.molgenis.armadillo.ArmadilloSession;
+import org.molgenis.armadillo.command.ArmadilloCommand;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.command.DataShieldCommand;
-import org.molgenis.armadillo.command.DataShieldCommandDTO;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldConnectionFactory;
+import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -40,11 +40,11 @@ class CommandsImpl implements Commands {
   private final StorageService sharedStorageService;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
-  private final DataShieldSession dataShieldSession;
+  private final ArmadilloSession armadilloSession;
   private final ExecutorService executorService;
 
-  @SuppressWarnings("java:S3077") // DataShieldCommand is thread-safe
-  private volatile DataShieldCommand lastCommand;
+  @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
+  private volatile ArmadilloCommand lastCommand;
 
   public CommandsImpl(
       @Qualifier("userStorageService") StorageService userStorageService,
@@ -52,12 +52,12 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
-      DataShieldConnectionFactory connectionFactory) {
+      ArmadilloConnectionFactory connectionFactory) {
     this.sharedStorageService = sharedStorageService;
     this.userStorageService = userStorageService;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
-    this.dataShieldSession = new DataShieldSession(connectionFactory);
+    this.armadilloSession = new ArmadilloSession(connectionFactory);
     this.executorService = executorService;
   }
 
@@ -67,12 +67,12 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public Optional<DataShieldCommandDTO> getLastCommand() {
-    return Optional.ofNullable(lastCommand).map(DataShieldCommand::asDto);
+  public Optional<ArmadilloCommandDTO> getLastCommand() {
+    return Optional.ofNullable(lastCommand).map(ArmadilloCommand::asDto);
   }
 
-  synchronized <T> CompletableFuture<T> schedule(DataShieldCommandImpl<T> command) {
-    final DataShieldSession session = dataShieldSession;
+  synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
+    final ArmadilloSession session = armadilloSession;
     lastCommand = command;
     CompletableFuture<T> result =
         supplyAsync(() -> session.execute(command::evaluate), executorService);
@@ -83,7 +83,7 @@ class CommandsImpl implements Commands {
   @Override
   public CompletableFuture<REXP> evaluate(String expression) {
     return schedule(
-        new DataShieldCommandImpl<>(expression, true) {
+        new ArmadilloCommandImpl<>(expression, true) {
           @Override
           protected REXP doWithConnection(RConnection connection) {
             return rExecutorService.execute(expression, connection);
@@ -95,7 +95,7 @@ class CommandsImpl implements Commands {
   public CompletableFuture<Void> assign(String symbol, String expression) {
     String statement = format("%s <- %s", symbol, expression);
     return schedule(
-        new DataShieldCommandImpl<>(statement, false) {
+        new ArmadilloCommandImpl<>(statement, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.execute(statement, connection);
@@ -113,7 +113,7 @@ class CommandsImpl implements Commands {
   public CompletableFuture<List<String>> loadWorkspaces(List<String> objectNames) {
 
     return schedule(
-        new DataShieldCommandImpl<>("Load " + objectNames, false) {
+        new ArmadilloCommandImpl<>("Load " + objectNames, false) {
           @Override
           protected List<String> doWithConnection(RConnection connection) {
             objectNames.forEach(loadWorkspace(connection));
@@ -133,7 +133,7 @@ class CommandsImpl implements Commands {
   @Override
   public CompletableFuture<Void> loadUserWorkspace(String objectName) {
     return schedule(
-        new DataShieldCommandImpl<>("Load " + objectName, false) {
+        new ArmadilloCommandImpl<>("Load " + objectName, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             InputStream inputStream = userStorageService.load(objectName);
@@ -147,7 +147,7 @@ class CommandsImpl implements Commands {
   @Override
   public CompletableFuture<Void> saveWorkspace(String objectname) {
     return schedule(
-        new DataShieldCommandImpl<>("Save " + objectname, false) {
+        new ArmadilloCommandImpl<>("Save " + objectname, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.saveWorkspace(
@@ -167,7 +167,7 @@ class CommandsImpl implements Commands {
   @Override
   public CompletableFuture<List<RPackage>> getPackages() {
     return schedule(
-        new DataShieldCommandImpl<>("getInstalledPackages", true) {
+        new ArmadilloCommandImpl<>("getInstalledPackages", true) {
           @Override
           protected List<RPackage> doWithConnection(RConnection connection) {
             return packageService.getInstalledPackages(connection);

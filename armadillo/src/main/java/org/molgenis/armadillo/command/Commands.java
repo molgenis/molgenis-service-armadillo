@@ -27,9 +27,9 @@ public interface Commands {
 
   Optional<CompletableFuture<REXP>> getLastExecution();
 
-  Optional<DataShieldCommandDTO> getLastCommand();
+  Optional<ArmadilloCommandDTO> getLastCommand();
 
-  enum DataShieldCommandStatus {
+  enum ArmadilloCommandStatus {
     COMPLETED,
     FAILED,
     PENDING,

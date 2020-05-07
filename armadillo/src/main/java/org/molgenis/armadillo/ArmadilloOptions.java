@@ -2,6 +2,7 @@ package org.molgenis.armadillo;
 
 import com.google.common.collect.ImmutableMap;
 
-public interface DataShieldOptions {
+public interface ArmadilloOptions {
+
   ImmutableMap<String, String> getValue();
 }

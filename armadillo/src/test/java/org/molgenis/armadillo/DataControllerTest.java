@@ -10,7 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.DataShieldUtils.serializeExpression;
+import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -32,11 +32,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.command.DataShieldCommandDTO;
-import org.molgenis.armadillo.exceptions.DataShieldExpressionException;
+import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
+import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
-import org.molgenis.armadillo.service.DataShieldExpressionRewriter;
+import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
@@ -62,7 +63,7 @@ class DataControllerTest {
   static class PermissionBean {
     @Bean
     public PermissionEvaluator permissionEvaluator() {
-      return new DataShieldPermissionEvaluator();
+      return new ArmadilloPermissionEvaluator();
     }
   }
 
@@ -83,7 +84,7 @@ class DataControllerTest {
           .build();
 
   @Autowired private MockMvc mockMvc;
-  @MockBean private DataShieldExpressionRewriter expressionRewriter;
+  @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
   @MockBean private DataShieldEnvironmentHolder environments;
   @Mock private REXP rexp;
@@ -217,10 +218,10 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testGetLastCommand() throws Exception {
-    DataShieldCommandDTO command =
-        DataShieldCommandDTO.builder()
+    ArmadilloCommandDTO command =
+        ArmadilloCommandDTO.builder()
             .createDate(now())
-            .status(Commands.DataShieldCommandStatus.PENDING)
+            .status(ArmadilloCommandStatus.PENDING)
             .expression("expression")
             .id(UUID.randomUUID())
             .withResult(true)
@@ -332,7 +333,7 @@ class DataControllerTest {
   @WithMockUser
   void testAssignSyntaxError() throws Exception {
     String expression = "meanDS(D$age";
-    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAssign(expression);
 
@@ -350,7 +351,7 @@ class DataControllerTest {
   @WithMockUser
   void testAsyncAssignExecutionFails() throws Exception {
     String expression = "meanDS(D$age)";
-    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAssign(expression);
 
@@ -368,7 +369,7 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteSyntaxError() throws Exception {
     String expression = "meanDS(D$age";
-    doThrow(new DataShieldExpressionException(new ParseException("Missing end bracket")))
+    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAggregate(expression);
 

@@ -4,9 +4,9 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.DataShieldUtils.TABLE_ENV;
-import static org.molgenis.armadillo.DataShieldUtils.getLastCommandLocation;
-import static org.molgenis.armadillo.DataShieldUtils.serializeExpression;
+import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
+import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
+import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.molgenis.r.Formatter.stringVector;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
@@ -26,11 +26,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.command.DataShieldCommandDTO;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
-import org.molgenis.armadillo.service.DataShieldExpressionRewriter;
+import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
@@ -48,12 +48,12 @@ public class DataController {
   public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
 
-  private final DataShieldExpressionRewriter expressionRewriter;
+  private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
   private final DataShieldEnvironmentHolder environments;
 
   public DataController(
-      DataShieldExpressionRewriter expressionRewriter,
+      ExpressionRewriter expressionRewriter,
       Commands commands,
       DataShieldEnvironmentHolder environments) {
     this.expressionRewriter = expressionRewriter;
@@ -143,14 +143,14 @@ public class DataController {
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result
-            .thenApply(DataShieldUtils::createRawResponse)
+            .thenApply(ArmadilloUtils::createRawResponse)
             .thenApply(ResponseEntity::ok)
             .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
   /** @return command object (with expression and status) */
   @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<DataShieldCommandDTO> getLastCommand() {
+  public ResponseEntity<ArmadilloCommandDTO> getLastCommand() {
     return ResponseEntity.of(commands.getLastCommand());
   }
 
@@ -162,7 +162,7 @@ public class DataController {
         .map(
             execution ->
                 execution
-                    .thenApply(DataShieldUtils::createRawResponse)
+                    .thenApply(ArmadilloUtils::createRawResponse)
                     .thenApply(ResponseEntity::ok)
                     .exceptionally(ex -> notFound().build()))
         .orElse(completedFuture(notFound().build()));

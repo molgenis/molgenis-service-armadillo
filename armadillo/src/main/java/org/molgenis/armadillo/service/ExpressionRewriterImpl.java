@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.service;
 
 import java.io.StringReader;
-import org.molgenis.armadillo.exceptions.DataShieldExpressionException;
+import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.NoSuchDSMethodException;
 import org.obiba.datashield.r.expr.DataShieldGrammar;
@@ -12,15 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRewriter {
+public class ExpressionRewriterImpl implements ExpressionRewriter {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(DataShieldExpressionRewriterImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionRewriterImpl.class);
 
   private final RScriptGenerator rAggregateScriptGenerator;
   private final RScriptGenerator rAssignScriptGenerator;
 
-  public DataShieldExpressionRewriterImpl(DataShieldEnvironmentHolder environmentHolder) {
+  public ExpressionRewriterImpl(DataShieldEnvironmentHolder environmentHolder) {
     this.rAggregateScriptGenerator =
         new RScriptGenerator(environmentHolder.getEnvironment(DSMethodType.AGGREGATE));
     this.rAssignScriptGenerator =
@@ -44,9 +43,9 @@ public class DataShieldExpressionRewriterImpl implements DataShieldExpressionRew
       LOGGER.debug("Generated script '{}'", script);
       return script;
     } catch (ParseException e) {
-      throw new DataShieldExpressionException(e);
+      throw new ExpressionException(e);
     } catch (NoSuchDSMethodException e) {
-      throw new DataShieldExpressionException(e);
+      throw new ExpressionException(e);
     }
   }
 }

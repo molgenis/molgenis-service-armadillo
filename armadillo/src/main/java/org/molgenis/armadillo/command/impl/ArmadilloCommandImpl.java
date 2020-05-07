@@ -1,8 +1,8 @@
 package org.molgenis.armadillo.command.impl;
 
 import static java.time.Clock.systemUTC;
-import static org.molgenis.armadillo.command.Commands.DataShieldCommandStatus.*;
-import static org.molgenis.armadillo.command.DataShieldCommandDTO.builder;
+import static org.molgenis.armadillo.command.ArmadilloCommandDTO.builder;
+import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.*;
 
 import com.google.common.base.Throwables;
 import java.time.Clock;
@@ -10,14 +10,14 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.armadillo.command.Commands.DataShieldCommandStatus;
-import org.molgenis.armadillo.command.DataShieldCommand;
-import org.molgenis.armadillo.command.DataShieldCommandDTO;
-import org.molgenis.armadillo.command.DataShieldCommandDTO.Builder;
+import org.molgenis.armadillo.command.ArmadilloCommand;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO.Builder;
+import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.Rserve.RConnection;
 
-public abstract class DataShieldCommandImpl<T> implements DataShieldCommand<T> {
+public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
   private final Instant createDate;
   private final UUID id;
   protected final String expression;
@@ -30,12 +30,12 @@ public abstract class DataShieldCommandImpl<T> implements DataShieldCommand<T> {
   private volatile Instant startDate;
   private volatile Instant endDate;
 
-  DataShieldCommandImpl(String expression, boolean withResult) {
+  ArmadilloCommandImpl(String expression, boolean withResult) {
     this(expression, withResult, systemUTC());
   }
 
   // For test purposes, allow the clock to be mocked
-  DataShieldCommandImpl(String expression, boolean withResult, Clock clock) {
+  ArmadilloCommandImpl(String expression, boolean withResult, Clock clock) {
     this.expression = expression;
     this.withResult = withResult;
     this.createDate = clock.instant();
@@ -95,7 +95,7 @@ public abstract class DataShieldCommandImpl<T> implements DataShieldCommand<T> {
     return withResult;
   }
 
-  public synchronized DataShieldCommandStatus getStatus() {
+  public synchronized ArmadilloCommandStatus getStatus() {
     if (execution == null) {
       return PENDING;
     }
@@ -125,7 +125,7 @@ public abstract class DataShieldCommandImpl<T> implements DataShieldCommand<T> {
   protected abstract T doWithConnection(RConnection connection);
 
   @Override
-  public synchronized DataShieldCommandDTO asDto() {
+  public synchronized ArmadilloCommandDTO asDto() {
     Builder builder =
         builder()
             .createDate(getCreateDate())

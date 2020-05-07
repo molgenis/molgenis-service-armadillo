@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.service;
 
-public interface DataShieldExpressionRewriter {
+public interface ExpressionRewriter {
 
   String rewriteAssign(String expression);
 

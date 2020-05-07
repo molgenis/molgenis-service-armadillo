@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.command.Commands.DataShieldCommandStatus.COMPLETED;
-import static org.molgenis.armadillo.command.Commands.DataShieldCommandStatus.FAILED;
-import static org.molgenis.armadillo.command.Commands.DataShieldCommandStatus.IN_PROGRESS;
-import static org.molgenis.armadillo.command.Commands.DataShieldCommandStatus.PENDING;
-import static org.molgenis.armadillo.command.DataShieldCommandDTO.builder;
+import static org.molgenis.armadillo.command.ArmadilloCommandDTO.builder;
+import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.COMPLETED;
+import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.FAILED;
+import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.IN_PROGRESS;
+import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.PENDING;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -22,21 +22,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.command.DataShieldCommandDTO;
+import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
-public class DataShieldCommandImplTest {
+public class ArmadilloCommandImplTest {
 
   @Mock private Clock clock;
-  private DataShieldCommandImpl command;
+  private ArmadilloCommandImpl command;
   private Instant createDate = now();
 
   @BeforeEach
   void setUp() {
     when(clock.instant()).thenReturn(createDate);
     command =
-        new DataShieldCommandImpl("expression", true, clock) {
+        new ArmadilloCommandImpl("expression", true, clock) {
 
           @Override
           protected RConnection doWithConnection(RConnection connection) {
@@ -127,9 +127,9 @@ public class DataShieldCommandImplTest {
 
   @Test
   void asDtoPending() {
-    DataShieldCommandDTO actual = command.asDto();
+    ArmadilloCommandDTO actual = command.asDto();
 
-    DataShieldCommandDTO expected =
+    ArmadilloCommandDTO expected =
         builder()
             .createDate(command.getCreateDate())
             .expression(command.getExpression())
@@ -146,9 +146,9 @@ public class DataShieldCommandImplTest {
     command.setExecution(completedFuture(42));
     command.complete();
 
-    DataShieldCommandDTO actual = command.asDto();
+    ArmadilloCommandDTO actual = command.asDto();
 
-    DataShieldCommandDTO expected =
+    ArmadilloCommandDTO expected =
         builder()
             .createDate(command.getCreateDate())
             .startDate(((Optional<Instant>) command.getStartDate()).get())
@@ -167,9 +167,9 @@ public class DataShieldCommandImplTest {
     command.setExecution(failedFuture(new RuntimeException("Failed")));
     command.complete();
 
-    DataShieldCommandDTO actual = command.asDto();
+    ArmadilloCommandDTO actual = command.asDto();
 
-    DataShieldCommandDTO expected =
+    ArmadilloCommandDTO expected =
         builder()
             .createDate(command.getCreateDate())
             .startDate(((Optional<Instant>) command.getStartDate()).get())

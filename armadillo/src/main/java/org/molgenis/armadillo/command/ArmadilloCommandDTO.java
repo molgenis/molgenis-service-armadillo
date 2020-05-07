@@ -9,12 +9,12 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nullable;
-import org.molgenis.armadillo.command.Commands.DataShieldCommandStatus;
+import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 
 @AutoValue
-@JsonSerialize(as = DataShieldCommandDTO.class)
+@JsonSerialize(as = ArmadilloCommandDTO.class)
 @JsonInclude(Include.NON_NULL)
-public abstract class DataShieldCommandDTO {
+public abstract class ArmadilloCommandDTO {
   @JsonProperty
   public abstract Optional<Instant> startDate();
 
@@ -38,10 +38,10 @@ public abstract class DataShieldCommandDTO {
   public abstract String message();
 
   @JsonProperty
-  public abstract DataShieldCommandStatus status();
+  public abstract ArmadilloCommandStatus status();
 
   public static Builder builder() {
-    return new AutoValue_DataShieldCommandDTO.Builder();
+    return new AutoValue_ArmadilloCommandDTO.Builder();
   }
 
   @AutoValue.Builder
@@ -58,10 +58,10 @@ public abstract class DataShieldCommandDTO {
 
     public abstract Builder withResult(boolean withResult);
 
-    public abstract Builder status(DataShieldCommandStatus status);
+    public abstract Builder status(ArmadilloCommandStatus status);
 
     public abstract Builder message(String message);
 
-    public abstract DataShieldCommandDTO build();
+    public abstract ArmadilloCommandDTO build();
   }
 }

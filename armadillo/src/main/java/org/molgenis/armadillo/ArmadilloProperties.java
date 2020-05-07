@@ -9,10 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "datashield")
+@ConfigurationProperties(prefix = "armadillo")
 @Component
 @Validated
-public class DataShieldProperties {
+public class ArmadilloProperties {
 
   private Map<String, String> options = new HashMap<>();
   @NotEmpty private Set<String> whitelist = new HashSet<>();

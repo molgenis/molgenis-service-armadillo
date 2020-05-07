@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.DataShieldSessionException;
-import org.molgenis.armadillo.service.DataShieldConnectionFactory;
+import org.molgenis.armadillo.exceptions.ArmadilloSessionException;
+import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -23,23 +23,23 @@ import org.rosuda.REngine.Rserve.RSession;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldSessionTest {
+class ArmadilloSessionTest {
 
-  private DataShieldSession dataShieldSession;
+  private ArmadilloSession armadilloSession;
   @Mock private RConnection rConnection;
   @Mock private RSession rSession;
   @Mock private Function<RConnection, REXP> rConnectionConsumer;
-  @Mock private DataShieldConnectionFactory connectionFactory;
+  @Mock private ArmadilloConnectionFactory connectionFactory;
 
   @BeforeEach
   public void before() {
-    this.dataShieldSession = new DataShieldSession(connectionFactory);
+    this.armadilloSession = new ArmadilloSession(connectionFactory);
   }
 
   @Test
   void testGetRConnectionFromFactory() {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
-    assertSame(rConnection, dataShieldSession.getRConnection());
+    assertSame(rConnection, armadilloSession.getRConnection());
   }
 
   @Test
@@ -47,8 +47,8 @@ class DataShieldSessionTest {
     when(rConnection.detach()).thenReturn(rSession);
     when(rSession.attach()).thenReturn(rConnection);
 
-    dataShieldSession.tryDetachRConnection(rConnection);
-    assertSame(rConnection, dataShieldSession.getRConnection());
+    armadilloSession.tryDetachRConnection(rConnection);
+    assertSame(rConnection, armadilloSession.getRConnection());
   }
 
   @Test
@@ -56,15 +56,15 @@ class DataShieldSessionTest {
     when(rConnection.detach()).thenReturn(rSession);
     doThrow(new RserveException(rConnection, "Cannot connect")).when(rSession).attach();
 
-    dataShieldSession.tryDetachRConnection(rConnection);
-    assertThrows(DataShieldSessionException.class, dataShieldSession::getRConnection);
+    armadilloSession.tryDetachRConnection(rConnection);
+    assertThrows(ArmadilloSessionException.class, armadilloSession::getRConnection);
   }
 
   @Test
   void testDetachFails() throws RserveException {
     doThrow(new RserveException(rConnection, "Not connected")).when(rConnection).detach();
 
-    dataShieldSession.tryDetachRConnection(rConnection);
+    armadilloSession.tryDetachRConnection(rConnection);
   }
 
   @Test
@@ -72,7 +72,7 @@ class DataShieldSessionTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
 
-    dataShieldSession.execute(rConnectionConsumer);
+    armadilloSession.execute(rConnectionConsumer);
 
     assertAll(
         () -> verify(rConnectionConsumer).apply(rConnection), () -> verify(rConnection).detach());
@@ -84,7 +84,7 @@ class DataShieldSessionTest {
     when(connectionFactory.createConnection())
         .thenThrow(new ConnectionCreationFailedException(cause));
 
-    Assertions.assertThatThrownBy(() -> dataShieldSession.execute(rConnectionConsumer))
+    Assertions.assertThatThrownBy(() -> armadilloSession.execute(rConnectionConsumer))
         .hasCause(cause);
   }
 
@@ -94,8 +94,8 @@ class DataShieldSessionTest {
     when(rConnection.detach()).thenReturn(rSession);
     when(rSession.attach()).thenReturn(rConnection);
 
-    dataShieldSession.execute(rConnectionConsumer);
-    dataShieldSession.sessionCleanup();
+    armadilloSession.execute(rConnectionConsumer);
+    armadilloSession.sessionCleanup();
 
     assertAll(() -> verify(rSession).attach(), () -> verify(rConnection).close());
   }
@@ -106,9 +106,9 @@ class DataShieldSessionTest {
     when(rConnection.detach()).thenReturn(rSession);
     when(rSession.attach()).thenThrow(new RserveException(rConnection, "foutje"));
 
-    dataShieldSession.execute(rConnectionConsumer);
+    armadilloSession.execute(rConnectionConsumer);
 
-    Assertions.assertThatThrownBy(() -> dataShieldSession.sessionCleanup())
+    Assertions.assertThatThrownBy(() -> armadilloSession.sessionCleanup())
         .hasCause(new RserveException(rConnection, "foutje"));
   }
 }

@@ -3,9 +3,9 @@ package org.molgenis.armadillo.command;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public interface DataShieldCommand<T> {
+public interface ArmadilloCommand<T> {
 
   Optional<CompletableFuture<T>> getExecution();
 
-  DataShieldCommandDTO asDto();
+  ArmadilloCommandDTO asDto();
 }

@@ -12,7 +12,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.stereotype.Component;
 
 /**
- * Retrieves and combines datashield options. These are defined by:
+ * Retrieves and combines armadillo options. These are defined by:
  *
  * <ol>
  *   <li>The Options fields in the * installed R packages
@@ -20,18 +20,18 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-public class DataShieldOptionsImpl implements DataShieldOptions {
+public class ArmadilloOptionsImpl implements ArmadilloOptions {
 
-  private final DataShieldProperties dataShieldProperties;
+  private final ArmadilloProperties armadilloProperties;
   private final PackageService packageService;
   private Map<String, String> options;
   private RConnectionFactory rConnectionFactory;
 
-  public DataShieldOptionsImpl(
-      DataShieldProperties dataShieldProperties,
+  public ArmadilloOptionsImpl(
+      ArmadilloProperties armadilloProperties,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
-    this.dataShieldProperties = dataShieldProperties;
+    this.armadilloProperties = armadilloProperties;
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -46,7 +46,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      options.putAll(dataShieldProperties.getOptions());
+      options.putAll(armadilloProperties.getOptions());
     } finally {
       if (connection != null) {
         connection.close();

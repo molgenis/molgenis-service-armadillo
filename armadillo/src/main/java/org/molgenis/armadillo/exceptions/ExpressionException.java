@@ -8,13 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class DataShieldExpressionException extends RuntimeException {
+public class ExpressionException extends RuntimeException {
 
-  public DataShieldExpressionException(ParseException err) {
+  public ExpressionException(ParseException err) {
     super(format("Error parsing expression: %s", err.getMessage()), err);
   }
 
-  public DataShieldExpressionException(NoSuchDSMethodException err) {
+  public ExpressionException(NoSuchDSMethodException err) {
     super(err.getMessage(), err);
   }
 }
