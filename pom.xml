@@ -6,7 +6,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>r</module>
-        <module>datashield</module>
+        <module>armadillo</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -15,9 +15,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.molgenis</groupId>
-    <artifactId>datashield-service</artifactId>
+    <artifactId>armadillo-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>datashield-service</name>
+    <name>armadillo-service</name>
     <description>MOLGENIS Armadillo</description>
     <organization>
         <name>MOLGENIS</name>
@@ -34,7 +34,7 @@
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>molgenis</sonar.organization>
-        <sonar.github.repository>molgenis/molgenis-service-datashield</sonar.github.repository>
+        <sonar.github.repository>molgenis/molgenis-service-armadillo</sonar.github.repository>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
         <sonar.coverage.exclusions>**/*Config.*</sonar.coverage.exclusions>
