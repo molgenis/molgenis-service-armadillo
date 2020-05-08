@@ -13,7 +13,9 @@ import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.ResponseEntity.created;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
@@ -38,11 +40,20 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
 public class DataController {
+
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
@@ -92,8 +103,7 @@ public class DataController {
 
   /** Removes a symbol, making the assigned data inaccessible */
   @DeleteMapping(value = "/symbols/{symbol}")
-  public void removeSymbol(
-      @Valid @Pattern(regexp = "\\p{Alnum}[\\w.]*") @PathVariable String symbol)
+  public void removeSymbol(@Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol)
       throws ExecutionException, InterruptedException {
     String command = format("base::rm(%s)", symbol);
     commands.evaluate(command).get();
@@ -122,7 +132,7 @@ public class DataController {
   /** Assign the result of the evaluation of an expression to a symbol. */
   @PostMapping(value = "/symbols/{symbol}", consumes = TEXT_PLAIN_VALUE)
   public CompletableFuture<ResponseEntity<Void>> assignSymbol(
-      @Valid @Pattern(regexp = "\\p{Alnum}[\\w.]*") @PathVariable String symbol,
+      @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
       @RequestBody String expression,
       @RequestParam(defaultValue = "false") boolean async) {
     String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
