@@ -16,8 +16,8 @@ We want to make the MOLGENIS "Armadillo" service data provider agnostic. There a
 
 ## Decision
 
-We implement and endpoint to upload and load RData files in the MOLGENIS "Armadillo" service to manage data for the use in DataSHIELD.
+We implement an endpoint to upload and load RData files in the MOLGENIS "Armadillo" service to manage data for the use in DataSHIELD.
 
 ## Consequences
 - We need a client which is capable to deal with uploading RData files into the MOLGENIS "Armadillo" service
-- MOLGENIS needs to have an RData download option to be able to communicate directly with the MOLGENIS "Armadillo" service
+- MOLGENIS needs to have an RData download option and/or have an EMX to RData-converter to be able to communicate directly with the MOLGENIS "Armadillo" service
