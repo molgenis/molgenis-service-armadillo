@@ -1,7 +1,9 @@
 package org.molgenis.armadillo;
 
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -61,8 +63,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
-    security = {@SecurityRequirement(name = "JSESSIONID")})
+    security = {@SecurityRequirement(name = "JSESSIONID"), @SecurityRequirement(name = "http")})
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
+@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
 @RestController
 @Validated
 public class DataController {

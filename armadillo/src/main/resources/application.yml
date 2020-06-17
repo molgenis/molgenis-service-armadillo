@@ -1,8 +1,9 @@
-security:
-  enable-csrf: false
 datashield:
   whitelist:
     - dsBase
+springdoc:
+  swagger-ui:
+    enabled: false
 
 server:
   error:

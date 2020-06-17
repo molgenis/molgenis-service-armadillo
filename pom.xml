@@ -118,25 +118,6 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>io.swagger.codegen.v3</groupId>
-                    <artifactId>swagger-codegen-maven-plugin</artifactId>
-                    <version>3.0.16</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>generate</goal>
-                            </goals>
-                            <configuration>
-                                <inputSpec>${project.basedir}/src/main/resources/metadata-api.yaml</inputSpec>
-                                <language>java</language>
-                                <generateApis>false</generateApis>
-                                <generateSupportingFiles>false</generateSupportingFiles>
-                                <modelPackage>org.molgenis.api.metadata.model</modelPackage>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                 </plugin>
