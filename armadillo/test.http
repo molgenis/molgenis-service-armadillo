@@ -13,10 +13,10 @@ GET http://localhost:8080/tables
 HEAD http://localhost:8080/tables/datashield.PATIENT
 
 ###
-POST http://localhost:8080/symbols/D?table=datashield.PATIENT
+POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT
 
 ###
-POST http://localhost:8080/symbols/D?table=datashield.PATIENT&variables=age,name
+POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT&variables=age,name
 
 ###
 POST http://localhost:8080/execute

@@ -138,9 +138,9 @@ public class DataController {
       summary = "Load table",
       description = "Copy variables of a table into a symbol",
       security = {@SecurityRequirement(name = "jwt")})
-  @PostMapping(value = "/symbols/{symbol}")
+  @PostMapping(value = "/load-table")
   public ResponseEntity<Void> loadTable(
-      @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables)
       throws InterruptedException, ExecutionException, REXPMismatchException {
