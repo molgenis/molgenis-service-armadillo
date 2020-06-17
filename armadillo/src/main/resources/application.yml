@@ -3,6 +3,11 @@ security:
 datashield:
   whitelist:
     - dsBase
+
+server:
+  error:
+    include-binding-errors: always
+    include-message: always
 ---
 spring:
   profiles: development
