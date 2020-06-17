@@ -93,6 +93,12 @@
                 <artifactId>minio</artifactId>
                 <version>6.0.13</version>
             </dependency>
+            <!-- https://github.com/spring-projects/spring-boot/issues/21939 -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>[2.3,3.0)</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
