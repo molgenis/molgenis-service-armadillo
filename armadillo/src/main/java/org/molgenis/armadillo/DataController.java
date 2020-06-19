@@ -63,9 +63,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
-    security = {@SecurityRequirement(name = "JSESSIONID"), @SecurityRequirement(name = "http")})
+    security = {
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "jwt")
+    })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
+@SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
 @RestController
 @Validated
 public class DataController {

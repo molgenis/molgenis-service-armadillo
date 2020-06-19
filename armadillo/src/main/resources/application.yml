@@ -13,11 +13,13 @@ server:
 spring:
   profiles: development
   security:
-    user:
-      name: admin
-      password: admin
-      roles:
-        - SU
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: 'https://fusion-auth.dev.molgenis.org'
+        opaquetoken:
+          client-id: '3a1120a3-6e5c-4f14-8cc3-e2c978ac71dc'
+
 minio:
   url: http://localhost
   port: 9000

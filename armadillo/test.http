@@ -1,9 +1,12 @@
 ###
+GET http://localhost:8080/v3/api-docs
+
+###
 GET http://localhost:8080/actuator/info
 
 ###
 POST http://localhost:8080/load-tables?workspace=DIABETES/patient,GECKO/patient
-Authorization: Basic YWRtaW46YWRtaW4=
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IllXWFMwdlBGR1FrbUlIWXhZMG1vSGU1MTBsYyJ9.eyJhdWQiOiIzYTExMjBhMy02ZTVjLTRmMTQtOGNjMy1lMmM5NzhhYzcxZGMiLCJleHAiOjE1OTIzMzk4NjcsImlhdCI6MTU5MjMzNjI2NywiaXNzIjoiaHR0cHM6Ly9mdXNpb24tYXV0aC5kZXYubW9sZ2VuaXMub3JnIiwic3ViIjoiZDEyMDg4ZWQtMWUzZC00NDY0LTlkYmUtZjAyMWUwMjA1YzFlIiwiYXV0aGVudGljYXRpb25UeXBlIjoiUEFTU1dPUkQiLCJlbWFpbCI6ImRhdGFtYW5AZXhhbXBsZS5vcmciLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicHJlZmVycmVkX3VzZXJuYW1lIjoiZGF0YW1hbiIsImF0X2hhc2giOiI1cnF4bFpkRXZvVTdvM2toSFlZTWdRIiwiY19oYXNoIjoib3lCV09NVWNXZWNiemxORkFiQnBCdyIsImFwcGxpY2F0aW9uSWQiOiIzYTExMjBhMy02ZTVjLTRmMTQtOGNjMy1lMmM5NzhhYzcxZGMiLCJyb2xlcyI6WyJTVSJdfQ.f2Deybf16fJBOl2COdcOgiMlovbwYrteVgw64cjLQFFNU66c_Fd2_4XMMQ-iTn1P71PDWzT6ba8oqdZBhSL_eGO1TIebrxo4kNt6RDpAK1AvjLBJP9Qle4VEzvx1oUrcR859FSLkOPazbtt4atYUTR5z3RFcaT4W1RxHF3T-QnNkghcwXpyTFtcvse45WFhSNZ_KaA7CevP091d3NxzYPXuX-u56bYy1zD59w_vRIzhntvqHniyQ1LSakHwu6AQd8C_Ia6EKPlyrsvTNNnp5Cn0KenSc7siDThJtxS6x8AQ_820eyrTHXGyvjXi85dsXZoTeXeonsNJ7KksPeiJ4AA
 
 ###
 GET http://localhost:8080/tables
@@ -18,8 +21,8 @@ POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT
 POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT&variables=age,name
 
 ###
-POST http://localhost:8080/execute
-Accept: application/octet-stream
+POST http://localhost:8080/debug
+Accept: application/json
 Content-Type: text/plain
 
 colnames(D)
