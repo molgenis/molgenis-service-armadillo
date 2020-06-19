@@ -25,8 +25,8 @@ minio:
   port: 9000
   access-key: molgenis
   secret-key: molgenis
-  userBucket: user
-  sharedBucket: shared
+  user-bucket: user
+  shared-bucket: shared
 
 management:
   endpoints:
