@@ -1,10 +1,9 @@
-POST http://localhost:8080/login?username=admin&password=admin
-
 ###
 GET http://localhost:8080/actuator/info
 
 ###
 POST http://localhost:8080/load-tables?workspace=DIABETES/patient,GECKO/patient
+Authorization: Basic YWRtaW46YWRtaW4=
 
 ###
 GET http://localhost:8080/tables
@@ -13,10 +12,10 @@ GET http://localhost:8080/tables
 HEAD http://localhost:8080/tables/datashield.PATIENT
 
 ###
-POST http://localhost:8080/symbols/D?table=datashield.PATIENT
+POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT
 
 ###
-POST http://localhost:8080/symbols/D?table=datashield.PATIENT&variables=age,name
+POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT&variables=age,name
 
 ###
 POST http://localhost:8080/execute

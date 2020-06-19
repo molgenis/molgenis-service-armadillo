@@ -417,7 +417,9 @@ class DataControllerTest {
     when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
     when(rexp.asStrings()).thenReturn(new String[] {});
 
-    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isNotFound());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -429,7 +431,9 @@ class DataControllerTest {
     when(commands.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
         .thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isOk());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -442,7 +446,7 @@ class DataControllerTest {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/symbols/D?table=datashield.PATIENT&variables=age"))
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT&variables=age"))
         .andExpect(status().isOk());
   }
 

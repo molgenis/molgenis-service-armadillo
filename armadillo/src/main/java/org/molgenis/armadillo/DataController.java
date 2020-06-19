@@ -1,5 +1,9 @@
 package org.molgenis.armadillo;
 
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -22,6 +26,13 @@ import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +61,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@OpenAPIDefinition(
+    info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
+    security = {@SecurityRequirement(name = "JSESSIONID"), @SecurityRequirement(name = "http")})
+@SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
+@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
 @RestController
 @Validated
 public class DataController {
@@ -72,12 +88,16 @@ public class DataController {
     this.environments = environments;
   }
 
+  @Operation(summary = "Get R packages", description = "Get all installed R packages.")
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
   public List<RPackage> getPackages() throws ExecutionException, InterruptedException {
     return commands.getPackages().get();
   }
 
-  /** @return a list of (fully qualified) table identifiers available for DataSHIELD operations. */
+  @Operation(
+      summary = "Get available tables",
+      description =
+          "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
   public List<String> getTables()
       throws ExecutionException, InterruptedException, REXPMismatchException {
@@ -86,14 +106,20 @@ public class DataController {
     return asList(result.asStrings());
   }
 
-  /** @return OK if the the table exists and is available for DataSHIELD operations. */
+  @Operation(
+      summary = "Check table existence",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The table exists and is available for DataSHIELD operations")
+      })
   @RequestMapping(value = "/tables/{tableId}", method = HEAD)
   public ResponseEntity<Void> tableExists(@PathVariable String tableId)
       throws InterruptedException, ExecutionException, REXPMismatchException {
     return getTables().contains(tableId) ? ok().build() : notFound().build();
   }
 
-  /** @return a list of assigned symbols */
+  @Operation(summary = "Get assigned symbols")
   @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
   public List<String> getSymbols()
       throws ExecutionException, InterruptedException, REXPMismatchException {
@@ -101,7 +127,9 @@ public class DataController {
     return asList(result.asStrings());
   }
 
-  /** Removes a symbol, making the assigned data inaccessible */
+  @Operation(
+      summary = "Remove symbol",
+      description = "Removes a symbol, making the assigned data inaccessible")
   @DeleteMapping(value = "/symbols/{symbol}")
   public void removeSymbol(@Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol)
       throws ExecutionException, InterruptedException {
@@ -109,10 +137,13 @@ public class DataController {
     commands.evaluate(command).get();
   }
 
-  /** Copy (variables of) a table into a symbol. */
-  @PostMapping(value = "/symbols/{symbol}")
+  @Operation(
+      summary = "Load table",
+      description = "Copy variables of a table into a symbol",
+      security = {@SecurityRequirement(name = "jwt")})
+  @PostMapping(value = "/load-table")
   public ResponseEntity<Void> loadTable(
-      @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables)
       throws InterruptedException, ExecutionException, REXPMismatchException {
@@ -129,7 +160,9 @@ public class DataController {
     return ok().build();
   }
 
-  /** Assign the result of the evaluation of an expression to a symbol. */
+  @Operation(
+      summary = "Assign symbol",
+      description = "Assign the result of the evaluation of an expression to a symbol")
   @PostMapping(value = "/symbols/{symbol}", consumes = TEXT_PLAIN_VALUE)
   public CompletableFuture<ResponseEntity<Void>> assignSymbol(
       @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
@@ -144,9 +177,13 @@ public class DataController {
             .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
+  @Operation(summary = "Execute expression")
   @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> execute(
-      @RequestBody String expression, @RequestParam(defaultValue = "false") boolean async) {
+      @RequestBody String expression,
+      @Parameter(description = "Indicates if the expression should be executed asynchronously")
+          @RequestParam(defaultValue = "false")
+          boolean async) {
     String rewrittenExpression =
         serializeExpression(expressionRewriter.rewriteAggregate(expression));
     CompletableFuture<REXP> result = commands.evaluate(rewrittenExpression);
@@ -158,12 +195,13 @@ public class DataController {
             .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
-  /** @return command object (with expression and status) */
+  @Operation(summary = "Get last command")
   @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ArmadilloCommandDTO> getLastCommand() {
     return ResponseEntity.of(commands.getLastCommand());
   }
 
+  @Operation(summary = "Get last result")
   @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(OK)
   public CompletableFuture<ResponseEntity<byte[]>> lastResult() {
@@ -178,7 +216,9 @@ public class DataController {
         .orElse(completedFuture(notFound().build()));
   }
 
-  /** Debug an expression */
+  @Operation(
+      summary = "Debug a command",
+      description = "Debugs a command, bypassing DataSHIELD's security checks. Admin use only.")
   @PreAuthorize("hasRole('ROLE_SU')")
   @PostMapping(value = "/debug", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
   public Object debug(@RequestBody String expression)
@@ -186,34 +226,29 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
-  /**
-   * @return the available assign {@link org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
-   */
+  @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAssignMethods() {
     return environments.getEnvironment(ASSIGN).getMethods();
   }
 
-  /**
-   * @return the available aggregate {@link
-   *     org.obiba.datashield.core.impl.PackagedFunctionDSMethod}s
-   */
+  @Operation(summary = "Get available aggregate methods")
   @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAggregateMethods() {
     return environments.getEnvironment(AGGREGATE).getMethods();
   }
 
-  /** @return the available user {@link Workspace}s */
+  @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
     return commands.listWorkspaces(principal.getName() + "/");
   }
 
-  /**
-   * Deletes a workspace (fails silently if the workspace doesn't exist)
-   *
-   * @param id the id of the saved workspace
-   */
+  @Operation(
+      summary = "Delete user workspace",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
+      })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
   public void removeWorkspace(@PathVariable String id, Principal principal) {
@@ -221,6 +256,7 @@ public class DataController {
     commands.removeWorkspace(objectName);
   }
 
+  @Operation(summary = "Save user workspace")
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
   public void saveUserWorkspace(
@@ -235,6 +271,10 @@ public class DataController {
     commands.saveWorkspace(objectName).get();
   }
 
+  @Operation(
+      summary = "Load shared workspaces",
+      description =
+          "Make tables from shared workspaces available for assignment. You need load permission on the workspaces.")
   @PreAuthorize("hasPermission(#workspace, 'Workspace', 'load')")
   @PostMapping(value = "/load-tables")
   public void loadTables(@RequestParam List<String> workspace)
@@ -242,6 +282,7 @@ public class DataController {
     commands.loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList())).get();
   }
 
+  @Operation(summary = "Load user workspace")
   @PostMapping(value = "/load-workspace")
   public void loadUserWorkspace(@RequestParam String id, Principal principal)
       throws ExecutionException, InterruptedException {
