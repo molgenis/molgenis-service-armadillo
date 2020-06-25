@@ -28,4 +28,3 @@ public class MDCInterceptor implements WebRequestInterceptor {
     MDC.clear();
   }
 }
-
