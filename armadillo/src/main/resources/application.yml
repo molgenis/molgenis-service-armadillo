@@ -5,6 +5,13 @@ springdoc:
   swagger-ui:
     enabled: false
 
+spring:
+  security:
+    user:
+      name: admin
+      roles:
+        - SU
+
 server:
   error:
     include-binding-errors: always
@@ -13,6 +20,8 @@ server:
 spring:
   profiles: development
   security:
+    user:
+      password: admin
     oauth2:
       resourceserver:
         jwt:
