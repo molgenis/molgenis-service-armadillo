@@ -7,8 +7,8 @@ services:
     environment:
       MINIO_ACCESS_KEY: molgenis
       MINIO_SECRET_KEY: molgenis
-      MINIO_IDENTITY_OPENID_CLIENT_ID: "05815614-2f90-48a5-b2ac-0425676b38a9"
-      MINIO_IDENTITY_OPENID_CONFIG_URL: "https://fusion-auth.dev.molgenis.org/.well-known/openid-configuration"
+      MINIO_IDENTITY_OPENID_CLIENT_ID: "b396233b-cdb2-449e-ac5c-a0d28b38f791"
+      MINIO_IDENTITY_OPENID_CONFIG_URL: "https://auth.molgenis.org/.well-known/openid-configuration"
     command: server /data
   armadillo:
     build:
