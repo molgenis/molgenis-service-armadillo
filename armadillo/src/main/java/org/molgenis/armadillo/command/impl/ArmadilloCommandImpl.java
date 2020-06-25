@@ -7,6 +7,8 @@ import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.*;
 import com.google.common.base.Throwables;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -16,10 +18,12 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO.Builder;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.slf4j.MDC;
 
 public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
   private final Instant createDate;
   private final UUID id;
+  private final Map<String, String> contextMap;
   protected final String expression;
   private final boolean withResult;
   private final Clock clock;
@@ -36,6 +40,7 @@ public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
 
   // For test purposes, allow the clock to be mocked
   ArmadilloCommandImpl(String expression, boolean withResult, Clock clock) {
+    this.contextMap = MDC.getCopyOfContextMap();
     this.expression = expression;
     this.withResult = withResult;
     this.createDate = clock.instant();
@@ -48,10 +53,14 @@ public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
   }
 
   synchronized void start() {
+    if (contextMap != null) {
+      contextMap.forEach(MDC::put);
+    }
     this.startDate = clock.instant();
   }
 
   synchronized void complete() {
+    MDC.clear();
     this.endDate = clock.instant();
   }
 
