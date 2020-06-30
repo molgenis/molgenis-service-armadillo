@@ -53,10 +53,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
+@ActiveProfiles("test")
 class DataControllerTest {
 
   @TestConfiguration
@@ -417,7 +419,9 @@ class DataControllerTest {
     when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
     when(rexp.asStrings()).thenReturn(new String[] {});
 
-    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isNotFound());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -429,7 +433,9 @@ class DataControllerTest {
     when(commands.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
         .thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/symbols/D?table=datashield.PATIENT")).andExpect(status().isOk());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -442,7 +448,7 @@ class DataControllerTest {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/symbols/D?table=datashield.PATIENT&variables=age"))
+        .perform(post("/load-table?symbol=D&table=datashield.PATIENT&variables=age"))
         .andExpect(status().isOk());
   }
 
