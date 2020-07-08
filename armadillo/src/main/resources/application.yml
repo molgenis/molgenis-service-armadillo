@@ -16,9 +16,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: 'https://fusion-auth.dev.molgenis.org'
+          issuer-uri: 'https://auth.molgenis.org'
         opaquetoken:
-          client-id: '3a1120a3-6e5c-4f14-8cc3-e2c978ac71dc'
+          client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
 
 minio:
   url: http://localhost
