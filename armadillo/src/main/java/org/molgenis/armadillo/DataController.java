@@ -7,7 +7,6 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
 import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
@@ -77,8 +76,9 @@ public class DataController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
-  public static final String WORKSPACE_OBJECTNAME_TEMPLATE = "%s/%s.RData";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
+  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
+  public static final String SHARED_WORKSPACE_FORMAT_REGEX = "^[a-z0-9-]{0,55}[a-z0-9]/[\\w-:]+$";
 
   private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
@@ -246,7 +246,7 @@ public class DataController {
   @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
-    return commands.listWorkspaces(principal.getName() + "/");
+    return commands.listWorkspaces(getUserBucketName(principal));
   }
 
   @Operation(
@@ -256,9 +256,14 @@ public class DataController {
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(@PathVariable String id, Principal principal) {
-    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
-    commands.removeWorkspace(objectName);
+  public void removeWorkspace(
+      @PathVariable
+          @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          String id,
+      Principal principal) {
+    commands.removeWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
   @Operation(summary = "Save user workspace")
@@ -272,8 +277,7 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
-    commands.saveWorkspace(objectName).get();
+    commands.saveWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
   }
 
   @Operation(
@@ -282,16 +286,41 @@ public class DataController {
           "Make tables from shared workspaces available for assignment. You need load permission on the workspaces.")
   @PreAuthorize("hasPermission(#workspace, 'Workspace', 'load')")
   @PostMapping(value = "/load-tables")
-  public void loadTables(@RequestParam List<String> workspace)
+  public void loadTables(
+      @RequestParam
+          List<
+                  @Pattern(
+                      regexp = SHARED_WORKSPACE_FORMAT_REGEX,
+                      message = "Please use a valid workspace name")
+                  String>
+              workspace)
       throws ExecutionException, InterruptedException {
-    commands.loadWorkspaces(workspace.stream().map(it -> it + ".RData").collect(toList())).get();
+    commands.loadWorkspaces(workspace).get();
   }
 
   @Operation(summary = "Load user workspace")
   @PostMapping(value = "/load-workspace")
-  public void loadUserWorkspace(@RequestParam String id, Principal principal)
+  public void loadUserWorkspace(
+      @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @RequestParam
+          String id,
+      Principal principal)
       throws ExecutionException, InterruptedException {
-    String objectName = format(WORKSPACE_OBJECTNAME_TEMPLATE, principal.getName(), id);
-    commands.loadUserWorkspace(objectName).get();
+    commands.loadUserWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
+  }
+
+  private static String getWorkspaceObjectName(String id) {
+    return id + ".RData";
+  }
+
+  private static String getUserBucketName(Principal principal) {
+    String bucketName = "user-" + principal.getName();
+    if (!bucketName.matches(BUCKET_REGEX)) {
+      throw new IllegalArgumentException(
+          "Cannot create valid S3 bucket for username " + principal.getName());
+    }
+    return bucketName;
   }
 }

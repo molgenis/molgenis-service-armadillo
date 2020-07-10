@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.minio;
 
+import static java.util.Collections.emptyList;
+
 import com.google.common.collect.Streams;
 import io.minio.MinioClient;
 import io.minio.Result;
@@ -18,35 +20,32 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.xmlpull.v1.XmlPullParserException;
 
+@Component
 public class MinioStorageService implements StorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
 
   private final MinioClient minioClient;
-  private final String bucketName;
 
-  public MinioStorageService(MinioClient minioClient, String bucketName) {
+  public MinioStorageService(MinioClient minioClient) {
     this.minioClient = minioClient;
-    this.bucketName = bucketName;
   }
 
-  @PostConstruct
-  public void checkBucketExists() {
+  void checkBucketExists(String bucket) {
     try {
-      if (!minioClient.bucketExists(bucketName)) {
-        minioClient.makeBucket(bucketName);
-        LOGGER.info("Created bucket {}.", bucketName);
+      if (!minioClient.bucketExists(bucket)) {
+        minioClient.makeBucket(bucket);
+        LOGGER.info("Created bucket {}.", bucket);
       }
-      LOGGER.debug("Storing data in bucket {}.", bucketName);
     } catch (InvalidKeyException
         | InsufficientDataException
         | NoSuchAlgorithmException
@@ -63,9 +62,10 @@ public class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void save(InputStream is, String objectName, MediaType mediaType) {
+  public void save(InputStream is, String bucketName, String objectName, MediaType mediaType) {
+    checkBucketExists(bucketName);
     try {
-      LOGGER.info("Putting object {}.", objectName);
+      LOGGER.info("Putting object {} in bucket {}.", objectName, bucketName);
       minioClient.putObject(bucketName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException
@@ -83,7 +83,7 @@ public class MinioStorageService implements StorageService {
   }
 
   @Override
-  public InputStream load(String objectName) {
+  public InputStream load(String bucketName, String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
       return minioClient.getObject(bucketName, objectName);
@@ -103,7 +103,7 @@ public class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void delete(String objectName) {
+  public void delete(String bucketName, String objectName) {
     try {
       LOGGER.info("Deleting object {}.", objectName);
       minioClient.removeObject(bucketName, objectName);
@@ -145,14 +145,26 @@ public class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<Workspace> listWorkspaces(String prefix) {
+  public List<Workspace> listWorkspaces(String bucketName) {
     try {
+      if (!minioClient.bucketExists(bucketName)) {
+        return emptyList();
+      }
       LOGGER.debug("List objects.");
-      return Streams.stream(minioClient.listObjects(bucketName, prefix))
+      return Streams.stream(minioClient.listObjects(bucketName))
           .map(MinioStorageService::toWorkspace)
-          .map(it -> it.trim(prefix, ".RData"))
+          .map(it -> it.trim("", ".RData"))
           .collect(Collectors.toList());
-    } catch (XmlPullParserException e) {
+    } catch (XmlPullParserException
+        | InvalidBucketNameException
+        | NoSuchAlgorithmException
+        | InsufficientDataException
+        | IOException
+        | InvalidKeyException
+        | NoResponseException
+        | ErrorResponseException
+        | InternalException
+        | InvalidResponseException e) {
       throw new StorageException(e);
     }
   }

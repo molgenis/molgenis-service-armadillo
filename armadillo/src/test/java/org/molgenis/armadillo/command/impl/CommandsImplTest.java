@@ -36,8 +36,7 @@ import org.springframework.core.io.InputStreamResource;
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock StorageService userStorageService;
-  @Mock StorageService sharedStorageService;
+  @Mock StorageService storageService;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ArmadilloConnectionFactory connectionFactory;
@@ -52,12 +51,7 @@ class CommandsImplTest {
   public void beforeEach() {
     commands =
         new CommandsImpl(
-            userStorageService,
-            sharedStorageService,
-            packageService,
-            rExecutorService,
-            executorService,
-            connectionFactory);
+            storageService, packageService, rExecutorService, executorService, connectionFactory);
   }
 
   @Test
@@ -118,9 +112,9 @@ class CommandsImplTest {
   @Test
   public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(sharedStorageService.load("GECKO/core.RData")).thenReturn(inputStream);
+    when(storageService.load("shared-gecko", "core.RData")).thenReturn(inputStream);
 
-    commands.loadWorkspaces(asList("GECKO/core.RData")).get();
+    commands.loadWorkspaces(asList("gecko/core")).get();
 
     verify(rExecutorService)
         .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(".DSTableEnv"));
@@ -138,7 +132,7 @@ class CommandsImplTest {
         .when(rExecutorService)
         .saveWorkspace(eq("^(?!\\Q.DSTableEnv\\E).*"), eq(rConnection), any(Consumer.class));
 
-    commands.saveWorkspace("GECKO/core.RData").get();
+    commands.saveWorkspace("shared-gecko", "core.RData").get();
     verify(rConnection).detach();
   }
 
@@ -154,15 +148,15 @@ class CommandsImplTest {
 
   @Test
   public void testListWorkspaces() {
-    when(userStorageService.listWorkspaces("admin/")).thenReturn(workspaces);
+    when(storageService.listWorkspaces("user-admin")).thenReturn(workspaces);
 
-    assertSame(workspaces, commands.listWorkspaces("admin/"));
+    assertSame(workspaces, commands.listWorkspaces("user-admin"));
   }
 
   @Test
   public void testDeleteWorkspace() {
-    commands.removeWorkspace("admin/test.RData");
+    commands.removeWorkspace("user-admin", "test.RData");
 
-    verify(userStorageService).delete("admin/test.RData");
+    verify(storageService).delete("user-admin", "test.RData");
   }
 }

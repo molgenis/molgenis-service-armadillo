@@ -54,8 +54,9 @@ public class ArmadilloPermissionEvaluator implements PermissionEvaluator {
     switch (permission) {
       case LOAD:
         {
-          String folder = objectName.substring(0, objectName.indexOf('/'));
-          return getRoles(authentication).contains(format("ROLE_%s_RESEARCHER", folder));
+          String bucketName = objectName.substring(0, objectName.indexOf('/'));
+          return getRoles(authentication)
+              .contains(format("ROLE_%s_RESEARCHER", bucketName.toUpperCase()));
         }
       default:
         throw new IllegalArgumentException("Can only check workspace load permission");

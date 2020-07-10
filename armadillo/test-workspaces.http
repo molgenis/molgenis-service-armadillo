@@ -1,8 +1,9 @@
 ###
-POST http://localhost:8080/login?username=admin&password=admin
+POST http://localhost:8080/logout
 
 ###
 GET http://localhost:8080/symbols
+Authorization: Basic admin admin
 
 ###
 POST http://localhost:8080/symbols/D

@@ -5,7 +5,6 @@ import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import org.molgenis.armadillo.service.StorageService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,16 +26,6 @@ public class MinioConfig {
   @Bean
   public MinioClient minioClient() throws InvalidPortException, InvalidEndpointException {
     return new MinioClient(url, port, accessKey, secretKey, region, secure);
-  }
-
-  @Bean
-  public StorageService userStorageService(MinioClient minioClient) {
-    return new MinioStorageService(minioClient, userBucket);
-  }
-
-  @Bean
-  public StorageService sharedStorageService(MinioClient minioClient) {
-    return new MinioStorageService(minioClient, sharedBucket);
   }
 
   public String getAccessKey() {
@@ -61,22 +50,6 @@ public class MinioConfig {
 
   public void setSecure(boolean secure) {
     this.secure = secure;
-  }
-
-  public String getSharedBucket() {
-    return sharedBucket;
-  }
-
-  public void setSharedBucket(String bucket) {
-    this.sharedBucket = bucket;
-  }
-
-  public String getUserBucket() {
-    return userBucket;
-  }
-
-  public void setUserBucket(String bucket) {
-    this.userBucket = bucket;
   }
 
   public String getUrl() {
