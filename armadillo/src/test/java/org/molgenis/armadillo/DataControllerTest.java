@@ -6,11 +6,14 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
+import static org.molgenis.armadillo.DataController.SHARED_WORKSPACE_FORMAT_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -31,6 +34,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
@@ -64,12 +69,12 @@ class DataControllerTest {
   @TestConfiguration
   static class PermissionBean {
     @Bean
-    public PermissionEvaluator permissionEvaluator() {
+    PermissionEvaluator permissionEvaluator() {
       return new ArmadilloPermissionEvaluator();
     }
   }
 
-  public static RPackage BASE =
+  static RPackage BASE =
       RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")
@@ -77,7 +82,7 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  public static RPackage DESC =
+  static RPackage DESC =
       RPackage.builder()
           .setName("desc")
           .setVersion("1.2.0")
@@ -242,13 +247,13 @@ class DataControllerTest {
   void testDeleteWorkspace() throws Exception {
     mockMvc.perform(delete("/workspaces/test")).andExpect(status().isOk());
 
-    verify(commands).removeWorkspace("henk/test.RData");
+    verify(commands).removeWorkspace("user-henk", "test.RData");
   }
 
   @Test
   @WithMockUser(username = "henk")
   void testSaveWorkspace() throws Exception {
-    when(commands.saveWorkspace("henk/servername:test_dash.RData"))
+    when(commands.saveWorkspace("user-henk", "servername:test_dash.RData"))
         .thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/workspaces/servername:test_dash")).andExpect(status().isCreated());
@@ -269,7 +274,7 @@ class DataControllerTest {
   @Test
   @WithMockUser(username = "henk")
   void testLoadWorkspace() throws Exception {
-    when(commands.loadUserWorkspace("henk/blah.RData")).thenReturn(completedFuture(null));
+    when(commands.loadUserWorkspace("user-henk", "blah.RData")).thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/load-workspace?id=blah")).andExpect(status().isOk());
   }
@@ -454,20 +459,45 @@ class DataControllerTest {
 
   @WithMockUser(roles = {"DIABETES_RESEARCHER", "GECKO_RESEARCHER"})
   @Test
-  public void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspaces(asList("DIABETES/patient.RData", "GECKO/patient.RData")))
+  void testLoadTibbles() throws Exception {
+    when(commands.loadWorkspaces(asList("diabetes/patient", "gecko/patient")))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
+        .perform(post("/load-tables?workspace=diabetes/patient&workspace=gecko/patient"))
         .andExpect(status().isOk());
   }
 
   @WithMockUser(roles = {"DIABETES_RESEARCHER"})
   @Test
-  public void testLoadTibblesForbidden() throws Exception {
+  void testLoadTibblesForbidden() throws Exception {
     mockMvc
         .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
         .andExpect(status().isForbidden());
     verifyNoInteractions(commands);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "diabetes/test",
+        "maximumbucketlengthincludingprefixissixtythreecharacters/test",
+        "000-222-211-4112/test",
+        "a-b-c-d/test"
+      })
+  void testValidSharedWorkspaceName(String name) {
+    assertTrue(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "DIABETES/test",
+        "_b/test",
+        ".b/test",
+        "b-/test",
+        "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
+      })
+  void testInvalidSharedWorkspaceName(String name) {
+    assertFalse(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
   }
 }

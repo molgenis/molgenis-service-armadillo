@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.minio;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -34,29 +35,29 @@ class MinioStorageServiceTest {
   @Mock private Item item;
 
   @BeforeEach
-  public void beforeEach() {
-    minioStorageService = new MinioStorageService(minioClient, "bucket");
+  void beforeEach() {
+    minioStorageService = new MinioStorageService(minioClient);
   }
 
   @Test
-  public void testCheckBucketExistsThrowsExceptionIfMinioDown() throws Exception {
+  void testCheckBucketExistsThrowsExceptionIfMinioDown() throws Exception {
     doThrow(new IOException("blah")).when(minioClient).bucketExists("bucket");
 
-    assertThrows(StorageException.class, minioStorageService::checkBucketExists);
+    assertThrows(StorageException.class, () -> minioStorageService.checkBucketExists("bucket"));
   }
 
   @Test
-  public void testCheckBucketExistsCreatesBucketIfNotFound() throws Exception {
+  void testCheckBucketExistsCreatesBucketIfNotFound() throws Exception {
     when(minioClient.bucketExists("bucket")).thenReturn(false);
 
-    minioStorageService.checkBucketExists();
+    minioStorageService.checkBucketExists("bucket");
 
     verify(minioClient).makeBucket("bucket");
   }
 
   @Test
-  public void save() throws Exception {
-    minioStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM);
+  void save() throws Exception {
+    minioStorageService.save(inputStream, "bucket", "asdf.blah", APPLICATION_OCTET_STREAM);
 
     verify(minioClient)
         .putObject(
@@ -64,7 +65,7 @@ class MinioStorageServiceTest {
   }
 
   @Test
-  public void saveThrowsException() throws Exception {
+  void saveThrowsException() throws Exception {
     IOException exception = new IOException("blah");
     doThrow(exception)
         .when(minioClient)
@@ -73,11 +74,17 @@ class MinioStorageServiceTest {
 
     assertThrows(
         StorageException.class,
-        () -> minioStorageService.save(inputStream, "asdf.blah", APPLICATION_OCTET_STREAM));
+        () ->
+            minioStorageService.save(inputStream, "bucket", "asdf.blah", APPLICATION_OCTET_STREAM));
   }
 
   @Test
-  public void testListWorkspaces() throws Exception {
+  void testListWorkspacesNoBucket() {
+    assertEquals(emptyList(), minioStorageService.listWorkspaces("user-admin"));
+  }
+
+  @Test
+  void testListWorkspaces() throws Exception {
     Instant lastModified = Instant.now().truncatedTo(MILLIS);
     Workspace workspace =
         Workspace.builder()
@@ -87,27 +94,28 @@ class MinioStorageServiceTest {
             .setSize(56)
             .build();
 
-    when(minioClient.listObjects("bucket", "admin/")).thenReturn(List.of(itemResult));
+    when(minioClient.bucketExists("user-admin")).thenReturn(true);
+    when(minioClient.listObjects("user-admin")).thenReturn(List.of(itemResult));
     when(itemResult.get()).thenReturn(item);
-    when(item.objectName()).thenReturn("admin/blah.RData");
+    when(item.objectName()).thenReturn("blah.RData");
     when(item.lastModified()).thenReturn(Date.from(lastModified));
     when(item.etag()).thenReturn(workspace.eTag());
     when(item.objectSize()).thenReturn(workspace.size());
 
-    assertEquals(List.of(workspace), minioStorageService.listWorkspaces("admin/"));
+    assertEquals(List.of(workspace), minioStorageService.listWorkspaces("user-admin"));
   }
 
   @Test
-  public void testLoad() throws Exception {
-    when(minioClient.getObject("bucket", "admin/blah.RData")).thenReturn(inputStream);
+  void testLoad() throws Exception {
+    when(minioClient.getObject("user-admin", "blah.RData")).thenReturn(inputStream);
 
-    assertSame(inputStream, minioStorageService.load("admin/blah.RData"));
+    assertSame(inputStream, minioStorageService.load("user-admin", "blah.RData"));
   }
 
   @Test
-  public void testDelete() throws Exception {
-    minioStorageService.delete("admin/blah.RData");
+  void testDelete() throws Exception {
+    minioStorageService.delete("user-admin", "blah.RData");
 
-    verify(minioClient).removeObject("bucket", "admin/blah.RData");
+    verify(minioClient).removeObject("user-admin", "blah.RData");
   }
 }

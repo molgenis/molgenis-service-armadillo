@@ -7,11 +7,11 @@ import org.springframework.http.MediaType;
 
 /** Reads and writes data to storage. */
 public interface StorageService {
-  void save(InputStream is, String objectName, MediaType mediaType);
+  void save(InputStream is, String bucketName, String objectName, MediaType mediaType);
 
-  InputStream load(String objectName);
+  InputStream load(String bucketName, String objectName);
 
-  void delete(String objectName);
+  void delete(String bucketName, String objectName);
 
-  List<Workspace> listWorkspaces(String prefix);
+  List<Workspace> listWorkspaces(String bucketName);
 }
