@@ -36,6 +36,7 @@ public class AuthConfig extends WebSecurityConfigurerAdapter {
         .cors()
         .and()
         .httpBasic()
+        .realmName("Armadillo")
         .and()
         .oauth2ResourceServer(
             oauth2 ->
