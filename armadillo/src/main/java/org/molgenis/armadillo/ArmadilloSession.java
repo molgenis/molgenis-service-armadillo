@@ -82,7 +82,6 @@ public class ArmadilloSession {
     }
   }
 
-  @PreDestroy
   public synchronized void sessionCleanup() {
     try {
       if (rSession != null) {
