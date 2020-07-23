@@ -25,12 +25,16 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
 
   @Override
   public RConnection createConnection() {
+    RConnection connection = null;
     try {
-      RConnection connection = rConnectionFactory.createConnection();
+      connection = rConnectionFactory.createConnection();
       createTableEnvironment(connection);
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {
+      if (connection != null) {
+        connection.close();
+      }
       throw new ConnectionCreationFailedException(cause);
     }
   }
