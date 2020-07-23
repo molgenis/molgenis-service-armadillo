@@ -3,7 +3,6 @@ package org.molgenis.armadillo;
 import static java.util.Objects.requireNonNull;
 
 import java.util.function.Function;
-import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.exceptions.ArmadilloSessionException;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -52,7 +51,6 @@ public class ArmadilloSession {
     }
   }
 
-  @PreDestroy
   public synchronized void sessionCleanup() {
     try {
       if (rSession != null) {
