@@ -96,7 +96,7 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     commands.assign("D", "E").get();
 
-    verify(rExecutorService).execute("D <- E", rConnection);
+    verify(rExecutorService).execute("is.null(base::assign('D', value={E}))", rConnection);
     verify(rConnection).detach();
   }
 

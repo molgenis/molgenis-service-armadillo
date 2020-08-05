@@ -90,7 +90,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<Void> assign(String symbol, String expression) {
-    String statement = format("%s <- %s", symbol, expression);
+    String statement = format("is.null(base::assign('%s', value={%s}))", symbol, expression);
     return schedule(
         new ArmadilloCommandImpl<>(statement, false) {
           @Override
