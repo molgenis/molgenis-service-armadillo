@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
@@ -172,5 +173,10 @@ class CommandsImpl implements Commands {
             return packageService.getInstalledPackages(connection);
           }
         });
+  }
+
+  @PreDestroy
+  public void preDestroy() {
+    armadilloSession.sessionCleanup();
   }
 }
