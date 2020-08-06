@@ -25,8 +25,8 @@ services:
       - 3000:8080
   rserver:
     image: molgenis/ds-60-rserver-363:latest
-    environment:
-      DEBUG: "TRUE"
+#    environment:
+#      DEBUG: "TRUE"
     ports:
       - "6311:6311"
       - "6312:6312"
