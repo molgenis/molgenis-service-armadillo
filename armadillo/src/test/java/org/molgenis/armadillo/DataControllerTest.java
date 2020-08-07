@@ -340,7 +340,7 @@ class DataControllerTest {
   @WithMockUser
   void testAssignSyntaxError() throws Exception {
     String expression = "meanDS(D$age";
-    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
+    doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAssign(expression);
 
@@ -350,15 +350,15 @@ class DataControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
     assertEquals(
-        "Error parsing expression: Missing end bracket",
+        "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
   }
 
   @Test
   @WithMockUser
   void testAsyncAssignExecutionFails() throws Exception {
-    String expression = "meanDS(D$age)";
-    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
+    String expression = "meanDS(D$age";
+    doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAssign(expression);
 
@@ -368,7 +368,7 @@ class DataControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
     assertEquals(
-        "Error parsing expression: Missing end bracket",
+        "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
   }
 
@@ -376,7 +376,7 @@ class DataControllerTest {
   @WithMockUser
   void testExecuteSyntaxError() throws Exception {
     String expression = "meanDS(D$age";
-    doThrow(new ExpressionException(new ParseException("Missing end bracket")))
+    doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
         .when(expressionRewriter)
         .rewriteAggregate(expression);
 
@@ -390,7 +390,7 @@ class DataControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
     assertEquals(
-        "Error parsing expression: Missing end bracket",
+        "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
   }
 

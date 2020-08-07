@@ -7,6 +7,7 @@ import org.obiba.datashield.core.NoSuchDSMethodException;
 import org.obiba.datashield.r.expr.DataShieldGrammar;
 import org.obiba.datashield.r.expr.ParseException;
 import org.obiba.datashield.r.expr.RScriptGenerator;
+import org.obiba.datashield.r.expr.TokenMgrError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -43,9 +44,11 @@ public class ExpressionRewriterImpl implements ExpressionRewriter {
       LOGGER.debug("Generated script '{}'", script);
       return script;
     } catch (ParseException e) {
-      throw new ExpressionException(e);
+      throw new ExpressionException(expression, e);
     } catch (NoSuchDSMethodException e) {
       throw new ExpressionException(e);
+    } catch (TokenMgrError e) {
+      throw new ExpressionException(expression, e);
     }
   }
 }
