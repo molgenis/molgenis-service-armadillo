@@ -2,6 +2,7 @@ package org.molgenis.armadillo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
 import java.util.function.Function;
 import org.molgenis.armadillo.exceptions.ArmadilloSessionException;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
@@ -31,9 +32,25 @@ public class ArmadilloSession {
     }
   }
 
+  private Optional<Integer> getPort() {
+    if (rSession == null) {
+      return Optional.empty();
+    }
+    try {
+      var portField = RSession.class.getDeclaredField("port");
+      portField.setAccessible(true);
+      return Optional.of(portField.getInt(rSession));
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      return Optional.empty();
+    }
+  }
+
   void tryDetachRConnection(RConnection connection) {
     try {
       rSession = connection.detach();
+      if (logger.isDebugEnabled()) {
+        logger.debug("Detached session, port = {}", getPort());
+      }
     } catch (RserveException e) {
       logger.error("Failed to detach connection", e);
       rSession = null;
