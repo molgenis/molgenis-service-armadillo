@@ -32,6 +32,7 @@ public class ArmadilloSession {
     }
   }
 
+  @SuppressWarnings("java:S3011")
   private Optional<Integer> getPort() {
     if (rSession == null) {
       return Optional.empty();
