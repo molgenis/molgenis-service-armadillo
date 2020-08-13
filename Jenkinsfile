@@ -117,51 +117,53 @@ pipeline {
                     }
                 }
             }
-            stage('Steps: [ x.x ]') {
-                when {
-                    expression { BRANCH_NAME ==~ /[0-9]\.[0-9]/ }
+        }
+        stage('Steps: [ x.x ]') {
+            when {
+                expression { BRANCH_NAME ==~ /[0-9]\.[0-9]/ }
+            }
+            stages {
+                stage('Build [ x.x ]') {
+                    steps {
+                        container('maven') {
+                            sh "mvn -q -B clean deploy -Dmaven.test.redirectTestOutputToFile=true -T4"
+                            sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
+                            sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
+                            sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                        }
+                    }
                 }
-                stages {
-                    stage('Build [ x.x ]') {
-                        steps {
-                            container('maven') {
-                                sh "mvn -q -B clean deploy -Dmaven.test.redirectTestOutputToFile=true -T4"
-                                sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
-                                sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
-                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
-                            }
+                stage('Prepare Release [ x.x ]') {
+                    steps {
+                        timeout(time: 40, unit: 'MINUTES') {
+                            input(message: 'Prepare to release?')
+                        }
+                        container('maven') {
+                            sh "mvn -q -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
-                    stage('Prepare Release [ x.x ]') {
-                        steps {
-                            timeout(time: 40, unit: 'MINUTES') {
-                                input(message: 'Prepare to release?')
-                            }
-                            container('maven') {
-                                sh "mvn -q -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
-                            }
-                        }
-                    }
-                    stage('Perform release [ x.x ]') {
-                        steps {
-                            container('maven') {
+                }
+                stage('Perform release [ x.x ]') {
+                    steps {
+                        container('maven') {
+                            script {
                                 env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
-                                sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
-                                sh "cd target/checkout && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                                sh "cd target/checkout && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
                             }
+                            sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "cd target/checkout && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
+                            sh "cd target/checkout && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
                         }
                     }
                 }
             }
         }
     }
-    post {
-        success {
-            hubotSend(message: 'Build success', status: 'INFO', site: 'slack-pr-app-team')
-        }
-        failure {
-            hubotSend(message: 'Build failed', status: 'ERROR', site: 'slack-pr-app-team')
-        }
+}
+post {
+    success {
+        hubotSend(message: 'Build success', status: 'INFO', site: 'slack-pr-app-team')
+    }
+    failure {
+        hubotSend(message: 'Build failed', status: 'ERROR', site: 'slack-pr-app-team')
     }
 }
