@@ -24,6 +24,25 @@
         <url>https://molgenis.org</url>
     </organization>
 
+    <scm>
+        <connection>scm:git:https://github.com/molgenis/molgenis-service-datashield</connection>
+        <developerConnection>scm:git:https://github.com/molgenis/molgenis-service-datashield</developerConnection>
+        <url>https://github.com/molgenis/molgenis-service-datashield</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>registry.molgenis.org</id>
+            <url>https://registry.molgenis.org/repository/maven-snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>registry.molgenis.org</id>
+            <name>Registry of the MOLGENIS organisation</name>
+            <url>https://registry.molgenis.org/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <java.version>11</java.version>
 
