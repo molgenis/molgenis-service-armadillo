@@ -183,7 +183,7 @@ public class DataController {
   }
 
   @Operation(summary = "Execute expression")
-  @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE)
+  @PostMapping(value = "/execute", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> execute(
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
