@@ -68,7 +68,8 @@ class ProcessServiceImplTest {
                     entry("rss", 3411968.0),
                     entry("vms", 4938244096.0),
                     entry("created", 1597214127.64387),
-                    entry("cmd", "SafeEjectGPUAgent"))));
+                    entry("cmd", "SafeEjectGPUAgent"),
+                    entry("ports", ""))));
     when(rexpParser.parseDate(any())).thenCallRealMethod();
 
     assertEquals(

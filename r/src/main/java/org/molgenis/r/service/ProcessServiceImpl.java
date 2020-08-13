@@ -2,6 +2,7 @@ package org.molgenis.r.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class ProcessServiceImpl implements ProcessService {
             .setCmd((String) values.get("cmd"))
             .setUsername((String) values.get("username"))
             .setStatus(Status.valueOf(((String) values.get("status")).toUpperCase()))
-            .setCreated(rexpParser.parseDate((Double) values.get("created")))
+            .setCreated(rexpParser.parseDate((Double) values.get("created")).orElse(Instant.EPOCH))
             .setPorts(ports);
     Optional.ofNullable((Double) values.get("user")).ifPresent(builder::setUser);
     Optional.ofNullable((Double) values.get("system")).ifPresent(builder::setSystem);

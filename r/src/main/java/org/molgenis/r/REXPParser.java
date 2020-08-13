@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class REXPParser {
 
-  public Instant parseDate(Double date) {
-    return Instant.ofEpochMilli(Math.round(date * 1000));
+  public Optional<Instant> parseDate(Double date) {
+    return Optional.ofNullable(date).map(it -> Math.round(it * 1000)).map(Instant::ofEpochMilli);
   }
 
   /**
@@ -72,7 +72,7 @@ public class REXPParser {
     return rows;
   }
 
-  Optional<? extends Object> getValueAtIndex(REXPVector values, int rowNum)
+  Optional<Object> getValueAtIndex(REXPVector values, int rowNum)
       throws REXPMismatchException {
     if (values.isNA()[rowNum]) {
       return Optional.empty();
