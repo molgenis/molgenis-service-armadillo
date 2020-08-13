@@ -1,4 +1,4 @@
-package org.molgenis.r;
+package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.r.service.PackageService;
-import org.molgenis.r.service.PackageServiceImpl;
+import org.molgenis.r.REXPParser;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.Rserve.RConnection;
