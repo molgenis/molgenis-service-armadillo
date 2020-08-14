@@ -34,11 +34,7 @@ public class ArmadilloUtils {
         throw new IllegalStateException(e);
       }
     } else {
-      try {
-        LOGGER.debug(format("This was no 'RAW' result: [ %s ]", result.asNativeJavaObject()));
-      } catch (REXPMismatchException e) {
-        throw new IllegalStateException(e);
-      }
+      LOGGER.debug(format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
     }
     return rawResult;
   }
