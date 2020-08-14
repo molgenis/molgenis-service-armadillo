@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.createRawResponse;
 
+import java.nio.charset.Charset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -46,4 +47,13 @@ public class ArmadilloUtilsTest {
     doThrow(new REXPMismatchException(rexp, "blah")).when(rexp).asBytes();
     assertThrows(IllegalStateException.class, () -> createRawResponse(rexp));
   }
+
+  @Test
+  void testHexDumpHelloWorld() {
+    byte[] bytes = "Hello World!".getBytes(Charset.defaultCharset());
+    var dump = ArmadilloUtils.hexDump(bytes, 8);
+    assertEquals(
+        "48 65 6c 6c 6f 20 57 6f  |Hello Wo|\n" + "72 6c 64 21              |rld!    |", dump);
+  }
+
 }
