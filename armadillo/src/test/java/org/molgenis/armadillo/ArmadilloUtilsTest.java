@@ -1,5 +1,6 @@
 package org.molgenis.armadillo;
 
+import static java.lang.String.format;
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
@@ -36,10 +37,8 @@ public class ArmadilloUtilsTest {
 
   @Test
   public void testCreateRawResponseNotRaw() {
-    REXP rexp = new REXP();
-    byte[] actual = createRawResponse(rexp);
-    byte[] expected = new byte[0];
-    assertArrayEquals(expected, actual);
+    when(rexp.isRaw()).thenReturn(false);
+    assertThrows(IllegalStateException.class, () -> createRawResponse(rexp));
   }
 
   @Test

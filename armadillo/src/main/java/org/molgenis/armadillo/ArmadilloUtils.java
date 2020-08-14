@@ -27,13 +27,15 @@ public class ArmadilloUtils {
     byte[] rawResult = new byte[0];
     if (result.isRaw()) {
       try {
-        LOGGER.trace(format("RAW result : [ %s ]", new String(result.asBytes(), UTF_8)));
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace(format("RAW result : [ %s ]", new String(result.asBytes(), UTF_8)));
+        }
         rawResult = result.asBytes();
       } catch (REXPMismatchException e) {
         throw new IllegalStateException(e);
       }
     } else {
-      LOGGER.debug(format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
+      throw new IllegalStateException(format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
     }
     return rawResult;
   }
