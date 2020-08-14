@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.REXPParser;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
+import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
@@ -28,6 +29,7 @@ class ProcessServiceImplTest {
   @Mock private REXPParser rexpParser;
   @Mock private REXPString rexp;
   @Mock private RList list;
+  @Mock private REXP row;
   @Mock private RConnection rConnection;
 
   private ProcessService processService;
@@ -38,7 +40,17 @@ class ProcessServiceImplTest {
   }
 
   @Test
-  void testGetProcesses() throws REXPMismatchException, RserveException {
+  void testCountRserveProcesses() throws REXPMismatchException, RserveException {
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(list);
+    when(list.get(0)).thenReturn(row);
+    when(row.asInteger()).thenReturn(3);
+
+    assertEquals(3, processService.countRserveProcesses(rConnection));
+  }
+
+  @Test
+  void testGetRserveProcesses() throws REXPMismatchException, RserveException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
     when(rexp.asList()).thenReturn(list);
     when(rexpParser.parseTibble(list))
@@ -103,6 +115,6 @@ class ProcessServiceImplTest {
                 .setCreated(Instant.parse("2020-08-12T06:35:27.644Z"))
                 .setCmd("SafeEjectGPUAgent")
                 .build()),
-        processService.getProcesses(rConnection));
+        processService.getRserveProcesses(rConnection));
   }
 }

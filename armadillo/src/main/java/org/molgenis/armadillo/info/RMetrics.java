@@ -10,12 +10,7 @@ public class RMetrics {
   @Bean
   MeterBinder rProcesses(RProcessEndpoint processes) {
     return registry ->
-        Gauge.builder(
-                "rserve_processes_current",
-                () ->
-                    processes.getRProcesses().stream()
-                        .filter(it -> it.name().startsWith("Rserve"))
-                        .count())
+        Gauge.builder("rserve.processes.current", processes::countRServeProcesses)
             .description("Current number of RServe processes on the R server")
             .register(registry);
   }

@@ -5,5 +5,8 @@ import org.molgenis.r.model.RProcess;
 import org.rosuda.REngine.Rserve.RConnection;
 
 public interface ProcessService {
-  List<RProcess> getProcesses(RConnection connection);
+
+  int countRserveProcesses(RConnection connection);
+
+  List<RProcess> getRserveProcesses(RConnection connection);
 }

@@ -72,8 +72,7 @@ public class REXPParser {
     return rows;
   }
 
-  Optional<Object> getValueAtIndex(REXPVector values, int rowNum)
-      throws REXPMismatchException {
+  Optional<Object> getValueAtIndex(REXPVector values, int rowNum) throws REXPMismatchException {
     if (values.isNA()[rowNum]) {
       return Optional.empty();
     }

@@ -27,24 +27,30 @@ public abstract class RProcess {
     WAKING;
   }
 
+  @Nullable
   @JsonProperty("pid")
-  public abstract int pid();
+  public abstract Integer pid();
 
+  @Nullable
   @JsonProperty("ppid")
-  public abstract int pPid();
+  public abstract Integer pPid();
 
+  @Nullable
   @JsonProperty("name")
   public abstract String name();
 
+  @Nullable
   @JsonProperty("cmd")
   public abstract String cmd();
 
+  @Nullable
   @JsonProperty("username")
   public abstract String username();
 
   @JsonProperty("ports")
   public abstract List<Integer> ports();
 
+  @Nullable
   @JsonProperty("status")
   public abstract Status status();
 
@@ -64,14 +70,15 @@ public abstract class RProcess {
   @JsonProperty("vms")
   public abstract Double vms();
 
+  @Nullable
   @JsonProperty("created")
   public abstract Instant created();
 
   @AutoValue.Builder
   public abstract static class Builder {
-    public abstract Builder setPid(int pid);
+    public abstract Builder setPid(Integer pid);
 
-    public abstract Builder setPPid(int ppid);
+    public abstract Builder setPPid(Integer ppid);
 
     public abstract Builder setName(String name);
 
@@ -97,6 +104,6 @@ public abstract class RProcess {
   }
 
   public static Builder builder() {
-    return new AutoValue_RProcess.Builder().setPorts(List.of()).setCmd("Unknown");
+    return new AutoValue_RProcess.Builder().setPorts(List.of());
   }
 }
