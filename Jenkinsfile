@@ -129,7 +129,9 @@ pipeline {
                             sh "mvn -q -B clean deploy -Dmaven.test.redirectTestOutputToFile=true -T4"
                             sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
-                            sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                            dir('armadillo') {
+                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                            }
                         }
                     }
                 }
@@ -150,8 +152,8 @@ pipeline {
                                 env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
                             }
                             sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
-                            sh "cd target/checkout && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                            sh "cd target/checkout && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
+                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
                         }
                     }
                 }
