@@ -1,6 +1,5 @@
 package org.molgenis.armadillo;
 
-import static java.lang.String.format;
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;

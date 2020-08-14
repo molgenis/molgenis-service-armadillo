@@ -35,7 +35,8 @@ public class ArmadilloUtils {
         throw new IllegalStateException(e);
       }
     } else {
-      throw new IllegalStateException(format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
+      throw new IllegalStateException(
+          format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
     }
     return rawResult;
   }

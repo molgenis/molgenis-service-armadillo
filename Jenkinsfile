@@ -116,25 +116,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-        stage('Steps: [ x.x ]') {
-            when {
-                expression { BRANCH_NAME ==~ /[0-9]\.[0-9]/ }
-            }
-            stages {
-                stage('Build [ x.x ]') {
-                    steps {
-                        container('maven') {
-                            sh "mvn -q -B clean deploy -Dmaven.test.redirectTestOutputToFile=true -T4"
-                            sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
-                            sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
-                            dir('armadillo') {
-                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
-                            }
-                        }
-                    }
-                }
                 stage('Prepare Release [ x.x ]') {
                     steps {
                         timeout(time: 40, unit: 'MINUTES') {
