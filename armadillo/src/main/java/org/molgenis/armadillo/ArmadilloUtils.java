@@ -2,6 +2,7 @@ package org.molgenis.armadillo;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.util.function.Predicate.not;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 import java.net.URI;
@@ -73,7 +74,7 @@ public class ArmadilloUtils {
 
   private static char readAscii(java.nio.CharBuffer charBuffer) {
     return charBuffer.hasRemaining()
-        ? Optional.of(charBuffer.get()).filter(Character::isISOControl).orElse('.')
+        ? Optional.of(charBuffer.get()).filter(not(Character::isISOControl)).orElse('.')
         : '.';
   }
 }
