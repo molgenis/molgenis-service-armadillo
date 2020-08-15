@@ -1,11 +1,12 @@
 package org.molgenis.armadillo;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.util.Optional;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.slf4j.Logger;
@@ -47,30 +48,16 @@ public class ArmadilloUtils {
 
   static String hexDump(byte[] bytes, int count) {
     var byteBuffer = ByteBuffer.wrap(bytes);
-    Charset charset = Charset.forName("ISO-8859-1");
-    var charBuffer = charset.decode(byteBuffer);
+    var charBuffer = ISO_8859_1.decode(byteBuffer);
     byteBuffer.rewind();
     StringBuilder result = new StringBuilder();
     while (byteBuffer.hasRemaining()) {
       for (int colIndex = 0; colIndex < count; colIndex++) {
-        if (byteBuffer.hasRemaining()) {
-          result.append(String.format("%02x ", byteBuffer.get()));
-        } else {
-          result.append("   ");
-        }
+        result.append(readHex(byteBuffer));
       }
       result.append(" |");
       for (int colIndex = 0; colIndex < count; colIndex++) {
-        if (charBuffer.hasRemaining()) {
-          char c = charBuffer.get();
-          if (!Character.isISOControl(c)) {
-            result.append(c);
-          } else {
-            result.append('.');
-          }
-        } else {
-          result.append(".");
-        }
+        result.append(readAscii(charBuffer));
       }
       result.append('|');
       if (byteBuffer.hasRemaining()) {
@@ -78,5 +65,15 @@ public class ArmadilloUtils {
       }
     }
     return result.toString();
+  }
+
+  private static String readHex(ByteBuffer byteBuffer) {
+    return byteBuffer.hasRemaining() ? String.format("%02x ", byteBuffer.get()) : "   ";
+  }
+
+  private static char readAscii(java.nio.CharBuffer charBuffer) {
+    return charBuffer.hasRemaining()
+        ? Optional.of(charBuffer.get()).filter(Character::isISOControl).orElse('.')
+        : '.';
   }
 }
