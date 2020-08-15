@@ -24,13 +24,36 @@
         <url>https://molgenis.org</url>
     </organization>
 
+    <scm>
+        <connection>scm:git:https://github.com/molgenis/molgenis-service-datashield</connection>
+        <developerConnection>scm:git:https://github.com/molgenis/molgenis-service-datashield</developerConnection>
+        <url>https://github.com/molgenis/molgenis-service-datashield</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>registry.molgenis.org</id>
+            <url>https://registry.molgenis.org/repository/maven-snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>registry.molgenis.org</id>
+            <name>Registry of the MOLGENIS organisation</name>
+            <url>https://registry.molgenis.org/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <java.version>11</java.version>
+
+        <!-- authentication for release scm plugin -->
+        <project.scm.id>github</project.scm.id>
 
         <fmt-maven-plugin.version>2.9</fmt-maven-plugin.version>
         <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
         <sonar-maven-plugin.version>3.5.0.1254</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+        <release-maven-plugin.version>2.5.3</release-maven-plugin.version>
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>molgenis</sonar.organization>
@@ -188,6 +211,15 @@
                                 <version>${auto-service-annotations.version}</version>
                             </path>
                         </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${release-maven-plugin.version}</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <scmCommentPrefix>[ci skip] [maven-release-plugin]${line.separator}</scmCommentPrefix>
                     </configuration>
                 </plugin>
             </plugins>

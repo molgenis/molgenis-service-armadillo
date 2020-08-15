@@ -116,15 +116,29 @@ pipeline {
                         }
                     }
                 }
+                stage('Prepare Release [ x.x ]') {
+                    steps {
+                        timeout(time: 40, unit: 'MINUTES') {
+                            input(message: 'Prepare to release?')
+                        }
+                        container('maven') {
+                            sh "mvn -q -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
+                        }
+                    }
+                }
+                stage('Perform release [ x.x ]') {
+                    steps {
+                        container('maven') {
+                            script {
+                                env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
+                            }
+                            sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
+                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                        }
+                    }
+                }
             }
-        }
-    }
-    post {
-        success {
-            hubotSend(message: 'Build success', status: 'INFO', site: 'slack-pr-app-team')
-        }
-        failure {
-            hubotSend(message: 'Build failed', status: 'ERROR', site: 'slack-pr-app-team')
         }
     }
 }
