@@ -3,10 +3,14 @@ package org.molgenis.r.service;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.molgenis.r.Formatter.quote;
 
+import com.google.common.base.Stopwatch;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.r.exceptions.RExecutionException;
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class RExecutorServiceImpl implements RExecutorService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
+  public static final int RFILE_BUFFER_SIZE = 65536;
 
   @Override
   public REXP execute(String cmd, RConnection connection) {
@@ -71,11 +76,21 @@ public class RExecutorServiceImpl implements RExecutorService {
     }
   }
 
-  private void copyFile(Resource resource, String dataFileName, RConnection connection)
-      throws IOException {
+  void copyFile(Resource resource, String dataFileName, RConnection connection) throws IOException {
+    LOGGER.info("Copying '{}' to R...", dataFileName);
+    Stopwatch sw = Stopwatch.createStarted();
     try (InputStream is = resource.getInputStream();
-        RFileOutputStream outputStream = connection.createFile(dataFileName)) {
-      IOUtils.copyLarge(is, outputStream);
+        RFileOutputStream os = connection.createFile(dataFileName);
+        BufferedOutputStream bos = new BufferedOutputStream(os, RFILE_BUFFER_SIZE)) {
+      long size = IOUtils.copyLarge(is, bos);
+      if (LOGGER.isDebugEnabled()) {
+        var elapsed = sw.elapsed(TimeUnit.MICROSECONDS);
+        LOGGER.debug(
+            "Copied {} in {}ms [{} MB/s]",
+            byteCountToDisplaySize(size),
+            elapsed / 1000,
+            format("%.03f", size * 1.0 / elapsed));
+      }
     }
   }
 }
