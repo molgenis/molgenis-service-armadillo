@@ -37,7 +37,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void execute() throws RserveException {
-    when(rConnection.eval("try(mean(age))")).thenReturn(rexp);
+    when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
 
     REXP result = executorService.execute("mean(age)", rConnection);
 
@@ -46,7 +46,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeFail() throws RserveException {
-    when(rConnection.eval("try(mean(ages))"))
+    when(rConnection.eval("try({mean(ages)})"))
         .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
 
     RExecutionException rExecutionException =
@@ -59,7 +59,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeTryFails() throws RserveException, REXPMismatchException {
-    when(rConnection.eval("try(mean(age))")).thenReturn(rexp);
+    when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
     when(rexp.inherits("try-error")).thenReturn(true);
     when(rexp.asStrings())
         .thenReturn(new String[] {"Error in try(mean(age)) : object 'age' not found\n"});
@@ -84,7 +84,7 @@ class RExecutorServiceImplTest {
   @Test
   public void testSaveWorkspace() throws IOException, RserveException {
     when(rConnection.eval(
-            "try(base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\"))"))
+            "try({base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\")})"))
         .thenReturn(new REXPNull());
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 

@@ -30,7 +30,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   public REXP execute(String cmd, RConnection connection) {
     try {
       LOGGER.debug("Evaluate {}", cmd);
-      REXP result = connection.eval(format("try(%s)", cmd));
+      REXP result = connection.eval(format("try({%s})", cmd));
       if (result.inherits("try-error")) {
         throw new RExecutionException(
             stream(result.asStrings()).map(String::trim).collect(joining("; ")));
