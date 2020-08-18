@@ -23,6 +23,7 @@ import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
+import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -50,11 +51,12 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
-      ArmadilloConnectionFactory connectionFactory) {
+      ArmadilloConnectionFactory connectionFactory,
+      ProcessService processService) {
     this.storageService = storageService;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
-    this.armadilloSession = new ArmadilloSession(connectionFactory);
+    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
     this.executorService = executorService;
   }
 

@@ -27,6 +27,7 @@ import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
+import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -43,6 +44,7 @@ class CommandsImplTest {
   @Mock RConnection rConnection;
   @Mock InputStream inputStream;
   @Mock List<Workspace> workspaces;
+  @Mock ProcessService processService;
   @Mock REXP rexp;
   ExecutorService executorService = Executors.newSingleThreadExecutor();
   private CommandsImpl commands;
@@ -51,7 +53,12 @@ class CommandsImplTest {
   public void beforeEach() {
     commands =
         new CommandsImpl(
-            storageService, packageService, rExecutorService, executorService, connectionFactory);
+            storageService,
+            packageService,
+            rExecutorService,
+            executorService,
+            connectionFactory,
+            processService);
   }
 
   @Test
