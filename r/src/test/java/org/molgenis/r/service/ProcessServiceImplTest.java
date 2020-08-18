@@ -1,10 +1,15 @@
 package org.molgenis.r.service;
 
+import static java.lang.String.format;
 import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.molgenis.r.service.ProcessServiceImpl.COUNT_RSERVE_PROCESSES_COMMAND;
+import static org.molgenis.r.service.ProcessServiceImpl.GET_PID_COMMAND;
+import static org.molgenis.r.service.ProcessServiceImpl.GET_RSERVE_PROCESSES_COMMAND;
+import static org.molgenis.r.service.ProcessServiceImpl.TERMINATE_COMMAND;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,7 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.REXPParser;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
-import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.RList;
@@ -27,31 +33,43 @@ import org.rosuda.REngine.Rserve.RserveException;
 @ExtendWith(MockitoExtension.class)
 class ProcessServiceImplTest {
   @Mock private REXPParser rexpParser;
+  @Mock private RExecutorService rExecutorService;
   @Mock private REXPString rexp;
   @Mock private RList list;
-  @Mock private REXP row;
   @Mock private RConnection rConnection;
 
   private ProcessService processService;
 
   @BeforeEach
   void before() {
-    processService = new ProcessServiceImpl(rexpParser);
+    processService = new ProcessServiceImpl(rexpParser, rExecutorService);
+  }
+
+  @Test
+  void testGetPid() throws REXPMismatchException {
+    when(rExecutorService.execute(GET_PID_COMMAND, rConnection)).thenReturn(rexp);
+    when(rexp.asInteger()).thenReturn(218);
+
+    assertEquals(218, processService.getPid(rConnection));
+  }
+
+  @Test
+  void testTerminate() throws RserveException {
+    processService.terminateProcess(rConnection, 218);
+
+    verify(rExecutorService).execute(format(TERMINATE_COMMAND, 218), rConnection);
   }
 
   @Test
   void testCountRserveProcesses() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(list);
-    when(list.get(0)).thenReturn(row);
-    when(row.asInteger()).thenReturn(3);
-
+    when(rExecutorService.execute(COUNT_RSERVE_PROCESSES_COMMAND, rConnection))
+        .thenReturn(new REXPList(new REXPInteger(3), "n"));
     assertEquals(3, processService.countRserveProcesses(rConnection));
   }
 
   @Test
   void testGetRserveProcesses() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rExecutorService.execute(GET_RSERVE_PROCESSES_COMMAND, rConnection)).thenReturn(rexp);
     when(rexp.asList()).thenReturn(list);
     when(rexpParser.parseTibble(list))
         .thenReturn(
