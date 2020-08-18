@@ -5,6 +5,7 @@ import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.service.ProcessService;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.springframework.boot.actuate.endpoint.annotation.DeleteOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,16 @@ public class RProcessEndpoint {
     final RConnection connection = rConnectionFactory.createConnection();
     try {
       return processService.getRserveProcesses(connection);
+    } finally {
+      connection.close();
+    }
+  }
+
+  @DeleteOperation
+  public void deleteRServeProcess(int pid) {
+    final RConnection connection = rConnectionFactory.createConnection();
+    try {
+      processService.terminateProcess(connection, pid);
     } finally {
       connection.close();
     }
