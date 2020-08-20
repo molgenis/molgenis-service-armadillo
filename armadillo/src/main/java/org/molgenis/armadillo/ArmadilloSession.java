@@ -66,12 +66,16 @@ public class ArmadilloSession {
   RConnection getRConnection() {
     try {
       if (rSession == null) {
+        logger.trace("No existing session, creating new connection...");
         var connection = connectionFactory.createConnection();
         pid = processService.getPid(connection);
+        logger.debug("Created new connection with pid {}.", pid);
         return connection;
       }
+      logger.trace("Attaching to existing session with pid {}...", pid);
       var connection = rSession.attach();
       rSession = null;
+      logger.debug("Attached to existing session with pid {}.", pid);
       return connection;
     } catch (RserveException err) {
       throw new ArmadilloSessionException("Could not attach connection to RSession", err);
