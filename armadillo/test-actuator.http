@@ -1,0 +1,8 @@
+### get info
+GET http://localhost:8080/actuator/info
+
+### retrieve R processes
+GET http://localhost:8080/actuator/rserveProcesses
+
+### delete process by pid
+DELETE http://localhost:8080/actuator/rserveProcesses?pid=157

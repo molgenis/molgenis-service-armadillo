@@ -1,5 +1,10 @@
 package org.molgenis.armadillo.security;
 
+import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
+
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +31,12 @@ public class AuthConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests()
-        .antMatchers("/actuator/**", "/v3/api-docs*")
+        .antMatchers("/v3/api-docs*")
         .permitAll()
+        .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+        .permitAll()
+        .requestMatchers(toAnyEndpoint())
+        .hasRole("SU")
         .anyRequest()
         .authenticated()
         .and()
