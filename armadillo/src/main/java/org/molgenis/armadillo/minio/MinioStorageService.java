@@ -1,10 +1,8 @@
 package org.molgenis.armadillo.minio;
 
-import static java.util.Collections.emptyList;
+import static com.google.common.collect.Lists.newArrayList;
 
-import com.google.common.collect.Streams;
 import io.minio.MinioClient;
-import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
@@ -13,19 +11,20 @@ import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidResponseException;
 import io.minio.errors.NoResponseException;
 import io.minio.errors.RegionConflictException;
+import io.minio.messages.Bucket;
 import io.minio.messages.Item;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -40,6 +39,7 @@ public class MinioStorageService implements StorageService {
     this.minioClient = minioClient;
   }
 
+  @PreAuthorize("hasPermission(#bucket, 'load')")
   void checkBucketExists(String bucket) {
     try {
       if (!minioClient.bucketExists(bucket)) {
@@ -57,6 +57,25 @@ public class MinioStorageService implements StorageService {
         | InternalException
         | IOException
         | RegionConflictException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  @PostFilter("hasPermission(filterObject, 'load')")
+  public List<Bucket> listBuckets() {
+    try {
+      return minioClient.listBuckets();
+    } catch (InvalidBucketNameException
+        | NoSuchAlgorithmException
+        | InsufficientDataException
+        | InvalidResponseException
+        | InternalException
+        | ErrorResponseException
+        | XmlPullParserException
+        | NoResponseException
+        | InvalidKeyException
+        | IOException e) {
       throw new StorageException(e);
     }
   }
@@ -82,6 +101,31 @@ public class MinioStorageService implements StorageService {
     }
   }
 
+  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
+  @Override
+  public List<Item> listObjects(String bucketName) {
+    try {
+      LOGGER.info("List objects in bucket {}.", bucketName);
+      List<Item> result = newArrayList();
+      for (var itemResult : minioClient.listObjects(bucketName)) {
+        var item = itemResult.get();
+        result.add(item);
+      }
+      return result;
+    } catch (InvalidKeyException
+        | InsufficientDataException
+        | NoSuchAlgorithmException
+        | NoResponseException
+        | XmlPullParserException
+        | InvalidBucketNameException
+        | ErrorResponseException
+        | InternalException
+        | IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  //  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
   @Override
   public InputStream load(String bucketName, String objectName) {
     try {
@@ -118,53 +162,6 @@ public class MinioStorageService implements StorageService {
         | ErrorResponseException
         | InternalException
         | IOException e) {
-      throw new StorageException(e);
-    }
-  }
-
-  public static Workspace toWorkspace(Result<Item> result) {
-    try {
-      Item item = result.get();
-      return Workspace.builder()
-          .setLastModified(item.lastModified())
-          .setName(item.objectName())
-          .setSize(item.objectSize())
-          .setETag(item.etag())
-          .build();
-    } catch (InvalidKeyException
-        | InsufficientDataException
-        | NoSuchAlgorithmException
-        | NoResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
-        | ErrorResponseException
-        | InternalException
-        | IOException e) {
-      throw new StorageException(e);
-    }
-  }
-
-  @Override
-  public List<Workspace> listWorkspaces(String bucketName) {
-    try {
-      if (!minioClient.bucketExists(bucketName)) {
-        return emptyList();
-      }
-      LOGGER.debug("List objects.");
-      return Streams.stream(minioClient.listObjects(bucketName))
-          .map(MinioStorageService::toWorkspace)
-          .map(it -> it.trim("", ".RData"))
-          .collect(Collectors.toList());
-    } catch (XmlPullParserException
-        | InvalidBucketNameException
-        | NoSuchAlgorithmException
-        | InsufficientDataException
-        | IOException
-        | InvalidKeyException
-        | NoResponseException
-        | ErrorResponseException
-        | InternalException
-        | InvalidResponseException e) {
       throw new StorageException(e);
     }
   }

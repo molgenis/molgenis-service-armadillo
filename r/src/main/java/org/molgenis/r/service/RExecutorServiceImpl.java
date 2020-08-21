@@ -3,6 +3,7 @@ package org.molgenis.r.service;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.molgenis.r.Formatter.quote;
 
@@ -10,9 +11,11 @@ import com.google.common.base.Stopwatch;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
+import org.molgenis.r.Formatter;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
@@ -71,6 +74,40 @@ public class RExecutorServiceImpl implements RExecutorService {
       copyFile(resource, ".RData", connection);
       connection.eval(format("base::load(file='.RData', envir=%s)", environment));
       connection.eval("base::unlink('.RData')");
+    } catch (IOException | RserveException e) {
+      throw new RExecutionException(e);
+    }
+  }
+
+  @Override
+  public void loadTable(
+      RConnection connection, Resource resource, String filename, String symbol, String variables) {
+    LOGGER.debug("Load table from file {} into {}", filename, symbol);
+    String rFileName = filename.replace("/", "_");
+    try {
+      copyFile(resource, rFileName, connection);
+      if (filename.endsWith(".parquet")) {
+        if (variables == null) {
+          connection.eval(
+              format(
+                  "is.null(base::assign('%s', value={arrow::read_parquet('%s')}))",
+                  symbol, rFileName));
+        } else {
+          var colSelect =
+              Formatter.stringVector(
+                  Arrays.stream(variables.split(","))
+                      .map(String::trim)
+                      .collect(toList())
+                      .toArray(new String[] {}));
+          connection.eval(
+              format(
+                  "is.null(base::assign('%s', value={arrow::read_parquet('%s', col_select = %s)}))",
+                  symbol, rFileName, colSelect));
+        }
+      } else {
+        // TODO: .rda?
+      }
+      connection.eval(format("base::unlink('%s')", rFileName));
     } catch (IOException | RserveException e) {
       throw new RExecutionException(e);
     }

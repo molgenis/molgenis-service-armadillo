@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.command.impl;
 
-import static java.util.Arrays.asList;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,8 +8,11 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.minio.messages.Item;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.minio.TableService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.StorageService;
@@ -32,18 +36,19 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.core.io.InputStreamResource;
 
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
   @Mock StorageService storageService;
+  @Mock TableService tableService;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock InputStream inputStream;
-  @Mock List<Workspace> workspaces;
+  @Mock Item item;
+  @Mock List<Item> workspaces;
   @Mock ProcessService processService;
   @Mock REXP rexp;
   ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -54,11 +59,12 @@ class CommandsImplTest {
     commands =
         new CommandsImpl(
             storageService,
+            tableService,
             packageService,
             rExecutorService,
             executorService,
-            connectionFactory,
-            processService);
+            processService,
+            connectionFactory);
   }
 
   @Test
@@ -117,15 +123,23 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(storageService.load("shared-gecko", "core.RData")).thenReturn(inputStream);
+  void testListUserWorkspaces() {
+    Instant lastModified = Instant.now().truncatedTo(MILLIS);
+    Workspace workspace =
+        Workspace.builder()
+            .setName("blah")
+            .setLastModified(lastModified)
+            .setETag("\"abcde\"")
+            .setSize(56)
+            .build();
 
-    commands.loadWorkspaces(asList("gecko/core")).get();
+    when(storageService.listObjects("user-admin")).thenReturn(List.of(item));
+    when(item.objectName()).thenReturn("blah.RData");
+    when(item.lastModified()).thenReturn(Date.from(lastModified));
+    when(item.etag()).thenReturn(workspace.eTag());
+    when(item.objectSize()).thenReturn(workspace.size());
 
-    verify(rExecutorService)
-        .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(".DSTableEnv"));
-    verify(rConnection).detach();
+    assertEquals(List.of(workspace), commands.listWorkspaces("user-admin"));
   }
 
   @Test
@@ -155,7 +169,7 @@ class CommandsImplTest {
 
   @Test
   public void testListWorkspaces() {
-    when(storageService.listWorkspaces("user-admin")).thenReturn(workspaces);
+    when(storageService.listObjects("user-admin")).thenReturn(workspaces);
 
     assertSame(workspaces, commands.listWorkspaces("user-admin"));
   }

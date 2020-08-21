@@ -7,10 +7,8 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
 import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.r.Formatter.stringVector;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -104,11 +102,8 @@ public class DataController {
       description =
           "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
-  public List<String> getTables()
-      throws ExecutionException, InterruptedException, REXPMismatchException {
-    final String command = format("base::local(base::ls(%s))", TABLE_ENV);
-    REXP result = commands.evaluate(command).get();
-    return asList(result.asStrings());
+  public List<String> getTables() {
+    return commands.listSharedTables();
   }
 
   @Operation(
@@ -118,10 +113,33 @@ public class DataController {
             responseCode = "200",
             description = "The table exists and is available for DataSHIELD operations")
       })
-  @RequestMapping(value = "/tables/{tableId}", method = HEAD)
-  public ResponseEntity<Void> tableExists(@PathVariable String tableId)
-      throws InterruptedException, ExecutionException, REXPMismatchException {
-    return getTables().contains(tableId) ? ok().build() : notFound().build();
+  @RequestMapping(value = "/tables/{folder}/{workspace}/{table}", method = HEAD)
+  public ResponseEntity<Void> tableExists(
+      @PathVariable String folder, @PathVariable String workspace, @PathVariable String table) {
+    return getTables().contains(format("%s/%s/%s", folder, workspace, table))
+        ? ok().build()
+        : notFound().build();
+  }
+
+  @Operation(
+      summary = "Load table",
+      description = "Load a table",
+      security = {@SecurityRequirement(name = "jwt")})
+  @PostMapping(value = "/load-table")
+  public CompletableFuture<ResponseEntity<Void>> loadTable(
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      @RequestParam String table,
+      @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
+      @RequestParam(defaultValue = "false") boolean async) {
+    if (!getTables().contains(table)) {
+      return completedFuture(notFound().build());
+    }
+    var result = commands.loadTable(symbol, table, variables);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
   @Operation(summary = "Get assigned symbols")
@@ -140,29 +158,6 @@ public class DataController {
       throws ExecutionException, InterruptedException {
     String command = format("base::rm(%s)", symbol);
     commands.evaluate(command).get();
-  }
-
-  @Operation(
-      summary = "Load table",
-      description = "Copy variables of a table into a symbol",
-      security = {@SecurityRequirement(name = "jwt")})
-  @PostMapping(value = "/load-table")
-  public ResponseEntity<Void> loadTable(
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String table,
-      @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables)
-      throws InterruptedException, ExecutionException, REXPMismatchException {
-    if (!getTables().contains(table)) {
-      return notFound().build();
-    }
-    String expression = table;
-    if (variables != null) {
-      String[] split = variables.split(",");
-      expression = format("%s[,%s]", table, stringVector(split));
-    }
-    expression = format("base::local(%s, envir = %s)", expression, TABLE_ENV);
-    commands.assign(symbol, expression).get();
-    return ok().build();
   }
 
   @Operation(
@@ -281,24 +276,6 @@ public class DataController {
       Principal principal)
       throws ExecutionException, InterruptedException {
     commands.saveWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
-  }
-
-  @Operation(
-      summary = "Load shared workspaces",
-      description =
-          "Make tables from shared workspaces available for assignment. You need load permission on the workspaces.")
-  @PreAuthorize("hasPermission(#workspace, 'Workspace', 'load')")
-  @PostMapping(value = "/load-tables")
-  public void loadTables(
-      @RequestParam
-          List<
-                  @Pattern(
-                      regexp = SHARED_WORKSPACE_FORMAT_REGEX,
-                      message = "Please use a valid workspace name")
-                  String>
-              workspace)
-      throws ExecutionException, InterruptedException {
-    commands.loadWorkspaces(workspace).get();
   }
 
   @Operation(summary = "Load user workspace")

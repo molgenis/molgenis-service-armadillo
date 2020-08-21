@@ -1,7 +1,6 @@
 package org.molgenis.armadillo;
 
 import static java.time.Instant.now;
-import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -10,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.DataController.SHARED_WORKSPACE_FORMAT_REGEX;
@@ -41,6 +39,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.minio.TableService;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -93,6 +92,7 @@ class DataControllerTest {
   @Autowired private MockMvc mockMvc;
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
+  @MockBean private TableService tableService;
   @MockBean private DataShieldEnvironmentHolder environments;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
@@ -124,19 +124,19 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testTableExists() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
+    when(commands.listSharedTables()).thenReturn(List.of("gecko/1_1_outcome_2_0/core.parquet"));
 
-    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isOk());
+    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core.parquet")).andExpect(status().isOk());
   }
 
   @Test
   @WithMockUser
   void testTableNotFound() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {});
+    when(commands.listSharedTables()).thenReturn(List.of("gecko/1_1_outcome_2_0/core.parquet"));
 
-    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isNotFound());
+    mockMvc
+        .perform(head("/tables/gecko/1_1_outcome_2_0/notfound.parquet"))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -455,25 +455,6 @@ class DataControllerTest {
     mockMvc
         .perform(post("/load-table?symbol=D&table=datashield.PATIENT&variables=age"))
         .andExpect(status().isOk());
-  }
-
-  @WithMockUser(roles = {"DIABETES_RESEARCHER", "GECKO_RESEARCHER"})
-  @Test
-  void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspaces(asList("diabetes/patient", "gecko/patient")))
-        .thenReturn(completedFuture(null));
-    mockMvc
-        .perform(post("/load-tables?workspace=diabetes/patient&workspace=gecko/patient"))
-        .andExpect(status().isOk());
-  }
-
-  @WithMockUser(roles = {"DIABETES_RESEARCHER"})
-  @Test
-  void testLoadTibblesForbidden() throws Exception {
-    mockMvc
-        .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
-        .andExpect(status().isForbidden());
-    verifyNoInteractions(commands);
   }
 
   @ParameterizedTest

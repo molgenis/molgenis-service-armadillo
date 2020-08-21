@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.minio;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
@@ -14,16 +13,12 @@ import io.minio.Result;
 import io.minio.messages.Item;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.armadillo.model.Workspace;
 
 @ExtendWith(MockitoExtension.class)
 class MinioStorageServiceTest {
@@ -80,29 +75,7 @@ class MinioStorageServiceTest {
 
   @Test
   void testListWorkspacesNoBucket() {
-    assertEquals(emptyList(), minioStorageService.listWorkspaces("user-admin"));
-  }
-
-  @Test
-  void testListWorkspaces() throws Exception {
-    Instant lastModified = Instant.now().truncatedTo(MILLIS);
-    Workspace workspace =
-        Workspace.builder()
-            .setName("blah")
-            .setLastModified(lastModified)
-            .setETag("\"abcde\"")
-            .setSize(56)
-            .build();
-
-    when(minioClient.bucketExists("user-admin")).thenReturn(true);
-    when(minioClient.listObjects("user-admin")).thenReturn(List.of(itemResult));
-    when(itemResult.get()).thenReturn(item);
-    when(item.objectName()).thenReturn("blah.RData");
-    when(item.lastModified()).thenReturn(Date.from(lastModified));
-    when(item.etag()).thenReturn(workspace.eTag());
-    when(item.objectSize()).thenReturn(workspace.size());
-
-    assertEquals(List.of(workspace), minioStorageService.listWorkspaces("user-admin"));
+    assertEquals(emptyList(), minioStorageService.listObjects("user-admin"));
   }
 
   @Test

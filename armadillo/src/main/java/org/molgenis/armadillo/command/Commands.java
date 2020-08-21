@@ -13,9 +13,11 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  List<Workspace> listWorkspaces(String bucketName);
+  List<String> listSharedTables();
 
-  CompletableFuture<List<String>> loadWorkspaces(List<String> workspaces);
+  CompletableFuture<Void> loadTable(String symbol, String table, String variables);
+
+  List<Workspace> listWorkspaces(String bucketName);
 
   CompletableFuture<Void> loadUserWorkspace(String bucketName, String objectName);
 

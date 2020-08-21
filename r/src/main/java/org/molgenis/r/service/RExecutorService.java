@@ -13,4 +13,7 @@ public interface RExecutorService {
       String inclusionPattern, RConnection connection, Consumer<InputStream> inputStreamConsumer);
 
   void loadWorkspace(RConnection connection, Resource resource, String environment);
+
+  void loadTable(
+      RConnection connection, Resource resource, String filename, String symbol, String variables);
 }
