@@ -3,14 +3,11 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.regex.Pattern.quote;
-import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
-import static org.molgenis.armadillo.minio.TableService.SHARED_PREFIX;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import io.minio.messages.Item;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -20,10 +17,8 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.minio.TableService;
-import org.molgenis.armadillo.model.Workspace;
+import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
-import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
@@ -40,8 +35,7 @@ class CommandsImpl implements Commands {
 
   private static final String SAVE_PATTERN = format("^(?!%s).*", quote(TABLE_ENV));
 
-  private final StorageService storageService;
-  private final TableService tableService;
+  private final ArmadilloStorageService armadilloStorage;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
   private final ArmadilloSession armadilloSession;
@@ -51,15 +45,13 @@ class CommandsImpl implements Commands {
   private volatile ArmadilloCommand lastCommand;
 
   public CommandsImpl(
-      StorageService storageService,
-      TableService tableService,
+      ArmadilloStorageService armadilloStorage,
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService) {
-    this.storageService = storageService;
-    this.tableService = tableService;
+    this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
@@ -110,36 +102,12 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public List<Workspace> listWorkspaces(String bucketName) {
-    return storageService.listObjects(bucketName).stream()
-        .map(CommandsImpl::toWorkspace)
-        .collect(toList());
-  }
-
-  public static Workspace toWorkspace(Item item) {
-    return Workspace.builder()
-        .setLastModified(item.lastModified())
-        .setName(item.objectName())
-        .setSize(item.objectSize())
-        .setETag(item.etag())
-        .build();
-  }
-
-  @Override
-  public List<String> listSharedTables() {
-    var stringStringMultimap = tableService.listTables();
-    return stringStringMultimap.entries().stream()
-        .map(it -> format("%s/%s", it.getKey().substring(SHARED_PREFIX.length()), it.getValue()))
-        .collect(toList());
-  }
-
-  @Override
-  public CompletableFuture<Void> loadUserWorkspace(String bucketName, String objectName) {
+  public CompletableFuture<Void> loadWorkspace(Principal principal, String id) {
     return schedule(
-        new ArmadilloCommandImpl<>("Load " + objectName, false) {
+        new ArmadilloCommandImpl<>("Load user workspace " + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            InputStream inputStream = storageService.load(bucketName, objectName);
+            InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
             rExecutorService.loadWorkspace(
                 connection, new InputStreamResource(inputStream), GLOBAL_ENV);
             return null;
@@ -149,11 +117,14 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<Void> loadTable(String symbol, String table, String variables) {
+    int index = table.indexOf('/');
+    String project = table.substring(0, index);
+    String objectName = table.substring(index + 1);
     return schedule(
         new ArmadilloCommandImpl<>("Load " + table, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            InputStream inputStream = tableService.loadTable(table);
+            InputStream inputStream = armadilloStorage.loadTable(project, objectName);
             rExecutorService.loadTable(
                 connection, new InputStreamResource(inputStream), table, symbol, variables);
             return null;
@@ -162,23 +133,16 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> saveWorkspace(String bucketName, String objectname) {
+  public CompletableFuture<Void> saveWorkspace(Principal principal, String id) {
     return schedule(
-        new ArmadilloCommandImpl<>("Save " + objectname, false) {
+        new ArmadilloCommandImpl<>("Save user workspace" + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.saveWorkspace(
-                SAVE_PATTERN,
-                connection,
-                is -> storageService.save(is, bucketName, objectname, APPLICATION_OCTET_STREAM));
+                SAVE_PATTERN, connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
             return null;
           }
         });
-  }
-
-  @Override
-  public void removeWorkspace(String bucketName, String objectName) {
-    storageService.delete(bucketName, objectName);
   }
 
   @Override

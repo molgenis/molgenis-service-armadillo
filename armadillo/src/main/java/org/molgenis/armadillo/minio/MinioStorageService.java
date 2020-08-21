@@ -1,6 +1,8 @@
 package org.molgenis.armadillo.minio;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.minio.ErrorCode.NO_SUCH_KEY;
+import static io.minio.ErrorCode.NO_SUCH_OBJECT;
 
 import io.minio.MinioClient;
 import io.minio.errors.ErrorResponseException;
@@ -19,17 +21,16 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.armadillo.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.xmlpull.v1.XmlPullParserException;
 
-@Component
-public class MinioStorageService implements StorageService {
+@Service
+class MinioStorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
 
@@ -37,6 +38,31 @@ public class MinioStorageService implements StorageService {
 
   public MinioStorageService(MinioClient minioClient) {
     this.minioClient = minioClient;
+  }
+
+  boolean objectExists(String bucket, String objectName) {
+    try {
+      minioClient.statObject(bucket, objectName);
+      return true;
+    } catch (ErrorResponseException error) {
+      var code = error.errorResponse().errorCode();
+      if (code == NO_SUCH_KEY || code == NO_SUCH_OBJECT) {
+        return false;
+      } else {
+        throw new StorageException(error);
+      }
+    } catch (InvalidBucketNameException
+        | NoSuchAlgorithmException
+        | InvalidArgumentException
+        | InvalidResponseException
+        | InternalException
+        | XmlPullParserException
+        | NoResponseException
+        | InvalidKeyException
+        | IOException
+        | InsufficientDataException e) {
+      throw new StorageException(e);
+    }
   }
 
   @PreAuthorize("hasPermission(#bucket, 'load')")
@@ -61,7 +87,6 @@ public class MinioStorageService implements StorageService {
     }
   }
 
-  @Override
   @PostFilter("hasPermission(filterObject, 'load')")
   public List<Bucket> listBuckets() {
     try {
@@ -80,7 +105,6 @@ public class MinioStorageService implements StorageService {
     }
   }
 
-  @Override
   public void save(InputStream is, String bucketName, String objectName, MediaType mediaType) {
     checkBucketExists(bucketName);
     try {
@@ -102,7 +126,6 @@ public class MinioStorageService implements StorageService {
   }
 
   @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
-  @Override
   public List<Item> listObjects(String bucketName) {
     try {
       LOGGER.info("List objects in bucket {}.", bucketName);
@@ -125,8 +148,7 @@ public class MinioStorageService implements StorageService {
     }
   }
 
-  //  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
-  @Override
+  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
   public InputStream load(String bucketName, String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
@@ -146,7 +168,6 @@ public class MinioStorageService implements StorageService {
     }
   }
 
-  @Override
   public void delete(String bucketName, String objectName) {
     try {
       LOGGER.info("Deleting object {}.", objectName);

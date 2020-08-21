@@ -22,19 +22,6 @@ public abstract class Workspace {
   @JsonProperty("ETag")
   public abstract String eTag();
 
-  public Workspace trim(String prefix, String postfix) {
-    String name = name();
-    if (!name.startsWith(prefix)) {
-      throw new IllegalArgumentException("Name does not start with prefix");
-    }
-    name = name.substring(prefix.length());
-    if (!name().endsWith(postfix)) {
-      throw new IllegalArgumentException("Name does not end with postfix");
-    }
-    name = name.substring(0, name.length() - postfix.length());
-    return toBuilder().setName(name).build();
-  }
-
   abstract Builder toBuilder();
 
   @AutoValue.Builder

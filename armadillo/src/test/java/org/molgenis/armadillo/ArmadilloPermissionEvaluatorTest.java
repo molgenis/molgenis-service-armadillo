@@ -21,8 +21,7 @@ class ArmadilloPermissionEvaluatorTest {
   @Test
   public void testRoleSUCanLoadAnything() {
     doReturn(List.of(new SimpleGrantedAuthority("ROLE_SU"))).when(authentication).getAuthorities();
-    assertTrue(
-        permissionEvaluator.hasPermission(authentication, "GECKO/patient", "Workspace", "load"));
+    assertTrue(permissionEvaluator.hasPermission(authentication, "gecko", "Project", "load"));
   }
 
   @Test
@@ -30,8 +29,7 @@ class ArmadilloPermissionEvaluatorTest {
     doReturn(List.of(new SimpleGrantedAuthority("ROLE_GECKO_RESEARCHER")))
         .when(authentication)
         .getAuthorities();
-    assertTrue(
-        permissionEvaluator.hasPermission(authentication, "GECKO/patient", "Workspace", "load"));
+    assertTrue(permissionEvaluator.hasPermission(authentication, "gecko", "Project", "load"));
   }
 
   @Test
@@ -39,8 +37,7 @@ class ArmadilloPermissionEvaluatorTest {
     doReturn(List.of(new SimpleGrantedAuthority("ROLE_OTHER_RESEARCHER")))
         .when(authentication)
         .getAuthorities();
-    assertFalse(
-        permissionEvaluator.hasPermission(authentication, "GECKO/patient", "Workspace", "load"));
+    assertFalse(permissionEvaluator.hasPermission(authentication, "gecko", "Project", "load"));
   }
 
   @Test
@@ -53,10 +50,7 @@ class ArmadilloPermissionEvaluatorTest {
         .getAuthorities();
     assertTrue(
         permissionEvaluator.hasPermission(
-            authentication,
-            newArrayList("GECKO/patient", "DIABETES/patient"),
-            "Workspace",
-            "load"));
+            authentication, newArrayList("gecko", "diabetes"), "Project", "load"));
   }
 
   @Test
@@ -66,9 +60,6 @@ class ArmadilloPermissionEvaluatorTest {
         .getAuthorities();
     assertFalse(
         permissionEvaluator.hasPermission(
-            authentication,
-            newArrayList("GECKO/patient", "DIABETES/patient"),
-            "Workspace",
-            "load"));
+            authentication, newArrayList("gecko", "diabetes"), "Project", "load"));
   }
 }

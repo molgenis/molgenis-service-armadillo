@@ -7,6 +7,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
@@ -38,6 +39,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -75,19 +77,21 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
-  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
   public static final String SHARED_WORKSPACE_FORMAT_REGEX = "^[a-z0-9-]{0,55}[a-z0-9]/[\\w-:]+$";
 
   private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
+  private final ArmadilloStorageService storage;
   private final DataShieldEnvironmentHolder environments;
 
   public DataController(
       ExpressionRewriter expressionRewriter,
       Commands commands,
+      ArmadilloStorageService storage,
       DataShieldEnvironmentHolder environments) {
     this.expressionRewriter = expressionRewriter;
     this.commands = commands;
+    this.storage = storage;
     this.environments = environments;
   }
 
@@ -103,7 +107,10 @@ public class DataController {
           "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
   public List<String> getTables() {
-    return commands.listSharedTables();
+    return storage.listProjects().stream()
+        .map(storage::listTables)
+        .flatMap(List::stream)
+        .collect(toList());
   }
 
   @Operation(
@@ -113,10 +120,10 @@ public class DataController {
             responseCode = "200",
             description = "The table exists and is available for DataSHIELD operations")
       })
-  @RequestMapping(value = "/tables/{folder}/{workspace}/{table}", method = HEAD)
+  @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
   public ResponseEntity<Void> tableExists(
-      @PathVariable String folder, @PathVariable String workspace, @PathVariable String table) {
-    return getTables().contains(format("%s/%s/%s", folder, workspace, table))
+      @PathVariable String project, @PathVariable String folder, @PathVariable String table) {
+    return storage.tableExists(project, format("%s/%s", folder, table))
         ? ok().build()
         : notFound().build();
   }
@@ -244,7 +251,7 @@ public class DataController {
   @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
-    return commands.listWorkspaces(getUserBucketName(principal));
+    return storage.listWorkspaces(principal);
   }
 
   @Operation(
@@ -261,7 +268,7 @@ public class DataController {
               message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
-    commands.removeWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id));
+    storage.removeWorkspace(principal, id);
   }
 
   @Operation(summary = "Save user workspace")
@@ -275,7 +282,7 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.saveWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
+    commands.saveWorkspace(principal, id).get();
   }
 
   @Operation(summary = "Load user workspace")
@@ -288,19 +295,6 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.loadUserWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
-  }
-
-  private static String getWorkspaceObjectName(String id) {
-    return id + ".RData";
-  }
-
-  private static String getUserBucketName(Principal principal) {
-    String bucketName = "user-" + principal.getName();
-    if (!bucketName.matches(BUCKET_REGEX)) {
-      throw new IllegalArgumentException(
-          "Cannot create valid S3 bucket for username " + principal.getName());
-    }
-    return bucketName;
+    commands.loadWorkspace(principal, id).get();
   }
 }
