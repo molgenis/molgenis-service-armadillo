@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,7 +107,8 @@ class ArmadilloSessionTest {
   }
 
   @Test
-  void sessionCleanupTerminatesRunningProcess() throws RserveException, InterruptedException {
+  void sessionCleanupTerminatesRunningProcess()
+      throws RserveException, InterruptedException, ExecutionException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rConnection.detach()).thenReturn(rSession);
     when(processService.getPid(rConnection)).thenReturn(218);
@@ -120,22 +122,24 @@ class ArmadilloSessionTest {
      */
     var executionIsRunning = new CountDownLatch(1);
     var sessionIsDestroyed = new CountDownLatch(1);
-    newSingleThreadExecutor()
-        .execute(
-            () -> {
-              armadilloSession.execute(
-                  (connection) -> {
-                    try {
-                      executionIsRunning.countDown();
-                      sessionIsDestroyed.await();
-                    } catch (InterruptedException ignore) {
-                    }
-                    return new REXPNull();
-                  });
-            });
+    var task =
+        newSingleThreadExecutor()
+            .submit(
+                () -> {
+                  armadilloSession.execute(
+                      (connection) -> {
+                        try {
+                          executionIsRunning.countDown();
+                          sessionIsDestroyed.await();
+                        } catch (InterruptedException ignore) {
+                        }
+                        return new REXPNull();
+                      });
+                });
     executionIsRunning.await();
     armadilloSession.sessionCleanup();
     sessionIsDestroyed.countDown();
+    task.get();
 
     verify(processService).terminateProcess(rConnection, 218);
   }

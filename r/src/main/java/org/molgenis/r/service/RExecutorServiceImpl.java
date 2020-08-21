@@ -105,7 +105,7 @@ public class RExecutorServiceImpl implements RExecutorService {
                   symbol, rFileName, colSelect));
         }
       } else {
-        // TODO: .rda?
+        throw new UnsupportedOperationException("Can only load .parquet files");
       }
       connection.eval(format("base::unlink('%s')", rFileName));
     } catch (IOException | RserveException e) {
