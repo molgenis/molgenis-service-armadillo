@@ -27,15 +27,16 @@ public class ArmadilloStorageService {
     this.storageService = storageService;
   }
 
-  @PostFilter("hasPermission(filterObject, 'Project', 'load')")
+  @PostFilter("hasRole('ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
   public List<String> listProjects() {
     return storageService.listBuckets().stream()
         .map(Bucket::name)
         .filter(it -> it.startsWith(SHARED_PREFIX))
+        .map(it -> it.substring(0, SHARED_PREFIX.length()))
         .collect(toList());
   }
 
-  @PreAuthorize("hasPermission(#project, 'Project', 'load')")
+  @PreAuthorize("hasRole('ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listTables(String project) {
     var bucketName = SHARED_PREFIX + project;
     return storageService.listObjects(bucketName).stream()
@@ -44,12 +45,12 @@ public class ArmadilloStorageService {
         .collect(toList());
   }
 
-  @PreAuthorize("hasPermission(#project, 'Project', 'load')")
+  @PreAuthorize("hasRole('ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean tableExists(String project, String objectName) {
     return storageService.objectExists(SHARED_PREFIX + project, objectName);
   }
 
-  @PreAuthorize("hasPermission(#project, 'Project', 'load')")
+  @PreAuthorize("hasRole('ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadTable(String project, String objectName) {
     return storageService.load(SHARED_PREFIX + project, objectName);
   }

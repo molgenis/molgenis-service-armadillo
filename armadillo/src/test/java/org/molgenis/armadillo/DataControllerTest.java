@@ -69,14 +69,6 @@ import org.springframework.test.web.servlet.MvcResult;
 @ActiveProfiles("test")
 class DataControllerTest {
 
-  @TestConfiguration
-  static class PermissionBean {
-    @Bean
-    PermissionEvaluator permissionEvaluator() {
-      return new ArmadilloPermissionEvaluator();
-    }
-  }
-
   static RPackage BASE =
       RPackage.builder()
           .setName("base")
