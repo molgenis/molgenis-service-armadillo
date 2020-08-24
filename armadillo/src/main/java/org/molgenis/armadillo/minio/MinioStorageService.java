@@ -24,8 +24,6 @@ import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -65,7 +63,6 @@ class MinioStorageService {
     }
   }
 
-  @PreAuthorize("hasPermission(#bucket, 'load')")
   void checkBucketExists(String bucket) {
     try {
       if (!minioClient.bucketExists(bucket)) {
@@ -87,7 +84,6 @@ class MinioStorageService {
     }
   }
 
-  @PostFilter("hasPermission(filterObject, 'load')")
   public List<Bucket> listBuckets() {
     try {
       return minioClient.listBuckets();
@@ -125,7 +121,6 @@ class MinioStorageService {
     }
   }
 
-  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
   public List<Item> listObjects(String bucketName) {
     try {
       LOGGER.info("List objects in bucket {}.", bucketName);
@@ -148,7 +143,6 @@ class MinioStorageService {
     }
   }
 
-  @PreAuthorize("hasPermission(#bucketName, 'Bucket', 'load')")
   public InputStream load(String bucketName, String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
