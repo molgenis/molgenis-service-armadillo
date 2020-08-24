@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -31,6 +32,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
+import org.springframework.core.io.InputStreamResource;
 
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
@@ -127,6 +129,35 @@ class CommandsImplTest {
 
     commands.saveWorkspace(principal, "core").get();
     verify(rConnection).detach();
+  }
+
+  @Test
+  public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
+
+    commands.loadWorkspace(principal, "core").get();
+
+    verify(rConnection).detach();
+    verify(rExecutorService)
+        .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(GLOBAL_ENV));
+  }
+
+  @Test
+  public void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(armadilloStorage.loadTable("project", "folder/table.parquet")).thenReturn(inputStream);
+
+    commands.loadTable("D", "project/folder/table.parquet", List.of("col1", "col2")).get();
+
+    verify(rConnection).detach();
+    verify(rExecutorService)
+        .loadTable(
+            eq(rConnection),
+            any(InputStreamResource.class),
+            eq("project/folder/table.parquet"),
+            eq("D"),
+            eq(List.of("col1", "col2")));
   }
 
   @Test

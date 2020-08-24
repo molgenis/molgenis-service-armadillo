@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -141,7 +142,8 @@ public class DataController {
     if (!getTables().contains(table)) {
       return completedFuture(notFound().build());
     }
-    var result = commands.loadTable(symbol, table, variables);
+    var variableList = Arrays.stream(variables.split(",")).map(String::trim).collect(toList());
+    var result = commands.loadTable(symbol, table, variableList);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result

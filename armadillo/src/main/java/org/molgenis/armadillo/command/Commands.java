@@ -13,7 +13,7 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  CompletableFuture<Void> loadTable(String symbol, String table, String variables);
+  CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 

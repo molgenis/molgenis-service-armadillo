@@ -116,7 +116,7 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadTable(String symbol, String table, String variables) {
+  public CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables) {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);

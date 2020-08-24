@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +72,7 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  public void testLoadWorkspace() throws IOException, RserveException {
+  void testLoadWorkspace() throws IOException, RserveException {
     when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
@@ -82,7 +83,35 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  public void testSaveWorkspace() throws IOException, RserveException {
+  void testLoadTableWithVariables() throws IOException, RserveException {
+    when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
+    Resource resource = new InMemoryResource("Hello");
+
+    executorService.loadTable(
+        rConnection, resource, "project/folder/table.parquet", "D", List.of("col1", "col2"));
+
+    verify(rConnection)
+        .eval(
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = c(\"col1\",\"col2\"))}))");
+    verify(rConnection).eval("base::unlink('project_folder_table.parquet')");
+  }
+
+  @Test
+  void testLoadTableNoVariables() throws IOException, RserveException {
+    when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
+    Resource resource = new InMemoryResource("Hello");
+
+    executorService.loadTable(
+        rConnection, resource, "project/folder/table.parquet", "D", List.of());
+
+    verify(rConnection)
+        .eval(
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))");
+    verify(rConnection).eval("base::unlink('project_folder_table.parquet')");
+  }
+
+  @Test
+  void testSaveWorkspace() throws IOException, RserveException {
     when(rConnection.eval(
             "try({base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\")})"))
         .thenReturn(new REXPNull());

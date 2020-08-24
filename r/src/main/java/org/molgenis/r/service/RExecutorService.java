@@ -1,6 +1,7 @@
 package org.molgenis.r.service;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.function.Consumer;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -15,5 +16,9 @@ public interface RExecutorService {
   void loadWorkspace(RConnection connection, Resource resource, String environment);
 
   void loadTable(
-      RConnection connection, Resource resource, String filename, String symbol, String variables);
+      RConnection connection,
+      Resource resource,
+      String filename,
+      String symbol,
+      List<String> variables);
 }
