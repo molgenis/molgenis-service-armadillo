@@ -5,6 +5,10 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.regex.Pattern.quote;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
+import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
+import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
+import static org.springframework.security.core.context.SecurityContextHolder.setContext;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -12,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
@@ -26,6 +31,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -71,10 +77,28 @@ class CommandsImpl implements Commands {
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
     final ArmadilloSession session = armadilloSession;
     lastCommand = command;
-    CompletableFuture<T> result =
-        supplyAsync(() -> session.execute(command::evaluate), executorService);
+    Supplier<T> execution = withCurrentSecurityContext(() -> session.execute(command::evaluate));
+    CompletableFuture<T> result = supplyAsync(execution);
     command.setExecution(result);
     return result;
+  }
+
+  private <V> Supplier<V> withCurrentSecurityContext(Supplier<V> supplier) {
+    final SecurityContext context = getContext();
+    return () -> {
+      final SecurityContext originalSecurityContext = getContext();
+      try {
+        setContext(context);
+        return supplier.get();
+      } finally {
+        SecurityContext emptyContext = createEmptyContext();
+        if (emptyContext.equals(originalSecurityContext)) {
+          clearContext();
+        } else {
+          setContext(originalSecurityContext);
+        }
+      }
+    };
   }
 
   @Override
@@ -103,11 +127,11 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<Void> loadWorkspace(Principal principal, String id) {
-    InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
     return schedule(
         new ArmadilloCommandImpl<>("Load user workspace " + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
+            InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
             rExecutorService.loadWorkspace(
                 connection, new InputStreamResource(inputStream), GLOBAL_ENV);
             return null;
@@ -120,11 +144,11 @@ class CommandsImpl implements Commands {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
-    InputStream inputStream = armadilloStorage.loadTable(project, objectName);
     return schedule(
         new ArmadilloCommandImpl<>("Load " + table, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
+            InputStream inputStream = armadilloStorage.loadTable(project, objectName);
             rExecutorService.loadTable(
                 connection,
                 new InputStreamResource(inputStream),
