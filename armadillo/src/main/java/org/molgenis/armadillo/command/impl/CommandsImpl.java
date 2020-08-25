@@ -78,7 +78,7 @@ class CommandsImpl implements Commands {
     final ArmadilloSession session = armadilloSession;
     lastCommand = command;
     Supplier<T> execution = withCurrentSecurityContext(() -> session.execute(command::evaluate));
-    CompletableFuture<T> result = supplyAsync(execution);
+    CompletableFuture<T> result = supplyAsync(execution, executorService);
     command.setExecution(result);
     return result;
   }
