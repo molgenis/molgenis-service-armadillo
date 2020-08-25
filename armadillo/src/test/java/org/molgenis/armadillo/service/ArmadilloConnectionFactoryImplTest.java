@@ -37,7 +37,6 @@ class ArmadilloConnectionFactoryImplTest {
   void testGetNewConnection() throws RserveException {
     doReturn(rConnection).when(rConnectionFactory).createConnection();
     when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("a", "80.0"));
-    when(rConnection.eval(".DSTableEnv <- base::new.env()")).thenReturn(new REXPNull());
     when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new REXPNull());
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());

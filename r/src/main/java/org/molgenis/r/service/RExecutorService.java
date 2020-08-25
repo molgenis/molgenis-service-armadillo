@@ -10,8 +10,7 @@ import org.springframework.core.io.Resource;
 public interface RExecutorService {
   REXP execute(String cmd, RConnection connection);
 
-  void saveWorkspace(
-      String inclusionPattern, RConnection connection, Consumer<InputStream> inputStreamConsumer);
+  void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer);
 
   void loadWorkspace(RConnection connection, Resource resource, String environment);
 

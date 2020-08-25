@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
-import static org.molgenis.r.Formatter.quote;
 
 import com.google.common.base.Stopwatch;
 import java.io.BufferedOutputStream;
@@ -49,14 +48,10 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
-  public void saveWorkspace(
-      String inclusionPattern, RConnection connection, Consumer<InputStream> inputStreamConsumer) {
+  public void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer) {
     try {
       LOGGER.debug("Save workspace");
-      String command =
-          format(
-              "base::save(list = base::grep(%s, base::ls(all.names=T), perl=T, value=T), file=\".RData\")",
-              quote(inclusionPattern));
+      String command = "base::save.image()";
       execute(command, connection);
       try (RFileInputStream is = connection.openFile(".RData")) {
         inputStreamConsumer.accept(is);

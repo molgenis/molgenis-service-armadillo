@@ -125,19 +125,14 @@ class RExecutorServiceImplTest {
 
   @Test
   void testSaveWorkspace() throws IOException, RserveException {
-    when(rConnection.eval(
-            "try({base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\")})"))
-        .thenReturn(new REXPNull());
+    when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
-        "^(?!\\Q.DSTableEnv\\E).*",
         rConnection,
         inputStream -> assertSame(rFileInputStream, inputStream));
 
-    verify(rConnection)
-        .eval(
-            "try({base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\")})");
+    verify(rConnection).eval("try({base::save.image()})");
     verify(rConnection).openFile(".RData");
   }
 }

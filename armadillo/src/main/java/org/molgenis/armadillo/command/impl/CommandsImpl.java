@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.regex.Pattern.quote;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
-import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
 import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
 import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
@@ -38,8 +37,6 @@ import org.springframework.web.context.annotation.SessionScope;
 @Service
 @SessionScope
 class CommandsImpl implements Commands {
-
-  private static final String SAVE_PATTERN = format("^(?!%s).*", quote(TABLE_ENV));
 
   private final ArmadilloStorageService armadilloStorage;
   private final PackageService packageService;
@@ -166,8 +163,7 @@ class CommandsImpl implements Commands {
         new ArmadilloCommandImpl<>("Save user workspace" + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            rExecutorService.saveWorkspace(
-                SAVE_PATTERN, connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
+            rExecutorService.saveWorkspace(connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
             return null;
           }
         });

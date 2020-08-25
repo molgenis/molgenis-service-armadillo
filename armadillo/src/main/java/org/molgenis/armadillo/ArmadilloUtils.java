@@ -17,7 +17,6 @@ public class ArmadilloUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloUtils.class);
 
-  public static final String TABLE_ENV = ".DSTableEnv";
   public static final String GLOBAL_ENV = ".GlobalEnv";
 
   private ArmadilloUtils() {}

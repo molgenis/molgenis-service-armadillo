@@ -121,11 +121,11 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     doAnswer(
             invocation -> {
-              invocation.getArgument(2, Consumer.class).accept(inputStream);
+              invocation.getArgument(1, Consumer.class).accept(inputStream);
               return null;
             })
         .when(rExecutorService)
-        .saveWorkspace(eq("^(?!\\Q.DSTableEnv\\E).*"), eq(rConnection), any(Consumer.class));
+        .saveWorkspace(eq(rConnection), any(Consumer.class));
 
     commands.saveWorkspace(principal, "core").get();
     verify(rConnection).detach();
