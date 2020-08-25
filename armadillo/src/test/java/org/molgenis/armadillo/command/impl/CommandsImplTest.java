@@ -50,7 +50,7 @@ class CommandsImplTest {
   private CommandsImpl commands;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -62,7 +62,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testSchedule() throws ExecutionException, InterruptedException, RserveException {
+  void testSchedule() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
@@ -80,7 +80,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testScheduleFailingCommand() throws RserveException {
+  void testScheduleFailingCommand() throws RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     IllegalStateException exception = new IllegalStateException("Error");
 
@@ -99,7 +99,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testAssign() throws ExecutionException, InterruptedException, RserveException {
+  void testAssign() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     commands.assign("D", "E").get();
 
@@ -108,7 +108,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
+  void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
 
@@ -117,7 +117,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
+  void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     doAnswer(
             invocation -> {
@@ -132,7 +132,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
+  void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
 
@@ -144,7 +144,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
+  void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(armadilloStorage.loadTable("project", "folder/table.parquet")).thenReturn(inputStream);
 
@@ -161,7 +161,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
+  void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);

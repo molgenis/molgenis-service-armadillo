@@ -38,7 +38,7 @@ class ArmadilloSessionTest {
   @Mock private ProcessService processService;
 
   @BeforeEach
-  public void before() {
+  void before() {
     this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 

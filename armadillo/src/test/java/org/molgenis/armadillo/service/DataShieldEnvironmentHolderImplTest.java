@@ -41,14 +41,14 @@ class DataShieldEnvironmentHolderImplTest {
   private DataShieldEnvironmentHolderImpl environmentHolder;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     environmentHolder =
         new DataShieldEnvironmentHolderImpl(
             packageService, rConnectionFactory, dataShieldProperties);
   }
 
   @Test
-  public void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
+  void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
@@ -61,7 +61,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  public void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
+  void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
@@ -81,7 +81,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  public void testPopulateIllegalMethodName() {
+  void testPopulateIllegalMethodName() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         IllegalRMethodStringException.class,
@@ -91,7 +91,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  public void testPopulateDuplicateMethodName() {
+  void testPopulateDuplicateMethodName() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         DuplicateRMethodException.class,
@@ -101,7 +101,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  public void testPopulateMethodFromNonWhitelistedPackage() {
+  void testPopulateMethodFromNonWhitelistedPackage() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
     assertThrows(
         IllegalRPackageException.class,

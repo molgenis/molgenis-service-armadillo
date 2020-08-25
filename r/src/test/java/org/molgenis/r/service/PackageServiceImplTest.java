@@ -2,8 +2,6 @@ package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.molgenis.r.model.RPackageTest.BASE;
-import static org.molgenis.r.model.RPackageTest.DESC;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.REXPParser;
+import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -21,6 +20,22 @@ import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class PackageServiceImplTest {
+  static RPackage BASE =
+      RPackage.builder()
+          .setName("base")
+          .setVersion("3.6.1")
+          .setBuilt("3.6.1")
+          .setLibPath("/usr/local/lib/R/site-library")
+          .build();
+
+  static RPackage DESC =
+      RPackage.builder()
+          .setName("desc")
+          .setVersion("1.2.0")
+          .setBuilt("3.6.1")
+          .setLibPath("/usr/local/lib/R/site-library")
+          .build();
+
   @Mock private REXPParser rexpParser;
   @Mock private REXPString rexp;
   @Mock private RConnection rConnection;
@@ -33,7 +48,7 @@ class PackageServiceImplTest {
   }
 
   @Test
-  public void testGetInstalledPackages() throws REXPMismatchException, RserveException {
+  void testGetInstalledPackages() throws REXPMismatchException, RserveException {
     when(rConnection.eval(
             "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
         .thenReturn(rexp);
@@ -62,7 +77,7 @@ class PackageServiceImplTest {
   }
 
   @Test
-  public void testParseSimpleOptions() throws REXPMismatchException, RserveException {
+  void testParseSimpleOptions() throws REXPMismatchException, RserveException {
     when(rConnection.eval(
             "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
         .thenReturn(rexp);
@@ -86,7 +101,7 @@ class PackageServiceImplTest {
   }
 
   @Test
-  public void testParseAssignMethods() throws REXPMismatchException, RserveException {
+  void testParseAssignMethods() throws REXPMismatchException, RserveException {
     when(rConnection.eval(
             "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
         .thenReturn(rexp);
@@ -110,7 +125,7 @@ class PackageServiceImplTest {
   }
 
   @Test
-  public void testParseAggregateMethods() throws REXPMismatchException, RserveException {
+  void testParseAggregateMethods() throws REXPMismatchException, RserveException {
     when(rConnection.eval(
             "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
         .thenReturn(rexp);
