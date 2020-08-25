@@ -96,6 +96,11 @@ class RExecutorServiceImplTest {
 
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of("col1", "col2"));
+
+    verify(rConnection)
+        .eval(
+            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = c(\"col1\",\"col2\"))}))})");
+    verify(rConnection).eval("try({base::unlink('project_folder_table.parquet')})");
   }
 
   @Test
@@ -111,6 +116,11 @@ class RExecutorServiceImplTest {
 
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of());
+
+    verify(rConnection)
+        .eval(
+            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})");
+    verify(rConnection).eval("try({base::unlink('project_folder_table.parquet')})");
   }
 
   @Test
@@ -124,5 +134,10 @@ class RExecutorServiceImplTest {
         "^(?!\\Q.DSTableEnv\\E).*",
         rConnection,
         inputStream -> assertSame(rFileInputStream, inputStream));
+
+    verify(rConnection)
+        .eval(
+            "try({base::save(list = base::grep(\"^(?!\\\\Q.DSTableEnv\\\\E).*\", base::ls(all.names=T), perl=T, value=T), file=\".RData\")})");
+    verify(rConnection).openFile(".RData");
   }
 }
