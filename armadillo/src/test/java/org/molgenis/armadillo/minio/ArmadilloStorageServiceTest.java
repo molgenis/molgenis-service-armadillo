@@ -77,8 +77,7 @@ class ArmadilloStorageServiceTest {
   void testListTablesListsObjectsInSharedBucket() {
     when(storageService.listObjects("shared-gecko")).thenReturn(List.of(item));
     when(item.objectName()).thenReturn("1_0_release_1_1/gecko.parquet");
-    assertEquals(
-        List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
+    assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
 
   @Test
@@ -92,15 +91,13 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testTableExistsAllowsSuperUser() {
-    assertDoesNotThrow(
-        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+    assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testTableExistsAllowsResearcher() {
-    assertDoesNotThrow(
-        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+    assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test

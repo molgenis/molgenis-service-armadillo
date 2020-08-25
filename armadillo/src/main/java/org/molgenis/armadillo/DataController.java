@@ -148,12 +148,11 @@ public class DataController {
     if (!storage.tableExists(project, objectName)) {
       return completedFuture(notFound().build());
     }
-    var variableList = Optional.ofNullable(variables)
-        .map(it -> it.split(","))
-        .stream()
-        .flatMap(Arrays::stream)
-        .map(String::trim)
-        .collect(toList());
+    var variableList =
+        Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+            .flatMap(Arrays::stream)
+            .map(String::trim)
+            .collect(toList());
     var result = commands.loadTable(symbol, table, variableList);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))

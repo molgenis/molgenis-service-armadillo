@@ -112,9 +112,7 @@ class DataControllerTest {
         .perform(get("/tables"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(
-            content()
-                .json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
+        .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
   }
 
   @Test
@@ -128,9 +126,7 @@ class DataControllerTest {
   @WithMockUser
   void testTableNotFound() throws Exception {
     when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(false);
-    mockMvc
-        .perform(head("/tables/gecko/1_1_outcome_2_0/core"))
-        .andExpect(status().isNotFound());
+    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isNotFound());
   }
 
   @Test
@@ -443,7 +439,9 @@ class DataControllerTest {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight"))
+        .perform(
+            post(
+                "/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight"))
         .andExpect(status().isOk());
   }
 
