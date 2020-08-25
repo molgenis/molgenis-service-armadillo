@@ -20,11 +20,11 @@ services:
       MINIO_URL: http://minio
       MINIO_ACCESS_KEY: molgenis
       MINIO_SECRET_KEY: molgenis
-      RSERVE_HOST: rserve
+      RSERVE_HOST: rserver
     ports:
       - 3000:8080
   rserver:
-    image: molgenis/ds-60-rserver-363:latest
+    image: molgenis/ds-60-rserver-363:PR-55
     environment:
       DEBUG: "FALSE"
     ports:

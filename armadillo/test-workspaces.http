@@ -12,6 +12,9 @@ Content-Type: text/plain
 1:5
 
 ###
+GET http://localhost:8080/symbols
+
+###
 DELETE http://localhost:8080/symbols/D
 
 ### List user workspaces

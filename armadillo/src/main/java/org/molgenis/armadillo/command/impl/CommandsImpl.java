@@ -103,11 +103,11 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<Void> loadWorkspace(Principal principal, String id) {
+    InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
     return schedule(
         new ArmadilloCommandImpl<>("Load user workspace " + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
             rExecutorService.loadWorkspace(
                 connection, new InputStreamResource(inputStream), GLOBAL_ENV);
             return null;
@@ -120,13 +120,17 @@ class CommandsImpl implements Commands {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
+    InputStream inputStream = armadilloStorage.loadTable(project, objectName);
     return schedule(
         new ArmadilloCommandImpl<>("Load " + table, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            InputStream inputStream = armadilloStorage.loadTable(project, objectName);
             rExecutorService.loadTable(
-                connection, new InputStreamResource(inputStream), table, symbol, variables);
+                connection,
+                new InputStreamResource(inputStream),
+                table + ".parquet",
+                symbol,
+                variables);
             return null;
           }
         });

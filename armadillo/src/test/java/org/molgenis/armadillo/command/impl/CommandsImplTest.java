@@ -146,9 +146,9 @@ class CommandsImplTest {
   @Test
   void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(armadilloStorage.loadTable("project", "folder/table.parquet")).thenReturn(inputStream);
+    when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
 
-    commands.loadTable("D", "project/folder/table.parquet", List.of("col1", "col2")).get();
+    commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
 
     verify(rConnection).detach();
     verify(rExecutorService)

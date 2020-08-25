@@ -16,14 +16,14 @@ HEAD http://localhost:8080/tables/gecko/lc_core_gecko_2_1/iris
 POST http://localhost:8080/load-table?symbol=D&table=chicago/crime/arrests
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT&variables=age,name
+POST http://localhost:8080/load-table?symbol=D&table=chicago/crime/crimes&variables=Arrest
 
 ###
 POST http://localhost:8080/debug
 Accept: application/json
 Content-Type: text/plain
 
-colnames(D)
+dsBase::meanDS(D$Arrest)$EstimatedMean
 
 ###
 GET http://localhost:8080/symbols
@@ -33,7 +33,7 @@ POST http://localhost:8080/execute
 Accept: application/octet-stream
 Content-Type: text/plain
 
-meanDS(D$age)
+meanDS(D$Arrest)
 
 ###
 DELETE http://localhost:8080/symbols/D

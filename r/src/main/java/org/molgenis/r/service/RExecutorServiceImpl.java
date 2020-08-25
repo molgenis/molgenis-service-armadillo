@@ -89,24 +89,22 @@ public class RExecutorServiceImpl implements RExecutorService {
     String rFileName = filename.replace("/", "_");
     try {
       copyFile(resource, rFileName, connection);
-      if (filename.endsWith(".parquet")) {
-        if (variables.isEmpty()) {
-          connection.eval(
-              format(
-                  "is.null(base::assign('%s', value={arrow::read_parquet('%s')}))",
-                  symbol, rFileName));
-        } else {
-          var colSelect = Formatter.stringVector(variables.toArray(new String[] {}));
-          connection.eval(
-              format(
-                  "is.null(base::assign('%s', value={arrow::read_parquet('%s', col_select = %s)}))",
-                  symbol, rFileName, colSelect));
-        }
+      if (variables.isEmpty()) {
+        execute(
+            format(
+                "is.null(base::assign('%s', value={arrow::read_parquet('%s')}))",
+                symbol, rFileName),
+            connection);
       } else {
-        throw new UnsupportedOperationException("Can only load .parquet files");
+        var colSelect = Formatter.stringVector(variables.toArray(new String[] {}));
+        execute(
+            format(
+                "is.null(base::assign('%s', value={arrow::read_parquet('%s', col_select = %s)}))",
+                symbol, rFileName, colSelect),
+            connection);
       }
-      connection.eval(format("base::unlink('%s')", rFileName));
-    } catch (IOException | RserveException e) {
+      execute(format("base::unlink('%s')", rFileName), connection);
+    } catch (IOException e) {
       throw new RExecutionException(e);
     }
   }

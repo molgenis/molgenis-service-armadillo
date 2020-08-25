@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -87,13 +88,14 @@ class RExecutorServiceImplTest {
     when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
+    when(rConnection.eval(
+            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = c(\"col1\",\"col2\"))}))})"))
+        .thenReturn(new REXPLogical(true));
+    when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
+        .thenReturn(new REXPNull());
+
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of("col1", "col2"));
-
-    verify(rConnection)
-        .eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = c(\"col1\",\"col2\"))}))");
-    verify(rConnection).eval("base::unlink('project_folder_table.parquet')");
   }
 
   @Test
@@ -101,13 +103,14 @@ class RExecutorServiceImplTest {
     when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
+    when(rConnection.eval(
+            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})"))
+        .thenReturn(new REXPLogical(true));
+    when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
+        .thenReturn(new REXPNull());
+
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of());
-
-    verify(rConnection)
-        .eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))");
-    verify(rConnection).eval("base::unlink('project_folder_table.parquet')");
   }
 
   @Test
