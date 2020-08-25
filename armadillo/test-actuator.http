@@ -3,6 +3,8 @@ GET http://localhost:8080/actuator/info
 
 ### retrieve R processes
 GET http://localhost:8080/actuator/rserveProcesses
+Authorization: Basic admin admin
 
 ### delete process by pid
 DELETE http://localhost:8080/actuator/rserveProcesses?pid=157
+Authorization: Basic admin admin

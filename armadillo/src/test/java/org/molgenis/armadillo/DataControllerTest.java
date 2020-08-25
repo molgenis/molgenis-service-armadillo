@@ -14,7 +14,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.armadillo.DataController.SHARED_WORKSPACE_FORMAT_REGEX;
+import static org.molgenis.armadillo.DataController.TABLE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -106,7 +106,7 @@ class DataControllerTest {
   void getGetTables() throws Exception {
     when(armadilloStorage.listProjects()).thenReturn(List.of("gecko"));
     when(armadilloStorage.listTables("gecko"))
-        .thenReturn(List.of("gecko/1_1_core_2_1/core.parquet", "gecko/1_1_core_2_2/core.parquet"));
+        .thenReturn(List.of("gecko/1_1_core_2_1/core", "gecko/1_1_core_2_2/core"));
 
     mockMvc
         .perform(get("/tables"))
@@ -114,22 +114,22 @@ class DataControllerTest {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
             content()
-                .json("[\"gecko/1_1_core_2_1/core.parquet\",\"gecko/1_1_core_2_2/core.parquet\"]"));
+                .json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
   }
 
   @Test
   @WithMockUser
   void testTableExists() throws Exception {
-    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core.parquet")).thenReturn(true);
-    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core.parquet")).andExpect(status().isOk());
+    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(true);
+    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isOk());
   }
 
   @Test
   @WithMockUser
   void testTableNotFound() throws Exception {
-    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core.parquet")).thenReturn(false);
+    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(false);
     mockMvc
-        .perform(head("/tables/gecko/1_1_outcome_2_0/core.parquet"))
+        .perform(head("/tables/gecko/1_1_outcome_2_0/core"))
         .andExpect(status().isNotFound());
   }
 
@@ -416,51 +416,47 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testLoadTableDoesNotExist() throws Exception {
-    when(armadilloStorage.listProjects()).thenReturn(emptyList());
+    when(armadilloStorage.tableExists("gecko", "core/core-all")).thenReturn(false);
 
     var result =
-        mockMvc.perform(post("/load-table?symbol=D&table=gecko/core/core-all.parquet")).andReturn();
+        mockMvc.perform(post("/load-table?symbol=D&table=gecko/core/core-all")).andReturn();
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
   @Test
   @WithMockUser
   void testLoadTable() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
-
-    when(commands.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
+    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(commands.loadTable("D", "project/folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .perform(post("/load-table?symbol=D&table=project/folder/table&async=false"))
         .andExpect(status().isOk());
   }
 
   @Test
   @WithMockUser
   void testLoadTableWithVariables() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
-
-    when(commands.assign("D", "base::local(datashield.PATIENT[,c(\"age\")], envir = .DSTableEnv)"))
+    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=datashield.PATIENT&variables=age"))
+        .perform(post("/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight"))
         .andExpect(status().isOk());
   }
 
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "diabetes/test",
-        "maximumbucketlengthincludingprefixissixtythreecharacters/test",
-        "000-222-211-4112/test",
-        "a-b-c-d/test"
+        "diabetes/test/blah",
+        "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
+        "000-222-211-4112/test/blah",
+        "a-b-c-d/test/blah"
       })
-  void testValidSharedWorkspaceName(String name) {
-    assertTrue(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
+  void testValidTableName(String name) {
+    assertTrue(name.matches(TABLE_REGEX));
   }
 
   @ParameterizedTest
@@ -473,6 +469,6 @@ class DataControllerTest {
         "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
       })
   void testInvalidSharedWorkspaceName(String name) {
-    assertFalse(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
+    assertFalse(name.matches(TABLE_REGEX));
   }
 }

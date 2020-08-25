@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +22,7 @@ public class ArmadilloStorageService {
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
+  public static final String PARQUET = ".parquet";
   private final MinioStorageService storageService;
 
   public ArmadilloStorageService(MinioStorageService storageService) {
@@ -42,17 +44,19 @@ public class ArmadilloStorageService {
     return storageService.listObjects(bucketName).stream()
         .map(Item::objectName)
         .map(objectName -> format("%s/%s", project, objectName))
+        .filter(it -> it.endsWith(PARQUET))
+        .map(FilenameUtils::removeExtension)
         .collect(toList());
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean tableExists(String project, String objectName) {
-    return storageService.objectExists(SHARED_PREFIX + project, objectName);
+    return storageService.objectExists(SHARED_PREFIX + project, objectName + PARQUET);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadTable(String project, String objectName) {
-    return storageService.load(SHARED_PREFIX + project, objectName);
+    return storageService.load(SHARED_PREFIX + project, objectName + PARQUET);
   }
 
   public List<Workspace> listWorkspaces(Principal principal) {

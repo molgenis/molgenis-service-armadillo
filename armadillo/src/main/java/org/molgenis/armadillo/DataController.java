@@ -34,6 +34,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
@@ -78,7 +79,7 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
-  public static final String SHARED_WORKSPACE_FORMAT_REGEX = "^[a-z0-9-]{0,55}[a-z0-9]/[\\w-:]+$";
+  public static final String TABLE_REGEX = "^([a-z0-9-]{0,55}[a-z0-9])\\/([\\w-:]+\\/[\\w-:]+)$";
 
   private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
@@ -136,13 +137,23 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
-      @RequestParam String table,
+      @Valid @Pattern(regexp = TABLE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
-    if (!getTables().contains(table)) {
+    var pattern = java.util.regex.Pattern.compile(TABLE_REGEX);
+    var matcher = pattern.matcher(table);
+    matcher.find();
+    var project = matcher.group(1);
+    var objectName = matcher.group(2);
+    if (!storage.tableExists(project, objectName)) {
       return completedFuture(notFound().build());
     }
-    var variableList = Arrays.stream(variables.split(",")).map(String::trim).collect(toList());
+    var variableList = Optional.ofNullable(variables)
+        .map(it -> it.split(","))
+        .stream()
+        .flatMap(Arrays::stream)
+        .map(String::trim)
+        .collect(toList());
     var result = commands.loadTable(symbol, table, variableList);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))

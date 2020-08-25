@@ -78,7 +78,7 @@ class ArmadilloStorageServiceTest {
     when(storageService.listObjects("shared-gecko")).thenReturn(List.of(item));
     when(item.objectName()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(
-        List.of("gecko/1_0_release_1_1/gecko.parquet"), armadilloStorage.listTables("gecko"));
+        List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
 
   @Test
@@ -86,21 +86,21 @@ class ArmadilloStorageServiceTest {
   void testTableExistsChecksPermission() {
     assertThrows(
         AccessDeniedException.class,
-        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko.parquet"));
+        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testTableExistsAllowsSuperUser() {
     assertDoesNotThrow(
-        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko.parquet"));
+        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testTableExistsAllowsResearcher() {
     assertDoesNotThrow(
-        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko.parquet"));
+        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
@@ -108,7 +108,7 @@ class ArmadilloStorageServiceTest {
   void testTableExistsChecksExistence() {
     when(storageService.objectExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
         .thenReturn(true);
-    assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko.parquet"));
+    assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
@@ -116,26 +116,26 @@ class ArmadilloStorageServiceTest {
   void testLoadTableChecksPermission() {
     assertThrows(
         AccessDeniedException.class,
-        () -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko.parquet"));
+        () -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testLoadTableAllowsSuperUser() {
-    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko.parquet"));
+    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testLoadTableAllowsResearcher() {
-    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko.parquet"));
+    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testLoadTableLoadsTable() {
     when(storageService.load("shared-gecko", "1_0_release_1_1/gecko.parquet")).thenReturn(is);
-    assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko.parquet"));
+    assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
   @Test

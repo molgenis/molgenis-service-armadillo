@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.minio;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.minio.ErrorCode.NO_SUCH_BUCKET;
 import static io.minio.ErrorCode.NO_SUCH_KEY;
 import static io.minio.ErrorCode.NO_SUCH_OBJECT;
 
@@ -44,7 +45,7 @@ class MinioStorageService {
       return true;
     } catch (ErrorResponseException error) {
       var code = error.errorResponse().errorCode();
-      if (code == NO_SUCH_KEY || code == NO_SUCH_OBJECT) {
+      if (code == NO_SUCH_KEY || code == NO_SUCH_OBJECT || code == NO_SUCH_BUCKET) {
         return false;
       } else {
         throw new StorageException(error);
