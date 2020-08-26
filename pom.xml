@@ -43,6 +43,8 @@
     </distributionManagement>
 
     <properties>
+        <project.scm.id>github</project.scm.id>
+             
         <java.version>11</java.version>
 
         <!-- authentication for release scm plugin -->
