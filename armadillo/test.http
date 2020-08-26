@@ -1,35 +1,29 @@
 ###
 GET http://localhost:8080/v3/api-docs
 
-###
-GET http://localhost:8080/actuator/info
-
 ### authenticate with JWT token
-POST http://localhost:8080/load-tables?workspace=diabetes/patient,gecko/patient
+GET http://localhost:8080/tables
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlcwbmltejhpYU9DLW16OXNaTVRiVzRfbFdMMCJ9.eyJhdWQiOiJiMzk2MjMzYi1jZGIyLTQ0OWUtYWM1Yy1hMGQyOGIzOGY3OTEiLCJleHAiOjE1OTMxMDEwNTAsImlhdCI6MTU5MzA5NzQ1MCwiaXNzIjoiaHR0cHM6Ly9hdXRoLm1vbGdlbmlzLm9yZyIsInN1YiI6ImNjY2RlMmZlLTc0NWEtNDUxMS05Yjk1LTNlZTgzNDYxOTNiNiIsImF1dGhlbnRpY2F0aW9uVHlwZSI6IlBBU1NXT1JEIiwiZW1haWwiOiJmLmtlbHBpbkB1bWNnLm5sIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJJYVpGajZWRGl0TWpTcmxhbTlWZGJBIiwiY19oYXNoIjoidHdxWS1kMl9IOG5leWNjQmVmMFE5USIsImFwcGxpY2F0aW9uSWQiOiJiMzk2MjMzYi1jZGIyLTQ0OWUtYWM1Yy1hMGQyOGIzOGY3OTEiLCJyb2xlcyI6WyJTVSJdLCJwb2xpY3kiOiJyZWFkd3JpdGUifQ.mEZfqpBfNnaLKZw0tn0VJwGlx3TKqtGKX4TqeeMg0wvwetVrTfk_7nCc2a1BgnrhHQzFncUc5uM67B95yVsZuxpJ-T2uBKGp2k890n5D2i5o0hM6kvfv3OJHHHNyF_MuDHS0ST3bVBuUo8Sc1nbvUVJtSqQZ51HXaXbwKH_fbRxvBpuHMWSGXZdzHNdHELvaBFHPV_aMHpN6jyK1AY5oc-vXVIOsLOy6-i2tK1Hjnm6iI8O6CD1f4IF7H_mp_x3Dfbk30nvR4RchgPq26ekPpYm7P96L_RZTwh4FLxbjN43AdOgmiLjL_RMkGL3spsnQX-nkzwvkvuL-PmSjsB7jcw
 
 ### authenticate with basic auth
-POST http://localhost:8080/load-tables?workspace=diabetes/patient,gecko/patient
+GET http://localhost:8080/tables
 Authorization: Basic admin admin
 
 ###
-GET http://localhost:8080/tables
+HEAD http://localhost:8080/tables/gecko/lc_core_gecko_2_1/iris
 
 ###
-HEAD http://localhost:8080/tables/datashield.PATIENT
+POST http://localhost:8080/load-table?symbol=D&table=chicago/crime/arrests
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT
-
-###
-POST http://localhost:8080/load-table?symbol=D&table=datashield.PATIENT&variables=age,name
+POST http://localhost:8080/load-table?symbol=D&table=chicago/crime/crimes&variables=Arrest
 
 ###
 POST http://localhost:8080/debug
 Accept: application/json
 Content-Type: text/plain
 
-colnames(D)
+dsBase::meanDS(D$Arrest)$EstimatedMean
 
 ###
 GET http://localhost:8080/symbols
@@ -39,7 +33,7 @@ POST http://localhost:8080/execute
 Accept: application/octet-stream
 Content-Type: text/plain
 
-meanDS(D$age)
+meanDS(D$Arrest)
 
 ###
 DELETE http://localhost:8080/symbols/D

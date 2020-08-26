@@ -7,10 +7,9 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
+import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.r.Formatter.stringVector;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -33,13 +32,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -77,19 +79,21 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
-  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
-  public static final String SHARED_WORKSPACE_FORMAT_REGEX = "^[a-z0-9-]{0,55}[a-z0-9]/[\\w-:]+$";
+  public static final String TABLE_REGEX = "^([a-z0-9-]{0,55}[a-z0-9])\\/([\\w-:]+\\/[\\w-:]+)$";
 
   private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
+  private final ArmadilloStorageService storage;
   private final DataShieldEnvironmentHolder environments;
 
   public DataController(
       ExpressionRewriter expressionRewriter,
       Commands commands,
+      ArmadilloStorageService storage,
       DataShieldEnvironmentHolder environments) {
     this.expressionRewriter = expressionRewriter;
     this.commands = commands;
+    this.storage = storage;
     this.environments = environments;
   }
 
@@ -104,11 +108,11 @@ public class DataController {
       description =
           "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
-  public List<String> getTables()
-      throws ExecutionException, InterruptedException, REXPMismatchException {
-    final String command = format("base::local(base::ls(%s))", TABLE_ENV);
-    REXP result = commands.evaluate(command).get();
-    return asList(result.asStrings());
+  public List<String> getTables() {
+    return storage.listProjects().stream()
+        .map(storage::listTables)
+        .flatMap(List::stream)
+        .collect(toList());
   }
 
   @Operation(
@@ -118,10 +122,43 @@ public class DataController {
             responseCode = "200",
             description = "The table exists and is available for DataSHIELD operations")
       })
-  @RequestMapping(value = "/tables/{tableId}", method = HEAD)
-  public ResponseEntity<Void> tableExists(@PathVariable String tableId)
-      throws InterruptedException, ExecutionException, REXPMismatchException {
-    return getTables().contains(tableId) ? ok().build() : notFound().build();
+  @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
+  public ResponseEntity<Void> tableExists(
+      @PathVariable String project, @PathVariable String folder, @PathVariable String table) {
+    return storage.tableExists(project, format("%s/%s", folder, table))
+        ? ok().build()
+        : notFound().build();
+  }
+
+  @Operation(
+      summary = "Load table",
+      description = "Load a table",
+      security = {@SecurityRequirement(name = "jwt")})
+  @PostMapping(value = "/load-table")
+  public CompletableFuture<ResponseEntity<Void>> loadTable(
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      @Valid @Pattern(regexp = TABLE_REGEX) @RequestParam String table,
+      @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
+      @RequestParam(defaultValue = "false") boolean async) {
+    var pattern = java.util.regex.Pattern.compile(TABLE_REGEX);
+    var matcher = pattern.matcher(table);
+    matcher.find();
+    var project = matcher.group(1);
+    var objectName = matcher.group(2);
+    if (!storage.tableExists(project, objectName)) {
+      return completedFuture(notFound().build());
+    }
+    var variableList =
+        Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+            .flatMap(Arrays::stream)
+            .map(String::trim)
+            .collect(toList());
+    var result = commands.loadTable(symbol, table, variableList);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
   @Operation(summary = "Get assigned symbols")
@@ -140,29 +177,6 @@ public class DataController {
       throws ExecutionException, InterruptedException {
     String command = format("base::rm(%s)", symbol);
     commands.evaluate(command).get();
-  }
-
-  @Operation(
-      summary = "Load table",
-      description = "Copy variables of a table into a symbol",
-      security = {@SecurityRequirement(name = "jwt")})
-  @PostMapping(value = "/load-table")
-  public ResponseEntity<Void> loadTable(
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String table,
-      @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables)
-      throws InterruptedException, ExecutionException, REXPMismatchException {
-    if (!getTables().contains(table)) {
-      return notFound().build();
-    }
-    String expression = table;
-    if (variables != null) {
-      String[] split = variables.split(",");
-      expression = format("%s[,%s]", table, stringVector(split));
-    }
-    expression = format("base::local(%s, envir = %s)", expression, TABLE_ENV);
-    commands.assign(symbol, expression).get();
-    return ok().build();
   }
 
   @Operation(
@@ -249,7 +263,7 @@ public class DataController {
   @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
-    return commands.listWorkspaces(getUserBucketName(principal));
+    return storage.listWorkspaces(principal);
   }
 
   @Operation(
@@ -266,7 +280,7 @@ public class DataController {
               message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
-    commands.removeWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id));
+    storage.removeWorkspace(principal, id);
   }
 
   @Operation(summary = "Save user workspace")
@@ -280,25 +294,7 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.saveWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
-  }
-
-  @Operation(
-      summary = "Load shared workspaces",
-      description =
-          "Make tables from shared workspaces available for assignment. You need load permission on the workspaces.")
-  @PreAuthorize("hasPermission(#workspace, 'Workspace', 'load')")
-  @PostMapping(value = "/load-tables")
-  public void loadTables(
-      @RequestParam
-          List<
-                  @Pattern(
-                      regexp = SHARED_WORKSPACE_FORMAT_REGEX,
-                      message = "Please use a valid workspace name")
-                  String>
-              workspace)
-      throws ExecutionException, InterruptedException {
-    commands.loadWorkspaces(workspace).get();
+    commands.saveWorkspace(principal, id).get();
   }
 
   @Operation(summary = "Load user workspace")
@@ -311,19 +307,6 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.loadUserWorkspace(getUserBucketName(principal), getWorkspaceObjectName(id)).get();
-  }
-
-  private static String getWorkspaceObjectName(String id) {
-    return id + ".RData";
-  }
-
-  private static String getUserBucketName(Principal principal) {
-    String bucketName = "user-" + principal.getName();
-    if (!bucketName.matches(BUCKET_REGEX)) {
-      throw new IllegalArgumentException(
-          "Cannot create valid S3 bucket for username " + principal.getName());
-    }
-    return bucketName;
+    commands.loadWorkspace(principal, id).get();
   }
 }

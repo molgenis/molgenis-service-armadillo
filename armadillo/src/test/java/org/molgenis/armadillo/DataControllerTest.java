@@ -1,19 +1,20 @@
 package org.molgenis.armadillo;
 
 import static java.time.Instant.now;
-import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.armadillo.DataController.SHARED_WORKSPACE_FORMAT_REGEX;
+import static org.molgenis.armadillo.DataController.TABLE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,6 +43,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -53,10 +56,7 @@ import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -65,14 +65,6 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebMvcTest(DataController.class)
 @ActiveProfiles("test")
 class DataControllerTest {
-
-  @TestConfiguration
-  static class PermissionBean {
-    @Bean
-    PermissionEvaluator permissionEvaluator() {
-      return new ArmadilloPermissionEvaluator();
-    }
-  }
 
   static RPackage BASE =
       RPackage.builder()
@@ -93,6 +85,7 @@ class DataControllerTest {
   @Autowired private MockMvc mockMvc;
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
+  @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean private DataShieldEnvironmentHolder environments;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
@@ -111,32 +104,29 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void getGetTables() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
+    when(armadilloStorage.listProjects()).thenReturn(List.of("gecko"));
+    when(armadilloStorage.listTables("gecko"))
+        .thenReturn(List.of("gecko/1_1_core_2_1/core", "gecko/1_1_core_2_2/core"));
 
     mockMvc
         .perform(get("/tables"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[\"datashield.PATIENT\",\"datashield.SAMPLE\"]"));
+        .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
   }
 
   @Test
   @WithMockUser
   void testTableExists() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT", "datashield.SAMPLE"});
-
-    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isOk());
+    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(true);
+    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isOk());
   }
 
   @Test
   @WithMockUser
   void testTableNotFound() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {});
-
-    mockMvc.perform(head("/tables/datashield.PATIENT")).andExpect(status().isNotFound());
+    when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(false);
+    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isNotFound());
   }
 
   @Test
@@ -247,13 +237,13 @@ class DataControllerTest {
   void testDeleteWorkspace() throws Exception {
     mockMvc.perform(delete("/workspaces/test")).andExpect(status().isOk());
 
-    verify(commands).removeWorkspace("user-henk", "test.RData");
+    verify(armadilloStorage).removeWorkspace(any(Principal.class), eq("test"));
   }
 
   @Test
   @WithMockUser(username = "henk")
   void testSaveWorkspace() throws Exception {
-    when(commands.saveWorkspace("user-henk", "servername:test_dash.RData"))
+    when(commands.saveWorkspace(any(Principal.class), eq("servername:test_dash")))
         .thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/workspaces/servername:test_dash")).andExpect(status().isCreated());
@@ -274,7 +264,8 @@ class DataControllerTest {
   @Test
   @WithMockUser(username = "henk")
   void testLoadWorkspace() throws Exception {
-    when(commands.loadUserWorkspace("user-henk", "blah.RData")).thenReturn(completedFuture(null));
+    when(commands.loadWorkspace(any(Principal.class), eq("blah")))
+        .thenReturn(completedFuture(null));
 
     mockMvc.perform(post("/load-workspace?id=blah")).andExpect(status().isOk());
   }
@@ -421,71 +412,49 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testLoadTableDoesNotExist() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {});
+    when(armadilloStorage.tableExists("gecko", "core/core-all")).thenReturn(false);
 
-    mockMvc
-        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
-        .andExpect(status().isNotFound());
+    var result =
+        mockMvc.perform(post("/load-table?symbol=D&table=gecko/core/core-all")).andReturn();
+    mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
   @Test
   @WithMockUser
   void testLoadTable() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
-
-    when(commands.assign("D", "base::local(datashield.PATIENT, envir = .DSTableEnv)"))
+    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(commands.loadTable("D", "project/folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=datashield.PATIENT"))
+        .perform(post("/load-table?symbol=D&table=project/folder/table&async=false"))
         .andExpect(status().isOk());
   }
 
   @Test
   @WithMockUser
   void testLoadTableWithVariables() throws Exception {
-    when(commands.evaluate("base::local(base::ls(.DSTableEnv))")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"datashield.PATIENT"});
-
-    when(commands.assign("D", "base::local(datashield.PATIENT[,c(\"age\")], envir = .DSTableEnv)"))
+    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=datashield.PATIENT&variables=age"))
+        .perform(
+            post(
+                "/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight"))
         .andExpect(status().isOk());
-  }
-
-  @WithMockUser(roles = {"DIABETES_RESEARCHER", "GECKO_RESEARCHER"})
-  @Test
-  void testLoadTibbles() throws Exception {
-    when(commands.loadWorkspaces(asList("diabetes/patient", "gecko/patient")))
-        .thenReturn(completedFuture(null));
-    mockMvc
-        .perform(post("/load-tables?workspace=diabetes/patient&workspace=gecko/patient"))
-        .andExpect(status().isOk());
-  }
-
-  @WithMockUser(roles = {"DIABETES_RESEARCHER"})
-  @Test
-  void testLoadTibblesForbidden() throws Exception {
-    mockMvc
-        .perform(post("/load-tables?workspace=DIABETES/patient&workspace=GECKO/patient"))
-        .andExpect(status().isForbidden());
-    verifyNoInteractions(commands);
   }
 
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "diabetes/test",
-        "maximumbucketlengthincludingprefixissixtythreecharacters/test",
-        "000-222-211-4112/test",
-        "a-b-c-d/test"
+        "diabetes/test/blah",
+        "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
+        "000-222-211-4112/test/blah",
+        "a-b-c-d/test/blah"
       })
-  void testValidSharedWorkspaceName(String name) {
-    assertTrue(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
+  void testValidTableName(String name) {
+    assertTrue(name.matches(TABLE_REGEX));
   }
 
   @ParameterizedTest
@@ -498,6 +467,6 @@ class DataControllerTest {
         "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
       })
   void testInvalidSharedWorkspaceName(String name) {
-    assertFalse(name.matches(SHARED_WORKSPACE_FORMAT_REGEX));
+    assertFalse(name.matches(TABLE_REGEX));
   }
 }

@@ -1,9 +1,9 @@
 package org.molgenis.armadillo.command;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXP;
 
@@ -13,15 +13,11 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  List<Workspace> listWorkspaces(String bucketName);
+  CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
-  CompletableFuture<List<String>> loadWorkspaces(List<String> workspaces);
+  CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 
-  CompletableFuture<Void> loadUserWorkspace(String bucketName, String objectName);
-
-  CompletableFuture<Void> saveWorkspace(String bucketName, String objectName);
-
-  void removeWorkspace(String bucketName, String objectName);
+  CompletableFuture<Void> saveWorkspace(Principal principal, String id);
 
   CompletableFuture<List<RPackage>> getPackages();
 

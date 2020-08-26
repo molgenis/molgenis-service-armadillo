@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.minio;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
@@ -9,21 +8,22 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import io.minio.ErrorCode;
 import io.minio.MinioClient;
+import io.minio.ObjectStat;
 import io.minio.Result;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InvalidBucketNameException;
+import io.minio.messages.ErrorResponse;
 import io.minio.messages.Item;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.armadillo.model.Workspace;
 
 @ExtendWith(MockitoExtension.class)
 class MinioStorageServiceTest {
@@ -32,7 +32,10 @@ class MinioStorageServiceTest {
   @Mock private MinioClient minioClient;
   @Mock private InputStream inputStream;
   @Mock private Result<Item> itemResult;
+  @Mock private ErrorResponseException errorResponseException;
+  @Mock private ErrorResponse errorResponse;
   @Mock private Item item;
+  @Mock private ObjectStat objectStat;
 
   @BeforeEach
   void beforeEach() {
@@ -53,6 +56,41 @@ class MinioStorageServiceTest {
     minioStorageService.checkBucketExists("bucket");
 
     verify(minioClient).makeBucket("bucket");
+  }
+
+  @Test
+  void testCheckObjectExistsChecksExistenceNoSuchKey() throws Exception {
+    when(errorResponseException.errorResponse()).thenReturn(errorResponse);
+    when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_KEY);
+    doThrow(errorResponseException).when(minioClient).statObject("bucket", "object");
+
+    assertFalse(minioStorageService.objectExists("bucket", "object"));
+  }
+
+  @Test
+  void testCheckObjectExistsChecksExistenceNoSuchObject() throws Exception {
+    when(errorResponseException.errorResponse()).thenReturn(errorResponse);
+    when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_OBJECT);
+    doThrow(errorResponseException).when(minioClient).statObject("bucket", "object");
+
+    assertFalse(minioStorageService.objectExists("bucket", "object"));
+  }
+
+  @Test
+  void testCheckObjectExistsInvalidBucketname() throws Exception {
+    doThrow(new InvalidBucketNameException("Bucket", "no capitals in bucket name!"))
+        .when(minioClient)
+        .statObject("Bucket", "object");
+
+    assertThrows(
+        StorageException.class, () -> minioStorageService.objectExists("Bucket", "object"));
+  }
+
+  @Test
+  void testCheckObjectExistsChecksExistenceObjectExists() throws Exception {
+    when(minioClient.statObject("bucket", "object")).thenReturn(objectStat);
+
+    assertTrue(minioStorageService.objectExists("bucket", "object"));
   }
 
   @Test
@@ -80,29 +118,7 @@ class MinioStorageServiceTest {
 
   @Test
   void testListWorkspacesNoBucket() {
-    assertEquals(emptyList(), minioStorageService.listWorkspaces("user-admin"));
-  }
-
-  @Test
-  void testListWorkspaces() throws Exception {
-    Instant lastModified = Instant.now().truncatedTo(MILLIS);
-    Workspace workspace =
-        Workspace.builder()
-            .setName("blah")
-            .setLastModified(lastModified)
-            .setETag("\"abcde\"")
-            .setSize(56)
-            .build();
-
-    when(minioClient.bucketExists("user-admin")).thenReturn(true);
-    when(minioClient.listObjects("user-admin")).thenReturn(List.of(itemResult));
-    when(itemResult.get()).thenReturn(item);
-    when(item.objectName()).thenReturn("blah.RData");
-    when(item.lastModified()).thenReturn(Date.from(lastModified));
-    when(item.etag()).thenReturn(workspace.eTag());
-    when(item.objectSize()).thenReturn(workspace.size());
-
-    assertEquals(List.of(workspace), minioStorageService.listWorkspaces("user-admin"));
+    assertEquals(emptyList(), minioStorageService.listObjects("user-admin"));
   }
 
   @Test

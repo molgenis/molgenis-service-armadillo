@@ -1,14 +1,15 @@
 package org.molgenis.armadillo.command.impl;
 
-import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.model.Workspace;
+import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
-import org.molgenis.armadillo.service.StorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
@@ -37,23 +37,23 @@ import org.springframework.core.io.InputStreamResource;
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock StorageService storageService;
+  @Mock ArmadilloStorageService armadilloStorage;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock InputStream inputStream;
-  @Mock List<Workspace> workspaces;
   @Mock ProcessService processService;
   @Mock REXP rexp;
+  @Mock Principal principal;
   ExecutorService executorService = Executors.newSingleThreadExecutor();
   private CommandsImpl commands;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     commands =
         new CommandsImpl(
-            storageService,
+            armadilloStorage,
             packageService,
             rExecutorService,
             executorService,
@@ -62,7 +62,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testSchedule() throws ExecutionException, InterruptedException, RserveException {
+  void testSchedule() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
@@ -80,7 +80,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testScheduleFailingCommand() throws RserveException {
+  void testScheduleFailingCommand() throws RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     IllegalStateException exception = new IllegalStateException("Error");
 
@@ -99,7 +99,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testAssign() throws ExecutionException, InterruptedException, RserveException {
+  void testAssign() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     commands.assign("D", "E").get();
 
@@ -108,7 +108,7 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
+  void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
 
@@ -117,53 +117,56 @@ class CommandsImplTest {
   }
 
   @Test
-  public void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(storageService.load("shared-gecko", "core.RData")).thenReturn(inputStream);
-
-    commands.loadWorkspaces(asList("gecko/core")).get();
-
-    verify(rExecutorService)
-        .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(".DSTableEnv"));
-    verify(rConnection).detach();
-  }
-
-  @Test
-  public void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
+  void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     doAnswer(
             invocation -> {
-              invocation.getArgument(2, Consumer.class).accept(inputStream);
+              invocation.getArgument(1, Consumer.class).accept(inputStream);
               return null;
             })
         .when(rExecutorService)
-        .saveWorkspace(eq("^(?!\\Q.DSTableEnv\\E).*"), eq(rConnection), any(Consumer.class));
+        .saveWorkspace(eq(rConnection), any(Consumer.class));
 
-    commands.saveWorkspace("shared-gecko", "core.RData").get();
+    commands.saveWorkspace(principal, "core").get();
     verify(rConnection).detach();
   }
 
   @Test
-  public void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
+  void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
+
+    commands.loadWorkspace(principal, "core").get();
+
+    verify(rConnection).detach();
+    verify(rExecutorService)
+        .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(GLOBAL_ENV));
+  }
+
+  @Test
+  void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
+
+    commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
+
+    verify(rConnection).detach();
+    verify(rExecutorService)
+        .loadTable(
+            eq(rConnection),
+            any(InputStreamResource.class),
+            eq("project/folder/table.parquet"),
+            eq("D"),
+            eq(List.of("col1", "col2")));
+  }
+
+  @Test
+  void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
 
     assertSame(result, commands.getPackages().get());
     verify(rConnection).detach();
-  }
-
-  @Test
-  public void testListWorkspaces() {
-    when(storageService.listWorkspaces("user-admin")).thenReturn(workspaces);
-
-    assertSame(workspaces, commands.listWorkspaces("user-admin"));
-  }
-
-  @Test
-  public void testDeleteWorkspace() {
-    commands.removeWorkspace("user-admin", "test.RData");
-
-    verify(storageService).delete("user-admin", "test.RData");
   }
 }

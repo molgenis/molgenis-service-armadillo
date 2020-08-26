@@ -26,7 +26,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
-public class ArmadilloCommandImplTest {
+class ArmadilloCommandImplTest {
 
   @Mock private Clock clock;
   private ArmadilloCommandImpl command;

@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
-import static org.molgenis.armadillo.ArmadilloUtils.TABLE_ENV;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
@@ -27,7 +26,6 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   public RConnection createConnection() {
     try {
       RConnection connection = rConnectionFactory.createConnection();
-      createTableEnvironment(connection);
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {
@@ -39,9 +37,5 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
       con.eval(format("base::options(%s = %s)", option.getKey(), option.getValue()));
     }
-  }
-
-  private void createTableEnvironment(RConnection connection) throws RserveException {
-    connection.eval(format("%s <- base::new.env()", TABLE_ENV));
   }
 }

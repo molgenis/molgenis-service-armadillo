@@ -1,4 +1,5 @@
-POST http://localhost:8080/login?username=admin&password=admin
+POST http://localhost:8080/tables
+Authorization: Basic admin admin
 
 ###
 # Async and sync assign, parse exception => BAD REQUEST

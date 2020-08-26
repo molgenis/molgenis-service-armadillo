@@ -26,7 +26,7 @@ class ExpressionRewriterImplTest {
   @Mock private DSEnvironment mockEnvironment;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     when(environmentHolder.getEnvironment(any(DSMethodType.class))).thenReturn(mockEnvironment);
     expressionRewriter = new ExpressionRewriterImpl(environmentHolder);
   }

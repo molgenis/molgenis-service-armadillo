@@ -31,7 +31,7 @@ class DataShieldOptionsImplTest {
   DataShieldOptionsImpl options;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     options = new DataShieldOptionsImpl(dataShieldProperties, packageService, rConnectionFactory);
   }
 
