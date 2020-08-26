@@ -2,7 +2,6 @@ package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.regex.Pattern.quote;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
 import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
@@ -163,7 +162,8 @@ class CommandsImpl implements Commands {
         new ArmadilloCommandImpl<>("Save user workspace" + id, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
-            rExecutorService.saveWorkspace(connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
+            rExecutorService.saveWorkspace(
+                connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
             return null;
           }
         });
