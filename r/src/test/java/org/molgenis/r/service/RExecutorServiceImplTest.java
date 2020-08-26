@@ -129,8 +129,7 @@ class RExecutorServiceImplTest {
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
-        rConnection,
-        inputStream -> assertSame(rFileInputStream, inputStream));
+        rConnection, inputStream -> assertSame(rFileInputStream, inputStream));
 
     verify(rConnection).eval("try({base::save.image()})");
     verify(rConnection).openFile(".RData");
