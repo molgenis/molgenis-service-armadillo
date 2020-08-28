@@ -117,7 +117,7 @@ pipeline {
                         }
                     }
                 }
-                stage('Prepare Release [ x.x ]') {
+                stage('Prepare Release [ master ]') {
                     steps {
                         timeout(time: 40, unit: 'MINUTES') {
                             input(message: 'Prepare to release?')
@@ -127,7 +127,7 @@ pipeline {
                         }
                     }
                 }
-                stage('Perform release [ x.x ]') {
+                stage('Perform release [ master ]') {
                     steps {
                         container('maven') {
                             sh "mvn -B release:perform -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""

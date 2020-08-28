@@ -12,8 +12,7 @@
 
   <properties>
     <dockerfile.tag>${project.version}</dockerfile.tag>
-    <dockerfile.repository>registry.hub.docker.com/molgenis/armadillo
-    </dockerfile.repository>
+    <dockerfile.repository>molgenis/${artifactId}</dockerfile.repository>
     <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
     <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar
     </dockerfile.jarfile>
@@ -195,6 +194,7 @@
             <JAR_FILE>${dockerfile.jarfile}</JAR_FILE>
           </buildArgs>
           <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+          <skipDockerInfo>true</skipDockerInfo>
         </configuration>
       </plugin>
     </plugins>
