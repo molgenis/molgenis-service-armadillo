@@ -14,7 +14,7 @@
     </parent>
     <groupId>org.molgenis</groupId>
     <artifactId>armadillo-service</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.4</version>
     <name>armadillo-service</name>
     <description>MOLGENIS Armadillo</description>
     <organization>
@@ -25,7 +25,7 @@
     <scm>
         <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_TOKEN}@github.com/molgenis/molgenis-service-datashield</developerConnection>
         <url>https://github.com/molgenis/molgenis-service-datashield</url>
-        <tag>HEAD</tag>
+        <tag>armadillo-service-0.0.4</tag>
     </scm>
 
     <distributionManagement>
