@@ -130,12 +130,7 @@ pipeline {
                 stage('Perform release [ x.x ]') {
                     steps {
                         container('maven') {
-                            script {
-                                env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
-                            }
-                            sh "mvn -q -B release:perform -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
-                            sh "cd target/checkout/armadillo && mvn -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                            sh "cd target/checkout/armadillo && mvn -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                            sh "mvn -B release:perform -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }

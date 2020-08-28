@@ -169,6 +169,25 @@
         <groupId>com.spotify</groupId>
         <artifactId>dockerfile-maven-plugin</artifactId>
         <version>${dockerfile-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>default</id>
+            <goals>
+              <goal>build</goal>
+              <goal>push</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>tag-latest</id>
+            <goals>
+              <goal>build</goal>
+              <goal>push</goal>
+            </goals>
+            <configuration>
+              <tag>latest</tag>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <repository>${dockerfile.repository}</repository>
           <tag>${dockerfile.tag}</tag>
@@ -176,13 +195,6 @@
             <JAR_FILE>${dockerfile.jarfile}</JAR_FILE>
           </buildArgs>
           <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <preparationGoals>clean verify dockerfile:build dockerfile:tag dockerfile:push</preparationGoals>
         </configuration>
       </plugin>
     </plugins>
