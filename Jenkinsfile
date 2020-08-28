@@ -123,7 +123,7 @@ pipeline {
                             input(message: 'Prepare to release?')
                         }
                         container('maven') {
-                            sh "mvn -q -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "mvn -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
@@ -133,9 +133,9 @@ pipeline {
                             script {
                                 env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
                             }
-                            sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
-                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                            sh "cd target/checkout/armadillo && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
+                            sh "mvn -q -B release:perform -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "cd target/checkout/armadillo && mvn -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
+                            sh "cd target/checkout/armadillo && mvn -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
                         }
                     }
                 }
