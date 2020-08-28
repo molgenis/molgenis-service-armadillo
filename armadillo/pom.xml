@@ -12,7 +12,7 @@
 
   <properties>
     <dockerfile.tag>${project.version}</dockerfile.tag>
-    <dockerfile.repository>registry.hub.docker.com/molgenis/${artifactId}</dockerfile.repository>
+    <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}</dockerfile.repository>
     <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
     <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar
     </dockerfile.jarfile>
