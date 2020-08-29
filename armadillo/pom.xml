@@ -172,10 +172,12 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <tags>
-                <!-- additional tags -->
-                <tag>latest</tag>
-              </tags>
+              <to>
+                <tags>
+                  <!-- additional tags -->
+                  <tag>latest</tag>
+                </tags>
+              </to>
             </configuration>
           </execution>
         </executions>
