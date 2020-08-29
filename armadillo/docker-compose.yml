@@ -11,10 +11,7 @@ services:
       MINIO_IDENTITY_OPENID_CONFIG_URL: "https://auth.molgenis.org/.well-known/openid-configuration"
     command: server /data
   armadillo:
-    build:
-      context: .
-      args:
-        JAR_FILE: target/armadillo-0.0.1-SNAPSHOT.jar
+    image: molgenis/armadillo:latest
     environment:
       SPRING_PROFILES_ACTIVE: development
       MINIO_URL: http://minio
@@ -22,7 +19,7 @@ services:
       MINIO_SECRET_KEY: molgenis
       RSERVE_HOST: rserver
     ports:
-      - 3000:8080
+      - 8080:8080
   rserver:
     image: molgenis/ds-60-rserver-363:latest
     environment:

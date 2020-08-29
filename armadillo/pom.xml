@@ -11,11 +11,8 @@
   <artifactId>armadillo</artifactId>
 
   <properties>
-    <dockerfile.tag>${project.version}</dockerfile.tag>
     <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}</dockerfile.repository>
-    <dockerfile.jarfile.version>${project.version}</dockerfile.jarfile.version>
-    <dockerfile.jarfile>target/${project.artifactId}-${dockerfile.jarfile.version}.jar
-    </dockerfile.jarfile>
+    <dockerfile.tag>${project.version}</dockerfile.tag>
   </properties>
 
   <repositories>
@@ -165,36 +162,32 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>${dockerfile-maven-plugin.version}</version>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>default</id>
+            <id>release</id>
+            <phase>deploy</phase>
             <goals>
               <goal>build</goal>
-              <goal>push</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>tag-latest</id>
-            <goals>
-              <goal>build</goal>
-              <goal>push</goal>
             </goals>
             <configuration>
-              <tag>latest</tag>
+              <tags>
+                <!-- additional tags -->
+                <tag>latest</tag>
+              </tags>
             </configuration>
           </execution>
         </executions>
         <configuration>
-          <repository>${dockerfile.repository}</repository>
-          <tag>${dockerfile.tag}</tag>
-          <buildArgs>
-            <JAR_FILE>${dockerfile.jarfile}</JAR_FILE>
-          </buildArgs>
-          <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-          <skipDockerInfo>true</skipDockerInfo>
+          <from>
+            <!-- Current java 11 image.
+            See https://console.cloud.google.com/gcr/images/distroless/GLOBAL/java?gcrImageListsize=30 -->
+            <image>gcr.io/distroless/java@sha256:7fc091e8686df11f7bf0b7f67fd7da9862b2b9a3e49978d1184f0ff62cb673cc</image>
+          </from>
+          <to>
+            <image>${dockerfile.repository}:${dockerfile.tag}</image>
+          </to>
         </configuration>
       </plugin>
     </plugins>

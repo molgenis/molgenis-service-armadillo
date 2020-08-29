@@ -51,7 +51,7 @@ pipeline {
                                 env.PREVIEW_VERSION = sh(script: "grep version pom.xml | grep SNAPSHOT | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim() + "-${env.TAG}"
                             }
                             sh "mvn -q -B versions:set -DnewVersion=${PREVIEW_VERSION} -DgenerateBackupPoms=false"
-                            sh "mvn -q -B clean verify -Dmaven.test.redirectTestOutputToFile=true"
+                            sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true"
                             // Fetch the target branch, sonar likes to take a look at it
                             sh "git fetch --no-tags origin ${CHANGE_TARGET}:refs/remotes/origin/${CHANGE_TARGET}"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${env.SONAR_TOKEN} -Dsonar.github.oauth=${env.GITHUB_TOKEN} -Dsonar.pullrequest.base=${CHANGE_TARGET} -Dsonar.pullrequest.branch=${BRANCH_NAME} -Dsonar.pullrequest.key=${env.CHANGE_ID} -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=molgenis/molgenis-service-armadillo -Dsonar.ws.timeout=120"
@@ -68,7 +68,7 @@ pipeline {
                         container('maven') {
                             dir('armadillo') {
                                 script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -T1C"
+                                    sh "mvn -q -B jib:build -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                 }
                             }
                         }
@@ -102,8 +102,8 @@ pipeline {
                         container('maven') {
                             dir('armadillo') {
                                 script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
-                                    sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
+                                    sh "mvn -q -B jib:build -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
+                                    sh "mvn -q -B jib:build -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                 }
                             }
                         }
@@ -123,14 +123,14 @@ pipeline {
                             input(message: 'Prepare to release?')
                         }
                         container('maven') {
-                            sh "mvn -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "mvn -q -B release:prepare -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
                 stage('Perform release [ master ]') {
                     steps {
                         container('maven') {
-                            sh "mvn -B release:perform -Darguments=\"-B -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "mvn -q -B release:perform -Darguments=\"-q -B -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
