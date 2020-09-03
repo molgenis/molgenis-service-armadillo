@@ -20,7 +20,7 @@ public class ArmadilloSession {
 
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private Integer pid;
+  Integer pid;
 
   public ArmadilloSession(
       ArmadilloConnectionFactory connectionFactory, ProcessService processService) {
@@ -60,6 +60,7 @@ public class ArmadilloSession {
     } catch (RserveException e) {
       logger.error("Failed to detach connection", e);
       rSession = null;
+      pid = null;
     }
   }
 
