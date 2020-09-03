@@ -2,6 +2,7 @@ package org.molgenis.armadillo;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
@@ -67,10 +68,12 @@ class ArmadilloSessionTest {
   }
 
   @Test
-  void testDetachFails() throws RserveException {
+  void testDetachFailsForgetsPid() throws RserveException {
     doThrow(new RserveException(rConnection, "Not connected")).when(rConnection).detach();
 
+    armadilloSession.pid = 123;
     armadilloSession.tryDetachRConnection(rConnection);
+    assertNull(armadilloSession.pid);
   }
 
   @Test

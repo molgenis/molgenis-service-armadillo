@@ -37,6 +37,9 @@ public class RExecutorServiceImpl implements RExecutorService {
     try {
       LOGGER.debug("Evaluate {}", cmd);
       REXP result = connection.eval(format("try({%s})", cmd));
+      if (result == null) {
+        throw new RExecutionException("Eval returned null");
+      }
       if (result.inherits("try-error")) {
         throw new RExecutionException(
             stream(result.asStrings()).map(String::trim).collect(joining("; ")));

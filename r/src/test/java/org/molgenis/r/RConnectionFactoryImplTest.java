@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -22,7 +20,6 @@ class RConnectionFactoryImplTest {
 
   RConfigProperties rConfigProperties = new RConfigProperties();
   @Mock RConnection rConnection;
-  @Mock REXP sessionInfo;
 
   private RConnectionFactoryImpl rConnectionFactory;
 
@@ -36,9 +33,6 @@ class RConnectionFactoryImplTest {
   @Test
   void testGetNewConnection() throws RserveException, REXPMismatchException {
     doReturn(rConnection).when(rConnectionFactory).newConnection("host", 123);
-    when(rConnection.eval("capture.output(sessionInfo())")).thenReturn(sessionInfo);
-    when(sessionInfo.asStrings()).thenReturn(new String[] {"session info", "multiple lines"});
-
     assertEquals(rConnection, rConnectionFactory.createConnection());
   }
 
