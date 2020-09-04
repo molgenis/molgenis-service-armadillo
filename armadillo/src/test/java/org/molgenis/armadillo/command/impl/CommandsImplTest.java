@@ -121,6 +121,8 @@ class CommandsImplTest {
         .saveWorkspace(eq(rConnection), any(Consumer.class));
 
     commands.saveWorkspace(principal, "core").get();
+
+    verify(rExecutorService).saveWorkspace(eq(rConnection), any(Consumer.class));
   }
 
   @Test
