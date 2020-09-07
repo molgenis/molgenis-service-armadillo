@@ -51,6 +51,8 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -63,7 +65,6 @@ class CommandsImplTest {
 
   @Test
   void testSchedule() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
@@ -76,12 +77,10 @@ class CommandsImplTest {
     assertSame(rexp, result.get());
     assertEquals(Optional.of(command.asDto()), commands.getLastCommand());
     assertSame(result, commands.getLastExecution().get());
-    verify(rConnection).detach();
   }
 
   @Test
   void testScheduleFailingCommand() throws RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     IllegalStateException exception = new IllegalStateException("Error");
 
     ArmadilloCommandImpl<REXP> command =
@@ -95,30 +94,24 @@ class CommandsImplTest {
     CompletableFuture<REXP> result = commands.schedule(command);
     assertSame(
         exception, assertThrows(ExecutionException.class, result::get).getCause().getCause());
-    verify(rConnection).detach();
   }
 
   @Test
   void testAssign() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     commands.assign("D", "E").get();
 
     verify(rExecutorService).execute("is.null(base::assign('D', value={E}))", rConnection);
-    verify(rConnection).detach();
   }
 
   @Test
   void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
 
     assertSame(rexp, commands.evaluate("ls()").get());
-    verify(rConnection).detach();
   }
 
   @Test
   void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     doAnswer(
             invocation -> {
               invocation.getArgument(1, Consumer.class).accept(inputStream);
@@ -128,29 +121,26 @@ class CommandsImplTest {
         .saveWorkspace(eq(rConnection), any(Consumer.class));
 
     commands.saveWorkspace(principal, "core").get();
-    verify(rConnection).detach();
+
+    verify(rExecutorService).saveWorkspace(eq(rConnection), any(Consumer.class));
   }
 
   @Test
   void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
 
     commands.loadWorkspace(principal, "core").get();
 
-    verify(rConnection).detach();
     verify(rExecutorService)
         .loadWorkspace(eq(rConnection), any(InputStreamResource.class), eq(GLOBAL_ENV));
   }
 
   @Test
   void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
 
     commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
 
-    verify(rConnection).detach();
     verify(rExecutorService)
         .loadTable(
             eq(rConnection),
@@ -162,11 +152,16 @@ class CommandsImplTest {
 
   @Test
   void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
 
     assertSame(result, commands.getPackages().get());
-    verify(rConnection).detach();
+  }
+
+  @Test
+  void testCleanup() {
+    commands.preDestroy();
+
+    verify(rConnection).close();
   }
 }
