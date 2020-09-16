@@ -124,6 +124,25 @@ class RExecutorServiceImplTest {
   }
 
   @Test
+  void testLoadResource() throws IOException, RserveException {
+    when(rConnection.createFile("project_folder_resource.rds")).thenReturn(rFileOutputStream);
+    Resource resource = new InMemoryResource("Hello");
+
+    when(rConnection.eval(
+            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
+        .thenReturn(new REXPLogical(true));
+    when(rConnection.eval("try({base::unlink('project_folder_resource.rds')})"))
+        .thenReturn(new REXPNull());
+
+    executorService.loadResource(rConnection, resource, "project/folder/resource.rds", "D");
+
+    verify(rConnection)
+        .eval(
+            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})");
+    verify(rConnection).eval("try({base::unlink('project_folder_resource.rds')})");
+  }
+
+  @Test
   void testSaveWorkspace() throws IOException, RserveException {
     when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);

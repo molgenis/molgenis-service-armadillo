@@ -3,6 +3,8 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.minio.ArmadilloStorageService.*;
+import static org.molgenis.armadillo.minio.ArmadilloStorageService.PARQUET;
 import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
 import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
@@ -141,16 +143,33 @@ class CommandsImpl implements Commands {
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
     return schedule(
-        new ArmadilloCommandImpl<>("Load " + table, false) {
+        new ArmadilloCommandImpl<>("Load table " + table, false) {
           @Override
           protected Void doWithConnection(RConnection connection) {
             InputStream inputStream = armadilloStorage.loadTable(project, objectName);
             rExecutorService.loadTable(
                 connection,
                 new InputStreamResource(inputStream),
-                table + ".parquet",
+                table + PARQUET,
                 symbol,
                 variables);
+            return null;
+          }
+        });
+  }
+
+  @Override
+  public CompletableFuture<Void> loadResource(String symbol, String resource) {
+    int index = resource.indexOf('/');
+    String project = resource.substring(0, index);
+    String objectName = resource.substring(index + 1);
+    return schedule(
+        new ArmadilloCommandImpl<>("Load resource " + resource, false) {
+          @Override
+          protected Void doWithConnection(RConnection connection) {
+            InputStream inputStream = armadilloStorage.loadResource(project, objectName);
+            rExecutorService.loadResource(
+                connection, new InputStreamResource(inputStream), resource + RDS, symbol);
             return null;
           }
         });

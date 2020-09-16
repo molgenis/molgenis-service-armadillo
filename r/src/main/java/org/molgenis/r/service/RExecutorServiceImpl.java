@@ -110,6 +110,24 @@ public class RExecutorServiceImpl implements RExecutorService {
     }
   }
 
+  @Override
+  public void loadResource(
+      RConnection connection, Resource resource, String filename, String symbol) {
+    LOGGER.debug("Load resource from file {} into {}", filename, symbol);
+    String rFileName = filename.replace("/", "_");
+    try {
+      copyFile(resource, rFileName, connection);
+      execute(
+          format(
+              "is.null(base::assign('%s', value={resourcer::newResourceClient(base::readRDS('%s'))}))",
+              symbol, rFileName),
+          connection);
+      execute(format("base::unlink('%s')", rFileName), connection);
+    } catch (IOException e) {
+      throw new RExecutionException(e);
+    }
+  }
+
   void copyFile(Resource resource, String dataFileName, RConnection connection) throws IOException {
     LOGGER.info("Copying '{}' to R...", dataFileName);
     Stopwatch sw = Stopwatch.createStarted();

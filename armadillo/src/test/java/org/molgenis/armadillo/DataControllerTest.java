@@ -14,7 +14,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.armadillo.DataController.TABLE_REGEX;
+import static org.molgenis.armadillo.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -454,7 +454,7 @@ class DataControllerTest {
         "a-b-c-d/test/blah"
       })
   void testValidTableName(String name) {
-    assertTrue(name.matches(TABLE_REGEX));
+    assertTrue(name.matches(TABLE_RESOURCE_REGEX));
   }
 
   @ParameterizedTest
@@ -467,6 +467,6 @@ class DataControllerTest {
         "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
       })
   void testInvalidSharedWorkspaceName(String name) {
-    assertFalse(name.matches(TABLE_REGEX));
+    assertFalse(name.matches(TABLE_RESOURCE_REGEX));
   }
 }

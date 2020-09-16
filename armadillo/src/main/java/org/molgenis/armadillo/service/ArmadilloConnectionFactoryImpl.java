@@ -27,6 +27,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
     try {
       RConnection connection = rConnectionFactory.createConnection();
       setDataShieldOptions(connection);
+      loadResourcerPackage(connection);
       return connection;
     } catch (RserveException cause) {
       throw new ConnectionCreationFailedException(cause);
@@ -37,5 +38,9 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
       con.eval(format("base::options(%s = %s)", option.getKey(), option.getValue()));
     }
+  }
+
+  private void loadResourcerPackage(RConnection con) throws RserveException {
+    con.eval("library(resourcer)");
   }
 }

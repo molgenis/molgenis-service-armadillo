@@ -79,7 +79,8 @@ public class DataController {
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
-  public static final String TABLE_REGEX = "^([a-z0-9-]{0,55}[a-z0-9])\\/([\\w-:]+\\/[\\w-:]+)$";
+  public static final String TABLE_RESOURCE_REGEX =
+      "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+/[\\w-:]+)$";
 
   private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
@@ -137,10 +138,10 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
-      @Valid @Pattern(regexp = TABLE_REGEX) @RequestParam String table,
+      @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
-    var pattern = java.util.regex.Pattern.compile(TABLE_REGEX);
+    var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     var matcher = pattern.matcher(table);
     matcher.find();
     var project = matcher.group(1);
@@ -154,6 +155,58 @@ public class DataController {
             .map(String::trim)
             .collect(toList());
     var result = commands.loadTable(symbol, table, variableList);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+  }
+
+  @Operation(
+      summary = "Get available resources",
+      description =
+          "Return a list of (fully qualified) resource identifiers available for DataSHIELD operations")
+  @GetMapping(value = "/resources", produces = APPLICATION_JSON_VALUE)
+  public List<String> getResources() {
+    return storage.listProjects().stream()
+        .map(storage::listResources)
+        .flatMap(List::stream)
+        .collect(toList());
+  }
+
+  @Operation(
+      summary = "Check resource existence",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The resource exists and is available for DataSHIELD operations")
+      })
+  @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
+  public ResponseEntity<Void> resourceExists(
+      @PathVariable String project, @PathVariable String folder, @PathVariable String resource) {
+    return storage.resourceExists(project, format("%s/%s", folder, resource))
+        ? ok().build()
+        : notFound().build();
+  }
+
+  @Operation(
+      summary = "Load resource",
+      description = "Load a resource",
+      security = {@SecurityRequirement(name = "jwt")})
+  @PostMapping(value = "/load-resource")
+  public CompletableFuture<ResponseEntity<Void>> loadResource(
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
+      @RequestParam(defaultValue = "false") boolean async) {
+    var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
+    var matcher = pattern.matcher(resource);
+    matcher.find();
+    var project = matcher.group(1);
+    var objectName = matcher.group(2);
+    if (!storage.resourceExists(project, objectName)) {
+      return completedFuture(notFound().build());
+    }
+    var result = commands.loadResource(symbol, resource);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result
