@@ -1,9 +1,7 @@
 package org.molgenis.r.service;
 
-import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
-import static org.molgenis.r.Formatter.stringVector;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -15,7 +13,6 @@ import org.molgenis.r.REXPParser;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
@@ -34,9 +31,26 @@ public class PackageServiceImpl implements PackageService {
   public static final String FIELD_ASSIGN_METHODS = "AssignMethods";
   public static final String FIELD_OPTIONS = "Options";
   public static final String COMMAND_INSTALLED_PACKAGES =
-      format(
-          "installed.packages(fields=%s)",
-          stringVector(FIELD_AGGREGATE_METHODS, FIELD_ASSIGN_METHODS, FIELD_OPTIONS));
+      "library(\"magrittr\")\n"
+          + "\n"
+          + "to_df <- function(lst) {\n"
+          + "  tibble::as_tibble(lapply(lst, function(x) t(tibble::as_tibble(x))))\n"
+          + "}\n"
+          + "\n"
+          + "read_datashield_inst <- function(package) {\n"
+          + "  file <- system.file(\"DATASHIELD\", package = package$Package)\n"
+          + "  if (file == \"\") package\n"
+          + "  else {\n"
+          + "    from_file <- as.list(unlist(tibble::as_tibble(read.dcf(file))))\n"
+          + "    result <- append(as.list(package), as.list(from_file))\n"
+          + "    result[!is.na(result)]\n"
+          + "  }\n"
+          + "}\n"
+          + "\n"
+          + "installed.packages(fields = c('AssignMethods', 'AggregateMethods', 'Options')) %>%\n"
+          + "  tibble::as_tibble() %>%\n"
+          + "  dplyr::rowwise() %>%\n"
+          + "  dplyr::do(to_df(read_datashield_inst(.)))\n";
 
   public PackageServiceImpl(REXPParser rexpParser) {
     this.rexpParser = rexpParser;
@@ -45,29 +59,29 @@ public class PackageServiceImpl implements PackageService {
   @Override
   public List<RPackage> getInstalledPackages(RConnection connection) {
     try {
-      REXPString matrix = (REXPString) connection.eval(COMMAND_INSTALLED_PACKAGES);
-      List<Map<String, String>> rows = rexpParser.toStringMap(matrix);
+      var eval = connection.eval(COMMAND_INSTALLED_PACKAGES);
+      List<Map<String, Object>> rows = rexpParser.parseTibble(eval.asList());
       return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
-    } catch (REXPMismatchException | RserveException e) {
+    } catch (RserveException | REXPMismatchException e) {
       throw new RExecutionException(e);
     }
   }
 
-  public static RPackage toPackage(Map<String, String> row) {
+  public static RPackage toPackage(Map<String, Object> row) {
     RPackage.Builder builder =
         RPackage.builder()
-            .setName(row.get(FIELD_PACKAGE))
-            .setLibPath(row.get(FIELD_LIB_PATH))
-            .setVersion(row.get(FIELD_VERSION))
-            .setBuilt(row.get(FIELD_BUILT));
+            .setName((String) row.get(FIELD_PACKAGE))
+            .setLibPath((String) row.get(FIELD_LIB_PATH))
+            .setVersion((String) row.get(FIELD_VERSION))
+            .setBuilt((String) row.get(FIELD_BUILT));
     if (row.containsKey(FIELD_OPTIONS)) {
-      builder.setOptions(parseOptions(row.get(FIELD_OPTIONS)));
+      builder.setOptions(parseOptions((String) row.get(FIELD_OPTIONS)));
     }
     if (row.containsKey(FIELD_ASSIGN_METHODS)) {
-      builder.setAssignMethods(parseMethods(row.get(FIELD_ASSIGN_METHODS)));
+      builder.setAssignMethods(parseMethods((String) row.get(FIELD_ASSIGN_METHODS)));
     }
     if (row.containsKey(FIELD_AGGREGATE_METHODS)) {
-      builder.setAggregateMethods(parseMethods(row.get(FIELD_AGGREGATE_METHODS)));
+      builder.setAggregateMethods(parseMethods((String) row.get(FIELD_AGGREGATE_METHODS)));
     }
     return builder.build();
   }
