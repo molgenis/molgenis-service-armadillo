@@ -1,6 +1,7 @@
 package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import org.molgenis.r.REXPParser;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
+import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
@@ -38,6 +40,7 @@ class PackageServiceImplTest {
 
   @Mock private REXPParser rexpParser;
   @Mock private REXPString rexp;
+  @Mock private RList rlist;
   @Mock private RConnection rConnection;
 
   private PackageService packageService;
@@ -49,10 +52,9 @@ class PackageServiceImplTest {
 
   @Test
   void testGetInstalledPackages() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(
-            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
-        .thenReturn(rexp);
-    when(rexpParser.toStringMap(rexp))
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(rlist);
+    when(rexpParser.parseTibble(rlist))
         .thenReturn(
             List.of(
                 Map.of(
@@ -78,10 +80,9 @@ class PackageServiceImplTest {
 
   @Test
   void testParseSimpleOptions() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(
-            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
-        .thenReturn(rexp);
-    when(rexpParser.toStringMap(rexp))
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(rlist);
+    when(rexpParser.parseTibble(rlist))
         .thenReturn(
             List.of(
                 Map.of(
@@ -102,10 +103,9 @@ class PackageServiceImplTest {
 
   @Test
   void testParseAssignMethods() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(
-            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
-        .thenReturn(rexp);
-    when(rexpParser.toStringMap(rexp))
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(rlist);
+    when(rexpParser.parseTibble(rlist))
         .thenReturn(
             List.of(
                 Map.of(
@@ -126,10 +126,9 @@ class PackageServiceImplTest {
 
   @Test
   void testParseAggregateMethods() throws REXPMismatchException, RserveException {
-    when(rConnection.eval(
-            "installed.packages(fields=c(\"AggregateMethods\",\"AssignMethods\",\"Options\"))"))
-        .thenReturn(rexp);
-    when(rexpParser.toStringMap(rexp))
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(rlist);
+    when(rexpParser.parseTibble(rlist))
         .thenReturn(
             List.of(
                 Map.of(
