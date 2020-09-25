@@ -21,9 +21,10 @@ services:
     ports:
       - 8080:8080
   rserver:
-    image: molgenis/ds-60-rserver-363:latest
+    image: molgenis/rserver:latest
     environment:
       DEBUG: "FALSE"
+    # GIT_REFERENCE: "vx.x-dev"
     ports:
       - "6311:6311"
       - "6312:6312"
