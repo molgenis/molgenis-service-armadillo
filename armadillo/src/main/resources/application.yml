@@ -51,20 +51,3 @@ logging:
       springframework:
         web:
           context: DEBUG
----
-spring:
-  profiles: (development | test)
-datashield:
-  options:
-    nfilter:
-      string: 80
-      kNN: 3
-      tab: 3
-      stringShort: 20
-      noise: 0.25
-      levels: 0.33
-      glm: 5
-      subset: 3
-    datashield:
-      privacyLevel: 5
-      seed: 4
