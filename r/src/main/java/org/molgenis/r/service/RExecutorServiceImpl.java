@@ -94,7 +94,10 @@ public class RExecutorServiceImpl implements RExecutorService {
                 symbol, rFileName),
             connection);
       } else {
-        var colSelect = Formatter.stringVector(variables.toArray(new String[] {}));
+        String colSelect =
+            "tidyselect::any_of("
+                + Formatter.stringVector(variables.toArray(new String[] {}))
+                + ")";
         execute(
             format(
                 "is.null(base::assign('%s', value={arrow::read_parquet('%s', col_select = %s)}))",
