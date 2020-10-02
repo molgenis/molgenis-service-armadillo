@@ -2,6 +2,7 @@ package org.molgenis.r.service;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
+import static org.springframework.util.StringUtils.isEmpty;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -74,13 +75,13 @@ public class PackageServiceImpl implements PackageService {
             .setLibPath((String) row.get(FIELD_LIB_PATH))
             .setVersion((String) row.get(FIELD_VERSION))
             .setBuilt((String) row.get(FIELD_BUILT));
-    if (row.containsKey(FIELD_OPTIONS)) {
+    if (!isEmpty(row.get(FIELD_OPTIONS))) {
       builder.setOptions(parseOptions((String) row.get(FIELD_OPTIONS)));
     }
-    if (row.containsKey(FIELD_ASSIGN_METHODS)) {
+    if (!isEmpty(row.get(FIELD_ASSIGN_METHODS))) {
       builder.setAssignMethods(parseMethods((String) row.get(FIELD_ASSIGN_METHODS)));
     }
-    if (row.containsKey(FIELD_AGGREGATE_METHODS)) {
+    if (!isEmpty(row.get(FIELD_AGGREGATE_METHODS))) {
       builder.setAggregateMethods(parseMethods((String) row.get(FIELD_AGGREGATE_METHODS)));
     }
     return builder.build();

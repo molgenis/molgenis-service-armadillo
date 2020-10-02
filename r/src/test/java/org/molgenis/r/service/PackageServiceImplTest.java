@@ -102,6 +102,33 @@ class PackageServiceImplTest {
   }
 
   @Test
+  void testParseSkipsEmptyStrings() throws REXPMismatchException, RserveException {
+    when(rConnection.eval(anyString())).thenReturn(rexp);
+    when(rexp.asList()).thenReturn(rlist);
+    when(rexpParser.parseTibble(rlist))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Package",
+                    "p",
+                    "Version",
+                    "v",
+                    "Built",
+                    "b",
+                    "LibPath",
+                    "l",
+                    "Options",
+                    "",
+                    "AssignMethods",
+                    "",
+                    "AggregateMethods",
+                    "")));
+    assertEquals(
+        RPackage.builder().setName("p").setVersion("v").setBuilt("b").setLibPath("l").build(),
+        packageService.getInstalledPackages(rConnection).get(0));
+  }
+
+  @Test
   void testParseAssignMethods() throws REXPMismatchException, RserveException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
     when(rexp.asList()).thenReturn(rlist);
