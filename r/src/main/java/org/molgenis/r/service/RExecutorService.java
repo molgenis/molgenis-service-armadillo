@@ -20,4 +20,6 @@ public interface RExecutorService {
       String filename,
       String symbol,
       List<String> variables);
+
+  void loadResource(RConnection connection, Resource resource, String filename, String symbol);
 }

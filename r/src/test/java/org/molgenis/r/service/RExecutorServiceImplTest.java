@@ -73,6 +73,18 @@ class RExecutorServiceImplTest {
   }
 
   @Test
+  void executeFailResultIsNull() throws RserveException {
+    when(rConnection.eval("try({mean(child_id)})")).thenReturn(null);
+
+    RExecutionException rExecutionException =
+        assertThrows(
+            RExecutionException.class,
+            () -> executorService.execute("mean(child_id)", rConnection),
+            "Eval returned null");
+    assertTrue(rExecutionException.getMessage().contains("Eval returned null"));
+  }
+
+  @Test
   void testLoadWorkspace() throws IOException, RserveException {
     when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
@@ -124,6 +136,25 @@ class RExecutorServiceImplTest {
   }
 
   @Test
+  void testLoadResource() throws IOException, RserveException {
+    when(rConnection.createFile("project_folder_resource.rds")).thenReturn(rFileOutputStream);
+    Resource resource = new InMemoryResource("Hello");
+
+    when(rConnection.eval(
+            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
+        .thenReturn(new REXPLogical(true));
+    when(rConnection.eval("try({base::unlink('project_folder_resource.rds')})"))
+        .thenReturn(new REXPNull());
+
+    executorService.loadResource(rConnection, resource, "project/folder/resource.rds", "D");
+
+    verify(rConnection)
+        .eval(
+            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})");
+    verify(rConnection).eval("try({base::unlink('project_folder_resource.rds')})");
+  }
+
+  @Test
   void testSaveWorkspace() throws IOException, RserveException {
     when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
@@ -133,5 +164,36 @@ class RExecutorServiceImplTest {
 
     verify(rConnection).eval("try({base::save.image()})");
     verify(rConnection).openFile(".RData");
+  }
+
+  @Test
+  void testSaveWorkspaceFails() throws RserveException, IOException {
+    when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
+    when(rConnection.openFile(".RData")).thenThrow(IOException.class);
+
+    assertThrows(
+        RExecutionException.class,
+        () ->
+            executorService.saveWorkspace(
+                rConnection, inputStream -> assertSame(rFileInputStream, inputStream)));
+  }
+
+  @Test
+  void testLoadWorkspaceFails() throws IOException {
+    when(rConnection.createFile(".RData")).thenThrow(IOException.class);
+    Resource resource = new InMemoryResource("Hello");
+
+    assertThrows(
+        RExecutionException.class, () -> executorService.loadWorkspace(rConnection, resource, "D"));
+  }
+
+  @Test
+  void testLoadResourceFails() throws IOException {
+    when(rConnection.createFile("hpc-resource-1.rds")).thenThrow(IOException.class);
+    Resource resource = new InMemoryResource("Hello");
+
+    assertThrows(
+        RExecutionException.class,
+        () -> executorService.loadResource(rConnection, resource, "hpc-resource-1.rds", "D"));
   }
 }

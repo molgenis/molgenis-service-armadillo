@@ -15,6 +15,8 @@ public interface Commands {
 
   CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
+  CompletableFuture<Void> loadResource(String symbol, String resource);
+
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 
   CompletableFuture<Void> saveWorkspace(Principal principal, String id);

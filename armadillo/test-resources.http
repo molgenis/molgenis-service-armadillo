@@ -1,0 +1,44 @@
+POST http://localhost:8080/logout
+
+###
+GET http://localhost:8080/packages
+Authorization: Basic admin admin
+
+###
+GET http://localhost:8080/resources
+Authorization: Basic admin admin
+
+###
+HEAD http://localhost:8080/resources/fdlk/project1/patient
+
+###
+POST http://localhost:8080/load-resource?symbol=patientResource&resource=fdlk/project1/patient
+
+###
+POST http://localhost:8080/symbols/patient
+Content-Type: text/plain
+
+dataFrameDS("patientResource")
+
+###
+GET http://localhost:8080/symbols
+
+###
+POST http://localhost:8080/execute
+Accept: application/octet-stream
+Content-Type: text/plain
+
+meanDS("patientResource")
+
+###
+DELETE http://localhost:8080/symbols/D
+
+###
+GET http://localhost:8080/lastcommand
+accept: application/json
+
+###
+GET http://localhost:8080/lastresult
+accept: application/octet-stream
+
+###

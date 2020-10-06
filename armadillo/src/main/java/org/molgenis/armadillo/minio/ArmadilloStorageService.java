@@ -23,6 +23,7 @@ public class ArmadilloStorageService {
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
   public static final String PARQUET = ".parquet";
+  public static final String RDS = ".rds";
   private final MinioStorageService storageService;
 
   public ArmadilloStorageService(MinioStorageService storageService) {
@@ -57,6 +58,27 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadTable(String project, String objectName) {
     return storageService.load(SHARED_PREFIX + project, objectName + PARQUET);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public boolean resourceExists(String project, String objectName) {
+    return storageService.objectExists(SHARED_PREFIX + project, objectName + RDS);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public InputStream loadResource(String project, String objectName) {
+    return storageService.load(SHARED_PREFIX + project, objectName + RDS);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public List<String> listResources(String project) {
+    var bucketName = SHARED_PREFIX + project;
+    return storageService.listObjects(bucketName).stream()
+        .map(Item::objectName)
+        .map(objectName -> format("%s/%s", project, objectName))
+        .filter(it -> it.endsWith(RDS))
+        .map(FilenameUtils::removeExtension)
+        .collect(toList());
   }
 
   public List<Workspace> listWorkspaces(Principal principal) {

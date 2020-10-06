@@ -50,7 +50,6 @@ class ArmadilloStorageServiceTest {
     when(gecko.name()).thenReturn("shared-gecko");
     when(diabetes.name()).thenReturn("shared-diabetes");
     when(storageService.listBuckets()).thenReturn(List.of(gecko, diabetes));
-
     assertEquals(List.of("gecko"), armadilloStorage.listProjects());
   }
 
@@ -189,5 +188,31 @@ class ArmadilloStorageServiceTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testResourceExists() {
+    when(storageService.objectExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
+    boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
+    assertTrue(exists);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testLoadResource() {
+    when(storageService.load("shared-gecko", "hpc-resource.rds")).thenReturn(is);
+
+    InputStream resource = armadilloStorage.loadResource("gecko", "hpc-resource");
+    assertNotNull(resource);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListResources() {
+    when(storageService.listObjects("shared-gecko")).thenReturn(List.of(item));
+    when(item.objectName()).thenReturn("hpc-resource.rds");
+
+    assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
   }
 }
