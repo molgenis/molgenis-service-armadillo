@@ -164,4 +164,19 @@ class CommandsImplTest {
 
     verify(rConnection).close();
   }
+
+  @Test
+  void testLoadResource() throws ExecutionException, InterruptedException {
+    when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
+        .thenReturn(inputStream);
+
+    commands.loadResource("core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+
+    verify(rExecutorService)
+        .loadResource(
+            eq(rConnection),
+            any(InputStreamResource.class),
+            eq("gecko/2_1-core-1_0/hpc-resource.rds"),
+            eq("core_nonrep"));
+  }
 }

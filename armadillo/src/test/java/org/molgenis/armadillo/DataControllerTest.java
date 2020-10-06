@@ -5,30 +5,17 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.security.Principal;
 import java.util.List;
@@ -44,6 +31,7 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -468,5 +456,55 @@ class DataControllerTest {
       })
   void testInvalidSharedWorkspaceName(String name) {
     assertFalse(name.matches(TABLE_RESOURCE_REGEX));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetResources() throws Exception {
+    when(armadilloStorage.listProjects()).thenReturn(List.of("gecko", "alspac"));
+    when(armadilloStorage.listResources("gecko")).thenReturn(List.of("hpc-resource-1"));
+    when(armadilloStorage.listResources("alspac")).thenReturn(List.of("hpc-resource-20"));
+
+    mockMvc.perform(get("/resources")).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testResourceExists() throws Exception {
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
+
+    mockMvc
+        .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testLoadResource() throws Exception {
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
+    when(commands.loadResource("hpc_res", "gecko/2_1-core-1_1/hpc-resource-1"))
+        .thenReturn(completedFuture(null));
+
+    mockMvc
+        .perform(post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testLoadResourceFails() throws Exception {
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(false);
+    mockMvc
+        .perform(post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resources-1"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetWorkspaces() throws Exception {
+    when(armadilloStorage.listWorkspaces(any(Principal.class)))
+        .thenReturn(List.of(mock(Workspace.class)));
+
+    mockMvc.perform(get("/workspaces")).andExpect(status().isOk());
   }
 }
