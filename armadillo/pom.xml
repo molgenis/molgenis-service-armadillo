@@ -190,6 +190,11 @@
           <to>
             <image>${dockerfile.repository}:${dockerfile.tag}</image>
           </to>
+          <container>
+            <jvmFlags>
+              <jvmFlag>-XX:MaxRAMPercentage=80</jvmFlag>
+            </jvmFlags>
+          </container>
         </configuration>
       </plugin>
     </plugins>
