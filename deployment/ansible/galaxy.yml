@@ -1,0 +1,18 @@
+# required
+namespace: sidohaakma
+name: armadillo
+version: 1.0.3
+readme: README.md
+authors:
+- Sido Haakma <s.haakma@rug.nl>
+
+# optional
+description: Armadillo is a service which can be used to perform federated analysis
+license:
+- LGPL-2.0-or-later
+tags: [federation]
+#dependencies: {}
+repository: https://github.com/molgenis/molgenis-service-armadillo
+documentation: https://github.com/molgenis/molgenis-service-armadillo
+homepage: https://molgenis.org
+issues: https://github.com/molgenis/molgenis-service-armadillo/issues
