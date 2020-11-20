@@ -101,6 +101,9 @@ You need to specify the paths to three files.
 - private.key (private key bound to the public certificate)
 - chain.crt (the certificate chain)
 
+### Authentication server
+At this moment we use [FusionAuth](https://fusionauth.io). The configuration can be tweaked by updating the `oauth` properties.
 
+You can choose another implementation as well, [KeyCloak](https://keycloak.io) for example.
 
 
