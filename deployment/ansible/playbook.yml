@@ -1,0 +1,45 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  gather_facts: true
+  vars:
+    ci: false
+    minio:
+      access_key: molgenis
+      secret_key: molgenis
+      port: 9000
+      host: http://localhost
+    oauth:
+      issuer_uri: https://auth.molgenis.org
+      discovery_path: /.well-known/openid-configuration
+      client_id: b396233b-cdb2-449e-ac5c-a0d28b38f791
+
+  roles:
+    - role: minio
+      vars:
+        access_key: "{{ minio.access_key }}"
+        secret_key: "{{ minio.secret_key }}"
+    - role: podman
+    - role: httpd
+      vars:
+        enabled: true
+        ssl:
+          enabled: false
+        hostnames:
+          armadillo: armadillo.internal
+          storage: armadillo-storage.internal
+        ports:
+          armadillo: 8080
+          storage: "{{ minio.port }}"
+    - role: rserver
+      vars:
+        debug: true
+    - role: armadillo
+      vars:
+        version: 0.0.15
+        storage:
+          access_key: "{{ minio.access_key }}"
+          secret_key: "{{ minio.secret_key }}"
+          host: "{{ minio.host }}"
+          port: "{{ minio.port }}"
