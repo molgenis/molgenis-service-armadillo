@@ -1,0 +1,13 @@
+[Unit]
+Description=Armadillo service for federated analysis
+After=syslog.target
+
+[Service]
+User=armadillo
+ExecStart=/bin/java -jar /usr/share/armadillo/armadillo.jar --logging.file.name=/var/log/armadillo/armadillo.log --spring.config.location=file:/etc/armadillo/
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+User-agent: Googlebot
+User-agent: bingbot
+Allow: /menu/main/
+Disallow: /
+crawl-delay: 300
+
+User-agent: *
+Disallow: /

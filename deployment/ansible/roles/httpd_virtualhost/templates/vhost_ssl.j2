@@ -1,0 +1,34 @@
+<VirtualHost {{ ansible_default_ipv4.address }}:80>
+   ServerAdmin admin@molgenis.org
+
+   ServerName {{ hostname }}
+   ServerAlias {{ hostname }}
+
+   RewriteEngine on
+   RewriteCond %{SERVER_NAME} ={{ hostname }}
+   RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [NE,R=permanent]
+
+</VirtualHost>
+
+<VirtualHost {{ ansible_default_ipv4.address }}:443>
+
+  ServerAdmin admin@molgenis.org
+
+  ServerName {{ hostname }}
+  ServerAlias {{ hostname }}
+
+  SSLProxyEngine on
+
+  # proxy services
+  ProxyPass / http://localhost:{{ port }}/
+  ProxyPassReverse / http://localhost:{{ port }}/
+
+  RequestHeader set X-Forwarded-Proto "https"
+  RequestHeader set X-Forwarded-Port "443"
+
+  SSLEngine On
+
+  SSLCertificateFile /etc/pki/tls/certs/{{ hostname }}/certificate.crt
+  SSLCertificateKeyFile /etc/pki/tls/certs/{{ hostname }}/private.key
+  SSLCertificateChainFile /etc/pki/tls/certs/{{ hostname }}/chain.crt
+</VirtualHost>

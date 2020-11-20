@@ -1,0 +1,149 @@
+---
+- name: install Apache HTTPD and Apache HTTPD-modules
+  dnf:
+    state: present
+    name:
+      - httpd
+      - mod_ssl
+      - python3-libsemanage
+  when: enabled|bool
+
+- name: register if first install Apache HTTPD
+  stat:
+    path: /etc/httpd/conf.d/welcome.conf
+  register: httpd_first_install
+  when: enabled|bool
+
+- name: delete default files in Apache HTTPD conf.d directory
+  file:
+    state: absent
+    path: "/etc/httpd/conf.d/{{ item }}"
+  with_items:
+    - autoindex.conf
+    - README
+    - userdir.conf
+    - welcome.conf
+    - ssl.conf
+  when: httpd_first_install.stat.exists and enabled|bool
+
+- name: start and enable Apache HTTPD (at boot time)
+  systemd:
+    name: httpd
+    enabled: yes
+    state: started
+  when: enabled|bool
+
+- name: set httpd_can_network_connect flag on and keep it persistent across reboots
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+  when: not ci|bool and enabled|bool
+
+- name: create additional configuration directories for Apache HTTPD
+  file:
+    path: /etc/httpd/conf.modules.d/
+    state: directory
+    mode: '755'
+  when: enabled|bool
+
+- name: add robots.txt file to prevent unwanted webcrawlers accessing the service
+  copy:
+    src: robots.txt
+    dest: /var/www/robots.txt
+    mode: '755'
+  when: not ci|bool and enabled|bool
+
+- name: insert / update robots.txt configuration stanza in /etc/httpd/conf/conf
+  blockinfile:
+    path: /etc/httpd/conf/httpd.conf
+    block: |
+      # global robots.txt file stopping the crawlers (good ones anyway)
+      <Location "/robots.txt">
+          ProxyPass !
+      </Location>
+      Alias /robots.txt /var/www/robots.txt
+    mode: '755'
+  notify: "restart web service"
+
+- name: set serverName in default config to localhost
+  lineinfile:
+    dest: /etc/httpd/conf/httpd.conf
+    line: ServerName localhost:80
+    state: present
+
+- name: add additional configuration files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/httpd/conf.modules.d/
+    mode: '755'
+  with_items:
+    - 99-ssl.conf
+    - 98-compression.conf
+  when: enabled|bool
+  notify: "restart web service"
+
+- name: set conf.modules.d as configuration directory in conf
+  lineinfile:
+    dest: /etc/httpd/conf/httpd.conf
+    line: Include conf.modules.d/*.conf
+    state: present
+  when: enabled|bool
+  notify: "restart web service"
+
+- name: ammend /etc/hosts to include hostname
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ hostnames.armadillo }} {{ hostnames.storage }}"
+    state: present
+  when: enabled|bool
+
+- name: create certificate-directories for SSL for Armadillo service
+  file:
+    path: /etc/pki/tls/certs/{{ hostname.armadillo }}/
+    state: directory
+    mode: '755'
+  when: enabled|bool and ssl.enabled|bool
+
+- name: create certificate-directories for SSL for storage service
+  file:
+    path: /etc/pki/tls/certs/{{ hostname.storage }}/
+    state: directory
+    mode: '755'
+  when: enabled|bool and ssl.enabled|bool
+
+- name: install SSL certs for Armadillo service
+  copy:
+    content: "{{ item.content }}"
+    dest: "/etc/pki/tls/certs/{{ hostnames.armadillo }}/{{ item.name }}"
+    mode: '755'
+  with_items:
+    - { content: "{{ lookup('file', '{{ ssl.paths.server_crt }}') + '\n' }}", name: certificate.crt }
+    - { content: "{{ lookup('file', '{{ ssl.paths.server_key }}') + '\n' }}", name: private.key }
+    - { content: "{{ lookup('file', '{{ ssl.paths.chain_crt }}') + '\n' }}", name: chain.crt }
+  when: not ci|bool and enabled|bool and ssl.enabled|bool
+  ignore_errors: yes
+
+- name: install SSL certs for storage service
+  copy:
+    content: "{{ item.content }}"
+    dest: "/etc/pki/tls/certs/{{ hostnames.storage }}/{{ item.name }}"
+    mode: '755'
+  with_items:
+    - { content: "{{ lookup('file', '{{ ssl.paths.server_crt }}') + '\n' }}", name: certificate.crt }
+    - { content: "{{ lookup('file', '{{ ssl.paths.server_key }}') + '\n' }}", name: private.key }
+    - { content: "{{ lookup('file', '{{ ssl.paths.chain_crt }}') + '\n' }}", name: chain.crt }
+  when: not ci|bool and enabled|bool and ssl.enabled|bool
+  ignore_errors: yes
+
+- name: copy SSL configuration file
+  template:
+    src: options-ssl-j2
+    dest: /etc/httpd/conf.d/options-ssl-conf
+    mode: '755'
+  when: not ci|bool and enabled|bool and ssl.enabled|bool
+  notify: "restart web service"
+
+- include_role:
+    name: httpd_virtualhost
+

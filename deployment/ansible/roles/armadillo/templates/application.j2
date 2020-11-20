@@ -1,0 +1,10 @@
+server.servlet.session.timeout=30m
+minio.url={{ storage.host }}
+minio.port={{ storage.port }}
+minio.access-key={{ storage.access_key }}
+minio.secret-key={{ storage.secret_key }}
+spring.security.oauth2.resourceserver.jwt.issuer-uri={{ oauth.issuer_uri }}
+spring.security.oauth2.resourceserver.opaquetoken.client-id={{ oauth.client_id }}
+spring.security.user.roles=SU
+datashield.whitelist[0]=dsBase
+datashield.whitelist[1]=resourcer

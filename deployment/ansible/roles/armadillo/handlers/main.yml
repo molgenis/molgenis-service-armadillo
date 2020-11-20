@@ -1,0 +1,6 @@
+---
+- name: restart Armadillo
+  systemd:
+    name: armadillo
+    state: restarted
+  listen: "restart armadillo service"

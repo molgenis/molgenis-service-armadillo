@@ -1,0 +1,14 @@
+---
+enabled: true
+ssl:
+  enabled: false
+  paths:
+    server_crt: /tmp
+    server_key: /tmp
+    chain_crt: /tmp
+hostnames:
+  storage: armadillo-storage.internal
+  armadillo: armadillo.internal
+ports:
+  armadillo: 8080
+  storage: 9000

@@ -1,0 +1,5 @@
+podman run -p 127.0.0.1:6311:6311 -p 127.0.0.1:6312:6312 \
+--restart on-failure \
+--name=rserver \
+--env-file /etc/rserver/env.list \
+--detach molgenis/rserver:{{ version }}

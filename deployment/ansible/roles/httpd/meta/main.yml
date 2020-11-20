@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: httpd
+  author: Sido Haakma
+  description: Apache HTTPD ensures the exposure of the Armadillo service and storage backend to be able to access the federation service in a secure way.
+  company: MOLGENIS
+
+  license: LGPL
+
+  min_ansible_version: 1.2
+
+  github_branch: master
+
+  platforms:
+  - name: CentOS
+    versions:
+    - 7
+    - 8
+
+  galaxy_tags: [federation]
+
+dependencies: []

@@ -1,0 +1,28 @@
+# Listen on HTTPS port
+Listen 443
+
+# Allow SSL protocol TLSv1.2
+SSLProtocol TLSv1.2
+
+# Intermediate configuration, tweak to your needs
+SSLSessionCache         shmcb:/var/cache/mod_ssl/scache(512000)
+SSLSessionCacheTimeout  300
+SSLCipherSuite          "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH EDH+aRSA !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4"
+SSLHonorCipherOrder     on
+
+SSLOptions +StrictRequire
+
+# Configure HSTS
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+# Add vhost name to log entries:
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" vhost_combined
+LogFormat "%v %h %l %u %t \"%r\" %>s %b" vhost_common
+
+CustomLog logs/ssl_request.log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+ErrorLog /var/log/httpd/ssl_error.log
+TransferLog /var/log/httpd/ssl_access.log
+LogLevel warn
+
+# Always ensure Cookies have "Secure" set (JAH 2012/1)
+#Header edit Set-Cookie (?i)^(.*)(;\s*secure)??((\s*;)?(.*)) "$1; Secure$3$4"

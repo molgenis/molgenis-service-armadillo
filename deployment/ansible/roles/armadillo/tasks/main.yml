@@ -1,0 +1,52 @@
+- name: install Java
+  dnf:
+    state: present
+    name: java-11-openjdk
+
+- name: install Armadillo service file
+  copy:
+    src: armadillo.service
+    dest: /etc/systemd/system/armadillo.service
+    mode: '755'
+
+- name: add Armadillo group
+  group:
+    name: armadillo
+
+- name: add Armadillo user
+  user:
+    name: armadillo
+    group: armadillo
+
+- name: create Armadillo directories
+  file:
+    path: "{{ item }}"
+    owner: armadillo
+    group: armadillo
+    state: directory
+    mode: '755'
+  with_items:
+    - /etc/armadillo
+    - /usr/share/armadillo
+    - /var/log/armadillo
+
+- name: install Armadillo
+  get_url:
+    url: https://registry.molgenis.org/repository/maven-releases/org/molgenis/armadillo/{{ version }}/armadillo-{{ version }}.jar
+    dest: /usr/share/armadillo/armadillo.jar
+    mode: '755'
+
+- name: install Armadillo config file
+  template:
+    src: application.j2
+    dest: /etc/armadillo/application.properties
+    owner: armadillo
+    group: armadillo
+    mode: '755'
+  notify: "restart armadillo service"
+
+- name: start and enable Armadillo (at boot time)
+  systemd:
+    name: armadillo
+    enabled: yes
+    state: started

@@ -1,0 +1,6 @@
+---
+- name: restart Apache HTTPD with systemctl
+  systemd:
+    name: httpd
+    state: restarted
+  listen: "restart web service"

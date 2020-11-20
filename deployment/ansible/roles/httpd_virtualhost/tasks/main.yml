@@ -1,0 +1,30 @@
+---
+- name: install Apache HTTPD virtualhost configuration with SSL
+  template:
+    src: vhost_ssl.j2
+    dest: /etc/httpd/conf.d/{{ item.hostname }}.conf
+    mode: '755'
+  vars:
+    hostname: "{{ item.hostname }}"
+    port: "{{ item.port }}"
+  with_items:
+    - { hostname: "{{ hostnames.armadillo }}", port: "{{ ports.armadillo }}" }
+    - { hostname: "{{ hostnames.storage }}", port: "{{ ports.storage }}" }
+  when: not ci|bool and enabled|bool and ssl.enabled|bool
+  notify:
+    - "restart web service"
+
+- name: install Apache HTTPD virtualhost configuration without SSL
+  template:
+    src: vhost.j2
+    dest: /etc/httpd/conf.d/{{ item.hostname }}.conf
+    mode: '755'
+  vars:
+    hostname: "{{ item.hostname }}"
+    port: "{{ item.port }}"
+  with_items:
+    - { hostname: "{{ hostnames.armadillo }}", port: "{{ ports.armadillo }}" }
+    - { hostname: "{{ hostnames.storage }}", port: "{{ ports.storage }}" }
+  when: not ci|bool and enabled|bool and not ssl.enabled|bool
+  notify:
+    - "restart web service"

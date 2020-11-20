@@ -1,0 +1,7 @@
+---
+version: 0.0.15
+storage:
+  access_key: molgenis
+  secret_key: molgenis
+  host: http://localhost
+  port: 9000

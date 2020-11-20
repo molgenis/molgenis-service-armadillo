@@ -1,0 +1,11 @@
+<VirtualHost {{ ansible_default_ipv4.address }}:80>
+   ServerAdmin admin@molgenis.org
+
+   ServerName {{ hostname }}
+   ServerAlias {{ hostname }}
+
+   # proxy services
+   ProxyPass / http://localhost:{{ port }}/
+   ProxyPassReverse / http://localhost:{{ port }}/
+
+</VirtualHost>

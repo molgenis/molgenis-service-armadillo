@@ -1,0 +1,5 @@
+---
+version: 2020-11-12T22-33-34Z
+data: /var/lib/minio/data
+access_key: molgenis
+secret_key: molgenis
