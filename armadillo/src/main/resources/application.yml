@@ -49,5 +49,10 @@ logging:
     org.molgenis: DEBUG
     org:
       springframework:
+        boot:
+          actuate:
+            audit:
+              listener:
+                AuditListener: DEBUG
         web:
           context: DEBUG

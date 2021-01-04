@@ -33,14 +33,18 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
+import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
@@ -86,22 +90,28 @@ public class DataController {
   private final Commands commands;
   private final ArmadilloStorageService storage;
   private final DataShieldEnvironmentHolder environments;
+  private final AuditEventPublisher auditEventPublisher;
 
   public DataController(
       ExpressionRewriter expressionRewriter,
       Commands commands,
       ArmadilloStorageService storage,
-      DataShieldEnvironmentHolder environments) {
+      DataShieldEnvironmentHolder environments,
+      AuditEventPublisher auditEventPublisher) {
     this.expressionRewriter = expressionRewriter;
     this.commands = commands;
     this.storage = storage;
     this.environments = environments;
+    this.auditEventPublisher = auditEventPublisher;
   }
 
   @Operation(summary = "Get R packages", description = "Get all installed R packages.")
   @GetMapping(value = "/packages", produces = APPLICATION_JSON_VALUE)
-  public List<RPackage> getPackages() throws ExecutionException, InterruptedException {
-    return commands.getPackages().get();
+  public List<RPackage> getPackages(Principal principal)
+      throws ExecutionException, InterruptedException {
+    return auditEventPublisher
+        .audit(commands.getPackages(), principal, "GET_PACKAGES", Map.of())
+        .get();
   }
 
   @Operation(
@@ -109,11 +119,16 @@ public class DataController {
       description =
           "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
-  public List<String> getTables() {
-    return storage.listProjects().stream()
-        .map(storage::listTables)
-        .flatMap(List::stream)
-        .collect(toList());
+  public List<String> getTables(Principal principal) {
+    return auditEventPublisher.audit(
+        () ->
+            storage.listProjects().stream()
+                .map(storage::listTables)
+                .flatMap(List::stream)
+                .collect(toList()),
+        principal,
+        "GET_TABLES",
+        Map.of());
   }
 
   @Operation(
@@ -125,10 +140,17 @@ public class DataController {
       })
   @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
   public ResponseEntity<Void> tableExists(
-      @PathVariable String project, @PathVariable String folder, @PathVariable String table) {
-    return storage.tableExists(project, format("%s/%s", folder, table))
-        ? ok().build()
-        : notFound().build();
+      Principal principal,
+      @PathVariable String project,
+      @PathVariable String folder,
+      @PathVariable String table) {
+    final var result =
+        auditEventPublisher.audit(
+            () -> storage.tableExists(project, format("%s/%s", folder, table)),
+            principal,
+            "TABLE_EXISTS",
+            Map.of("project", project, "folder", folder, "table", table));
+    return result ? ok().build() : notFound().build();
   }
 
   @Operation(
@@ -137,6 +159,7 @@ public class DataController {
       security = {@SecurityRequirement(name = "jwt")})
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
+      Principal principal,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
@@ -146,7 +169,12 @@ public class DataController {
     matcher.find();
     var project = matcher.group(1);
     var objectName = matcher.group(2);
+    Map<String, Object> data =
+        Map.of("symbol", symbol, "project", project, "objectName", objectName);
     if (!storage.tableExists(project, objectName)) {
+      data = new HashMap<>(data);
+      data.put("message", "Table not found");
+      auditEventPublisher.audit(principal, "LOAD_TABLE_FAILURE", data);
       return completedFuture(notFound().build());
     }
     var variableList =
@@ -154,7 +182,9 @@ public class DataController {
             .flatMap(Arrays::stream)
             .map(String::trim)
             .collect(toList());
-    var result = commands.loadTable(symbol, table, variableList);
+    var result =
+        auditEventPublisher.audit(
+            commands.loadTable(symbol, table, variableList), principal, "LOAD_TABLE", data);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result
@@ -167,11 +197,16 @@ public class DataController {
       description =
           "Return a list of (fully qualified) resource identifiers available for DataSHIELD operations")
   @GetMapping(value = "/resources", produces = APPLICATION_JSON_VALUE)
-  public List<String> getResources() {
-    return storage.listProjects().stream()
-        .map(storage::listResources)
-        .flatMap(List::stream)
-        .collect(toList());
+  public List<String> getResources(Principal principal) {
+    return auditEventPublisher.audit(
+        () ->
+            storage.listProjects().stream()
+                .map(storage::listResources)
+                .flatMap(List::stream)
+                .collect(toList()),
+        principal,
+        "GET_RESOURCES",
+        Map.of());
   }
 
   @Operation(
@@ -183,10 +218,17 @@ public class DataController {
       })
   @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
-      @PathVariable String project, @PathVariable String folder, @PathVariable String resource) {
-    return storage.resourceExists(project, format("%s/%s", folder, resource))
-        ? ok().build()
-        : notFound().build();
+      Principal principal,
+      @PathVariable String project,
+      @PathVariable String folder,
+      @PathVariable String resource) {
+    final var result =
+        auditEventPublisher.audit(
+            () -> storage.resourceExists(project, format("%s/%s", folder, resource)),
+            principal,
+            "RESOURCE_EXISTS",
+            Map.of("project", project, "folder", folder, "resource", resource));
+    return result ? ok().build() : notFound().build();
   }
 
   @Operation(
@@ -195,6 +237,7 @@ public class DataController {
       security = {@SecurityRequirement(name = "jwt")})
   @PostMapping(value = "/load-resource")
   public CompletableFuture<ResponseEntity<Void>> loadResource(
+      Principal principal,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
       @RequestParam(defaultValue = "false") boolean async) {
@@ -203,10 +246,17 @@ public class DataController {
     matcher.find();
     var project = matcher.group(1);
     var objectName = matcher.group(2);
+    Map<String, Object> data =
+        Map.of("symbol", symbol, "project", project, "objectName", objectName);
     if (!storage.resourceExists(project, objectName)) {
+      data = new HashMap<>(data);
+      data.put("message", "Resource not found");
+      auditEventPublisher.audit(principal, "LOAD_RESOURCE_FAILURE", data);
       return completedFuture(notFound().build());
     }
-    var result = commands.loadResource(symbol, resource);
+    var result =
+        auditEventPublisher.audit(
+            commands.loadResource(symbol, resource), principal, "LOAD_RESOURCE", data);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result
@@ -216,20 +266,25 @@ public class DataController {
 
   @Operation(summary = "Get assigned symbols")
   @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
-  public List<String> getSymbols()
+  public List<String> getSymbols(Principal principal)
       throws ExecutionException, InterruptedException, REXPMismatchException {
-    REXP result = commands.evaluate("base::ls()").get();
-    return asList(result.asStrings());
+    CompletableFuture<REXP> result =
+        auditEventPublisher.audit(
+            commands.evaluate("base::ls()"), principal, "GET_ASSIGNED_SYMBOLS", Map.of());
+    return asList(result.get().asStrings());
   }
 
   @Operation(
       summary = "Remove symbol",
       description = "Removes a symbol, making the assigned data inaccessible")
   @DeleteMapping(value = "/symbols/{symbol}")
-  public void removeSymbol(@Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol)
+  public void removeSymbol(
+      Principal principal, @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol)
       throws ExecutionException, InterruptedException {
     String command = format("base::rm(%s)", symbol);
-    commands.evaluate(command).get();
+    auditEventPublisher
+        .audit(commands.evaluate(command), principal, "REMOVE_SYMBOL", Map.of("symbol", symbol))
+        .get();
   }
 
   @Operation(
@@ -237,16 +292,28 @@ public class DataController {
       description = "Assign the result of the evaluation of an expression to a symbol")
   @PostMapping(value = "/symbols/{symbol}", consumes = TEXT_PLAIN_VALUE)
   public CompletableFuture<ResponseEntity<Void>> assignSymbol(
+      Principal principal,
       @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
       @RequestBody String expression,
       @RequestParam(defaultValue = "false") boolean async) {
-    String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
-    CompletableFuture<Void> result = commands.assign(symbol, rewrittenExpression);
-    return async
-        ? completedFuture(created(getLastCommandLocation()).body(null))
-        : result
-            .thenApply(ResponseEntity::ok)
-            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+    Map<String, Object> data = Map.of("symbol", symbol, "expression", expression);
+    try {
+      String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
+      CompletableFuture<Void> result =
+          auditEventPublisher.audit(
+              commands.assign(symbol, rewrittenExpression), principal, "ASSIGN", data);
+      return async
+          ? completedFuture(created(getLastCommandLocation()).body(null))
+          : result
+              .thenApply(ResponseEntity::ok)
+              .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+    } catch (ExpressionException ex) {
+      data = new HashMap(data);
+      data.put("message", ex.getMessage());
+      data.put("type", ex.getClass().getSimpleName());
+      auditEventPublisher.audit(principal, "ASSIGN_FAILURE", data);
+      throw ex;
+    }
   }
 
   @Operation(summary = "Execute expression")
@@ -255,19 +322,31 @@ public class DataController {
       consumes = TEXT_PLAIN_VALUE,
       produces = APPLICATION_OCTET_STREAM_VALUE)
   public CompletableFuture<ResponseEntity<byte[]>> execute(
+      Principal principal,
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
           @RequestParam(defaultValue = "false")
           boolean async) {
-    String rewrittenExpression =
-        serializeExpression(expressionRewriter.rewriteAggregate(expression));
-    CompletableFuture<REXP> result = commands.evaluate(rewrittenExpression);
-    return async
-        ? completedFuture(created(getLastCommandLocation()).body(null))
-        : result
-            .thenApply(ArmadilloUtils::createRawResponse)
-            .thenApply(ResponseEntity::ok)
-            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+    Map<String, Object> data = Map.of("expression", expression);
+    try {
+      String rewrittenExpression =
+          serializeExpression(expressionRewriter.rewriteAggregate(expression));
+      CompletableFuture<REXP> result =
+          auditEventPublisher.audit(
+              commands.evaluate(rewrittenExpression), principal, "EXECUTE", data);
+      return async
+          ? completedFuture(created(getLastCommandLocation()).body(null))
+          : result
+              .thenApply(ArmadilloUtils::createRawResponse)
+              .thenApply(ResponseEntity::ok)
+              .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+    } catch (ExpressionException ex) {
+      data = new HashMap(data);
+      data.put("message", ex.getMessage());
+      data.put("type", ex.getClass().getSimpleName());
+      auditEventPublisher.audit(principal, "EXECUTE_FAILURE", data);
+      throw ex;
+    }
   }
 
   @Operation(summary = "Get last command")
@@ -296,27 +375,37 @@ public class DataController {
       description = "Debugs a command, bypassing DataSHIELD's security checks. Admin use only.")
   @PreAuthorize("hasRole('ROLE_SU')")
   @PostMapping(value = "/debug", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
-  public Object debug(@RequestBody String expression)
+  public Object debug(Principal principal, @RequestBody String expression)
       throws ExecutionException, InterruptedException, REXPMismatchException {
+    auditEventPublisher.audit(principal, "DEBUG", Map.of("expression", expression));
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
-  public List<DSMethod> getAssignMethods() {
-    return environments.getEnvironment(ASSIGN).getMethods();
+  public List<DSMethod> getAssignMethods(Principal principal) {
+    return auditEventPublisher.audit(
+        () -> environments.getEnvironment(ASSIGN).getMethods(),
+        principal,
+        "GET_ASSIGN_METHODS",
+        Map.of());
   }
 
   @Operation(summary = "Get available aggregate methods")
   @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
-  public List<DSMethod> getAggregateMethods() {
-    return environments.getEnvironment(AGGREGATE).getMethods();
+  public List<DSMethod> getAggregateMethods(Principal principal) {
+    return auditEventPublisher.audit(
+        () -> environments.getEnvironment(AGGREGATE).getMethods(),
+        principal,
+        "GET_AGGREGATE_METHODS",
+        Map.of());
   }
 
   @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
-    return storage.listWorkspaces(principal);
+    return auditEventPublisher.audit(
+        () -> storage.listWorkspaces(principal), principal, "GET_USER_WORKSPACES", Map.of());
   }
 
   @Operation(
@@ -333,7 +422,14 @@ public class DataController {
               message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
-    storage.removeWorkspace(principal, id);
+    auditEventPublisher.audit(
+        () -> {
+          storage.removeWorkspace(principal, id);
+          return null;
+        },
+        principal,
+        "DELETE_USER_WORKSPACE",
+        Map.of("id", id));
   }
 
   @Operation(summary = "Save user workspace")
@@ -347,7 +443,13 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.saveWorkspace(principal, id).get();
+    auditEventPublisher
+        .audit(
+            commands.saveWorkspace(principal, id),
+            principal,
+            "SAVE_USER_WORKSPACE",
+            Map.of("id", id))
+        .get();
   }
 
   @Operation(summary = "Load user workspace")
@@ -360,6 +462,12 @@ public class DataController {
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
-    commands.loadWorkspace(principal, id).get();
+    auditEventPublisher
+        .audit(
+            commands.loadWorkspace(principal, id),
+            principal,
+            "LOAD_USER_WORKSPACE",
+            Map.of("id", id))
+        .get();
   }
 }
