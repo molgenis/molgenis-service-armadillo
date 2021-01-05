@@ -33,3 +33,32 @@ services:
       - "6311:6311"
       - "6312:6312"
       - "53000-53200:53000-53200"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.3
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      discovery.type: single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.9.3
+    ports:
+      - "5010:5010"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    volumes:
+      - ${PWD}/logstash-armadillo.conf:/usr/share/logstash/pipeline/logstash-armadillo.conf
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.9.3
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+      - logstash

@@ -43,7 +43,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
-  public static final String OBJECT_NAME = "objectName";
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
@@ -80,7 +79,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
           } else {
             Map<String, Object> errorData = new HashMap<>(data);
             errorData.put(MESSAGE, failure.getMessage());
-            errorData.put(TYPE, failure.getClass().getSimpleName());
+            errorData.put(TYPE, failure.getClass().getName());
             audit(principal, type + "_FAILURE", errorData, sessionId);
           }
         });
@@ -94,7 +93,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     } catch (Exception failure) {
       Map<String, Object> errorData = new HashMap<>(data);
       errorData.put(MESSAGE, failure.getMessage());
-      errorData.put(TYPE, failure.getClass().getSimpleName());
+      errorData.put(TYPE, failure.getClass().getName());
       audit(principal, type + "_FAILURE", errorData);
       throw failure;
     }

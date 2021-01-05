@@ -28,7 +28,7 @@ server:
     include-message: always
 
 logging:
-  config: classpath:logback-armadillo.xml
+  config: classpath:logback-dev.xml
 
 ---
 spring:
