@@ -3,6 +3,8 @@ package org.molgenis.armadillo;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,14 +20,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.security.Principal;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
+import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
@@ -43,8 +52,13 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,6 +66,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
 @ActiveProfiles("test")
+@Import(AuditEventPublisher.class)
 class DataControllerTest {
 
   static RPackage BASE =
@@ -71,22 +86,52 @@ class DataControllerTest {
           .build();
 
   @Autowired private MockMvc mockMvc;
+  @Autowired AuditEventPublisher auditEventPublisher;
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
   @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean private DataShieldEnvironmentHolder environments;
+  @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
+  @Mock private Clock clock;
+  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
+  MockHttpSession session = new MockHttpSession();
+  private String sessionId;
+  private final Instant instant = Instant.now();
+
+  @BeforeEach
+  public void setup() {
+    auditEventPublisher.setClock(clock);
+    auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
+    when(clock.instant()).thenReturn(instant);
+    sessionId = session.changeSessionId();
+  }
+
+  private void expectAuditEvent(AuditEvent expectedEvent) {
+    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+    final var auditEvent = eventCaptor.getValue().getAuditEvent();
+    final var equal = reflectionEquals(auditEvent, expectedEvent);
+    if (!equal) {
+      System.out.println(auditEvent);
+      System.out.println(expectedEvent);
+    }
+    assertTrue(equal);
+  }
 
   @Test
   @WithMockUser
   void testGetPackages() throws Exception {
+    when(clock.instant()).thenReturn(instant);
     when(commands.getPackages()).thenReturn(completedFuture(List.of(BASE, DESC)));
     mockMvc
-        .perform(get("/packages"))
+        .perform(get("/packages").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
+    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_PACKAGES", Map.of("sessionId", sessionId)));
   }
 
   @Test
@@ -97,24 +142,60 @@ class DataControllerTest {
         .thenReturn(List.of("gecko/1_1_core_2_1/core", "gecko/1_1_core_2_2/core"));
 
     mockMvc
-        .perform(get("/tables"))
+        .perform(get("/tables").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
+
+    expectAuditEvent(new AuditEvent(instant, "user", "GET_TABLES", Map.of("sessionId", sessionId)));
   }
 
   @Test
   @WithMockUser
   void testTableExists() throws Exception {
     when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(true);
-    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isOk());
+    mockMvc
+        .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
+        .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "TABLE_EXISTS",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "project",
+                "gecko",
+                "folder",
+                "1_1_outcome_2_0",
+                "table",
+                "core")));
   }
 
   @Test
   @WithMockUser
   void testTableNotFound() throws Exception {
     when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(false);
-    mockMvc.perform(head("/tables/gecko/1_1_outcome_2_0/core")).andExpect(status().isNotFound());
+    mockMvc
+        .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
+        .andExpect(status().isNotFound());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "TABLE_EXISTS",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "project",
+                "gecko",
+                "folder",
+                "1_1_outcome_2_0",
+                "table",
+                "core")));
   }
 
   @Test
@@ -124,17 +205,24 @@ class DataControllerTest {
     when(rexp.asStrings()).thenReturn(new String[] {"D"});
 
     mockMvc
-        .perform(get("/symbols"))
+        .perform(get("/symbols").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"D\"]"));
+
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_ASSIGNED_SYMBOLS", Map.of("sessionId", sessionId)));
   }
 
   @Test
   @WithMockUser
   void deleteSymbol() throws Exception {
     when(commands.evaluate("base::rm(D)")).thenReturn(completedFuture(null));
-    mockMvc.perform(delete("/symbols/D")).andExpect(status().isOk());
+    mockMvc.perform(delete("/symbols/D").session(session)).andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant, "user", "REMOVE_SYMBOL", Map.of("sessionId", sessionId, "symbol", "D")));
   }
 
   @Test
@@ -145,13 +233,16 @@ class DataControllerTest {
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
 
     mockMvc
-        .perform(get("/methods/assign"))
+        .perform(get("/methods/assign").session(session))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value("meanDS"))
         .andExpect(jsonPath("$[0].function").value("dsBase::meanDS"))
         .andExpect(jsonPath("$[0].package").value("dsBase"))
         .andExpect(jsonPath("$[0].version").value("1.2.3"));
+
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_ASSIGN_METHODS", Map.of("sessionId", sessionId)));
   }
 
   @Test
@@ -162,13 +253,16 @@ class DataControllerTest {
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
 
     mockMvc
-        .perform(get("/methods/aggregate"))
+        .perform(get("/methods/aggregate").session(session))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value("ls"))
         .andExpect(jsonPath("$[0].function").value("base::ls"))
         .andExpect(jsonPath("$[0].package").value("base"))
         .andExpect(jsonPath("$[0].version", nullValue()));
+
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_AGGREGATE_METHODS", Map.of("sessionId", sessionId)));
   }
 
   @Test
@@ -192,12 +286,16 @@ class DataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
         .andExpect(content().bytes(bytes));
+
+    verifyNoInteractions(applicationEventPublisher);
   }
 
   @Test
   @WithMockUser
   void testGetLastCommandNotFound() throws Exception {
     mockMvc.perform(get("/lastcommand").accept(APPLICATION_JSON)).andExpect(status().isNotFound());
+
+    verifyNoInteractions(applicationEventPublisher);
   }
 
   @Test
@@ -218,14 +316,23 @@ class DataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(jsonPath("status").value("PENDING"));
+
+    verifyNoInteractions(applicationEventPublisher);
   }
 
   @Test
   @WithMockUser(username = "henk")
   void testDeleteWorkspace() throws Exception {
-    mockMvc.perform(delete("/workspaces/test")).andExpect(status().isOk());
+    mockMvc.perform(delete("/workspaces/test").session(session)).andExpect(status().isOk());
 
     verify(armadilloStorage).removeWorkspace(any(Principal.class), eq("test"));
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "henk",
+            "DELETE_USER_WORKSPACE",
+            Map.of("sessionId", sessionId, "id", "test")));
   }
 
   @Test
@@ -234,7 +341,16 @@ class DataControllerTest {
     when(commands.saveWorkspace(any(Principal.class), eq("servername:test_dash")))
         .thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/workspaces/servername:test_dash")).andExpect(status().isCreated());
+    mockMvc
+        .perform(post("/workspaces/servername:test_dash").session(session))
+        .andExpect(status().isCreated());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "henk",
+            "SAVE_USER_WORKSPACE",
+            Map.of("sessionId", sessionId, "id", "servername:test_dash")));
   }
 
   @Test
@@ -255,7 +371,11 @@ class DataControllerTest {
     when(commands.loadWorkspace(any(Principal.class), eq("blah")))
         .thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/load-workspace?id=blah")).andExpect(status().isOk());
+    mockMvc.perform(post("/load-workspace?id=blah").session(session)).andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant, "henk", "LOAD_USER_WORKSPACE", Map.of("sessionId", sessionId, "id", "blah")));
   }
 
   @Test
@@ -272,21 +392,32 @@ class DataControllerTest {
     mockMvc
         .perform(
             post("/execute")
+                .session(session)
                 .accept(APPLICATION_OCTET_STREAM)
                 .contentType(TEXT_PLAIN)
                 .content(expression))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "EXECUTE",
+            Map.of("sessionId", sessionId, "expression", "meanDS(D$age)")));
   }
 
   @Test
   @WithMockUser
   void testExecuteAsync() throws Exception {
-    when(commands.evaluate("meanDS(D$age)")).thenReturn(completedFuture(new REXPDouble(36.6)));
+    when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
+    when(commands.evaluate("try(base::serialize({dsBase::meanDS(D$age)}, NULL))"))
+        .thenReturn(completedFuture(new REXPDouble(36.6)));
 
     MvcResult result =
         mockMvc
             .perform(
                 post("/execute?async=true")
+                    .session(session)
                     .contentType(TEXT_PLAIN)
                     .content("meanDS(D$age)")
                     .accept(APPLICATION_OCTET_STREAM))
@@ -296,6 +427,13 @@ class DataControllerTest {
         .andExpect(status().isCreated())
         .andExpect(header().string("Location", "http://localhost/lastcommand"))
         .andExpect(content().string(""));
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "EXECUTE",
+            Map.of("sessionId", sessionId, "expression", "meanDS(D$age)")));
   }
 
   @Test
@@ -309,10 +447,20 @@ class DataControllerTest {
     when(commands.assign("E", rewrittenExpression)).thenReturn(assignment);
 
     MvcResult result =
-        mockMvc.perform(post("/symbols/E").contentType(TEXT_PLAIN).content(expression)).andReturn();
+        mockMvc
+            .perform(
+                post("/symbols/E").session(session).contentType(TEXT_PLAIN).content(expression))
+            .andReturn();
 
     assignment.complete(null);
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "ASSIGN",
+            Map.of("sessionId", sessionId, "symbol", "E", "expression", "meanDS(D$age)")));
   }
 
   @Test
@@ -325,30 +473,65 @@ class DataControllerTest {
 
     MvcResult mvcResult =
         mockMvc
-            .perform(post("/symbols/D").contentType(TEXT_PLAIN).content(expression))
+            .perform(
+                post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
             .andExpect(status().isBadRequest())
             .andReturn();
     assertEquals(
         "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "ASSIGN_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "symbol",
+                "D",
+                "expression",
+                "meanDS(D$age",
+                "type",
+                "ExpressionException",
+                "message",
+                "Error parsing expression 'meanDS(D$age':\nMissing end bracket")));
   }
 
   @Test
   @WithMockUser
   void testAsyncAssignExecutionFails() throws Exception {
-    String expression = "meanDS(D$age";
-    doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
-        .when(expressionRewriter)
-        .rewriteAssign(expression);
+    String expression = "meanDS(D$age)";
+    String rewrittenExpression = "dsBase::meanDS(D$age)";
+    when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
+
+    when(commands.assign("D", rewrittenExpression))
+        .thenReturn(failedFuture(new NullPointerException("Execution failed")));
 
     MvcResult mvcResult =
         mockMvc
-            .perform(post("/symbols/D").contentType(TEXT_PLAIN).content(expression))
-            .andExpect(status().isBadRequest())
+            .perform(
+                post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
+            .andExpect(status().isOk())
             .andReturn();
-    assertEquals(
-        "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
-        mvcResult.getResolvedException().getMessage());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "ASSIGN_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "symbol",
+                "D",
+                "expression",
+                "meanDS(D$age)",
+                "type",
+                "NullPointerException",
+                "message",
+                "Execution failed")));
   }
 
   @Test
@@ -363,6 +546,7 @@ class DataControllerTest {
         mockMvc
             .perform(
                 post("/execute?async=true")
+                    .session(session)
                     .accept(APPLICATION_OCTET_STREAM)
                     .contentType(TEXT_PLAIN)
                     .content(expression))
@@ -371,6 +555,21 @@ class DataControllerTest {
     assertEquals(
         "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "EXECUTE_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "expression",
+                "meanDS(D$age",
+                "type",
+                "ExpressionException",
+                "message",
+                "Error parsing expression 'meanDS(D$age':\nMissing end bracket")));
   }
 
   @Test
@@ -380,21 +579,33 @@ class DataControllerTest {
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
 
-    when(commands.assign("E", rewrittenExpression)).thenReturn(new CompletableFuture<>());
+    final var future = new CompletableFuture<Void>();
+    when(commands.assign("E", rewrittenExpression)).thenReturn(future);
 
     MvcResult result =
         mockMvc
             .perform(
                 post("/symbols/E?async=true")
+                    .session(session)
                     .contentType(TEXT_PLAIN)
                     .content("meanDS(D$age)")
                     .accept(APPLICATION_OCTET_STREAM))
             .andReturn();
+
     mockMvc
         .perform(asyncDispatch(result))
         .andExpect(status().isCreated())
         .andExpect(header().string("Location", "http://localhost/lastcommand"))
         .andExpect(content().string(""));
+
+    future.complete(null);
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "ASSIGN",
+            Map.of("sessionId", sessionId, "symbol", "E", "expression", "meanDS(D$age)")));
   }
 
   @Test
@@ -403,8 +614,29 @@ class DataControllerTest {
     when(armadilloStorage.tableExists("gecko", "core/core-all")).thenReturn(false);
 
     var result =
-        mockMvc.perform(post("/load-table?symbol=D&table=gecko/core/core-all")).andReturn();
+        mockMvc
+            .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
+            .andReturn();
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE_FAILURE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "project",
+                "gecko",
+                "folder",
+                "core",
+                "table",
+                "core-all",
+                "message",
+                "Table not found")));
   }
 
   @Test
@@ -415,8 +647,26 @@ class DataControllerTest {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=project/folder/table&async=false"))
+        .perform(
+            post("/load-table?symbol=D&table=project/folder/table&async=false").session(session))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "project",
+                "project",
+                "folder",
+                "folder",
+                "table",
+                "table")));
   }
 
   @Test
@@ -428,9 +678,26 @@ class DataControllerTest {
 
     mockMvc
         .perform(
-            post(
-                "/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight"))
+            post("/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight")
+                .session(session))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "project",
+                "project",
+                "folder",
+                "folder",
+                "table",
+                "table")));
   }
 
   @ParameterizedTest
@@ -465,7 +732,10 @@ class DataControllerTest {
     when(armadilloStorage.listResources("gecko")).thenReturn(List.of("hpc-resource-1"));
     when(armadilloStorage.listResources("alspac")).thenReturn(List.of("hpc-resource-20"));
 
-    mockMvc.perform(get("/resources")).andExpect(status().isOk());
+    mockMvc.perform(get("/resources").session(session)).andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_RESOURCES", Map.of("sessionId", sessionId)));
   }
 
   @Test
@@ -474,8 +744,23 @@ class DataControllerTest {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
 
     mockMvc
-        .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1"))
+        .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1").session(session))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "RESOURCE_EXISTS",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "project",
+                "gecko",
+                "folder",
+                "2_1-core-1_1",
+                "resource",
+                "hpc-resource-1")));
   }
 
   @Test
@@ -486,8 +771,27 @@ class DataControllerTest {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1"))
+        .perform(
+            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+                .session(session))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_RESOURCE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "symbol",
+                "hpc_res",
+                "project",
+                "gecko",
+                "folder",
+                "2_1-core-1_1",
+                "resource",
+                "hpc-resource-1")));
   }
 
   @Test
@@ -495,8 +799,29 @@ class DataControllerTest {
   void testLoadResourceFails() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(false);
     mockMvc
-        .perform(post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resources-1"))
+        .perform(
+            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+                .session(session))
         .andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_RESOURCE_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "symbol",
+                "hpc_res",
+                "project",
+                "gecko",
+                "folder",
+                "2_1-core-1_1",
+                "resource",
+                "hpc-resource-1",
+                "message",
+                "Resource not found")));
   }
 
   @Test
@@ -505,6 +830,9 @@ class DataControllerTest {
     when(armadilloStorage.listWorkspaces(any(Principal.class)))
         .thenReturn(List.of(mock(Workspace.class)));
 
-    mockMvc.perform(get("/workspaces")).andExpect(status().isOk());
+    mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
+
+    expectAuditEvent(
+        new AuditEvent(instant, "user", "GET_USER_WORKSPACES", Map.of("sessionId", sessionId)));
   }
 }

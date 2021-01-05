@@ -23,7 +23,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {
 
-  private DataShieldProperties dataShieldProperties = new DataShieldProperties();
+  private final DataShieldProperties dataShieldProperties = new DataShieldProperties();
   @Mock private PackageService packageService;
   @Mock private RConnectionFactory rConnectionFactory;
   @Mock private RConnection rConnection;

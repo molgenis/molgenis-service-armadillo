@@ -3,9 +3,7 @@ package org.molgenis.armadillo.command.impl;
 import static java.time.Instant.now;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.command.ArmadilloCommandDTO.builder;
 import static org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus.COMPLETED;
@@ -29,14 +27,15 @@ import org.rosuda.REngine.Rserve.RConnection;
 class ArmadilloCommandImplTest {
 
   @Mock private Clock clock;
-  private ArmadilloCommandImpl command;
-  private Instant createDate = now();
+  @Mock RConnection connection;
+  private ArmadilloCommandImpl<RConnection> command;
+  private final Instant createDate = now();
 
   @BeforeEach
   void setUp() {
     when(clock.instant()).thenReturn(createDate);
     command =
-        new ArmadilloCommandImpl("expression", true, clock) {
+        new ArmadilloCommandImpl<>("expression", true, clock) {
 
           @Override
           protected RConnection doWithConnection(RConnection connection) {
@@ -77,7 +76,7 @@ class ArmadilloCommandImplTest {
 
   @Test
   void statusPendingNotStarted() {
-    command.setExecution(new CompletableFuture());
+    command.setExecution(new CompletableFuture<>());
 
     assertEquals(PENDING, command.getStatus());
   }
@@ -104,7 +103,7 @@ class ArmadilloCommandImplTest {
 
   @Test
   void inProgress() {
-    command.setExecution(new CompletableFuture());
+    command.setExecution(new CompletableFuture<>());
     command.start();
 
     assertEquals(IN_PROGRESS, command.getStatus());
@@ -120,7 +119,7 @@ class ArmadilloCommandImplTest {
 
   @Test
   void completed() {
-    command.setExecution(completedFuture(42));
+    command.setExecution(completedFuture(connection));
 
     assertEquals(COMPLETED, command.getStatus());
   }
@@ -143,7 +142,7 @@ class ArmadilloCommandImplTest {
   @Test
   void asDtoCompleted() {
     command.start();
-    command.setExecution(completedFuture(42));
+    command.setExecution(completedFuture(connection));
     command.complete();
 
     ArmadilloCommandDTO actual = command.asDto();

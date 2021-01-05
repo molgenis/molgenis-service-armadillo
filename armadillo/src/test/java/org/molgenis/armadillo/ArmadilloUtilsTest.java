@@ -1,7 +1,6 @@
 package org.molgenis.armadillo;
 
-import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
 import static org.molgenis.armadillo.ArmadilloUtils.createRawResponse;
 

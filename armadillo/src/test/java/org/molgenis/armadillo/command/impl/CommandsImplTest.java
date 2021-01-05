@@ -64,7 +64,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testSchedule() throws ExecutionException, InterruptedException, RserveException {
+  void testSchedule() throws Exception {
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
@@ -97,21 +97,21 @@ class CommandsImplTest {
   }
 
   @Test
-  void testAssign() throws ExecutionException, InterruptedException, RserveException {
+  void testAssign() throws Exception {
     commands.assign("D", "E").get();
 
     verify(rExecutorService).execute("is.null(base::assign('D', value={E}))", rConnection);
   }
 
   @Test
-  void testEvaluate() throws ExecutionException, InterruptedException, RserveException {
+  void testEvaluate() throws Exception {
     when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
 
     assertSame(rexp, commands.evaluate("ls()").get());
   }
 
   @Test
-  void testSaveWorkspace() throws ExecutionException, InterruptedException, RserveException {
+  void testSaveWorkspace() throws Exception {
     doAnswer(
             invocation -> {
               invocation.getArgument(1, Consumer.class).accept(inputStream);
@@ -126,7 +126,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testLoadWorkspace() throws ExecutionException, InterruptedException, RserveException {
+  void testLoadWorkspace() throws Exception {
     when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
 
     commands.loadWorkspace(principal, "core").get();
@@ -136,7 +136,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testLoadTable() throws ExecutionException, InterruptedException, RserveException {
+  void testLoadTable() throws Exception {
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
 
     commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
@@ -151,7 +151,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testGetPackages() throws ExecutionException, InterruptedException, RserveException {
+  void testGetPackages() throws Exception {
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
 
@@ -166,7 +166,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testLoadResource() throws ExecutionException, InterruptedException {
+  void testLoadResource() throws Exception {
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
 
