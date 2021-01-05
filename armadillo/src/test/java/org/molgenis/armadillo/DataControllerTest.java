@@ -98,7 +98,7 @@ class DataControllerTest {
   @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
-  private Instant instant = Instant.now();
+  private final Instant instant = Instant.now();
 
   @BeforeEach
   public void setup() {

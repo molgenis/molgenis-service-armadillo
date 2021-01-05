@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +60,7 @@ class ArmadilloSessionTest {
   }
 
   @Test
-  void sessionCleanupTerminatesRunningProcess() throws InterruptedException, ExecutionException {
+  void sessionCleanupTerminatesRunningProcess() throws Exception {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
 
     /*
