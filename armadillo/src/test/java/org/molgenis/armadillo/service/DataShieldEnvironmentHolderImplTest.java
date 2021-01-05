@@ -28,9 +28,7 @@ import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class DataShieldEnvironmentHolderImplTest {
@@ -48,7 +46,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  void testGetAggregateEnvironment() throws REXPMismatchException, RserveException {
+  void testGetAggregateEnvironment() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
@@ -61,7 +59,7 @@ class DataShieldEnvironmentHolderImplTest {
   }
 
   @Test
-  void testGetAssignEnvironment() throws REXPMismatchException, RserveException {
+  void testGetAssignEnvironment() {
     when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 

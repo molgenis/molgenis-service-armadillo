@@ -15,6 +15,38 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String GET_ASSIGNED_SYMBOLS = "GET_ASSIGNED_SYMBOLS";
+  public static final String GET_PACKAGES = "GET_PACKAGES";
+  public static final String LOAD_TABLE_FAILURE = "LOAD_TABLE_FAILURE";
+  public static final String RESOURCE_EXISTS = "RESOURCE_EXISTS";
+  public static final String TABLE_EXISTS = "TABLE_EXISTS";
+  public static final String LOAD_RESOURCE = "LOAD_RESOURCE";
+  public static final String LOAD_RESOURCE_FAILURE = "LOAD_RESOURCE_FAILURE";
+  public static final String REMOVE_SYMBOL = "REMOVE_SYMBOL";
+  public static final String ASSIGN1 = "ASSIGN";
+  public static final String ASSIGN_FAILURE = "ASSIGN_FAILURE";
+  public static final String EXECUTE = "EXECUTE";
+  public static final String EXECUTE_FAILURE = "EXECUTE_FAILURE";
+  public static final String DEBUG = "DEBUG";
+  public static final String GET_ASSIGN_METHODS = "GET_ASSIGN_METHODS";
+  public static final String GET_AGGREGATE_METHODS = "GET_AGGREGATE_METHODS";
+  public static final String GET_USER_WORKSPACES = "GET_USER_WORKSPACES";
+  public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
+  public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
+  public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
+  public static final String GET_TABLES = "GET_TABLES";
+  public static final String LOAD_TABLE = "LOAD_TABLE";
+  public static final String GET_RESOURCES = "GET_RESOURCES";
+  public static final String EXPRESSION = "expression";
+  public static final String TYPE = "type";
+  public static final String FOLDER = "folder";
+  public static final String RESOURCE = "resource";
+  public static final String SYMBOL = "symbol";
+  public static final String PROJECT = "project";
+  public static final String OBJECT_NAME = "objectName";
+  public static final String MESSAGE = "message";
+  public static final String TABLE = "table";
+  public static final String ID = "id";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
@@ -47,8 +79,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
             audit(principal, type, data, sessionId);
           } else {
             Map<String, Object> errorData = new HashMap<>(data);
-            errorData.put("message", failure.getMessage());
-            errorData.put("type", failure.getClass().getSimpleName());
+            errorData.put(MESSAGE, failure.getMessage());
+            errorData.put(TYPE, failure.getClass().getSimpleName());
             audit(principal, type + "_FAILURE", errorData, sessionId);
           }
         });
@@ -59,10 +91,10 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
       var result = c.get();
       audit(principal, type, data);
       return result;
-    } catch (Throwable failure) {
+    } catch (Exception failure) {
       Map<String, Object> errorData = new HashMap<>(data);
-      errorData.put("message", failure.getMessage());
-      errorData.put("type", failure.getClass().getSimpleName());
+      errorData.put(MESSAGE, failure.getMessage());
+      errorData.put(TYPE, failure.getClass().getSimpleName());
       audit(principal, type + "_FAILURE", errorData);
       throw failure;
     }

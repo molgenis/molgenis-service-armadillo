@@ -98,7 +98,7 @@ class DataControllerTest {
   @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
-  private Instant instant = Instant.now();
+  private final Instant instant = Instant.now();
 
   @BeforeEach
   public void setup() {
@@ -631,8 +631,10 @@ class DataControllerTest {
                 sessionId,
                 "project",
                 "gecko",
-                "objectName",
-                "core/core-all",
+                "folder",
+                "core",
+                "table",
+                "core-all",
                 "message",
                 "Table not found")));
   }
@@ -661,8 +663,10 @@ class DataControllerTest {
                 sessionId,
                 "project",
                 "project",
-                "objectName",
-                "folder/table")));
+                "folder",
+                "folder",
+                "table",
+                "table")));
   }
 
   @Test
@@ -690,8 +694,10 @@ class DataControllerTest {
                 sessionId,
                 "project",
                 "project",
-                "objectName",
-                "folder/table")));
+                "folder",
+                "folder",
+                "table",
+                "table")));
   }
 
   @ParameterizedTest
@@ -782,8 +788,10 @@ class DataControllerTest {
                 "hpc_res",
                 "project",
                 "gecko",
-                "objectName",
-                "2_1-core-1_1/hpc-resource-1")));
+                "folder",
+                "2_1-core-1_1",
+                "resource",
+                "hpc-resource-1")));
   }
 
   @Test
@@ -808,8 +816,10 @@ class DataControllerTest {
                 "hpc_res",
                 "project",
                 "gecko",
-                "objectName",
-                "2_1-core-1_1/hpc-resource-1",
+                "folder",
+                "2_1-core-1_1",
+                "resource",
+                "hpc-resource-1",
                 "message",
                 "Resource not found")));
   }
