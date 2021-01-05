@@ -82,7 +82,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
-  public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*(,\\p{Alnum}[\\w.]*)*";
+  public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*+(,\\p{Alnum}[\\w.]*+)*";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
   public static final String TABLE_RESOURCE_REGEX =
       "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
