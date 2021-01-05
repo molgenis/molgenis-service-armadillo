@@ -2,11 +2,14 @@ datashield:
   whitelist:
     - dsBase
     - resourcer
+
 springdoc:
   swagger-ui:
     enabled: false
 
 spring:
+  application:
+    name: armadillo
   security:
     user:
       name: admin
@@ -23,6 +26,10 @@ server:
   error:
     include-binding-errors: always
     include-message: always
+
+logging:
+  config: classpath:logback-armadillo.xml
+
 ---
 spring:
   profiles: development
@@ -36,12 +43,6 @@ spring:
         opaquetoken:
           client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
 
-minio:
-  url: http://localhost
-  port: 9000
-  access-key: molgenis
-  secret-key: molgenis
-
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
@@ -54,5 +55,12 @@ logging:
             audit:
               listener:
                 AuditListener: DEBUG
-        web:
-          context: DEBUG
+          web:
+            context: DEBUG
+
+minio:
+  url: http://localhost
+  port: 9000
+  access-key: molgenis
+  secret-key: molgenis
+
