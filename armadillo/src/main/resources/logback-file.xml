@@ -1,0 +1,30 @@
+<configuration>
+
+    <springProperty name="file" source="audit.log.path" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="FILE-AUDIT" class="ch.qos.logback.core.FileAppender">
+        <file>${file}</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <logstashMarkers/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <logger name="org.molgenis.armadillo.audit.AuditLogger" level="info">
+        <appender-ref ref="FILE-AUDIT"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

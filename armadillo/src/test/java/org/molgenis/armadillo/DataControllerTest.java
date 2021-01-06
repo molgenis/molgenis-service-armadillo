@@ -131,7 +131,11 @@ class DataControllerTest {
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
     verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_PACKAGES", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_PACKAGES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
   @Test
@@ -147,7 +151,12 @@ class DataControllerTest {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
 
-    expectAuditEvent(new AuditEvent(instant, "user", "GET_TABLES", Map.of("sessionId", sessionId)));
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_TABLES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
   @Test
@@ -166,6 +175,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "project",
                 "gecko",
                 "folder",
@@ -190,6 +201,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "project",
                 "gecko",
                 "folder",
@@ -211,7 +224,11 @@ class DataControllerTest {
         .andExpect(content().json("[\"D\"]"));
 
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_ASSIGNED_SYMBOLS", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_ASSIGNED_SYMBOLS",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
   @Test
@@ -222,7 +239,10 @@ class DataControllerTest {
 
     expectAuditEvent(
         new AuditEvent(
-            instant, "user", "REMOVE_SYMBOL", Map.of("sessionId", sessionId, "symbol", "D")));
+            instant,
+            "user",
+            "REMOVE_SYMBOL",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"), "symbol", "D")));
   }
 
   @Test
@@ -242,7 +262,11 @@ class DataControllerTest {
         .andExpect(jsonPath("$[0].version").value("1.2.3"));
 
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_ASSIGN_METHODS", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_ASSIGN_METHODS",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
   @Test
@@ -262,7 +286,11 @@ class DataControllerTest {
         .andExpect(jsonPath("$[0].version", nullValue()));
 
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_AGGREGATE_METHODS", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_AGGREGATE_METHODS",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
   @Test
@@ -332,7 +360,7 @@ class DataControllerTest {
             instant,
             "henk",
             "DELETE_USER_WORKSPACE",
-            Map.of("sessionId", sessionId, "id", "test")));
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"), "id", "test")));
   }
 
   @Test
@@ -350,7 +378,13 @@ class DataControllerTest {
             instant,
             "henk",
             "SAVE_USER_WORKSPACE",
-            Map.of("sessionId", sessionId, "id", "servername:test_dash")));
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_USER"),
+                "id",
+                "servername:test_dash")));
   }
 
   @Test
@@ -375,7 +409,10 @@ class DataControllerTest {
 
     expectAuditEvent(
         new AuditEvent(
-            instant, "henk", "LOAD_USER_WORKSPACE", Map.of("sessionId", sessionId, "id", "blah")));
+            instant,
+            "henk",
+            "LOAD_USER_WORKSPACE",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"), "id", "blah")));
   }
 
   @Test
@@ -403,7 +440,13 @@ class DataControllerTest {
             instant,
             "user",
             "EXECUTE",
-            Map.of("sessionId", sessionId, "expression", "meanDS(D$age)")));
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_USER"),
+                "expression",
+                "meanDS(D$age)")));
   }
 
   @Test
@@ -433,7 +476,13 @@ class DataControllerTest {
             instant,
             "user",
             "EXECUTE",
-            Map.of("sessionId", sessionId, "expression", "meanDS(D$age)")));
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_USER"),
+                "expression",
+                "meanDS(D$age)")));
   }
 
   @Test
@@ -460,7 +509,15 @@ class DataControllerTest {
             instant,
             "user",
             "ASSIGN",
-            Map.of("sessionId", sessionId, "symbol", "E", "expression", "meanDS(D$age)")));
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_USER"),
+                "symbol",
+                "E",
+                "expression",
+                "meanDS(D$age)")));
   }
 
   @Test
@@ -489,6 +546,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "symbol",
                 "D",
                 "expression",
@@ -524,12 +583,14 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "symbol",
                 "D",
                 "expression",
                 "meanDS(D$age)",
                 "type",
-                "NullPointerException",
+                "java.lang.NullPointerException",
                 "message",
                 "Execution failed")));
   }
@@ -564,6 +625,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "expression",
                 "meanDS(D$age",
                 "type",
@@ -605,7 +668,15 @@ class DataControllerTest {
             instant,
             "user",
             "ASSIGN",
-            Map.of("sessionId", sessionId, "symbol", "E", "expression", "meanDS(D$age)")));
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_USER"),
+                "symbol",
+                "E",
+                "expression",
+                "meanDS(D$age)")));
   }
 
   @Test
@@ -629,6 +700,8 @@ class DataControllerTest {
                 "D",
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "project",
                 "gecko",
                 "folder",
@@ -661,6 +734,8 @@ class DataControllerTest {
                 "D",
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "project",
                 "project",
                 "folder",
@@ -692,6 +767,8 @@ class DataControllerTest {
                 "D",
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_USER"),
                 "project",
                 "project",
                 "folder",
@@ -735,7 +812,11 @@ class DataControllerTest {
     mockMvc.perform(get("/resources").session(session)).andExpect(status().isOk());
 
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_RESOURCES", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_RESOURCES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
   }
 
   @Test
@@ -755,6 +836,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_SU"),
                 "project",
                 "gecko",
                 "folder",
@@ -784,6 +867,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_SU"),
                 "symbol",
                 "hpc_res",
                 "project",
@@ -812,6 +897,8 @@ class DataControllerTest {
             Map.of(
                 "sessionId",
                 sessionId,
+                "roles",
+                List.of("ROLE_SU"),
                 "symbol",
                 "hpc_res",
                 "project",
@@ -833,6 +920,10 @@ class DataControllerTest {
     mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
 
     expectAuditEvent(
-        new AuditEvent(instant, "user", "GET_USER_WORKSPACES", Map.of("sessionId", sessionId)));
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_USER_WORKSPACES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
   }
 }
