@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.audit;
 
+import static java.util.stream.Collectors.toList;
+
 import java.security.Principal;
 import java.time.Clock;
 import java.util.HashMap;
@@ -10,6 +12,8 @@ import org.slf4j.MDC;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,6 +65,11 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public void audit(Principal principal, String type, Map<String, Object> data, String sessionId) {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
+    sessionData.put(
+        "roles",
+        SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(toList()));
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), principal.getName(), type, sessionData));
   }
