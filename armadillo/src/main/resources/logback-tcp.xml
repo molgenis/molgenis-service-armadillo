@@ -13,7 +13,6 @@
         <port>5010</port>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
-                <mdc/>
                 <logstashMarkers/>
             </providers>
         </encoder>

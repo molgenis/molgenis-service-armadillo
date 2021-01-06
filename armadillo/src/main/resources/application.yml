@@ -27,8 +27,13 @@ server:
     include-binding-errors: always
     include-message: always
 
+audit:
+  log:
+    path: logs/audit.log
+
 logging:
-  config: classpath:logback-dev.xml
+  config: classpath:logback-tcp.xml
+
 
 ---
 spring:
