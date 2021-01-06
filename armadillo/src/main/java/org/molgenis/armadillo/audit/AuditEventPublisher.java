@@ -1,19 +1,24 @@
 package org.molgenis.armadillo.audit;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 import java.security.Principal;
 import java.time.Clock;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -62,34 +67,45 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     this.applicationEventPublisher = applicationEventPublisher;
   }
 
-  public void audit(Principal principal, String type, Map<String, Object> data, String sessionId) {
+  public void audit(
+      Principal principal,
+      String type,
+      Map<String, Object> data,
+      String sessionId,
+      List<String> roles) {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
-    sessionData.put(
-        "roles",
-        SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(toList()));
+    sessionData.put("roles", roles);
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), principal.getName(), type, sessionData));
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
-    audit(principal, type, data, MDC.get("sessionID"));
+    audit(principal, type, data, MDC.get("sessionID"), getRoles());
+  }
+
+  private static List<String> getRoles() {
+    return Optional.ofNullable(getContext()).map(SecurityContext::getAuthentication).stream()
+        .map(Authentication::getAuthorities)
+        .flatMap(Collection::stream)
+        .map(GrantedAuthority::getAuthority)
+        .collect(toList());
   }
 
   public <T> CompletableFuture<T> audit(
-      CompletableFuture<T> c, Principal principal, String type, Map<String, Object> data) {
-    String sessionId = MDC.get("sessionID");
-    return c.whenComplete(
+      CompletableFuture<T> future, Principal principal, String type, Map<String, Object> data) {
+    // remember context to fill it in when future completes
+    final var sessionId = MDC.get("sessionID");
+    final var roles = getRoles();
+    return future.whenComplete(
         (success, failure) -> {
           if (failure == null) {
-            audit(principal, type, data, sessionId);
+            audit(principal, type, data, sessionId, roles);
           } else {
             Map<String, Object> errorData = new HashMap<>(data);
             errorData.put(MESSAGE, failure.getMessage());
             errorData.put(TYPE, failure.getClass().getName());
-            audit(principal, type + "_FAILURE", errorData, sessionId);
+            audit(principal, type + "_FAILURE", errorData, sessionId, roles);
           }
         });
   }
