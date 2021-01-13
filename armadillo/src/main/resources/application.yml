@@ -32,12 +32,10 @@ audit:
     path: logs/audit.log
 
 logging:
-  config: classpath:logback-tcp.xml
-
+  config: classpath:logback-file.xml
 
 ---
 spring:
-  profiles: development
   security:
     user:
       password: admin
@@ -47,6 +45,9 @@ spring:
           issuer-uri: 'https://auth.molgenis.org'
         opaquetoken:
           client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+  config:
+    activate:
+      on-profile: development
 
 logging:
   pattern:
