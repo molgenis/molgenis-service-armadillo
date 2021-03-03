@@ -7,7 +7,7 @@ pipeline {
     environment {
         REPOSITORY = 'molgenis/armadillo'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
-        CHART_VERSION = '0.3.1'
+        CHART_VERSION = '0.10.0'
         TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
     }
     stages {
