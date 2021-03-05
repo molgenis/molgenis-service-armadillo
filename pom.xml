@@ -42,7 +42,7 @@
 
     <properties>
         <project.scm.id>github</project.scm.id>
-             
+
         <java.version>11</java.version>
 
         <!-- authentication for release scm plugin -->
@@ -52,6 +52,8 @@
         <sonar-maven-plugin.version>3.5.0.1254</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
         <release-maven-plugin.version>2.5.3</release-maven-plugin.version>
+        <reproducable-build-plugin.version>0.13</reproducable-build-plugin.version>
+        <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>molgenis</sonar.organization>
@@ -223,11 +225,24 @@
                 <plugin>
                     <groupId>com.google.cloud.tools</groupId>
                     <artifactId>jib-maven-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>${jib-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>io.github.zlika</groupId>
+                <artifactId>reproducible-build-maven-plugin</artifactId>
+                <version>${reproducable-build-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>strip-jar</id>
+                        <goals>
+                            <goal>strip-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.coveo</groupId>
                 <artifactId>fmt-maven-plugin</artifactId>
