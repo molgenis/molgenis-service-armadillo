@@ -114,28 +114,8 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>io.github.zlika</groupId>
-        <artifactId>reproducible-build-maven-plugin</artifactId>
-        <version>0.13</version>
-        <executions>
-          <execution>
-            <id>strip-jar</id>
-            <goals>
-              <goal>strip-jar</goal>
-            </goals>
-            <configuration>
-              <zipDateTime>${git.commit.time}</zipDateTime>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
-        <configuration>
-          <dateFormat>yyyyMMddHHmmss</dateFormat>
-          <dateFormatTimeZone>UTC</dateFormatTimeZone>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
