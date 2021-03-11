@@ -29,11 +29,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
@@ -65,6 +67,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
+@ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
 class DataControllerTest {
@@ -94,7 +97,10 @@ class DataControllerTest {
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
-  @Mock private Clock clock;
+
+  @Mock(lenient = true)
+  private Clock clock;
+
   @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
