@@ -14,7 +14,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,6 +28,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig
+@ExtendWith(MockitoExtension.class)
 class ArmadilloStorageServiceTest {
   @MockBean MinioStorageService storageService;
   @Mock Principal principal;
