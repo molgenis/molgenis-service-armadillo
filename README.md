@@ -10,7 +10,7 @@ The Armadillo uses the DataSHIELD platform to facilitate analysis. It contains a
 
 How does it work? A researcher connects from an R client to one or multiple Armadillo servers. The data is loaded into an R session on the Armadillo server specifically created for the researcher. Analysis requests are sent to the R session on each Armadillo server. There the analysis is performed and aggregated results are sent back to the client.
 
-![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/doc/img/datashield.png "DataSHIELD overview")
+![DataSHIELD overview]("https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/doc/img/datashield.png")
 
 ## Share data
 Data stewards can use the MolgenisArmadillo R client to manage their data on the Armadillo file server. Data is stored in a format that supports fast selections of the columns (variables) you need for analysis. Data stewards can manage the uploaded data in the web browser. 
