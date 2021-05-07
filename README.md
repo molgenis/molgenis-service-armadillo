@@ -25,7 +25,8 @@ The Armadillo R packages are hosted on CRAN.
 
 To spin up your own server on a laptop, you can run `docker-compose up` in the docker folder.
 * Armadillo service
-* RServer
-* MinIO server
+* R Server
+* File server
 
-Or look at the helm chart.
+Alternatively for kubernetes deployments look at the [helm chart](https://github.com/molgenis/molgenis-ops-helm/tree/master/charts/molgenis-armadillo). 
+Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo)
