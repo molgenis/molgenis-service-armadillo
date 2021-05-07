@@ -29,4 +29,4 @@ To spin up your own server on a laptop, you can run `docker-compose up` in the d
 * File server
 
 Alternatively for kubernetes deployments look at the [helm chart](https://github.com/molgenis/molgenis-ops-helm/tree/master/charts/molgenis-armadillo). 
-Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo)
+Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
