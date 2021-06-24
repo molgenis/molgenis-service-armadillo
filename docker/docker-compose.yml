@@ -1,14 +1,14 @@
 version: "3.4"
 services:
   minio:
-    image: minio/minio:RELEASE.2020-05-08T02-40-49Z
+    image: minio/minio:RELEASE.2021-02-19T04-38-02Z
     ports:
       - 9000:9000
     environment:
       MINIO_ACCESS_KEY: molgenis
       MINIO_SECRET_KEY: molgenis
-      MINIO_IDENTITY_OPENID_CLIENT_ID: "b396233b-cdb2-449e-ac5c-a0d28b38f791"
-      MINIO_IDENTITY_OPENID_CONFIG_URL: "https://auth.molgenis.org/.well-known/openid-configuration"
+      MINIO_IDENTITY_OPENID_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+      MINIO_IDENTITY_OPENID_CONFIG_URL: 'https://auth.molgenis.org/.well-known/openid-configuration'
     command: server /data
   armadillo:
     image: molgenis/armadillo:latest
@@ -20,6 +20,8 @@ services:
       RSERVE_HOST: rserver
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
+    #      SPRING_SECURITY_OAUTH2_JWT_ISSUER_URL: 'https://auth.molgenis.org'
+    #      SPRING_SECURITY_OAUTH2_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
     #      DATASHIELD_WHITELIST: dsBase,resourcer,dsDanger
     ports:
       - 8080:8080
@@ -33,7 +35,19 @@ services:
     # build: ./rserver
     environment:
       DEBUG: "FALSE"
+    expose:
+      - 6312
+  auth:
+    # Use predefined production image:
+    # You need to activate SPRING_SECURITY_OAUTH2_JWT_ISSUER_URL and SPRING_SECURITY_OAUTH2_OPAQUETOKEN_CLIENT_ID in the armadillo to make the OIDC flow work
+    image: molgenis/molgenis-auth:latest
+    environment:
+      ISSUER_BASE_URL: 'https://auth.molgenis.org'
+      CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+      CLIENT_SECRET: 'xxxxx-xxxxxxxx-xxxxxxxx'
+      FUSION_API_TOKEN: 'xxxxxx-xxxxxx-xxxxxx-xxxxxx'
+      BASE_URL: 'http://localhost:4000'
+      APP_SESSION_SECRET: "generate with uuid"
     ports:
-      - "6311:6311"
-      - "6312:6312"
-      - "53000-53200:53000-53200"
+      - 4000:4000
+    profiles: ["oidc"]
