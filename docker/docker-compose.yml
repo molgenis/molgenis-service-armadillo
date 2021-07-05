@@ -40,7 +40,7 @@ services:
   auth:
     # Use predefined production image:
     # You need to activate SPRING_SECURITY_OAUTH2_JWT_ISSUER_URL and SPRING_SECURITY_OAUTH2_OPAQUETOKEN_CLIENT_ID in the armadillo to make the OIDC flow work
-    # Drop the SPRING_PROFILES_ACTIVE stugff
+    # Drop the SPRING_PROFILES_ACTIVE property
     image: molgenis/molgenis-auth:latest
     environment:
       ISSUER_BASE_URL: 'https://auth.molgenis.org'
