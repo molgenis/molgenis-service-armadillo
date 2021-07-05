@@ -35,8 +35,8 @@ services:
     # build: ./rserver
     environment:
       DEBUG: "FALSE"
-    expose:
-      - 6312
+    ports:
+      - 6311:6311
   auth:
     # Use predefined production image:
     # You need to activate SPRING_SECURITY_OAUTH2_JWT_ISSUER_URL and SPRING_SECURITY_OAUTH2_OPAQUETOKEN_CLIENT_ID in the armadillo to make the OIDC flow work
