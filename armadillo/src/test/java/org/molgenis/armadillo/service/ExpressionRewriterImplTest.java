@@ -15,7 +15,7 @@ import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.NoSuchDSMethodException;
-import org.obiba.datashield.core.impl.PackagedFunctionDSMethod;
+import org.obiba.datashield.core.impl.DefaultDSMethod;
 
 @ExtendWith(MockitoExtension.class)
 class ExpressionRewriterImplTest {
@@ -33,7 +33,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAssignDsBase() {
-    DSMethod meanDS = new PackagedFunctionDSMethod("meanDS", "dsBase::meanDS");
+    DSMethod meanDS = new DefaultDSMethod("meanDS", "dsBase::meanDS", "dsBase", "1.2.3");
     when(mockEnvironment.getMethod("meanDS")).thenReturn(meanDS);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.ASSIGN);
     assertEquals("dsBase::meanDS(D$age)", expressionRewriter.rewriteAssign("meanDS(D$age)"));
@@ -41,7 +41,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAssignNonDsBase() {
-    DSMethod dim = new PackagedFunctionDSMethod("dim", "base::dim");
+    DSMethod dim = new DefaultDSMethod("dim", "base::dim", "base", null);
     when(mockEnvironment.getMethod("dim")).thenReturn(dim);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.ASSIGN);
     assertEquals("base::dim(x, y)", expressionRewriter.rewriteAssign("dim(x, y)"));
@@ -56,7 +56,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAggregateDsBase() {
-    DSMethod dim = new PackagedFunctionDSMethod("scatterPlotDs", "dsBase::scatterPlotDs");
+    DSMethod dim = new DefaultDSMethod("scatterPlotDs", "dsBase::scatterPlotDs", "dsBase", "1.2.3");
     when(mockEnvironment.getMethod("scatterPlotDs")).thenReturn(dim);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.AGGREGATE);
     assertEquals(
@@ -66,7 +66,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAggregateNonDsBase() {
-    DSMethod dim = new PackagedFunctionDSMethod("is.character", "base::is.character");
+    DSMethod dim = new DefaultDSMethod("is.character", "base::is.character", "base", null);
     when(mockEnvironment.getMethod("is.character")).thenReturn(dim);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.AGGREGATE);
     assertEquals("base::is.character(3)", expressionRewriter.rewriteAggregate("is.character(3)"));
