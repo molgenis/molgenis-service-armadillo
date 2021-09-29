@@ -30,11 +30,8 @@ services:
     volumes:
       - ${PWD}/logs/:/app/logs
   rserver:
-    # Use predefined production image:
-    image: sido/rserver:jfrog
-    # or, if you want to customize the RServe installation,
-    # build custom image using Dockerfile:
-    # build: ./rserver
+    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
+    image: datashield/armadillo-rserver:1.0.3
     environment:
       DEBUG: "FALSE"
     ports:
