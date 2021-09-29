@@ -1,7 +1,6 @@
 datashield:
   whitelist:
     - dsBase
-    - resourcer
 
 springdoc:
   swagger-ui:
