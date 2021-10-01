@@ -15,9 +15,9 @@ public class ExpressionRewriterImpl implements ExpressionRewriter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionRewriterImpl.class);
 
-  private final DataShieldProfileEnvironments environments;
+  private final DSEnvironmentCache environments;
 
-  public ExpressionRewriterImpl(DataShieldProfileEnvironments environments) {
+  public ExpressionRewriterImpl(DSEnvironmentCache environments) {
     this.environments = environments;
   }
 

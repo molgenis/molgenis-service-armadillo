@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.DataShieldOptionsImpl;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
+import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.r.RServeEnvironments;
 import org.molgenis.r.service.PackageService;
 import org.springframework.stereotype.Component;
@@ -42,12 +42,11 @@ public class Profiles {
     var profileConfig = configs.get(profileName);
     var environmentName = profileConfig.getEnvironment();
     var rConnectionFactory = this.rServeEnvironments.getConnectionFactory(environmentName);
-    var profileEnvironments =
-        new DataShieldProfileEnvironments(
-            profileName, packageService, rConnectionFactory, profileConfig);
+    var dsEnvironmentCache =
+        new DSEnvironmentCache(packageService, rConnectionFactory, profileConfig);
     var dataShieldOptions =
         new DataShieldOptionsImpl(profileConfig, this.packageService, rConnectionFactory);
-    return new Profile(profileConfig, rConnectionFactory, profileEnvironments, dataShieldOptions);
+    return new Profile(profileConfig, rConnectionFactory, dsEnvironmentCache, dataShieldOptions);
   }
 
   @PostConstruct

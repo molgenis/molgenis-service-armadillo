@@ -31,27 +31,26 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldEnvironmentHolderImplTest {
+class DSEnvironmentCacheTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock ProfileConfigProps dataShieldProperties;
-  private DataShieldProfileEnvironments environmentHolder;
+  @Mock ProfileConfigProps profileConfigProps;
+  private DSEnvironmentCache dsEnvironmentCache;
 
   @BeforeEach
   void beforeEach() {
-    environmentHolder =
-        new DataShieldProfileEnvironments(
-            "profile", packageService, rConnectionFactory, dataShieldProperties);
+    dsEnvironmentCache =
+        new DSEnvironmentCache(packageService, rConnectionFactory, profileConfigProps);
   }
 
   @Test
   void testGetAggregateEnvironment() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
-    DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.AGGREGATE);
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.AGGREGATE);
 
     assertEquals(
         asList("scatterPlotDs", "is.character"),
@@ -60,10 +59,10 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testGetAssignEnvironment() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
-    DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
 
     var expected =
         asList(
@@ -80,7 +79,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testPopulateIllegalMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         IllegalRMethodStringException.class,
         () ->
@@ -90,7 +89,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testPopulateDuplicateMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     assertThrows(
         DuplicateRMethodException.class,
         () ->
@@ -100,7 +99,7 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testPopulateMethodFromNonWhitelistedPackage() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("otherPackage"));
     assertThrows(
         IllegalRPackageException.class,
         () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
@@ -124,7 +123,7 @@ class DataShieldEnvironmentHolderImplTest {
 
     when(packageService.getInstalledPackages(rConnection)).thenReturn(singletonList(pack));
 
-    environmentHolder.populateEnvironments();
+    dsEnvironmentCache.populateEnvironments();
     verify(rConnection).close();
   }
 }

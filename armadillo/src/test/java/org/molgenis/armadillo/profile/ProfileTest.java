@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
+import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.r.RConnectionFactory;
 
 @ExtendWith(MockitoExtension.class)
@@ -20,7 +20,7 @@ class ProfileTest {
   ProfileConfigProps profileConfigProps = new ProfileConfigProps();
 
   @Mock RConnectionFactory rConnectionFactory;
-  @Mock DataShieldProfileEnvironments dataShieldProfileEnvironments;
+  @Mock DSEnvironmentCache DSEnvironmentCache;
   @Mock DataShieldOptions dataShieldOptions;
 
   Profile profile;
@@ -32,18 +32,14 @@ class ProfileTest {
     profileConfigProps.setWhitelist(Set.of("dsBase", "dsExposome"));
     profileConfigProps.setOptions(Map.of("foo", "bar"));
     profile =
-        new Profile(
-            profileConfigProps,
-            rConnectionFactory,
-            dataShieldProfileEnvironments,
-            dataShieldOptions);
+        new Profile(profileConfigProps, rConnectionFactory, DSEnvironmentCache, dataShieldOptions);
   }
 
   @Test
   void testInit() {
     profile.init();
 
-    verify(dataShieldProfileEnvironments).populateEnvironments();
+    verify(DSEnvironmentCache).populateEnvironments();
     verify(dataShieldOptions).init();
   }
 

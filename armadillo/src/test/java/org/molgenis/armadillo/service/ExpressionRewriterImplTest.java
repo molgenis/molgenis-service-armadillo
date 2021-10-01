@@ -22,7 +22,7 @@ class ExpressionRewriterImplTest {
 
   private ExpressionRewriterImpl expressionRewriter;
 
-  @Mock private DataShieldProfileEnvironments environments;
+  @Mock private DSEnvironmentCache environments;
   @Mock private DSEnvironment mockEnvironment;
 
   @BeforeEach

@@ -4,7 +4,7 @@ import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactoryImpl;
-import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
+import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.service.ExpressionRewriterImpl;
 import org.molgenis.r.RConnectionFactory;
@@ -14,13 +14,13 @@ public class Profile {
   private final ExpressionRewriter expressionRewriter;
   private final ProfileConfigProps profileConfig;
   private final ArmadilloConnectionFactory armadilloConnectionFactory;
-  private final DataShieldProfileEnvironments environments;
+  private final DSEnvironmentCache environments;
   private final DataShieldOptions dataShieldOptions;
 
   public Profile(
       ProfileConfigProps profileConfig,
       RConnectionFactory rConnectionFactory,
-      DataShieldProfileEnvironments environments,
+      DSEnvironmentCache environments,
       DataShieldOptions dataShieldOptions) {
     this.expressionRewriter = new ExpressionRewriterImpl(environments);
     this.profileConfig = profileConfig;
@@ -39,7 +39,7 @@ public class Profile {
     return armadilloConnectionFactory;
   }
 
-  public DataShieldProfileEnvironments getEnvironments() {
+  public DSEnvironmentCache getEnvironments() {
     return environments;
   }
 

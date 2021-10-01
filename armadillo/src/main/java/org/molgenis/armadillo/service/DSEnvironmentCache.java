@@ -22,10 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Caches the datashield environments for one profile. */
-public class DataShieldProfileEnvironments {
+public class DSEnvironmentCache {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataShieldProfileEnvironments.class);
-  private final String profileName;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
   private final ProfileConfigProps dataShieldProperties;
@@ -33,12 +32,10 @@ public class DataShieldProfileEnvironments {
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
 
-  public DataShieldProfileEnvironments(
-      String profileName,
+  public DSEnvironmentCache(
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
       ProfileConfigProps dataShieldProperties) {
-    this.profileName = requireNonNull(profileName);
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
     this.dataShieldProperties = requireNonNull(dataShieldProperties);
@@ -140,10 +137,5 @@ public class DataShieldProfileEnvironments {
       default:
         throw new IllegalStateException("Unknown DSMethodType");
     }
-  }
-
-  @Override
-  public String toString() {
-    return "DataShieldProfileEnvironments{" + "profileName='" + profileName + '\'' + '}';
   }
 }
