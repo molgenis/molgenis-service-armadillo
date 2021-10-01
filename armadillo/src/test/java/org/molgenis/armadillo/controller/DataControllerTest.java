@@ -43,6 +43,7 @@ import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
+import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
@@ -97,6 +98,7 @@ public class DataControllerTest {
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
+  @Mock private Profile profile;
 
   @Mock(lenient = true)
   private Clock clock;
@@ -254,6 +256,8 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void getAssignMethods() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getEnvironments()).thenReturn(environments);
     when(environments.getEnvironment(ASSIGN)).thenReturn(assignEnvironment);
     DSMethod method = new DefaultDSMethod("meanDS", "dsBase::meanDS", "dsBase", "1.2.3");
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
@@ -278,6 +282,8 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void getAggregateMethods() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getEnvironments()).thenReturn(environments);
     when(environments.getEnvironment(AGGREGATE)).thenReturn(assignEnvironment);
     DSMethod method = new DefaultDSMethod("ls", "base::ls", "base", null);
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
@@ -424,6 +430,8 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testExecute() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
@@ -458,6 +466,8 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteAsync() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
     when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
     when(commands.evaluate("try(base::serialize({dsBase::meanDS(D$age)}, NULL))"))
         .thenReturn(completedFuture(new REXPDouble(36.6)));
@@ -494,6 +504,9 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testAssign() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
+
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
@@ -529,6 +542,9 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testAssignSyntaxError() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
+
     String expression = "meanDS(D$age";
     doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
         .when(expressionRewriter)
@@ -567,6 +583,9 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testAsyncAssignExecutionFails() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
+
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);
@@ -604,6 +623,9 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testExecuteSyntaxError() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
+
     String expression = "meanDS(D$age";
     doThrow(new ExpressionException(expression, new ParseException("Missing end bracket")))
         .when(expressionRewriter)
@@ -644,6 +666,9 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testAssignAsync() throws Exception {
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getExpressionRewriter()).thenReturn(expressionRewriter);
+
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAssign(expression)).thenReturn(rewrittenExpression);

@@ -63,6 +63,7 @@ class CommandsImplTest {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
     armadilloSession = new ArmadilloSession("profile", connectionFactory, processService);
+    when(profiles.getDefaultProfile()).thenReturn(profile);
     when(armadilloSessionFactory.createSession(profile)).thenReturn(armadilloSession);
     commands =
         new CommandsImpl(
@@ -72,7 +73,6 @@ class CommandsImplTest {
             executorService,
             armadilloSessionFactory,
             profiles);
-    commands.selectProfile("profile");
   }
 
   @Test
