@@ -31,6 +31,11 @@ public class Profile {
     this.environments = environments;
   }
 
+  public void init() {
+    environments.populateEnvironments();
+    dataShieldOptions.init();
+  }
+
   public ArmadilloConnectionFactory getArmadilloConnectionFactory() {
     return armadilloConnectionFactory;
   }

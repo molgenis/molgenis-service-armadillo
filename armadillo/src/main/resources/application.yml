@@ -12,15 +12,13 @@ datashield:
     - node: default
       whitelist:
         - dsBase
-      options:
-        foo: bar
     - node: exposome
       whitelist:
         - dsBase
         - dsExposome
         - resourcer
-      options:
-        foo: bar
+#      options:
+#        foo: bar
 
 springdoc:
   swagger-ui:

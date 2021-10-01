@@ -1,0 +1,12 @@
+### authenticate with basic auth
+GET http://localhost:8080/profiles
+Authorization: Basic admin admin
+
+### authenticate with basic auth
+POST http://localhost:8080/select-profile
+Authorization: Basic admin admin
+
+default
+
+###
+GET http://localhost:8080/packages

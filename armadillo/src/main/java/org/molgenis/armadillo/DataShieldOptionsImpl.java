@@ -1,5 +1,7 @@
 package org.molgenis.armadillo;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,21 +23,21 @@ import org.rosuda.REngine.Rserve.RConnection;
  */
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final ProfileConfigProps dataShieldProperties;
+  private final ProfileConfigProps profileConfigProps;
   private final PackageService packageService;
   private Map<String, String> options;
   private final RConnectionFactory rConnectionFactory;
 
   public DataShieldOptionsImpl(
-      ProfileConfigProps dataShieldProperties,
+      ProfileConfigProps profileConfigProps,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
-    this.dataShieldProperties = dataShieldProperties;
-    this.packageService = packageService;
-    this.rConnectionFactory = rConnectionFactory;
+    this.profileConfigProps = requireNonNull(profileConfigProps);
+    this.packageService = requireNonNull(packageService);
+    this.rConnectionFactory = requireNonNull(rConnectionFactory);
   }
 
-  @PostConstruct
+  @Override
   public void init() {
     RConnection connection = null;
     try {
@@ -45,7 +47,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      options.putAll(dataShieldProperties.getOptions());
+      options.putAll(profileConfigProps.getOptions());
     } finally {
       if (connection != null) {
         connection.close();

@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
@@ -63,6 +64,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -383,12 +385,15 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
-  // TODO: select profile
-  public void selectProfile(String profileName) {
-    commands.selectProfile(profileName);
+  @PostMapping(value="select-profile")
+  public void selectProfile(@RequestBody @NotBlank String profileName) {
+    commands.selectProfile(profileName.trim());
   }
 
-  // TODO: list profiles
+  @GetMapping(value="profiles")
+  public List<String> listProfiles() {
+    commands.listProfiles();
+  }
 
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)

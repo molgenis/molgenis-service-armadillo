@@ -74,8 +74,11 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> selectProfile(String profileName) {
+  public synchronized CompletableFuture<Void> selectProfile(String profileName) {
     var profile = profiles.getProfile(profileName);
+    if (this.armadilloSession != null) {
+      armadilloSession.sessionCleanup();
+    }
     this.armadilloSession = armadilloSessionFactory.createSession(profile);
     return completedFuture(null);
   }

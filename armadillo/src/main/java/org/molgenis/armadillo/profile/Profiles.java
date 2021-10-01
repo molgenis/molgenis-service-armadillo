@@ -47,10 +47,8 @@ public class Profiles {
   }
 
   @PostConstruct
-  public void initEnvironments() {
-    profilesByName.values().stream()
-        .map(Profile::getEnvironments)
-        .forEach(DataShieldProfileEnvironments::populateEnvironments);
+  public void init() {
+    profilesByName.values().forEach(Profile::init);
   }
 
   public Profile getProfile(String profileName) {

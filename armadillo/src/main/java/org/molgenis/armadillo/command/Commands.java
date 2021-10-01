@@ -28,11 +28,11 @@ public interface Commands {
 
   CompletableFuture<List<RPackage>> getPackages();
 
-  String getProfileName();
-
   Optional<CompletableFuture<REXP>> getLastExecution();
 
   Optional<ArmadilloCommandDTO> getLastCommand();
+
+  List<String> listProfiles();
 
   enum ArmadilloCommandStatus {
     COMPLETED,
