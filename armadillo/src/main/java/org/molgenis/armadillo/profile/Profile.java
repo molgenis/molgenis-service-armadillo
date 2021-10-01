@@ -45,7 +45,7 @@ public class Profile {
   }
 
   public String getProfileName() {
-    return profileConfig.getNode();
+    return profileConfig.getName();
   }
 
   public ExpressionRewriter getExpressionRewriter() {

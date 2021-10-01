@@ -11,7 +11,8 @@ import org.springframework.validation.annotation.Validated;
 public class ProfileConfigProps {
   private Map<String, String> options = new HashMap<>();
   @NotEmpty private Set<String> whitelist = new HashSet<>();
-  @NotEmpty private String node;
+  @NotEmpty private String name;
+  @NotEmpty private String environment;
 
   public Map<String, String> getOptions() {
     return options;
@@ -29,18 +30,27 @@ public class ProfileConfigProps {
     this.whitelist = whitelist;
   }
 
-  public String getNode() {
-    return node;
+  public String getEnvironment() {
+    return environment;
   }
 
-  public void setNode(String node) {
-    this.node = node;
+  public void setEnvironment(String environment) {
+    this.environment = environment;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
   public String toString() {
     return "ProfileConfigProps{" +
-        "node='" + node + '\'' +
+        "name='" + name + '\'' +
+        ", environment='" + environment + '\'' +
         '}';
   }
 }

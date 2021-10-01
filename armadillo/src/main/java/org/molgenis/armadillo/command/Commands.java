@@ -14,7 +14,7 @@ public interface Commands {
 
   List<String> listProfiles();
 
-  CompletableFuture<Void> selectProfile(String profileName);
+  Optional<Profile> selectProfile(String profileName);
 
   CompletableFuture<REXP> evaluate(String expression);
 

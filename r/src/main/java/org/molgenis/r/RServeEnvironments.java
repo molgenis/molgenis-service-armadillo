@@ -18,7 +18,7 @@ public class RServeEnvironments {
             .collect(toUnmodifiableMap(RConnectionFactoryImpl::getName, x -> x));
   }
 
-  public RConnectionFactory getConnectionFactory(String profileName) {
-    return connectionFactories.get(profileName);
+  public RConnectionFactory getConnectionFactory(String environment) {
+    return connectionFactories.get(environment);
   }
 }

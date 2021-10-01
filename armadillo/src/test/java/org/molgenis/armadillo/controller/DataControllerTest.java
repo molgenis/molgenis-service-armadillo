@@ -129,6 +129,36 @@ public class DataControllerTest {
 
   @Test
   @WithMockUser
+  void testListProfiles() throws Exception {
+    when(commands.listProfiles()).thenReturn(List.of("a", "b", "c"));
+    when(commands.getCurrentProfile()).thenReturn(profile);
+    when(profile.getProfileName()).thenReturn("b");
+
+    mockMvc.perform(get("/profiles"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
+  }
+
+  @Test
+  @WithMockUser
+  void testSelectProfile() throws Exception {
+    when(commands.selectProfile("b")).thenReturn(Optional.of(profile));
+
+    mockMvc.perform(post("/select-profile").content("b"))
+        .andExpect(status().isNoContent());
+
+  }
+
+  @Test
+  @WithMockUser
+  void testSelectUnknownProfile() throws Exception {
+    mockMvc.perform(post("/select-profile").content("unknown"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockUser
   void testGetPackages() throws Exception {
     when(clock.instant()).thenReturn(instant);
     when(commands.getPackages()).thenReturn(completedFuture(List.of(BASE, DESC)));

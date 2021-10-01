@@ -49,11 +49,13 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
+import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -384,8 +386,10 @@ public class DataController {
   }
 
   @PostMapping(value = "select-profile")
-  public void selectProfile(@RequestBody @NotBlank String profileName) {
-    commands.selectProfile(profileName.trim());
+  public ResponseEntity<Void> selectProfile(@RequestBody @NotBlank String profileName) {
+    return commands.selectProfile(profileName.trim())
+        .map(profile -> ResponseEntity.noContent().<Void>build())
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping(value = "profiles")

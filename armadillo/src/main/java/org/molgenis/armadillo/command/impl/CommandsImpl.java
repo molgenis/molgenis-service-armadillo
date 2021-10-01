@@ -71,17 +71,20 @@ class CommandsImpl implements Commands {
 
   @Override
   public Profile getCurrentProfile() {
-    return profiles.getProfile(armadilloSession.getCurrentProfile());
+    return profiles.getProfileByName(armadilloSession.getCurrentProfile()).orElseThrow();
   }
 
   @Override
-  public synchronized CompletableFuture<Void> selectProfile(String profileName) {
-    var profile = profiles.getProfile(profileName);
-    if (this.armadilloSession != null) {
-      armadilloSession.sessionCleanup();
-    }
-    this.armadilloSession = armadilloSessionFactory.createSession(profile);
-    return completedFuture(null);
+  public synchronized Optional<Profile> selectProfile(String profileName) {
+    var profile = profiles.getProfileByName(profileName);
+    profile.ifPresent(toSelect -> {
+      if (this.armadilloSession != null) {
+        armadilloSession.sessionCleanup();
+      }
+      this.armadilloSession = armadilloSessionFactory.createSession(toSelect);
+
+    });
+    return profile;
   }
 
   @Override

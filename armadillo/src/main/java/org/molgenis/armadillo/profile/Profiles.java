@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.DataShieldOptionsImpl;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
@@ -29,17 +30,18 @@ public class Profiles {
     this.packageService = packageService;
     this.configs =
         datashieldProperties.getProfiles().stream()
-            .collect(toUnmodifiableMap(ProfileConfigProps::getNode, x -> x));
+            .collect(toUnmodifiableMap(ProfileConfigProps::getEnvironment, x -> x));
     this.profilesByName =
         datashieldProperties.getProfiles().stream()
-            .map(ProfileConfigProps::getNode)
+            .map(ProfileConfigProps::getEnvironment)
             .map(profileName -> createProfile(packageService, profileName))
             .collect(toUnmodifiableMap(Profile::getProfileName, i -> i));
   }
 
   private Profile createProfile(PackageService packageService, String profileName) {
     var profileConfig = configs.get(profileName);
-    var rConnectionFactory = this.rServeEnvironments.getConnectionFactory(profileName);
+    var environmentName = profileConfig.getEnvironment();
+    var rConnectionFactory = this.rServeEnvironments.getConnectionFactory(environmentName);
     var profileEnvironments =
         new DataShieldProfileEnvironments(
             profileName, packageService, rConnectionFactory, profileConfig);
@@ -58,10 +60,10 @@ public class Profiles {
   }
 
   public Profile getDefaultProfile() {
-    return getProfile(DEFAULT);
+    return getProfileByName(DEFAULT).orElseThrow();
   }
 
-  public Profile getProfile(String profileName) {
-    return profilesByName.get(profileName);
+  public Optional<Profile> getProfileByName(String profileName) {
+    return Optional.ofNullable(profilesByName.get(profileName));
   }
 }
