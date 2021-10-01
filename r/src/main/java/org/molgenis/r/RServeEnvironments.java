@@ -3,18 +3,17 @@ package org.molgenis.r;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
 import java.util.Map;
-import org.molgenis.r.config.RServersConfig;
+import org.molgenis.r.config.RServeConfig;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RServers {
+public class RServeEnvironments {
   // TODO: validate the config!
-  public static final String DEFAULT = "default";
   private final Map<String, RConnectionFactory> connectionFactories;
 
-  public RServers(RServersConfig rServeConfig) {
+  public RServeEnvironments(RServeConfig rServeConfig) {
     connectionFactories =
-        rServeConfig.getNodes().stream()
+        rServeConfig.getEnvironments().stream()
             .map(RConnectionFactoryImpl::new)
             .collect(toUnmodifiableMap(RConnectionFactoryImpl::getName, x -> x));
   }

@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "rserve")
 @Component
-public class RServersConfig {
-  private final List<Node> nodes;
+public class RServeConfig {
+  private final List<Environment> environments;
 
-  public RServersConfig(List<Node> nodes) {
-    this.nodes = nodes;
+  public RServeConfig(List<Environment> environments) {
+    this.environments = environments;
   }
 
-  public List<Node> getNodes() {
-    return nodes;
+  public List<Environment> getEnvironments() {
+    return environments;
   }
 }

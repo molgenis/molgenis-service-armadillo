@@ -1,4 +1,4 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.armadillo.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
+import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.*;
@@ -70,9 +70,9 @@ import org.springframework.test.web.servlet.MvcResult;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
-class DataControllerTest {
+public class DataControllerTest {
 
-  static RPackage BASE =
+  public static RPackage BASE =
       RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")

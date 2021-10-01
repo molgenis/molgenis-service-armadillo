@@ -1,4 +1,4 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
@@ -8,8 +8,8 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
-import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
@@ -96,9 +96,7 @@ public class DataController {
       java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
 
   public DataController(
-      Commands commands,
-      ArmadilloStorageService storage,
-      AuditEventPublisher auditEventPublisher) {
+      Commands commands, ArmadilloStorageService storage, AuditEventPublisher auditEventPublisher) {
     this.commands = commands;
     this.storage = storage;
     this.auditEventPublisher = auditEventPublisher;
@@ -300,7 +298,7 @@ public class DataController {
       @RequestParam(defaultValue = "false") boolean async) {
     Map<String, Object> data = Map.of(SYMBOL, symbol, EXPRESSION, expression);
     try {
-      ExpressionRewriter expressionRewriter = commands.getProfile().getExpressionRewriter();
+      ExpressionRewriter expressionRewriter = commands.getCurrentProfile().getExpressionRewriter();
       String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
       CompletableFuture<Void> result =
           auditEventPublisher.audit(
@@ -332,7 +330,7 @@ public class DataController {
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
-      ExpressionRewriter expressionRewriter = commands.getProfile().getExpressionRewriter();
+      ExpressionRewriter expressionRewriter = commands.getCurrentProfile().getExpressionRewriter();
       String rewrittenExpression =
           serializeExpression(expressionRewriter.rewriteAggregate(expression));
       CompletableFuture<REXP> result =
@@ -385,20 +383,20 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
-  @PostMapping(value="select-profile")
+  @PostMapping(value = "select-profile")
   public void selectProfile(@RequestBody @NotBlank String profileName) {
     commands.selectProfile(profileName.trim());
   }
 
-  @GetMapping(value="profiles")
-  public List<String> listProfiles() {
-    commands.listProfiles();
+  @GetMapping(value = "profiles")
+  public @ResponseBody ProfilesResponse listProfiles() {
+    return ProfilesResponse.create(commands.listProfiles(), commands.getCurrentProfile().getProfileName());
   }
 
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAssignMethods(Principal principal) {
-    var environments = commands.getProfile().getEnvironments();
+    var environments = commands.getCurrentProfile().getEnvironments();
     return auditEventPublisher.audit(
         () -> environments.getEnvironment(ASSIGN).getMethods(),
         principal,
@@ -409,7 +407,7 @@ public class DataController {
   @Operation(summary = "Get available aggregate methods")
   @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAggregateMethods(Principal principal) {
-    var environments = commands.getProfile().getEnvironments();
+    var environments = commands.getCurrentProfile().getEnvironments();
     return auditEventPublisher.audit(
         () -> environments.getEnvironment(AGGREGATE).getMethods(),
         principal,

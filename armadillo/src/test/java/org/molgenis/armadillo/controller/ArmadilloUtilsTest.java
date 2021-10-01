@@ -1,20 +1,21 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
-import static org.molgenis.armadillo.ArmadilloUtils.createRawResponse;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.createRawResponse;
 
 import java.nio.charset.Charset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.controller.ArmadilloUtils;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPRaw;
 
 @ExtendWith(MockitoExtension.class)
-class ArmadilloUtilsTest {
+public class ArmadilloUtilsTest {
 
   @Mock REXP rexp;
 

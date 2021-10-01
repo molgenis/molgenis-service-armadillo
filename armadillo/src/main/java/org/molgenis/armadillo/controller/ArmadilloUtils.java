@@ -1,4 +1,4 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;

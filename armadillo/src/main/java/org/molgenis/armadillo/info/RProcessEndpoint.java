@@ -1,28 +1,20 @@
 package org.molgenis.armadillo.info;
 
-import static org.molgenis.r.RServers.DEFAULT;
 
-import java.util.List;
-import org.molgenis.armadillo.ArmadilloSessionFactory;
-import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.RServers;
-import org.molgenis.r.model.RProcess;
+import org.molgenis.r.RServeEnvironments;
 import org.molgenis.r.service.ProcessService;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.springframework.boot.actuate.endpoint.annotation.DeleteOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
-import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.stereotype.Component;
 
 @Component
 @Endpoint(id = "rserveProcesses")
 public class RProcessEndpoint {
   private final ProcessService processService;
-  private final RServers rServers;
+  private final RServeEnvironments rServeEnvironments;
 
-  public RProcessEndpoint(ProcessService processService, RServers rServers) {
+  public RProcessEndpoint(ProcessService processService, RServeEnvironments rServeEnvironments) {
     this.processService = processService;
-    this.rServers = rServers;
+    this.rServeEnvironments = rServeEnvironments;
   }
 //  TODO: make this somehow RESTful?
 //  public List<String> getProfiles() {

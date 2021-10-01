@@ -5,7 +5,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 import org.springframework.stereotype.Component;
 
-public class Node {
+public class Environment {
   @NotEmpty private String name;
   @NotEmpty private String host = "localhost";
   @Positive private int port = 6311;

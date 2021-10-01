@@ -10,7 +10,9 @@ import org.rosuda.REngine.REXP;
 
 public interface Commands {
 
-  Profile getProfile();
+  Profile getCurrentProfile();
+
+  List<String> listProfiles();
 
   CompletableFuture<Void> selectProfile(String profileName);
 
@@ -31,8 +33,6 @@ public interface Commands {
   Optional<CompletableFuture<REXP>> getLastExecution();
 
   Optional<ArmadilloCommandDTO> getLastCommand();
-
-  List<String> listProfiles();
 
   enum ArmadilloCommandStatus {
     COMPLETED,

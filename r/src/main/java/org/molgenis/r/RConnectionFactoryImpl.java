@@ -2,7 +2,7 @@ package org.molgenis.r;
 
 import static java.util.Objects.requireNonNull;
 
-import org.molgenis.r.config.Node;
+import org.molgenis.r.config.Environment;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -13,9 +13,9 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
 
   private static final Logger logger = LoggerFactory.getLogger(RConnectionFactoryImpl.class);
 
-  private final Node node;
+  private final Environment node;
 
-  public RConnectionFactoryImpl(Node node) {
+  public RConnectionFactoryImpl(Environment node) {
     this.node = requireNonNull(node);
   }
 

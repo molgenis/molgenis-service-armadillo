@@ -56,7 +56,7 @@ public class ArmadilloSession {
     }
   }
 
-  public String getProfileName() {
+  public String getCurrentProfile() {
     return profileName;
   }
 }

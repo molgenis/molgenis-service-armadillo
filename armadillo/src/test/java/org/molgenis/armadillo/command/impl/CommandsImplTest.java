@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 
 import java.io.InputStream;
 import java.security.Principal;

@@ -2,28 +2,30 @@ package org.molgenis.armadillo.profile;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
+import java.util.Collection;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.DataShieldOptionsImpl;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
-import org.molgenis.r.RServers;
+import org.molgenis.r.RServeEnvironments;
 import org.molgenis.r.service.PackageService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Profiles {
-  private final RServers rServers;
+  public static final String DEFAULT = "default";
+  private final RServeEnvironments rServeEnvironments;
   private final PackageService packageService;
   private final Map<String, ProfileConfigProps> configs;
   private final Map<String, Profile> profilesByName;
 
   public Profiles(
-      RServers rServers,
+      RServeEnvironments rServeEnvironments,
       PackageService packageService,
       DataShieldConfigProps datashieldProperties) {
-    this.rServers = rServers;
+    this.rServeEnvironments = rServeEnvironments;
     this.packageService = packageService;
     this.configs =
         datashieldProperties.getProfiles().stream()
@@ -37,7 +39,7 @@ public class Profiles {
 
   private Profile createProfile(PackageService packageService, String profileName) {
     var profileConfig = configs.get(profileName);
-    var rConnectionFactory = this.rServers.getConnectionFactory(profileName);
+    var rConnectionFactory = this.rServeEnvironments.getConnectionFactory(profileName);
     var profileEnvironments =
         new DataShieldProfileEnvironments(
             profileName, packageService, rConnectionFactory, profileConfig);
@@ -49,6 +51,14 @@ public class Profiles {
   @PostConstruct
   public void init() {
     profilesByName.values().forEach(Profile::init);
+  }
+
+  public Collection<Profile> getProfiles() {
+    return profilesByName.values();
+  }
+
+  public Profile getDefaultProfile() {
+    return getProfile(DEFAULT);
   }
 
   public Profile getProfile(String profileName) {

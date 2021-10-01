@@ -3,7 +3,7 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.*;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.PARQUET;
 import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.ArmadilloSessionFactory;
@@ -29,7 +30,6 @@ import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.profile.Profiles;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -66,11 +66,12 @@ class CommandsImpl implements Commands {
     this.executorService = executorService;
     this.armadilloSessionFactory = armadilloSessionFactory;
     this.profiles = profiles;
+    this.armadilloSession = armadilloSessionFactory.createSession(profiles.getDefaultProfile());
   }
 
   @Override
-  public Profile getProfile() {
-    return profiles.getProfile(armadilloSession.getProfileName());
+  public Profile getCurrentProfile() {
+    return profiles.getProfile(armadilloSession.getCurrentProfile());
   }
 
   @Override
@@ -84,8 +85,10 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public String getProfileName() {
-    return armadilloSession.getProfileName();
+  public List<String> listProfiles() {
+    return profiles.getProfiles().stream()
+        .map(Profile::getProfileName)
+        .collect(Collectors.toList());
   }
 
   @Override
