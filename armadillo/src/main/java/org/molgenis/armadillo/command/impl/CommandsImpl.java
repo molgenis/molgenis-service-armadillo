@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
-import org.molgenis.armadillo.ArmadilloSessionFactory;
+import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
@@ -29,6 +29,7 @@ import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.profile.Profiles;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
+import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -45,7 +46,7 @@ class CommandsImpl implements Commands {
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
   private final ExecutorService executorService;
-  private final ArmadilloSessionFactory armadilloSessionFactory;
+  private final ProcessService processService;
   private volatile ArmadilloSession armadilloSession;
   private String currentProfile;
   private Profiles profiles;
@@ -58,17 +59,16 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
-      ArmadilloSessionFactory armadilloSessionFactory,
+      ProcessService processService,
       Profiles profiles) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.executorService = executorService;
-    this.armadilloSessionFactory = armadilloSessionFactory;
+    this.processService = processService;
     this.profiles = profiles;
     var defaultProfile = profiles.getDefaultProfile();
-    this.armadilloSession =
-        armadilloSessionFactory.createSession(defaultProfile.getArmadilloConnectionFactory());
+    this.armadilloSession = new ArmadilloSession(defaultProfile.getArmadilloConnectionFactory(), processService);
   }
 
   @Override
@@ -84,8 +84,7 @@ class CommandsImpl implements Commands {
           if (this.armadilloSession != null) {
             armadilloSession.sessionCleanup();
           }
-          this.armadilloSession =
-              armadilloSessionFactory.createSession(toSelect.getArmadilloConnectionFactory());
+          this.armadilloSession = new ArmadilloSession(toSelect.getArmadilloConnectionFactory(), processService);
           this.currentProfile = profileName;
         });
     return profile;

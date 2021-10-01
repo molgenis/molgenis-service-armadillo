@@ -24,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.ArmadilloSession;
-import org.molgenis.armadillo.ArmadilloSessionFactory;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.profile.Profiles;
@@ -50,7 +49,6 @@ class CommandsImplTest {
   @Mock ProcessService processService;
   @Mock REXP rexp;
   @Mock Principal principal;
-  @Mock ArmadilloSessionFactory armadilloSessionFactory;
   @Mock Profile profile;
   @Mock Profiles profiles;
   ArmadilloSession armadilloSession;
@@ -61,17 +59,15 @@ class CommandsImplTest {
   void beforeEach() {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
-    armadilloSession = new ArmadilloSession(connectionFactory, processService);
     when(profiles.getDefaultProfile()).thenReturn(profile);
     when(profile.getArmadilloConnectionFactory()).thenReturn(connectionFactory);
-    when(armadilloSessionFactory.createSession(connectionFactory)).thenReturn(armadilloSession);
     commands =
         new CommandsImpl(
             armadilloStorage,
             packageService,
             rExecutorService,
             executorService,
-            armadilloSessionFactory,
+            processService,
             profiles);
   }
 
