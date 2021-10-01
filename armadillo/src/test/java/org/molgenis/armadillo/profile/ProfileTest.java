@@ -51,5 +51,4 @@ class ProfileTest {
   void testGetProfileName() {
     assertEquals("default", profile.getProfileName());
   }
-
 }

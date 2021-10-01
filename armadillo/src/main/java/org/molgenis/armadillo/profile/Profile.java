@@ -9,9 +9,7 @@ import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.service.ExpressionRewriterImpl;
 import org.molgenis.r.RConnectionFactory;
 
-/**
- * Everything that used to be a bean but now no longer isn't.
- */
+/** Everything that used to be a bean but now no longer isn't. */
 public class Profile {
   private final ExpressionRewriter expressionRewriter;
   private final ProfileConfigProps profileConfig;
@@ -27,7 +25,8 @@ public class Profile {
     this.expressionRewriter = new ExpressionRewriterImpl(environments);
     this.profileConfig = profileConfig;
     this.dataShieldOptions = dataShieldOptions;
-    this.armadilloConnectionFactory = new ArmadilloConnectionFactoryImpl(dataShieldOptions, rConnectionFactory);
+    this.armadilloConnectionFactory =
+        new ArmadilloConnectionFactoryImpl(dataShieldOptions, rConnectionFactory);
     this.environments = environments;
   }
 

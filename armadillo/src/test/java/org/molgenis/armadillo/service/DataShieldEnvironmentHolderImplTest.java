@@ -35,15 +35,14 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock
-  ProfileConfigProps dataShieldProperties;
+  @Mock ProfileConfigProps dataShieldProperties;
   private DataShieldProfileEnvironments environmentHolder;
 
   @BeforeEach
   void beforeEach() {
     environmentHolder =
-        new DataShieldProfileEnvironments("profile",
-            packageService, rConnectionFactory, dataShieldProperties);
+        new DataShieldProfileEnvironments(
+            "profile", packageService, rConnectionFactory, dataShieldProperties);
   }
 
   @Test

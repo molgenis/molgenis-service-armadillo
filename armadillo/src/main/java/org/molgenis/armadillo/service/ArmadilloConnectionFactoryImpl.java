@@ -8,7 +8,6 @@ import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.stereotype.Component;
 
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 

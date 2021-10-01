@@ -134,7 +134,8 @@ public class DataControllerTest {
     when(commands.getCurrentProfile()).thenReturn(profile);
     when(profile.getProfileName()).thenReturn("b");
 
-    mockMvc.perform(get("/profiles"))
+    mockMvc
+        .perform(get("/profiles"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
@@ -145,16 +146,13 @@ public class DataControllerTest {
   void testSelectProfile() throws Exception {
     when(commands.selectProfile("b")).thenReturn(Optional.of(profile));
 
-    mockMvc.perform(post("/select-profile").content("b"))
-        .andExpect(status().isNoContent());
-
+    mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
   }
 
   @Test
   @WithMockUser
   void testSelectUnknownProfile() throws Exception {
-    mockMvc.perform(post("/select-profile").content("unknown"))
-        .andExpect(status().isNotFound());
+    mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
   }
 
   @Test

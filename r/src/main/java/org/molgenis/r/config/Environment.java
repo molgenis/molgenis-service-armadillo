@@ -1,9 +1,7 @@
 package org.molgenis.r.config;
 
-import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
-import org.springframework.stereotype.Component;
 
 public class Environment {
   @NotEmpty private String name;

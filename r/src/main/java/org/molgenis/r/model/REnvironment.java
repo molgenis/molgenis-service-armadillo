@@ -9,11 +9,11 @@ import java.util.List;
 public abstract class REnvironment {
   @JsonSerialize
   public abstract String name();
+
   @JsonSerialize
   public abstract List<RProcess> processes();
 
   public static REnvironment create(String name, List<RProcess> processes) {
     return new AutoValue_REnvironment(name, processes);
   }
-
 }

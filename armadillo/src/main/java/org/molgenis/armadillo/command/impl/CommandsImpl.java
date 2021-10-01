@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.*;
@@ -68,7 +67,8 @@ class CommandsImpl implements Commands {
     this.armadilloSessionFactory = armadilloSessionFactory;
     this.profiles = profiles;
     var defaultProfile = profiles.getDefaultProfile();
-    this.armadilloSession = armadilloSessionFactory.createSession(defaultProfile.getArmadilloConnectionFactory());
+    this.armadilloSession =
+        armadilloSessionFactory.createSession(defaultProfile.getArmadilloConnectionFactory());
   }
 
   @Override
@@ -79,14 +79,15 @@ class CommandsImpl implements Commands {
   @Override
   public synchronized Optional<Profile> selectProfile(String profileName) {
     var profile = profiles.getProfileByName(profileName);
-    profile.ifPresent(toSelect -> {
-      if (this.armadilloSession != null) {
-        armadilloSession.sessionCleanup();
-      }
-      this.armadilloSession = armadilloSessionFactory.createSession(toSelect.getArmadilloConnectionFactory());
-      this.currentProfile = profileName;
-
-    });
+    profile.ifPresent(
+        toSelect -> {
+          if (this.armadilloSession != null) {
+            armadilloSession.sessionCleanup();
+          }
+          this.armadilloSession =
+              armadilloSessionFactory.createSession(toSelect.getArmadilloConnectionFactory());
+          this.currentProfile = profileName;
+        });
     return profile;
   }
 

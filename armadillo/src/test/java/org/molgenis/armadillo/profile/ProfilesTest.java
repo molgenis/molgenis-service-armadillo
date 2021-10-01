@@ -40,10 +40,8 @@ class ProfilesTest {
     profile2.setName("exposome");
     profile2.setOptions(Map.of("foo", "foobar"));
     List<ProfileConfigProps> profileConfigProps = List.of(profile1, profile2);
-    when(rServeEnvironments.getConnectionFactory("environment1"))
-        .thenReturn(environment1Factory);
-    when(rServeEnvironments.getConnectionFactory("environment2"))
-        .thenReturn(environment2Factory);
+    when(rServeEnvironments.getConnectionFactory("environment1")).thenReturn(environment1Factory);
+    when(rServeEnvironments.getConnectionFactory("environment2")).thenReturn(environment2Factory);
     dataShieldConfigProps = new DataShieldConfigProps(profileConfigProps);
     profiles = new Profiles(rServeEnvironments, packageService, dataShieldConfigProps);
     profiles.init();
@@ -65,7 +63,6 @@ class ProfilesTest {
 
   @Test
   void getProfileByName() {
-    assertEquals("exposome", profiles.getProfileByName("exposome")
-        .get().getProfileName());
+    assertEquals("exposome", profiles.getProfileByName("exposome").get().getProfileName());
   }
 }

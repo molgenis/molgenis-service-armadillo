@@ -1,6 +1,5 @@
 package org.molgenis.armadillo;
 
-import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.service.ProcessService;
 import org.springframework.stereotype.Component;

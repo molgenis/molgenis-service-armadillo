@@ -48,9 +48,13 @@ public class ProfileConfigProps {
 
   @Override
   public String toString() {
-    return "ProfileConfigProps{" +
-        "name='" + name + '\'' +
-        ", environment='" + environment + '\'' +
-        '}';
+    return "ProfileConfigProps{"
+        + "name='"
+        + name
+        + '\''
+        + ", environment='"
+        + environment
+        + '\''
+        + '}';
   }
 }

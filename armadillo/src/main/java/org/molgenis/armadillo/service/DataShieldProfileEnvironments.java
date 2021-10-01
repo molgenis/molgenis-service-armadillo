@@ -21,13 +21,10 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Caches the datashield environments for one profile.
- */
+/** Caches the datashield environments for one profile. */
 public class DataShieldProfileEnvironments {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(DataShieldProfileEnvironments.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataShieldProfileEnvironments.class);
   private final String profileName;
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
@@ -147,8 +144,6 @@ public class DataShieldProfileEnvironments {
 
   @Override
   public String toString() {
-    return "DataShieldProfileEnvironments{" +
-        "profileName='" + profileName + '\'' +
-        '}';
+    return "DataShieldProfileEnvironments{" + "profileName='" + profileName + '\'' + '}';
   }
 }

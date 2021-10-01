@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 public class DataShieldConfigProps {
   private final List<ProfileConfigProps> profiles;
 
-  public DataShieldConfigProps(
-      List<ProfileConfigProps> profiles) {
+  public DataShieldConfigProps(List<ProfileConfigProps> profiles) {
     this.profiles = profiles;
   }
 

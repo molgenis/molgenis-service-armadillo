@@ -52,8 +52,7 @@ class CommandsImplTest {
   @Mock Principal principal;
   @Mock ArmadilloSessionFactory armadilloSessionFactory;
   @Mock Profile profile;
-  @Mock
-  Profiles profiles;
+  @Mock Profiles profiles;
   ArmadilloSession armadilloSession;
   ExecutorService executorService = Executors.newSingleThreadExecutor();
   private CommandsImpl commands;
