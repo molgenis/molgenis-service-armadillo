@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.r.config.Node;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -18,7 +19,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 @ExtendWith(MockitoExtension.class)
 class RConnectionFactoryImplTest {
 
-  RConfigProperties rConfigProperties = new RConfigProperties();
+  Node rConfigProperties = new Node();
   @Mock RConnection rConnection;
 
   private RConnectionFactoryImpl rConnectionFactory;
