@@ -48,6 +48,7 @@ class CommandsImpl implements Commands {
   private final ExecutorService executorService;
   private final ArmadilloSessionFactory armadilloSessionFactory;
   private volatile ArmadilloSession armadilloSession;
+  private String currentProfile;
   private Profiles profiles;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
@@ -66,12 +67,13 @@ class CommandsImpl implements Commands {
     this.executorService = executorService;
     this.armadilloSessionFactory = armadilloSessionFactory;
     this.profiles = profiles;
-    this.armadilloSession = armadilloSessionFactory.createSession(profiles.getDefaultProfile());
+    var defaultProfile = profiles.getDefaultProfile();
+    this.armadilloSession = armadilloSessionFactory.createSession(defaultProfile.getArmadilloConnectionFactory());
   }
 
   @Override
   public Profile getCurrentProfile() {
-    return profiles.getProfileByName(armadilloSession.getCurrentProfile()).orElseThrow();
+    return profiles.getProfileByName(currentProfile).orElseThrow();
   }
 
   @Override
@@ -81,7 +83,8 @@ class CommandsImpl implements Commands {
       if (this.armadilloSession != null) {
         armadilloSession.sessionCleanup();
       }
-      this.armadilloSession = armadilloSessionFactory.createSession(toSelect);
+      this.armadilloSession = armadilloSessionFactory.createSession(toSelect.getArmadilloConnectionFactory());
+      this.currentProfile = profileName;
 
     });
     return profile;

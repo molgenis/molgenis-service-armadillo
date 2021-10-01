@@ -22,7 +22,6 @@ class ArmadilloSessionFactoryTest {
   @Mock private ProcessService processService;
   @Mock private ArmadilloConnectionFactory armadilloConnectionFactory;
   @Mock private RConnection rConnection;
-  @Mock private Profile profile;
 
   @BeforeEach
   void setUp() {
@@ -31,13 +30,10 @@ class ArmadilloSessionFactoryTest {
 
   @Test
   void createSession() {
-    when(profile.getProfileName()).thenReturn("profile");
-    when(profile.getArmadilloConnectionFactory()).thenReturn(armadilloConnectionFactory);
     when(armadilloConnectionFactory.createConnection()).thenReturn(rConnection);
 
-    var armadilloSession = armadilloSessionFactory.createSession(profile);
+    var armadilloSession = armadilloSessionFactory.createSession(armadilloConnectionFactory);
 
-    assertEquals("profile", armadilloSession.getCurrentProfile());
     armadilloSession.sessionCleanup();
     verify(rConnection).close();
   }

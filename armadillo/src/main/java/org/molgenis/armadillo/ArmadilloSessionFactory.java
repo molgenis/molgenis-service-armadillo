@@ -1,6 +1,7 @@
 package org.molgenis.armadillo;
 
 import org.molgenis.armadillo.profile.Profile;
+import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.service.ProcessService;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +13,7 @@ public class ArmadilloSessionFactory {
     this.processService = processService;
   }
 
-  public ArmadilloSession createSession(Profile profile) {
-    return new ArmadilloSession(
-        profile.getProfileName(), profile.getArmadilloConnectionFactory(), processService);
+  public ArmadilloSession createSession(ArmadilloConnectionFactory armadilloConnectionFactory) {
+    return new ArmadilloSession(armadilloConnectionFactory, processService);
   }
 }
