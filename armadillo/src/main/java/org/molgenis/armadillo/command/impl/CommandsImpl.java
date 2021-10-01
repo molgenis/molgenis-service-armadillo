@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.*;
@@ -19,11 +20,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
+import org.molgenis.armadillo.ArmadilloSessionFactory;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
@@ -42,8 +43,9 @@ class CommandsImpl implements Commands {
   private final ArmadilloStorageService armadilloStorage;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
-  private final ArmadilloSession armadilloSession;
   private final ExecutorService executorService;
+  private final ArmadilloSessionFactory armadilloSessionFactory;
+  private volatile ArmadilloSession armadilloSession;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
   private volatile ArmadilloCommand lastCommand;
@@ -53,13 +55,18 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
-      ArmadilloConnectionFactory connectionFactory,
-      ProcessService processService) {
+      ArmadilloSessionFactory armadilloSessionFactory) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
     this.executorService = executorService;
+    this.armadilloSessionFactory = armadilloSessionFactory;
+  }
+
+  @Override
+  public CompletableFuture<Void> selectProfile(String profileName) {
+    this.armadilloSession = armadilloSessionFactory.createSession(profileName);
+    return completedFuture(null);
   }
 
   @Override

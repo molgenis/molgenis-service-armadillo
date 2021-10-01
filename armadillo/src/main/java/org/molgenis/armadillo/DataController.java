@@ -388,6 +388,13 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
+  // TODO: select profile
+  public void selectProfile(String profileName) {
+    commands.selectProfile(profileName);
+  }
+
+  // TODO: list profiles
+
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAssignMethods(Principal principal) {

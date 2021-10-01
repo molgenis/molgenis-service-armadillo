@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.Profile;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -23,7 +24,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {
 
-  private final DataShieldProperties dataShieldProperties = new DataShieldProperties();
+  private final Profile dataShieldProperties = new Profile();
   @Mock private PackageService packageService;
   @Mock private RConnectionFactory rConnectionFactory;
   @Mock private RConnection rConnection;

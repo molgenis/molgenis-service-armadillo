@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-import org.molgenis.armadillo.DataShieldProperties;
+import org.molgenis.armadillo.config.Profile;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.exceptions.IllegalRPackageException;
@@ -29,7 +29,7 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
       LoggerFactory.getLogger(DataShieldEnvironmentHolderImpl.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private DataShieldProperties dataShieldProperties;
+  private Profile dataShieldProperties;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -37,7 +37,7 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
   public DataShieldEnvironmentHolderImpl(
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
-      DataShieldProperties dataShieldProperties) {
+      Profile dataShieldProperties) {
     this.packageService = packageService;
     this.rConnectionFactory = rConnectionFactory;
     this.dataShieldProperties = dataShieldProperties;

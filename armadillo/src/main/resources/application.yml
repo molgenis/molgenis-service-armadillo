@@ -1,16 +1,25 @@
 rserve:
-  profiles:
+  servers:
     - name: default
       host: localhost
       port: 6311
-      whitelist:
-        - dsBase
     - name: exposome
       host: localhost
       port: 6312
+
+datashield:
+  profiles:
+    - server: default
+      whitelist:
+        - dsBase
+      options:
+        foo: bar
+    - server: exposome
       whitelist:
         - dsBase
         - dsExposome
+      options:
+        foo: bar
 
 springdoc:
   swagger-ui:

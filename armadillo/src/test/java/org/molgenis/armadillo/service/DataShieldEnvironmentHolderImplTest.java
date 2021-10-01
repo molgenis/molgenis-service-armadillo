@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.DataShieldProperties;
+import org.molgenis.armadillo.config.Profile;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.exceptions.IllegalRPackageException;
@@ -35,7 +35,8 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock DataShieldProperties dataShieldProperties;
+  @Mock
+  Profile dataShieldProperties;
   private DataShieldEnvironmentHolderImpl environmentHolder;
 
   @BeforeEach

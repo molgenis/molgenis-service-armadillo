@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
+import org.molgenis.armadillo.config.Profile;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.springframework.stereotype.Component;
 
 /**
  * Retrieves and combines armadillo options. These are defined by:
@@ -19,16 +19,15 @@ import org.springframework.stereotype.Component;
  *   <li>The rserve.options application properties
  * </ol>
  */
-@Component
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final DataShieldProperties dataShieldProperties;
+  private final Profile dataShieldProperties;
   private final PackageService packageService;
   private Map<String, String> options;
-  private RConnectionFactory rConnectionFactory;
+  private final RConnectionFactory rConnectionFactory;
 
   public DataShieldOptionsImpl(
-      DataShieldProperties dataShieldProperties,
+      Profile dataShieldProperties,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
     this.dataShieldProperties = dataShieldProperties;
