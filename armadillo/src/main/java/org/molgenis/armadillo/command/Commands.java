@@ -4,10 +4,13 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.armadillo.profile.Profile;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXP;
 
 public interface Commands {
+
+  Profile getProfile();
 
   CompletableFuture<Void> selectProfile(String profileName);
 
@@ -24,6 +27,8 @@ public interface Commands {
   CompletableFuture<Void> saveWorkspace(Principal principal, String id);
 
   CompletableFuture<List<RPackage>> getPackages();
+
+  String getProfileName();
 
   Optional<CompletableFuture<REXP>> getLastExecution();
 

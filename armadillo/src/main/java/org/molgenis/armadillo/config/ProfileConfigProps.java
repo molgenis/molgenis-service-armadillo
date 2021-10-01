@@ -8,10 +8,10 @@ import javax.validation.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-public class Profile {
+public class ProfileConfigProps {
   private Map<String, String> options = new HashMap<>();
   @NotEmpty private Set<String> whitelist = new HashSet<>();
-  @NotEmpty private String server;
+  @NotEmpty private String node;
 
   public Map<String, String> getOptions() {
     return options;
@@ -29,18 +29,18 @@ public class Profile {
     this.whitelist = whitelist;
   }
 
-  public String getServer() {
-    return server;
+  public String getNode() {
+    return node;
   }
 
-  public void setServer(String server) {
-    this.server = server;
+  public void setNode(String node) {
+    this.node = node;
   }
 
   @Override
   public String toString() {
-    return "Profile{" +
-        "server='" + server + '\'' +
+    return "ProfileConfigProps{" +
+        "node='" + node + '\'' +
         '}';
   }
 }

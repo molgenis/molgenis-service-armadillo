@@ -15,8 +15,8 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
 
   private final Node node;
 
-  public RConnectionFactoryImpl(Node profile) {
-    this.node = requireNonNull(profile);
+  public RConnectionFactoryImpl(Node node) {
+    this.node = requireNonNull(node);
   }
 
   @Override

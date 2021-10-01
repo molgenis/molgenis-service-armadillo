@@ -1,12 +1,12 @@
 package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
-import org.molgenis.armadillo.config.Profile;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.exceptions.IllegalRPackageException;
@@ -20,33 +20,36 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-@Component
-public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHolder {
+/**
+ * Caches the datashield environments for one profile.
+ */
+public class DataShieldProfileEnvironments {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(DataShieldEnvironmentHolderImpl.class);
+      LoggerFactory.getLogger(DataShieldProfileEnvironments.class);
+  private final String profileName;
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private Profile dataShieldProperties;
+  private final ProfileConfigProps dataShieldProperties;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
 
-  public DataShieldEnvironmentHolderImpl(
+  public DataShieldProfileEnvironments(
+      String profileName,
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
-      Profile dataShieldProperties) {
-    this.packageService = packageService;
-    this.rConnectionFactory = rConnectionFactory;
-    this.dataShieldProperties = dataShieldProperties;
+      ProfileConfigProps dataShieldProperties) {
+    this.profileName = requireNonNull(profileName);
+    this.packageService = requireNonNull(packageService);
+    this.rConnectionFactory = requireNonNull(rConnectionFactory);
+    this.dataShieldProperties = requireNonNull(dataShieldProperties);
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
   }
 
-  @PostConstruct
   public void populateEnvironments() {
     List<RPackage> packages = getPackages();
     packages.stream()
@@ -131,7 +134,6 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
         environment.getMethodType());
   }
 
-  @Override
   public DSEnvironment getEnvironment(DSMethodType dsMethodType) {
     switch (dsMethodType) {
       case AGGREGATE:
@@ -141,5 +143,12 @@ public class DataShieldEnvironmentHolderImpl implements DataShieldEnvironmentHol
       default:
         throw new IllegalStateException("Unknown DSMethodType");
     }
+  }
+
+  @Override
+  public String toString() {
+    return "DataShieldProfileEnvironments{" +
+        "profileName='" + profileName + '\'' +
+        '}';
   }
 }

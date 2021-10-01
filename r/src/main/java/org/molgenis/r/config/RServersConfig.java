@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 public class RServersConfig {
   private final List<Node> nodes;
 
-  public RServersConfig(List<Node> profiles) {
-    this.nodes = profiles;
+  public RServersConfig(List<Node> nodes) {
+    this.nodes = nodes;
   }
 
   public List<Node> getNodes() {

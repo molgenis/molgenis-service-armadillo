@@ -10,27 +10,25 @@ import org.obiba.datashield.r.expr.v2.RScriptGeneratorV2;
 import org.obiba.datashield.r.expr.v2.TokenMgrError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ExpressionRewriterImpl implements ExpressionRewriter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionRewriterImpl.class);
 
-  private final DataShieldEnvironmentHolder environmentHolder;
+  private final DataShieldProfileEnvironments environments;
 
-  public ExpressionRewriterImpl(DataShieldEnvironmentHolder environmentHolder) {
-    this.environmentHolder = environmentHolder;
+  public ExpressionRewriterImpl(DataShieldProfileEnvironments environments) {
+    this.environments = environments;
   }
 
   @Override
   public String rewriteAssign(String expression) {
-    return rewrite(expression, environmentHolder.getEnvironment(DSMethodType.ASSIGN));
+    return rewrite(expression, environments.getEnvironment(DSMethodType.ASSIGN));
   }
 
   @Override
   public String rewriteAggregate(String expression) {
-    return rewrite(expression, environmentHolder.getEnvironment(DSMethodType.AGGREGATE));
+    return rewrite(expression, environments.getEnvironment(DSMethodType.AGGREGATE));
   }
 
   private String rewrite(String expression, DSEnvironment environment) {

@@ -6,15 +6,15 @@ import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "datashield")
 @Component
-public class DatashieldConfigurationProperties {
-  private final List<Profile> profiles;
+public class DataShieldConfigProps {
+  private final List<ProfileConfigProps> profiles;
 
-  public DatashieldConfigurationProperties(
-      List<Profile> profiles) {
+  public DataShieldConfigProps(
+      List<ProfileConfigProps> profiles) {
     this.profiles = profiles;
   }
 
-  public List<Profile> getProfiles() {
+  public List<ProfileConfigProps> getProfiles() {
     return profiles;
   }
 }

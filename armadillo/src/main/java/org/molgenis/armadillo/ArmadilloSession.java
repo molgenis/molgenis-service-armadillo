@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 public class ArmadilloSession {
   private static final Logger logger = LoggerFactory.getLogger(ArmadilloSession.class);
 
+  private final String profileName;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
   private final RConnection connection;
@@ -19,7 +20,9 @@ public class ArmadilloSession {
   private boolean busy = false;
 
   public ArmadilloSession(
+      String profileName,
       ArmadilloConnectionFactory connectionFactory, ProcessService processService) {
+    this.profileName = requireNonNull(profileName);
     this.connectionFactory = requireNonNull(connectionFactory);
     this.processService = requireNonNull(processService);
     logger.trace("Creating new connection...");
@@ -51,5 +54,9 @@ public class ArmadilloSession {
     } finally {
       conn.close();
     }
+  }
+
+  public String getProfileName() {
+    return profileName;
   }
 }

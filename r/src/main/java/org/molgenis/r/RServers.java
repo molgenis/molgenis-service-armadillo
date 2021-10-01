@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RServers {
+  // TODO: validate the config!
+  public static final String DEFAULT = "default";
   private final Map<String, RConnectionFactory> connectionFactories;
 
   public RServers(RServersConfig rServeConfig) {

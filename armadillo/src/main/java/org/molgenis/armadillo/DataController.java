@@ -48,7 +48,6 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
@@ -88,24 +87,18 @@ public class DataController {
       "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
   public static final String PATH_FORMAT = "%s/%s";
 
-  private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
   private final ArmadilloStorageService storage;
-  private final DataShieldEnvironmentHolder environments;
   private final AuditEventPublisher auditEventPublisher;
   private final java.util.regex.Pattern tableResourcePattern =
       java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
 
   public DataController(
-      ExpressionRewriter expressionRewriter,
       Commands commands,
       ArmadilloStorageService storage,
-      DataShieldEnvironmentHolder environments,
       AuditEventPublisher auditEventPublisher) {
-    this.expressionRewriter = expressionRewriter;
     this.commands = commands;
     this.storage = storage;
-    this.environments = environments;
     this.auditEventPublisher = auditEventPublisher;
   }
 
@@ -305,6 +298,7 @@ public class DataController {
       @RequestParam(defaultValue = "false") boolean async) {
     Map<String, Object> data = Map.of(SYMBOL, symbol, EXPRESSION, expression);
     try {
+      ExpressionRewriter expressionRewriter = commands.getProfile().getExpressionRewriter();
       String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
       CompletableFuture<Void> result =
           auditEventPublisher.audit(
@@ -336,6 +330,7 @@ public class DataController {
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
+      ExpressionRewriter expressionRewriter = commands.getProfile().getExpressionRewriter();
       String rewrittenExpression =
           serializeExpression(expressionRewriter.rewriteAggregate(expression));
       CompletableFuture<REXP> result =
@@ -398,6 +393,7 @@ public class DataController {
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAssignMethods(Principal principal) {
+    var environments = commands.getProfile().getEnvironments();
     return auditEventPublisher.audit(
         () -> environments.getEnvironment(ASSIGN).getMethods(),
         principal,
@@ -408,6 +404,7 @@ public class DataController {
   @Operation(summary = "Get available aggregate methods")
   @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAggregateMethods(Principal principal) {
+    var environments = commands.getProfile().getEnvironments();
     return auditEventPublisher.audit(
         () -> environments.getEnvironment(AGGREGATE).getMethods(),
         principal,

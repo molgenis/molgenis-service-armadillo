@@ -43,7 +43,7 @@ import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
+import org.molgenis.armadillo.service.DataShieldProfileEnvironments;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSEnvironment;
@@ -93,7 +93,7 @@ class DataControllerTest {
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
   @MockBean private ArmadilloStorageService armadilloStorage;
-  @MockBean private DataShieldEnvironmentHolder environments;
+  @MockBean private DataShieldProfileEnvironments environments;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;

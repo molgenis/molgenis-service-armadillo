@@ -25,6 +25,8 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.profile.Profile;
+import org.molgenis.armadillo.profile.Profiles;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
@@ -46,6 +48,7 @@ class CommandsImpl implements Commands {
   private final ExecutorService executorService;
   private final ArmadilloSessionFactory armadilloSessionFactory;
   private volatile ArmadilloSession armadilloSession;
+  private Profiles profiles;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
   private volatile ArmadilloCommand lastCommand;
@@ -55,18 +58,31 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       ExecutorService executorService,
-      ArmadilloSessionFactory armadilloSessionFactory) {
+      ArmadilloSessionFactory armadilloSessionFactory,
+      Profiles profiles) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.executorService = executorService;
     this.armadilloSessionFactory = armadilloSessionFactory;
+    this.profiles = profiles;
+  }
+
+  @Override
+  public Profile getProfile() {
+    return profiles.getProfile(armadilloSession.getProfileName());
   }
 
   @Override
   public CompletableFuture<Void> selectProfile(String profileName) {
-    this.armadilloSession = armadilloSessionFactory.createSession(profileName);
+    var profile = profiles.getProfile(profileName);
+    this.armadilloSession = armadilloSessionFactory.createSession(profile);
     return completedFuture(null);
+  }
+
+  @Override
+  public String getProfileName() {
+    return armadilloSession.getProfileName();
   }
 
   @Override

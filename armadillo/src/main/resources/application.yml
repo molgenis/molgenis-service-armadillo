@@ -1,5 +1,5 @@
 rserve:
-  servers:
+  nodes:
     - name: default
       host: localhost
       port: 6311
@@ -9,15 +9,16 @@ rserve:
 
 datashield:
   profiles:
-    - server: default
+    - node: default
       whitelist:
         - dsBase
       options:
         foo: bar
-    - server: exposome
+    - node: exposome
       whitelist:
         - dsBase
         - dsExposome
+        - resourcer
       options:
         foo: bar
 

@@ -33,7 +33,7 @@ class ArmadilloSessionTest {
   void before() {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
+    this.armadilloSession = new ArmadilloSession("profile", connectionFactory, processService);
   }
 
   @Test

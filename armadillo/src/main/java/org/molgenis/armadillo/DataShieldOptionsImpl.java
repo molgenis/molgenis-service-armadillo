@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
-import org.molgenis.armadillo.config.Profile;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -21,13 +21,13 @@ import org.rosuda.REngine.Rserve.RConnection;
  */
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final Profile dataShieldProperties;
+  private final ProfileConfigProps dataShieldProperties;
   private final PackageService packageService;
   private Map<String, String> options;
   private final RConnectionFactory rConnectionFactory;
 
   public DataShieldOptionsImpl(
-      Profile dataShieldProperties,
+      ProfileConfigProps dataShieldProperties,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
     this.dataShieldProperties = dataShieldProperties;
