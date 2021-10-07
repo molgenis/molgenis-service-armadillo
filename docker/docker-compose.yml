@@ -12,6 +12,7 @@ services:
     command: server /data
     # volumes:
     #   - ./data/:/data
+
   armadillo:
     image: molgenis/armadillo:latest
     environment:
@@ -29,13 +30,24 @@ services:
       - 8080:8080
     volumes:
       - ${PWD}/logs/:/app/logs
+
   rserver:
     # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
     image: datashield/armadillo-rserver:1.0.4
     environment:
       DEBUG: "FALSE"
     ports:
+      # host port: container port
       - 6311:6311
+
+  rserver-exposome:
+    image: datashield/armadillo-rserver-exposome:1.0.1
+    environment:
+      DEBUG: "FALSE"
+    ports:
+      # host port: container port
+      - 6312:6311
+
   auth:
     # Use predefined production image:
     # You need to activate SPRING_SECURITY_OAUTH2_JWT_ISSUER_URL and SPRING_SECURITY_OAUTH2_OPAQUETOKEN_CLIENT_ID in the armadillo to make the OIDC flow work
@@ -50,4 +62,4 @@ services:
       APP_SESSION_SECRET: "generate-with-uuid"
     ports:
       - 4000:4000
-    profiles: ["oidc"]
+    profiles: [ "oidc" ]
