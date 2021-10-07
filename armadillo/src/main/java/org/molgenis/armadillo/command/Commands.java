@@ -9,6 +9,12 @@ import org.rosuda.REngine.REXP;
 
 public interface Commands {
 
+  List<String> listProfiles();
+
+  String getActiveProfileName();
+
+  void selectProfile(String profileName);
+
   CompletableFuture<REXP> evaluate(String expression);
 
   CompletableFuture<Void> assign(String symbol, String expression);

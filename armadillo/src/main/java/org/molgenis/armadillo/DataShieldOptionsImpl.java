@@ -1,10 +1,14 @@
 package org.molgenis.armadillo;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
+import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.config.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -20,20 +24,21 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
+@ProfileScope
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final DataShieldProperties dataShieldProperties;
+  private final ProfileConfigProps profileConfigProps;
   private final PackageService packageService;
   private Map<String, String> options;
-  private RConnectionFactory rConnectionFactory;
+  private final RConnectionFactory rConnectionFactory;
 
   public DataShieldOptionsImpl(
-      DataShieldProperties dataShieldProperties,
+      ProfileConfigProps profileConfigProps,
       PackageService packageService,
       RConnectionFactory rConnectionFactory) {
-    this.dataShieldProperties = dataShieldProperties;
-    this.packageService = packageService;
-    this.rConnectionFactory = rConnectionFactory;
+    this.profileConfigProps = requireNonNull(profileConfigProps);
+    this.packageService = requireNonNull(packageService);
+    this.rConnectionFactory = requireNonNull(rConnectionFactory);
   }
 
   @PostConstruct
@@ -46,7 +51,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      options.putAll(dataShieldProperties.getOptions());
+      options.putAll(profileConfigProps.getOptions());
     } finally {
       if (connection != null) {
         connection.close();

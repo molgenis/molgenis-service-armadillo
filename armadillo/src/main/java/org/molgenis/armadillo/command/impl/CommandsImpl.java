@@ -2,48 +2,46 @@ package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
-import static org.molgenis.armadillo.minio.ArmadilloStorageService.*;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.PARQUET;
-import static org.springframework.security.core.context.SecurityContextHolder.clearContext;
-import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
-import static org.springframework.security.core.context.SecurityContextHolder.getContext;
-import static org.springframework.security.core.context.SecurityContextHolder.setContext;
+import static org.molgenis.armadillo.minio.ArmadilloStorageService.RDS;
+import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.config.DataShieldConfigProps;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
+import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
 @Service
-@SessionScope
 class CommandsImpl implements Commands {
 
   private final ArmadilloStorageService armadilloStorage;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
-  private final ArmadilloSession armadilloSession;
-  private final ExecutorService executorService;
+  private final TaskExecutor taskExecutor;
+  private volatile ArmadilloSession armadilloSession;
+  private final DataShieldConfigProps dataShieldConfigProps;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
   private volatile ArmadilloCommand lastCommand;
@@ -52,14 +50,37 @@ class CommandsImpl implements Commands {
       ArmadilloStorageService armadilloStorage,
       PackageService packageService,
       RExecutorService rExecutorService,
-      ExecutorService executorService,
-      ArmadilloConnectionFactory connectionFactory,
-      ProcessService processService) {
+      TaskExecutor taskExecutor,
+      ArmadilloSession armadilloSession,
+      ActiveProfileNameAccessor activeProfileNameAccessor,
+      DataShieldConfigProps dataShieldConfigProps) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
-    this.executorService = executorService;
+    this.taskExecutor = taskExecutor;
+    this.armadilloSession = armadilloSession;
+
+    this.dataShieldConfigProps = dataShieldConfigProps;
+  }
+
+  @Override
+  public String getActiveProfileName() {
+    return ActiveProfileNameAccessor.getActiveProfileName();
+  }
+
+  @Override
+  public synchronized void selectProfile(String profileName) {
+    if (this.armadilloSession != null) {
+      armadilloSession.sessionCleanup();
+    }
+    ActiveProfileNameAccessor.setActiveProfileName(profileName);
+  }
+
+  @Override
+  public List<String> listProfiles() {
+    return dataShieldConfigProps.getProfiles().stream()
+        .map(ProfileConfigProps::getName)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -76,7 +97,7 @@ class CommandsImpl implements Commands {
     final ArmadilloSession session = armadilloSession;
     lastCommand = command;
     Supplier<T> execution = withCurrentSecurityContext(() -> session.execute(command::evaluate));
-    CompletableFuture<T> result = supplyAsync(execution, executorService);
+    CompletableFuture<T> result = supplyAsync(execution, taskExecutor);
     command.setExecution(result);
     return result;
   }

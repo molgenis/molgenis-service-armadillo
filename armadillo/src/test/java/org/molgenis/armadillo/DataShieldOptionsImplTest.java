@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.DataControllerTest.BASE;
+import static org.molgenis.armadillo.controller.DataControllerTest.BASE;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -21,9 +22,9 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldOptionsImplTest {
+public class DataShieldOptionsImplTest {
 
-  private final DataShieldProperties dataShieldProperties = new DataShieldProperties();
+  private final ProfileConfigProps profileConfigProps = new ProfileConfigProps();
   @Mock private PackageService packageService;
   @Mock private RConnectionFactory rConnectionFactory;
   @Mock private RConnection rConnection;
@@ -32,14 +33,14 @@ class DataShieldOptionsImplTest {
 
   @BeforeEach
   void beforeEach() {
-    options = new DataShieldOptionsImpl(dataShieldProperties, packageService, rConnectionFactory);
+    options = new DataShieldOptionsImpl(profileConfigProps, packageService, rConnectionFactory);
   }
 
   @Test
   void init() throws REXPMismatchException, RserveException {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
-    dataShieldProperties.setOptions(configOptions);
+    profileConfigProps.setOptions(configOptions);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).retryCreateConnection();
 

@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -15,15 +15,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.ArmadilloSession;
+import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -32,7 +33,9 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.task.TaskExecutor;
 
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
@@ -44,9 +47,12 @@ class CommandsImplTest {
   @Mock RConnection rConnection;
   @Mock InputStream inputStream;
   @Mock ProcessService processService;
+  @Mock ActiveProfileNameAccessor activeProfileNameAccessor;
+  @Mock DataShieldConfigProps dataShieldConfigProps;
   @Mock REXP rexp;
   @Mock Principal principal;
-  ExecutorService executorService = Executors.newSingleThreadExecutor();
+  @Mock ArmadilloSession armadilloSession;
+  TaskExecutor taskExecutor = new TaskExecutorBuilder().build();
   private CommandsImpl commands;
 
   @BeforeEach
@@ -58,9 +64,10 @@ class CommandsImplTest {
             armadilloStorage,
             packageService,
             rExecutorService,
-            executorService,
-            connectionFactory,
-            processService);
+            taskExecutor,
+            armadilloSession,
+            activeProfileNameAccessor,
+            dataShieldConfigProps);
   }
 
   @Test
