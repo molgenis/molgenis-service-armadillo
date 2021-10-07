@@ -9,6 +9,9 @@
 ##########################################################
 
 ###
+POST http://localhost:8080/logout
+
+###
 GET http://localhost:8080/v3/api-docs
 
 ### authenticate with JWT token

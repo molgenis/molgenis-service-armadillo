@@ -1,0 +1,20 @@
+###
+POST http://localhost:8080/logout
+
+### authenticate with basic auth
+GET http://localhost:8080/profiles
+Authorization: Basic admin admin
+
+###
+POST http://localhost:8080/select-profile
+
+default
+
+###
+POST http://localhost:8080/select-profile
+
+exposome
+
+###
+GET http://localhost:8080/packages
+
