@@ -41,7 +41,7 @@ class CommandsImpl implements Commands {
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
   private final TaskExecutor taskExecutor;
-  private volatile ArmadilloSession armadilloSession;
+  private final ArmadilloSession armadilloSession;
   private final DataShieldConfigProps dataShieldConfigProps;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
