@@ -71,9 +71,9 @@ import org.springframework.test.web.servlet.MvcResult;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
-public class DataControllerTest {
+class DataControllerTest {
 
-  public static RPackage BASE =
+  private static RPackage BASE =
       RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")

@@ -13,6 +13,8 @@ public class ActiveProfileNameAccessor {
   public static final String DEFAULT = "default";
   private static final String PROFILE_CONTEXT_KEY = "profile";
 
+  private ActiveProfileNameAccessor() {}
+
   public static String getActiveProfileName() {
     try {
       Object mutex = RequestContextHolder.currentRequestAttributes().getSessionMutex();

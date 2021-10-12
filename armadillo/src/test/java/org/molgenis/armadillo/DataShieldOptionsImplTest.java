@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.controller.DataControllerTest.BASE;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -22,7 +21,15 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-public class DataShieldOptionsImplTest {
+class DataShieldOptionsImplTest {
+
+  private static RPackage BASE =
+          RPackage.builder()
+                  .setName("base")
+                  .setVersion("3.6.1")
+                  .setBuilt("3.6.1")
+                  .setLibPath("/usr/local/lib/R/site-library")
+                  .build();
 
   private final ProfileConfigProps profileConfigProps = new ProfileConfigProps();
   @Mock private PackageService packageService;

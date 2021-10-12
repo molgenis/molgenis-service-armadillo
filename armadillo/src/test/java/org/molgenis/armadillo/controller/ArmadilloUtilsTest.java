@@ -14,7 +14,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPRaw;
 
 @ExtendWith(MockitoExtension.class)
-public class ArmadilloUtilsTest {
+class ArmadilloUtilsTest {
 
   @Mock REXP rexp;
 
