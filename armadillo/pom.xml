@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.molgenis</groupId>
       <artifactId>r</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.swagger.core.v3</groupId>
