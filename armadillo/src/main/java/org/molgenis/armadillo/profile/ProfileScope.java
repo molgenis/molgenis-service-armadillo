@@ -2,6 +2,8 @@ package org.molgenis.armadillo.profile;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.Scope;
 import org.springframework.lang.NonNull;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProfileScope implements Scope {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ProfileScope.class);
   /** Contains all profile scoped beans for all profiles */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
@@ -20,9 +23,12 @@ public class ProfileScope implements Scope {
   }
 
   private Object createProfileBean(ObjectFactory<?> objectFactory, String fullyQualifiedBeanName) {
-    Object bean = objectFactory.getObject();
-    scopedBeans.put(fullyQualifiedBeanName, bean);
-    return bean;
+    return scopedBeans.computeIfAbsent(
+        fullyQualifiedBeanName,
+        (name) -> {
+          LOGGER.info("Creating profile bean with name {}", name);
+          return objectFactory.getObject();
+        });
   }
 
   @Override
