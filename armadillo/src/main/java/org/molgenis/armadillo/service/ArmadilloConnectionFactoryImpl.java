@@ -35,12 +35,14 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
 
   private void setDataShieldOptions(RConnection con) throws RserveException {
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
-      con.eval(format("base::options(%s = %s)", option.getKey(), quoteOptionIfOnlyAlphaNumeric(option.getValue())));
+      con.eval(
+          format(
+              "base::options(%s = %s)",
+              option.getKey(), quoteOptionIfOnlyAlphaNumeric(option.getValue())));
     }
   }
 
-  private String quoteOptionIfOnlyAlphaNumeric(String value)
-  {
+  private String quoteOptionIfOnlyAlphaNumeric(String value) {
     return value.matches("^[a-zA-Z]*$") ? "'" + value + "'" : value;
   }
 }
