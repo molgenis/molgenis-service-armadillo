@@ -17,13 +17,12 @@ public class RMetrics {
         rServeConfig.getEnvironments().stream()
             .map(EnvironmentConfigProps::getName)
             .forEach(
-                environment -> Gauge.builder(
-                        "rserve.processes.current." + environment,
-                        () -> processes.countRServeProcesses(environment))
-                    .description(
-                        "Current number of RServe processes on the R environment [ "
-                            + environment
-                            + " ]")
-                    .register(registry));
+                environment ->
+                    Gauge.builder(
+                            "rserve.processes.current",
+                            () -> processes.countRServeProcesses(environment))
+                        .tag("environment", environment)
+                        .description("Current number of RServe processes on the R environment")
+                        .register(registry));
   }
 }
