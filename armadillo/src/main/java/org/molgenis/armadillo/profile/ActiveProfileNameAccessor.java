@@ -14,17 +14,17 @@ public class ActiveProfileNameAccessor {
   private static final String PROFILE_CONTEXT_KEY = "profile";
 
   public static String getActiveProfileName() {
-    Object mutex = RequestContextHolder.currentRequestAttributes().getSessionMutex();
-    synchronized (mutex) {
-      try {
+    try {
+      Object mutex = RequestContextHolder.currentRequestAttributes().getSessionMutex();
+      synchronized (mutex) {
         return Optional.ofNullable(
                 (String)
                     RequestContextHolder.currentRequestAttributes()
                         .getAttribute(PROFILE_CONTEXT_KEY, SCOPE_SESSION))
             .orElse(DEFAULT);
-      } catch (IllegalStateException e) {
-        return DEFAULT;
       }
+    } catch (IllegalStateException e) {
+      return DEFAULT;
     }
   }
 

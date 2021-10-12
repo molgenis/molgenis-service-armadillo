@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
@@ -197,8 +196,6 @@ class CommandsImplTest {
             eq("core_nonrep"));
   }
 
-
-
   @Test
   void testGetActiveProfileDefault() {
     RequestContextHolder.setRequestAttributes(attrs);
@@ -234,5 +231,4 @@ class CommandsImplTest {
     when(dataShieldConfigProps.getProfiles()).thenReturn(List.of());
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
-
 }
