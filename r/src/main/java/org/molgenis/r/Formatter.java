@@ -37,6 +37,10 @@ public class Formatter {
           new LookupTranslator(R_CTRL_CHARS_ESCAPE),
           UnicodeEscaper.outsideOf(32, 0x7f));
 
+  public static String quoteIfAlphaNumeric(String value) {
+    return value.matches("^[a-zA-Z]*$") ? quote(value) : value;
+  }
+
   public static String quote(final CharSequence input) {
     return format("\"%s\"", ESCAPE_R.translate(input));
   }
