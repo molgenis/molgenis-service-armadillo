@@ -24,13 +24,15 @@ public class CommandsConfig {
         new TaskExecutorAdapter(Executors.newCachedThreadPool());
     taskExecutorAdapter.setTaskDecorator(
         runnable -> {
+          // this runs in the calling thread
           final SecurityContext securityContext = SecurityContextHolder.getContext();
           final String profile = ActiveProfileNameAccessor.getActiveProfileName();
           return () -> {
+            // this runs in the task thread
             final SecurityContext originalSecurityContext = SecurityContextHolder.getContext();
             try {
               SecurityContextHolder.setContext(securityContext);
-              ActiveProfileNameAccessor.setActiveProfileThreadLocal(profile);
+              ActiveProfileNameAccessor.setActiveProfileName(profile);
               runnable.run();
             } finally {
               SecurityContext emptyContext = createEmptyContext();
@@ -39,7 +41,7 @@ public class CommandsConfig {
               } else {
                 setContext(originalSecurityContext);
               }
-              ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
+              ActiveProfileNameAccessor.resetActiveProfileName();
             }
           };
         });

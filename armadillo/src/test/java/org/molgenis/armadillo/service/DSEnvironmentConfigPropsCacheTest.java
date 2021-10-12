@@ -80,29 +80,30 @@ class DSEnvironmentConfigPropsCacheTest {
   @Test
   void testPopulateIllegalMethodName() {
     when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
+    final var aggregateMethods = ImmutableSet.of("method=base::method=base::method");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
         IllegalRMethodStringException.class,
-        () ->
-            populateEnvironment(
-                ImmutableSet.of("method=base::method=base::method"), ImmutableSet.of()));
+        () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   @Test
   void testPopulateDuplicateMethodName() {
     when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim", "dim=other::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
         DuplicateRMethodException.class,
-        () ->
-            populateEnvironment(
-                ImmutableSet.of("dim=base::dim", "dim=other::dim"), ImmutableSet.of()));
+        () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   @Test
   void testPopulateMethodFromNonWhitelistedPackage() {
     when(profileConfigProps.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
-        IllegalRPackageException.class,
-        () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
+        IllegalRPackageException.class, () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   private void populateEnvironment(

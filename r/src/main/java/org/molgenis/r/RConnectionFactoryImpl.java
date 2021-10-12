@@ -45,6 +45,6 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
 
   @Override
   public String toString() {
-    return "RConnectionFactoryImpl{" + "profile=" + environment.getName() + '}';
+    return "RConnectionFactoryImpl{" + "environment=" + environment.getName() + '}';
   }
 }

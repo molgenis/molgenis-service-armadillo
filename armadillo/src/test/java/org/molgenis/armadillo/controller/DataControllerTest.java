@@ -73,7 +73,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @Import(AuditEventPublisher.class)
 class DataControllerTest {
 
-  private static RPackage BASE =
+  private static final RPackage BASE =
       RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")
@@ -81,7 +81,7 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  static RPackage DESC =
+  private static final RPackage DESC =
       RPackage.builder()
           .setName("desc")
           .setVersion("1.2.0")
@@ -97,7 +97,7 @@ class DataControllerTest {
   @MockBean private DSEnvironmentCache environments;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
-  @MockBean private DSEnvironment assignEnvironment;
+  @Mock private DSEnvironment assignEnvironment;
 
   @Mock(lenient = true)
   private Clock clock;

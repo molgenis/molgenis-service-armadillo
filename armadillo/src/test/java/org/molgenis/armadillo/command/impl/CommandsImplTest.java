@@ -198,23 +198,22 @@ class CommandsImplTest {
 
   @Test
   void testGetActiveProfileDefault() {
-    ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
+    ActiveProfileNameAccessor.resetActiveProfileName();
     String profileName = commands.getActiveProfileName();
     assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
   }
 
   @Test
   void testGetActiveProfile() {
-    ActiveProfileNameAccessor.setActiveProfileThreadLocal("exposome");
+    ActiveProfileNameAccessor.setActiveProfileName("exposome");
     String profileName = commands.getActiveProfileName();
     assertEquals("exposome", profileName);
-    ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
+    ActiveProfileNameAccessor.resetActiveProfileName();
   }
 
   @Test
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    when(attrs.getSessionMutex()).thenReturn("mutex");
     ProfileConfigProps profileConfigProps = new ProfileConfigProps();
     profileConfigProps.setName("exposome");
     when(dataShieldConfigProps.getProfiles()).thenReturn(List.of(profileConfigProps));
@@ -222,6 +221,7 @@ class CommandsImplTest {
     verify(dataShieldConfigProps).getProfiles();
     verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
+    RequestContextHolder.resetRequestAttributes();
   }
 
   @Test

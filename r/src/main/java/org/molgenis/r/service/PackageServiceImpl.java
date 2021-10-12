@@ -2,7 +2,7 @@ package org.molgenis.r.service;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

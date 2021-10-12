@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.profile;
 
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,15 +16,9 @@ public class ProfileScope implements Scope {
 
   @Override
   public Object get(String beanName, ObjectFactory<?> objectFactory) {
-    final var fullyQualifiedBeanName = getFullyQualifiedBeanName(beanName);
-    return Optional.ofNullable(scopedBeans.get(fullyQualifiedBeanName))
-        .orElseGet(() -> createProfileBean(objectFactory, fullyQualifiedBeanName));
-  }
-
-  private Object createProfileBean(ObjectFactory<?> objectFactory, String fullyQualifiedBeanName) {
     return scopedBeans.computeIfAbsent(
-        fullyQualifiedBeanName,
-        (name) -> {
+        getFullyQualifiedBeanName(beanName),
+        name -> {
           LOGGER.info("Creating profile bean with name {}", name);
           return objectFactory.getObject();
         });

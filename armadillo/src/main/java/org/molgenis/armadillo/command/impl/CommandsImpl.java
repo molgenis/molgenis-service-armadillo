@@ -5,7 +5,6 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.PARQUET;
 import static org.molgenis.armadillo.minio.ArmadilloStorageService.RDS;
-import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -86,7 +85,7 @@ class CommandsImpl implements Commands {
     }
     armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
+    armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
@@ -107,7 +106,7 @@ class CommandsImpl implements Commands {
   }
 
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
-    final ArmadilloSession session = this.armadilloSession;
+    final ArmadilloSession session = armadilloSession;
     lastCommand = command;
     CompletableFuture<T> result =
         supplyAsync(() -> session.execute(command::evaluate), taskExecutor);

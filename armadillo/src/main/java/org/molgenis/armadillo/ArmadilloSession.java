@@ -8,9 +8,7 @@ import org.molgenis.r.service.ProcessService;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-@Component("ArmadilloSession")
 public class ArmadilloSession {
   private static final Logger logger = LoggerFactory.getLogger(ArmadilloSession.class);
 
