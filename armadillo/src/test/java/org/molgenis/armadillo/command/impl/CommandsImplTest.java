@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -33,42 +33,58 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+@SpringJUnitConfig(classes = { CommandsImpl.class, CommandsImplTest.Config.class })
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock ArmadilloStorageService armadilloStorage;
-  @Mock PackageService packageService;
-  @Mock RExecutorService rExecutorService;
-  @Mock ArmadilloConnectionFactory connectionFactory;
-  @Mock RConnection rConnection;
+  @MockBean ArmadilloStorageService armadilloStorage;
+  @MockBean PackageService packageService;
+  @MockBean RExecutorService rExecutorService;
+  @MockBean ProcessService processService;
+  @MockBean DataShieldConfigProps dataShieldConfigProps;
+  @MockBean ArmadilloConnectionFactory connectionFactory;
+  @MockBean RConnection rConnection;
+
   @Mock InputStream inputStream;
-  @Mock ProcessService processService;
-  @Mock ActiveProfileNameAccessor activeProfileNameAccessor;
-  @Mock DataShieldConfigProps dataShieldConfigProps;
   @Mock REXP rexp;
   @Mock Principal principal;
-  @Mock ArmadilloSession armadilloSession;
-  TaskExecutor taskExecutor = new TaskExecutorBuilder().build();
-  private CommandsImpl commands;
 
-  @BeforeEach
-  void beforeEach() {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(processService.getPid(rConnection)).thenReturn(218);
-    commands =
-        new CommandsImpl(
-            armadilloStorage,
-            packageService,
-            rExecutorService,
-            taskExecutor,
-            armadilloSession,
-            activeProfileNameAccessor,
-            dataShieldConfigProps);
+  @Configuration
+  public static class Config {
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+      return new ThreadPoolTaskExecutor();
+    }
+
+    /**
+     *
+     * Redefine ArmadilloSession as singleton
+     * For test we do not need SessionScoped beans
+     *
+     * We need to mock the RConnection responses as a bean before constructing the ArmadilloSession in order to mock RConnection
+     *
+     */
+    @Bean
+    public ArmadilloSession armadilloSession(ArmadilloConnectionFactory connectionFactory, ProcessService processService, RConnection rConnection) {
+      when(connectionFactory.createConnection()).thenReturn(rConnection);
+      when(processService.getPid(rConnection)).thenReturn(218);
+      return new ArmadilloSession(connectionFactory, processService);
+    }
   }
+
+  @Autowired
+  private CommandsImpl commands;
 
   @Test
   void testSchedule() throws Exception {
@@ -161,7 +177,6 @@ class CommandsImplTest {
   void testGetPackages() throws Exception {
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
-
     assertSame(result, commands.getPackages().get());
   }
 

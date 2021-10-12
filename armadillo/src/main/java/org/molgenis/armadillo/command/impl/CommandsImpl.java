@@ -52,14 +52,12 @@ class CommandsImpl implements Commands {
       RExecutorService rExecutorService,
       TaskExecutor taskExecutor,
       ArmadilloSession armadilloSession,
-      ActiveProfileNameAccessor activeProfileNameAccessor,
       DataShieldConfigProps dataShieldConfigProps) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.taskExecutor = taskExecutor;
     this.armadilloSession = armadilloSession;
-
     this.dataShieldConfigProps = dataShieldConfigProps;
   }
 
@@ -102,6 +100,7 @@ class CommandsImpl implements Commands {
     return result;
   }
 
+  // TODO this can be a TaskExecutionDecorator as well
   private <V> Supplier<V> withCurrentSecurityContext(Supplier<V> supplier) {
     final SecurityContext context = getContext();
     return () -> {
