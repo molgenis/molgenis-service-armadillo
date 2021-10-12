@@ -21,9 +21,9 @@ public class ProfileConfig {
   @org.molgenis.armadillo.config.annotation.ProfileScope
   public ProfileConfigProps profileConfigProps(DataShieldConfigProps dataShieldConfigProps) {
     return dataShieldConfigProps.getProfiles().stream()
-            .filter(it -> it.getName().equals(ActiveProfileNameAccessor.getActiveProfileName()))
-            .findFirst()
-            .orElseThrow();
+        .filter(it -> it.getName().equals(ActiveProfileNameAccessor.getActiveProfileName()))
+        .findFirst()
+        .orElseThrow();
   }
 
   @Bean
@@ -36,11 +36,11 @@ public class ProfileConfig {
   @Bean
   @org.molgenis.armadillo.config.annotation.ProfileScope
   public EnvironmentConfigProps environmentConfigProps(
-          ProfileConfigProps profileConfigProps, RServeConfig rServeConfig) {
+      ProfileConfigProps profileConfigProps, RServeConfig rServeConfig) {
     return rServeConfig.getEnvironments().stream()
-            .filter(it -> it.getName().equals(profileConfigProps.getEnvironment()))
-            .findFirst()
-            .orElseThrow();
+        .filter(it -> it.getName().equals(profileConfigProps.getEnvironment()))
+        .findFirst()
+        .orElseThrow();
   }
 
   @Bean
@@ -55,20 +55,19 @@ public class ProfileConfig {
   @Bean
   public TaskExecutor executorService() {
     TaskExecutorAdapter taskExecutorAdapter =
-            new TaskExecutorAdapter(Executors.newCachedThreadPool());
+        new TaskExecutorAdapter(Executors.newCachedThreadPool());
     taskExecutorAdapter.setTaskDecorator(
-            runnable -> {
-              RequestAttributes context = RequestContextHolder.currentRequestAttributes();
-              return () -> {
-                try {
-                  RequestContextHolder.setRequestAttributes(context);
-                  runnable.run();
-                } finally {
-                  RequestContextHolder.resetRequestAttributes();
-                }
-              };
-            });
+        runnable -> {
+          RequestAttributes context = RequestContextHolder.currentRequestAttributes();
+          return () -> {
+            try {
+              RequestContextHolder.setRequestAttributes(context);
+              runnable.run();
+            } finally {
+              RequestContextHolder.resetRequestAttributes();
+            }
+          };
+        });
     return taskExecutorAdapter;
   }
 }
-

@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,58 +33,46 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-@SpringJUnitConfig(classes = { CommandsImpl.class, CommandsImplTest.Config.class })
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @MockBean ArmadilloStorageService armadilloStorage;
-  @MockBean PackageService packageService;
-  @MockBean RExecutorService rExecutorService;
-  @MockBean ProcessService processService;
-  @MockBean DataShieldConfigProps dataShieldConfigProps;
-  @MockBean ArmadilloConnectionFactory connectionFactory;
-  @MockBean RConnection rConnection;
+  @Mock ArmadilloStorageService armadilloStorage;
+  @Mock PackageService packageService;
+  @Mock RExecutorService rExecutorService;
+  @Mock ProcessService processService;
+  @Mock DataShieldConfigProps dataShieldConfigProps;
+  @Mock ArmadilloConnectionFactory connectionFactory;
+  @Mock RConnection rConnection;
 
   @Mock InputStream inputStream;
   @Mock REXP rexp;
   @Mock Principal principal;
 
-  @Configuration
-  public static class Config {
+  static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+  CommandsImpl commands;
 
-    @Bean
-    public TaskExecutor taskExecutor() {
-      return new ThreadPoolTaskExecutor();
-    }
-
-    /**
-     *
-     * Redefine ArmadilloSession as singleton
-     * For test we do not need SessionScoped beans
-     *
-     * We need to mock the RConnection responses as a bean before constructing the ArmadilloSession in order to mock RConnection
-     *
-     */
-    @Bean
-    public ArmadilloSession armadilloSession(ArmadilloConnectionFactory connectionFactory, ProcessService processService, RConnection rConnection) {
-      when(connectionFactory.createConnection()).thenReturn(rConnection);
-      when(processService.getPid(rConnection)).thenReturn(218);
-      return new ArmadilloSession(connectionFactory, processService);
-    }
+  @BeforeAll
+  static void beforeAll() {
+    taskExecutor.initialize();
   }
 
-  @Autowired
-  private CommandsImpl commands;
+  @BeforeEach
+  void beforeEach() {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+    ArmadilloSession armadilloSession = new ArmadilloSession(connectionFactory, processService);
+    commands =
+        new CommandsImpl(
+            armadilloStorage,
+            packageService,
+            rExecutorService,
+            taskExecutor,
+            armadilloSession,
+            dataShieldConfigProps);
+  }
 
   @Test
   void testSchedule() throws Exception {
