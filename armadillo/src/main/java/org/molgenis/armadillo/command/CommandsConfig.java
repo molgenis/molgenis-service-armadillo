@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.command;
 
+import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -26,12 +27,12 @@ public class CommandsConfig {
         taskExecutorAdapter.setTaskDecorator(
                 runnable -> {
                     final SecurityContext securityContext = SecurityContextHolder.getContext();
-                    final RequestAttributes requestContext = RequestContextHolder.currentRequestAttributes();
+                    final String profile = ActiveProfileNameAccessor.getActiveProfileName();
                     return () -> {
                         final SecurityContext originalSecurityContext = SecurityContextHolder.getContext();
                         try {
                             SecurityContextHolder.setContext(securityContext);
-                            RequestContextHolder.setRequestAttributes(requestContext, true);
+                            ActiveProfileNameAccessor.setActiveProfileThreadLocal(profile);
                             runnable.run();
                         } finally {
                             SecurityContext emptyContext = createEmptyContext();
@@ -40,7 +41,7 @@ public class CommandsConfig {
                             } else {
                                 setContext(originalSecurityContext);
                             }
-                            RequestContextHolder.resetRequestAttributes();
+                            ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
                         }
                     };
                 });
