@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
+import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -38,11 +39,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
       con.eval(
           format(
               "base::options(%s = %s)",
-              option.getKey(), quoteOptionIfOnlyAlphaNumeric(option.getValue())));
+              option.getKey(), Formatter.quoteIfAlphaNumeric(option.getValue())));
     }
-  }
-
-  private String quoteOptionIfOnlyAlphaNumeric(String value) {
-    return value.matches("^[a-zA-Z]*$") ? "'" + value + "'" : value;
   }
 }

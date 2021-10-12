@@ -46,7 +46,7 @@ class ArmadilloConnectionFactoryImplTest {
   void testGetNewConnectionWithStringOption() throws RserveException {
     doReturn(rConnection).when(rConnectionFactory).createConnection();
     when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("b", "permissive"));
-    when(rConnection.eval("base::options(b = 'permissive')")).thenReturn(new REXPNull());
+    when(rConnection.eval("base::options(b = \"permissive\")")).thenReturn(new REXPNull());
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());
   }
