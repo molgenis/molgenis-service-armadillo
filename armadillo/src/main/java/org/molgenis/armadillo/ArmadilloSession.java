@@ -9,7 +9,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.SessionScope;
 
 @Component("ArmadilloSession")
 public class ArmadilloSession {

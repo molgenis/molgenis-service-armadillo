@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.profile;
 
-import java.util.concurrent.Executors;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
@@ -10,10 +9,6 @@ import org.molgenis.r.config.RServeConfig;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.TaskExecutorAdapter;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 @Configuration
 public class ProfileConfig {

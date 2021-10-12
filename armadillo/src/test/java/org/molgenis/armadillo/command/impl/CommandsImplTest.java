@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
+import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
@@ -198,32 +198,30 @@ class CommandsImplTest {
 
   @Test
   void testGetActiveProfileDefault() {
-    RequestContextHolder.setRequestAttributes(attrs);
-    when(attrs.getSessionMutex()).thenReturn("mutex");
+    ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
     String profileName = commands.getActiveProfileName();
     assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
   }
 
   @Test
   void testGetActiveProfile() {
-    RequestContextHolder.setRequestAttributes(attrs);
-    when(attrs.getSessionMutex()).thenReturn("mutex");
-    when(attrs.getAttribute("profile", RequestAttributes.SCOPE_SESSION)).thenReturn("exposome");
+    ActiveProfileNameAccessor.setActiveProfileThreadLocal("exposome");
     String profileName = commands.getActiveProfileName();
     assertEquals("exposome", profileName);
+    ActiveProfileNameAccessor.resetActiveProfileThreadLocal();
   }
 
   @Test
-  void testSelectProfile() {
+  void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
     when(attrs.getSessionMutex()).thenReturn("mutex");
     ProfileConfigProps profileConfigProps = new ProfileConfigProps();
-    profileConfigProps.setName("default");
+    profileConfigProps.setName("exposome");
     when(dataShieldConfigProps.getProfiles()).thenReturn(List.of(profileConfigProps));
-    commands.selectProfile("default");
+    commands.selectProfile("exposome");
     verify(dataShieldConfigProps).getProfiles();
     verify(rConnection).close();
-    assertEquals("default", ActiveProfileNameAccessor.getActiveProfileName());
+    verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
   }
 
   @Test

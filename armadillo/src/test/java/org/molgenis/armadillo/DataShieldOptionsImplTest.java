@@ -24,12 +24,12 @@ import org.rosuda.REngine.Rserve.RserveException;
 class DataShieldOptionsImplTest {
 
   private static RPackage BASE =
-          RPackage.builder()
-                  .setName("base")
-                  .setVersion("3.6.1")
-                  .setBuilt("3.6.1")
-                  .setLibPath("/usr/local/lib/R/site-library")
-                  .build();
+      RPackage.builder()
+          .setName("base")
+          .setVersion("3.6.1")
+          .setBuilt("3.6.1")
+          .setLibPath("/usr/local/lib/R/site-library")
+          .build();
 
   private final ProfileConfigProps profileConfigProps = new ProfileConfigProps();
   @Mock private PackageService packageService;

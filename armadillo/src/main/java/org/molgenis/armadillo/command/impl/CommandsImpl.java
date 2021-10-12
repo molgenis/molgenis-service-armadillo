@@ -12,7 +12,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
@@ -33,7 +32,6 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -49,7 +47,7 @@ class CommandsImpl implements Commands {
   private final ProcessService processService;
   private final DataShieldConfigProps dataShieldConfigProps;
 
-    private ArmadilloSession armadilloSession;
+  private ArmadilloSession armadilloSession;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
   private volatile ArmadilloCommand lastCommand;
@@ -109,9 +107,10 @@ class CommandsImpl implements Commands {
   }
 
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
-      final ArmadilloSession session = this.armadilloSession;
+    final ArmadilloSession session = this.armadilloSession;
     lastCommand = command;
-    CompletableFuture<T> result = supplyAsync(() -> session.execute(command::evaluate), taskExecutor);
+    CompletableFuture<T> result =
+        supplyAsync(() -> session.execute(command::evaluate), taskExecutor);
     command.setExecution(result);
     return result;
   }

@@ -4,7 +4,6 @@ import static org.springframework.web.context.request.RequestAttributes.SCOPE_SE
 import static org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes;
 
 import java.util.Optional;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 
 public class ActiveProfileNameAccessor {
