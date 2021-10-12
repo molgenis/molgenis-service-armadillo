@@ -24,8 +24,10 @@ import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
+import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -33,16 +35,21 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.annotation.SessionScope;
 
 @Service
+@SessionScope
 class CommandsImpl implements Commands {
 
   private final ArmadilloStorageService armadilloStorage;
   private final PackageService packageService;
   private final RExecutorService rExecutorService;
   private final TaskExecutor taskExecutor;
-  private final ArmadilloSession armadilloSession;
+  private final ArmadilloConnectionFactory connectionFactory;
+  private final ProcessService processService;
   private final DataShieldConfigProps dataShieldConfigProps;
+
+    private ArmadilloSession armadilloSession;
 
   @SuppressWarnings("java:S3077") // ArmadilloCommand is thread-safe
   private volatile ArmadilloCommand lastCommand;
@@ -52,13 +59,16 @@ class CommandsImpl implements Commands {
       PackageService packageService,
       RExecutorService rExecutorService,
       TaskExecutor taskExecutor,
-      ArmadilloSession armadilloSession,
+      ArmadilloConnectionFactory connectionFactory,
+      ProcessService processService,
       DataShieldConfigProps dataShieldConfigProps) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.taskExecutor = taskExecutor;
-    this.armadilloSession = armadilloSession;
+    this.connectionFactory = connectionFactory;
+    this.processService = processService;
+    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
     this.dataShieldConfigProps = dataShieldConfigProps;
   }
 
@@ -76,10 +86,9 @@ class CommandsImpl implements Commands {
     if (!exists) {
       throw new UnknownProfileException(profileName);
     }
-    if (this.armadilloSession != null) {
-      armadilloSession.sessionCleanup();
-    }
+    armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
+    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
@@ -100,31 +109,11 @@ class CommandsImpl implements Commands {
   }
 
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
-    final ArmadilloSession session = armadilloSession;
+      final ArmadilloSession session = this.armadilloSession;
     lastCommand = command;
-    Supplier<T> execution = withCurrentSecurityContext(() -> session.execute(command::evaluate));
-    CompletableFuture<T> result = supplyAsync(execution, taskExecutor);
+    CompletableFuture<T> result = supplyAsync(() -> session.execute(command::evaluate), taskExecutor);
     command.setExecution(result);
     return result;
-  }
-
-  // TODO this can be a TaskExecutionDecorator as well
-  private <V> Supplier<V> withCurrentSecurityContext(Supplier<V> supplier) {
-    final SecurityContext context = getContext();
-    return () -> {
-      final SecurityContext originalSecurityContext = getContext();
-      try {
-        setContext(context);
-        return supplier.get();
-      } finally {
-        SecurityContext emptyContext = createEmptyContext();
-        if (emptyContext.equals(originalSecurityContext)) {
-          clearContext();
-        } else {
-          setContext(originalSecurityContext);
-        }
-      }
-    };
   }
 
   @Override

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
 @Component("ArmadilloSession")
-@SessionScope
 public class ArmadilloSession {
   private static final Logger logger = LoggerFactory.getLogger(ArmadilloSession.class);
 

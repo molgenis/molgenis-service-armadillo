@@ -69,14 +69,14 @@ class CommandsImplTest {
   void beforeEach() {
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
-    ArmadilloSession armadilloSession = new ArmadilloSession(connectionFactory, processService);
     commands =
         new CommandsImpl(
             armadilloStorage,
             packageService,
             rExecutorService,
             taskExecutor,
-            armadilloSession,
+            connectionFactory,
+            processService,
             dataShieldConfigProps);
   }
 

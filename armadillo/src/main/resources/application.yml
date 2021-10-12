@@ -78,16 +78,16 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
   level:
-    org.molgenis: DEBUG
+    org.molgenis: WARN
     org:
       springframework:
         boot:
           actuate:
             audit:
               listener:
-                AuditListener: DEBUG
+                AuditListener: WARN
           web:
-            context: DEBUG
+            context: WARN
 
 minio:
   url: http://localhost

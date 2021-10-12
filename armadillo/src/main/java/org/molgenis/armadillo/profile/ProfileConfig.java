@@ -47,27 +47,4 @@ public class ProfileConfig {
   public BeanFactoryPostProcessor beanFactoryPostProcessor(ProfileScope profileScope) {
     return beanFactory -> beanFactory.registerScope("profile", profileScope);
   }
-
-  /**
-   * Added TaskExecutor instead of the ExecutorService to copy the request attributes (in particular
-   * the profile definition) from the request to the thread executing the R-command.
-   */
-  @Bean
-  public TaskExecutor executorService() {
-    TaskExecutorAdapter taskExecutorAdapter =
-        new TaskExecutorAdapter(Executors.newCachedThreadPool());
-    taskExecutorAdapter.setTaskDecorator(
-        runnable -> {
-          RequestAttributes context = RequestContextHolder.currentRequestAttributes();
-          return () -> {
-            try {
-              RequestContextHolder.setRequestAttributes(context);
-              runnable.run();
-            } finally {
-              RequestContextHolder.resetRequestAttributes();
-            }
-          };
-        });
-    return taskExecutorAdapter;
-  }
 }
