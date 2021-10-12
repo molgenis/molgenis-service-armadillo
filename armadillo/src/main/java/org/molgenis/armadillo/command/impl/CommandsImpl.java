@@ -21,6 +21,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.r.model.RPackage;
@@ -28,6 +29,7 @@ import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
@@ -68,6 +70,10 @@ class CommandsImpl implements Commands {
 
   @Override
   public synchronized void selectProfile(String profileName) {
+    var exists = dataShieldConfigProps.getProfiles().stream().map(ProfileConfigProps::getName).anyMatch(profileName::equals);
+    if(!exists) {
+      throw new UnknownProfileException(profileName);
+    }
     if (this.armadilloSession != null) {
       armadilloSession.sessionCleanup();
     }

@@ -201,4 +201,7 @@ class CommandsImplTest {
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
             eq("core_nonrep"));
   }
+
+  // TODO profile tests
+
 }

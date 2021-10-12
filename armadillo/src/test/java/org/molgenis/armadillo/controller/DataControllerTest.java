@@ -41,6 +41,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
@@ -148,6 +149,7 @@ public class DataControllerTest {
   @Test
   @WithMockUser
   void testSelectUnknownProfile() throws Exception {
+    doThrow(new UnknownProfileException("unknown")).when(commands).selectProfile("unknown");
     mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
   }
 
