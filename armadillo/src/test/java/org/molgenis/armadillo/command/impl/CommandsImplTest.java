@@ -21,10 +21,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
+import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -35,6 +39,8 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
@@ -46,6 +52,7 @@ class CommandsImplTest {
   @Mock DataShieldConfigProps dataShieldConfigProps;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
+  @Mock RequestAttributes attrs;
 
   @Mock InputStream inputStream;
   @Mock REXP rexp;
@@ -190,6 +197,42 @@ class CommandsImplTest {
             eq("core_nonrep"));
   }
 
-  // TODO profile tests
+
+
+  @Test
+  void testGetActiveProfileDefault() {
+    RequestContextHolder.setRequestAttributes(attrs);
+    when(attrs.getSessionMutex()).thenReturn("mutex");
+    String profileName = commands.getActiveProfileName();
+    assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
+  }
+
+  @Test
+  void testGetActiveProfile() {
+    RequestContextHolder.setRequestAttributes(attrs);
+    when(attrs.getSessionMutex()).thenReturn("mutex");
+    when(attrs.getAttribute("profile", RequestAttributes.SCOPE_SESSION)).thenReturn("exposome");
+    String profileName = commands.getActiveProfileName();
+    assertEquals("exposome", profileName);
+  }
+
+  @Test
+  void testSelectProfile() {
+    RequestContextHolder.setRequestAttributes(attrs);
+    when(attrs.getSessionMutex()).thenReturn("mutex");
+    ProfileConfigProps profileConfigProps = new ProfileConfigProps();
+    profileConfigProps.setName("default");
+    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of(profileConfigProps));
+    commands.selectProfile("default");
+    verify(dataShieldConfigProps).getProfiles();
+    verify(rConnection).close();
+    assertEquals("default", ActiveProfileNameAccessor.getActiveProfileName());
+  }
+
+  @Test
+  void testSelectUnknownProfile() {
+    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of());
+    assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+  }
 
 }
