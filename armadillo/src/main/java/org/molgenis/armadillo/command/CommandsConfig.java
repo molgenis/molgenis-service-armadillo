@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,6 +20,7 @@ public class CommandsConfig {
    * the profile definition) from the request to the thread executing the R-command.
    */
   @Bean
+  @Primary
   public TaskExecutor executorService() {
     TaskExecutorAdapter taskExecutorAdapter =
         new TaskExecutorAdapter(Executors.newCachedThreadPool());
