@@ -3,8 +3,6 @@ package org.molgenis.armadillo;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.config.ProfileConfigProps;
@@ -29,7 +27,10 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
 
   private final ProfileConfigProps profileConfigProps;
   private final PackageService packageService;
-  private Map<String, String> options;
+
+  @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
+  private volatile ImmutableMap<String, String> options;
+
   private final RConnectionFactory rConnectionFactory;
 
   public DataShieldOptionsImpl(
@@ -44,14 +45,15 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   @PostConstruct
   public void init() {
     RConnection connection = null;
+    var optionsBuilder = ImmutableMap.<String, String>builder();
     try {
       connection = rConnectionFactory.retryCreateConnection();
-      options =
-          packageService.getInstalledPackages(connection).stream()
-              .map(RPackage::options)
-              .filter(Objects::nonNull)
-              .collect(HashMap::new, Map::putAll, Map::putAll);
-      options.putAll(profileConfigProps.getOptions());
+      packageService.getInstalledPackages(connection).stream()
+          .map(RPackage::options)
+          .filter(Objects::nonNull)
+          .forEach(optionsBuilder::putAll);
+      optionsBuilder.putAll(profileConfigProps.getOptions());
+      options = optionsBuilder.build();
     } finally {
       if (connection != null) {
         connection.close();
