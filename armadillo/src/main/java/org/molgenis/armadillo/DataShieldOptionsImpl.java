@@ -3,6 +3,8 @@ package org.molgenis.armadillo;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.config.ProfileConfigProps;
@@ -45,15 +47,15 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   @PostConstruct
   public void init() {
     RConnection connection = null;
-    var optionsBuilder = ImmutableMap.<String, String>builder();
     try {
       connection = rConnectionFactory.retryCreateConnection();
-      packageService.getInstalledPackages(connection).stream()
-          .map(RPackage::options)
-          .filter(Objects::nonNull)
-          .forEach(optionsBuilder::putAll);
-      optionsBuilder.putAll(profileConfigProps.getOptions());
-      options = optionsBuilder.build();
+      Map<String, String> optionsMap =
+          packageService.getInstalledPackages(connection).stream()
+              .map(RPackage::options)
+              .filter(Objects::nonNull)
+              .collect(HashMap::new, Map::putAll, Map::putAll);
+      optionsMap.putAll(profileConfigProps.getOptions());
+      options = ImmutableMap.copyOf(optionsMap);
     } finally {
       if (connection != null) {
         connection.close();
