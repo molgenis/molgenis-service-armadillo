@@ -5,6 +5,7 @@ import static java.lang.String.format;
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.config.annotation.ProfileScope;
+import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -37,7 +38,10 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
 
   private void setDataShieldOptions(RConnection con) throws RserveException {
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
-      con.eval(format("base::options(%s = %s)", option.getKey(), option.getValue()));
+      con.eval(
+          format(
+              "base::options(%s = %s)",
+              option.getKey(), Formatter.quoteIfAlphaNumeric(option.getValue())));
     }
   }
 }
