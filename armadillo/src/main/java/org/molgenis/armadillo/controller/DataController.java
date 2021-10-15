@@ -390,13 +390,18 @@ public class DataController {
 
   @PostMapping(value = "select-profile")
   @ResponseStatus(NO_CONTENT)
-  public void selectProfile(@RequestBody @NotBlank String profileName) {
+  public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
+    auditEventPublisher.audit(principal, SELECT_PROFILE, Map.of(SELECTED_PROFILE, profileName));
     commands.selectProfile(profileName.trim());
   }
 
   @GetMapping(value = "profiles")
-  public @ResponseBody ProfilesResponse listProfiles() {
-    return ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName());
+  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
+    return auditEventPublisher.audit(
+        () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
+        principal,
+        PROFILES,
+        Map.of());
   }
 
   @Operation(summary = "Get available assign methods")
