@@ -36,15 +36,12 @@ public class ProfileScope implements Scope {
 
   @Override
   public Object resolveContextualObject(String s) {
-    if ("profileName".equals(s)) {
-      return getConversationId();
-    }
     return null;
   }
 
   @Override
   public String getConversationId() {
-    return ActiveProfileNameAccessor.getActiveProfileName();
+    return null;
   }
 
   private String getFullyQualifiedBeanName(String beanName) {
