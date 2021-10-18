@@ -35,7 +35,7 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
   }
 
   @Override
-  public String getName() {
+  public String getEnvironmentName() {
     return environment.getName();
   }
 

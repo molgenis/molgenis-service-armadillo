@@ -14,5 +14,5 @@ public interface RConnectionFactory {
 
   RConnection createConnection();
 
-  String getName();
+  String getEnvironmentName();
 }
