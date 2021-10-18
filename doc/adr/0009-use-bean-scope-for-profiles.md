@@ -4,7 +4,7 @@ Date: 2020-10-05
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 We need to be able to switch between profiles.
