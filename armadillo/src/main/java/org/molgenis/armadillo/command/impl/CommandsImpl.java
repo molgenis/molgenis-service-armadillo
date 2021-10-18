@@ -75,7 +75,7 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public synchronized void selectProfile(String profileName) {
+  public void selectProfile(String profileName) {
     var exists =
         dataShieldConfigProps.getProfiles().stream()
             .map(ProfileConfigProps::getName)
