@@ -13,4 +13,6 @@ public interface RConnectionFactory {
   RConnection retryCreateConnection();
 
   RConnection createConnection();
+
+  String getEnvironmentName();
 }

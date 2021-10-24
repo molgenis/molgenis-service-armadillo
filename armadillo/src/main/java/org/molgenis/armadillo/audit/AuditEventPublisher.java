@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String SELECT_PROFILE = "SELECT_PROFILE";
+  public static final String PROFILES = "PROFILES";
   public static final String GET_ASSIGNED_SYMBOLS = "GET_ASSIGNED_SYMBOLS";
   public static final String GET_PACKAGES = "GET_PACKAGES";
   public static final String LOAD_TABLE_FAILURE = "LOAD_TABLE_FAILURE";
@@ -47,6 +49,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String LOAD_TABLE = "LOAD_TABLE";
   public static final String GET_RESOURCES = "GET_RESOURCES";
   public static final String EXPRESSION = "expression";
+  public static final String SELECTED_PROFILE = "selectedProfile";
   public static final String TYPE = "type";
   public static final String FOLDER = "folder";
   public static final String RESOURCE = "resource";

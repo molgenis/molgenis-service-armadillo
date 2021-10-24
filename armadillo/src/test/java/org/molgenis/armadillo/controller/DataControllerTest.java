@@ -1,4 +1,4 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
-import static org.molgenis.armadillo.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
+import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.*;
@@ -41,9 +41,10 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
+import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSEnvironment;
@@ -72,7 +73,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @Import(AuditEventPublisher.class)
 class DataControllerTest {
 
-  static RPackage BASE =
+  private static final RPackage BASE =
       RPackage.builder()
           .setName("base")
           .setVersion("3.6.1")
@@ -80,7 +81,7 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  static RPackage DESC =
+  private static final RPackage DESC =
       RPackage.builder()
           .setName("desc")
           .setVersion("1.2.0")
@@ -93,7 +94,7 @@ class DataControllerTest {
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
   @MockBean private ArmadilloStorageService armadilloStorage;
-  @MockBean private DataShieldEnvironmentHolder environments;
+  @MockBean private DSEnvironmentCache environments;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
@@ -123,6 +124,33 @@ class DataControllerTest {
       System.out.println(expectedEvent);
     }
     assertTrue(equal);
+  }
+
+  @Test
+  @WithMockUser
+  void testListProfiles() throws Exception {
+    when(commands.listProfiles()).thenReturn(List.of("a", "b", "c"));
+    when(commands.getActiveProfileName()).thenReturn("b");
+
+    mockMvc
+        .perform(get("/profiles"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
+  }
+
+  @Test
+  @WithMockUser
+  void testSelectProfile() throws Exception {
+    mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
+    verify(commands).selectProfile("b");
+  }
+
+  @Test
+  @WithMockUser
+  void testSelectUnknownProfile() throws Exception {
+    doThrow(new UnknownProfileException("unknown")).when(commands).selectProfile("unknown");
+    mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
   }
 
   @Test

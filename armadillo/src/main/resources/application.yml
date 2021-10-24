@@ -1,6 +1,32 @@
+rserve:
+  environments:
+    - name: default
+      host: localhost
+      port: 6311
+    - name: exposome
+      host: localhost
+      port: 6312
+#      options:
+         # this can only be 9 digits
+#        seed: 123456789
+#        foo: bar
+
 datashield:
-  whitelist:
-    - dsBase
+  profiles:
+    - name: default
+      environment: default
+      whitelist:
+        - dsBase
+    - name: exposome
+      environment: exposome
+      whitelist:
+        - dsBase
+        - dsExposome
+        - resourcer
+#      options:
+         # this can only be 9 digits
+#        seed: 123456789
+#        foo: bar
 
 springdoc:
   swagger-ui:

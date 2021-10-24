@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
+import org.molgenis.armadillo.config.annotation.ProfileScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
@@ -12,6 +13,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
 @Component
+@ProfileScope
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final DataShieldOptions dataShieldOptions;

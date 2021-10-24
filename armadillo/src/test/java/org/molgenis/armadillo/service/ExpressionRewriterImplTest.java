@@ -22,13 +22,13 @@ class ExpressionRewriterImplTest {
 
   private ExpressionRewriterImpl expressionRewriter;
 
-  @Mock private DataShieldEnvironmentHolder environmentHolder;
+  @Mock private DSEnvironmentCache environments;
   @Mock private DSEnvironment mockEnvironment;
 
   @BeforeEach
   void beforeEach() {
-    when(environmentHolder.getEnvironment(any(DSMethodType.class))).thenReturn(mockEnvironment);
-    expressionRewriter = new ExpressionRewriterImpl(environmentHolder);
+    when(environments.getEnvironment(any(DSMethodType.class))).thenReturn(mockEnvironment);
+    expressionRewriter = new ExpressionRewriterImpl(environments);
   }
 
   @Test

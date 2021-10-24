@@ -1,13 +1,10 @@
-package org.molgenis.r;
+package org.molgenis.r.config;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "rserve")
-@Component
-public class RConfigProperties {
+public class EnvironmentConfigProps {
+  @NotEmpty private String name;
   @NotEmpty private String host = "localhost";
   @Positive private int port = 6311;
 
@@ -25,5 +22,13 @@ public class RConfigProperties {
 
   public void setPort(int port) {
     this.port = port;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 }

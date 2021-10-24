@@ -1,8 +1,8 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
-import static org.molgenis.armadillo.ArmadilloUtils.createRawResponse;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.createRawResponse;
 
 import java.nio.charset.Charset;
 import org.junit.jupiter.api.Test;

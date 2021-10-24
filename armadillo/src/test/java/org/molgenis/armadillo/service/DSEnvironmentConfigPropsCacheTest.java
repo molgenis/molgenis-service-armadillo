@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.DataShieldProperties;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.exceptions.IllegalRPackageException;
@@ -31,27 +31,26 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
-class DataShieldEnvironmentHolderImplTest {
+class DSEnvironmentConfigPropsCacheTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock DataShieldProperties dataShieldProperties;
-  private DataShieldEnvironmentHolderImpl environmentHolder;
+  @Mock ProfileConfigProps profileConfigProps;
+  private DSEnvironmentCache dsEnvironmentCache;
 
   @BeforeEach
   void beforeEach() {
-    environmentHolder =
-        new DataShieldEnvironmentHolderImpl(
-            packageService, rConnectionFactory, dataShieldProperties);
+    dsEnvironmentCache =
+        new DSEnvironmentCache(packageService, rConnectionFactory, profileConfigProps);
   }
 
   @Test
   void testGetAggregateEnvironment() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
-    DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.AGGREGATE);
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.AGGREGATE);
 
     assertEquals(
         asList("scatterPlotDs", "is.character"),
@@ -60,10 +59,10 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testGetAssignEnvironment() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
-    DSEnvironment environment = environmentHolder.getEnvironment(DSMethodType.ASSIGN);
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
 
     var expected =
         asList(
@@ -80,30 +79,31 @@ class DataShieldEnvironmentHolderImplTest {
 
   @Test
   void testPopulateIllegalMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
+    final var aggregateMethods = ImmutableSet.of("method=base::method=base::method");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
         IllegalRMethodStringException.class,
-        () ->
-            populateEnvironment(
-                ImmutableSet.of("method=base::method=base::method"), ImmutableSet.of()));
+        () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   @Test
   void testPopulateDuplicateMethodName() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("dsBase"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim", "dim=other::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
         DuplicateRMethodException.class,
-        () ->
-            populateEnvironment(
-                ImmutableSet.of("dim=base::dim", "dim=other::dim"), ImmutableSet.of()));
+        () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   @Test
   void testPopulateMethodFromNonWhitelistedPackage() {
-    when(dataShieldProperties.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    when(profileConfigProps.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
-        IllegalRPackageException.class,
-        () -> populateEnvironment(ImmutableSet.of("dim=base::dim"), ImmutableSet.of()));
+        IllegalRPackageException.class, () -> populateEnvironment(aggregateMethods, assignMethods));
   }
 
   private void populateEnvironment(
@@ -124,7 +124,7 @@ class DataShieldEnvironmentHolderImplTest {
 
     when(packageService.getInstalledPackages(rConnection)).thenReturn(singletonList(pack));
 
-    environmentHolder.populateEnvironments();
+    dsEnvironmentCache.populateEnvironments();
     verify(rConnection).close();
   }
 }

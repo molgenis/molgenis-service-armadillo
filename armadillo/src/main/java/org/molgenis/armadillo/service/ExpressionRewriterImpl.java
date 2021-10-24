@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.service;
 
+import org.molgenis.armadillo.config.annotation.ProfileScope;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethodType;
@@ -12,25 +13,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+@ProfileScope
 @Component
 public class ExpressionRewriterImpl implements ExpressionRewriter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionRewriterImpl.class);
 
-  private final DataShieldEnvironmentHolder environmentHolder;
+  private final DSEnvironmentCache environments;
 
-  public ExpressionRewriterImpl(DataShieldEnvironmentHolder environmentHolder) {
-    this.environmentHolder = environmentHolder;
+  public ExpressionRewriterImpl(DSEnvironmentCache environments) {
+    this.environments = environments;
   }
 
   @Override
   public String rewriteAssign(String expression) {
-    return rewrite(expression, environmentHolder.getEnvironment(DSMethodType.ASSIGN));
+    return rewrite(expression, environments.getEnvironment(DSMethodType.ASSIGN));
   }
 
   @Override
   public String rewriteAggregate(String expression) {
-    return rewrite(expression, environmentHolder.getEnvironment(DSMethodType.AGGREGATE));
+    return rewrite(expression, environments.getEnvironment(DSMethodType.AGGREGATE));
   }
 
   private String rewrite(String expression, DSEnvironment environment) {

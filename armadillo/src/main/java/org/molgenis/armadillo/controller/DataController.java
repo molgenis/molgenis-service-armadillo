@@ -1,4 +1,4 @@
-package org.molgenis.armadillo;
+package org.molgenis.armadillo.controller;
 
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
@@ -8,14 +8,12 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.ArmadilloUtils.getLastCommandLocation;
-import static org.molgenis.armadillo.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -41,6 +39,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
@@ -48,7 +47,7 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
-import org.molgenis.armadillo.service.DataShieldEnvironmentHolder;
+import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
@@ -64,6 +63,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -82,31 +82,31 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
-  public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*+(,\\p{Alnum}[\\w.]*+)*";
+  public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*+(,\\p{Alnum}[\\w.]*+)*+";
   public static final String WORKSPACE_ID_FORMAT_REGEX = "[\\w-:]+";
   public static final String TABLE_RESOURCE_REGEX =
       "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
   public static final String PATH_FORMAT = "%s/%s";
 
-  private final ExpressionRewriter expressionRewriter;
   private final Commands commands;
   private final ArmadilloStorageService storage;
-  private final DataShieldEnvironmentHolder environments;
   private final AuditEventPublisher auditEventPublisher;
+  private final ExpressionRewriter expressionRewriter;
+  private final DSEnvironmentCache dsEnvironmentCache;
   private final java.util.regex.Pattern tableResourcePattern =
       java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
 
   public DataController(
-      ExpressionRewriter expressionRewriter,
       Commands commands,
       ArmadilloStorageService storage,
-      DataShieldEnvironmentHolder environments,
-      AuditEventPublisher auditEventPublisher) {
-    this.expressionRewriter = expressionRewriter;
+      AuditEventPublisher auditEventPublisher,
+      ExpressionRewriter expressionRewriter,
+      DSEnvironmentCache dsEnvironmentCache) {
     this.commands = commands;
     this.storage = storage;
-    this.environments = environments;
     this.auditEventPublisher = auditEventPublisher;
+    this.expressionRewriter = expressionRewriter;
+    this.dsEnvironmentCache = dsEnvironmentCache;
   }
 
   @Operation(summary = "Get R packages", description = "Get all installed R packages.")
@@ -388,11 +388,27 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
+  @PostMapping(value = "select-profile")
+  @ResponseStatus(NO_CONTENT)
+  public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
+    auditEventPublisher.audit(principal, SELECT_PROFILE, Map.of(SELECTED_PROFILE, profileName));
+    commands.selectProfile(profileName.trim());
+  }
+
+  @GetMapping(value = "profiles")
+  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
+    return auditEventPublisher.audit(
+        () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
+        principal,
+        PROFILES,
+        Map.of());
+  }
+
   @Operation(summary = "Get available assign methods")
   @GetMapping(value = "/methods/assign", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAssignMethods(Principal principal) {
     return auditEventPublisher.audit(
-        () -> environments.getEnvironment(ASSIGN).getMethods(),
+        () -> dsEnvironmentCache.getEnvironment(ASSIGN).getMethods(),
         principal,
         GET_ASSIGN_METHODS,
         Map.of());
@@ -402,7 +418,7 @@ public class DataController {
   @GetMapping(value = "/methods/aggregate", produces = APPLICATION_JSON_VALUE)
   public List<DSMethod> getAggregateMethods(Principal principal) {
     return auditEventPublisher.audit(
-        () -> environments.getEnvironment(AGGREGATE).getMethods(),
+        () -> dsEnvironmentCache.getEnvironment(AGGREGATE).getMethods(),
         principal,
         GET_AGGREGATE_METHODS,
         Map.of());

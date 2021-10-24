@@ -8,7 +8,6 @@ import com.google.auto.value.AutoValue;
 import java.time.Instant;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.molgenis.r.model.RPackage.Builder;
 
 @AutoValue
 @JsonSerialize(as = RProcess.class)

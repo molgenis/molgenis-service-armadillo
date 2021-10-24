@@ -6,7 +6,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
+import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -15,15 +16,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.DataShieldConfigProps;
+import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -33,6 +37,9 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
@@ -40,14 +47,23 @@ class CommandsImplTest {
   @Mock ArmadilloStorageService armadilloStorage;
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
+  @Mock ProcessService processService;
+  @Mock DataShieldConfigProps dataShieldConfigProps;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
+  @Mock RequestAttributes attrs;
+
   @Mock InputStream inputStream;
-  @Mock ProcessService processService;
   @Mock REXP rexp;
   @Mock Principal principal;
-  ExecutorService executorService = Executors.newSingleThreadExecutor();
-  private CommandsImpl commands;
+
+  static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+  CommandsImpl commands;
+
+  @BeforeAll
+  static void beforeAll() {
+    taskExecutor.initialize();
+  }
 
   @BeforeEach
   void beforeEach() {
@@ -58,9 +74,10 @@ class CommandsImplTest {
             armadilloStorage,
             packageService,
             rExecutorService,
-            executorService,
+            taskExecutor,
             connectionFactory,
-            processService);
+            processService,
+            dataShieldConfigProps);
   }
 
   @Test
@@ -154,7 +171,6 @@ class CommandsImplTest {
   void testGetPackages() throws Exception {
     List<RPackage> result = Collections.emptyList();
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
-
     assertSame(result, commands.getPackages().get());
   }
 
@@ -178,5 +194,39 @@ class CommandsImplTest {
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
             eq("core_nonrep"));
+  }
+
+  @Test
+  void testGetActiveProfileDefault() {
+    ActiveProfileNameAccessor.resetActiveProfileName();
+    String profileName = commands.getActiveProfileName();
+    assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
+  }
+
+  @Test
+  void testGetActiveProfile() {
+    ActiveProfileNameAccessor.setActiveProfileName("exposome");
+    String profileName = commands.getActiveProfileName();
+    assertEquals("exposome", profileName);
+    ActiveProfileNameAccessor.resetActiveProfileName();
+  }
+
+  @Test
+  void testSelectProfileWritesToSession() {
+    RequestContextHolder.setRequestAttributes(attrs);
+    ProfileConfigProps profileConfigProps = new ProfileConfigProps();
+    profileConfigProps.setName("exposome");
+    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of(profileConfigProps));
+    commands.selectProfile("exposome");
+    verify(dataShieldConfigProps).getProfiles();
+    verify(rConnection).close();
+    verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
+    RequestContextHolder.resetRequestAttributes();
+  }
+
+  @Test
+  void testSelectUnknownProfile() {
+    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of());
+    assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
 }
