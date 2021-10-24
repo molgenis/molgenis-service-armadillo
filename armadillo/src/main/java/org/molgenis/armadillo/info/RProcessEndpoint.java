@@ -1,9 +1,10 @@
 package org.molgenis.armadillo.info;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RConnectionFactoryImpl;
+import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.config.RServeConfig;
 import org.molgenis.r.model.REnvironment;
 import org.molgenis.r.service.ProcessService;
@@ -27,48 +28,44 @@ public class RProcessEndpoint {
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
     return rServeConfig.getEnvironments().stream()
+        .map(EnvironmentConfigProps::getName)
         .map(
-            environment -> {
-              var name = environment.getName();
-              var rConnectionFactory = new RConnectionFactoryImpl(environment);
-              final RConnection connection = rConnectionFactory.createConnection();
-              try {
-                var processes = processService.getRserveProcesses(connection);
-                return REnvironment.create(name, processes);
-              } finally {
-                connection.close();
-              }
-            })
+            environmentName ->
+                REnvironment.create(
+                    environmentName,
+                    doWithConnection(environmentName, processService::getRserveProcesses)))
         .collect(Collectors.toList());
   }
 
-  @DeleteOperation
-  public void deleteRServeProcess(String environmentName, int pid) {
-    var rConnectionFactory = getConnectionFactory(environmentName);
-    final RConnection connection = rConnectionFactory.createConnection();
-    try {
-      processService.terminateProcess(connection, pid);
-    } finally {
-      connection.close();
-    }
-  }
-
-  private RConnectionFactory getConnectionFactory(String environmentName) {
+  <T> T doWithConnection(String environmentName, Function<RConnection, T> action) {
     var environment =
         rServeConfig.getEnvironments().stream()
             .filter(it -> environmentName.equals(it.getName()))
             .findFirst()
             .orElseThrow();
-    return new RConnectionFactoryImpl(environment);
-  }
-
-  public int countRServeProcesses(String environmentName) {
-    var rConnectionFactory = getConnectionFactory(environmentName);
-    final RConnection connection = rConnectionFactory.createConnection();
+    RConnection connection = connect(environment);
     try {
-      return processService.countRserveProcesses(connection);
+      return action.apply(connection);
     } finally {
       connection.close();
     }
+  }
+
+  RConnection connect(EnvironmentConfigProps environment) {
+    return new RConnectionFactoryImpl(environment).createConnection();
+  }
+
+  @DeleteOperation
+  public void deleteRServeProcess(String environmentName, int pid) {
+    doWithConnection(
+        environmentName,
+        connection -> {
+          processService.terminateProcess(connection, pid);
+          return null;
+        });
+  }
+
+  public int countRServeProcesses(String environmentName) {
+    return doWithConnection(environmentName, processService::countRserveProcesses);
   }
 }
