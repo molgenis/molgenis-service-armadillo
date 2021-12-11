@@ -64,6 +64,7 @@
 
         <auto-value.version>1.7</auto-value.version>
         <auto-service-annotations.version>1.0-rc6</auto-service-annotations.version>
+        <log4j2.version>2.15.0</log4j2.version>
 
         <RServe.version>1.8.1</RServe.version>
         <REngine.version>2.1.0</REngine.version>
