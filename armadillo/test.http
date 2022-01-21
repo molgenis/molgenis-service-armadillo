@@ -31,6 +31,14 @@ POST http://localhost:8080/load-table?symbol=D&table=local/1_0_core_1_0/nonrep
 ###
 POST http://localhost:8080/load-table?symbol=D&table=local/1_0_core_1_0/nonrep&variables=agebirth_m_d
 
+### get R-options
+POST http://localhost:8080/debug
+Accept: application/json
+Content-Type: text/plain
+
+options()
+
+
 ###
 POST http://localhost:8080/debug
 Accept: application/json
