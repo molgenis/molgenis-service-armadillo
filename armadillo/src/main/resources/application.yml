@@ -27,12 +27,21 @@ datashield:
       options:
         datashield:
           # the seed can only be 9 digits
-          seed: 342325352
+          seed: 712368126
 #          foo: bar
 
 springdoc:
   swagger-ui:
     enabled: false
+
+spring:
+  application:
+    name: armadillo
+  security:
+    user:
+      name: admin
+      roles:
+        - SU
 
 management:
   endpoints:
@@ -56,9 +65,7 @@ logging:
 spring:
   security:
     user:
-      name: admin
       password: admin
-      roles: SU
     oauth2:
       resourceserver:
         jwt:
