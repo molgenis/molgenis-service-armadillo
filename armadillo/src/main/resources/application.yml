@@ -6,10 +6,6 @@ rserve:
     - name: exposome
       host: localhost
       port: 6312
-#      options:
-         # this can only be 9 digits
-#        seed: 123456789
-#        foo: bar
 
 datashield:
   profiles:
@@ -17,16 +13,22 @@ datashield:
       environment: default
       whitelist:
         - dsBase
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 342325352
+#          foo: bar
     - name: exposome
       environment: exposome
       whitelist:
         - dsBase
         - dsExposome
         - resourcer
-#      options:
-         # this can only be 9 digits
-#        seed: 123456789
-#        foo: bar
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 712368126
+#          foo: bar
 
 springdoc:
   swagger-ui:
