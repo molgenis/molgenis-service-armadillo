@@ -10,35 +10,37 @@ install.packages(c("resourcer", "MolgenisArmadillo"), dependencies=TRUE)
 # make a EWAS file resource
 resGSE1 <- resourcer::newResource(
   name = "GSE66351_1",
-  url = "https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_1.rda",
+  url = "https://github.com/isglobal-brge/brge_data_large/blob/master/data/gse66351_1.rda?raw=true",
   format = "ExpressionSet"
 )
 resGSE2 <- resourcer::newResource(
   name = "GSE66351_2",
-  url = "https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_2.rda",
+  url = "https://github.com/isglobal-brge/brge_data_large/blob/master/data/gse66351_2.rda?raw=true",
   format = "ExpressionSet"
 )
 
-# coerce the csv file in the opal server to a data.frame
-resourceGSE1 <- as.data.frame(resGSE1)
-resourceGSE2 <- as.data.frame(resGSE2)
-
-MolgenisArmadillo::armadillo.login(armadillo = "localhost:8080", minio = "localhost:9000")
+MolgenisArmadillo::armadillo.login(armadillo = "http://localhost:8080", minio = "http://localhost:9000")
 MolgenisArmadillo::armadillo.create_project("omics")
 MolgenisArmadillo::armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
 MolgenisArmadillo::armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE2, name = "GSE66351_2")
 
-install.packages(c("DSMolgenisArmadillo", "DSI"))
+install.packages("DSMolgenisArmadillo")
+install.packages("DSI")
+
+library("DSMolgenisArmadillo")
+library("DSI")
 
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "study1", url = "http://localhost:8080",
                user = "admin", password = "admin",
-               resource = "omics/ewas/GSE66351_1")
+               resource = "omics/ewas/GSE66351_1",
+               driver="ArmadilloDriver",
+               profile="omics")
 builder$append(server = "study2", url = "http://localhost:8080",
                user = "admin", password = "admin",
-               resource = "omics/ewas/GSE66351_2")
-
-
+               resource = "omics/ewas/GSE66351_2",
+               driver="ArmadilloDriver",
+               profile="omics")
 logindata <- builder$build()
 
 conns <- DSI::datashield.login(logins = logindata, assign = TRUE,
