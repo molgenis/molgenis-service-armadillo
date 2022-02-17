@@ -34,11 +34,6 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
     }
   }
 
-  @Override
-  public String getEnvironmentName() {
-    return environment.getName();
-  }
-
   RConnection newConnection(String host, int port) throws RserveException {
     return new RConnection(host, port);
   }
