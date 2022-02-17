@@ -1,8 +1,8 @@
 rserve:
   environments:
-#    - name: default
-#      host: localhost
-#      port: 6311
+    - name: default
+      host: localhost
+      port: 6311
 #    - name: exposome
 #      host: localhost
 #      port: 6312
@@ -12,26 +12,26 @@ rserve:
 
 datashield:
   profiles:
-#    - name: default
-#      environment: default
-#      whitelist:
-#        - dsBase
-#      options:
-#        datashield:
-#          # the seed can only be 9 digits
-#          seed: 342325352
-##          foo: bar
+    - name: default
+      environment: default
+      whitelist:
+        - dsBase
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 342325352
+#          foo: bar
 #    - name: exposome
 #      environment: exposome
 #      whitelist:
 #        - dsBase
 #        - dsExposome
     - name: omics
-        environment: omics
-        whitelist:
-          - dsBase
-          - dsOmics
-          - resourcer
+      environment: omics
+      whitelist:
+        - dsBase
+        - dsOmics
+        - resourcer
       options:
         datashield:
           # the seed can only be 9 digits

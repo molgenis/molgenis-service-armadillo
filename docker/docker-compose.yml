@@ -30,14 +30,14 @@ services:
     volumes:
       - ${PWD}/logs/:/app/logs
 
-#  rserver:
-#    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-#    image: datashield/armadillo-rserver:2.0.0
-#    environment:
-#      DEBUG: "FALSE"
-#    ports:
-#      # host port: container port
-#      - 6311:6311
+  rserver:
+    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
+    image: datashield/armadillo-rserver:2.0.0
+    environment:
+      DEBUG: "FALSE"
+    ports:
+      # host port: container port
+      - 6311:6311
 #
 #  rserver-exposome:
 #    image: datashield/armadillo-rserver-exposome:1.0.1
