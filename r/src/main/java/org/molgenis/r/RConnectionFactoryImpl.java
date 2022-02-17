@@ -22,16 +22,20 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
 
   @Override
   public RConnection tryCreateConnection() {
-    logger.debug(
-        format(
-            "Trying to connect to instance: [ %s ] on [ %s ]",
-            environment.getHost(), environment.getPort()));
-    try {
-      RConnection rConnection = newConnection(environment.getHost(), environment.getPort());
+    if (logger.isDebugEnabled()) {
       logger.debug(
           format(
-              "Connected to instance: [ %s ] on [ %s ]",
+              "Trying to connect to instance: [ %s ] on [ %s ]",
               environment.getHost(), environment.getPort()));
+    }
+    try {
+      RConnection rConnection = newConnection(environment.getHost(), environment.getPort());
+      if (logger.isDebugEnabled()) {
+        logger.debug(
+            format(
+                "Connected to instance: [ %s ] on [ %s ]",
+                environment.getHost(), environment.getPort()));
+      }
       return rConnection;
     } catch (RserveException ex) {
       throw new ConnectionCreationFailedException(ex);
