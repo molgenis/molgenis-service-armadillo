@@ -27,6 +27,7 @@ public class RProcessEndpoint {
 
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
+    // TODO: make this available in the /actuator/ endpoint
     return rServeConfig.getEnvironments().stream()
         .map(EnvironmentConfigProps::getName)
         .map(
@@ -57,6 +58,7 @@ public class RProcessEndpoint {
 
   @DeleteOperation
   public void deleteRServeProcess(String environmentName, int pid) {
+    // TODO: make this available in the /actuator/ endpoint
     doWithConnection(
         environmentName,
         connection -> {
