@@ -65,7 +65,7 @@ public class DSEnvironmentCache {
   private List<RPackage> getPackages() {
     RConnection connection = null;
     try {
-      connection = rConnectionFactory.retryCreateConnection();
+      connection = rConnectionFactory.tryCreateConnection();
       return packageService.getInstalledPackages(connection);
     } finally {
       if (connection != null) {

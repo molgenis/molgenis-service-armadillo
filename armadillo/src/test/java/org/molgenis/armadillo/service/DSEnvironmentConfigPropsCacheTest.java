@@ -109,7 +109,7 @@ class DSEnvironmentConfigPropsCacheTest {
   private void populateEnvironment(
       ImmutableSet<String> aggregateMethods, ImmutableSet<String> assignMethods) {
     RConnection rConnection = mock(RConnection.class);
-    when(rConnectionFactory.retryCreateConnection()).thenReturn(rConnection);
+    when(rConnectionFactory.tryCreateConnection()).thenReturn(rConnection);
 
     RPackage pack =
         RPackage.builder()

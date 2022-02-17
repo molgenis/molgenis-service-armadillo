@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
@@ -32,18 +31,18 @@ class RConnectionFactoryImplTest {
   }
 
   @Test
-  void testGetNewConnection() throws RserveException, REXPMismatchException {
+  void testGetNewConnection() throws RserveException {
     doReturn(rConnection).when(rConnectionFactory).newConnection("host", 123);
-    assertEquals(rConnection, rConnectionFactory.createConnection());
+    assertEquals(rConnection, rConnectionFactory.tryCreateConnection());
   }
 
   @Test
-  void testGetNewConnectionCannotConnect() throws RserveException, REXPMismatchException {
+  void testGetNewConnectionCannotConnect() throws RserveException {
     doThrow(new RserveException(rConnection, "Cannot connect"))
         .when(rConnectionFactory)
         .newConnection("host", 123);
 
     assertThrows(
-        ConnectionCreationFailedException.class, () -> rConnectionFactory.retryCreateConnection());
+        ConnectionCreationFailedException.class, () -> rConnectionFactory.tryCreateConnection());
   }
 }

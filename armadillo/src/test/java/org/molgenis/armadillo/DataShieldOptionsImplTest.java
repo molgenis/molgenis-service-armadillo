@@ -16,9 +16,7 @@ import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {
@@ -44,12 +42,12 @@ class DataShieldOptionsImplTest {
   }
 
   @Test
-  void init() throws REXPMismatchException, RserveException {
+  void init() {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
     profileConfigProps.setOptions(configOptions);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
-    doReturn(rConnection).when(rConnectionFactory).retryCreateConnection();
+    doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
 
     RPackage datashieldPackage =
         RPackage.builder()

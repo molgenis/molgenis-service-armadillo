@@ -10,9 +10,5 @@ public interface RConnectionFactory {
       value = {ConnectionCreationFailedException.class},
       maxAttempts = 10,
       backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000))
-  RConnection retryCreateConnection();
-
-  RConnection createConnection();
-
-  String getEnvironmentName();
+  RConnection tryCreateConnection();
 }
