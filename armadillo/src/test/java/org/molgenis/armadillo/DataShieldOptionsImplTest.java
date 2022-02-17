@@ -16,9 +16,7 @@ import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {
