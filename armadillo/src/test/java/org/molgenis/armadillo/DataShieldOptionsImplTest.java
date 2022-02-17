@@ -44,12 +44,12 @@ class DataShieldOptionsImplTest {
   }
 
   @Test
-  void init() throws REXPMismatchException, RserveException {
+  void init() {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
     profileConfigProps.setOptions(configOptions);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
-    doReturn(rConnection).when(rConnectionFactory).retryCreateConnection();
+    doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
 
     RPackage datashieldPackage =
         RPackage.builder()

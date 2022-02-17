@@ -48,7 +48,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   public void init() {
     RConnection connection = null;
     try {
-      connection = rConnectionFactory.retryCreateConnection();
+      connection = rConnectionFactory.tryCreateConnection();
       Map<String, String> optionsMap =
           packageService.getInstalledPackages(connection).stream()
               .map(RPackage::options)

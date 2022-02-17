@@ -28,7 +28,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   @Override
   public RConnection createConnection() {
     try {
-      RConnection connection = rConnectionFactory.createConnection();
+      RConnection connection = rConnectionFactory.tryCreateConnection();
       setDataShieldOptions(connection);
       return connection;
     } catch (RserveException cause) {

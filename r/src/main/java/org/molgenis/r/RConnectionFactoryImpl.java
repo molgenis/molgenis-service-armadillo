@@ -1,5 +1,6 @@
 package org.molgenis.r;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -20,13 +21,9 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
   }
 
   @Override
-  public RConnection retryCreateConnection() {
-    logger.debug("retryCreateConnection");
-    return createConnection();
-  }
-
-  @Override
-  public RConnection createConnection() {
+  public RConnection tryCreateConnection() {
+    logger.debug(
+        format("Trying to connect to instance %s on %s", environment.getHost(), environment.getPort()));
     try {
       return newConnection(environment.getHost(), environment.getPort());
     } catch (RserveException ex) {

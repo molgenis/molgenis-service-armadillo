@@ -52,7 +52,7 @@ public class RProcessEndpoint {
   }
 
   RConnection connect(EnvironmentConfigProps environment) {
-    return new RConnectionFactoryImpl(environment).createConnection();
+    return new RConnectionFactoryImpl(environment).tryCreateConnection();
   }
 
   @DeleteOperation

@@ -35,7 +35,7 @@ class ArmadilloConnectionFactoryImplTest {
 
   @Test
   void testGetNewConnection() throws RserveException {
-    doReturn(rConnection).when(rConnectionFactory).createConnection();
+    doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
     when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("a", "80.0"));
     when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new REXPNull());
 
@@ -44,7 +44,7 @@ class ArmadilloConnectionFactoryImplTest {
 
   @Test
   void testGetNewConnectionWithStringOption() throws RserveException {
-    doReturn(rConnection).when(rConnectionFactory).createConnection();
+    doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
     when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("b", "permissive"));
     when(rConnection.eval("base::options(b = \"permissive\")")).thenReturn(new REXPNull());
 
@@ -55,9 +55,9 @@ class ArmadilloConnectionFactoryImplTest {
   void testGetNewConnectionCannotConnect() {
     doThrow(new ConnectionCreationFailedException("Mislukt"))
         .when(rConnectionFactory)
-        .createConnection();
+        .tryCreateConnection();
 
     assertThrows(
-        ConnectionCreationFailedException.class, () -> rConnectionFactory.createConnection());
+        ConnectionCreationFailedException.class, () -> rConnectionFactory.tryCreateConnection());
   }
 }
