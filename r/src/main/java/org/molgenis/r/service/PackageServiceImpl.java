@@ -16,11 +16,15 @@ import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /** Retrieves available {@link RPackage}s */
 @Component
 public class PackageServiceImpl implements PackageService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PackageServiceImpl.class);
 
   private final REXPParser rexpParser;
 
@@ -64,6 +68,18 @@ public class PackageServiceImpl implements PackageService {
       List<Map<String, Object>> rows = rexpParser.parseTibble(eval.asList());
       return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
     } catch (RserveException | REXPMismatchException e) {
+      throw new RExecutionException(e);
+    }
+  }
+
+  @Override
+  public void loadPackages(RConnection connection, Set<String> pkgs) {
+    try {
+      String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
+      LOGGER.debug("Loading packages [ {} ]", packages);
+      connection.eval("library(" + packages + ")");
+      LOGGER.debug("Successfully loaded packages [ {} ]", packages);
+    } catch (RserveException e) {
       throw new RExecutionException(e);
     }
   }

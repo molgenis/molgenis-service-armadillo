@@ -31,7 +31,7 @@ public class DSEnvironmentCache {
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private final ProfileConfigProps dataShieldProperties;
+  private final ProfileConfigProps profileConfigProps;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -42,7 +42,7 @@ public class DSEnvironmentCache {
       ProfileConfigProps dataShieldProperties) {
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
-    this.dataShieldProperties = requireNonNull(dataShieldProperties);
+    this.profileConfigProps = requireNonNull(dataShieldProperties);
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
@@ -109,7 +109,7 @@ public class DSEnvironmentCache {
   }
 
   private boolean isPackageWhitelisted(String rPackageName) {
-    if (!dataShieldProperties.getWhitelist().contains(rPackageName)) {
+    if (!profileConfigProps.getWhitelist().contains(rPackageName)) {
       LOGGER.warn(
           "Package '{}' is not whitelisted and will not be added to environment", rPackageName);
       return false;

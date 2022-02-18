@@ -12,8 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
+import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -23,14 +25,18 @@ class ArmadilloConnectionFactoryImplTest {
 
   @Mock DataShieldOptions dataShieldOptions;
   @Mock RConnectionFactory rConnectionFactory;
+  @Mock PackageService packageService;
   @Mock RConnection rConnection;
+  @Mock ProfileConfigProps profileConfigProps;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
 
   @BeforeEach
   void beforeEach() {
+
     armadilloConnectionFactory =
-        new ArmadilloConnectionFactoryImpl(dataShieldOptions, rConnectionFactory);
+        new ArmadilloConnectionFactoryImpl(
+            packageService, profileConfigProps, dataShieldOptions, rConnectionFactory);
   }
 
   @Test

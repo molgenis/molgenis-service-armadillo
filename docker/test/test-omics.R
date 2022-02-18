@@ -24,11 +24,11 @@ MolgenisArmadillo::armadillo.create_project("omics")
 MolgenisArmadillo::armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
 MolgenisArmadillo::armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE2, name = "GSE66351_2")
 
-install.packages("DSMolgenisArmadillo")
-install.packages("DSI")
+install.packages(c("remotes", "DSMolgenisArmadillo", "DSI"))
+library(remotes)
+install_github("isglobal-brge/dsOmicsClient")
 
-library("DSMolgenisArmadillo")
-library("DSI")
+library("DSMolgenisArmadillo", "DSI", "dsOmicsClient")
 
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "study1", url = "http://localhost:8080",
