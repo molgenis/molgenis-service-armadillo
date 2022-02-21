@@ -8,12 +8,49 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN1;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DEBUG;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXPRESSION;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.FOLDER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_AGGREGATE_METHODS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGNED_SYMBOLS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGN_METHODS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PACKAGES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_RESOURCES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_TABLES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER_WORKSPACES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ID;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.MESSAGE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.REMOVE_SYMBOL;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE_EXISTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SAVE_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECTED_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECT_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SYMBOL;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE_EXISTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TYPE;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -46,6 +83,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.model.UserDefinedRPackage;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -53,6 +91,8 @@ import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -70,9 +110,9 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
     security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
+        @SecurityRequirement(name = "JSESSIONID"),
+        @SecurityRequirement(name = "http"),
+        @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -138,9 +178,9 @@ public class DataController {
   @Operation(
       summary = "Check table existence",
       responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The table exists and is available for DataSHIELD operations")
+          @ApiResponse(
+              responseCode = "200",
+              description = "The table exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
   public ResponseEntity<Void> tableExists(
@@ -217,9 +257,9 @@ public class DataController {
   @Operation(
       summary = "Check resource existence",
       responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The resource exists and is available for DataSHIELD operations")
+          @ApiResponse(
+              responseCode = "200",
+              description = "The resource exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
@@ -332,7 +372,7 @@ public class DataController {
       Principal principal,
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
-          @RequestParam(defaultValue = "false")
+      @RequestParam(defaultValue = "false")
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
@@ -395,8 +435,17 @@ public class DataController {
     commands.selectProfile(profileName.trim());
   }
 
+  @PostMapping(value = "install-package", consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void installPackage(Principal principal, @RequestBody @NotBlank UserDefinedRPackage pkg) {
+    Logger LOGGER = LoggerFactory.getLogger(DataController.class);
+    LOGGER.info("Installed package: {}.", pkg.getPath());
+    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, pkg.getPath()));
+  }
+
   @GetMapping(value = "profiles")
-  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
+  public @ResponseBody
+  ProfilesResponse listProfiles(Principal principal) {
     return auditEventPublisher.audit(
         () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
         principal,
@@ -434,15 +483,15 @@ public class DataController {
   @Operation(
       summary = "Delete user workspace",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
+          @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
   public void removeWorkspace(
       @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
+      @Pattern(
+          regexp = WORKSPACE_ID_FORMAT_REGEX,
+          message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
     auditEventPublisher.audit(
@@ -460,9 +509,9 @@ public class DataController {
   @ResponseStatus(CREATED)
   public void saveUserWorkspace(
       @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          @PathVariable
+          regexp = WORKSPACE_ID_FORMAT_REGEX,
+          message = "Please use only letters, numbers, dashes or underscores")
+      @PathVariable
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
@@ -476,9 +525,9 @@ public class DataController {
   @PostMapping(value = "/load-workspace")
   public void loadUserWorkspace(
       @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          @RequestParam
+          regexp = WORKSPACE_ID_FORMAT_REGEX,
+          message = "Please use only letters, numbers, dashes or underscores")
+      @RequestParam
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
