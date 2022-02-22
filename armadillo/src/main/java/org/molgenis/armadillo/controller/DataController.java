@@ -24,7 +24,6 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_RESOURCES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_TABLES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER_WORKSPACES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.ID;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE_FAILURE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE;
@@ -83,7 +82,6 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.model.UserDefinedRPackage;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -106,6 +104,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
@@ -435,12 +434,13 @@ public class DataController {
     commands.selectProfile(profileName.trim());
   }
 
-  @PostMapping(value = "install-package", consumes = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
-  public void installPackage(Principal principal, @RequestBody @NotBlank UserDefinedRPackage pkg) {
+  public void installPackage(Principal principal, @RequestParam("profile") String profile,
+      @RequestBody MultipartFile file) {
     Logger LOGGER = LoggerFactory.getLogger(DataController.class);
-    LOGGER.info("Installed package: {}.", pkg.getPath());
-    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, pkg.getPath()));
+    LOGGER.info("Installed package: {}. Size: {}", file.getOriginalFilename(), file.getSize());
+//    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, pkg.getPath()));
   }
 
   @GetMapping(value = "profiles")
