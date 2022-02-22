@@ -29,6 +29,7 @@ services:
       - 8080:8080
     volumes:
       - ${PWD}/logs/:/app/logs
+    profiles: ['armadillo']
 
   rserver:
     # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
@@ -38,14 +39,14 @@ services:
     ports:
       # host port: container port
       - 6311:6311
-#
-#  rserver-exposome:
-#    image: datashield/armadillo-rserver-exposome:1.0.1
-#    environment:
-#      DEBUG: "FALSE"
-#    ports:
-#      - 6312:6311
-#      # host port: container port
+
+  rserver-exposome:
+    image: datashield/armadillo-rserver-exposome:1.0.1
+    environment:
+      DEBUG: "FALSE"
+    ports:
+      - 6312:6311
+    profiles: [ "exposome" ]
 
   rserver-omics:
     image: datashield/armadillo-rserver-omics:latest
@@ -53,7 +54,7 @@ services:
       DEBUG: "FALSE"
     ports:
       - 6313:6311
-      # host port: container port
+    profiles: [ "omics" ]
 
   auth:
     # Use predefined production image:

@@ -76,9 +76,9 @@ public class PackageServiceImpl implements PackageService {
   public void loadPackages(RConnection connection, Set<String> pkgs) {
     try {
       String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
-      LOGGER.debug("Loading packages [ {} ]", packages);
+      LOGGER.trace("Loading packages [ {} ]", packages);
       connection.eval("library(" + packages + ")");
-      LOGGER.debug("Successfully loaded packages [ {} ]", packages);
+      LOGGER.trace("Successfully loaded packages [ {} ]", packages);
     } catch (RserveException e) {
       throw new RExecutionException(e);
     }
