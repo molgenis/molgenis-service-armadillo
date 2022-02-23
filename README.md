@@ -32,7 +32,7 @@ Alternatively for [kubernetes](https://k8s.io) deployments look at the [helm cha
 Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
 
 ### Development
-You need to start several backend services in other to be able to develop in the Armadillo.
+You need to start several backend services in order to be able to develop in the Armadillo.
 You can choose the services by defining a profile when running the compose file.
 
 There are several profiles you can start. At this stage these are the following:
