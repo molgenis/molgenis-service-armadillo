@@ -437,7 +437,7 @@ public class DataController {
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
   public void installPackage(Principal principal, @RequestParam("profile") String profile,
-      @RequestBody MultipartFile file) {
+      @RequestParam MultipartFile file) {
     Logger LOGGER = LoggerFactory.getLogger(DataController.class);
     LOGGER.info("Installed package: {}. Size: {}", file.getOriginalFilename(), file.getSize());
 //    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, pkg.getPath()));
