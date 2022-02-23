@@ -11,7 +11,6 @@ import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.config.annotation.ProfileScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
-import org.molgenis.armadillo.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -32,7 +31,7 @@ public class DSEnvironmentCache {
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private final ProfileConfigProps dataShieldProperties;
+  private final ProfileConfigProps profileConfigProps;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -43,7 +42,7 @@ public class DSEnvironmentCache {
       ProfileConfigProps dataShieldProperties) {
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
-    this.dataShieldProperties = requireNonNull(dataShieldProperties);
+    this.profileConfigProps = requireNonNull(dataShieldProperties);
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
@@ -75,12 +74,10 @@ public class DSEnvironmentCache {
   }
 
   private Stream<DefaultDSMethod> toDsMethods(ImmutableSet<String> methods, RPackage rPackage) {
-    if (methods != null) {
-      validatePackageWhitelisted(rPackage.name());
+    if (methods != null && isPackageWhitelisted(rPackage.name())) {
       return methods.stream().map(method -> toDsMethod(rPackage, method));
-    } else {
-      return Stream.empty();
     }
+    return Stream.empty();
   }
 
   /**
@@ -111,10 +108,13 @@ public class DSEnvironmentCache {
     return new DefaultDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0], null);
   }
 
-  private void validatePackageWhitelisted(String rPackageName) {
-    if (!dataShieldProperties.getWhitelist().contains(rPackageName)) {
-      throw new IllegalRPackageException(rPackageName);
+  private boolean isPackageWhitelisted(String rPackageName) {
+    if (!profileConfigProps.getWhitelist().contains(rPackageName)) {
+      LOGGER.warn(
+          "Package '{}' is not whitelisted and will not be added to environment", rPackageName);
+      return false;
     }
+    return true;
   }
 
   private boolean validateMethodIsUnique(DefaultDSMethod dsMethod, DSEnvironment environment) {

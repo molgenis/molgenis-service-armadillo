@@ -2,8 +2,9 @@ package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -172,5 +173,13 @@ class PackageServiceImplTest {
     assertEquals(
         Set.of("is.numeric=base::is.numeric", "meanSdGpDS"),
         packageService.getInstalledPackages(rConnection).get(0).aggregateMethods());
+  }
+
+  @Test
+  void testLoadPackages() throws RserveException {
+    Set<String> packages = ImmutableSet.of("dsBase", "dsExposome");
+    String command = "library(" + String.format("\"%s\"", String.join("\",\"", packages)) + ")";
+    packageService.loadPackages(rConnection, packages);
+    verify(rConnection, atLeastOnce()).eval(command);
   }
 }

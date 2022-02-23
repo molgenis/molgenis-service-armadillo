@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
-import org.molgenis.armadillo.exceptions.IllegalRPackageException;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -102,8 +101,10 @@ class DSEnvironmentConfigPropsCacheTest {
     when(profileConfigProps.getWhitelist()).thenReturn(Set.of("otherPackage"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
-    assertThrows(
-        IllegalRPackageException.class, () -> populateEnvironment(aggregateMethods, assignMethods));
+    populateEnvironment(aggregateMethods, assignMethods);
+
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
+    assertEquals(0, environment.getMethods().size());
   }
 
   private void populateEnvironment(

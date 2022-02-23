@@ -3,9 +3,6 @@ rserve:
     - name: default
       host: localhost
       port: 6311
-    - name: exposome
-      host: localhost
-      port: 6312
 
 datashield:
   profiles:
@@ -17,18 +14,7 @@ datashield:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-#          foo: bar
-    - name: exposome
-      environment: exposome
-      whitelist:
-        - dsBase
-        - dsExposome
-        - resourcer
-      options:
-        datashield:
-          # the seed can only be 9 digits
-          seed: 712368126
-#          foo: bar
+         # foo: bar
 
 springdoc:
   swagger-ui:
@@ -97,3 +83,69 @@ minio:
   access-key: molgenis
   secret-key: molgenis
 
+---
+spring:
+  config:
+    activate:
+      on-profile: development-omics
+
+rserve:
+  environments:
+    - name: default
+      host: localhost
+      port: 6311
+    - name: omics
+      host: localhost
+      port: 6313
+
+datashield:
+  profiles:
+    - name: default
+      environment: default
+      whitelist:
+        - dsBase
+      options:
+        datashield:
+          seed: 342325352
+    - name: omics
+      environment: omics
+      whitelist:
+        - dsBase
+        - dsOmics
+        - resourcer
+      options:
+        datashield:
+          seed: 712368126
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development-exposome
+
+rserve:
+  environments:
+    - name: default
+      host: localhost
+      port: 6311
+    - name: exposome
+      host: localhost
+      port: 6312
+
+datashield:
+  profiles:
+    - name: default
+      environment: default
+      whitelist:
+        - dsBase
+      options:
+        datashield:
+          seed: 342325352
+    - name: exposome
+      environment: exposome
+      whitelist:
+        - dsBase
+        - dsExposome
+      options:
+        datashield:
+          seed: 039284230

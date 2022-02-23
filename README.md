@@ -30,3 +30,20 @@ To spin up your own server on a laptop, you can run `docker-compose up` in the d
 
 Alternatively for [kubernetes](https://k8s.io) deployments look at the [helm chart](https://github.com/molgenis/molgenis-ops-helm/tree/master/charts/molgenis-armadillo). 
 Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
+
+### Development
+You need to start several backend services in order to be able to develop in the Armadillo.
+You can choose the services by defining a profile when running the compose file.
+
+There are several profiles you can start. At this stage these are the following:
+- default: `docker-compose up -d` 
+- exposome: `docker-compose --profile exposome up -d`
+- omics: `docker-compose --profile omics up -d`
+
+Besides this you need to specify the profiles in the Intellij run configuration.
+
+Always use profile `development` in combination with these profiles:
+- `development-exposome`
+- `development-omics`
+
+For example: `development, development-omics`
