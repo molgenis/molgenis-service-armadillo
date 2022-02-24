@@ -30,6 +30,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
@@ -201,6 +202,17 @@ class CommandsImpl implements Commands {
             return null;
           }
         });
+  }
+
+  @Override
+  public CompletableFuture<Void> installPackage(Principal principal, Resource resource, String name) {
+    return schedule(new ArmadilloCommandImpl<>("Install package", false) {
+      @Override
+      protected Void doWithConnection(RConnection connection) {
+        rExecutorService.installPackage(connection, resource, name);
+        return null;
+      }
+    });
   }
 
   @Override

@@ -24,6 +24,7 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_RESOURCES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_TABLES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER_WORKSPACES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.ID;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE_FAILURE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE;
@@ -66,6 +67,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -91,6 +93,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -436,11 +439,12 @@ public class DataController {
 
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
-  public void installPackage(Principal principal, @RequestParam("profile") String profile,
-      @RequestParam MultipartFile file) {
-    Logger LOGGER = LoggerFactory.getLogger(DataController.class);
-    LOGGER.info("Installed package: {}. Size: {}", file.getOriginalFilename(), file.getSize());
-//    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, pkg.getPath()));
+  public void installPackage(Principal principal, @RequestParam MultipartFile file) throws IOException {
+    // TODO only development mode
+    // TODO only admin
+
+    commands.installPackage(principal, new ByteArrayResource(file.getBytes()), file.getName());
+    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
   }
 
   @GetMapping(value = "profiles")

@@ -22,4 +22,6 @@ public interface RExecutorService {
       List<String> variables);
 
   void loadResource(RConnection connection, Resource resource, String filename, String symbol);
+
+  void installPackage(RConnection connection, Resource packageResource, String name);
 }
