@@ -96,7 +96,7 @@ public class RExecutorServiceImpl implements RExecutorService {
       } else {
         String colSelect =
             "tidyselect::any_of("
-                + Formatter.stringVector(variables.toArray(new String[]{}))
+                + Formatter.stringVector(variables.toArray(new String[] {}))
                 + ")";
         execute(
             format(
@@ -130,7 +130,8 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void installPackage(RConnection connection, Resource packageResource, String filename) {
-    // see https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
+    // see
+    // https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
     // TODO validate R package .tar.gz
 
     LOGGER.info("Installing package '{}'", filename);
@@ -138,8 +139,8 @@ public class RExecutorServiceImpl implements RExecutorService {
     try {
       copyFile(packageResource, rFilename, connection);
       var result = execute(format("install.packages('%s', repos = NULL)", filename), connection);
-      if (result.isNull()){
-        // TODO
+      if (result.isNull()) {
+        throw new IOException("Something went wrong");
       }
       execute(format("file.remove('%s')", filename), connection);
 

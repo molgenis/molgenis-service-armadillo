@@ -91,8 +91,6 @@ import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -439,12 +437,14 @@ public class DataController {
 
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
-  public void installPackage(Principal principal, @RequestParam MultipartFile file) throws IOException {
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void installPackage(Principal principal, @RequestParam("file") MultipartFile file)
+      throws IOException {
     // TODO only development mode
-    // TODO only admin
 
     commands.installPackage(principal, new ByteArrayResource(file.getBytes()), file.getName());
-    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
+    auditEventPublisher.audit(
+        principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
   }
 
   @GetMapping(value = "profiles")

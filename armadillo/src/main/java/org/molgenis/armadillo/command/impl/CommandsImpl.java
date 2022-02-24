@@ -205,14 +205,16 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> installPackage(Principal principal, Resource resource, String name) {
-    return schedule(new ArmadilloCommandImpl<>("Install package", false) {
-      @Override
-      protected Void doWithConnection(RConnection connection) {
-        rExecutorService.installPackage(connection, resource, name);
-        return null;
-      }
-    });
+  public CompletableFuture<Void> installPackage(
+      Principal principal, Resource resource, String name) {
+    return schedule(
+        new ArmadilloCommandImpl<>("Install package", false) {
+          @Override
+          protected Void doWithConnection(RConnection connection) {
+            rExecutorService.installPackage(connection, resource, name);
+            return null;
+          }
+        });
   }
 
   @Override

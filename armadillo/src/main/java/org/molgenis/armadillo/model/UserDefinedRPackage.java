@@ -25,5 +25,4 @@ public class UserDefinedRPackage {
   public void setProfile(String profile) {
     this.profile = profile;
   }
-
 }
