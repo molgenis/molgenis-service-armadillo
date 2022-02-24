@@ -1,13 +1,13 @@
 pipeline {
     agent {
         kubernetes {
-            inheritFrom 'molgenis-jdk11'
+            inheritFrom 'molgenis-jdk17'
         }
     }
     environment {
         REPOSITORY = 'molgenis/armadillo'
         LOCAL_REPOSITORY = "${LOCAL_REGISTRY}/${REPOSITORY}"
-        CHART_VERSION = '0.12.2'
+        CHART_VERSION = '0.15.1'
         TIMESTAMP = sh(returnStdout: true, script: "date -u +'%F_%H-%M-%S'").trim()
     }
     stages {

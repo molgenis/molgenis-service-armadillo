@@ -6,58 +6,17 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN1;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN_FAILURE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DEBUG;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER_WORKSPACE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE_FAILURE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EXPRESSION;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.FOLDER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_AGGREGATE_METHODS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGNED_SYMBOLS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGN_METHODS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PACKAGES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_RESOURCES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_TABLES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER_WORKSPACES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.ID;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE_FAILURE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE_FAILURE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_USER_WORKSPACE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MESSAGE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.REMOVE_SYMBOL;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE_EXISTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.SAVE_USER_WORKSPACE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECTED_PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECT_PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.SYMBOL;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE_EXISTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.TYPE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
-import static org.springframework.http.ResponseEntity.created;
-import static org.springframework.http.ResponseEntity.notFound;
-import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.http.ResponseEntity.status;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.http.ResponseEntity.*;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -67,13 +26,8 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.validation.Valid;
@@ -91,28 +45,17 @@ import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.*;
 
 @OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
+    info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
     security = {
-        @SecurityRequirement(name = "JSESSIONID"),
-        @SecurityRequirement(name = "http"),
-        @SecurityRequirement(name = "jwt")
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -142,11 +85,11 @@ public class DataController {
       AuditEventPublisher auditEventPublisher,
       ExpressionRewriter expressionRewriter,
       DSEnvironmentCache dsEnvironmentCache) {
-    this.commands = commands;
-    this.storage = storage;
-    this.auditEventPublisher = auditEventPublisher;
-    this.expressionRewriter = expressionRewriter;
-    this.dsEnvironmentCache = dsEnvironmentCache;
+    this.commands = requireNonNull(commands);
+    this.storage = requireNonNull(storage);
+    this.auditEventPublisher = requireNonNull(auditEventPublisher);
+    this.expressionRewriter = requireNonNull(expressionRewriter);
+    this.dsEnvironmentCache = requireNonNull(dsEnvironmentCache);
   }
 
   @Operation(summary = "Get R packages", description = "Get all installed R packages.")
@@ -178,9 +121,9 @@ public class DataController {
   @Operation(
       summary = "Check table existence",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The table exists and is available for DataSHIELD operations")
+        @ApiResponse(
+            responseCode = "200",
+            description = "The table exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
   public ResponseEntity<Void> tableExists(
@@ -257,9 +200,9 @@ public class DataController {
   @Operation(
       summary = "Check resource existence",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The resource exists and is available for DataSHIELD operations")
+        @ApiResponse(
+            responseCode = "200",
+            description = "The resource exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
@@ -372,7 +315,7 @@ public class DataController {
       Principal principal,
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
-      @RequestParam(defaultValue = "false")
+          @RequestParam(defaultValue = "false")
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
@@ -435,21 +378,8 @@ public class DataController {
     commands.selectProfile(profileName.trim());
   }
 
-  @PostMapping(value = "install-package")
-  @ResponseStatus(NO_CONTENT)
-  @PreAuthorize("hasRole('ROLE_SU')")
-  public void installPackage(Principal principal, @RequestParam("file") MultipartFile file)
-      throws IOException {
-    // TODO only development mode
-
-    commands.installPackage(principal, new ByteArrayResource(file.getBytes()), file.getName());
-    auditEventPublisher.audit(
-        principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
-  }
-
   @GetMapping(value = "profiles")
-  public @ResponseBody
-  ProfilesResponse listProfiles(Principal principal) {
+  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
     return auditEventPublisher.audit(
         () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
         principal,
@@ -487,15 +417,15 @@ public class DataController {
   @Operation(
       summary = "Delete user workspace",
       responses = {
-          @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
+        @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
   public void removeWorkspace(
       @PathVariable
-      @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
+          @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
     auditEventPublisher.audit(
@@ -513,9 +443,9 @@ public class DataController {
   @ResponseStatus(CREATED)
   public void saveUserWorkspace(
       @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
-      @PathVariable
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @PathVariable
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
@@ -529,9 +459,9 @@ public class DataController {
   @PostMapping(value = "/load-workspace")
   public void loadUserWorkspace(
       @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
-      @RequestParam
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @RequestParam
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
