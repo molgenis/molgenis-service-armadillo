@@ -43,8 +43,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Profile("development")
 public class PackageController {
 
-  private Commands commands;
-  private AuditEventPublisher auditEventPublisher;
+  private final Commands commands;
+  private final AuditEventPublisher auditEventPublisher;
 
   public PackageController(Commands commands, AuditEventPublisher auditEventPublisher) {
     this.commands = requireNonNull(commands);
