@@ -34,9 +34,9 @@ import org.springframework.web.multipart.MultipartFile;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
     security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
+        @SecurityRequirement(name = "JSESSIONID"),
+        @SecurityRequirement(name = "http"),
+        @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -54,6 +54,7 @@ public class PackageController {
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   @Operation(
       summary = "Install a package",
       description = "Install a package build from source.",
@@ -61,7 +62,8 @@ public class PackageController {
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
-  public CompletableFuture<ResponseEntity<Void>> installPackage(Principal principal, @RequestParam MultipartFile file)
+  public CompletableFuture<ResponseEntity<Void>> installPackage(Principal principal,
+      @RequestParam MultipartFile file)
       throws IOException {
     auditEventPublisher.audit(
         principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
@@ -71,6 +73,7 @@ public class PackageController {
 
     return result
         .thenApply(ResponseEntity::ok)
-        .exceptionally(t -> new ResponseEntity(t.getMessage(), INTERNAL_SERVER_ERROR));
+        .exceptionally(
+            t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
   }
 }
