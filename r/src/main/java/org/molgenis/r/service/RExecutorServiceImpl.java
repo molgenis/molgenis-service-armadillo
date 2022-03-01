@@ -133,10 +133,9 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void installPackage(RConnection connection, Resource packageResource, String filename) {
-    // see
     // https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
 
-    if (!filename.endsWith(".tar.gz")) {
+    if (!filename.endsWith(".tar.gz") && !filename.endsWith(".tgz")) {
       throw new InvalidRPackageException(filename);
     }
 
