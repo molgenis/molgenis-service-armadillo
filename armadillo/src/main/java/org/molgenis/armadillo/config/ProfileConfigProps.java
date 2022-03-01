@@ -30,7 +30,7 @@ public class ProfileConfigProps {
     this.whitelist = whitelist;
   }
 
-  public void addToWhitelist(String package_){
+  public void addToWhitelist(String package_) {
     whitelist.add(package_);
   }
 

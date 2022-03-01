@@ -41,9 +41,9 @@ import org.springframework.web.multipart.MultipartFile;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
     security = {
-        @SecurityRequirement(name = "JSESSIONID"),
-        @SecurityRequirement(name = "http"),
-        @SecurityRequirement(name = "jwt")
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -57,7 +57,9 @@ public class PackageController {
   private final AuditEventPublisher auditEventPublisher;
   private final ProfileConfigProps profileConfigProps;
 
-  public PackageController(Commands commands, AuditEventPublisher auditEventPublisher,
+  public PackageController(
+      Commands commands,
+      AuditEventPublisher auditEventPublisher,
       ProfileConfigProps profileConfigProps) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
@@ -72,28 +74,27 @@ public class PackageController {
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
-  public CompletableFuture<ResponseEntity<Void>> installPackage(Principal principal,
-      @RequestParam MultipartFile file)
-      throws IOException {
+  public CompletableFuture<ResponseEntity<Void>> installPackage(
+      Principal principal, @RequestParam MultipartFile file) throws IOException {
     if (file.getOriginalFilename() == null || file.getOriginalFilename().isBlank()) {
       // TODO include error message
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     }
     String filename = file.getOriginalFilename();
 
-    auditEventPublisher.audit(
-        principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
+    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
 
-    CompletableFuture<Void> result = commands.installPackage(
-        principal, new ByteArrayResource(file.getBytes()), filename);
+    CompletableFuture<Void> result =
+        commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
 
     String packageName = filename.replaceFirst("_[^_]+$", "");
 
     return result
-        .thenApply(body -> {
-          profileConfigProps.addToWhitelist(packageName);
-          return ResponseEntity.ok(body);
-        })
+        .thenApply(
+            body -> {
+              profileConfigProps.addToWhitelist(packageName);
+              return ResponseEntity.ok(body);
+            })
         .exceptionally(
             t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
   }
@@ -105,9 +106,11 @@ public class PackageController {
     return profileConfigProps.getWhitelist();
   }
 
-  @Operation(summary = "Add package to whitelist",
-      description = "Adds a package to the runtime whitelist. The whitelist is reset when the "
-          + "application restarts. Admin use only.")
+  @Operation(
+      summary = "Add package to whitelist",
+      description =
+          "Adds a package to the runtime whitelist. The whitelist is reset when the application "
+              + "restarts. Admin use only.")
   @PostMapping("whitelist/{pkg}")
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
