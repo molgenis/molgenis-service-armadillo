@@ -135,7 +135,7 @@ public class RExecutorServiceImpl implements RExecutorService {
   public void installPackage(RConnection connection, Resource packageResource, String filename) {
     // https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
 
-    if (!filename.endsWith(".tar.gz") && !filename.endsWith(".tgz")) {
+    if (!filename.endsWith(".tar.gz")) {
       throw new InvalidRPackageException(filename);
     }
 
@@ -146,7 +146,7 @@ public class RExecutorServiceImpl implements RExecutorService {
     try {
       copyFile(packageResource, rFilename, connection);
       execute(
-          format("remotes::install_local('%s', dependencies = TRUE, upgrade = 'never')", filename),
+          format("remotes::install_local('%s', dependencies = TRUE, upgrade = 'never')", rFilename),
           connection);
       var result = execute(format("require('%s')", packageName), connection);
       if (result.isLogical()) {

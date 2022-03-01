@@ -6,6 +6,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -16,10 +17,12 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,12 +61,16 @@ public class PackageController {
   @PostMapping(value = "install-package")
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void installPackage(Principal principal, @RequestParam MultipartFile file)
+  public CompletableFuture<ResponseEntity<Void>> installPackage(Principal principal, @RequestParam MultipartFile file)
       throws IOException {
-
-    commands.installPackage(
-        principal, new ByteArrayResource(file.getBytes()), file.getOriginalFilename());
     auditEventPublisher.audit(
         principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, file.getName()));
+
+    CompletableFuture<Void> result = commands.installPackage(
+        principal, new ByteArrayResource(file.getBytes()), file.getOriginalFilename());
+
+    return result
+        .thenApply(ResponseEntity::ok)
+        .exceptionally(t -> new ResponseEntity(t.getMessage(), INTERNAL_SERVER_ERROR));
   }
 }

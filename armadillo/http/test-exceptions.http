@@ -1,4 +1,4 @@
-POST http://localhost:8080/tables
+GET http://localhost:8080/tables
 Authorization: Basic admin admin
 
 ###
