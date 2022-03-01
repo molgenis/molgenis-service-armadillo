@@ -30,6 +30,10 @@ public class ProfileConfigProps {
     this.whitelist = whitelist;
   }
 
+  public void addToWhitelist(String package_){
+    whitelist.add(package_);
+  }
+
   public String getEnvironment() {
     return environment;
   }
