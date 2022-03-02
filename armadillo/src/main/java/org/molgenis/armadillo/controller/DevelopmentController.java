@@ -51,13 +51,13 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @Validated
 @Profile("development")
-public class PackageController {
+public class DevelopmentController {
 
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
   private final ProfileConfigProps profileConfigProps;
 
-  public PackageController(
+  public DevelopmentController(
       Commands commands,
       AuditEventPublisher auditEventPublisher,
       ProfileConfigProps profileConfigProps) {
@@ -83,7 +83,6 @@ public class PackageController {
     String filename = file.getOriginalFilename();
 
     auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
-
     CompletableFuture<Void> result =
         commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
 
