@@ -41,9 +41,9 @@ import org.springframework.web.multipart.MultipartFile;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
     security = {
-        @SecurityRequirement(name = "JSESSIONID"),
-        @SecurityRequirement(name = "http"),
-        @SecurityRequirement(name = "jwt")
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")

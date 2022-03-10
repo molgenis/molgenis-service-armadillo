@@ -23,10 +23,13 @@ class ProfileConfigPropsTest {
 
   @Test
   void testOptions() {
-    Map<String, String> options = new HashMap<>() {{
-      put("key1", "value1");
-      put("key2", "value2");
-    }};
+    Map<String, String> options =
+        new HashMap<>() {
+          {
+            put("key1", "value1");
+            put("key2", "value2");
+          }
+        };
     props.setOptions(options);
     Map<String, String> actual = props.getOptions();
     assertTrue(Maps.difference(options, actual).areEqual());

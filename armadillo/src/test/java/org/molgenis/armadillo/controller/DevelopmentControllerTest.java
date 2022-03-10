@@ -40,22 +40,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Import(AuditEventPublisher.class)
 class DevelopmentControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
-  @Autowired
-  AuditEventPublisher auditEventPublisher;
-  @MockBean
-  private ProfileConfigProps profileConfigProps;
-  @MockBean
-  private Commands commands;
-  @MockBean
-  private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired private MockMvc mockMvc;
+  @Autowired AuditEventPublisher auditEventPublisher;
+  @MockBean private ProfileConfigProps profileConfigProps;
+  @MockBean private Commands commands;
+  @MockBean private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock(lenient = true)
   private Clock clock;
 
-  @Captor
-  private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
+  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
   private final Instant instant = Instant.now();
@@ -72,18 +66,13 @@ class DevelopmentControllerTest {
   @WithMockUser(roles = "SU")
   void testInstallPackageSu() throws Exception {
     String filename = "hello.txt";
-    MockMultipartFile file
-        = new MockMultipartFile(
-        "file",
-        filename,
-        MediaType.TEXT_PLAIN_VALUE,
-        "Hello, World!".getBytes()
-    );
-    when(commands.installPackage(any(Principal.class), any(Resource.class),
-        any(String.class))).thenReturn(
-        completedFuture(null));
-    mockMvc.perform(MockMvcRequestBuilders.multipart("/install-package")
-            .file(file))
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", filename, MediaType.TEXT_PLAIN_VALUE, "Hello, World!".getBytes());
+    when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(204));
   }
 
@@ -91,26 +80,21 @@ class DevelopmentControllerTest {
   @WithMockUser
   void testInstallPackageUser() throws Exception {
     String filename = "hello.txt";
-    MockMultipartFile file
-        = new MockMultipartFile(
-        "file",
-        filename,
-        MediaType.TEXT_PLAIN_VALUE,
-        "Hello, World!".getBytes()
-    );
-    when(commands.installPackage(any(Principal.class), any(Resource.class),
-        any(String.class))).thenReturn(
-        completedFuture(null));
-    mockMvc.perform(MockMvcRequestBuilders.multipart("/install-package")
-            .file(file))
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", filename, MediaType.TEXT_PLAIN_VALUE, "Hello, World!".getBytes());
+    when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(403));
   }
 
   @Test
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
-    DevelopmentController controller = new DevelopmentController(commands, auditEventPublisher,
-        profileConfigProps);
+    DevelopmentController controller =
+        new DevelopmentController(commands, auditEventPublisher, profileConfigProps);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }

@@ -47,29 +47,18 @@ import org.springframework.web.context.request.RequestContextHolder;
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock
-  ArmadilloStorageService armadilloStorage;
-  @Mock
-  PackageService packageService;
-  @Mock
-  RExecutorService rExecutorService;
-  @Mock
-  ProcessService processService;
-  @Mock
-  DataShieldConfigProps dataShieldConfigProps;
-  @Mock
-  ArmadilloConnectionFactory connectionFactory;
-  @Mock
-  RConnection rConnection;
-  @Mock
-  RequestAttributes attrs;
+  @Mock ArmadilloStorageService armadilloStorage;
+  @Mock PackageService packageService;
+  @Mock RExecutorService rExecutorService;
+  @Mock ProcessService processService;
+  @Mock DataShieldConfigProps dataShieldConfigProps;
+  @Mock ArmadilloConnectionFactory connectionFactory;
+  @Mock RConnection rConnection;
+  @Mock RequestAttributes attrs;
 
-  @Mock
-  InputStream inputStream;
-  @Mock
-  REXP rexp;
-  @Mock
-  Principal principal;
+  @Mock InputStream inputStream;
+  @Mock REXP rexp;
+  @Mock Principal principal;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
   CommandsImpl commands;
@@ -144,10 +133,10 @@ class CommandsImplTest {
   @Test
   void testSaveWorkspace() throws Exception {
     doAnswer(
-        invocation -> {
-          invocation.getArgument(1, Consumer.class).accept(inputStream);
-          return null;
-        })
+            invocation -> {
+              invocation.getArgument(1, Consumer.class).accept(inputStream);
+              return null;
+            })
         .when(rExecutorService)
         .saveWorkspace(eq(rConnection), any(Consumer.class));
 

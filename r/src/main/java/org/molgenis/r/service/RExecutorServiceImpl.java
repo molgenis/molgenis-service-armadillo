@@ -99,7 +99,7 @@ public class RExecutorServiceImpl implements RExecutorService {
       } else {
         String colSelect =
             "tidyselect::any_of("
-                + Formatter.stringVector(variables.toArray(new String[]{}))
+                + Formatter.stringVector(variables.toArray(new String[] {}))
                 + ")";
         execute(
             format(
