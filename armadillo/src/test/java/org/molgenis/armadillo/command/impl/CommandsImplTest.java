@@ -1,6 +1,8 @@
 package org.molgenis.armadillo.command.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -37,6 +39,7 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -44,18 +47,29 @@ import org.springframework.web.context.request.RequestContextHolder;
 @ExtendWith(MockitoExtension.class)
 class CommandsImplTest {
 
-  @Mock ArmadilloStorageService armadilloStorage;
-  @Mock PackageService packageService;
-  @Mock RExecutorService rExecutorService;
-  @Mock ProcessService processService;
-  @Mock DataShieldConfigProps dataShieldConfigProps;
-  @Mock ArmadilloConnectionFactory connectionFactory;
-  @Mock RConnection rConnection;
-  @Mock RequestAttributes attrs;
+  @Mock
+  ArmadilloStorageService armadilloStorage;
+  @Mock
+  PackageService packageService;
+  @Mock
+  RExecutorService rExecutorService;
+  @Mock
+  ProcessService processService;
+  @Mock
+  DataShieldConfigProps dataShieldConfigProps;
+  @Mock
+  ArmadilloConnectionFactory connectionFactory;
+  @Mock
+  RConnection rConnection;
+  @Mock
+  RequestAttributes attrs;
 
-  @Mock InputStream inputStream;
-  @Mock REXP rexp;
-  @Mock Principal principal;
+  @Mock
+  InputStream inputStream;
+  @Mock
+  REXP rexp;
+  @Mock
+  Principal principal;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
   CommandsImpl commands;
@@ -130,10 +144,10 @@ class CommandsImplTest {
   @Test
   void testSaveWorkspace() throws Exception {
     doAnswer(
-            invocation -> {
-              invocation.getArgument(1, Consumer.class).accept(inputStream);
-              return null;
-            })
+        invocation -> {
+          invocation.getArgument(1, Consumer.class).accept(inputStream);
+          return null;
+        })
         .when(rExecutorService)
         .saveWorkspace(eq(rConnection), any(Consumer.class));
 
@@ -165,6 +179,19 @@ class CommandsImplTest {
             eq("project/folder/table.parquet"),
             eq("D"),
             eq(List.of("col1", "col2")));
+  }
+
+  @Test
+  void testInstallPackage() throws Exception {
+    ArmadilloCommandImpl<REXP> command =
+        new ArmadilloCommandImpl<>("Install package", false) {
+          @Override
+          protected REXP doWithConnection(RConnection connection) {
+            verify(rExecutorService)
+                .installPackage(eq(rConnection), any(Resource.class), any(String.class));
+            return null;
+          }
+        };
   }
 
   @Test

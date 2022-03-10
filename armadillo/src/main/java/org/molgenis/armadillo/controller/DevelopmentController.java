@@ -41,16 +41,16 @@ import org.springframework.web.multipart.MultipartFile;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
     security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
+        @SecurityRequirement(name = "JSESSIONID"),
+        @SecurityRequirement(name = "http"),
+        @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
 @SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
 @RestController
 @Validated
-@Profile("development")
+@Profile({"development", "test"})
 public class DevelopmentController {
 
   private final Commands commands;
@@ -79,23 +79,24 @@ public class DevelopmentController {
     if (file.getOriginalFilename() == null || file.getOriginalFilename().isBlank()) {
       // TODO include error message
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
+    } else {
+      String filename = file.getOriginalFilename();
+
+      auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
+      CompletableFuture<Void> result =
+          commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
+
+      String packageName = getPackageNameFromFilename(filename);
+
+      return result
+          .thenApply(
+              body -> {
+                profileConfigProps.addToWhitelist(packageName);
+                return ResponseEntity.ok(body);
+              })
+          .exceptionally(
+              t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
     }
-    String filename = file.getOriginalFilename();
-
-    auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
-    CompletableFuture<Void> result =
-        commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
-
-    String packageName = filename.replaceFirst("_[^_]+$", "");
-
-    return result
-        .thenApply(
-            body -> {
-              profileConfigProps.addToWhitelist(packageName);
-              return ResponseEntity.ok(body);
-            })
-        .exceptionally(
-            t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
   }
 
   @Operation(summary = "Get whitelist")
@@ -115,5 +116,9 @@ public class DevelopmentController {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg) {
     profileConfigProps.addToWhitelist(pkg);
+  }
+
+  protected String getPackageNameFromFilename(String filename) {
+    return filename.replaceFirst("_[^_]+$", "");
   }
 }

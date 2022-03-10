@@ -1,6 +1,9 @@
 package org.molgenis.r.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPLogical;
@@ -27,10 +31,14 @@ import org.springframework.security.util.InMemoryResource;
 class RExecutorServiceImplTest {
 
   private RExecutorServiceImpl executorService;
-  @Mock private RConnection rConnection;
-  @Mock private REXP rexp;
-  @Mock private RFileOutputStream rFileOutputStream;
-  @Mock private RFileInputStream rFileInputStream;
+  @Mock
+  private RConnection rConnection;
+  @Mock
+  private REXP rexp;
+  @Mock
+  private RFileOutputStream rFileOutputStream;
+  @Mock
+  private RFileInputStream rFileInputStream;
 
   @BeforeEach
   void before() {
@@ -64,7 +72,7 @@ class RExecutorServiceImplTest {
     when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
     when(rexp.inherits("try-error")).thenReturn(true);
     when(rexp.asStrings())
-        .thenReturn(new String[] {"Error in try(mean(age)) : object 'age' not found\n"});
+        .thenReturn(new String[]{"Error in try(mean(age)) : object 'age' not found\n"});
 
     RExecutionException thrown =
         assertThrows(
@@ -101,7 +109,7 @@ class RExecutorServiceImplTest {
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))})"))
+        "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))})"))
         .thenReturn(new REXPLogical(true));
     when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
         .thenReturn(new REXPNull());
@@ -121,7 +129,7 @@ class RExecutorServiceImplTest {
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})"))
+        "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})"))
         .thenReturn(new REXPLogical(true));
     when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
         .thenReturn(new REXPNull());
@@ -141,7 +149,7 @@ class RExecutorServiceImplTest {
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
+        "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
         .thenReturn(new REXPLogical(true));
     when(rConnection.eval("try({base::unlink('project_folder_resource.rds')})"))
         .thenReturn(new REXPNull());
@@ -195,5 +203,52 @@ class RExecutorServiceImplTest {
     assertThrows(
         RExecutionException.class,
         () -> executorService.loadResource(rConnection, resource, "hpc-resource-1.rds", "D"));
+  }
+
+  @Test
+  void testInstallPackageFails() throws IOException {
+    Resource resource = new InMemoryResource("Hello");
+    String fileName = "test.txt";
+
+    assertThrows(InvalidRPackageException.class,
+        () -> executorService.installPackage(rConnection, resource, fileName));
+  }
+
+  @Test
+  void testInstallPackage() throws IOException, RserveException {
+    when(rConnection.createFile("location__test_.tar.gz")).thenReturn(rFileOutputStream);
+    when(rConnection.eval(
+        "try({remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')})")).thenReturn(
+        new REXPNull());
+    when(rConnection.eval(
+        "try({require('location/_test')})"))
+        .thenReturn(new REXPLogical(true));
+    when(rConnection.eval(
+        "try({file.remove('location/_test_.tar.gz')})")).thenReturn(
+        new REXPNull());
+
+    Resource resource = new InMemoryResource("Hello");
+    String fileName = "location/_test_.tar.gz";
+
+    executorService.installPackage(rConnection, resource, fileName);
+
+    verify(rConnection).eval(
+        "try({remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')})");
+    verify(rConnection).eval("try({require('location/_test')})");
+    verify(rConnection).eval("try({file.remove('location/_test_.tar.gz')})");
+  }
+
+  @Test
+  void testGetPackageNameFromFilename() {
+    String filename = "hello_world_test.tar.gz";
+    String pkgName = executorService.getPackageNameFromFilename(filename);
+    assertEquals("hello_world", pkgName);
+  }
+
+  @Test
+  void testGetRFilenameFromFilename() {
+    String filename = "directory/test_file.tar.gz";
+    String rFileName = executorService.getRFilenameFromFilename(filename);
+    assertEquals("directory_test_file.tar.gz", rFileName);
   }
 }

@@ -99,7 +99,7 @@ public class RExecutorServiceImpl implements RExecutorService {
       } else {
         String colSelect =
             "tidyselect::any_of("
-                + Formatter.stringVector(variables.toArray(new String[] {}))
+                + Formatter.stringVector(variables.toArray(new String[]{}))
                 + ")";
         execute(
             format(
@@ -139,10 +139,10 @@ public class RExecutorServiceImpl implements RExecutorService {
       throw new InvalidRPackageException(filename);
     }
 
-    String packageName = filename.replaceFirst("_[^_]+$", "");
+    String packageName = getPackageNameFromFilename(filename);
 
     LOGGER.info("Installing package '{}'", filename);
-    String rFilename = filename.replace("/", "_");
+    String rFilename = getRFilenameFromFilename(filename);
     try {
       copyFile(packageResource, rFilename, connection);
       execute(
@@ -178,5 +178,13 @@ public class RExecutorServiceImpl implements RExecutorService {
             format("%.03f", size * 1.0 / elapsed));
       }
     }
+  }
+
+  protected String getPackageNameFromFilename(String filename) {
+    return filename.replaceFirst("_[^_]+$", "");
+  }
+
+  protected String getRFilenameFromFilename(String filename) {
+    return filename.replace("/", "_");
   }
 }
