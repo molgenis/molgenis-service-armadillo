@@ -41,9 +41,9 @@ import org.springframework.web.multipart.MultipartFile;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
     security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
+        @SecurityRequirement(name = "JSESSIONID"),
+        @SecurityRequirement(name = "http"),
+        @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -76,7 +76,8 @@ public class DevelopmentController {
   @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
       Principal principal, @RequestParam MultipartFile file) throws IOException {
-    if (file.getOriginalFilename() == null || file.getOriginalFilename().isBlank()) {
+    String ogFilename = file.getOriginalFilename();
+    if (ogFilename == null || ogFilename.isBlank()) {
       // TODO include error message
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
