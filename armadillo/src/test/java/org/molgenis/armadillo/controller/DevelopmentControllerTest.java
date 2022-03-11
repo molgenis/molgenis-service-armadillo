@@ -49,22 +49,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Import(AuditEventPublisher.class)
 class DevelopmentControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
-  @Autowired
-  AuditEventPublisher auditEventPublisher;
-  @MockBean
-  private ProfileConfigProps profileConfigProps;
-  @MockBean
-  private Commands commands;
-  @MockBean
-  private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired private MockMvc mockMvc;
+  @Autowired AuditEventPublisher auditEventPublisher;
+  @MockBean private ProfileConfigProps profileConfigProps;
+  @MockBean private Commands commands;
+  @MockBean private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock(lenient = true)
   private Clock clock;
 
-  @Captor
-  private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
+  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private final Instant instant = Instant.now();
   private String sessionId;
@@ -92,11 +86,13 @@ class DevelopmentControllerTest {
   @WithMockUser(roles = "SU")
   void testInstallPackageSu() throws Exception {
     String filename = "hello.txt";
-    MockMultipartFile file = new MockMultipartFile("file", filename, MediaType.TEXT_PLAIN_VALUE,
-        "Hello, World!".getBytes());
-    when(commands.installPackage(any(Principal.class), any(Resource.class),
-        any(String.class))).thenReturn(completedFuture(null));
-    mockMvc.perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", filename, MediaType.TEXT_PLAIN_VALUE, "Hello, World!".getBytes());
+    when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(204));
   }
 
@@ -104,33 +100,48 @@ class DevelopmentControllerTest {
   @WithMockUser
   void testInstallPackageUser() throws Exception {
     String filename = "hello.txt";
-    MockMultipartFile file = new MockMultipartFile("file", filename, MediaType.TEXT_PLAIN_VALUE,
-        "Hello, World!".getBytes());
-    when(commands.installPackage(any(Principal.class), any(Resource.class),
-        any(String.class))).thenReturn(completedFuture(null));
-    mockMvc.perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", filename, MediaType.TEXT_PLAIN_VALUE, "Hello, World!".getBytes());
+    when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(403));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testInstallPackageFileNull() throws Exception {
-    MockMultipartFile file = new MockMultipartFile("file", null, MediaType.TEXT_PLAIN_VALUE,
-        "".getBytes());
-    MvcResult mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.multipart("/install-package").file(file).session(session))
-        .andExpect(status().is(204)).andExpect(request().asyncStarted()).andReturn();
+    MockMultipartFile file =
+        new MockMultipartFile("file", null, MediaType.TEXT_PLAIN_VALUE, "".getBytes());
+    MvcResult mvcResult =
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.multipart("/install-package").file(file).session(session))
+            .andExpect(status().is(204))
+            .andExpect(request().asyncStarted())
+            .andReturn();
     mockMvc.perform(asyncDispatch(mvcResult)).andExpect(status().is(500));
-    expectAuditEvent(new AuditEvent(instant, "user", "INSTALL_PACKAGES_FAILURE",
-        Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"), "message",
-            "Filename is null or empty")));
+    expectAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "INSTALL_PACKAGES_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "message",
+                "Filename is null or empty")));
   }
 
   @Test
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
-    DevelopmentController controller = new DevelopmentController(commands, auditEventPublisher,
-        profileConfigProps);
+    DevelopmentController controller =
+        new DevelopmentController(commands, auditEventPublisher, profileConfigProps);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }

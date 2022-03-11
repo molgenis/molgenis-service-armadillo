@@ -11,12 +11,9 @@ import org.springframework.validation.annotation.Validated;
 public class ProfileConfigProps {
 
   private Map<String, String> options = new HashMap<>();
-  @NotEmpty
-  private final Set<String> whitelist = new HashSet<>();
-  @NotEmpty
-  private String name;
-  @NotEmpty
-  private String environment;
+  @NotEmpty private final Set<String> whitelist = new HashSet<>();
+  @NotEmpty private String name;
+  @NotEmpty private String environment;
 
   public Map<String, String> getOptions() {
     return options;
