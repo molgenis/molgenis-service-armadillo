@@ -1,11 +1,8 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
@@ -62,24 +59,15 @@ class DevelopmentControllerTest {
   MockHttpSession session = new MockHttpSession();
   private final Instant instant = Instant.now();
   private String sessionId;
+  private AuditEventValidator auditEventValidator;
 
   @BeforeEach
   public void setup() {
+    auditEventValidator = new AuditEventValidator(applicationEventPublisher, eventCaptor);
     auditEventPublisher.setClock(clock);
     auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
     when(clock.instant()).thenReturn(instant);
     sessionId = session.changeSessionId();
-  }
-
-  private void expectAuditEvent(AuditEvent expectedEvent) {
-    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
-    final var auditEvent = eventCaptor.getValue().getAuditEvent();
-    final var equal = reflectionEquals(auditEvent, expectedEvent);
-    if (!equal) {
-      System.out.println(auditEvent);
-      System.out.println(expectedEvent);
-    }
-    assertTrue(equal);
   }
 
   @Test
@@ -123,7 +111,7 @@ class DevelopmentControllerTest {
             .andExpect(request().asyncStarted())
             .andReturn();
     mockMvc.perform(asyncDispatch(mvcResult)).andExpect(status().is(500));
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",

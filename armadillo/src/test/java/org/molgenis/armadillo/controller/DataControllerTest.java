@@ -4,20 +4,34 @@ import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.security.Principal;
 import java.time.Clock;
@@ -89,41 +103,42 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  @Autowired private MockMvc mockMvc;
-  @Autowired AuditEventPublisher auditEventPublisher;
-  @MockBean private ExpressionRewriter expressionRewriter;
-  @MockBean private Commands commands;
-  @MockBean private ArmadilloStorageService armadilloStorage;
-  @MockBean private DSEnvironmentCache environments;
-  @MockBean private ApplicationEventPublisher applicationEventPublisher;
-  @Mock private REXP rexp;
-  @Mock private DSEnvironment assignEnvironment;
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  AuditEventPublisher auditEventPublisher;
+  @MockBean
+  private ExpressionRewriter expressionRewriter;
+  @MockBean
+  private Commands commands;
+  @MockBean
+  private ArmadilloStorageService armadilloStorage;
+  @MockBean
+  private DSEnvironmentCache environments;
+  @MockBean
+  private ApplicationEventPublisher applicationEventPublisher;
+  @Mock
+  private REXP rexp;
+  @Mock
+  private DSEnvironment assignEnvironment;
 
   @Mock(lenient = true)
   private Clock clock;
 
-  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
+  @Captor
+  private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
   private final Instant instant = Instant.now();
+  private AuditEventValidator auditEventValidator;
 
   @BeforeEach
   public void setup() {
+    auditEventValidator = new AuditEventValidator(applicationEventPublisher, eventCaptor);
     auditEventPublisher.setClock(clock);
     auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
     when(clock.instant()).thenReturn(instant);
     sessionId = session.changeSessionId();
-  }
-
-  private void expectAuditEvent(AuditEvent expectedEvent) {
-    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
-    final var auditEvent = eventCaptor.getValue().getAuditEvent();
-    final var equal = reflectionEquals(auditEvent, expectedEvent);
-    if (!equal) {
-      System.out.println(auditEvent);
-      System.out.println(expectedEvent);
-    }
-    assertTrue(equal);
   }
 
   @Test
@@ -164,7 +179,7 @@ class DataControllerTest {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
     verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -185,7 +200,7 @@ class DataControllerTest {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -201,7 +216,7 @@ class DataControllerTest {
         .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -227,7 +242,7 @@ class DataControllerTest {
         .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
         .andExpect(status().isNotFound());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -249,7 +264,7 @@ class DataControllerTest {
   @WithMockUser
   void getGetSymbols() throws Exception {
     when(commands.evaluate("base::ls()")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[] {"D"});
+    when(rexp.asStrings()).thenReturn(new String[]{"D"});
 
     mockMvc
         .perform(get("/symbols").session(session))
@@ -257,7 +272,7 @@ class DataControllerTest {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"D\"]"));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -271,7 +286,7 @@ class DataControllerTest {
     when(commands.evaluate("base::rm(D)")).thenReturn(completedFuture(null));
     mockMvc.perform(delete("/symbols/D").session(session)).andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -295,7 +310,7 @@ class DataControllerTest {
         .andExpect(jsonPath("$[0].package").value("dsBase"))
         .andExpect(jsonPath("$[0].version").value("1.2.3"));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -319,7 +334,7 @@ class DataControllerTest {
         .andExpect(jsonPath("$[0].package").value("base"))
         .andExpect(jsonPath("$[0].version", nullValue()));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -389,7 +404,7 @@ class DataControllerTest {
 
     verify(armadilloStorage).removeWorkspace(any(Principal.class), eq("test"));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "henk",
@@ -407,7 +422,7 @@ class DataControllerTest {
         .perform(post("/workspaces/servername:test_dash").session(session))
         .andExpect(status().isCreated());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "henk",
@@ -441,7 +456,7 @@ class DataControllerTest {
 
     mockMvc.perform(post("/load-workspace?id=blah").session(session)).andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "henk",
@@ -469,7 +484,7 @@ class DataControllerTest {
                 .content(expression))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -505,7 +520,7 @@ class DataControllerTest {
         .andExpect(header().string("Location", "http://localhost/lastcommand"))
         .andExpect(content().string(""));
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -538,7 +553,7 @@ class DataControllerTest {
     assignment.complete(null);
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -572,7 +587,7 @@ class DataControllerTest {
         "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -609,7 +624,7 @@ class DataControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -651,7 +666,7 @@ class DataControllerTest {
         "Error parsing expression 'meanDS(D$age':\nMissing end bracket",
         mvcResult.getResolvedException().getMessage());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -697,7 +712,7 @@ class DataControllerTest {
 
     future.complete(null);
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -724,7 +739,7 @@ class DataControllerTest {
             .andReturn();
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -758,7 +773,7 @@ class DataControllerTest {
             post("/load-table?symbol=D&table=project/folder/table&async=false").session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -791,7 +806,7 @@ class DataControllerTest {
                 .session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -814,10 +829,10 @@ class DataControllerTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "diabetes/test/blah",
-        "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
-        "000-222-211-4112/test/blah",
-        "a-b-c-d/test/blah"
+          "diabetes/test/blah",
+          "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
+          "000-222-211-4112/test/blah",
+          "a-b-c-d/test/blah"
       })
   void testValidTableName(String name) {
     assertTrue(name.matches(TABLE_RESOURCE_REGEX));
@@ -826,11 +841,11 @@ class DataControllerTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "DIABETES/test",
-        "_b/test",
-        ".b/test",
-        "b-/test",
-        "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
+          "DIABETES/test",
+          "_b/test",
+          ".b/test",
+          "b-/test",
+          "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
       })
   void testInvalidSharedWorkspaceName(String name) {
     assertFalse(name.matches(TABLE_RESOURCE_REGEX));
@@ -845,7 +860,7 @@ class DataControllerTest {
 
     mockMvc.perform(get("/resources").session(session)).andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -862,7 +877,7 @@ class DataControllerTest {
         .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1").session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -893,7 +908,7 @@ class DataControllerTest {
                 .session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -923,7 +938,7 @@ class DataControllerTest {
                 .session(session))
         .andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
@@ -953,7 +968,7 @@ class DataControllerTest {
 
     mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
 
-    expectAuditEvent(
+    auditEventValidator.validateAuditEvent(
         new AuditEvent(
             instant,
             "user",
