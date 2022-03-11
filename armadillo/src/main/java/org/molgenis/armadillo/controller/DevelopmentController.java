@@ -7,6 +7,8 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.MESSAGE;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.ResponseEntity.status;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -78,7 +81,9 @@ public class DevelopmentController {
       Principal principal, @RequestParam MultipartFile file) throws IOException {
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
-      // TODO include error message
+      Map<String, Object> data = new HashMap<>();
+      data.put(MESSAGE, "Filename is null or empty");
+      auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
       String filename = file.getOriginalFilename();
