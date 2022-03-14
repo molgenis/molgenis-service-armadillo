@@ -97,8 +97,8 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public Optional<CompletableFuture<REXP>> getLastExecution() {
-    return Optional.ofNullable(lastCommand).flatMap(it -> it.getExecution());
+  public Optional getLastExecution() {
+    return Optional.ofNullable(lastCommand).flatMap(ArmadilloCommand::getExecution);
   }
 
   @Override

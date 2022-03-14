@@ -6,9 +6,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -36,10 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.security.Principal;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -974,5 +969,20 @@ class DataControllerTest {
             "user",
             "GET_USER_WORKSPACES",
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
+  }
+
+  @Test
+  void testGetMatchedData(){
+    DataController dataController = new DataController(commands, armadilloStorage, auditEventPublisher,
+            expressionRewriter, environments);
+    String regex = "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
+    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
+    HashMap<String, Object> matchedData = dataController.getMatchedData(pattern,
+            "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
+    HashMap<String, Object> expected = new HashMap<>();
+    expected.put("project", "helllo123hihellogoodbye");
+    expected.put("folder", "somethingElse");
+    expected.put("RESOURCE", "Blaat");
+    assertEquals(matchedData, expected);
   }
 }
