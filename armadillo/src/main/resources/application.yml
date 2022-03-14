@@ -21,6 +21,9 @@ springdoc:
     enabled: false
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
   application:
     name: armadillo
   security:

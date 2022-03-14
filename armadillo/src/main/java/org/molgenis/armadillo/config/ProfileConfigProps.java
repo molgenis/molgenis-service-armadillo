@@ -9,8 +9,9 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 public class ProfileConfigProps {
+
   private Map<String, String> options = new HashMap<>();
-  @NotEmpty private Set<String> whitelist = new HashSet<>();
+  @NotEmpty private final Set<String> whitelist = new HashSet<>();
   @NotEmpty private String name;
   @NotEmpty private String environment;
 
@@ -26,8 +27,8 @@ public class ProfileConfigProps {
     return whitelist;
   }
 
-  public void setWhitelist(Set<String> whitelist) {
-    this.whitelist = whitelist;
+  public void addToWhitelist(String pkg) {
+    whitelist.add(pkg);
   }
 
   public String getEnvironment() {

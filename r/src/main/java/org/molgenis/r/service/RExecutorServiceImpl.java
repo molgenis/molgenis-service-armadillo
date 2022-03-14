@@ -14,8 +14,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.r.Formatter;
+import org.molgenis.r.exceptions.FailedRPackageInstallException;
+import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
@@ -128,6 +131,37 @@ public class RExecutorServiceImpl implements RExecutorService {
     }
   }
 
+  @Override
+  public void installPackage(RConnection connection, Resource packageResource, String filename) {
+    // https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
+
+    if (!filename.endsWith(".tar.gz")) {
+      throw new InvalidRPackageException(filename);
+    }
+
+    String packageName = getPackageNameFromFilename(filename);
+
+    LOGGER.info("Installing package '{}'", filename);
+    String rFilename = getRFilenameFromFilename(filename);
+    try {
+      copyFile(packageResource, rFilename, connection);
+      execute(
+          format("remotes::install_local('%s', dependencies = TRUE, upgrade = 'never')", rFilename),
+          connection);
+      var result = execute(format("require('%s')", packageName), connection);
+      if (result.isLogical()) {
+        REXPLogical logical = (REXPLogical) result;
+        if (logical.asInteger() == 0) {
+          throw new FailedRPackageInstallException(packageName);
+        }
+      }
+      execute(format("file.remove('%s')", filename), connection);
+
+    } catch (IOException | REXPMismatchException e) {
+      throw new RExecutionException(e);
+    }
+  }
+
   void copyFile(Resource resource, String dataFileName, RConnection connection) throws IOException {
     LOGGER.info("Copying '{}' to R...", dataFileName);
     Stopwatch sw = Stopwatch.createStarted();
@@ -144,5 +178,13 @@ public class RExecutorServiceImpl implements RExecutorService {
             format("%.03f", size * 1.0 / elapsed));
       }
     }
+  }
+
+  protected String getPackageNameFromFilename(String filename) {
+    return filename.replaceFirst("_[^_]+$", "");
+  }
+
+  protected String getRFilenameFromFilename(String filename) {
+    return filename.replace("/", "_");
   }
 }

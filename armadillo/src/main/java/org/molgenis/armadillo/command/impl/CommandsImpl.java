@@ -30,6 +30,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
@@ -96,8 +97,8 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public Optional<CompletableFuture<REXP>> getLastExecution() {
-    return Optional.ofNullable(lastCommand).flatMap(it -> it.getExecution());
+  public Optional getLastExecution() {
+    return Optional.ofNullable(lastCommand).flatMap(ArmadilloCommand::getExecution);
   }
 
   @Override
@@ -198,6 +199,19 @@ class CommandsImpl implements Commands {
           protected Void doWithConnection(RConnection connection) {
             rExecutorService.saveWorkspace(
                 connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
+            return null;
+          }
+        });
+  }
+
+  @Override
+  public CompletableFuture<Void> installPackage(
+      Principal principal, Resource resource, String name) {
+    return schedule(
+        new ArmadilloCommandImpl<>("Install package", false) {
+          @Override
+          protected Void doWithConnection(RConnection connection) {
+            rExecutorService.installPackage(connection, resource, name);
             return null;
           }
         });

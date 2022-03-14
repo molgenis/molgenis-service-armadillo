@@ -93,3 +93,7 @@ GET http://localhost:8080/lastresult
 accept: application/octet-stream
 
 ###
+GET http://localhost:8080/whitelist
+
+###
+POST http://localhost:8080/whitelist/DSI

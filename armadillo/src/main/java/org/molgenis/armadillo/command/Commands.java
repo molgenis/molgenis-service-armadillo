@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXP;
+import org.springframework.core.io.Resource;
 
 public interface Commands {
 
@@ -26,6 +27,8 @@ public interface Commands {
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 
   CompletableFuture<Void> saveWorkspace(Principal principal, String id);
+
+  CompletableFuture<Void> installPackage(Principal principal, Resource resource, String name);
 
   CompletableFuture<List<RPackage>> getPackages();
 

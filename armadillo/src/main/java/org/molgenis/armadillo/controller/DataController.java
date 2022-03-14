@@ -6,14 +6,51 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN1;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DEBUG;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXECUTE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EXPRESSION;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.FOLDER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_AGGREGATE_METHODS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGNED_SYMBOLS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_ASSIGN_METHODS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PACKAGES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_RESOURCES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_TABLES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER_WORKSPACES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ID;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_RESOURCE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_TABLE_FAILURE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LOAD_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.MESSAGE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.REMOVE_SYMBOL;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.RESOURCE_EXISTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SAVE_USER_WORKSPACE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECTED_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SELECT_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.SYMBOL;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TABLE_EXISTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.TYPE;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -68,7 +105,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo", version = "0.1.0"),
+    info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
     security = {
       @SecurityRequirement(name = "JSESSIONID"),
       @SecurityRequirement(name = "http"),
@@ -93,8 +130,6 @@ public class DataController {
   private final AuditEventPublisher auditEventPublisher;
   private final ExpressionRewriter expressionRewriter;
   private final DSEnvironmentCache dsEnvironmentCache;
-  private final java.util.regex.Pattern tableResourcePattern =
-      java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
 
   public DataController(
       Commands commands,
@@ -102,11 +137,11 @@ public class DataController {
       AuditEventPublisher auditEventPublisher,
       ExpressionRewriter expressionRewriter,
       DSEnvironmentCache dsEnvironmentCache) {
-    this.commands = commands;
-    this.storage = storage;
-    this.auditEventPublisher = auditEventPublisher;
-    this.expressionRewriter = expressionRewriter;
-    this.dsEnvironmentCache = dsEnvironmentCache;
+    this.commands = requireNonNull(commands);
+    this.storage = requireNonNull(storage);
+    this.auditEventPublisher = requireNonNull(auditEventPublisher);
+    this.expressionRewriter = requireNonNull(expressionRewriter);
+    this.dsEnvironmentCache = requireNonNull(dsEnvironmentCache);
   }
 
   @Operation(summary = "Get R packages", description = "Get all installed R packages.")
@@ -168,15 +203,14 @@ public class DataController {
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
-    var matcher = tableResourcePattern.matcher(table);
-    //noinspection ResultOfMethodCallIgnored
-    matcher.find();
-    var project = matcher.group(1);
-    var folder = matcher.group(2);
-    var tableName = matcher.group(3);
-    Map<String, Object> data =
-        Map.of(SYMBOL, symbol, PROJECT, project, FOLDER, folder, TABLE, tableName);
-    if (!storage.tableExists(project, String.format(PATH_FORMAT, folder, tableName))) {
+
+    java.util.regex.Pattern tableResourcePattern =
+        java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
+    HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
+    data.put(SYMBOL, symbol);
+    if (!storage.tableExists(
+        (String) data.get(PROJECT),
+        String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE)))) {
       data = new HashMap<>(data);
       data.put(MESSAGE, "Table not found");
       auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
@@ -247,15 +281,11 @@ public class DataController {
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
       @RequestParam(defaultValue = "false") boolean async) {
     var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
-    var matcher = pattern.matcher(resource);
-    //noinspection ResultOfMethodCallIgnored
-    matcher.find();
-    var project = matcher.group(1);
-    var folder = matcher.group(2);
-    var resourceName = matcher.group(3);
-    Map<String, Object> data =
-        Map.of(SYMBOL, symbol, PROJECT, project, FOLDER, folder, RESOURCE, resourceName);
-    if (!storage.resourceExists(project, String.format(PATH_FORMAT, folder, resourceName))) {
+    Map<String, Object> data = getMatchedData(pattern, resource, RESOURCE);
+    data.put(SYMBOL, symbol);
+    if (!storage.resourceExists(
+        (String) data.get(PROJECT),
+        String.format(PATH_FORMAT, data.get(FOLDER), data.get(RESOURCE)))) {
       data = new HashMap<>(data);
       data.put(MESSAGE, "Resource not found");
       auditEventPublisher.audit(principal, LOAD_RESOURCE_FAILURE, data);
@@ -486,5 +516,17 @@ public class DataController {
         .audit(
             commands.loadWorkspace(principal, id), principal, LOAD_USER_WORKSPACE, Map.of(ID, id))
         .get();
+  }
+
+  HashMap<String, Object> getMatchedData(
+      java.util.regex.Pattern pattern, String value, String resource) {
+    var matcher = pattern.matcher(value);
+    //noinspection ResultOfMethodCallIgnored
+    matcher.find();
+    HashMap<String, Object> groups = new HashMap<>();
+    groups.put(PROJECT, matcher.group(1));
+    groups.put(FOLDER, matcher.group(2));
+    groups.put(resource, matcher.group(3));
+    return groups;
   }
 }
