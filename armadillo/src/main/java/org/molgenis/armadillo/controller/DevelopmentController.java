@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo - package endpoint", version = "0.1.0"),
+    info = @Info(title = "MOLGENIS Armadillo - developer endpoint", version = "0.1.0"),
     security = {
       @SecurityRequirement(name = "JSESSIONID"),
       @SecurityRequirement(name = "http"),
