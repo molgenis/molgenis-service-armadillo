@@ -107,9 +107,9 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
     security = {
-        @SecurityRequirement(name = "JSESSIONID"),
-        @SecurityRequirement(name = "http"),
-        @SecurityRequirement(name = "jwt")
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "jwt")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
@@ -173,9 +173,9 @@ public class DataController {
   @Operation(
       summary = "Check table existence",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The table exists and is available for DataSHIELD operations")
+        @ApiResponse(
+            responseCode = "200",
+            description = "The table exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/tables/{project}/{folder}/{table}", method = HEAD)
   public ResponseEntity<Void> tableExists(
@@ -205,10 +205,11 @@ public class DataController {
       @RequestParam(defaultValue = "false") boolean async) {
 
     java.util.regex.Pattern tableResourcePattern =
-            java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
+        java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
-    if (!storage.tableExists((String) data.get(PROJECT),
+    if (!storage.tableExists(
+        (String) data.get(PROJECT),
         String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE)))) {
       data = new HashMap<>(data);
       data.put(MESSAGE, "Table not found");
@@ -250,9 +251,9 @@ public class DataController {
   @Operation(
       summary = "Check resource existence",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The resource exists and is available for DataSHIELD operations")
+        @ApiResponse(
+            responseCode = "200",
+            description = "The resource exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
@@ -361,7 +362,7 @@ public class DataController {
       Principal principal,
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
-      @RequestParam(defaultValue = "false")
+          @RequestParam(defaultValue = "false")
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
@@ -425,8 +426,7 @@ public class DataController {
   }
 
   @GetMapping(value = "profiles")
-  public @ResponseBody
-  ProfilesResponse listProfiles(Principal principal) {
+  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
     return auditEventPublisher.audit(
         () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
         principal,
@@ -464,15 +464,15 @@ public class DataController {
   @Operation(
       summary = "Delete user workspace",
       responses = {
-          @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
+        @ApiResponse(responseCode = "200", description = "Workspace was removed or did not exist.")
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
   public void removeWorkspace(
       @PathVariable
-      @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
+          @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
           String id,
       Principal principal) {
     auditEventPublisher.audit(
@@ -490,9 +490,9 @@ public class DataController {
   @ResponseStatus(CREATED)
   public void saveUserWorkspace(
       @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
-      @PathVariable
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @PathVariable
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
@@ -506,9 +506,9 @@ public class DataController {
   @PostMapping(value = "/load-workspace")
   public void loadUserWorkspace(
       @Pattern(
-          regexp = WORKSPACE_ID_FORMAT_REGEX,
-          message = "Please use only letters, numbers, dashes or underscores")
-      @RequestParam
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          @RequestParam
           String id,
       Principal principal)
       throws ExecutionException, InterruptedException {
@@ -518,8 +518,8 @@ public class DataController {
         .get();
   }
 
-  static HashMap<String, Object> getMatchedData(java.util.regex.Pattern pattern, String value,
-      String resource) {
+  static HashMap<String, Object> getMatchedData(
+      java.util.regex.Pattern pattern, String value, String resource) {
     var matcher = pattern.matcher(value);
     //noinspection ResultOfMethodCallIgnored
     matcher.find();

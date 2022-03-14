@@ -98,30 +98,20 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  @Autowired
-  private MockMvc mockMvc;
-  @Autowired
-  AuditEventPublisher auditEventPublisher;
-  @MockBean
-  private ExpressionRewriter expressionRewriter;
-  @MockBean
-  private Commands commands;
-  @MockBean
-  private ArmadilloStorageService armadilloStorage;
-  @MockBean
-  private DSEnvironmentCache environments;
-  @MockBean
-  private ApplicationEventPublisher applicationEventPublisher;
-  @Mock
-  private REXP rexp;
-  @Mock
-  private DSEnvironment assignEnvironment;
+  @Autowired private MockMvc mockMvc;
+  @Autowired AuditEventPublisher auditEventPublisher;
+  @MockBean private ExpressionRewriter expressionRewriter;
+  @MockBean private Commands commands;
+  @MockBean private ArmadilloStorageService armadilloStorage;
+  @MockBean private DSEnvironmentCache environments;
+  @MockBean private ApplicationEventPublisher applicationEventPublisher;
+  @Mock private REXP rexp;
+  @Mock private DSEnvironment assignEnvironment;
 
   @Mock(lenient = true)
   private Clock clock;
 
-  @Captor
-  private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
+  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
   private final Instant instant = Instant.now();
@@ -259,7 +249,7 @@ class DataControllerTest {
   @WithMockUser
   void getGetSymbols() throws Exception {
     when(commands.evaluate("base::ls()")).thenReturn(completedFuture(rexp));
-    when(rexp.asStrings()).thenReturn(new String[]{"D"});
+    when(rexp.asStrings()).thenReturn(new String[] {"D"});
 
     mockMvc
         .perform(get("/symbols").session(session))
@@ -824,10 +814,10 @@ class DataControllerTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-          "diabetes/test/blah",
-          "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
-          "000-222-211-4112/test/blah",
-          "a-b-c-d/test/blah"
+        "diabetes/test/blah",
+        "maximumbucketlengthincludingprefixissixtythreecharacters/test/blah",
+        "000-222-211-4112/test/blah",
+        "a-b-c-d/test/blah"
       })
   void testValidTableName(String name) {
     assertTrue(name.matches(TABLE_RESOURCE_REGEX));
@@ -836,11 +826,11 @@ class DataControllerTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-          "DIABETES/test",
-          "_b/test",
-          ".b/test",
-          "b-/test",
-          "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
+        "DIABETES/test",
+        "_b/test",
+        ".b/test",
+        "b-/test",
+        "maximumbucketlengthincludingprefixissixtythreecharactersx/test"
       })
   void testInvalidSharedWorkspaceName(String name) {
     assertFalse(name.matches(TABLE_RESOURCE_REGEX));
@@ -972,13 +962,15 @@ class DataControllerTest {
   }
 
   @Test
-  void testGetMatchedData(){
-    DataController dataController = new DataController(commands, armadilloStorage, auditEventPublisher,
-            expressionRewriter, environments);
+  void testGetMatchedData() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String regex = "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-    HashMap<String, Object> matchedData = dataController.getMatchedData(pattern,
-            "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
+    HashMap<String, Object> matchedData =
+        dataController.getMatchedData(
+            pattern, "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
     HashMap<String, Object> expected = new HashMap<>();
     expected.put("project", "helllo123hihellogoodbye");
     expected.put("folder", "somethingElse");
