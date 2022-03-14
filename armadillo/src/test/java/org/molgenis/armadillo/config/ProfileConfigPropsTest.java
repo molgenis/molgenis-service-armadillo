@@ -36,7 +36,7 @@ class ProfileConfigPropsTest {
   }
 
   @Test
-  void TestWhitelist() {
+  void testWhitelist() {
     String pkg1 = "beautiful-pkg";
     String pkg2 = "ugly-pkg";
     props.addToWhitelist(pkg1);
