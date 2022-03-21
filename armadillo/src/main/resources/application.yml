@@ -152,3 +152,47 @@ datashield:
       options:
         datashield:
           seed: 039284230
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development-compose
+
+rserve:
+  environments:
+    - name: default
+      host: rserver
+      port: 6311
+    - name: exposome
+      host: rserver-exposome
+      port: 6311
+    - name: omics
+      host: rserver-omics
+      port: 6311
+
+datashield:
+  profiles:
+    - name: default
+      environment: default
+      whitelist:
+        - dsBase
+      options:
+        datashield:
+          seed: 342325352
+    - name: exposome
+      environment: exposome
+      whitelist:
+        - dsBase
+        - dsExposome
+      options:
+        datashield:
+          seed: 039284230
+    - name: omics
+      environment: omics
+      whitelist:
+        - dsBase
+        - dsOmics
+      options:
+        datashield:
+          seed: 93787423

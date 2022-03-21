@@ -13,6 +13,7 @@ services:
     # volumes:
     #   - ./data/:/data
 
+  # active this profile by adding --profile armadillo to the docker-compose --profile armadillo up
   armadillo:
     image: molgenis/armadillo:latest
     environment:
@@ -40,6 +41,7 @@ services:
       # host port: container port
       - 6311:6311
 
+  # active this profile by adding --profile armadillo to the docker-compose --profile armadillo --profile exposome up
   rserver-exposome:
     image: datashield/armadillo-rserver-exposome:1.0.1
     environment:
@@ -48,6 +50,7 @@ services:
       - 6312:6311
     profiles: [ "exposome" ]
 
+  # active this profile by adding --profile armadillo to the docker-compose --profile armadillo --profile omics up
   rserver-omics:
     image: datashield/armadillo-rserver-omics:latest
     environment:
