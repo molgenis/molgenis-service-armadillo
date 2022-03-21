@@ -154,10 +154,11 @@ datashield:
           seed: 039284230
 
 ---
+# use this profile when you want to run the armadillo within the docker-compose file
 spring:
   config:
     activate:
-      on-profile: development-compose
+      on-profile: docker-compose
 
 rserve:
   environments:

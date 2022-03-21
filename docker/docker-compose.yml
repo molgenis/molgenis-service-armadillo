@@ -17,7 +17,7 @@ services:
   armadillo:
     image: molgenis/armadillo:latest
     environment:
-      SPRING_PROFILES_ACTIVE: development
+      SPRING_PROFILES_ACTIVE: development,docker-compose
       MINIO_URL: http://minio
       MINIO_ACCESS_KEY: molgenis
       MINIO_SECRET_KEY: molgenis
