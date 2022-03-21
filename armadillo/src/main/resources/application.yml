@@ -194,6 +194,7 @@ datashield:
       whitelist:
         - dsBase
         - dsOmics
+        - resourcer
       options:
         datashield:
           seed: 93787423
