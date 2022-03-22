@@ -1,17 +1,32 @@
 version: "3.4"
 services:
   minio:
-    image: minio/minio:RELEASE.2021-02-19T04-38-02Z
+    image: minio/minio:RELEASE.2022-02-26T02-54-46Z
     ports:
       - 9000:9000
     environment:
-      MINIO_ACCESS_KEY: molgenis
-      MINIO_SECRET_KEY: molgenis
+      MINIO_ROOT_USER: molgenis
+      MINIO_ROOT_PASSWORD: molgenis
       MINIO_IDENTITY_OPENID_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
       MINIO_IDENTITY_OPENID_CONFIG_URL: 'https://auth.molgenis.org/.well-known/openid-configuration'
+      MINIO_BROWSER: 'off'
     command: server /data
     # volumes:
     #   - ./data/:/data
+
+  console:
+    image: minio/console:v0.14.8
+    ports:
+      - 9090:9090
+    environment:
+      CONSOLE_PBKDF_PASSPHRASE: '3298yhrtequhfqeiopunvdasl'
+      CONSOLE_PBKDF_SALT: 'dfs98q8hg4n9npqfeiqfne'
+      CONSOLE_MINIO_SERVER: 'http://minio:9000'
+    # CONSOLE_IDP_URL: 'https://auth.molgenis.org/.well-known/openid-configuration'
+    # CONSOLE_IDP_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+    # CONSOLE_IDP_SECRET: 'xxxxxxxxxxxxxxxxx'
+    # CONSOLE_IDP_CALLBACK: 'http://localhost:9090/oauth_callback'
+    command: server
 
   # activate this profile by adding --profile armadillo to the `docker-compose --profile armadillo up`
   armadillo:
