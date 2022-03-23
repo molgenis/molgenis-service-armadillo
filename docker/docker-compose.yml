@@ -58,7 +58,7 @@ services:
 
   # activate this profile by adding --profile exposome to the `docker-compose --profile armadillo --profile exposome up`
   rserver-exposome:
-    image: datashield/armadillo-rserver-exposome:1.0.1
+    image: brgelab/armadillo-rserver-exposome:2
     environment:
       DEBUG: "FALSE"
     ports:
@@ -67,7 +67,7 @@ services:
 
   # activate this profile by adding --profile omics to the `docker-compose --profile armadillo --profile omics up`
   rserver-omics:
-    image: datashield/armadillo-rserver-omics:latest
+    image: brgelab/armadillo-rserver-omics:1
     environment:
       DEBUG: "FALSE"
     ports:

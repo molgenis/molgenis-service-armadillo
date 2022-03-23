@@ -178,7 +178,10 @@ class PackageServiceImplTest {
   @Test
   void testLoadPackages() throws RserveException {
     Set<String> packages = ImmutableSet.of("dsBase", "dsExposome");
-    String command = "library(" + String.format("\"%s\"", String.join("\",\"", packages)) + ")";
+    String command =
+        "base::lapply(c("
+            + String.format("\"%s\"", String.join("\",\"", packages))
+            + "), library, character.only = TRUE)";
     packageService.loadPackages(rConnection, packages);
     verify(rConnection, atLeastOnce()).eval(command);
   }

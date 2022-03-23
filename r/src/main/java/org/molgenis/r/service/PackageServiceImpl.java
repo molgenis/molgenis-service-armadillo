@@ -77,7 +77,7 @@ public class PackageServiceImpl implements PackageService {
     try {
       String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
       LOGGER.trace("Loading packages [ {} ]", packages);
-      connection.eval("library(" + packages + ")");
+      connection.eval("base::lapply(c(" + packages + "), library, character.only = TRUE)");
       LOGGER.trace("Successfully loaded packages [ {} ]", packages);
     } catch (RserveException e) {
       throw new RExecutionException(e);
