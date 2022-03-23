@@ -195,6 +195,7 @@ datashield:
         - dsBase
         - dsOmics
         - resourcer
+        - s3.file.resourcer
       options:
         datashield:
           seed: 93787423
