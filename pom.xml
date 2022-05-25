@@ -50,7 +50,7 @@
 
         <fmt-maven-plugin.version>2.9</fmt-maven-plugin.version>
         <sonar-maven-plugin.version>3.5.0.1254</sonar-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <release-maven-plugin.version>2.5.3</release-maven-plugin.version>
         <reproducable-build-plugin.version>0.13</reproducable-build-plugin.version>
         <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
