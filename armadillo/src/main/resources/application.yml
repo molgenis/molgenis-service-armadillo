@@ -14,11 +14,11 @@ datashield:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-         # foo: bar
+          # foo: bar
 
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
 
 spring:
   servlet:
