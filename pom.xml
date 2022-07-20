@@ -62,7 +62,7 @@
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
         <sonar.coverage.exclusions>**/*Config.*</sonar.coverage.exclusions>
 
-        <auto-value.version>1.7</auto-value.version>
+        <auto-value.version>1.9</auto-value.version>
         <auto-service-annotations.version>1.0.1</auto-service-annotations.version>
 
         <RServe.version>1.8.1</RServe.version>
