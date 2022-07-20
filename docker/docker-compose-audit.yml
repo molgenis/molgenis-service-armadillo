@@ -10,7 +10,7 @@ services:
       - "9300:9300"
 
   filebeat:
-    image: docker.elastic.co/beats/filebeat-oss:7.9.3
+    image: docker.elastic.co/beats/filebeat-oss:7.17.5
     ports:
       - "5010:5010"
       - "9600:9600"
