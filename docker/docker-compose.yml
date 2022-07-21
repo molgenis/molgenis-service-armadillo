@@ -15,7 +15,7 @@ services:
     #   - ./data/:/data
 
   console:
-    image: minio/console:v0.14.8
+    image: minio/console:v0.19.1
     ports:
       - 9090:9090
     environment:
