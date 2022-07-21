@@ -15,7 +15,7 @@ services:
     #   - ./data/:/data
 
   console:
-    image: minio/console:v0.14.8
+    image: minio/console:v0.19.1
     ports:
       - 9090:9090
     environment:
@@ -49,7 +49,7 @@ services:
 
   rserver:
     # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:2.0.0
+    image: datashield/armadillo-rserver:6.2.0
     environment:
       DEBUG: "FALSE"
     ports:
