@@ -1,8 +1,9 @@
 <script setup>
+
 </script>
 
 <template>
-  <img src="logo.png"/>
+  <img src="/logo.png"/>
   <h1>Welcome to armadillo</h1>
   <button class="btn btn-primary">Sign in</button>
 
