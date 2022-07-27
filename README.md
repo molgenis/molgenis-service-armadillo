@@ -32,6 +32,14 @@ Alternatively for [kubernetes](https://k8s.io) deployments look at the [helm cha
 Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
 
 ### Development
+
+#### Setting up development tools
+This repository uses `pre-commit` to manage commit hooks. An installation guide can be found 
+[here](https://pre-commit.com/index.html#1-install-pre-commit). To install the hooks, 
+run `pre-commit install` once in the root folder of this repository. Now your code will be 
+automatically formatted whenever you commit. 
+
+#### Running in development
 You need to start several backend services in order to be able to develop in the Armadillo.
 You can choose the services by defining a profile when running the compose file.
 
