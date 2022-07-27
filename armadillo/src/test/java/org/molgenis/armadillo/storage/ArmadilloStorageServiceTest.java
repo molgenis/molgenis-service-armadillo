@@ -11,7 +11,6 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -29,194 +28,185 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @ExtendWith(MockitoExtension.class)
 class ArmadilloStorageServiceTest {
-    final String SHARED_GECKO = "shared-gecko";
-    final String SHARED_DIABETES = "shared-diabetes";
+  final String SHARED_GECKO = "shared-gecko";
+  final String SHARED_DIABETES = "shared-diabetes";
 
-    @MockBean
-    StorageService storageService;
-    @Mock
-    Principal principal;
-    @Mock
-    ObjectMetadata item;
-    @Mock
-    InputStream is;
-    @Autowired
-    ArmadilloStorageService armadilloStorage;
+  @MockBean StorageService storageService;
+  @Mock Principal principal;
+  @Mock ObjectMetadata item;
+  @Mock InputStream is;
+  @Autowired ArmadilloStorageService armadilloStorage;
 
-    @EnableGlobalMethodSecurity(prePostEnabled = true)
-    @Configuration
-    static class Config {
-        @Bean
-        ArmadilloStorageService armadilloStorageService(StorageService storageService) {
-            return new ArmadilloStorageService(storageService);
-        }
+  @EnableGlobalMethodSecurity(prePostEnabled = true)
+  @Configuration
+  static class Config {
+    @Bean
+    ArmadilloStorageService armadilloStorageService(StorageService storageService) {
+      return new ArmadilloStorageService(storageService);
     }
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testListProjects() {
-        when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
-        assertEquals(List.of("gecko"), armadilloStorage.listProjects());
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListProjects() {
+    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
+    assertEquals(List.of("gecko"), armadilloStorage.listProjects());
+  }
 
-    @Test
-    @WithMockUser
-    void testListTablesChecksPermission() {
-        assertThrows(AccessDeniedException.class, () -> armadilloStorage.listTables("gecko"));
-    }
+  @Test
+  @WithMockUser
+  void testListTablesChecksPermission() {
+    assertThrows(AccessDeniedException.class, () -> armadilloStorage.listTables("gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testListTablesAllowsSuperUser() {
-        assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListTablesAllowsSuperUser() {
+    assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testListTablesAllowsResearcher() {
-        assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesAllowsResearcher() {
+    assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testListTablesListsObjectsInSharedBucket() {
-        when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
-        when(item.getName()).thenReturn("1_0_release_1_1/gecko.parquet");
-        assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesListsObjectsInSharedBucket() {
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.getName()).thenReturn("1_0_release_1_1/gecko.parquet");
+    assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
+  }
 
-    @Test
-    @WithMockUser
-    void testTableExistsChecksPermission() {
-        assertThrows(
-                AccessDeniedException.class,
-                () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser
+  void testTableExistsChecksPermission() {
+    assertThrows(
+        AccessDeniedException.class,
+        () -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testTableExistsAllowsSuperUser() {
-        assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "SU")
+  void testTableExistsAllowsSuperUser() {
+    assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testTableExistsAllowsResearcher() {
-        assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testTableExistsAllowsResearcher() {
+    assertDoesNotThrow(() -> armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testTableExistsChecksExistence() {
-        when(storageService.objectExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
-                .thenReturn(true);
-        assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testTableExistsChecksExistence() {
+    when(storageService.objectExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
+        .thenReturn(true);
+    assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser
-    void testLoadTableChecksPermission() {
-        assertThrows(
-                AccessDeniedException.class,
-                () -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser
+  void testLoadTableChecksPermission() {
+    assertThrows(
+        AccessDeniedException.class,
+        () -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testLoadTableAllowsSuperUser() {
-        assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "SU")
+  void testLoadTableAllowsSuperUser() {
+    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testLoadTableAllowsResearcher() {
-        assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testLoadTableAllowsResearcher() {
+    assertDoesNotThrow(() -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser(roles = "GECKO_RESEARCHER")
-    void testLoadTableLoadsTable() {
-        when(storageService.load("shared-gecko", "1_0_release_1_1/gecko.parquet")).thenReturn(is);
-        assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
-    }
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testLoadTableLoadsTable() {
+    when(storageService.load("shared-gecko", "1_0_release_1_1/gecko.parquet")).thenReturn(is);
+    assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
+  }
 
-    @Test
-    @WithMockUser
-    void testListWorkspaces() {
-        when(principal.getName()).thenReturn("henk");
-        Instant lastModified = Instant.now().truncatedTo(MILLIS);
-        Workspace workspace =
-                Workspace.builder()
-                        .setName("blah")
-                        .setLastModified(lastModified)
-                        .setSize(56)
-                        .build();
+  @Test
+  @WithMockUser
+  void testListWorkspaces() {
+    when(principal.getName()).thenReturn("henk");
+    Instant lastModified = Instant.now().truncatedTo(MILLIS);
+    Workspace workspace =
+        Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
-        when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
-        when(item.getName()).thenReturn("blah.RData");
-        when(item.getLastModified()).thenReturn(Date.from(lastModified));
-        when(item.getSize()).thenReturn(workspace.size());
+    when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
+    when(item.getName()).thenReturn("blah.RData");
+    when(item.getLastModified()).thenReturn(Date.from(lastModified));
+    when(item.getSize()).thenReturn(workspace.size());
 
-        assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
-    }
+    assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
+  }
 
-    @Test
-    void testDeleteWorkspace() {
-        when(principal.getName()).thenReturn("henk");
-        armadilloStorage.removeWorkspace(principal, "test");
+  @Test
+  void testDeleteWorkspace() {
+    when(principal.getName()).thenReturn("henk");
+    armadilloStorage.removeWorkspace(principal, "test");
 
-        verify(storageService).delete("user-henk", "test.RData");
-    }
+    verify(storageService).delete("user-henk", "test.RData");
+  }
 
-    @Test
-    void testLoadWorkspace() {
-        when(principal.getName()).thenReturn("henk");
-        when(storageService.load("user-henk", "test.RData")).thenReturn(is);
+  @Test
+  void testLoadWorkspace() {
+    when(principal.getName()).thenReturn("henk");
+    when(storageService.load("user-henk", "test.RData")).thenReturn(is);
 
-        assertSame(is, armadilloStorage.loadWorkspace(principal, "test"));
-    }
+    assertSame(is, armadilloStorage.loadWorkspace(principal, "test"));
+  }
 
-    @Test
-    void testSaveWorkspace() {
-        when(principal.getName()).thenReturn("henk");
+  @Test
+  void testSaveWorkspace() {
+    when(principal.getName()).thenReturn("henk");
 
-        armadilloStorage.saveWorkspace(is, principal, "test");
+    armadilloStorage.saveWorkspace(is, principal, "test");
 
-        verify(storageService).save(is, "user-henk", "test.RData", APPLICATION_OCTET_STREAM);
-    }
+    verify(storageService).save(is, "user-henk", "test.RData", APPLICATION_OCTET_STREAM);
+  }
 
-    @Test
-    void testSaveWorkspaceChecksBucketName() {
-        when(principal.getName()).thenReturn("Henk");
+  @Test
+  void testSaveWorkspaceChecksBucketName() {
+    when(principal.getName()).thenReturn("Henk");
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> armadilloStorage.saveWorkspace(is, principal, "test"));
-    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testResourceExists() {
-        when(storageService.objectExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
-        boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
-        assertTrue(exists);
-    }
+  @Test
+  @WithMockUser(roles = "SU")
+  void testResourceExists() {
+    when(storageService.objectExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
+    boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
+    assertTrue(exists);
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testLoadResource() {
-        when(storageService.load("shared-gecko", "hpc-resource.rds")).thenReturn(is);
+  @Test
+  @WithMockUser(roles = "SU")
+  void testLoadResource() {
+    when(storageService.load("shared-gecko", "hpc-resource.rds")).thenReturn(is);
 
-        InputStream resource = armadilloStorage.loadResource("gecko", "hpc-resource");
-        assertNotNull(resource);
-    }
+    InputStream resource = armadilloStorage.loadResource("gecko", "hpc-resource");
+    assertNotNull(resource);
+  }
 
-    @Test
-    @WithMockUser(roles = "SU")
-    void testListResources() {
-        when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
-        when(item.getName()).thenReturn("hpc-resource.rds");
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListResources() {
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.getName()).thenReturn("hpc-resource.rds");
 
-        assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
-    }
+    assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
+  }
 }
