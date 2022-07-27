@@ -1,22 +1,21 @@
 package org.molgenis.armadillo.storage;
 
-import org.springframework.http.MediaType;
-
 import java.io.InputStream;
 import java.util.List;
+import org.springframework.http.MediaType;
 
 public interface StorageService {
-    boolean objectExists(String bucket, String objectName);
+  boolean objectExists(String bucket, String objectName);
 
-    void createBucketIfNotExists(String bucket);
+  void createBucketIfNotExists(String bucket);
 
-    List<String> listBuckets();
+  List<String> listBuckets();
 
-    void save(InputStream is, String bucketName, String objectName, MediaType mediaType);
+  void save(InputStream is, String bucketName, String objectName, MediaType mediaType);
 
-    List<ObjectMetadata> listObjects(String bucketName);
+  List<ObjectMetadata> listObjects(String bucketName);
 
-    InputStream load(String bucketName, String objectName);
+  InputStream load(String bucketName, String objectName);
 
-    void delete(String bucketName, String objectName);
+  void delete(String bucketName, String objectName);
 }
