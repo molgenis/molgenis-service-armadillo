@@ -75,7 +75,7 @@ class ArmadilloStorageServiceTest {
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListTablesListsObjectsInSharedBucket() {
     when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
-    when(item.getName()).thenReturn("1_0_release_1_1/gecko.parquet");
+    when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
 
@@ -143,9 +143,9 @@ class ArmadilloStorageServiceTest {
         Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
     when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
-    when(item.getName()).thenReturn("blah.RData");
-    when(item.getLastModified()).thenReturn(Date.from(lastModified));
-    when(item.getSize()).thenReturn(workspace.size());
+    when(item.name()).thenReturn("blah.RData");
+    when(item.lastModified()).thenReturn(Date.from(lastModified));
+    when(item.size()).thenReturn(workspace.size());
 
     assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
   }
@@ -205,7 +205,7 @@ class ArmadilloStorageServiceTest {
   @WithMockUser(roles = "SU")
   void testListResources() {
     when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
-    when(item.getName()).thenReturn("hpc-resource.rds");
+    when(item.name()).thenReturn("hpc-resource.rds");
 
     assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
   }

@@ -55,8 +55,8 @@ public class LocalStorageServiceTest {
     assertTrue(localStorageService.objectExists(SOME_BUCKET, SOME_OBJECT_PATH));
     // test it has expected metadata
     ObjectMetadata metadata = localStorageService.listObjects(SOME_BUCKET).get(0);
-    assertTrue(metadata.getLastModified().before(new Date()));
-    assertTrue(metadata.getSize() > 0);
+    assertTrue(metadata.lastModified().before(new Date()));
+    assertTrue(metadata.size() > 0);
   }
 
   @Test

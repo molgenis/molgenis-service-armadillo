@@ -40,7 +40,7 @@ public class ArmadilloStorageService {
   public List<String> listTables(String project) {
     var bucketName = SHARED_PREFIX + project;
     return storageService.listObjects(bucketName).stream()
-        .map(objectMetadata -> format("%s/%s", project, objectMetadata.getName()))
+        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(PARQUET))
         .map(FilenameUtils::removeExtension)
         .collect(toList());
@@ -70,7 +70,7 @@ public class ArmadilloStorageService {
   public List<String> listResources(String project) {
     var bucketName = SHARED_PREFIX + project;
     return storageService.listObjects(bucketName).stream()
-        .map(objectMetadata -> format("%s/%s", project, objectMetadata.getName()))
+        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(RDS))
         .map(FilenameUtils::removeExtension)
         .collect(toList());
@@ -104,9 +104,9 @@ public class ArmadilloStorageService {
 
   private static Workspace toWorkspace(ObjectMetadata item) {
     return Workspace.builder()
-        .setLastModified(item.getLastModified())
-        .setName(removeExtension(item.getName()))
-        .setSize(item.getSize())
+        .setLastModified(item.lastModified())
+        .setName(removeExtension(item.name()))
+        .setSize(item.size())
         .build();
   }
 

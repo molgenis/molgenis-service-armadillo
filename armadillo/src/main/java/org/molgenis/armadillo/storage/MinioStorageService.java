@@ -134,7 +134,7 @@ class MinioStorageService implements StorageService {
       List<ObjectMetadata> result = newArrayList();
       for (var itemResult : minioClient.listObjects(bucketName)) {
         var item = itemResult.get();
-        result.add(new ObjectMetadata(item));
+        result.add(ObjectMetadata.of(item));
       }
       return result;
     } catch (InvalidKeyException

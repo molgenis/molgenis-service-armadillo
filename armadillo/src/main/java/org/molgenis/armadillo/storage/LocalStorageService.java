@@ -1,15 +1,22 @@
 package org.molgenis.armadillo.storage;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
 public class LocalStorageService implements StorageService {
+
   private static final int DEFAULT_BUFFER_SIZE = 8192;
   private String rootDir;
 
@@ -96,7 +103,8 @@ public class LocalStorageService implements StorageService {
         return Collections.emptyList();
       } else {
         return Files.list(bucketPath)
-            .map(objectPath -> new ObjectMetadata(objectPath.toFile()))
+            .map(Path::toFile)
+            .map(ObjectMetadata::of)
             .collect(Collectors.toList());
       }
     } catch (Exception e) {
