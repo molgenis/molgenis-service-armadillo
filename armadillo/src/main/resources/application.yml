@@ -18,7 +18,7 @@ datashield:
 
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
 
 spring:
   servlet:
