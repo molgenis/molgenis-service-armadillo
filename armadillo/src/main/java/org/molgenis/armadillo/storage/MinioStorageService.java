@@ -65,11 +65,11 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void createBucketIfNotExists(String bucket) {
+  public void createProjectIfNotExists(String projectName) {
     try {
-      if (!minioClient.bucketExists(bucket)) {
-        minioClient.makeBucket(bucket);
-        LOGGER.info("Created bucket {}.", bucket);
+      if (!minioClient.bucketExists(projectName)) {
+        minioClient.makeBucket(projectName);
+        LOGGER.info("Created bucket {}.", projectName);
       }
     } catch (InvalidKeyException
         | InsufficientDataException
@@ -87,7 +87,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<String> listBuckets() {
+  public List<String> listProjects() {
     try {
       return minioClient.listBuckets().stream()
           .map(bucket -> bucket.name())
@@ -107,11 +107,11 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void save(InputStream is, String bucketName, String objectName, MediaType mediaType) {
-    createBucketIfNotExists(bucketName);
+  public void save(InputStream is, String projectName, String objectName, MediaType mediaType) {
+    createProjectIfNotExists(projectName);
     try {
-      LOGGER.info("Putting object {} in bucket {}.", objectName, bucketName);
-      minioClient.putObject(bucketName, objectName, is, null, null, null, mediaType.toString());
+      LOGGER.info("Putting object {} in bucket {}.", objectName, projectName);
+      minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
@@ -128,11 +128,11 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<ObjectMetadata> listObjects(String bucketName) {
+  public List<ObjectMetadata> listObjects(String projectName) {
     try {
-      LOGGER.info("List objects in bucket {}.", bucketName);
+      LOGGER.info("List objects in bucket {}.", projectName);
       List<ObjectMetadata> result = newArrayList();
-      for (var itemResult : minioClient.listObjects(bucketName)) {
+      for (var itemResult : minioClient.listObjects(projectName)) {
         var item = itemResult.get();
         result.add(ObjectMetadata.of(item));
       }
@@ -151,10 +151,10 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public InputStream load(String bucketName, String objectName) {
+  public InputStream load(String projectName, String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
-      return minioClient.getObject(bucketName, objectName);
+      return minioClient.getObject(projectName, objectName);
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException
@@ -171,10 +171,10 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void delete(String bucketName, String objectName) {
+  public void delete(String projectName, String objectName) {
     try {
       LOGGER.info("Deleting object {}.", objectName);
-      minioClient.removeObject(bucketName, objectName);
+      minioClient.removeObject(projectName, objectName);
     } catch (InvalidKeyException
         | InvalidArgumentException
         | InsufficientDataException

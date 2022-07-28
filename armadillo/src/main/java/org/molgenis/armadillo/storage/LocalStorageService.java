@@ -27,23 +27,23 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public boolean objectExists(String bucket, String objectName) {
-    Objects.requireNonNull(bucket);
+  public boolean objectExists(String project, String objectName) {
+    Objects.requireNonNull(project);
     Objects.requireNonNull(objectName);
 
-    // no uppercase in bucket name
-    if (bucket.matches(".*[A-Z].*")) {
+    // no uppercase in project name
+    if (project.matches(".*[A-Z].*")) {
       // unsure why this matters
-      throw new StorageException("Buckets cannot contain uppercase characters");
+      throw new StorageException("Projects cannot contain uppercase characters");
     }
     try {
-      // check bucket
-      Path dir = Paths.get(rootDir, bucket);
+      // check project
+      Path dir = Paths.get(rootDir, project);
       if (!Files.exists(dir)) {
         return false;
       }
       // check object
-      Path object = Paths.get(rootDir, bucket, objectName);
+      Path object = Paths.get(rootDir, project, objectName);
       return Files.exists(object);
     } catch (Exception e) {
       throw new StorageException(e);
@@ -51,10 +51,10 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public void createBucketIfNotExists(String bucket) {
-    Objects.requireNonNull(bucket);
+  public void createProjectIfNotExists(String projectName) {
+    Objects.requireNonNull(projectName);
     try {
-      Path path = Paths.get(rootDir, bucket);
+      Path path = Paths.get(rootDir, projectName);
       if (!Files.exists(path)) {
         Files.createDirectory(path);
       }
@@ -64,7 +64,7 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public List<String> listBuckets() {
+  public List<String> listProjects() {
     var files = new File(rootDir).listFiles();
     if (files == null) return emptyList();
     return Arrays.stream(files)
@@ -75,10 +75,10 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public void save(
-      InputStream inputStream, String bucketName, String objectName, MediaType mediaType) {
-    Path path = Paths.get(rootDir, bucketName, objectName);
+      InputStream inputStream, String projectName, String objectName, MediaType mediaType) {
+    Path path = Paths.get(rootDir, projectName, objectName);
     try {
-      createBucketIfNotExists(bucketName);
+      createProjectIfNotExists(projectName);
 
       // create parent dirs if needed
       //noinspection ResultOfMethodCallIgnored
@@ -93,13 +93,13 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public List<ObjectMetadata> listObjects(String bucketName) {
+  public List<ObjectMetadata> listObjects(String projectName) {
     try {
-      Path bucketPath = Paths.get(rootDir, bucketName);
-      if (!Files.exists(bucketPath)) {
+      Path projectPath = Paths.get(rootDir, projectName);
+      if (!Files.exists(projectPath)) {
         return emptyList();
       } else {
-        return Files.list(bucketPath)
+        return Files.list(projectPath)
             .map(Path::toFile)
             .map(ObjectMetadata::of)
             .collect(Collectors.toList());
@@ -110,38 +110,38 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public InputStream load(String bucketName, String objectName) {
+  public InputStream load(String projectName, String objectName) {
     try {
-      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(projectName);
       Objects.requireNonNull(objectName);
 
-      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      Path objectPath = getPathIfObjectExists(projectName, objectName);
       return new FileInputStream(objectPath.toFile());
     } catch (Exception e) {
       throw new StorageException(e);
     }
   }
 
-  private Path getPathIfObjectExists(String bucketName, String objectName) {
-    Path bucketPath = Paths.get(rootDir, bucketName);
-    if (!Files.exists(bucketPath)) {
-      throw new StorageException(String.format("Bucket '%s' doesn't exist", bucketName));
+  private Path getPathIfObjectExists(String projectName, String objectName) {
+    Path projectPath = Paths.get(rootDir, projectName);
+    if (!Files.exists(projectPath)) {
+      throw new StorageException(String.format("Project '%s' doesn't exist", projectName));
     }
-    Path objectPath = Paths.get(rootDir, bucketName, objectName);
+    Path objectPath = Paths.get(rootDir, projectName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          String.format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));
+          String.format("Object '%s' doesn't exist in project '%s'", projectName, objectName));
     }
     return objectPath;
   }
 
   @Override
-  public void delete(String bucketName, String objectName) {
-    Objects.requireNonNull(bucketName);
+  public void delete(String projectName, String objectName) {
+    Objects.requireNonNull(projectName);
     Objects.requireNonNull(objectName);
 
     try {
-      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      Path objectPath = getPathIfObjectExists(projectName, objectName);
       Files.delete(objectPath);
     } catch (Exception e) {
       throw new StorageException(e);

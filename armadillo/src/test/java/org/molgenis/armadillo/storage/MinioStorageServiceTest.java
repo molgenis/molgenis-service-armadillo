@@ -47,14 +47,14 @@ class MinioStorageServiceTest {
     doThrow(new IOException("blah")).when(minioClient).bucketExists("bucket");
 
     assertThrows(
-        StorageException.class, () -> minioStorageService.createBucketIfNotExists("bucket"));
+        StorageException.class, () -> minioStorageService.createProjectIfNotExists("bucket"));
   }
 
   @Test
   void testCheckBucketExistsCreatesBucketIfNotFound() throws Exception {
     when(minioClient.bucketExists("bucket")).thenReturn(false);
 
-    minioStorageService.createBucketIfNotExists("bucket");
+    minioStorageService.createProjectIfNotExists("bucket");
 
     verify(minioClient).makeBucket("bucket");
   }

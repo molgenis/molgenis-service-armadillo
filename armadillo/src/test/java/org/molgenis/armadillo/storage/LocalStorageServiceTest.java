@@ -28,8 +28,8 @@ public class LocalStorageServiceTest {
 
   @Test
   void testCheckBucketExistsCreatesBucketIfNotFound() {
-    localStorageService.createBucketIfNotExists(SOME_BUCKET);
-    assertTrue(localStorageService.listBuckets().contains(SOME_BUCKET));
+    localStorageService.createProjectIfNotExists(SOME_BUCKET);
+    assertTrue(localStorageService.listProjects().contains(SOME_BUCKET));
   }
 
   @Test

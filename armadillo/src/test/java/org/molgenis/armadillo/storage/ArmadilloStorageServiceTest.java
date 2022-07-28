@@ -49,7 +49,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListProjects() {
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
+    when(storageService.listProjects()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
     assertEquals(List.of("gecko"), armadilloStorage.listProjects());
   }
 

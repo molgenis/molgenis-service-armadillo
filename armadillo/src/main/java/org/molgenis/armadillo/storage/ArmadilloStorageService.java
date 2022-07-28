@@ -30,7 +30,7 @@ public class ArmadilloStorageService {
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
   public List<String> listProjects() {
-    return storageService.listBuckets().stream()
+    return storageService.listProjects().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
         .collect(toList());
