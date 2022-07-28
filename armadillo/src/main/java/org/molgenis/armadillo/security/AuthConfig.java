@@ -55,8 +55,14 @@ public class AuthConfig extends WebSecurityConfigurerAdapter {
   @Bean
   Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new JwtRolesExtractor());
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
+        new JwtRolesExtractor(accessPermissionManager()));
     return jwtAuthenticationConverter;
+  }
+
+  @Bean
+  public AccessStorageService accessPermissionManager() {
+    return new AccessStorageService();
   }
 
   @Profile("development")

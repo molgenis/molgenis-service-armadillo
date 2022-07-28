@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
@@ -10,7 +11,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.5.12</version>
-        <relativePath /> <!-- lookup parent from repository -->
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.molgenis</groupId>
     <artifactId>armadillo-service</artifactId>
@@ -23,7 +24,9 @@
     </organization>
 
     <scm>
-        <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_TOKEN}@github.com/molgenis/molgenis-service-datashield</developerConnection>
+        <developerConnection>
+            scm:git:https://${env.GITHUB_USER}:${env.GITHUB_TOKEN}@github.com/molgenis/molgenis-service-datashield
+        </developerConnection>
         <url>https://github.com/molgenis/molgenis-service-datashield</url>
         <tag>HEAD</tag>
     </scm>
@@ -43,7 +46,7 @@
     <properties>
         <project.scm.id>github</project.scm.id>
 
-        <java.version>11</java.version>
+        <java.version>17</java.version>
 
         <!-- authentication for release scm plugin -->
         <project.scm.id>github</project.scm.id>
