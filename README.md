@@ -31,6 +31,10 @@ To spin up your own server on a laptop, you can run `docker-compose up` in the d
 Alternatively for [kubernetes](https://k8s.io) deployments look at the [helm chart](https://github.com/molgenis/molgenis-ops-helm/tree/master/charts/molgenis-armadillo). 
 Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
 
+## What to do next
+
+Find some examples [here](https://github.com/molgenis/molgenis-service-armadillo/tree/master/docker/test)
+
 ### Development
 
 #### Setting up development tools
