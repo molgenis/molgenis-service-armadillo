@@ -18,7 +18,6 @@ import org.springframework.http.MediaType;
 
 public class LocalStorageService implements StorageService {
 
-  private static final int DEFAULT_BUFFER_SIZE = 8192;
   private final String rootDir;
 
   public LocalStorageService(String rootDir) {
@@ -85,13 +84,8 @@ public class LocalStorageService implements StorageService {
       //noinspection ResultOfMethodCallIgnored
       path.toFile().getParentFile().mkdirs();
 
-      // write the stream into object file
       try (FileOutputStream outputStream = new FileOutputStream(path.toFile(), false)) {
-        int read;
-        byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
-        while ((read = inputStream.read(bytes)) != -1) {
-          outputStream.write(bytes, 0, read);
-        }
+        inputStream.transferTo(outputStream);
       }
     } catch (Exception e) {
       throw new StorageException(e);
