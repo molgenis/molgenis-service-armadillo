@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.storage;
 
+import static java.util.Collections.emptyList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -18,7 +19,7 @@ import org.springframework.http.MediaType;
 public class LocalStorageService implements StorageService {
 
   private static final int DEFAULT_BUFFER_SIZE = 8192;
-  private String rootDir;
+  private final String rootDir;
 
   public LocalStorageService(String rootDir) {
     Objects.requireNonNull(rootDir);
@@ -44,10 +45,7 @@ public class LocalStorageService implements StorageService {
       }
       // check object
       Path object = Paths.get(rootDir, bucket, objectName);
-      if (!Files.exists(object)) {
-        return false;
-      }
-      return true;
+      return Files.exists(object);
     } catch (Exception e) {
       throw new StorageException(e);
     }
@@ -68,7 +66,10 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public List<String> listBuckets() {
-    return Arrays.stream(new File(rootDir).listFiles())
+    var files = new File(rootDir).listFiles();
+    if (files == null) return emptyList();
+    return Arrays.stream(files)
+        .filter(File::isDirectory)
         .map(File::getName)
         .collect(Collectors.toList());
   }
@@ -78,10 +79,12 @@ public class LocalStorageService implements StorageService {
       InputStream inputStream, String bucketName, String objectName, MediaType mediaType) {
     Path path = Paths.get(rootDir, bucketName, objectName);
     try {
-      // create bucket if needed
       createBucketIfNotExists(bucketName);
+
       // create parent dirs if needed
+      //noinspection ResultOfMethodCallIgnored
       path.toFile().getParentFile().mkdirs();
+
       // write the stream into object file
       try (FileOutputStream outputStream = new FileOutputStream(path.toFile(), false)) {
         int read;
@@ -100,7 +103,7 @@ public class LocalStorageService implements StorageService {
     try {
       Path bucketPath = Paths.get(rootDir, bucketName);
       if (!Files.exists(bucketPath)) {
-        return Collections.emptyList();
+        return emptyList();
       } else {
         return Files.list(bucketPath)
             .map(Path::toFile)
