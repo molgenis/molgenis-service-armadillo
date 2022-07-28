@@ -24,17 +24,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.security.AccessStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,7 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(AccessController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
-@Import({AuditEventPublisher.class, AccessController.class})
+@Import({AuditEventPublisher.class})
 public class AccessControllerTest {
 
   @MockBean private ArmadilloStorageService armadilloStorage;
@@ -68,15 +64,6 @@ public class AccessControllerTest {
     auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
     when(clock.instant()).thenReturn(instant);
     sessionId = session.changeSessionId();
-  }
-
-  @EnableGlobalMethodSecurity(prePostEnabled = true)
-  @Configuration
-  static class Config {
-    @Bean
-    AccessStorageService accessStorageService() {
-      return new AccessStorageService();
-    }
   }
 
   @Test
