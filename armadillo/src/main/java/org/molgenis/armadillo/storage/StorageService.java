@@ -1,7 +1,10 @@
 package org.molgenis.armadillo.storage;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.InputStream;
 import java.util.List;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
@@ -18,4 +21,12 @@ public interface StorageService {
   InputStream load(String projectName, String objectName);
 
   void delete(String projectName, String objectName);
+
+  static void validateProjectName(String projectName) {
+    requireNonNull(projectName);
+
+    if (projectName.matches(".*[A-Z].*")) {
+      throw new StorageException("Project names cannot contain uppercase characters");
+    }
+  }
 }

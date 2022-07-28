@@ -27,23 +27,18 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public boolean objectExists(String project, String objectName) {
-    Objects.requireNonNull(project);
+  public boolean objectExists(String projectName, String objectName) {
     Objects.requireNonNull(objectName);
+    Objects.requireNonNull(projectName);
 
-    // no uppercase in project name
-    if (project.matches(".*[A-Z].*")) {
-      // unsure why this matters
-      throw new StorageException("Projects cannot contain uppercase characters");
-    }
     try {
       // check project
-      Path dir = Paths.get(rootDir, project);
+      Path dir = Paths.get(rootDir, projectName);
       if (!Files.exists(dir)) {
         return false;
       }
       // check object
-      Path object = Paths.get(rootDir, project, objectName);
+      Path object = Paths.get(rootDir, projectName, objectName);
       return Files.exists(object);
     } catch (Exception e) {
       throw new StorageException(e);
@@ -52,7 +47,8 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public void createProjectIfNotExists(String projectName) {
-    Objects.requireNonNull(projectName);
+    StorageService.validateProjectName(projectName);
+
     try {
       Path path = Paths.get(rootDir, projectName);
       if (!Files.exists(path)) {
