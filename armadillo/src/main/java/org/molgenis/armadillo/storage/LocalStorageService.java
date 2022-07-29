@@ -1,6 +1,8 @@
 package org.molgenis.armadillo.storage;
 
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static org.molgenis.armadillo.storage.LocalStorageService.ROOT_DIR_PROPERTY;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,14 +16,29 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 
+@Service
+@ConditionalOnProperty(ROOT_DIR_PROPERTY)
 public class LocalStorageService implements StorageService {
+
+  static final String ROOT_DIR_PROPERTY = "local-storage.root-dir";
 
   private final String rootDir;
 
-  public LocalStorageService(String rootDir) {
+  public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     Objects.requireNonNull(rootDir);
+
+    var dir = new File(rootDir);
+    if (!dir.isDirectory()) {
+      throw new StorageException(
+          format(
+              "Unable to start LocalStorageService - %s: %s is not a directory",
+              ROOT_DIR_PROPERTY, dir.getAbsolutePath()));
+    }
 
     this.rootDir = rootDir;
   }
@@ -62,7 +79,9 @@ public class LocalStorageService implements StorageService {
   @Override
   public List<String> listProjects() {
     var files = new File(rootDir).listFiles();
-    if (files == null) return emptyList();
+    if (files == null) {
+      return emptyList();
+    }
     return Arrays.stream(files)
         .filter(File::isDirectory)
         .map(File::getName)
@@ -121,12 +140,12 @@ public class LocalStorageService implements StorageService {
   private Path getPathIfObjectExists(String projectName, String objectName) {
     Path projectPath = Paths.get(rootDir, projectName);
     if (!Files.exists(projectPath)) {
-      throw new StorageException(String.format("Project '%s' doesn't exist", projectName));
+      throw new StorageException(format("Project '%s' doesn't exist", projectName));
     }
     Path objectPath = Paths.get(rootDir, projectName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          String.format("Object '%s' doesn't exist in project '%s'", projectName, objectName));
+          format("Object '%s' doesn't exist in project '%s'", projectName, objectName));
     }
     return objectPath;
   }

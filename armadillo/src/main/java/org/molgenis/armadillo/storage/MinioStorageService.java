@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.minio.ErrorCode.NO_SUCH_BUCKET;
 import static io.minio.ErrorCode.NO_SUCH_KEY;
 import static io.minio.ErrorCode.NO_SUCH_OBJECT;
+import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
 import io.minio.MinioClient;
 import io.minio.errors.ErrorResponseException;
@@ -23,12 +24,18 @@ import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.xmlpull.v1.XmlPullParserException;
 
 @Service
+@Primary
+@ConditionalOnProperty(MINIO_URL_PROPERTY)
 class MinioStorageService implements StorageService {
+
+  static final String MINIO_URL_PROPERTY = "minio.url";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
 

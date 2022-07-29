@@ -1,15 +1,19 @@
 package org.molgenis.armadillo.storage;
 
+import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
+
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+@ConditionalOnProperty(MINIO_URL_PROPERTY)
 @Configuration
 @ConfigurationProperties("minio")
 @Validated
