@@ -30,8 +30,6 @@ public class LocalStorageService implements StorageService {
   private final String rootDir;
 
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
-    Objects.requireNonNull(rootDir);
-
     var dir = new File(rootDir);
     if (!dir.isDirectory()) {
       throw new StorageException(
