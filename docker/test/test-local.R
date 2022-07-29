@@ -1,3 +1,5 @@
+# TODO update description: data upload not needed with local storage
+
 ################### data upload ###################
 # First upload the data into the minio            #
 # In the folder test/data you can find 4 testsets #
