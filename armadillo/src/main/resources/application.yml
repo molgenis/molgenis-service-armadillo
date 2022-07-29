@@ -85,6 +85,7 @@ logging:
 local-storage:
   root-dir: "data"
 
+# Uncomment the following block to enable MinIO storage (overrules local storage)
 #minio:
 #  url: http://localhost
 #  port: 9000
