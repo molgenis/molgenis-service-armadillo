@@ -19,6 +19,8 @@ datashield:
 springdoc:
   swagger-ui:
     enabled: true
+    csrf:
+      enabled: true
 
 spring:
   servlet:
