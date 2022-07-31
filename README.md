@@ -35,6 +35,8 @@ Or for virtual server deployment look at the [ansible playbook](https://galaxy.a
 
 Find some examples [here](https://github.com/molgenis/molgenis-service-armadillo/tree/master/docker/test)
 
+You can inspect the API endpoints at `localhost:8080/v3/api-docs`
+
 ### Development
 
 #### Setting up development tools
