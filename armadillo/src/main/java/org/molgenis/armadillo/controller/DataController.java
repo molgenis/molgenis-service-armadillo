@@ -1,9 +1,5 @@
 package org.molgenis.armadillo.controller;
 
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -60,13 +56,10 @@ import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -104,23 +97,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "http")
+@SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
-@OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
-    security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "Authentication")
-    })
-@SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
-@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
-@SecurityScheme(
-    name = "Authorization",
-    in = HEADER,
-    type = HTTP,
-    scheme = "Bearer",
-    bearerFormat = "JWT")
 public class DataController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";

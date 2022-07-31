@@ -34,8 +34,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Validated
-@SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "http")
+@SecurityRequirement(name = "JSESSIONID")
 public class AccessController {
 
   private AccessStorageService accessStorageService;
@@ -55,18 +56,30 @@ public class AccessController {
     this.auditEventPublisher = auditEventPublisher;
   }
 
-  @Operation(summary = "Get raw information from the user")
-  @GetMapping("/myPrincipal")
+  @Operation(summary = "Get raw information from the curremt user")
+  @GetMapping("/my/principal")
   public AbstractAuthenticationToken getPrincipal(
       Principal principal,
       @RegisteredOAuth2AuthorizedClient("molgenis") OAuth2AuthorizedClient authorizedClient) {
     return (AbstractAuthenticationToken) principal;
   }
 
-  @Operation(summary = "Get my token")
-  @GetMapping("/myToken")
+  @Operation(summary = "Token of the current user")
+  @GetMapping("/my/token")
   public String getToken(Principal principal) {
     return getClient().getAccessToken().getTokenValue();
+  }
+
+  @Operation(summary = "Get info on current user", description = "Get information on current user")
+  @GetMapping(value = "/my/access", produces = APPLICATION_JSON_VALUE)
+  public List<String> getProjectsCurrentUser(Principal principal) {
+    Collection<SimpleGrantedAuthority> authorities =
+        (Collection<SimpleGrantedAuthority>)
+            SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+    return authorities.stream()
+        .filter(authority -> authority.getAuthority().endsWith("_RESEARCHER"))
+        .map(authority -> authority.getAuthority().replace("_RESEARCHER", "").replace("ROLE_", ""))
+        .collect(Collectors.toList());
   }
 
   @Operation(
@@ -116,17 +129,5 @@ public class AccessController {
       Principal principal, @RequestParam String email, @RequestParam String project) {
     accessStorageService.revokeEmailFromProject(email, project);
     auditEventPublisher.audit(principal, REVOKE_ACCESS, Map.of("project", project, "email", email));
-  }
-
-  @Operation(summary = "Get info on current user", description = "Get information on current user")
-  @GetMapping(value = "/myAccess", produces = APPLICATION_JSON_VALUE)
-  public List<String> getProjectsCurrentUser(Principal principal) {
-    Collection<SimpleGrantedAuthority> authorities =
-        (Collection<SimpleGrantedAuthority>)
-            SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-    return authorities.stream()
-        .filter(authority -> authority.getAuthority().endsWith("_RESEARCHER"))
-        .map(authority -> authority.getAuthority().replace("_RESEARCHER", "").replace("ROLE_", ""))
-        .collect(Collectors.toList());
   }
 }

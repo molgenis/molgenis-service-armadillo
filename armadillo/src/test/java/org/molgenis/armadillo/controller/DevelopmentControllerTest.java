@@ -23,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
@@ -49,7 +48,6 @@ class DevelopmentControllerTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired AuditEventPublisher auditEventPublisher;
-  @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean private ProfileConfigProps profileConfigProps;
   @MockBean private Commands commands;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
