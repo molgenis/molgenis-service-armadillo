@@ -104,18 +104,23 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@RestController
+@Validated
 @OpenAPIDefinition(
     info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
     security = {
       @SecurityRequirement(name = "JSESSIONID"),
       @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
+      @SecurityRequirement(name = "Authentication")
     })
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
-@SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
-@RestController
-@Validated
+@SecurityScheme(
+    name = "Authorization",
+    in = HEADER,
+    type = HTTP,
+    scheme = "Bearer",
+    bearerFormat = "JWT")
 public class DataController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";

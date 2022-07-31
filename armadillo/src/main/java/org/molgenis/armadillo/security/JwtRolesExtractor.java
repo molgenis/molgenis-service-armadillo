@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.security;
 
 import static java.util.Collections.emptyList;
+import static org.molgenis.armadillo.security.AuthConfig.getAuthoritiesForEmail;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,11 +31,7 @@ public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAutho
                 .collect(Collectors.toList());
 
     String email = jwt.getClaimAsString("email");
-    result.addAll(
-        accessStorageService.getGrantsForEmail(email).stream()
-            .map(project -> "ROLE_" + project + "_RESEARCHER")
-            .map(SimpleGrantedAuthority::new)
-            .collect(Collectors.toList()));
+    result.addAll(getAuthoritiesForEmail(accessStorageService, email));
 
     return result;
   }

@@ -21,7 +21,7 @@ public class AccessStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, Set<String>> getAllPermissionsReadonly() {
-    reload();
+    reloadIfNeeded();
     Map<String, Set<String>> copy = new LinkedHashMap<>();
     currentPermissions.forEach(
         (String project, Set<String> emails) ->
@@ -33,6 +33,7 @@ public class AccessStorageService {
   public void grantEmailToProject(String email, String project) {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
+    reloadIfNeeded();
 
     // we might add validation for project existence?
     Set<String> currentEmails = currentPermissions.getOrDefault(project, new HashSet<>());
@@ -45,6 +46,7 @@ public class AccessStorageService {
   public void revokeEmailFromProject(String email, String project) {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
+    reloadIfNeeded();
 
     Set<String> currentEmails = currentPermissions.getOrDefault(project, new HashSet<>());
     currentEmails.remove(email);
@@ -53,6 +55,8 @@ public class AccessStorageService {
   }
 
   public List<String> getGrantsForEmail(String email) {
+    reloadIfNeeded();
+
     List<String> grantsForEmail = new ArrayList<>();
     currentPermissions.forEach(
         (String projectName, Set<String> emailAddresses) -> {
@@ -71,7 +75,7 @@ public class AccessStorageService {
     forceReload = true;
   }
 
-  public void reload() {
+  public void reloadIfNeeded() {
     if (forceReload) {
       InputStream inputStream = armadilloStorageService.loadSystemFile(PERMISSIONS_FILE);
 

@@ -41,19 +41,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo - developer endpoint", version = "0.1.0"),
-    security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
-    })
-@SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
-@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
-@SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
 @RestController
 @Validated
 @Profile({"development", "test"})
+@OpenAPIDefinition(
+    info = @Info(title = "MOLGENIS Armadillo - data endpoint", version = "0.1.0"),
+    security = {
+      @SecurityRequirement(name = "JSESSIONID"),
+      @SecurityRequirement(name = "http"),
+      @SecurityRequirement(name = "Authentication")
+    })
+@SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
+@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
+@SecurityScheme(
+    name = "Authorization",
+    in = HEADER,
+    type = HTTP,
+    scheme = "Bearer",
+    bearerFormat = "JWT")
 public class DevelopmentController {
 
   private final Commands commands;

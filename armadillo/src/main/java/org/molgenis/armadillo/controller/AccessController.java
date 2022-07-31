@@ -1,24 +1,17 @@
 package org.molgenis.armadillo.controller;
 
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
-import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.*;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
@@ -27,32 +20,53 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.security.AccessStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@OpenAPIDefinition(
-    info = @Info(title = "MOLGENIS Armadillo - permission endpoint", version = "0.1.0"),
-    security = {
-      @SecurityRequirement(name = "JSESSIONID"),
-      @SecurityRequirement(name = "http"),
-      @SecurityRequirement(name = "jwt")
-    })
-@SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
-@SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
-@SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
 @RestController
 @Validated
+@SecurityRequirement(name = "http")
+@SecurityRequirement(name = "bearerAuth")
 public class AccessController {
 
   private AccessStorageService accessStorageService;
   private AuditEventPublisher auditEventPublisher;
+  @Autowired private OAuth2AuthorizedClientService clientService;
+
+  public OAuth2AuthorizedClient getClient() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+    return clientService.loadAuthorizedClient(
+        oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
+  }
 
   public AccessController(
       AccessStorageService accessStorageService, AuditEventPublisher auditEventPublisher) {
     this.accessStorageService = accessStorageService;
     this.auditEventPublisher = auditEventPublisher;
+  }
+
+  @Operation(summary = "Get raw information from the user")
+  @GetMapping("/myPrincipal")
+  public AbstractAuthenticationToken getPrincipal(
+      Principal principal,
+      @RegisteredOAuth2AuthorizedClient("molgenis") OAuth2AuthorizedClient authorizedClient) {
+    return (AbstractAuthenticationToken) principal;
+  }
+
+  @Operation(summary = "Get my token")
+  @GetMapping("/myToken")
+  public String getToken(Principal principal) {
+    return getClient().getAccessToken().getTokenValue();
   }
 
   @Operation(
@@ -83,7 +97,10 @@ public class AccessController {
     return accessStorageService.getAllPermissionsReadonly();
   }
 
-  @Operation(summary = "Grant access", description = "Grant access to email on one project")
+  @Operation(
+      summary = "Grant access",
+      description =
+          "Grant access to email on one project. N.B. 'administrators' is a special project which will grant administrator permission to a user")
   @PostMapping(value = "/access", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
   public void grantAccess(
