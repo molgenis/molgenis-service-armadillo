@@ -65,7 +65,7 @@ spring:
         registration:
           molgenis:
             client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-            client-secret: 'nRO_t1_cIpdzRzr-cWBeZg4ckBsMHmX2MlA9SaSg4P8'
+            client-secret: 'xxxxx'
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
