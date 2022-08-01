@@ -45,7 +45,7 @@ public class LocalStorageService implements StorageService {
   @Override
   public boolean objectExists(String projectName, String objectName) {
     Objects.requireNonNull(objectName);
-    Objects.requireNonNull(projectName);
+    StorageService.validateProjectName(projectName);
 
     try {
       // check project
