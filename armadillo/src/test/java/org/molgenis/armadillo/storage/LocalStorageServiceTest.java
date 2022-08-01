@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,18 +32,18 @@ public class LocalStorageServiceTest {
   }
 
   @Test
-  void testCheckObjectExistsChecksExistenceNoSuchObject() throws Exception {
+  void testCheckObjectExistsChecksExistenceNoSuchObject() {
     assertFalse(localStorageService.objectExists(SOME_BUCKET, SOME_OBJECT_PATH));
   }
 
   @Test
-  void testCheckObjectExistsInvalidBucketname() throws Exception {
+  void testCheckObjectExistsInvalidBucketname() {
     assertThrows(
         StorageException.class, () -> localStorageService.objectExists("Bucket", SOME_OBJECT_PATH));
   }
 
   @Test
-  void testCheckObjectExistsChecksExistenceObjectExists() throws Exception {
+  void testCheckObjectExistsChecksExistenceObjectExists() {
     // create some file
     localStorageService.save(
         new ByteArrayInputStream("test".getBytes()),
@@ -60,7 +59,7 @@ public class LocalStorageServiceTest {
   }
 
   @Test
-  void save() throws Exception {
+  void save() {
     // create some file
     localStorageService.save(
         new ByteArrayInputStream("test".getBytes()),
@@ -86,14 +85,13 @@ public class LocalStorageServiceTest {
         "blah.RData",
         MediaType.TEXT_PLAIN);
     // compare the contents
-    assertTrue(
-        Arrays.equals(
-            new ByteArrayInputStream("test".getBytes()).readAllBytes(),
-            localStorageService.load("user-admin", "blah.RData").readAllBytes()));
+    assertArrayEquals(
+        new ByteArrayInputStream("test".getBytes()).readAllBytes(),
+        localStorageService.load("user-admin", "blah.RData").readAllBytes());
   }
 
   @Test
-  void testDelete() throws Exception {
+  void testDelete() {
     // write a file
     localStorageService.save(
         new ByteArrayInputStream("test".getBytes()),
