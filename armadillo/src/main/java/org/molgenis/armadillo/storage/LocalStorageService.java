@@ -112,10 +112,9 @@ public class LocalStorageService implements StorageService {
       if (!Files.exists(projectPath)) {
         return emptyList();
       } else {
-        return Files.list(projectPath)
-            .map(Path::toFile)
-            .map(ObjectMetadata::of)
-            .collect(Collectors.toList());
+        try (var files = Files.list(projectPath)) {
+          return files.map(Path::toFile).map(ObjectMetadata::of).collect(Collectors.toList());
+        }
       }
     } catch (Exception e) {
       throw new StorageException(e);
