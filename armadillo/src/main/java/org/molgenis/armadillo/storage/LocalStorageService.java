@@ -7,6 +7,7 @@ import static org.molgenis.armadillo.storage.LocalStorageService.ROOT_DIR_PROPER
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -112,11 +113,14 @@ public class LocalStorageService implements StorageService {
       if (!Files.exists(projectPath)) {
         return emptyList();
       } else {
-        try (var files = Files.list(projectPath)) {
-          return files.map(Path::toFile).map(ObjectMetadata::of).collect(Collectors.toList());
+        try (var files = Files.walk(projectPath)) {
+          return files
+              .filter(Files::isRegularFile)
+              .map(objectPath -> ObjectMetadata.of(projectPath, objectPath))
+              .toList();
         }
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new StorageException(e);
     }
   }
