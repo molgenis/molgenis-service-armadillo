@@ -25,7 +25,7 @@ public interface StorageService {
   static void validateProjectName(String projectName) {
     requireNonNull(projectName);
 
-    if (projectName.matches(".*[A-Z].*")) {
+    if (!projectName.toLowerCase().equals(projectName)) {
       throw new StorageException("Project names cannot contain uppercase characters");
     }
   }
