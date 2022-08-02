@@ -7,6 +7,7 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.model.Workspace;
@@ -28,11 +29,12 @@ public class ArmadilloStorageService {
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
+  @SuppressWarnings("java:S6204") // result of method can't be unmodifiable because of @PostFilter
   public List<String> listProjects() {
     return storageService.listProjects().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
-        .toList();
+        .collect(Collectors.toList());
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
