@@ -29,7 +29,7 @@ builder$append(
   user = "admin",
   password = "admin",
   driver = "ArmadilloDriver",
-  table = "local/1_0_core_1_0/nonrep")
+  table = "lifecycle/core/nonrep")
 
 login_data <- builder$build()
 
