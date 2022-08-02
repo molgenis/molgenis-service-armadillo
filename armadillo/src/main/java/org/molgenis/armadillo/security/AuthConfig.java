@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,7 +26,9 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -39,21 +41,30 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity(debug = true)
+  @Profile({"armadillo", "development"})
   @Order(1)
   // first check against JWT, but only if header is set
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
+    SecurityStorageServer securityStorageServer;
 
-    AccessStorageService accessStorageService;
-
-    public JwtConfig(AccessStorageService accessStorageService) {
-      this.accessStorageService = accessStorageService;
+    public JwtConfig(SecurityStorageServer securityStorageServer) {
+      this.securityStorageServer = securityStorageServer;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      http.requestMatcher(new RequestHeaderRequestMatcher("Authorization"))
+      // use this is authorized
+      http.requestMatcher(
+              new AndRequestMatcher(
+                  // used in config(2 and 3)
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/")),
+                  // used in config(2)
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**")),
+                  // used in config(3)
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login"))))
           .authorizeRequests()
-          .antMatchers("/v3/api-docs*")
+          .antMatchers("/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
           .permitAll()
           .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
           .permitAll()
@@ -66,9 +77,6 @@ public class AuthConfig {
           .disable()
           .cors()
           .and()
-          .httpBasic()
-          .realmName("Armadillo")
-          .and()
           .oauth2ResourceServer(
               oauth2 ->
                   oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
@@ -78,7 +86,7 @@ public class AuthConfig {
     Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-          new JwtRolesExtractor(accessStorageService));
+          new JwtRolesExtractor(securityStorageServer));
       return jwtAuthenticationConverter;
     }
   }
@@ -86,44 +94,61 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity(debug = true)
   @Order(2)
-  // otherwise we gonna offer sign in
-  public static class LoginConfig extends WebSecurityConfigurerAdapter {
-    AccessStorageService accessStorageService;
+  @ConditionalOnProperty(
+      value = "spring.security.oauth2.client.registration.molgenis.client-id",
+      matchIfMissing = true,
+      havingValue = "value_that_never_appears")
+  @Profile({"armadillo", "development"})
+  // if you don't want to run with spring security
+  public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
+    SecurityStorageServer securityStorageServer;
 
-    public LoginConfig(AccessStorageService accessStorageService) {
-      this.accessStorageService = accessStorageService;
-    }
-
-    public void configure(WebSecurity web) {
-      // permit swagger and ui
-      web.ignoring()
-          .antMatchers("/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html", "/oauth2/*");
-      return;
+    public FormLoginConfig(SecurityStorageServer securityStorageServer) {
+      this.securityStorageServer = securityStorageServer;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+      // use this if not on '/', otherwise we want to use a login method see other configs
       http.authorizeRequests()
-          // permit health monitoring endpoints
-          .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
-          .permitAll()
-          // anything else should be authenticated
-          .requestMatchers(toAnyEndpoint())
-          .hasAnyRole()
           .anyRequest()
           .authenticated()
-          // settings to be applied
           .and()
-          .csrf()
-          .disable()
-          .cors()
-          // force oauth2login (unless bearer token, see other config)
+          .formLogin()
+          .defaultSuccessUrl("/swagger-ui/index.html", true) // replace with UI when available
+          // enable /logout
+          .and()
+          .logout();
+    }
+  }
+
+  @Configuration
+  @EnableWebSecurity(debug = true)
+  @Order(3)
+  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
+  @Profile({"armadillo", "development"})
+  // otherwise we gonna offer sign in
+  public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
+    SecurityStorageServer securityStorageServer;
+
+    public Oauth2LoginConfig(SecurityStorageServer securityStorageServer) {
+      this.securityStorageServer = securityStorageServer;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      // use this if not authenticated and having oauth config
+      http.authorizeRequests()
+          .anyRequest()
+          .authenticated()
           .and()
           .oauth2Login(
               oauth2Login ->
-                  oauth2Login.userInfoEndpoint(
-                      userInfoEndpoint ->
-                          userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper())));
+                  oauth2Login
+                      .userInfoEndpoint(
+                          userInfoEndpoint ->
+                              userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+                      .defaultSuccessUrl("/swagger-ui/index.html"));
     }
 
     private GrantedAuthoritiesMapper userAuthoritiesMapper() {
@@ -137,17 +162,12 @@ public class AuthConfig {
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
               mappedAuthorities.addAll(
                   getAuthoritiesForEmail(
-                      accessStorageService, (String) userAttributes.get("email")));
+                      securityStorageServer, (String) userAttributes.get("email")));
             });
 
         return mappedAuthorities;
       };
     }
-  }
-
-  @Bean
-  public AccessStorageService accessPermissionManager() {
-    return new AccessStorageService();
   }
 
   @Profile("development")
@@ -158,8 +178,8 @@ public class AuthConfig {
   }
 
   public static Collection<SimpleGrantedAuthority> getAuthoritiesForEmail(
-      AccessStorageService accessStorageService, String email) {
-    List<String> authorizedProjects = accessStorageService.getGrantsForEmail(email);
+      SecurityStorageServer securityStorageServer, String email) {
+    Set<String> authorizedProjects = securityStorageServer.getGrantsForEmail(email);
     return authorizedProjects.stream()
         .map(
             project ->

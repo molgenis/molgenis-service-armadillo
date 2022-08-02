@@ -19,6 +19,7 @@ datashield:
 springdoc:
   swagger-ui:
     enabled: true
+    operationsSorter: alpha
     csrf:
       enabled: true
 
@@ -62,10 +63,10 @@ spring:
         provider:
           molgenis:
             issuer-uri: 'https://auth.molgenis.org'
-        registration:
-          molgenis:
-            client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-            client-secret: 'xxxxx'
+          #recommend to set registration via environment variables
+          #in IntelliJ something like:
+          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID=b396233b-cdb2-449e-ac5c-a0d28b38f791;
+          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET=xxx
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'

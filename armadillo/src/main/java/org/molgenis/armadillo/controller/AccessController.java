@@ -17,17 +17,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.security.AccessStorageService;
+import org.molgenis.armadillo.security.SecurityStorageServer;
+import org.molgenis.armadillo.security.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,52 +39,54 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "JSESSIONID")
 public class AccessController {
 
-  private AccessStorageService accessStorageService;
+  private SecurityStorageServer securityStorageServer;
   private AuditEventPublisher auditEventPublisher;
-  @Autowired private OAuth2AuthorizedClientService clientService;
 
-  public OAuth2AuthorizedClient getClient() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-    return clientService.loadAuthorizedClient(
-        oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
-  }
+  @Autowired(required = false)
+  private OAuth2AuthorizedClientService clientService;
 
   public AccessController(
-      AccessStorageService accessStorageService, AuditEventPublisher auditEventPublisher) {
-    this.accessStorageService = accessStorageService;
+      SecurityStorageServer securityStorageServer, AuditEventPublisher auditEventPublisher) {
+    this.securityStorageServer = securityStorageServer;
     this.auditEventPublisher = auditEventPublisher;
   }
 
-  @Operation(summary = "Get raw information from the curremt user")
+  @Operation(summary = "Get raw information from the current user")
+  @Profile({"armadillo", "development"})
   @GetMapping("/my/principal")
-  public AbstractAuthenticationToken getPrincipal(
-      Principal principal,
-      @RegisteredOAuth2AuthorizedClient("molgenis") OAuth2AuthorizedClient authorizedClient) {
+  public AbstractAuthenticationToken myPrincipal(Principal principal) {
     return (AbstractAuthenticationToken) principal;
   }
 
   @Operation(summary = "Token of the current user")
+  @Profile({"armadillo", "development"})
   @GetMapping("/my/token")
-  public String getToken(Principal principal) {
-    return getClient().getAccessToken().getTokenValue();
+  public String myToken() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+    OAuth2AuthorizedClient client =
+        clientService.loadAuthorizedClient(
+            oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
+    return client.getAccessToken().getTokenValue();
   }
 
   @Operation(summary = "Get info on current user", description = "Get information on current user")
   @GetMapping(value = "/my/access", produces = APPLICATION_JSON_VALUE)
-  public List<String> getProjectsCurrentUser(Principal principal) {
+  @Profile({"armadillo", "development"})
+  public List<String> myAccessList() {
     Collection<SimpleGrantedAuthority> authorities =
         (Collection<SimpleGrantedAuthority>)
             SecurityContextHolder.getContext().getAuthentication().getAuthorities();
     return authorities.stream()
         .filter(authority -> authority.getAuthority().endsWith("_RESEARCHER"))
         .map(authority -> authority.getAuthority().replace("_RESEARCHER", "").replace("ROLE_", ""))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Operation(
-      summary = "Get access permissions",
-      description = "List users that have access per project")
+      summary = "Get project permissions",
+      description =
+          "List projects (key) and per project list user emails array having access (value)")
   @GetMapping(value = "/access", produces = APPLICATION_JSON_VALUE)
   @ApiResponses(
       value = {
@@ -105,29 +107,76 @@ public class AccessController {
             }),
         @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content)
       })
-  public Map<String, Set<String>> getAccessList(Principal principal) {
+  public Map<String, Set<String>> accessList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_ACCESS, Map.of());
-    return accessStorageService.getAllPermissionsReadonly();
+    return securityStorageServer.projectList();
   }
 
   @Operation(
-      summary = "Grant access",
+      summary = "Grant access to email on one project",
       description =
-          "Grant access to email on one project. N.B. 'administrators' is a special project which will grant administrator permission to a user")
+          "Permissions will be in effect when user signs in again. N.B. 'administrators' is a special project which will grant administrator permission to a user")
   @PostMapping(value = "/access", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
-  public void grantAccess(
+  public void accessAdd(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    accessStorageService.grantEmailToProject(email, project);
+    securityStorageServer.accessAdd(email, project);
     auditEventPublisher.audit(principal, GRANT_ACCESS, Map.of("project", project, "email", email));
   }
 
-  @Operation(summary = "Revoke access", description = "Revoke access from email on one project")
+  @Operation(
+      summary = "Revoke access from email on one project",
+      description = "Permissions will be in effect when user signs in again.")
   @DeleteMapping(value = "/access", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void revokeAccess(
+  public void accessDelete(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    accessStorageService.revokeEmailFromProject(email, project);
+    securityStorageServer.accessDelete(email, project);
     auditEventPublisher.audit(principal, REVOKE_ACCESS, Map.of("project", project, "email", email));
+  }
+
+  @Operation(
+      summary =
+          "List users (key) and per user list details, such as firstName, lastName and projects",
+      description = " projects:['administrators',...] means user is SU")
+  @GetMapping(value = "/users", produces = APPLICATION_JSON_VALUE)
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Found the permissions",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Map.class),
+                  examples =
+                      @ExampleObject(
+                          "{\n"
+                              + "  \"myproject\": [\n"
+                              + "    \"m.a.swertz@gmail.com\"\n"
+                              + "  ]\n"
+                              + "}"))
+            }),
+        @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content)
+      })
+  public Map<String, User> userList(Principal principal) {
+    auditEventPublisher.audit(principal, LIST_USERS, Map.of());
+    return securityStorageServer.userList();
+  }
+
+  @Operation(summary = "Add/Update user by email using email as id")
+  @PutMapping(value = "/users/{email}", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(OK)
+  public void userUpsert(Principal principal, @PathVariable String email, @RequestBody User user) {
+    securityStorageServer.userUpsert(email, user);
+    auditEventPublisher.audit(principal, UPSERT_USER, Map.of("email", email, "user", user));
+  }
+
+  @Operation(summary = "Delete user including details and permissions using email as id")
+  @DeleteMapping(value = "/users/{email}", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(OK)
+  public void userDelete(Principal principal, @PathVariable String email) {
+    securityStorageServer.userDelete(email);
+    auditEventPublisher.audit(principal, DELETE_USER, Map.of("email", email));
   }
 }

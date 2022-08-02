@@ -1,6 +1,6 @@
 package org.molgenis.armadillo;
 
-import org.molgenis.armadillo.security.AccessStorageService;
+import org.molgenis.armadillo.security.SecurityStorageServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -17,7 +17,7 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  AccessStorageService accessStorageService() {
-    return new AccessStorageService();
+  SecurityStorageServer accessStorageService() {
+    return new SecurityStorageServer();
   }
 }

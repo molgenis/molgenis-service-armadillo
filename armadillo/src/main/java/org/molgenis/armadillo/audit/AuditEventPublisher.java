@@ -48,6 +48,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GRANT_ACCESS = "GRANT_ACCESS";
   public static final String REVOKE_ACCESS = "REVOKE_ACCESS";
   public static final String LIST_ACCESS = "LIST_ACCESS";
+  public static final String UPSERT_USER = "UPSERT_USER";
+  public static final String DELETE_USER = "DELETE_USER";
+  public static final String LIST_USERS = "LIST_USERS";
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";
   public static final String GET_RESOURCES = "GET_RESOURCES";

@@ -2,7 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.security.AccessStorageService.PERMISSIONS_FILE;
+import static org.molgenis.armadillo.security.SecurityStorageServer.SETTINGS_FILE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -11,10 +11,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.security.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,6 +34,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,9 +45,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuditEventPublisher.class})
 public class AccessControllerTest {
 
+  public static final String BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON =
+      "{\"bofke@email.com\":{\"projects\":[\"myproject\"]}}";
   @MockBean private ArmadilloStorageService armadilloStorage;
 
-  private AuditEventValidator auditEventValidator;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
@@ -57,9 +62,12 @@ public class AccessControllerTest {
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
 
+  @MockBean JwtDecoder jwtDecoder;
+
   @BeforeEach
   public void setup() {
-    auditEventValidator = new AuditEventValidator(applicationEventPublisher, eventCaptor);
+    AuditEventValidator auditEventValidator =
+        new AuditEventValidator(applicationEventPublisher, eventCaptor);
     auditEventPublisher.setClock(clock);
     auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
     when(clock.instant()).thenReturn(instant);
@@ -68,10 +76,9 @@ public class AccessControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  public void getAccessTestWhenNoGrantsAreSaved() throws Exception {
+  public void access_GET_WhenNoGrantsAreSaved() throws Exception {
     // when first time then permissions file will be missing
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(InputStream.nullInputStream());
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE)).thenReturn(InputStream.nullInputStream());
 
     mockMvc
         .perform(get("/access"))
@@ -82,34 +89,36 @@ public class AccessControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  public void getAccessTest() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
+  public void access_GET() throws Exception {
+    final String JSON = BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON;
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
         .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
 
-    mockMvc
-        .perform(get("/access"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json(JSON));
+    String result =
+        mockMvc
+            .perform(get("/access"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    // .andExpect(content().json("{"bofke@email.com":["myproject"]}));
   }
 
   @Test
   @WithMockUser
-  public void getAccessTestPermissionDenied() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+  public void access_GET_PermissionDenied() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     mockMvc.perform(get("/access")).andExpect(status().is(403));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  public void postAccessTest() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+  public void access_POST() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
@@ -123,44 +132,44 @@ public class AccessControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(PERMISSIONS_FILE), eq(APPLICATION_JSON));
-    assertEquals(JSON, new String(argument.getValue().readAllBytes()));
+        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+    assertEquals(
+        BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON, new String(argument.getValue().readAllBytes()));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  public void deleteAccessTest() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+  public void access_DELETE() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
             delete("/access")
-                .param("project", "myproject")
                 .param("email", "bofke@email.com")
+                .param("project", "myproject")
                 .with(csrf()))
         .andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(PERMISSIONS_FILE), eq(APPLICATION_JSON));
-    assertEquals("{\"myproject\":[]}", new String(argument.getValue().readAllBytes()));
+        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+    assertEquals(
+        "{\"bofke@email.com\":{\"projects\":[]}}", new String(argument.getValue().readAllBytes()));
   }
 
   @Test
   @WithMockJwtAuth(
       authorities = "ROLE_myproject_RESEARCHER",
       claims = @OpenIdClaims(email = "bofke@email.com"))
-  public void getMyAccessTest() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+  public void my_access_GET() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     mockMvc
-        .perform(get("/myAccess"))
+        .perform(get("/my/access"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"myproject\"]"));
@@ -168,15 +177,69 @@ public class AccessControllerTest {
 
   @Test
   @WithMockUser
-  public void getMyAccessWhenUserHasNoGrantsTest() throws Exception {
-    final String JSON = "{\"myproject\":[\"bofke@email.com\"]}";
-    when(armadilloStorage.loadSystemFile(PERMISSIONS_FILE))
-        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+  public void my_access_GET_WhenUserHasNoGrantsTest() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     mockMvc
-        .perform(get("/myAccess"))
+        .perform(get("/my/access"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[]"));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  public void user_GET() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
+
+    mockMvc
+        .perform(get("/users"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  public void user_PUT() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream("{}".getBytes()));
+
+    ArgumentCaptor<ByteArrayInputStream> argument =
+        ArgumentCaptor.forClass(ByteArrayInputStream.class);
+    mockMvc
+        .perform(
+            put("/users/bofke@email.com")
+                .content(
+                    new Gson()
+                        .toJson(new User("first", "last", "myInstitution", Set.of("myproject"))))
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isOk());
+
+    // verify mock magic, I must say I prefer integration tests above this nonsense
+    verify(armadilloStorage)
+        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+    assertEquals(
+        "{\"bofke@email.com\":{\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\",\"projects\":[\"myproject\"]}}",
+        new String(argument.getValue().readAllBytes()));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  public void user_DELETE() throws Exception {
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
+
+    ArgumentCaptor<ByteArrayInputStream> argument =
+        ArgumentCaptor.forClass(ByteArrayInputStream.class);
+    mockMvc.perform(delete("/users/bofke@emgail.com").with(csrf())).andExpect(status().isOk());
+
+    // verify mock magic, I must say I prefer integration tests above this nonsense
+    verify(armadilloStorage)
+        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+    assertEquals("{}", new String(argument.getValue().readAllBytes()));
   }
 }
