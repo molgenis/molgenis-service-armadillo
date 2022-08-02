@@ -41,7 +41,7 @@ public class AuthConfig {
       new CorsConfiguration().applyPermitDefaultValues();
 
   @Configuration
-  @EnableWebSecurity(debug = true)
+  @EnableWebSecurity
   @Profile({"armadillo", "development"})
   @Order(1)
   // first check against JWT, but only if header is set
@@ -93,7 +93,7 @@ public class AuthConfig {
   }
 
   @Configuration
-  @EnableWebSecurity(debug = true)
+  @EnableWebSecurity
   @Order(2)
   @ConditionalOnProperty(
       value = "spring.security.oauth2.client.registration.molgenis.client-id",
@@ -124,7 +124,7 @@ public class AuthConfig {
   }
 
   @Configuration
-  @EnableWebSecurity(debug = true)
+  @EnableWebSecurity
   @Order(3)
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
   @Profile({"armadillo", "development"})
