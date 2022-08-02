@@ -8,16 +8,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-
     <artifactId>armadillo</artifactId>
-
     <properties>
         <org.obiba.datashield.ds4j-version>2.0.0</org.obiba.datashield.ds4j-version>
-
-        <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}</dockerfile.repository>
+        <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}
+        </dockerfile.repository>
         <dockerfile.tag>${project.version}</dockerfile.tag>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
     <repositories>
         <repository>
             <id>obiba</id>
@@ -25,7 +23,6 @@
             <url>https://obiba.jfrog.io/artifactory/libs-release-local/</url>
         </repository>
     </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.obiba.datashield</groupId>
@@ -220,5 +217,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
