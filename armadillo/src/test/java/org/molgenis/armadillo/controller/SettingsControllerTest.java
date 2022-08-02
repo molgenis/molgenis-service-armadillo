@@ -2,7 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.security.SecurityStorageServer.SETTINGS_FILE;
+import static org.molgenis.armadillo.settings.ArmadilloSettingsService.SETTINGS_FILE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.security.User;
+import org.molgenis.armadillo.settings.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -39,14 +39,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(AccessController.class)
+@WebMvcTest(SettingsController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-public class AccessControllerTest {
+public class SettingsControllerTest {
 
   public static final String BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON =
-      "{\"bofke@email.com\":{\"projects\":[\"myproject\"]}}";
+      "{\"users\":{\"bofke@email.com\":{\"projects\":[\"myproject\"]}}}";
   @MockBean private ArmadilloStorageService armadilloStorage;
 
   @Autowired AuditEventPublisher auditEventPublisher;
@@ -157,7 +157,8 @@ public class AccessControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"bofke@email.com\":{\"projects\":[]}}", new String(argument.getValue().readAllBytes()));
+        "{\"users\":{\"bofke@email.com\":{\"projects\":[]}}}",
+        new String(argument.getValue().readAllBytes()));
   }
 
   @Test
@@ -190,7 +191,7 @@ public class AccessControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  public void user_GET() throws Exception {
+  public void users_GET() throws Exception {
     when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
@@ -198,12 +199,12 @@ public class AccessControllerTest {
         .perform(get("/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON));
+        .andExpect(content().json("{\"bofke@email.com\":{\"projects\":[\"myproject\"]}}"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  public void user_PUT() throws Exception {
+  public void users_PUT() throws Exception {
     when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
         .thenReturn(new ByteArrayInputStream("{}".getBytes()));
 
@@ -223,23 +224,23 @@ public class AccessControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"bofke@email.com\":{\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\",\"projects\":[\"myproject\"]}}",
+        "{\"users\":{\"bofke@email.com\":{\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\",\"projects\":[\"myproject\"]}}}",
         new String(argument.getValue().readAllBytes()));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  public void user_DELETE() throws Exception {
+  public void users_DELETE() throws Exception {
     when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
-    mockMvc.perform(delete("/users/bofke@emgail.com").with(csrf())).andExpect(status().isOk());
+    mockMvc.perform(delete("/users/bofke@email.com").with(csrf())).andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
-    assertEquals("{}", new String(argument.getValue().readAllBytes()));
+    assertEquals("{\"users\":{}}", new String(argument.getValue().readAllBytes()));
   }
 }

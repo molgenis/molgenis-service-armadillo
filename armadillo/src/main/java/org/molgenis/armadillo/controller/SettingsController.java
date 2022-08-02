@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.security.SecurityStorageServer;
-import org.molgenis.armadillo.security.User;
+import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import org.molgenis.armadillo.settings.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -37,17 +37,17 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
-public class AccessController {
+public class SettingsController {
 
-  private SecurityStorageServer securityStorageServer;
+  private ArmadilloSettingsService armadilloSettingsService;
   private AuditEventPublisher auditEventPublisher;
 
   @Autowired(required = false)
   private OAuth2AuthorizedClientService clientService;
 
-  public AccessController(
-      SecurityStorageServer securityStorageServer, AuditEventPublisher auditEventPublisher) {
-    this.securityStorageServer = securityStorageServer;
+  public SettingsController(
+      ArmadilloSettingsService armadilloSettingsService, AuditEventPublisher auditEventPublisher) {
+    this.armadilloSettingsService = armadilloSettingsService;
     this.auditEventPublisher = auditEventPublisher;
   }
 
@@ -109,7 +109,7 @@ public class AccessController {
       })
   public Map<String, Set<String>> accessList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_ACCESS, Map.of());
-    return securityStorageServer.projectList();
+    return armadilloSettingsService.projectList();
   }
 
   @Operation(
@@ -120,7 +120,7 @@ public class AccessController {
   @ResponseStatus(CREATED)
   public void accessAdd(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    securityStorageServer.accessAdd(email, project);
+    armadilloSettingsService.accessAdd(email, project);
     auditEventPublisher.audit(principal, GRANT_ACCESS, Map.of("project", project, "email", email));
   }
 
@@ -131,7 +131,7 @@ public class AccessController {
   @ResponseStatus(OK)
   public void accessDelete(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    securityStorageServer.accessDelete(email, project);
+    armadilloSettingsService.accessDelete(email, project);
     auditEventPublisher.audit(principal, REVOKE_ACCESS, Map.of("project", project, "email", email));
   }
 
@@ -161,14 +161,14 @@ public class AccessController {
       })
   public Map<String, User> userList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_USERS, Map.of());
-    return securityStorageServer.userList();
+    return armadilloSettingsService.userList();
   }
 
   @Operation(summary = "Add/Update user by email using email as id")
   @PutMapping(value = "/users/{email}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void userUpsert(Principal principal, @PathVariable String email, @RequestBody User user) {
-    securityStorageServer.userUpsert(email, user);
+    armadilloSettingsService.userUpsert(email, user);
     auditEventPublisher.audit(principal, UPSERT_USER, Map.of("email", email, "user", user));
   }
 
@@ -176,7 +176,7 @@ public class AccessController {
   @DeleteMapping(value = "/users/{email}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void userDelete(Principal principal, @PathVariable String email) {
-    securityStorageServer.userDelete(email);
+    armadilloSettingsService.userDelete(email);
     auditEventPublisher.audit(principal, DELETE_USER, Map.of("email", email));
   }
 }

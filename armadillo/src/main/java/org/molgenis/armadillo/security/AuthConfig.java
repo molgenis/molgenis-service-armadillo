@@ -4,6 +4,7 @@ import static org.springframework.boot.actuate.autoconfigure.security.servlet.En
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.molgenis.armadillo.settings.ArmadilloSettingsService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
@@ -45,10 +46,10 @@ public class AuthConfig {
   @Order(1)
   // first check against JWT, but only if header is set
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
-    SecurityStorageServer securityStorageServer;
+    ArmadilloSettingsService armadilloSettingsService;
 
-    public JwtConfig(SecurityStorageServer securityStorageServer) {
-      this.securityStorageServer = securityStorageServer;
+    public JwtConfig(ArmadilloSettingsService armadilloSettingsService) {
+      this.armadilloSettingsService = armadilloSettingsService;
     }
 
     @Override
@@ -86,7 +87,7 @@ public class AuthConfig {
     Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-          new JwtRolesExtractor(securityStorageServer));
+          new JwtRolesExtractor(armadilloSettingsService));
       return jwtAuthenticationConverter;
     }
   }
@@ -101,10 +102,10 @@ public class AuthConfig {
   @Profile({"armadillo", "development"})
   // if you don't want to run with spring security
   public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
-    SecurityStorageServer securityStorageServer;
+    ArmadilloSettingsService armadilloSettingsService;
 
-    public FormLoginConfig(SecurityStorageServer securityStorageServer) {
-      this.securityStorageServer = securityStorageServer;
+    public FormLoginConfig(ArmadilloSettingsService armadilloSettingsService) {
+      this.armadilloSettingsService = armadilloSettingsService;
     }
 
     @Override
@@ -129,10 +130,10 @@ public class AuthConfig {
   @Profile({"armadillo", "development"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
-    SecurityStorageServer securityStorageServer;
+    ArmadilloSettingsService armadilloSettingsService;
 
-    public Oauth2LoginConfig(SecurityStorageServer securityStorageServer) {
-      this.securityStorageServer = securityStorageServer;
+    public Oauth2LoginConfig(ArmadilloSettingsService armadilloSettingsService) {
+      this.armadilloSettingsService = armadilloSettingsService;
     }
 
     @Override
@@ -162,7 +163,7 @@ public class AuthConfig {
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
               mappedAuthorities.addAll(
                   getAuthoritiesForEmail(
-                      securityStorageServer, (String) userAttributes.get("email")));
+                      armadilloSettingsService, (String) userAttributes.get("email")));
             });
 
         return mappedAuthorities;
@@ -178,8 +179,8 @@ public class AuthConfig {
   }
 
   public static Collection<SimpleGrantedAuthority> getAuthoritiesForEmail(
-      SecurityStorageServer securityStorageServer, String email) {
-    Set<String> authorizedProjects = securityStorageServer.getGrantsForEmail(email);
+      ArmadilloSettingsService armadilloSettingsService, String email) {
+    Set<String> authorizedProjects = armadilloSettingsService.getGrantsForEmail(email);
     return authorizedProjects.stream()
         .map(
             project ->

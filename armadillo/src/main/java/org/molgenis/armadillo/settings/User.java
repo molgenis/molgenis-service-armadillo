@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.security;
+package org.molgenis.armadillo.settings;
 
 import java.util.HashSet;
 import java.util.Objects;
