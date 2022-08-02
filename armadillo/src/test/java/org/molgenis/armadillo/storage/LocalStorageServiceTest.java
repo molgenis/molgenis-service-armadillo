@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
-public class LocalStorageServiceTest {
+class LocalStorageServiceTest {
 
   public static final String SOME_OBJECT_PATH =
       "object/some/path"; // n.b. can be subfolders you see?

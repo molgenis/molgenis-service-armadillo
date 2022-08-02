@@ -15,12 +15,12 @@ import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidResponseException;
 import io.minio.errors.NoResponseException;
 import io.minio.errors.RegionConflictException;
+import io.minio.messages.Bucket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,9 +97,7 @@ class MinioStorageService implements StorageService {
   @Override
   public List<String> listProjects() {
     try {
-      return minioClient.listBuckets().stream()
-          .map(bucket -> bucket.name())
-          .collect(Collectors.toList());
+      return minioClient.listBuckets().stream().map(Bucket::name).toList();
     } catch (InvalidBucketNameException
         | NoSuchAlgorithmException
         | InsufficientDataException

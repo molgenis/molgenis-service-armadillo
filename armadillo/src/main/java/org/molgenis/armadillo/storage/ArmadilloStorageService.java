@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class ArmadilloStorageService {
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
-  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
+  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
   public static final String RDS = ".rds";
   private final StorageService storageService;
@@ -33,7 +32,7 @@ public class ArmadilloStorageService {
     return storageService.listProjects().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
-        .collect(toList());
+        .toList();
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -43,7 +42,7 @@ public class ArmadilloStorageService {
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(PARQUET))
         .map(FilenameUtils::removeExtension)
-        .collect(toList());
+        .toList();
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -73,7 +72,7 @@ public class ArmadilloStorageService {
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(RDS))
         .map(FilenameUtils::removeExtension)
-        .collect(toList());
+        .toList();
   }
 
   public List<Workspace> listWorkspaces(Principal principal) {
@@ -82,7 +81,7 @@ public class ArmadilloStorageService {
         .map(storageService::listObjects)
         .flatMap(List::stream)
         .map(ArmadilloStorageService::toWorkspace)
-        .collect(toList());
+        .toList();
   }
 
   public InputStream loadWorkspace(Principal principal, String id) {

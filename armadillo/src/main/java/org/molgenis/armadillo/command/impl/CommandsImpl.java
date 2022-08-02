@@ -11,7 +11,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
@@ -91,9 +90,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return dataShieldConfigProps.getProfiles().stream()
-        .map(ProfileConfigProps::getName)
-        .collect(Collectors.toList());
+    return dataShieldConfigProps.getProfiles().stream().map(ProfileConfigProps::getName).toList();
   }
 
   @Override

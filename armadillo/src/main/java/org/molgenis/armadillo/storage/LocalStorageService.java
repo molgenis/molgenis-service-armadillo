@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -81,10 +80,7 @@ public class LocalStorageService implements StorageService {
     if (files == null) {
       return emptyList();
     }
-    return Arrays.stream(files)
-        .filter(File::isDirectory)
-        .map(File::getName)
-        .collect(Collectors.toList());
+    return Arrays.stream(files).filter(File::isDirectory).map(File::getName).toList();
   }
 
   @Override
