@@ -43,6 +43,8 @@ class MinioStorageService implements StorageService {
 
   public MinioStorageService(MinioClient minioClient) {
     this.minioClient = minioClient;
+
+    LOGGER.info("Using MinIO as storage");
   }
 
   @Override

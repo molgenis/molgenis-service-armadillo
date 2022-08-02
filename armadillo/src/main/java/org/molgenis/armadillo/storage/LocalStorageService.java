@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -26,6 +28,8 @@ import org.springframework.stereotype.Service;
 public class LocalStorageService implements StorageService {
 
   static final String ROOT_DIR_PROPERTY = "local-storage.root-dir";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
   private final String rootDir;
 
@@ -39,6 +43,8 @@ public class LocalStorageService implements StorageService {
     }
 
     this.rootDir = rootDir;
+
+    LOGGER.info("Using local storage at " + dir.getAbsolutePath());
   }
 
   @Override
