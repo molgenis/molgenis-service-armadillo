@@ -191,12 +191,6 @@
           </execution>
         </executions>
         <configuration>
-          <from>
-            <!-- Current java 17 image.
-            TODO choose correct image
-            See https://console.cloud.google.com/gcr/images/distroless/GLOBAL/java?gcrImageListsize=30 -->
-            <image>gcr.io/distroless/java@sha256:7fc091e8686df11f7bf0b7f67fd7da9862b2b9a3e49978d1184f0ff62cb673cc</image>
-          </from>
           <to>
             <image>${dockerfile.repository}:${dockerfile.tag}</image>
           </to>
