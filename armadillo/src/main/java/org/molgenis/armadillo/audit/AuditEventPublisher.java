@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.audit;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 import java.security.Principal;
@@ -100,7 +99,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
         .map(Authentication::getAuthorities)
         .flatMap(Collection::stream)
         .map(GrantedAuthority::getAuthority)
-        .collect(toList());
+        .toList();
   }
 
   public <T> CompletableFuture<T> audit(

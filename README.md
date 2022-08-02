@@ -63,6 +63,8 @@ You can inspect the API endpoints at `localhost:8080/v3/api-docs`
 
 ### Development
 
+Compile the code using ./mvnw test
+
 #### Setting up development tools
 
 This repository uses `pre-commit` to manage commit hooks. An installation guide can be found
