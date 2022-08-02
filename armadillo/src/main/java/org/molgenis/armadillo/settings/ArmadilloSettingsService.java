@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class ArmadilloSettingsService {
 
   public static final String SETTINGS_FILE = "users.json";
-  private ArmadilloSettingsObject settings;
+  private ArmadilloSettings settings;
   @Autowired private ArmadilloStorageService armadilloStorageService;
   private boolean forceReload = true;
 
@@ -72,7 +72,7 @@ public class ArmadilloSettingsService {
 
   public Set<String> getGrantsForEmail(String email) {
     reloadIfNeeded();
-    return settings.getUsers().get(email).getProjects();
+    return settings.getUsers().getOrDefault(email, new User()).getProjects();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -100,11 +100,11 @@ public class ArmadilloSettingsService {
     if (forceReload) {
       InputStream inputStream = armadilloStorageService.loadSystemFile(SETTINGS_FILE);
 
-      ArmadilloSettingsObject temp =
-          new Gson().fromJson(new InputStreamReader(inputStream), ArmadilloSettingsObject.class);
+      ArmadilloSettings temp =
+          new Gson().fromJson(new InputStreamReader(inputStream), ArmadilloSettings.class);
 
       if (temp == null) {
-        settings = new ArmadilloSettingsObject();
+        settings = new ArmadilloSettings();
       } else {
         settings = temp;
       }

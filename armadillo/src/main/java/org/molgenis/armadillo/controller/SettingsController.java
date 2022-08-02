@@ -21,7 +21,6 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.settings.ArmadilloSettingsService;
 import org.molgenis.armadillo.settings.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,45 +42,13 @@ public class SettingsController {
   private ArmadilloSettingsService armadilloSettingsService;
   private AuditEventPublisher auditEventPublisher;
 
-  @Autowired(required = false)
+  @Autowired(required = false) // only set when oauth login is enabled
   private OAuth2AuthorizedClientService clientService;
 
   public SettingsController(
       ArmadilloSettingsService armadilloSettingsService, AuditEventPublisher auditEventPublisher) {
     this.armadilloSettingsService = armadilloSettingsService;
     this.auditEventPublisher = auditEventPublisher;
-  }
-
-  @Operation(summary = "Get raw information from the current user")
-  @Profile({"armadillo", "development"})
-  @GetMapping("/my/principal")
-  public AbstractAuthenticationToken myPrincipal(Principal principal) {
-    return (AbstractAuthenticationToken) principal;
-  }
-
-  @Operation(summary = "Token of the current user")
-  @Profile({"armadillo", "development"})
-  @GetMapping("/my/token")
-  public String myToken() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-    OAuth2AuthorizedClient client =
-        clientService.loadAuthorizedClient(
-            oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
-    return client.getAccessToken().getTokenValue();
-  }
-
-  @Operation(summary = "Get info on current user", description = "Get information on current user")
-  @GetMapping(value = "/my/access", produces = APPLICATION_JSON_VALUE)
-  @Profile({"armadillo", "development"})
-  public List<String> myAccessList() {
-    Collection<SimpleGrantedAuthority> authorities =
-        (Collection<SimpleGrantedAuthority>)
-            SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-    return authorities.stream()
-        .filter(authority -> authority.getAuthority().endsWith("_RESEARCHER"))
-        .map(authority -> authority.getAuthority().replace("_RESEARCHER", "").replace("ROLE_", ""))
-        .toList();
   }
 
   @Operation(
@@ -133,6 +101,43 @@ public class SettingsController {
       Principal principal, @RequestParam String email, @RequestParam String project) {
     armadilloSettingsService.accessDelete(email, project);
     auditEventPublisher.audit(principal, REVOKE_ACCESS, Map.of("project", project, "email", email));
+  }
+
+  @Operation(summary = "Get raw information from the current user")
+  @GetMapping("/my/principal")
+  public AbstractAuthenticationToken myPrincipal(Principal principal) {
+    return (AbstractAuthenticationToken) principal;
+  }
+
+  @Operation(summary = "Token of the current user")
+  @GetMapping("/my/token")
+  public String myToken() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication instanceof OAuth2AuthenticationToken) {
+      OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+      OAuth2AuthorizedClient client =
+          clientService.loadAuthorizedClient(
+              oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
+      return client.getAccessToken().getTokenValue();
+    } else if (authentication instanceof JwtAuthenticationToken) {
+      return ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
+    }
+    throw new UnsupportedOperationException("couldn't get token");
+  }
+
+  @Operation(
+      summary = "Get info on current user",
+      description =
+          "Get information on current user. Note, if you just gave yourself permission, you need to sign via /logout to refresh permissions")
+  @GetMapping(value = "/my/access", produces = APPLICATION_JSON_VALUE)
+  public List<String> myAccessList() {
+    Collection<SimpleGrantedAuthority> authorities =
+        (Collection<SimpleGrantedAuthority>)
+            SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+    return authorities.stream()
+        .filter(authority -> authority.getAuthority().endsWith("_RESEARCHER"))
+        .map(authority -> authority.getAuthority().replace("_RESEARCHER", "").replace("ROLE_", ""))
+        .toList();
   }
 
   @Operation(

@@ -3,10 +3,10 @@ package org.molgenis.armadillo.settings;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ArmadilloSettingsObject {
+public class ArmadilloSettings {
   private Map<String, User> users = new LinkedHashMap<>();
 
-  public ArmadilloSettingsObject() {}
+  public ArmadilloSettings() {}
 
   public Map<String, User> getUsers() {
     return users;
