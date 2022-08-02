@@ -20,7 +20,7 @@ public class ArmadilloSettingsService {
   private boolean forceReload = true;
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public Map<String, User> userList() {
+  public Map<String, UserDetails> userList() {
     return settings.getUsers();
   }
 
@@ -32,8 +32,8 @@ public class ArmadilloSettingsService {
     settings
         .getUsers()
         .forEach(
-            (String user, User userDetails) -> {
-              userDetails
+            (String user, UserDetails userDetailsDetails) -> {
+              userDetailsDetails
                   .getProjects()
                   .forEach(
                       (String project) -> {
@@ -52,9 +52,9 @@ public class ArmadilloSettingsService {
     Objects.requireNonNull(project);
     reloadIfNeeded();
 
-    User user = settings.getUsers().getOrDefault(email, new User());
-    user.getProjects().add(project);
-    settings.getUsers().put(email, user);
+    UserDetails userDetails = settings.getUsers().getOrDefault(email, new UserDetails());
+    userDetails.getProjects().add(project);
+    settings.getUsers().put(email, userDetails);
     save();
   }
 
@@ -64,20 +64,20 @@ public class ArmadilloSettingsService {
     Objects.requireNonNull(project);
     reloadIfNeeded();
 
-    User user = settings.getUsers().getOrDefault(email, new User());
-    user.getProjects().remove(project);
-    settings.getUsers().put(email, user);
+    UserDetails userDetails = settings.getUsers().getOrDefault(email, new UserDetails());
+    userDetails.getProjects().remove(project);
+    settings.getUsers().put(email, userDetails);
     save();
   }
 
   public Set<String> getGrantsForEmail(String email) {
     reloadIfNeeded();
-    return settings.getUsers().getOrDefault(email, new User()).getProjects();
+    return settings.getUsers().getOrDefault(email, new UserDetails()).getProjects();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void userUpsert(String email, User user) {
-    settings.getUsers().put(email, user);
+  public void userUpsert(String email, UserDetails userDetails) {
+    settings.getUsers().put(email, userDetails);
     save();
   }
 

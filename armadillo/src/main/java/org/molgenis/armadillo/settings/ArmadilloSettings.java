@@ -4,15 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ArmadilloSettings {
-  private Map<String, User> users = new LinkedHashMap<>();
+  private Map<String, UserDetails> users = new LinkedHashMap<>();
 
-  public ArmadilloSettings() {}
-
-  public Map<String, User> getUsers() {
+  public Map<String, UserDetails> getUsers() {
     return users;
-  }
-
-  public void setUsers(Map<String, User> users) {
-    this.users = users;
   }
 }

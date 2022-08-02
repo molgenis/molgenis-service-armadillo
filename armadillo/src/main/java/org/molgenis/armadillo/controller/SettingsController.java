@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.settings.ArmadilloSettingsService;
-import org.molgenis.armadillo.settings.User;
+import org.molgenis.armadillo.settings.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -78,6 +78,26 @@ public class SettingsController {
   public Map<String, Set<String>> accessList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_ACCESS, Map.of());
     return armadilloSettingsService.projectList();
+  }
+
+  @Operation(summary = "Get project permissions for email address")
+  @GetMapping(value = "/access/{email}", produces = APPLICATION_JSON_VALUE)
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Found the permissions",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Set.class),
+                  examples = @ExampleObject("[\"myproject\"]"))
+            }),
+        @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content)
+      })
+  public Set<String> accessGet(Principal principal, @PathVariable String email) {
+    auditEventPublisher.audit(principal, LIST_ACCESS, Map.of());
+    return armadilloSettingsService.getGrantsForEmail(email);
   }
 
   @Operation(
@@ -164,7 +184,7 @@ public class SettingsController {
             }),
         @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content)
       })
-  public Map<String, User> userList(Principal principal) {
+  public Map<String, UserDetails> userList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_USERS, Map.of());
     return armadilloSettingsService.userList();
   }
@@ -172,9 +192,10 @@ public class SettingsController {
   @Operation(summary = "Add/Update user by email using email as id")
   @PutMapping(value = "/users/{email}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void userUpsert(Principal principal, @PathVariable String email, @RequestBody User user) {
-    armadilloSettingsService.userUpsert(email, user);
-    auditEventPublisher.audit(principal, UPSERT_USER, Map.of("email", email, "user", user));
+  public void userUpsert(
+      Principal principal, @PathVariable String email, @RequestBody UserDetails userDetails) {
+    armadilloSettingsService.userUpsert(email, userDetails);
+    auditEventPublisher.audit(principal, UPSERT_USER, Map.of("email", email, "user", userDetails));
   }
 
   @Operation(summary = "Delete user including details and permissions using email as id")

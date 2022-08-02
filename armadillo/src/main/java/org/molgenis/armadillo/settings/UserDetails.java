@@ -5,20 +5,20 @@ import java.util.Objects;
 import java.util.Set;
 
 // for generation to JSON
-public class User {
+public class UserDetails {
   private String firstName;
   private String lastName;
   private String institution;
   private Set<String> projects = new HashSet<>();
 
-  public User(String firstName, String lastName, String institution, Set<String> projects) {
+  public UserDetails(String firstName, String lastName, String institution, Set<String> projects) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.institution = institution;
     this.projects = projects;
   }
 
-  public User() {}
+  public UserDetails() {}
 
   public String getFirstName() {
     return firstName;

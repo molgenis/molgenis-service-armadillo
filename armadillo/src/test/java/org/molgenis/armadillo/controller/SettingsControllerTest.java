@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.molgenis.armadillo.settings.User;
+import org.molgenis.armadillo.settings.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -94,15 +95,26 @@ public class SettingsControllerTest {
     when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
         .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
 
-    String result =
-        mockMvc
-            .perform(get("/access"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(APPLICATION_JSON))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-    // .andExpect(content().json("{"bofke@email.com":["myproject"]}));
+    mockMvc
+        .perform(get("/access"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("{\"myproject\":[\"bofke@email.com\"]}"));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  @WithUserDetails("bofke")
+  public void access_email_GET() throws Exception {
+    final String JSON = BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON;
+    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+        .thenReturn(new ByteArrayInputStream(JSON.getBytes()));
+
+    mockMvc
+        .perform(get("/access/bofke@email.com"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[\"myproject\"]"));
   }
 
   @Test
@@ -215,7 +227,8 @@ public class SettingsControllerTest {
             put("/users/bofke@email.com")
                 .content(
                     new Gson()
-                        .toJson(new User("first", "last", "myInstitution", Set.of("myproject"))))
+                        .toJson(
+                            new UserDetails("first", "last", "myInstitution", Set.of("myproject"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());
