@@ -58,10 +58,11 @@ If you want to use MinIO as storage (including the test data), do the following:
 
 1. Start the container with `docker-compose --profile minio up`
 2. In your browser, go to `http://localhost:9090`
-3. Add a bucket `shared-lifecyle`
-4. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
-5. In `application.yml`, uncomment the `minio` section.
-6. Now Armadillo will automatically connect to MinIO at startup. 
+3. Log in with _molgenis_ / _molgenis_
+4. Add a bucket `shared-lifecyle`
+5. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
+6. In `application.yml`, uncomment the `minio` section.
+7. Now Armadillo will automatically connect to MinIO at startup. 
 
 ### DataSHIELD Profiles
 There are several DataSHIELD profiles you can start. At this stage these are the following:
