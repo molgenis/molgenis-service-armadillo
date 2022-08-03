@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(ROOT_DIR_PROPERTY)
 public class LocalStorageService implements StorageService {
 
-  static final String ROOT_DIR_PROPERTY = "local-storage.root-dir";
+  static final String ROOT_DIR_PROPERTY = "storage.root-dir";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 

@@ -82,7 +82,7 @@ logging:
           web:
             context: DEBUG
 
-local-storage:
+storage:
   root-dir: "data"
 
 # Uncomment the following block to enable MinIO storage (overrules local storage)

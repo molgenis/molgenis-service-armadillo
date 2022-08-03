@@ -16,7 +16,7 @@ class LocalStorageServiceTest {
 
   public static final String SOME_OBJECT_PATH =
       "object/some/path"; // n.b. can be subfolders you see?
-  public static final String SOME_BUCKET = "bucket";
+  public static final String SOME_PROJECT = "project";
   LocalStorageService localStorageService;
 
   @BeforeEach
@@ -26,20 +26,21 @@ class LocalStorageServiceTest {
   }
 
   @Test
-  void testCheckBucketExistsCreatesBucketIfNotFound() {
-    localStorageService.createProjectIfNotExists(SOME_BUCKET);
-    assertTrue(localStorageService.listProjects().contains(SOME_BUCKET));
+  void testCheckProjectExistsCreatesProjectIfNotFound() {
+    localStorageService.createProjectIfNotExists(SOME_PROJECT);
+    assertTrue(localStorageService.listProjects().contains(SOME_PROJECT));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() {
-    assertFalse(localStorageService.objectExists(SOME_BUCKET, SOME_OBJECT_PATH));
+    assertFalse(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
-  void testCheckObjectExistsInvalidBucketname() {
+  void testCheckObjectExistsInvalidProjectName() {
     assertThrows(
-        StorageException.class, () -> localStorageService.objectExists("Bucket", SOME_OBJECT_PATH));
+        StorageException.class,
+        () -> localStorageService.objectExists("Project", SOME_OBJECT_PATH));
   }
 
   @Test
@@ -47,13 +48,13 @@ class LocalStorageServiceTest {
     // create some file
     localStorageService.save(
         new ByteArrayInputStream("test".getBytes()),
-        SOME_BUCKET,
+        SOME_PROJECT,
         SOME_OBJECT_PATH,
         MediaType.TEXT_PLAIN);
     // test it exists
-    assertTrue(localStorageService.objectExists(SOME_BUCKET, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
     // test it has expected metadata
-    ObjectMetadata metadata = localStorageService.listObjects(SOME_BUCKET).get(0);
+    ObjectMetadata metadata = localStorageService.listObjects(SOME_PROJECT).get(0);
     assertTrue(metadata.lastModified().before(new Date()));
     assertTrue(metadata.size() > 0);
   }
@@ -63,16 +64,16 @@ class LocalStorageServiceTest {
     // create some file
     localStorageService.save(
         new ByteArrayInputStream("test".getBytes()),
-        SOME_BUCKET,
+        SOME_PROJECT,
         SOME_OBJECT_PATH,
         MediaType.TEXT_PLAIN);
 
     // check it exists
-    assertTrue(localStorageService.objectExists(SOME_BUCKET, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
-  void testListWorkspacesNoBucket() {
+  void testListWorkspacesNoProject() {
     assertEquals(Collections.emptyList(), localStorageService.listObjects("user-admin"));
   }
 

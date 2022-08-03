@@ -1,13 +1,13 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.model.Workspace;
@@ -34,7 +34,7 @@ public class ArmadilloStorageService {
     return storageService.listProjects().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")

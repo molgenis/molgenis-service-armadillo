@@ -1,7 +1,11 @@
 package org.molgenis.armadillo.storage;
 
 import static java.util.Collections.emptyList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,11 +15,9 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import io.minio.ErrorCode;
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
-import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InvalidBucketNameException;
 import io.minio.messages.ErrorResponse;
-import io.minio.messages.Item;
 import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +33,8 @@ class MinioStorageServiceTest {
   private MinioStorageService minioStorageService;
   @Mock private MinioClient minioClient;
   @Mock private InputStream inputStream;
-  @Mock private Result<Item> itemResult;
   @Mock private ErrorResponseException errorResponseException;
   @Mock private ErrorResponse errorResponse;
-  @Mock private Item item;
   @Mock private ObjectStat objectStat;
 
   @BeforeEach
@@ -43,64 +43,64 @@ class MinioStorageServiceTest {
   }
 
   @Test
-  void testCheckBucketExistsThrowsExceptionIfMinioDown() throws Exception {
-    doThrow(new IOException("blah")).when(minioClient).bucketExists("bucket");
+  void testCheckProjectExistsThrowsExceptionIfMinioDown() throws Exception {
+    doThrow(new IOException("blah")).when(minioClient).bucketExists("project");
 
     assertThrows(
-        StorageException.class, () -> minioStorageService.createProjectIfNotExists("bucket"));
+        StorageException.class, () -> minioStorageService.createProjectIfNotExists("project"));
   }
 
   @Test
-  void testCheckBucketExistsCreatesBucketIfNotFound() throws Exception {
-    when(minioClient.bucketExists("bucket")).thenReturn(false);
+  void testCheckProjectExistsCreatesProjectIfNotFound() throws Exception {
+    when(minioClient.bucketExists("project")).thenReturn(false);
 
-    minioStorageService.createProjectIfNotExists("bucket");
+    minioStorageService.createProjectIfNotExists("project");
 
-    verify(minioClient).makeBucket("bucket");
+    verify(minioClient).makeBucket("project");
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchKey() throws Exception {
     when(errorResponseException.errorResponse()).thenReturn(errorResponse);
     when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_KEY);
-    doThrow(errorResponseException).when(minioClient).statObject("bucket", "object");
+    doThrow(errorResponseException).when(minioClient).statObject("project", "object");
 
-    assertFalse(minioStorageService.objectExists("bucket", "object"));
+    assertFalse(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() throws Exception {
     when(errorResponseException.errorResponse()).thenReturn(errorResponse);
     when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_OBJECT);
-    doThrow(errorResponseException).when(minioClient).statObject("bucket", "object");
+    doThrow(errorResponseException).when(minioClient).statObject("project", "object");
 
-    assertFalse(minioStorageService.objectExists("bucket", "object"));
+    assertFalse(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
-  void testCheckObjectExistsInvalidBucketname() throws Exception {
-    doThrow(new InvalidBucketNameException("Bucket", "no capitals in bucket name!"))
+  void testCheckObjectExistsInvalidProjectname() throws Exception {
+    doThrow(new InvalidBucketNameException("Project", "no capitals in bucket name!"))
         .when(minioClient)
-        .statObject("Bucket", "object");
+        .statObject("Project", "object");
 
     assertThrows(
-        StorageException.class, () -> minioStorageService.objectExists("Bucket", "object"));
+        StorageException.class, () -> minioStorageService.objectExists("Project", "object"));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceObjectExists() throws Exception {
-    when(minioClient.statObject("bucket", "object")).thenReturn(objectStat);
+    when(minioClient.statObject("project", "object")).thenReturn(objectStat);
 
-    assertTrue(minioStorageService.objectExists("bucket", "object"));
+    assertTrue(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
   void save() throws Exception {
-    minioStorageService.save(inputStream, "bucket", "asdf.blah", APPLICATION_OCTET_STREAM);
+    minioStorageService.save(inputStream, "project", "asdf.blah", APPLICATION_OCTET_STREAM);
 
     verify(minioClient)
         .putObject(
-            "bucket", "asdf.blah", inputStream, null, null, null, APPLICATION_OCTET_STREAM_VALUE);
+            "project", "asdf.blah", inputStream, null, null, null, APPLICATION_OCTET_STREAM_VALUE);
   }
 
   @Test
@@ -109,16 +109,17 @@ class MinioStorageServiceTest {
     doThrow(exception)
         .when(minioClient)
         .putObject(
-            "bucket", "asdf.blah", inputStream, null, null, null, APPLICATION_OCTET_STREAM_VALUE);
+            "project", "asdf.blah", inputStream, null, null, null, APPLICATION_OCTET_STREAM_VALUE);
 
     assertThrows(
         StorageException.class,
         () ->
-            minioStorageService.save(inputStream, "bucket", "asdf.blah", APPLICATION_OCTET_STREAM));
+            minioStorageService.save(
+                inputStream, "project", "asdf.blah", APPLICATION_OCTET_STREAM));
   }
 
   @Test
-  void testListWorkspacesNoBucket() {
+  void testListWorkspacesNoProject() {
     assertEquals(emptyList(), minioStorageService.listObjects("user-admin"));
   }
 
