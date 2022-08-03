@@ -89,14 +89,14 @@ public class ArmadilloSettingsService {
     save();
   }
 
-  public synchronized void save() {
+  private synchronized void save() {
     String json = new Gson().toJson(settings);
     InputStream inputStream = new ByteArrayInputStream(json.getBytes());
     armadilloStorageService.saveSystemFile(inputStream, SETTINGS_FILE, MediaType.APPLICATION_JSON);
     forceReload = true;
   }
 
-  public void reloadIfNeeded() {
+  private void reloadIfNeeded() {
     if (forceReload) {
       InputStream inputStream = armadilloStorageService.loadSystemFile(SETTINGS_FILE);
 

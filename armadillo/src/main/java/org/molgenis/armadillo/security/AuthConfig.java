@@ -36,6 +36,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Profile("!test")
 @Import(UserDetailsServiceAutoConfiguration.class)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+// we have three configs that enable jwt, formLogin and oauth2Login respectively.
+// they are ordered, so jwt config is most dominant and oauth2Login least dominant
+// in 'test' profile they are not enabled
 public class AuthConfig {
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
@@ -97,8 +100,7 @@ public class AuthConfig {
   @Order(2)
   @ConditionalOnProperty(
       value = "spring.security.oauth2.client.registration.molgenis.client-id",
-      matchIfMissing = true,
-      havingValue = "value_that_never_appears")
+      matchIfMissing = true)
   @Profile({"armadillo", "development"})
   // if you don't want to run with spring security
   public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
