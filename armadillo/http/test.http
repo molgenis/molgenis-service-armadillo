@@ -1,11 +1,10 @@
 ####################### data upload ######################
 # First upload the data into the minio                   #
-# In the folder docker/test/data you can find 4 testsets #
+# In the folder docker/test/data you can test data       #
 # Navigate to http://localhost:9000                      #
 # Login with molgenis:molgenis                           #
-# Create a bucket called shared-local                    #
-# Create a folder called 1_0_core_1_0                    #
-# Upload the data into this folder                       #
+# Create a bucket called shared-lifecycle                #
+# Upload the folders in docker/test/data to the bucket   #
 ##########################################################
 
 ###
@@ -23,13 +22,13 @@ GET http://localhost:8080/tables
 Authorization: Basic admin admin
 
 ###
-HEAD http://localhost:8080/tables/local/1_0_core_1_0/nonrep
+HEAD http://localhost:8080/tables/lifecycle/core/nonrep
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=local/1_0_core_1_0/nonrep
+POST http://localhost:8080/load-table?symbol=D&table=lifecycle/core/nonrep
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=local/1_0_core_1_0/nonrep&variables=agebirth_m_d
+POST http://localhost:8080/load-table?symbol=D&table=lifecycle/core/nonrep&variables=agebirth_m_d
 
 ### get R-options
 POST http://localhost:8080/debug

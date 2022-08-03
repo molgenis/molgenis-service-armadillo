@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.minio;
+package org.molgenis.armadillo.storage;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.junit.jupiter.api.Assertions.*;
@@ -6,8 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import io.minio.messages.Bucket;
-import io.minio.messages.Item;
 import java.io.InputStream;
 import java.security.Principal;
 import java.time.Instant;
@@ -30,11 +28,12 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @ExtendWith(MockitoExtension.class)
 class ArmadilloStorageServiceTest {
-  @MockBean MinioStorageService storageService;
+  final String SHARED_GECKO = "shared-gecko";
+  final String SHARED_DIABETES = "shared-diabetes";
+
+  @MockBean StorageService storageService;
   @Mock Principal principal;
-  @Mock Item item;
-  @Mock Bucket gecko;
-  @Mock Bucket diabetes;
+  @Mock ObjectMetadata item;
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
 
@@ -42,7 +41,7 @@ class ArmadilloStorageServiceTest {
   @Configuration
   static class Config {
     @Bean
-    ArmadilloStorageService armadilloStorageService(MinioStorageService storageService) {
+    ArmadilloStorageService armadilloStorageService(StorageService storageService) {
       return new ArmadilloStorageService(storageService);
     }
   }
@@ -50,9 +49,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListProjects() {
-    when(gecko.name()).thenReturn("shared-gecko");
-    when(diabetes.name()).thenReturn("shared-diabetes");
-    when(storageService.listBuckets()).thenReturn(List.of(gecko, diabetes));
+    when(storageService.listProjects()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
     assertEquals(List.of("gecko"), armadilloStorage.listProjects());
   }
 
@@ -77,8 +74,8 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListTablesListsObjectsInSharedBucket() {
-    when(storageService.listObjects("shared-gecko")).thenReturn(List.of(item));
-    when(item.objectName()).thenReturn("1_0_release_1_1/gecko.parquet");
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
 
@@ -143,18 +140,12 @@ class ArmadilloStorageServiceTest {
     when(principal.getName()).thenReturn("henk");
     Instant lastModified = Instant.now().truncatedTo(MILLIS);
     Workspace workspace =
-        Workspace.builder()
-            .setName("blah")
-            .setLastModified(lastModified)
-            .setETag("\"abcde\"")
-            .setSize(56)
-            .build();
+        Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
     when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
-    when(item.objectName()).thenReturn("blah.RData");
+    when(item.name()).thenReturn("blah.RData");
     when(item.lastModified()).thenReturn(Date.from(lastModified));
-    when(item.etag()).thenReturn(workspace.eTag());
-    when(item.objectSize()).thenReturn(workspace.size());
+    when(item.size()).thenReturn(workspace.size());
 
     assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
   }
@@ -213,8 +204,8 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testListResources() {
-    when(storageService.listObjects("shared-gecko")).thenReturn(List.of(item));
-    when(item.objectName()).thenReturn("hpc-resource.rds");
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("hpc-resource.rds");
 
     assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
   }

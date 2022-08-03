@@ -13,8 +13,10 @@
   <properties>
     <org.obiba.datashield.ds4j-version>2.0.0</org.obiba.datashield.ds4j-version>
 
-    <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}</dockerfile.repository>
+    <dockerfile.repository>registry.hub.docker.com/molgenis/${project.artifactId}
+    </dockerfile.repository>
     <dockerfile.tag>${project.version}</dockerfile.tag>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
   <repositories>
@@ -117,6 +119,12 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <!-- Needed for mocking records (final classes) -->
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -194,11 +202,6 @@
           </execution>
         </executions>
         <configuration>
-          <from>
-            <!-- Current java 11 image.
-            See https://console.cloud.google.com/gcr/images/distroless/GLOBAL/java?gcrImageListsize=30 -->
-            <image>gcr.io/distroless/java@sha256:7fc091e8686df11f7bf0b7f67fd7da9862b2b9a3e49978d1184f0ff62cb673cc</image>
-          </from>
           <to>
             <image>${dockerfile.repository}:${dockerfile.tag}</image>
           </to>

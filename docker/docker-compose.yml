@@ -1,5 +1,6 @@
 version: "3.4"
 services:
+  # activate MinIO by adding --profile minio (e.g.: `docker-compose --profile minio up`)
   minio:
     image: minio/minio:RELEASE.2022-02-26T02-54-46Z
     ports:
@@ -13,9 +14,10 @@ services:
     command: server /data
     # volumes:
     #   - ./data/:/data
+    profiles: ['minio']
 
   console:
-    image: minio/console:v0.14.8
+    image: minio/console:v0.19.1
     ports:
       - 9090:9090
     environment:
@@ -27,6 +29,7 @@ services:
     # CONSOLE_IDP_SECRET: 'xxxxxxxxxxxxxxxxx'
     # CONSOLE_IDP_CALLBACK: 'http://localhost:9090/oauth_callback'
     command: server
+    profiles: ['minio']
 
   # activate this profile by adding --profile armadillo to the `docker-compose --profile armadillo up`
   armadillo:
@@ -49,7 +52,7 @@ services:
 
   rserver:
     # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:2.0.0
+    image: datashield/armadillo-rserver:6.2.0
     environment:
       DEBUG: "FALSE"
     ports:
