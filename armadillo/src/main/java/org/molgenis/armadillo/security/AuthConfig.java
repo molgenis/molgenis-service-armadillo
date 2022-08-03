@@ -36,6 +36,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Profile("!test")
 @Import(UserDetailsServiceAutoConfiguration.class)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity(debug = true)
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
 // they are ordered, so jwt config is most dominant and oauth2Login least dominant
 // in 'test' profile they are not enabled
@@ -60,15 +61,13 @@ public class AuthConfig {
       // use this is authorized
       http.requestMatcher(
               new AndRequestMatcher(
-                  // used in config(2 and 3)
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/")),
                   // used in config(2)
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**")),
                   // used in config(3)
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login"))))
           .authorizeRequests()
-          .antMatchers("/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
+          .antMatchers("/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
           .permitAll()
           .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
           .permitAll()
@@ -80,6 +79,9 @@ public class AuthConfig {
           .csrf()
           .disable()
           .cors()
+          .and()
+          .logout()
+          .logoutSuccessUrl("/")
           .and()
           .oauth2ResourceServer(
               oauth2 ->
@@ -98,9 +100,6 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @ConditionalOnProperty(
-      value = "spring.security.oauth2.client.registration.molgenis.client-id",
-      matchIfMissing = true)
   @Profile({"armadillo", "development"})
   // if you don't want to run with spring security
   public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
@@ -113,15 +112,13 @@ public class AuthConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       // use this if not on '/', otherwise we want to use a login method see other configs
-      http.authorizeRequests()
+      http.requestMatcher(new AntPathRequestMatcher("/login"))
+          .authorizeRequests()
           .anyRequest()
           .authenticated()
           .and()
           .formLogin()
-          .defaultSuccessUrl("/swagger-ui/index.html", true) // replace with UI when available
-          // enable /logout
-          .and()
-          .logout();
+          .defaultSuccessUrl("/swagger-ui/index.html", true); // replace with UI when available
     }
   }
 
@@ -151,7 +148,7 @@ public class AuthConfig {
                       .userInfoEndpoint(
                           userInfoEndpoint ->
                               userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                      .defaultSuccessUrl("/swagger-ui/index.html"));
+                      .defaultSuccessUrl("/swagger-ui/index.html", true));
     }
 
     private GrantedAuthoritiesMapper userAuthoritiesMapper() {
@@ -170,6 +167,26 @@ public class AuthConfig {
 
         return mappedAuthorities;
       };
+    }
+  }
+
+  @Order(4)
+  @ConditionalOnProperty(
+      value = "spring.security.oauth2.client.registration.molgenis.client-id",
+      matchIfMissing = true)
+  @Profile({"armadillo", "development"})
+  // otherwise we gonna offer sign in
+  public static class Oauth2LoginMissingConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      // use this if not authenticated and having oauth config
+      http.authorizeRequests()
+          .anyRequest()
+          .authenticated()
+          .and()
+          .exceptionHandling()
+          .accessDeniedPage("/error");
     }
   }
 
