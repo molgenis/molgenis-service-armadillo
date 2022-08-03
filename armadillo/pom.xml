@@ -17,6 +17,7 @@
     </dockerfile.repository>
     <dockerfile.tag>${project.version}</dockerfile.tag>
     <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
   </properties>
 
   <repositories>

@@ -46,7 +46,7 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @Profile({"armadillo", "development"})
+  @Profile({"!test"})
   @Order(1)
   // first check against JWT, but only if header is set
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
@@ -100,7 +100,7 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @Profile({"armadillo", "development"})
+  @Profile({"!test"})
   // if you don't want to run with spring security
   public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
     ArmadilloSettingsService armadilloSettingsService;
@@ -126,7 +126,7 @@ public class AuthConfig {
   @EnableWebSecurity
   @Order(3)
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  @Profile({"armadillo", "development"})
+  @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
     ArmadilloSettingsService armadilloSettingsService;
@@ -174,7 +174,7 @@ public class AuthConfig {
   @ConditionalOnProperty(
       value = "spring.security.oauth2.client.registration.molgenis.client-id",
       matchIfMissing = true)
-  @Profile({"armadillo", "development"})
+  @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginMissingConfig extends WebSecurityConfigurerAdapter {
 
