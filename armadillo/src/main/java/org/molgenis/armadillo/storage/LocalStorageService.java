@@ -44,7 +44,7 @@ public class LocalStorageService implements StorageService {
 
     this.rootDir = rootDir;
 
-    LOGGER.info("Using local storage at " + dir.getAbsolutePath());
+    LOGGER.info("Using local storage at {}", dir.getAbsolutePath());
   }
 
   @Override
