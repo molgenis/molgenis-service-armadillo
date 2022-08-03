@@ -228,7 +228,8 @@ public class SettingsControllerTest {
                 .content(
                     new Gson()
                         .toJson(
-                            new UserDetails("first", "last", "myInstitution", Set.of("myproject"))))
+                            UserDetails.create(
+                                "first", "last", "myInstitution", Set.of("myproject"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());

@@ -1,55 +1,25 @@
 package org.molgenis.armadillo.settings;
 
+import com.google.auto.value.AutoValue;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
-// for generation to JSON
-public class UserDetails {
-  private String firstName;
-  private String lastName;
-  private String institution;
-  private Set<String> projects = new HashSet<>();
+@AutoValue
+public abstract class UserDetails {
+  public abstract String getFirstName();
 
-  public UserDetails(String firstName, String lastName, String institution, Set<String> projects) {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.institution = institution;
-    this.projects = projects;
+  public abstract String getLastName();
+
+  public abstract String getInstitution();
+
+  public abstract Set<String> getProjects();
+
+  public static UserDetails create(
+      String firstName, String lastName, String institution, Set<String> projects) {
+    return new AutoValue_UserDetails(firstName, lastName, institution, projects);
   }
 
-  public UserDetails() {}
-
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public String getInstitution() {
-    return institution;
-  }
-
-  public void setInstitution(String institution) {
-    this.institution = institution;
-  }
-
-  public Set<String> getProjects() {
-    return projects;
-  }
-
-  public void setProjects(Set<String> projects) {
-    Objects.requireNonNull(projects);
-    this.projects = projects;
+  public static UserDetails create() {
+    return new AutoValue_UserDetails(null, null, null, new HashSet<>());
   }
 }

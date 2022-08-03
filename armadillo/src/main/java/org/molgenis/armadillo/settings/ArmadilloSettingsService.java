@@ -6,25 +6,28 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import org.molgenis.armadillo.minio.ArmadilloStorageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
+@PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloSettingsService {
 
-  public static final String SETTINGS_FILE = "users.json";
+  public static final String SETTINGS_FILE = "settings.json";
   private ArmadilloSettings settings;
-  @Autowired private ArmadilloStorageService armadilloStorageService;
+  private final ArmadilloStorageService armadilloStorageService;
   private boolean forceReload = true;
 
-  @PreAuthorize("hasRole('ROLE_SU')")
+  public ArmadilloSettingsService(ArmadilloStorageService armadilloStorageService) {
+    Objects.requireNonNull(armadilloStorageService);
+    this.armadilloStorageService = armadilloStorageService;
+  }
+
   public Map<String, UserDetails> userList() {
     return settings.getUsers();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   /** key is project, value list of users */
   public Map<String, Set<String>> projectList() {
     reloadIfNeeded();
@@ -46,25 +49,23 @@ public class ArmadilloSettingsService {
     return Collections.unmodifiableMap(result);
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public synchronized void accessAdd(String email, String project) {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
     reloadIfNeeded();
 
-    UserDetails userDetails = settings.getUsers().getOrDefault(email, new UserDetails());
+    UserDetails userDetails = settings.getUsers().getOrDefault(email, UserDetails.create());
     userDetails.getProjects().add(project);
     settings.getUsers().put(email, userDetails);
     save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public synchronized void accessDelete(String email, String project) {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
     reloadIfNeeded();
 
-    UserDetails userDetails = settings.getUsers().getOrDefault(email, new UserDetails());
+    UserDetails userDetails = settings.getUsers().getOrDefault(email, UserDetails.create());
     userDetails.getProjects().remove(project);
     settings.getUsers().put(email, userDetails);
     save();
@@ -72,16 +73,14 @@ public class ArmadilloSettingsService {
 
   public Set<String> getGrantsForEmail(String email) {
     reloadIfNeeded();
-    return settings.getUsers().getOrDefault(email, new UserDetails()).getProjects();
+    return settings.getUsers().getOrDefault(email, UserDetails.create()).getProjects();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void userUpsert(String email, UserDetails userDetails) {
     settings.getUsers().put(email, userDetails);
     save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void userDelete(String email) {
     Objects.requireNonNull(email);
     reloadIfNeeded();
@@ -104,7 +103,7 @@ public class ArmadilloSettingsService {
           new Gson().fromJson(new InputStreamReader(inputStream), ArmadilloSettings.class);
 
       if (temp == null) {
-        settings = new ArmadilloSettings();
+        settings = ArmadilloSettings.create();
       } else {
         settings = temp;
       }

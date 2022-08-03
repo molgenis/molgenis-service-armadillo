@@ -1,12 +1,14 @@
 package org.molgenis.armadillo.settings;
 
+import com.google.auto.value.AutoValue;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ArmadilloSettings {
-  private Map<String, UserDetails> users = new LinkedHashMap<>();
+@AutoValue
+public abstract class ArmadilloSettings {
+  public abstract Map<String, UserDetails> getUsers();
 
-  public Map<String, UserDetails> getUsers() {
-    return users;
+  public static ArmadilloSettings create() {
+    return new AutoValue_ArmadilloSettings(new LinkedHashMap<>());
   }
 }
