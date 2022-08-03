@@ -19,9 +19,6 @@ public abstract class Workspace {
   @JsonProperty("size")
   public abstract long size();
 
-  @JsonProperty("ETag")
-  public abstract String eTag();
-
   abstract Builder toBuilder();
 
   @AutoValue.Builder
@@ -35,8 +32,6 @@ public abstract class Workspace {
     }
 
     public abstract Builder setSize(long size);
-
-    public abstract Builder setETag(String etag);
 
     public abstract Workspace build();
   }

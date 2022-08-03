@@ -1,12 +1,10 @@
-package org.molgenis.armadillo.minio;
+package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import io.minio.messages.Bucket;
-import io.minio.messages.Item;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
@@ -22,20 +20,20 @@ import org.springframework.stereotype.Service;
 public class ArmadilloStorageService {
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
-  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9](?:[a-z0-9-]*)[a-z0-9])";
+  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
-  private final MinioStorageService storageService;
+  private final StorageService storageService;
 
-  public ArmadilloStorageService(MinioStorageService storageService) {
+  public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
+  @SuppressWarnings("java:S6204") // result of method can't be unmodifiable because of @PostFilter
   public List<String> listProjects() {
-    return storageService.listBuckets().stream()
-        .map(Bucket::name)
+    return storageService.listProjects().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
         .collect(toList());
@@ -45,11 +43,10 @@ public class ArmadilloStorageService {
   public List<String> listTables(String project) {
     var bucketName = SHARED_PREFIX + project;
     return storageService.listObjects(bucketName).stream()
-        .map(Item::objectName)
-        .map(objectName -> format("%s/%s", project, objectName))
+        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(PARQUET))
         .map(FilenameUtils::removeExtension)
-        .collect(toList());
+        .toList();
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -76,11 +73,10 @@ public class ArmadilloStorageService {
   public List<String> listResources(String project) {
     var bucketName = SHARED_PREFIX + project;
     return storageService.listObjects(bucketName).stream()
-        .map(Item::objectName)
-        .map(objectName -> format("%s/%s", project, objectName))
+        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .filter(it -> it.endsWith(RDS))
         .map(FilenameUtils::removeExtension)
-        .collect(toList());
+        .toList();
   }
 
   public List<Workspace> listWorkspaces(Principal principal) {
@@ -89,7 +85,7 @@ public class ArmadilloStorageService {
         .map(storageService::listObjects)
         .flatMap(List::stream)
         .map(ArmadilloStorageService::toWorkspace)
-        .collect(toList());
+        .toList();
   }
 
   public InputStream loadWorkspace(Principal principal, String id) {
@@ -109,12 +105,11 @@ public class ArmadilloStorageService {
     return bucketName;
   }
 
-  private static Workspace toWorkspace(Item item) {
+  private static Workspace toWorkspace(ObjectMetadata item) {
     return Workspace.builder()
         .setLastModified(item.lastModified())
-        .setName(removeExtension(item.objectName()))
-        .setSize(item.objectSize())
-        .setETag(item.etag())
+        .setName(removeExtension(item.name()))
+        .setSize(item.size())
         .build();
   }
 
