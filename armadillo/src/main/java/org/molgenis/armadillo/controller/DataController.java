@@ -8,7 +8,6 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN1;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.ASSIGN_FAILURE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DEBUG;
@@ -82,10 +81,10 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
-import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXP;
@@ -161,10 +160,7 @@ public class DataController {
   public List<String> getTables(Principal principal) {
     return auditEventPublisher.audit(
         () ->
-            storage.listProjects().stream()
-                .map(storage::listTables)
-                .flatMap(List::stream)
-                .collect(toList()),
+            storage.listProjects().stream().map(storage::listTables).flatMap(List::stream).toList(),
         principal,
         GET_TABLES,
         Map.of());
@@ -220,7 +216,7 @@ public class DataController {
         Optional.ofNullable(variables).map(it -> it.split(",")).stream()
             .flatMap(Arrays::stream)
             .map(String::trim)
-            .collect(toList());
+            .toList();
     var result =
         auditEventPublisher.audit(
             commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
@@ -242,7 +238,7 @@ public class DataController {
             storage.listProjects().stream()
                 .map(storage::listResources)
                 .flatMap(List::stream)
-                .collect(toList()),
+                .toList(),
         principal,
         GET_RESOURCES,
         Map.of());

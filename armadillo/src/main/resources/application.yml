@@ -14,7 +14,7 @@ datashield:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-         # foo: bar
+          # foo: bar
 
 springdoc:
   swagger-ui:
@@ -82,11 +82,15 @@ logging:
           web:
             context: DEBUG
 
-minio:
-  url: http://localhost
-  port: 9000
-  access-key: molgenis
-  secret-key: molgenis
+storage:
+  root-dir: "data"
+
+# Uncomment the following block to enable MinIO storage (overrules local storage)
+#minio:
+#  url: http://localhost
+#  port: 9000
+#  access-key: molgenis
+#  secret-key: molgenis
 
 ---
 spring:
