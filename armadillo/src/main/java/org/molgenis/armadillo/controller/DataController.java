@@ -158,6 +158,7 @@ public class DataController {
           "Return a list of (fully qualified) table identifiers available for DataSHIELD operations")
   @GetMapping(value = "/tables", produces = APPLICATION_JSON_VALUE)
   public List<String> getTables(Principal principal) {
+    // TODO move to StorageController
     return auditEventPublisher.audit(
         () ->
             storage.listProjects().stream().map(storage::listTables).flatMap(List::stream).toList(),
@@ -179,6 +180,7 @@ public class DataController {
       @PathVariable String project,
       @PathVariable String folder,
       @PathVariable String table) {
+    // TODO move to StorageController
     final boolean result =
         auditEventPublisher.audit(
             () -> storage.tableExists(project, format(PATH_FORMAT, folder, table)),
@@ -233,6 +235,7 @@ public class DataController {
           "Return a list of (fully qualified) resource identifiers available for DataSHIELD operations")
   @GetMapping(value = "/resources", produces = APPLICATION_JSON_VALUE)
   public List<String> getResources(Principal principal) {
+    // TODO move to StorageController
     return auditEventPublisher.audit(
         () ->
             storage.listProjects().stream()
@@ -257,6 +260,7 @@ public class DataController {
       @PathVariable String project,
       @PathVariable String folder,
       @PathVariable String resource) {
+    // TODO move to StorageController
     final boolean result =
         auditEventPublisher.audit(
             () -> storage.resourceExists(project, format(PATH_FORMAT, folder, resource)),
