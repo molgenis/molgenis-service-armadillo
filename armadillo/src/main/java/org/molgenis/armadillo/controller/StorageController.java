@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.util.List;
-import javax.validation.constraints.NotBlank;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -60,8 +60,8 @@ public class StorageController {
 
   @PostMapping("/projects")
   @ResponseStatus(NO_CONTENT)
-  public void createProject(@NotBlank String project) {
-    // TODO storage.createProject()
+  public void createProject(@RequestBody Project project) {
+    storage.createProject(project.name());
   }
 
   @RequestMapping(value = "/projects/{project}", method = HEAD)
@@ -95,19 +95,20 @@ public class StorageController {
     // TODO storage.writeObject()
   }
 
-  @PostMapping("/projects/{project}/objects")
-  @ResponseStatus(NO_CONTENT)
-  public void copyObject(@PathVariable String project, @RequestParam("copyOf") String object) {
-    // TODO 404 when project or object doesn't exist
-    // TODO storage.copyObject()
-  }
-
-  @PostMapping("/projects/{project}/objects")
-  @ResponseStatus(NO_CONTENT)
-  public void moveObject(@PathVariable String project, @RequestParam("moveFrom") String object) {
-    // TODO 404 when project or object doesn't exist
-    // TODO storage.moveObject()
-  }
+  //  @PostMapping("/projects/{project}/objects")
+  //  @ResponseStatus(NO_CONTENT)
+  //  public void copyObject(@PathVariable String project, @RequestParam("copyOf") String object) {
+  //    // TODO 404 when project or object doesn't exist
+  //    // TODO storage.copyObject()
+  //  }
+  //
+  //  @PostMapping("/projects/{project}/objects")
+  //  @ResponseStatus(NO_CONTENT)
+  //  public void moveObject(@PathVariable String project, @RequestParam("moveFrom") String object)
+  // {
+  //    // TODO 404 when project or object doesn't exist
+  //    // TODO storage.moveObject()
+  //  }
 
   @RequestMapping(value = "/projects/{project}/objects/{object}", method = HEAD)
   public ResponseEntity<Void> objectExists(

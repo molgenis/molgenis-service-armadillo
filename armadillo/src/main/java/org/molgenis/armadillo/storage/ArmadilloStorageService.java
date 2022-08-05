@@ -10,6 +10,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
+import org.molgenis.armadillo.exceptions.DuplicateProjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +27,15 @@ public class ArmadilloStorageService {
 
   public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void createProject(String project) {
+    project = SHARED_PREFIX + project;
+    if (storageService.listProjects().contains(project)) {
+      throw new DuplicateProjectException(project);
+    }
+    storageService.createProjectIfNotExists(project);
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
