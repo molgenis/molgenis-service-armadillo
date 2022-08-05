@@ -78,11 +78,7 @@ public class StorageController {
   @GetMapping("/projects/{project}/objects")
   @ResponseStatus(OK)
   public List<String> listObjects(@PathVariable String project) {
-    // TODO seperate endpoint for tables and resources?
-    // TODO 404 when project doesn't exist
-    var objects = storage.listTables(project);
-    objects.addAll(storage.listResources(project));
-    return objects;
+    return storage.listObjects(project);
   }
 
   @PostMapping("/projects/{project}/objects")

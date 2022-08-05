@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ArmadilloStorageService {
+
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
@@ -63,10 +64,20 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
-  public List<String> listTables(String project) {
-    var bucketName = SHARED_PREFIX + project;
-    return storageService.listObjects(bucketName).stream()
+  public List<String> listObjects(String project) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+
+    var projectName = SHARED_PREFIX + project;
+    return storageService.listObjects(projectName).stream()
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
+        .toList();
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public List<String> listTables(String project) {
+    return listObjects(project).stream()
         .filter(it -> it.endsWith(PARQUET))
         .map(FilenameUtils::removeExtension)
         .toList();
@@ -94,9 +105,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listResources(String project) {
-    var bucketName = SHARED_PREFIX + project;
-    return storageService.listObjects(bucketName).stream()
-        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
+    return listObjects(project).stream()
         .filter(it -> it.endsWith(RDS))
         .map(FilenameUtils::removeExtension)
         .toList();
