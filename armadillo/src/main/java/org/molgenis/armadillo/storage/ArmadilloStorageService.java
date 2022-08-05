@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
+import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,11 +32,25 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void createProject(String project) {
-    project = SHARED_PREFIX + project;
-    if (storageService.listProjects().contains(project)) {
+    if (hasProject(project)) {
       throw new DuplicateProjectException(project);
     }
-    storageService.createProjectIfNotExists(project);
+
+    storageService.createProjectIfNotExists(SHARED_PREFIX + project);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public boolean hasProject(String project) {
+    return storageService.listProjects().contains(SHARED_PREFIX + project);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteProject(String project) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+
+    storageService.deleteProject(SHARED_PREFIX + project);
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")

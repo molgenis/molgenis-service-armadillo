@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -75,6 +76,19 @@ public class LocalStorageService implements StorageService {
       if (!Files.exists(path)) {
         Files.createDirectory(path);
       }
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public void deleteProject(String projectName) {
+    StorageService.validateProjectName(projectName);
+
+    Path path = Paths.get(rootDir, projectName);
+    try (var folder = Files.walk(path)) {
+      //noinspection ResultOfMethodCallIgnored
+      folder.map(Path::toFile).sorted(Comparator.reverseOrder()).forEach(File::delete);
     } catch (Exception e) {
       throw new StorageException(e);
     }

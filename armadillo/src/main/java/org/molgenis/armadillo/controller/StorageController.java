@@ -66,16 +66,13 @@ public class StorageController {
 
   @RequestMapping(value = "/projects/{project}", method = HEAD)
   public ResponseEntity<Void> projectExists(@PathVariable String project) {
-    // TODO storage.projectExists()
-    var result = true;
-    return result ? noContent().build() : notFound().build();
+    return storage.hasProject(project) ? noContent().build() : notFound().build();
   }
 
   @DeleteMapping("/projects/{project}")
   @ResponseStatus(NO_CONTENT)
   public void deleteProject(@PathVariable String project) {
-    // TODO 404 when project doesn't exist
-    // TODO storage.deleteProject()
+    storage.deleteProject(project);
   }
 
   @GetMapping("/projects/{project}/objects")

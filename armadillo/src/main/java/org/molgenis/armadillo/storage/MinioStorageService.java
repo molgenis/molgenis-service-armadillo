@@ -97,6 +97,12 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
+  public void deleteProject(String projectName) {
+    // TODO implement
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public List<String> listProjects() {
     try {
       return minioClient.listBuckets().stream().map(Bucket::name).toList();

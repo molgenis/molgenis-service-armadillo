@@ -12,6 +12,8 @@ public interface StorageService {
 
   void createProjectIfNotExists(String projectName);
 
+  void deleteProject(String projectName);
+
   List<String> listProjects();
 
   void save(InputStream is, String projectName, String objectName, MediaType mediaType);
