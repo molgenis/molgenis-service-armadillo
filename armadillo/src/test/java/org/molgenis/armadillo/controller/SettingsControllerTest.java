@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.settings.ArmadilloSettingsService.SETTINGS_FILE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,6 +87,17 @@ public class SettingsControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
+  void permissions_GET() throws Exception {
+    mockMvc
+        .perform(get("/settings/permissions"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content().json("[{\"email\": \"bofke@email.com\", \"project\": \"myproject\"}]"));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
   void permissions_DELETE() throws Exception {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
@@ -147,6 +160,23 @@ public class SettingsControllerTest {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
+  void projects_DELETE() throws Exception {
+    ArgumentCaptor<ByteArrayInputStream> argument =
+        ArgumentCaptor.forClass(ByteArrayInputStream.class);
+    mockMvc
+        .perform(delete("/settings/projects/otherproject").contentType(TEXT_PLAIN).with(csrf()))
+        .andExpect(status().isOk());
+
+    // verify mock magic, I must say I prefer integration tests above this nonsense
+    verify(armadilloStorage)
+        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+    assertEquals(
+        "{\"users\":{\"bofke@email.com\":{}},\"projects\":{\"otherproject\":{},\"myproject\":{}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        new String(argument.getValue().readAllBytes()));
+  }
+
+  @Test
   @WithMockUser
   void settings_projects_GET_PermissionDenied() throws Exception {
     mockMvc.perform(get("/settings/projects")).andExpect(status().is(403));
@@ -181,7 +211,10 @@ public class SettingsControllerTest {
         .perform(
             put("/settings/users/chefke@email.com")
                 .content(
-                    new Gson().toJson(UserDetails.create("first", "last", "myInstitution", null)))
+                    new Gson()
+                        .toJson(
+                            UserDetails.create(
+                                "first", "last", "myInstitution", Set.of("otherproject"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());

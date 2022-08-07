@@ -12,12 +12,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.settings.ArmadilloSettings;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
-import org.molgenis.armadillo.settings.ProjectDetails;
-import org.molgenis.armadillo.settings.UserDetails;
+import org.molgenis.armadillo.settings.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("settings")
+@PreAuthorize("hasRole('ROLE_SU')")
 public class SettingsController {
 
   private final ArmadilloSettingsService armadilloSettingsService;
@@ -46,6 +46,14 @@ public class SettingsController {
   public ArmadilloSettings settingsList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of());
     return armadilloSettingsService.settingsList();
+  }
+
+  @Operation(summary = "List all permissions")
+  @GetMapping(path = "permissions", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public Set<ProjectPermission> permissionList(Principal principal) {
+    auditEventPublisher.audit(principal, PERMISSIONS_LIST, Map.of());
+    return armadilloSettingsService.permissionsList();
   }
 
   @Operation(

@@ -30,11 +30,6 @@ public class ArmadilloSettingsService {
         .collect(Collectors.toSet());
   }
 
-  public enum PatchType {
-    GRANT,
-    REVOKE
-  }
-
   public static final String SETTINGS_FILE = "settings.json";
   private ArmadilloSettings settings;
   private final ArmadilloStorageService armadilloStorageService;
@@ -153,6 +148,11 @@ public class ArmadilloSettingsService {
                 .filter(permission -> !permission.getProject().equals(projectName))
                 .collect(Collectors.toSet()));
     this.save();
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public Set<ProjectPermission> permissionsList() {
+    return settings.getPermissions();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

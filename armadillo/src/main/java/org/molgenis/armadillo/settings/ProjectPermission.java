@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-abstract class ProjectPermission {
+public abstract class ProjectPermission {
   @JsonProperty("email")
   abstract String getEmail();
 

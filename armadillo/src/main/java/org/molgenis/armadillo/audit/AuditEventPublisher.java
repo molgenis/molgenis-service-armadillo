@@ -40,6 +40,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
+  public static final String PERMISSIONS_LIST = "PERMISSIONS_LIST";
   public static final String PERMISSIONS_ADD = "PERMISSIONS_ADD";
   public static final String PERMISSIONS_DELETE = "PERMISSIONS_DELETE";
   public static final String UPSERT_USER = "UPSERT_USER";

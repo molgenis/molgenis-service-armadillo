@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @Validated
+@Hidden
 // temporary controller until we have proper UI
 public class WelcomeController {
 
