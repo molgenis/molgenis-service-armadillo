@@ -82,7 +82,7 @@ class DevelopmentControllerTest {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/developer/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(204));
   }
 
@@ -96,7 +96,7 @@ class DevelopmentControllerTest {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/developer/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(403));
   }
 
@@ -108,9 +108,7 @@ class DevelopmentControllerTest {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                MockMvcRequestBuilders.multipart("/developer/install-package")
-                    .file(file)
-                    .session(session))
+                MockMvcRequestBuilders.multipart("/install-package").file(file).session(session))
             .andExpect(status().is(204))
             .andExpect(request().asyncStarted())
             .andReturn();

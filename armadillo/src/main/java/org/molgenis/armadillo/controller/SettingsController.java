@@ -85,8 +85,9 @@ public class SettingsController {
   @Operation(summary = "Get project by name")
   @GetMapping(value = "projects/{projectName}", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ProjectDetails projectGet(Principal principal, @PathVariable String projectName) {
-    auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of(PROJECT, projectName));
+  public ProjectDetails projectGetByProjectName(
+      Principal principal, @PathVariable String projectName) {
+    auditEventPublisher.audit(principal, GET_PROJECT, Map.of(PROJECT, projectName));
     return armadilloSettingsService.projectsByName(projectName);
   }
 

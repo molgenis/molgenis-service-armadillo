@@ -42,7 +42,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
   public static final String PERMISSIONS_ADD = "PERMISSIONS_ADD";
   public static final String PERMISSIONS_DELETE = "PERMISSIONS_DELETE";
-  public static final String LIST_ACCESS = "LIST_ACCESS";
   public static final String UPSERT_USER = "UPSERT_USER";
   public static final String DELETE_USER = "DELETE_USER";
   public static final String GET_USER = "GET_USER";
@@ -64,8 +63,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
   public static final String EMAIL = "email";
-  public static final String PATCH_TYPE = "patchType";
-
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";

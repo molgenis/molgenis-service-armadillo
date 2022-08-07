@@ -33,7 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
-@RequestMapping("developer")
 @Profile({"development", "test"})
 public class DevelopmentController {
 
