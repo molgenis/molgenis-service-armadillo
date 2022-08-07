@@ -23,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.minio.ArmadilloStorageService;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
@@ -82,7 +82,7 @@ class DevelopmentControllerTest {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/developer/install-package").file(file))
         .andExpect(status().is(204));
   }
 
@@ -96,7 +96,7 @@ class DevelopmentControllerTest {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/developer/install-package").file(file))
         .andExpect(status().is(403));
   }
 
@@ -108,7 +108,9 @@ class DevelopmentControllerTest {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                MockMvcRequestBuilders.multipart("/install-package").file(file).session(session))
+                MockMvcRequestBuilders.multipart("/developer/install-package")
+                    .file(file)
+                    .session(session))
             .andExpect(status().is(204))
             .andExpect(request().asyncStarted())
             .andReturn();

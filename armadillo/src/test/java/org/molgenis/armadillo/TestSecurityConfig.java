@@ -1,8 +1,8 @@
 package org.molgenis.armadillo;
 
 import java.util.Arrays;
-import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;

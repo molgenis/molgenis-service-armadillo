@@ -9,6 +9,7 @@ import static org.springframework.http.ResponseEntity.status;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -26,11 +27,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Tag(name = "developer", description = "API only available in development mode")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
+@RequestMapping("developer")
 @Profile({"development", "test"})
 public class DevelopmentController {
 

@@ -1,16 +1,21 @@
 package org.molgenis.armadillo.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @Validated
 // temporary controller until we have proper UI
 public class WelcomeController {
-  private final String HTML =
-      """
+
+  @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
+  @ResponseBody
+  public String indexHtml() {
+    return """
             <html>
             <head>
               <title>Armadillo</title>
@@ -19,32 +24,23 @@ public class WelcomeController {
             <body>
             <div class=\"container\">
             <h1>Welcome to Armadillo.</h1>
-            %s
-            <br/><br/>
-            <a href="/login">Login using local account</a><br/>
-            <a href="/oauth2/">Login using institute account</a><br/>
+            <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
+            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required<br/>
+            <br/>
             <a href="/swagger-ui/index.html">Go to Swagger user interface</a><br/>
-            <a href="/logout">Logout of local account</a>
+            Here you can test the API<br/>
+            <br/>
+            <a href="/logout">Logout</a><br/>
+            Sign out of oauth2 or basicAuth (whatever you have chosen to sign in).
             </div>
             </body>
             </html>
             """;
-
-  @GetMapping("/")
-  @ResponseBody
-  public String indexHtml() {
-    return String.format(HTML, "");
   }
 
-  @GetMapping("/error")
+  @GetMapping("/oauth2/")
   @ResponseBody
-  public String errorHtml() {
-    return String.format(
-        HTML,
-        """
-            <div class="alert alert-primary" role="alert">
-              Something went wrong. Did admin possibly not set oath2 properly?
-            </div>
-            """);
+  public RedirectView whenAuthenticatedRedirect() {
+    return new RedirectView("/swagger-ui/index.html");
   }
 }

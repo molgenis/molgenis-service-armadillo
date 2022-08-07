@@ -2,8 +2,10 @@ package org.molgenis.armadillo.security;
 
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.molgenis.armadillo.settings.ArmadilloSettingsService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -36,7 +38,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Profile("!test")
 @Import(UserDetailsServiceAutoConfiguration.class)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
 // they are ordered, so jwt config is most dominant and oauth2Login least dominant
 // in 'test' profile they are not enabled
@@ -48,7 +50,7 @@ public class AuthConfig {
   @EnableWebSecurity
   @Profile({"!test"})
   @Order(1)
-  // first check against JWT, but only if header is set
+  // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
     ArmadilloSettingsService armadilloSettingsService;
 
@@ -58,27 +60,26 @@ public class AuthConfig {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      // use this is authorized
       http.requestMatcher(
               new AndRequestMatcher(
                   // used in config(2)
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**")),
-                  // used in config(3)
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login"))))
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
+                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
           .authorizeRequests()
           .antMatchers("/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
           .permitAll()
           .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
           .permitAll()
           .requestMatchers(toAnyEndpoint())
-          .hasRole("SU")
-          .anyRequest()
           .authenticated()
           .and()
           .csrf()
           .disable()
           .cors()
+          .and()
+          .httpBasic()
+          .realmName("Armadillo")
           .and()
           .logout()
           .logoutSuccessUrl("/")
@@ -100,31 +101,6 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @Profile({"!test"})
-  // if you don't want to run with spring security
-  public static class FormLoginConfig extends WebSecurityConfigurerAdapter {
-    ArmadilloSettingsService armadilloSettingsService;
-
-    public FormLoginConfig(ArmadilloSettingsService armadilloSettingsService) {
-      this.armadilloSettingsService = armadilloSettingsService;
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      // use this if not on '/', otherwise we want to use a login method see other configs
-      http.requestMatcher(new AntPathRequestMatcher("/login"))
-          .authorizeRequests()
-          .anyRequest()
-          .authenticated()
-          .and()
-          .formLogin()
-          .defaultSuccessUrl("/swagger-ui/index.html", true); // replace with UI when available
-    }
-  }
-
-  @Configuration
-  @EnableWebSecurity
-  @Order(3)
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
   @Profile({"!test"})
   // otherwise we gonna offer sign in
@@ -170,41 +146,20 @@ public class AuthConfig {
     }
   }
 
-  @Order(4)
-  @ConditionalOnProperty(
-      value = "spring.security.oauth2.client.registration.molgenis.client-id",
-      matchIfMissing = true)
-  @Profile({"!test"})
-  // otherwise we gonna offer sign in
-  public static class Oauth2LoginMissingConfig extends WebSecurityConfigurerAdapter {
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      // use this if not authenticated and having oauth config
-      http.authorizeRequests()
-          .anyRequest()
-          .authenticated()
-          .and()
-          .exceptionHandling()
-          .accessDeniedPage("/error");
-    }
-  }
-
   @Profile("development")
   @Bean
-  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
+  // Allow CORS requests, needed for swagger UI to work, if the development profile is active.
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
   }
 
   public static Collection<SimpleGrantedAuthority> getAuthoritiesForEmail(
       ArmadilloSettingsService armadilloSettingsService, String email) {
-    Set<String> authorizedProjects = armadilloSettingsService.getGrantsForEmail(email);
-    return authorizedProjects.stream()
+    return armadilloSettingsService.getPermissionsForEmail(email).stream()
         .map(
             project ->
                 "administrators".equals(project) ? "ROLE_SU" : "ROLE_" + project + "_RESEARCHER")
         .map(SimpleGrantedAuthority::new)
-        .collect(Collectors.toList());
+        .toList();
   }
 }

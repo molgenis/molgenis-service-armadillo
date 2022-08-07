@@ -4,11 +4,7 @@ import static org.springframework.security.core.context.SecurityContextHolder.ge
 
 import java.security.Principal;
 import java.time.Clock;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
@@ -44,11 +40,16 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
-  public static final String GRANT_ACCESS = "GRANT_ACCESS";
-  public static final String REVOKE_ACCESS = "REVOKE_ACCESS";
+  public static final String PERMISSIONS_ADD = "PERMISSIONS_ADD";
+  public static final String PERMISSIONS_DELETE = "PERMISSIONS_DELETE";
   public static final String LIST_ACCESS = "LIST_ACCESS";
   public static final String UPSERT_USER = "UPSERT_USER";
   public static final String DELETE_USER = "DELETE_USER";
+  public static final String GET_USER = "GET_USER";
+  public static final String LIST_PROJECTS = "LIST_PROJECTS";
+  public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
+  public static final String DELETE_PROJECT = "DELETE_PROJECT";
+  public static final String GET_PROJECT = "GET_PROJECT";
   public static final String LIST_USERS = "LIST_USERS";
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";
@@ -62,6 +63,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
+  public static final String EMAIL = "email";
+  public static final String PATCH_TYPE = "patchType";
+
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
