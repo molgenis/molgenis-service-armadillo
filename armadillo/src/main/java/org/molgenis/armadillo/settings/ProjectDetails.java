@@ -10,8 +10,8 @@ import javax.annotation.Nullable;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class ProjectDetails {
-  @JsonProperty("projectName")
-  public abstract String projectName();
+  @JsonProperty("name")
+  public abstract String getName();
 
   @JsonProperty("users")
   @Nullable
@@ -19,7 +19,7 @@ public abstract class ProjectDetails {
 
   @JsonCreator
   public static ProjectDetails create(
-      @JsonProperty("projectName") String newName, @JsonProperty("users") Set<String> newUsers) {
+      @JsonProperty("name") String newName, @JsonProperty("users") Set<String> newUsers) {
     return new AutoValue_ProjectDetails(newName, newUsers);
   }
 }

@@ -21,15 +21,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(
-    name = "settings",
-    description = "API to list and change access settings of your armadillo instance")
+    name = "metadata",
+    description = "API to list and change access metadata of your armadillo instance")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("settings")
 @PreAuthorize("hasRole('ROLE_SU')")
+@RequestMapping("metadata")
 public class SettingsController {
 
   private final ArmadilloSettingsService armadilloSettingsService;
@@ -41,7 +41,7 @@ public class SettingsController {
     this.auditEventPublisher = auditEventPublisher;
   }
 
-  @Operation(summary = "Get all settings")
+  @Operation(summary = "Get all metadata")
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ArmadilloSettings settingsRaw(Principal principal) {

@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuditEventPublisher.class})
 public class SettingsControllerTest {
   public static final String EXAMPLE_SETTINGS =
-      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"myproject\":{\"projectName\": \"myproject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
+      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"myproject\":{\"name\": \"myproject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired private MockMvc mockMvc;
@@ -58,7 +58,7 @@ public class SettingsControllerTest {
   @WithMockUser(roles = "SU")
   void settings_GET() throws Exception {
     mockMvc
-        .perform(get("/settings"))
+        .perform(get("/metadata"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(EXAMPLE_SETTINGS));
@@ -71,7 +71,7 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            post("/settings/permissions")
+            post("/metadata/permissions")
                 .param("project", "myproject")
                 .param("email", "chefke@email.com")
                 .with(csrf()))
@@ -81,7 +81,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -89,7 +89,7 @@ public class SettingsControllerTest {
   @WithMockUser(roles = "SU")
   void permissions_GET() throws Exception {
     mockMvc
-        .perform(get("/settings/permissions"))
+        .perform(get("/metadata/permissions"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -103,7 +103,7 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            delete("/settings/permissions")
+            delete("/metadata/permissions")
                 .param("email", "bofke@email.com")
                 .param("project", "myproject")
                 .with(csrf()))
@@ -113,7 +113,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}}}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -121,11 +121,10 @@ public class SettingsControllerTest {
   @WithMockUser(roles = "SU")
   void projects_GET() throws Exception {
     mockMvc
-        .perform(get("/settings/projects"))
+        .perform(get("/metadata/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(
-            content().json("[{\"projectName\":\"myproject\", \"users\":[\"bofke@email.com\"]}]"));
+        .andExpect(content().json("[{\"name\":\"myproject\", \"users\":[\"bofke@email.com\"]}]"));
   }
 
   @Test
@@ -133,10 +132,10 @@ public class SettingsControllerTest {
   @WithUserDetails("bofke")
   void projects_name_GET() throws Exception {
     mockMvc
-        .perform(get("/settings/projects/myproject"))
+        .perform(get("/metadata/projects/myproject"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{\"projectName\":\"myproject\"}"));
+        .andExpect(content().json("{\"name\":\"myproject\"}"));
   }
 
   @Test
@@ -146,7 +145,7 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            put("/settings/projects")
+            put("/metadata/projects")
                 .content(new Gson().toJson(ProjectDetails.create("otherproject", null)))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -156,7 +155,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"otherproject\":{\"projectName\":\"otherproject\"},\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"otherproject\":{\"name\":\"otherproject\"},\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -166,28 +165,28 @@ public class SettingsControllerTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
-        .perform(delete("/settings/projects/otherproject").contentType(TEXT_PLAIN).with(csrf()))
+        .perform(delete("/metadata/projects/otherproject").contentType(TEXT_PLAIN).with(csrf()))
         .andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
   @Test
   @WithMockUser
   void settings_projects_GET_PermissionDenied() throws Exception {
-    mockMvc.perform(get("/settings/projects")).andExpect(status().is(403));
+    mockMvc.perform(get("/metadata/projects")).andExpect(status().is(403));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void users_GET() throws Exception {
     mockMvc
-        .perform(get("/settings/users"))
+        .perform(get("/metadata/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"email\":\"bofke@email.com\"}]"));
@@ -197,7 +196,7 @@ public class SettingsControllerTest {
   @WithMockUser(roles = "SU")
   void users_GET_byEmail() throws Exception {
     mockMvc
-        .perform(get("/settings/users/bofke@email.com"))
+        .perform(get("/metadata/users/bofke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"email\": \"bofke@email.com\"}"));
@@ -210,7 +209,7 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            put("/settings/users")
+            put("/metadata/users")
                 .content(
                     new Gson()
                         .toJson(
@@ -228,7 +227,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -238,14 +237,14 @@ public class SettingsControllerTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
-        .perform(delete("/settings/users/bofke@email.com").with(csrf()))
+        .perform(delete("/metadata/users/bofke@email.com").with(csrf()))
         .andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}}}",
+        "{\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
         new String(argument.getValue().readAllBytes()));
   }
 }

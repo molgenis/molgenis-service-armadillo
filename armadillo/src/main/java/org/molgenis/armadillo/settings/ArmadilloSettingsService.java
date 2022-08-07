@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -114,7 +116,7 @@ public class ArmadilloSettingsService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void projectsUpsert(ProjectDetails projectDetails) {
-    String projectName = projectDetails.projectName();
+    String projectName = projectDetails.getName();
     // strip old permissions
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()

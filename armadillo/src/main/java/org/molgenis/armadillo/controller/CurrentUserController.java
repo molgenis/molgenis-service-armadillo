@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "currentUser", description = "API to inspect properties of current user")
+@Tag(name = "session", description = "API to inspect properties of current user session")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
