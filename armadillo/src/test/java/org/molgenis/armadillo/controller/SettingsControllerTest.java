@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuditEventPublisher.class})
 public class SettingsControllerTest {
   public static final String EXAMPLE_SETTINGS =
-      "{\"users\": {\"bofke@email.com\": {} }, \"projects\": {\"myproject\":{}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
+      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"myproject\":{\"projectName\": \"myproject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired private MockMvc mockMvc;
@@ -81,7 +81,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{},\"chefke@email.com\":{}},\"projects\":{\"myproject\":{}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -113,29 +113,30 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{}},\"projects\":{\"myproject\":{}}}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}}}",
         new String(argument.getValue().readAllBytes()));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  void settings_projects_GET() throws Exception {
+  void projects_GET() throws Exception {
     mockMvc
         .perform(get("/settings/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{\"myproject\":{\"users\":[\"bofke@email.com\"]}}"));
+        .andExpect(
+            content().json("[{\"projectName\":\"myproject\", \"users\":[\"bofke@email.com\"]}]"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   @WithUserDetails("bofke")
-  void settings_projects_name_GET() throws Exception {
+  void projects_name_GET() throws Exception {
     mockMvc
         .perform(get("/settings/projects/myproject"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{\"users\":[\"bofke@email.com\"]}"));
+        .andExpect(content().json("{\"projectName\":\"myproject\"}"));
   }
 
   @Test
@@ -145,8 +146,8 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            put("/settings/projects/otherproject")
-                .content(new Gson().toJson(ProjectDetails.create()))
+            put("/settings/projects")
+                .content(new Gson().toJson(ProjectDetails.create("otherproject", null)))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());
@@ -155,7 +156,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{}},\"projects\":{\"otherproject\":{},\"myproject\":{}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"otherproject\":{\"projectName\":\"otherproject\"},\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -172,7 +173,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{}},\"projects\":{\"otherproject\":{},\"myproject\":{}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -189,7 +190,7 @@ public class SettingsControllerTest {
         .perform(get("/settings/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{\"bofke@email.com\":{}}"));
+        .andExpect(content().json("[{\"email\":\"bofke@email.com\"}]"));
   }
 
   @Test
@@ -199,7 +200,7 @@ public class SettingsControllerTest {
         .perform(get("/settings/users/bofke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{}"));
+        .andExpect(content().json("{\"email\": \"bofke@email.com\"}"));
   }
 
   @Test
@@ -209,12 +210,16 @@ public class SettingsControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            put("/settings/users/chefke@email.com")
+            put("/settings/users")
                 .content(
                     new Gson()
                         .toJson(
                             UserDetails.create(
-                                "first", "last", "myInstitution", Set.of("otherproject"))))
+                                "chefke@email.com",
+                                "first",
+                                "last",
+                                "myInstitution",
+                                Set.of("otherproject"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());
@@ -223,7 +228,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{},\"chefke@email.com\":{\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\"}},\"projects\":{\"myproject\":{}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\"}},\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -240,6 +245,7 @@ public class SettingsControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"projects\":{\"myproject\":{}}}", new String(argument.getValue().readAllBytes()));
+        "{\"projects\":{\"myproject\":{\"projectName\":\"myproject\"}}}",
+        new String(argument.getValue().readAllBytes()));
   }
 }

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class SettingsController {
   @Operation(summary = "Get all settings")
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ArmadilloSettings settingsList(Principal principal) {
+  public ArmadilloSettings settingsRaw(Principal principal) {
     auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of());
     return armadilloSettingsService.settingsList();
   }
@@ -85,7 +86,7 @@ public class SettingsController {
       summary = "List projects (key) and per project list user emails array having access (value)")
   @GetMapping(path = "projects", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Map<String, ProjectDetails> projectList(Principal principal) {
+  public List<ProjectDetails> projectList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of());
     return armadilloSettingsService.projectsList();
   }
@@ -108,14 +109,11 @@ public class SettingsController {
   }
 
   @Operation(summary = "Add or update project including permissions")
-  @PutMapping(value = "projects/{project}", produces = TEXT_PLAIN_VALUE)
+  @PutMapping(value = "projects", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void projectsUpsert(
-      Principal principal,
-      @PathVariable String project,
-      @RequestBody ProjectDetails projectDetails) {
-    armadilloSettingsService.projectsUpsert(project, projectDetails);
-    auditEventPublisher.audit(principal, UPSERT_PROJECT, Map.of(PROJECT, project));
+  public void projectsUpsert(Principal principal, @RequestBody ProjectDetails projectDetails) {
+    armadilloSettingsService.projectsUpsert(projectDetails);
+    auditEventPublisher.audit(principal, UPSERT_PROJECT, Map.of(PROJECT, projectDetails));
   }
 
   @Operation(
@@ -123,7 +121,7 @@ public class SettingsController {
           "List users (key) and per user list details, such as firstName, lastName and projects with permission",
       description = " projects:['administrators',...] means user is SU")
   @GetMapping(path = "users", produces = APPLICATION_JSON_VALUE)
-  public Map<String, UserDetails> userList(Principal principal) {
+  public List<UserDetails> userList(Principal principal) {
     auditEventPublisher.audit(principal, LIST_USERS, Map.of());
     return armadilloSettingsService.usersList();
   }
@@ -138,12 +136,11 @@ public class SettingsController {
   }
 
   @Operation(summary = "Add/Update user by email using email as id")
-  @PutMapping(value = "users/{email}", produces = TEXT_PLAIN_VALUE)
+  @PutMapping(value = "users", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void userUpsert(
-      Principal principal, @PathVariable String email, @RequestBody UserDetails userDetails) {
-    armadilloSettingsService.userUpsert(email, userDetails);
-    auditEventPublisher.audit(principal, UPSERT_USER, Map.of(EMAIL, email, "user", userDetails));
+  public void userUpsert(Principal principal, @RequestBody UserDetails userDetails) {
+    armadilloSettingsService.userUpsert(userDetails);
+    auditEventPublisher.audit(principal, UPSERT_USER, Map.of("user", userDetails));
   }
 
   @Operation(summary = "Delete user including details and permissions using email as id")

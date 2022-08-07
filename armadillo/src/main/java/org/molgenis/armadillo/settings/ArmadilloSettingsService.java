@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -26,7 +23,7 @@ public class ArmadilloSettingsService {
   public Set<String> getPermissionsForEmail(String email) {
     return settings.getPermissions().stream()
         .filter(projectPermission -> projectPermission.getEmail().equals(email))
-        .map(projectPermission -> projectPermission.getProject())
+        .map(ProjectPermission::getProject)
         .collect(Collectors.toSet());
   }
 
@@ -47,14 +44,15 @@ public class ArmadilloSettingsService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public Map<String, UserDetails> usersList() {
+  public List<UserDetails> usersList() {
     return settings.getUsers().keySet().stream()
-        .map(email -> new AbstractMap.SimpleEntry<>(email, this.usersByEmail(email))) // to add the
-        .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+        .map(this::usersByEmail) // to add the
+        .toList();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void userUpsert(String email, UserDetails userDetails) {
+  public void userUpsert(UserDetails userDetails) {
+    String email = userDetails.getEmail();
     // strip old permissions
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
@@ -70,11 +68,12 @@ public class ArmadilloSettingsService {
     // clear permissions from value object and save
     userDetails =
         UserDetails.create(
+            userDetails.getEmail(),
             userDetails.getFirstName(),
             userDetails.getLastName(),
             userDetails.getInstitution(),
             null);
-    settings.getUsers().put(email, userDetails);
+    settings.getUsers().put(userDetails.getEmail(), userDetails);
     settings =
         ArmadilloSettings.create(settings.getUsers(), settingsList().getProjects(), permissions);
     save();
@@ -98,24 +97,24 @@ public class ArmadilloSettingsService {
 
   /** key is project, value list of users */
   @PreAuthorize("hasRole('ROLE_SU')")
-  public Map<String, ProjectDetails> projectsList() {
-    return settings.getProjects().keySet().stream()
-        .map(projectName -> new AbstractMap.SimpleEntry<>(projectName, projectsByName(projectName)))
-        .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+  public List<ProjectDetails> projectsList() {
+    return settings.getProjects().keySet().stream().map(this::projectsByName).toList();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public ProjectDetails projectsByName(String projectName) {
     return ProjectDetails.create(
+        projectName,
         // add permissions
         settings.getPermissions().stream()
             .filter(projectPermission -> projectPermission.getProject().equals(projectName))
-            .map(projectPermission -> projectPermission.getEmail())
+            .map(ProjectPermission::getEmail)
             .collect(Collectors.toSet()));
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void projectsUpsert(String projectName, ProjectDetails projectDetails) {
+  public void projectsUpsert(ProjectDetails projectDetails) {
+    String projectName = projectDetails.projectName();
     // strip old permissions
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
@@ -129,7 +128,7 @@ public class ArmadilloSettingsService {
               .collect(Collectors.toSet()));
     }
     // clear permissions from value object and save
-    projectDetails = ProjectDetails.create(null);
+    projectDetails = ProjectDetails.create(projectName, null);
     settings.getProjects().put(projectName, projectDetails);
     settings =
         ArmadilloSettings.create(settings.getUsers(), settingsList().getProjects(), permissions);
@@ -160,8 +159,8 @@ public class ArmadilloSettingsService {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
 
-    settings.getUsers().putIfAbsent(email, UserDetails.create());
-    settings.getProjects().putIfAbsent(project, ProjectDetails.create());
+    settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null));
+    settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null));
     settings.getPermissions().add(ProjectPermission.create(email, project));
 
     save();
@@ -188,8 +187,10 @@ public class ArmadilloSettingsService {
   }
 
   public UserDetails usersByEmail(String email) {
-    UserDetails userDetails = settings.getUsers().getOrDefault(email, UserDetails.create());
+    UserDetails userDetails =
+        settings.getUsers().getOrDefault(email, UserDetails.create(email, null, null, null, null));
     return UserDetails.create(
+        userDetails.getEmail(),
         userDetails.getFirstName(),
         userDetails.getLastName(),
         userDetails.getInstitution(),
@@ -212,17 +213,10 @@ public class ArmadilloSettingsService {
 
   public void reload() {
     String result;
-    try {
-      InputStream inputStream = armadilloStorageService.loadSystemFile(SETTINGS_FILE);
+    try (InputStream inputStream = armadilloStorageService.loadSystemFile(SETTINGS_FILE)) {
       result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
       ArmadilloSettings temp = objectMapper.readValue(result, ArmadilloSettings.class);
-
-      if (temp == null) {
-        settings = ArmadilloSettings.create();
-      } else {
-        settings = temp;
-      }
-
+      settings = Objects.requireNonNullElseGet(temp, ArmadilloSettings::create);
     } catch (ValueInstantiationException e) {
       // this is serious, manually edited file maybe?
       e.printStackTrace();
