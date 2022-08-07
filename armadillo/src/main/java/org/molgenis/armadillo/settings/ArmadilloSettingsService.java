@@ -224,9 +224,9 @@ public class ArmadilloSettingsService {
       }
 
     } catch (ValueInstantiationException e) {
-      // this is serious
-      System.exit(-1);
+      // this is serious, manually edited file maybe?
       e.printStackTrace();
+      System.exit(-1);
       settings = ArmadilloSettings.create();
     } catch (Exception e) {
       // this probably just means first time
