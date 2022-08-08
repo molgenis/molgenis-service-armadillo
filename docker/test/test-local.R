@@ -1,14 +1,14 @@
-################### data upload ###################
-# First upload the data into the minio            #
-# In the folder test/data you can find 4 testsets #
-# Navigate to http://localhost:9000               #
-# Login with molgenis:molgenis                    #
-# Create a bucket called shared-local             #
-# Create a folder called 1_0_core_1_0             #
-# Upload the data into this folder                #
-# Create a folder called 1_0_outcome_1_0          #
-# Upload the core outcome data into this folder   #
-###################################################
+####################### data upload ######################
+# !! If you are using the local storage in this          #
+# repository (default), these steps are not needed !!    #
+##########################################################
+# First upload the data into the minio                   #
+# In the folder test/data you can find test data         #
+# Navigate to http://localhost:9090                      #
+# Login with molgenis:molgenis                           #
+# Create a bucket called shared-lifecycle                #
+# Upload the folders in test/data to the bucket          #
+##########################################################
 
 ################### data analysis #################
 # Run a simple summary static on birth age        #
@@ -29,7 +29,7 @@ builder$append(
   user = "admin",
   password = "admin",
   driver = "ArmadilloDriver",
-  table = "local/1_0_core_1_0/nonrep")
+  table = "lifecycle/core/nonrep")
 
 login_data <- builder$build()
 

@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.1</version>
+        <version>2.5.12</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.molgenis</groupId>
@@ -47,7 +47,7 @@
     <properties>
         <project.scm.id>github</project.scm.id>
 
-        <java.version>11</java.version>
+        <java.version>17</java.version>
 
         <!-- authentication for release scm plugin -->
         <project.scm.id>github</project.scm.id>
@@ -190,7 +190,7 @@
                             <path>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-configuration-processor</artifactId>
-                                <version>2.7.1</version>
+                                <version>2.4.1</version>
                             </path>
                             <path>
                                 <groupId>com.google.auto.value</groupId>

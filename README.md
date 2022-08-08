@@ -20,10 +20,10 @@ The data can be stored encrypted on the Armadillo file server.
 Everybody logs in via single sign on using a [central authentication server](https://fusionauth.io) that federates to all of the institutions. This allows people to use one set of credentials in a network of Armadillo servers.
 Data stewards can grant access to dataset folders using a [web application](https://github.com/molgenis/molgenis-js-auth). They can find the participating users in the central authentication server.
 
-## Getting started
+# Getting started
 The Armadillo R packages are hosted on CRAN.
 
-To spin up your own server on a laptop, you can run `docker-compose up` in the docker folder.
+To spin up your own server on a laptop, you can run `docker-compose --profile armadillo up` in the docker folder. This will start:
 * Armadillo service
 * [R Server](https://www.rforge.net/Rserve/)
 * [File server](https://minio.io)
@@ -31,11 +31,41 @@ To spin up your own server on a laptop, you can run `docker-compose up` in the d
 Alternatively for [kubernetes](https://k8s.io) deployments look at the [helm chart](https://github.com/molgenis/molgenis-ops-helm/tree/master/charts/molgenis-armadillo). 
 Or for virtual server deployment look at the [ansible playbook](https://galaxy.ansible.com/molgenis/armadillo).
 
-### Development
-You need to start several backend services in order to be able to develop in the Armadillo.
-You can choose the services by defining a profile when running the compose file.
+## What to do next
 
-There are several profiles you can start. At this stage these are the following:
+Find some examples [here](https://github.com/molgenis/molgenis-service-armadillo/tree/master/docker/test)
+
+You can inspect the API endpoints at `localhost:8080/v3/api-docs`
+
+# Development
+
+## Setting up development tools
+This repository uses `pre-commit` to manage commit hooks. An installation guide can be found 
+[here](https://pre-commit.com/index.html#1-install-pre-commit). To install the hooks, 
+run `pre-commit install` once in the root folder of this repository. Now your code will be 
+automatically formatted whenever you commit. 
+
+## Running in development
+You need to start several backend services in order to be able to develop in the Armadillo.
+You can choose the services by selecting docker profiles when running the docker-compose file.
+
+### Storage
+For local storage, you don't need to do anything. Data is automatically stored in the `data/` folder 
+in this repository. You can choose another location in `application.yml` by changing the `storage.root-dir`
+setting.
+
+If you want to use MinIO as storage (including the test data), do the following:
+
+1. Start the container with `docker-compose --profile minio up`
+2. In your browser, go to `http://localhost:9090`
+3. Log in with _molgenis_ / _molgenis_
+4. Add a bucket `shared-lifecyle`
+5. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
+6. In `application.yml`, uncomment the `minio` section.
+7. Now Armadillo will automatically connect to MinIO at startup. 
+
+### DataSHIELD Profiles
+There are several DataSHIELD profiles you can start. At this stage these are the following:
 - default: `docker-compose up -d` 
 - exposome: `docker-compose --profile exposome up -d`
 - omics: `docker-compose --profile omics up -d`

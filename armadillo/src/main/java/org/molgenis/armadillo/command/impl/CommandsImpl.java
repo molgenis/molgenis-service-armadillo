@@ -3,15 +3,14 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
-import static org.molgenis.armadillo.minio.ArmadilloStorageService.PARQUET;
-import static org.molgenis.armadillo.minio.ArmadilloStorageService.RDS;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.RDS;
 
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
@@ -20,9 +19,9 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.minio.ArmadilloStorageService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
@@ -91,9 +90,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return dataShieldConfigProps.getProfiles().stream()
-        .map(ProfileConfigProps::getName)
-        .collect(Collectors.toList());
+    return dataShieldConfigProps.getProfiles().stream().map(ProfileConfigProps::getName).toList();
   }
 
   @Override
