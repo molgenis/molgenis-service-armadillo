@@ -32,7 +32,7 @@ public class ArmadilloMetadataService {
   // helper for internal use
   public boolean isSuperUser(String email) {
     return settings.getUsers().containsKey(email)
-        && Boolean.TRUE.equals(settings.getUsers().get(email).getIsAdminUser());
+        && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
   }
 
   public static final String METADATA_FILE = "metadata.json";
@@ -68,10 +68,18 @@ public class ArmadilloMetadataService {
             .collect(Collectors.toSet());
     // add replace with permissions
     if (userDetails.getProjects() != null) {
-      permissions.addAll(
-          userDetails.getProjects().stream()
-              .map(project -> ProjectPermission.create(email, project))
-              .collect(Collectors.toSet()));
+      // add missing projects
+      userDetails
+          .getProjects()
+          .forEach(
+              projectName -> {
+                // add missing project, if applicable
+                settings
+                    .getProjects()
+                    .putIfAbsent(projectName, ProjectDetails.create(projectName, null));
+                // add permission to that project
+                permissions.add(ProjectPermission.create(email, projectName));
+              });
     }
 
     // clear permissions from value object and save
@@ -81,7 +89,7 @@ public class ArmadilloMetadataService {
             userDetails.getFirstName(),
             userDetails.getLastName(),
             userDetails.getInstitution(),
-            userDetails.getIsAdminUser(),
+            userDetails.getAdmin(),
             null // stored in permissions
             );
     // update users
@@ -127,20 +135,26 @@ public class ArmadilloMetadataService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void projectsUpsert(ProjectDetails projectDetails) {
     String projectName = projectDetails.getName();
-    // strip old permissions for this project
+    // strip previous permissions for this project
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
             .filter(permission -> !permission.getProject().equals(projectName))
             .collect(Collectors.toSet());
-    // add new permissions for this project
+    // add current permissions for this project
     if (projectDetails.getUsers() != null) {
-      permissions.addAll(
-          projectDetails.getUsers().stream()
-              .map(email -> ProjectPermission.create(email, projectName))
-              .collect(Collectors.toSet()));
+      projectDetails
+          .getUsers()
+          .forEach(
+              userEmail -> {
+                // add missing users, if applicable
+                settings.getUsers().putIfAbsent(userEmail, UserDetails.create(userEmail));
+                // add permission
+                permissions.add(ProjectPermission.create(userEmail, projectName));
+              });
     }
-    // clone projectDetails to strip permissions from value object and save (permissions are saved
-    // seperately)
+
+    // clone projectDetails to strip permissions from value object and save
+    // (permissions are saved seperately)
     projectDetails = ProjectDetails.create(projectName, null);
     settings.getProjects().put(projectName, projectDetails);
     settings =
@@ -209,7 +223,7 @@ public class ArmadilloMetadataService {
         userDetails.getFirstName(),
         userDetails.getLastName(),
         userDetails.getInstitution(),
-        userDetails.getIsAdminUser(),
+        userDetails.getAdmin(),
         getPermissionsForEmail(email));
   }
 

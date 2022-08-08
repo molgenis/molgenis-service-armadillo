@@ -25,9 +25,9 @@ public abstract class UserDetails {
   @Nullable
   public abstract String getInstitution();
 
-  @JsonProperty("isAdminUser")
+  @JsonProperty("admin")
   @Nullable
-  abstract Boolean getIsAdminUser();
+  abstract Boolean getAdmin();
 
   @JsonProperty("projects")
   @Nullable
@@ -39,9 +39,13 @@ public abstract class UserDetails {
       @JsonProperty("firstName") String newFirstName,
       @JsonProperty("lastName") String newLastName,
       @JsonProperty("institution") String newInstitution,
-      @JsonProperty("isAdminUser") Boolean newIsAdminUser,
+      @JsonProperty("admin") Boolean newAdmin,
       @JsonProperty("projects") Set<String> newProjects) {
     return new AutoValue_UserDetails(
-        newEmail, newFirstName, newLastName, newInstitution, newIsAdminUser, newProjects);
+        newEmail, newFirstName, newLastName, newInstitution, newAdmin, newProjects);
+  }
+
+  public static UserDetails create(String newEmail) {
+    return new AutoValue_UserDetails(newEmail, null, null, null, null, null);
   }
 }

@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuditEventPublisher.class})
 public class MetadataControllerTest {
   public static final String EXAMPLE_SETTINGS =
-      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"myproject\":{\"name\": \"myproject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
+      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired private MockMvc mockMvc;
@@ -72,7 +72,7 @@ public class MetadataControllerTest {
     mockMvc
         .perform(
             post("/metadata/permissions")
-                .param("project", "myproject")
+                .param("project", "chefkesProject")
                 .param("email", "chefke@email.com")
                 .with(csrf()))
         .andExpect(status().isCreated());
@@ -81,7 +81,7 @@ public class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -93,7 +93,7 @@ public class MetadataControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
-            content().json("[{\"email\": \"bofke@email.com\", \"project\": \"myproject\"}]"));
+            content().json("[{\"email\": \"bofke@email.com\", \"project\": \"bofkesProject\"}]"));
   }
 
   @Test
@@ -105,7 +105,7 @@ public class MetadataControllerTest {
         .perform(
             delete("/metadata/permissions")
                 .param("email", "bofke@email.com")
-                .param("project", "myproject")
+                .param("project", "bofkesProject")
                 .with(csrf()))
         .andExpect(status().isOk());
 
@@ -113,7 +113,7 @@ public class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -124,7 +124,8 @@ public class MetadataControllerTest {
         .perform(get("/metadata/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[{\"name\":\"myproject\", \"users\":[\"bofke@email.com\"]}]"));
+        .andExpect(
+            content().json("[{\"name\":\"bofkesProject\", \"users\":[\"bofke@email.com\"]}]"));
   }
 
   @Test
@@ -132,10 +133,10 @@ public class MetadataControllerTest {
   @WithUserDetails("bofke")
   void projects_name_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata/projects/myproject"))
+        .perform(get("/metadata/projects/bofkesProject"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("{\"name\":\"myproject\"}"));
+        .andExpect(content().json("{\"name\":\"bofkesProject\"}"));
   }
 
   @Test
@@ -146,7 +147,10 @@ public class MetadataControllerTest {
     mockMvc
         .perform(
             put("/metadata/projects")
-                .content(new Gson().toJson(ProjectDetails.create("otherproject", null)))
+                .content(
+                    new Gson()
+                        .toJson(
+                            ProjectDetails.create("chefkesProject", Set.of("chefke@email.com"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());
@@ -155,7 +159,7 @@ public class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"otherproject\":{\"name\":\"otherproject\"},\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -165,14 +169,14 @@ public class MetadataControllerTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
-        .perform(delete("/metadata/projects/otherproject").contentType(TEXT_PLAIN).with(csrf()))
+        .perform(delete("/metadata/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
         .andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -213,11 +217,11 @@ public class MetadataControllerTest {
             .toJson(
                 UserDetails.create(
                     "chefke@email.com",
-                    "first",
-                    "last",
-                    "myInstitution",
+                    "Chefke",
+                    "von Chefke",
+                    "Chefke & co",
                     true,
-                    Set.of("otherproject")));
+                    Set.of("chefkesProject")));
     mockMvc
         .perform(
             put("/metadata/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
@@ -225,7 +229,7 @@ public class MetadataControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     final String backendState =
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\",\"isAdminUser\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}";
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(backendState, new String(argument.getValue().readAllBytes()));
@@ -254,7 +258,7 @@ public class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
+        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 }

@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import java.util.HashSet;
@@ -10,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class ArmadilloMetadata {
   @JsonProperty("users")
   public abstract ConcurrentMap<String, UserDetails> getUsers();
