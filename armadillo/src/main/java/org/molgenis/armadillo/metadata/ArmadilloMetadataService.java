@@ -234,7 +234,7 @@ public class ArmadilloMetadataService {
       settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);
     } catch (ValueInstantiationException e) {
       // this is serious, manually edited file maybe?
-      e.printStackTrace();
+      System.err.println("Parsing of " + METADATA_FILE + " failed: " + e.getMessage());
       System.exit(-1);
       settings = ArmadilloMetadata.create();
     } catch (Exception e) {
