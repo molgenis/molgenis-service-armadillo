@@ -27,6 +27,7 @@
             <url>https://obiba.jfrog.io/artifactory/libs-release-local/</url>
         </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.obiba.datashield</groupId>
@@ -204,4 +205,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
