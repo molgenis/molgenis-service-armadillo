@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.settings;
+package org.molgenis.armadillo.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,6 +25,10 @@ public abstract class UserDetails {
   @Nullable
   public abstract String getInstitution();
 
+  @JsonProperty("isAdminUser")
+  @Nullable
+  abstract Boolean getIsAdminUser();
+
   @JsonProperty("projects")
   @Nullable
   public abstract Set<String> getProjects();
@@ -35,8 +39,9 @@ public abstract class UserDetails {
       @JsonProperty("firstName") String newFirstName,
       @JsonProperty("lastName") String newLastName,
       @JsonProperty("institution") String newInstitution,
+      @JsonProperty("isAdminUser") Boolean newIsAdminUser,
       @JsonProperty("projects") Set<String> newProjects) {
     return new AutoValue_UserDetails(
-        newEmail, newFirstName, newLastName, newInstitution, newProjects);
+        newEmail, newFirstName, newLastName, newInstitution, newIsAdminUser, newProjects);
   }
 }

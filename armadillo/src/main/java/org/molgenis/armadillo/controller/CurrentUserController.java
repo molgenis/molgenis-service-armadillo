@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,15 +34,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("currentUser")
 public class CurrentUserController {
 
-  private ArmadilloSettingsService armadilloSettingsService;
+  private ArmadilloMetadataService armadilloMetadataService;
   private AuditEventPublisher auditEventPublisher;
 
   @Autowired(required = false) // will only set when oauth2 login is enabled
   private OAuth2AuthorizedClientService clientService;
 
   public CurrentUserController(
-      ArmadilloSettingsService armadilloSettingsService, AuditEventPublisher auditEventPublisher) {
-    this.armadilloSettingsService = armadilloSettingsService;
+      ArmadilloMetadataService armadilloMetadataService, AuditEventPublisher auditEventPublisher) {
+    this.armadilloMetadataService = armadilloMetadataService;
     this.auditEventPublisher = auditEventPublisher;
   }
 

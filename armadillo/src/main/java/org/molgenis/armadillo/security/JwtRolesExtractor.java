@@ -6,7 +6,7 @@ import static org.molgenis.armadillo.security.AuthConfig.getAuthoritiesForEmail;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,10 +18,10 @@ import org.springframework.stereotype.Service;
 @Service
 @Profile({"armadillo"})
 public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAuthority>> {
-  private ArmadilloSettingsService armadilloSettingsService;
+  private ArmadilloMetadataService armadilloMetadataService;
 
-  public JwtRolesExtractor(ArmadilloSettingsService armadilloSettingsService) {
-    this.armadilloSettingsService = armadilloSettingsService;
+  public JwtRolesExtractor(ArmadilloMetadataService armadilloMetadataService) {
+    this.armadilloMetadataService = armadilloMetadataService;
   }
 
   public Collection<GrantedAuthority> convert(Jwt jwt) {
@@ -34,7 +34,7 @@ public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAutho
                 .collect(Collectors.toList());
 
     String email = jwt.getClaimAsString("email");
-    result.addAll(getAuthoritiesForEmail(armadilloSettingsService, email));
+    result.addAll(getAuthoritiesForEmail(armadilloMetadataService, email));
 
     return result;
   }

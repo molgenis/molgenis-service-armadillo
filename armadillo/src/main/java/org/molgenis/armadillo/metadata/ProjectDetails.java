@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.settings;
+package org.molgenis.armadillo.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;

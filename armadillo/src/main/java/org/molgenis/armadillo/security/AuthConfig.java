@@ -2,11 +2,8 @@ package org.molgenis.armadillo.security;
 
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import java.util.*;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
@@ -52,10 +49,10 @@ public class AuthConfig {
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
-    ArmadilloSettingsService armadilloSettingsService;
+    ArmadilloMetadataService armadilloMetadataService;
 
-    public JwtConfig(ArmadilloSettingsService armadilloSettingsService) {
-      this.armadilloSettingsService = armadilloSettingsService;
+    public JwtConfig(ArmadilloMetadataService armadilloMetadataService) {
+      this.armadilloMetadataService = armadilloMetadataService;
     }
 
     @Override
@@ -93,7 +90,7 @@ public class AuthConfig {
     Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-          new JwtRolesExtractor(armadilloSettingsService));
+          new JwtRolesExtractor(armadilloMetadataService));
       return jwtAuthenticationConverter;
     }
   }
@@ -105,10 +102,10 @@ public class AuthConfig {
   @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
-    ArmadilloSettingsService armadilloSettingsService;
+    ArmadilloMetadataService armadilloMetadataService;
 
-    public Oauth2LoginConfig(ArmadilloSettingsService armadilloSettingsService) {
-      this.armadilloSettingsService = armadilloSettingsService;
+    public Oauth2LoginConfig(ArmadilloMetadataService armadilloMetadataService) {
+      this.armadilloMetadataService = armadilloMetadataService;
     }
 
     @Override
@@ -138,7 +135,7 @@ public class AuthConfig {
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
               mappedAuthorities.addAll(
                   getAuthoritiesForEmail(
-                      armadilloSettingsService, (String) userAttributes.get("email")));
+                      armadilloMetadataService, (String) userAttributes.get("email")));
             });
 
         return mappedAuthorities;
@@ -154,12 +151,16 @@ public class AuthConfig {
   }
 
   public static Collection<SimpleGrantedAuthority> getAuthoritiesForEmail(
-      ArmadilloSettingsService armadilloSettingsService, String email) {
-    return armadilloSettingsService.getPermissionsForEmail(email).stream()
-        .map(
-            project ->
-                "administrators".equals(project) ? "ROLE_SU" : "ROLE_" + project + "_RESEARCHER")
-        .map(SimpleGrantedAuthority::new)
-        .toList();
+      ArmadilloMetadataService armadilloMetadataService, String email) {
+    List<SimpleGrantedAuthority> result =
+        new ArrayList<>(
+            armadilloMetadataService.getPermissionsForEmail(email).stream()
+                .map(project -> "ROLE_" + project + "_RESEARCHER")
+                .map(SimpleGrantedAuthority::new)
+                .toList());
+    if (armadilloMetadataService.isSuperUser(email)) {
+      result.add(new SimpleGrantedAuthority("ROLE_SU"));
+    }
+    return result;
   }
 }

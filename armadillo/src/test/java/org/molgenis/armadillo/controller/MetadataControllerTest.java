@@ -2,7 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.settings.ArmadilloSettingsService.SETTINGS_FILE;
+import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -19,9 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
-import org.molgenis.armadillo.settings.ProjectDetails;
-import org.molgenis.armadillo.settings.UserDetails;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.ProjectDetails;
+import org.molgenis.armadillo.metadata.UserDetails;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -33,25 +33,25 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(SettingsController.class)
+@WebMvcTest(MetadataController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-public class SettingsControllerTest {
+public class MetadataControllerTest {
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"myproject\":{\"name\": \"myproject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"myproject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired private MockMvc mockMvc;
   @MockBean JwtDecoder jwtDecoder;
-  @Autowired ArmadilloSettingsService armadilloSettingsService;
+  @Autowired ArmadilloMetadataService armadilloMetadataService;
 
   @BeforeEach
   void setup() {
     // default state
-    when(armadilloStorage.loadSystemFile(SETTINGS_FILE))
+    when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(EXAMPLE_SETTINGS.getBytes()));
-    armadilloSettingsService.reload();
+    armadilloMetadataService.reload();
   }
 
   @Test
@@ -79,7 +79,7 @@ public class SettingsControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
         "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"myproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
@@ -111,7 +111,7 @@ public class SettingsControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
         "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
         new String(argument.getValue().readAllBytes()));
@@ -153,7 +153,7 @@ public class SettingsControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
         "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"otherproject\":{\"name\":\"otherproject\"},\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
@@ -170,7 +170,7 @@ public class SettingsControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
         "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
         new String(argument.getValue().readAllBytes()));
@@ -207,28 +207,38 @@ public class SettingsControllerTest {
   void users_PUT() throws Exception {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
+
+    String testUser =
+        new Gson()
+            .toJson(
+                UserDetails.create(
+                    "chefke@email.com",
+                    "first",
+                    "last",
+                    "myInstitution",
+                    true,
+                    Set.of("otherproject")));
     mockMvc
         .perform(
-            put("/metadata/users")
-                .content(
-                    new Gson()
-                        .toJson(
-                            UserDetails.create(
-                                "chefke@email.com",
-                                "first",
-                                "last",
-                                "myInstitution",
-                                Set.of("otherproject"))))
-                .contentType(APPLICATION_JSON)
-                .with(csrf()))
+            put("/metadata/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
         .andExpect(status().isOk());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
+    final String backendState =
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\",\"isAdminUser\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}";
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"first\",\"lastName\":\"last\",\"institution\":\"myInstitution\"}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"chefke@email.com\",\"project\":\"otherproject\"},{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}",
-        new String(argument.getValue().readAllBytes()));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
+    assertEquals(backendState, new String(argument.getValue().readAllBytes()));
+
+    // check that 'get' also in sync
+    when(armadilloStorage.loadSystemFile(METADATA_FILE))
+        .thenReturn(new ByteArrayInputStream(backendState.getBytes()));
+    armadilloMetadataService.reload();
+    mockMvc
+        .perform(get("/metadata/users/chefke@email.com"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json(testUser));
   }
 
   @Test
@@ -242,7 +252,7 @@ public class SettingsControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
         "{\"projects\":{\"myproject\":{\"name\":\"myproject\"}}}",
         new String(argument.getValue().readAllBytes()));

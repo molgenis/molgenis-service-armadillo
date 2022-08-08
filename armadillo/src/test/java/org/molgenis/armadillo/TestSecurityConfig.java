@@ -1,7 +1,7 @@
 package org.molgenis.armadillo;
 
 import java.util.Arrays;
-import org.molgenis.armadillo.settings.ArmadilloSettingsService;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +24,8 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  ArmadilloSettingsService accessStorageService(ArmadilloStorageService storageService) {
-    return new ArmadilloSettingsService(storageService);
+  ArmadilloMetadataService accessStorageService(ArmadilloStorageService storageService) {
+    return new ArmadilloMetadataService(storageService);
   }
 
   @Bean

@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.settings;
+package org.molgenis.armadillo.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public abstract class ArmadilloSettings {
+public abstract class ArmadilloMetadata {
   @JsonProperty("users")
   public abstract ConcurrentMap<String, UserDetails> getUsers();
 
@@ -22,16 +22,16 @@ public abstract class ArmadilloSettings {
   public abstract Set<ProjectPermission> getPermissions();
 
   @JsonCreator
-  public static ArmadilloSettings create() {
-    return new AutoValue_ArmadilloSettings(
+  public static ArmadilloMetadata create() {
+    return new AutoValue_ArmadilloMetadata(
         new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new HashSet<>());
   }
 
   @JsonCreator
-  public static ArmadilloSettings create(
+  public static ArmadilloMetadata create(
       @JsonProperty("users") ConcurrentMap<String, UserDetails> newUsers,
       @JsonProperty("projects") ConcurrentMap<String, ProjectDetails> newProjects,
       @JsonProperty("permissions") Set<ProjectPermission> newPermissions) {
-    return new AutoValue_ArmadilloSettings(newUsers, newProjects, newPermissions);
+    return new AutoValue_ArmadilloMetadata(newUsers, newProjects, newPermissions);
   }
 }

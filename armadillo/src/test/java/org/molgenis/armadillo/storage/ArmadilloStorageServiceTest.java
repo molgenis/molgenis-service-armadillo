@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.settings.ArmadilloSettingsService.SETTINGS_FILE;
+import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.SYSTEM;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -220,10 +220,10 @@ class ArmadilloStorageServiceTest {
   @Test
   void testLoadSystemFile() throws IOException {
     String testValue = "test";
-    when(storageService.load(SYSTEM, SETTINGS_FILE))
+    when(storageService.load(SYSTEM, METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(testValue.getBytes()));
-    when(storageService.objectExists(SYSTEM, SETTINGS_FILE)).thenReturn(true);
-    InputStream result = armadilloStorage.loadSystemFile(SETTINGS_FILE);
+    when(storageService.objectExists(SYSTEM, METADATA_FILE)).thenReturn(true);
+    InputStream result = armadilloStorage.loadSystemFile(METADATA_FILE);
     assertEquals(testValue, new String(result.readAllBytes()));
   }
 
@@ -234,9 +234,9 @@ class ArmadilloStorageServiceTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     armadilloStorage.saveSystemFile(
-        new ByteArrayInputStream(testValue.getBytes()), SETTINGS_FILE, APPLICATION_JSON);
+        new ByteArrayInputStream(testValue.getBytes()), METADATA_FILE, APPLICATION_JSON);
     verify(storageService)
-        .save(argument.capture(), eq(SYSTEM), eq(SETTINGS_FILE), eq(APPLICATION_JSON));
+        .save(argument.capture(), eq(SYSTEM), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(testValue, new String(argument.getValue().readAllBytes()));
   }
 }

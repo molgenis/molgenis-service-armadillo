@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.settings;
+package org.molgenis.armadillo.metadata;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 // cannot do global @PreAuthorize(hasRole(SU))
 // because anonymous needs to access during login
-public class ArmadilloSettingsService {
+public class ArmadilloMetadataService {
 
   // helper for internal use
   public Set<String> getPermissionsForEmail(String email) {
@@ -29,19 +29,25 @@ public class ArmadilloSettingsService {
         .collect(Collectors.toSet());
   }
 
-  public static final String SETTINGS_FILE = "settings.json";
-  private ArmadilloSettings settings;
+  // helper for internal use
+  public boolean isSuperUser(String email) {
+    return settings.getUsers().containsKey(email)
+        && Boolean.TRUE.equals(settings.getUsers().get(email).getIsAdminUser());
+  }
+
+  public static final String METADATA_FILE = "metadata.json";
+  private ArmadilloMetadata settings;
   private final ArmadilloStorageService armadilloStorageService;
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public ArmadilloSettingsService(ArmadilloStorageService armadilloStorageService) {
+  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
     Objects.requireNonNull(armadilloStorageService);
     this.armadilloStorageService = armadilloStorageService;
     this.reload();
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public ArmadilloSettings settingsList() {
+  public ArmadilloMetadata settingsList() {
     return this.settings;
   }
 
@@ -55,18 +61,19 @@ public class ArmadilloSettingsService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void userUpsert(UserDetails userDetails) {
     String email = userDetails.getEmail();
-    // strip old permissions
+    // strip previous permissions
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
             .filter(permission -> !permission.getEmail().equals(email))
             .collect(Collectors.toSet());
-    // add new permissions
+    // add replace with permissions
     if (userDetails.getProjects() != null) {
       permissions.addAll(
           userDetails.getProjects().stream()
               .map(project -> ProjectPermission.create(email, project))
               .collect(Collectors.toSet()));
     }
+
     // clear permissions from value object and save
     userDetails =
         UserDetails.create(
@@ -74,10 +81,13 @@ public class ArmadilloSettingsService {
             userDetails.getFirstName(),
             userDetails.getLastName(),
             userDetails.getInstitution(),
-            null);
+            userDetails.getIsAdminUser(),
+            null // stored in permissions
+            );
+    // update users
     settings.getUsers().put(userDetails.getEmail(), userDetails);
-    settings =
-        ArmadilloSettings.create(settings.getUsers(), settingsList().getProjects(), permissions);
+    // replace permissions
+    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
@@ -87,7 +97,7 @@ public class ArmadilloSettingsService {
     // replace settings
     settings.getUsers().remove(email);
     settings =
-        ArmadilloSettings.create(
+        ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             // strip from permissions
@@ -117,23 +127,24 @@ public class ArmadilloSettingsService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void projectsUpsert(ProjectDetails projectDetails) {
     String projectName = projectDetails.getName();
-    // strip old permissions
+    // strip old permissions for this project
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
             .filter(permission -> !permission.getProject().equals(projectName))
             .collect(Collectors.toSet());
-    // add new permissions
+    // add new permissions for this project
     if (projectDetails.getUsers() != null) {
       permissions.addAll(
           projectDetails.getUsers().stream()
               .map(email -> ProjectPermission.create(email, projectName))
               .collect(Collectors.toSet()));
     }
-    // clear permissions from value object and save
+    // clone projectDetails to strip permissions from value object and save (permissions are saved
+    // seperately)
     projectDetails = ProjectDetails.create(projectName, null);
     settings.getProjects().put(projectName, projectDetails);
     settings =
-        ArmadilloSettings.create(settings.getUsers(), settingsList().getProjects(), permissions);
+        ArmadilloMetadata.create(settings.getUsers(), settingsList().getProjects(), permissions);
     save();
   }
 
@@ -141,7 +152,7 @@ public class ArmadilloSettingsService {
   public void projectsDelete(String projectName) {
     settings.getProjects().remove(projectName);
     settings =
-        ArmadilloSettings.create(
+        ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             // strip from permissions
@@ -161,7 +172,7 @@ public class ArmadilloSettingsService {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
 
-    settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null));
+    settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null, null));
     settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null));
     settings.getPermissions().add(ProjectPermission.create(email, project));
 
@@ -175,7 +186,7 @@ public class ArmadilloSettingsService {
     Objects.requireNonNull(project);
 
     settings =
-        ArmadilloSettings.create(
+        ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             settings.getPermissions().stream()
@@ -190,13 +201,15 @@ public class ArmadilloSettingsService {
 
   public UserDetails usersByEmail(String email) {
     UserDetails userDetails =
-        settings.getUsers().getOrDefault(email, UserDetails.create(email, null, null, null, null));
+        settings
+            .getUsers()
+            .getOrDefault(email, UserDetails.create(email, null, null, null, null, null));
     return UserDetails.create(
         userDetails.getEmail(),
         userDetails.getFirstName(),
         userDetails.getLastName(),
         userDetails.getInstitution(),
-        // as convenience, we add permissions to each user
+        userDetails.getIsAdminUser(),
         getPermissionsForEmail(email));
   }
 
@@ -205,7 +218,7 @@ public class ArmadilloSettingsService {
       String json = objectMapper.writeValueAsString(settings);
       InputStream inputStream = new ByteArrayInputStream(json.getBytes());
       armadilloStorageService.saveSystemFile(
-          inputStream, SETTINGS_FILE, MediaType.APPLICATION_JSON);
+          inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
     } catch (Exception e) {
       throw new StorageException(e);
     } finally {
@@ -215,18 +228,18 @@ public class ArmadilloSettingsService {
 
   public void reload() {
     String result;
-    try (InputStream inputStream = armadilloStorageService.loadSystemFile(SETTINGS_FILE)) {
+    try (InputStream inputStream = armadilloStorageService.loadSystemFile(METADATA_FILE)) {
       result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-      ArmadilloSettings temp = objectMapper.readValue(result, ArmadilloSettings.class);
-      settings = Objects.requireNonNullElseGet(temp, ArmadilloSettings::create);
+      ArmadilloMetadata temp = objectMapper.readValue(result, ArmadilloMetadata.class);
+      settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);
     } catch (ValueInstantiationException e) {
       // this is serious, manually edited file maybe?
       e.printStackTrace();
       System.exit(-1);
-      settings = ArmadilloSettings.create();
+      settings = ArmadilloMetadata.create();
     } catch (Exception e) {
       // this probably just means first time
-      settings = ArmadilloSettings.create();
+      settings = ArmadilloMetadata.create();
     }
   }
 }
