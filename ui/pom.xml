@@ -8,8 +8,15 @@
         <version>2.2.4-SNAPSHOT</version>
     </parent>
     <artifactId>ui</artifactId>
+    <packaging>jar</packaging>
 
     <build>
+        <resources>
+            <resource>
+                <directory>dist</directory>
+                <targetPath>public/</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -17,8 +24,6 @@
                 <version>1.12.1</version>
                 <configuration>
                     <nodeVersion>v16.6.0</nodeVersion>
-                    <installDirectory>target</installDirectory>
-                    <workingDirectory>${basedir}</workingDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -45,6 +50,7 @@
                         </configuration>
                     </execution>
                 </executions>
+                <!-- TODO: Add executions here -->
             </plugin>
         </plugins>
     </build>
