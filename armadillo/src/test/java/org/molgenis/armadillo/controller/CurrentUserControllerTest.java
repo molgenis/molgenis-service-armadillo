@@ -43,7 +43,7 @@ public class CurrentUserControllerTest {
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     mockMvc
-        .perform(get("/currentUser/accessToProjects"))
+        .perform(get("/my/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"myproject\"]"));
@@ -56,7 +56,7 @@ public class CurrentUserControllerTest {
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
     mockMvc
-        .perform(get("/currentUser/accessToProjects"))
+        .perform(get("/my/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[]"));

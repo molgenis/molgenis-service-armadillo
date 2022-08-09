@@ -121,7 +121,7 @@ public class AuthConfig {
                       .userInfoEndpoint(
                           userInfoEndpoint ->
                               userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                      .defaultSuccessUrl("/swagger-ui/index.html", true));
+                      .defaultSuccessUrl("/", true));
     }
 
     private GrantedAuthoritiesMapper userAuthoritiesMapper() {

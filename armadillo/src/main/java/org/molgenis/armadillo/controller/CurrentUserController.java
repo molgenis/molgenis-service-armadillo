@@ -25,13 +25,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "session", description = "API to inspect properties of current user session")
+@Tag(name = "my", description = "API to inspect properties of current user session")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("currentUser")
+@RequestMapping("my")
 public class CurrentUserController {
 
   private ArmadilloMetadataService armadilloMetadataService;
@@ -72,7 +72,7 @@ public class CurrentUserController {
       summary = "Get info on current user",
       description =
           "Get information on current user. Note, if you just gave yourself permission, you need to sign via /logout to refresh permissions")
-  @GetMapping(value = "accessToProjects", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "projects", produces = APPLICATION_JSON_VALUE)
   public Set<String> currentUser_accessToProjects_GET() {
     Collection<SimpleGrantedAuthority> authorities =
         (Collection<SimpleGrantedAuthority>)

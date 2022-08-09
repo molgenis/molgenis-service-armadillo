@@ -1,7 +1,16 @@
 package org.molgenis.armadillo.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,11 +22,72 @@ import org.springframework.web.servlet.view.RedirectView;
 @Hidden
 // temporary controller until we have proper UI
 public class WelcomeController {
+  @Autowired private Environment env;
 
   @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
   @ResponseBody
-  public String indexHtml() {
-    return """
+  public String indexHtml(Principal principal) {
+    // default: only basic auth has config and not signed in
+    String loginAndLogout =
+        """
+            <a href="/basic-login/">Login using local account (basic-auth)</a>.<br/>
+            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required.
+            See manual on how to setup oauth2 (recommended).
+            """;
+
+    // when there is oauth set
+    if (env.getProperty("spring.security.oauth2.client.registration.molgenis.client-id") != null) {
+      loginAndLogout =
+          """
+            <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
+            <a href="/basic-login/">Login using local account (basic-auth)</a>.<br/>
+            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required
+            """;
+    }
+
+    // when basic auth authententicated
+    if (principal instanceof UsernamePasswordAuthenticationToken) {
+      loginAndLogout =
+          "You have signed in using basic-auth with username: "
+              + principal.getName()
+              + """
+              <br/>
+              <script>
+              function logout() {
+                  var http = new XMLHttpRequest();
+                  //get rid of session
+                  http.open("get", "/logout", false);
+                  //rand password to prevent caching
+                  http.open("get", "/basic-logout", false, 'logout', (new Date()).getTime().toString());
+                  http.send("");
+                  // status 401 is for accessing unauthorized route
+                  // will get this only if attempt to flush out correct credentials was successful
+                  if (http.status === 401) {
+                    alert("You're logged out now");
+                    window.location.href = "/";
+                  } else {
+                    alert("Logout failed");
+                  }
+              }
+              </script>
+              <a onclick="logout()" href="#">logout</a>
+              """;
+    }
+
+    // when oauth2 authenticated
+    if (principal instanceof OAuth2AuthenticationToken) {
+      loginAndLogout =
+          "You have signed in using oauth2 with email address: "
+              + ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email")
+              + """
+            <br/>
+            <a href="/logout">Logout</a><br/>
+            """;
+    }
+
+    // put login into the page
+    return String.format(
+        """
             <html>
             <head>
               <title>Armadillo</title>
@@ -26,23 +96,35 @@ public class WelcomeController {
             <body>
             <div class=\"container\">
             <h1>Welcome to Armadillo.</h1>
-            <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
-            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required<br/>
-            <br/>
+            %s
+            <br/><br/>
             <a href="/swagger-ui/index.html">Go to Swagger user interface</a><br/>
             Here you can test the API<br/>
             <br/>
-            <a href="/logout">Logout</a><br/>
-            Sign out of oauth2 or basicAuth (whatever you have chosen to sign in).
             </div>
             </body>
             </html>
-            """;
+            """,
+        loginAndLogout);
   }
 
   @GetMapping("/oauth2/")
   @ResponseBody
   public RedirectView whenAuthenticatedRedirect() {
-    return new RedirectView("/swagger-ui/index.html");
+    return new RedirectView("/");
+  }
+
+  @GetMapping("/basic-login")
+  @ResponseBody
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public RedirectView basicLogin() {
+    return new RedirectView("/");
+  }
+
+  @GetMapping("/basic-logout")
+  public void basicLogout(
+      HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+    response.setStatus(401);
+    response.addHeader("WWW-Authenticate", "Basic realm=\"Armadillo\"");
   }
 }
