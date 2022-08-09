@@ -9,6 +9,7 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatashieldProfileManager {
   public static final String ARMADILLO_PROFILE = "org.molgenis.armadillo.profile";
+  public static final String ARMADILLO_WHITELIST = "org.molgenis.armadillo.whitelist";
   // remote control for docker
   DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig.createDefaultConfigBuilder();
   private DockerClient dockerClient;
@@ -33,6 +35,8 @@ public class DatashieldProfileManager {
                   ProfileConfigProps def = new ProfileConfigProps();
                   def.setDockerImage(container.getImage());
                   def.setName(container.getLabels().get(ARMADILLO_PROFILE));
+                  def.setWhiteList(
+                      Set.of(container.getLabels().get(ARMADILLO_WHITELIST).split(",")));
                   // def.setPort(container.getPorts()[0].getPublicPort());
                   return def;
                 })
@@ -54,8 +58,13 @@ public class DatashieldProfileManager {
     CreateContainerResponse container =
         dockerClient
             .createContainerCmd(props.getDockerImage())
-            // nice group name in docker, and add the profile label
-            .withLabels(Map.of(ARMADILLO_PROFILE, props.getName()))
+            // nice group name in docker, and add the profile label and whitelist
+            .withLabels(
+                Map.of(
+                    ARMADILLO_PROFILE,
+                    props.getName(),
+                    ARMADILLO_WHITELIST,
+                    String.join(",", props.getWhitelist())))
             // mapping the port
             .withExposedPorts(new ExposedPort(props.getPort()))
             // mapping the name
@@ -72,7 +81,8 @@ public class DatashieldProfileManager {
         .forEach(
             container -> {
               // silly that we need to add "/" before
-              if (container.getLabels().get(ARMADILLO_PROFILE).equals(profileName)) {
+              if (container.getLabels() != null
+                  && profileName.equals(container.getLabels().get(ARMADILLO_PROFILE))) {
                 dockerClient.stopContainerCmd(container.getId()).exec();
                 dockerClient.removeContainerCmd(container.getId()).exec();
                 result.put("message", "Deleted armadillo profile: " + profileName);

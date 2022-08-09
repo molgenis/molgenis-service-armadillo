@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 public class ProfileConfigProps extends EnvironmentConfigProps {
 
   private Map<String, String> options = new HashMap<>();
-  @NotEmpty private final Set<String> whitelist = new HashSet<>();
+  @NotEmpty private Set<String> whitelist = new HashSet<>();
   private String dockerImage;
 
   public Map<String, String> getOptions() {
@@ -42,5 +42,9 @@ public class ProfileConfigProps extends EnvironmentConfigProps {
 
   public void setDockerImage(String dockerImage) {
     this.dockerImage = dockerImage;
+  }
+
+  public void setWhiteList(Set<String> whistlist) {
+    this.whitelist = whistlist;
   }
 }

@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.config;
 
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.DEFAULT;
-
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -22,7 +21,11 @@ public class DataShieldConfigProps implements Validator {
   }
 
   public List<ProfileConfigProps> getProfiles() {
-    return profiles;
+    List<ProfileConfigProps> result = new ArrayList<>(profiles);
+    // we will also report what is running from environment NEXT to what has been configured
+    // this is only useful if you want to manage your images via the older docker compose way
+
+    return result;
   }
 
   @Override
@@ -33,19 +36,6 @@ public class DataShieldConfigProps implements Validator {
 
   @Override
   public void validate(Object target, Errors errors) {
-    if (target instanceof ProfileConfigProps) {
-      // no validation needed?
-    } else {
-      DataShieldConfigProps props = (DataShieldConfigProps) target;
-      if (props.getProfiles().stream()
-          .map(ProfileConfigProps::getName)
-          .noneMatch(DEFAULT::equals)) {
-        errors.rejectValue(
-            "profiles",
-            "datashield.profiles.missing-default",
-            new Object[] {},
-            "Must specify a profile with name " + DEFAULT);
-      }
-    }
+    // nothing to do here, because user can add 'default' image later, right?
   }
 }

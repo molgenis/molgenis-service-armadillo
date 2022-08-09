@@ -1,7 +1,7 @@
 datashield:
   profiles:
     - name: default
-      port: 6331
+      port: 6311
       whitelist:
         - dsBase
       options:
