@@ -5,6 +5,7 @@
     <modules>
         <module>r</module>
         <module>armadillo</module>
+        <module>ui</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -50,7 +51,7 @@
         <!-- authentication for release scm plugin -->
         <project.scm.id>github</project.scm.id>
 
-        <fmt-maven-plugin.version>2.19</fmt-maven-plugin.version>
+        <fmt-maven-plugin.version>2.13</fmt-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <release-maven-plugin.version>2.5.3</release-maven-plugin.version>
@@ -132,18 +133,13 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.spotify.fmt</groupId>
+                    <groupId>com.coveo</groupId>
                     <artifactId>fmt-maven-plugin</artifactId>
                     <version>${fmt-maven-plugin.version}</version>
-                    <configuration>
-                        <verbose>true</verbose>
-                        <skipSortingImports>false</skipSortingImports>
-                        <style>google</style>
-                    </configuration>
                     <executions>
                         <execution>
                             <goals>
-                                <goal>format</goal>
+                                <goal>check</goal>
                             </goals>
                         </execution>
                     </executions>
@@ -250,6 +246,10 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.coveo</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
