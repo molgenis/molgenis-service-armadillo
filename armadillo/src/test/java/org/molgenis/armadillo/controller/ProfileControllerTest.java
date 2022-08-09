@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.google.gson.Gson;
 import java.time.Clock;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,13 +28,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ProfileManagerController.class)
+@WebMvcTest(DatashieldProfileController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
 public class ProfileControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired AuditEventPublisher auditEventPublisher;
+
   MockHttpSession session = new MockHttpSession();
   private String sessionId;
   private final Instant instant = Instant.now();
@@ -64,7 +67,7 @@ public class ProfileControllerTest {
 
     // delete if exists
     mockMvc
-        .perform(delete("/profile-manager").param("profileName", "armadillo"))
+        .perform(delete("/profile-manager/armadillo"))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -72,7 +75,7 @@ public class ProfileControllerTest {
                     "delete profile returned: " + handler.getResponse().getContentAsString()));
 
     mockMvc
-        .perform(delete("/profile-manager").param("profileName", "exposome"))
+        .perform(delete("/profile-manager/exposome"))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -86,12 +89,13 @@ public class ProfileControllerTest {
         .andExpect(content().string(not(containsString("armadillo"))));
 
     // post new profiles
+    ProfileConfigProps props = new ProfileConfigProps();
+    props.setName("armadillo");
+    props.setDockerImage("datashield/armadillo-rserver:2.0.0");
+    props.setPort(6312);
     mockMvc
         .perform(
-            post("/profile-manager")
-                .param("name", "armadillo")
-                .param("image", "datashield/armadillo-rserver:2.0.0")
-                .param("port", "6312"))
+            put("/profile-manager").content(new Gson().toJson(props)).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -103,5 +107,20 @@ public class ProfileControllerTest {
         .perform(get("/profile-manager"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("armadillo")));
+
+    // delete if exists
+    mockMvc
+        .perform(delete("/profile-manager/armadillo"))
+        .andExpect(status().isOk())
+        .andDo(
+            handler ->
+                System.out.println(
+                    "delete profile returned: " + handler.getResponse().getContentAsString()));
+
+    // check listing contains armadillo
+    mockMvc
+        .perform(get("/profile-manager"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(not(containsString("armadillo"))));
   }
 }

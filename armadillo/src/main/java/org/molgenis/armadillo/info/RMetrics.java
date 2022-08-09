@@ -2,8 +2,8 @@ package org.molgenis.armadillo.info;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.r.config.EnvironmentConfigProps;
-import org.molgenis.r.config.RServeConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Configuration;
 public class RMetrics {
 
   @Bean
-  MeterBinder rProcesses(RServeConfig rServeConfig, RProcessEndpoint processes) {
+  MeterBinder rProcesses(DataShieldConfigProps rServeConfig, RProcessEndpoint processes) {
 
     return registry ->
-        rServeConfig.getEnvironments().stream()
+        rServeConfig.getProfiles().stream()
             .map(EnvironmentConfigProps::getName)
             .forEach(
                 environment ->

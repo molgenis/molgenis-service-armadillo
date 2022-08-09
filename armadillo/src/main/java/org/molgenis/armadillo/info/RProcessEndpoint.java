@@ -3,9 +3,9 @@ package org.molgenis.armadillo.info;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.molgenis.armadillo.config.DataShieldConfigProps;
 import org.molgenis.r.RConnectionFactoryImpl;
 import org.molgenis.r.config.EnvironmentConfigProps;
-import org.molgenis.r.config.RServeConfig;
 import org.molgenis.r.model.REnvironment;
 import org.molgenis.r.service.ProcessService;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -18,17 +18,18 @@ import org.springframework.stereotype.Component;
 @Endpoint(id = "rserveProcesses")
 public class RProcessEndpoint {
   private final ProcessService processService;
-  private final RServeConfig rServeConfig;
+  private final DataShieldConfigProps dataShieldConfigProps;
 
-  public RProcessEndpoint(ProcessService processService, RServeConfig rServeConfig) {
+  public RProcessEndpoint(
+      ProcessService processService, DataShieldConfigProps dataShieldConfigProps) {
     this.processService = processService;
-    this.rServeConfig = rServeConfig;
+    this.dataShieldConfigProps = dataShieldConfigProps;
   }
 
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
-    return rServeConfig.getEnvironments().stream()
+    return dataShieldConfigProps.getProfiles().stream()
         .map(EnvironmentConfigProps::getName)
         .map(
             environmentName ->
@@ -40,7 +41,7 @@ public class RProcessEndpoint {
 
   <T> T doWithConnection(String environmentName, Function<RConnection, T> action) {
     var environment =
-        rServeConfig.getEnvironments().stream()
+        dataShieldConfigProps.getProfiles().stream()
             .filter(it -> environmentName.equals(it.getName()))
             .findFirst()
             .orElseThrow();

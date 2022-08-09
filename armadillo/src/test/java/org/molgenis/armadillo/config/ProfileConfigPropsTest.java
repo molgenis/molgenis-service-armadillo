@@ -4,11 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Maps;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,14 +40,6 @@ class ProfileConfigPropsTest {
     Set<String> expected = new HashSet<>(Arrays.asList(pkg1, pkg2));
     Set<String> actual = props.getWhitelist();
     assertEquals(actual, expected);
-  }
-
-  @Test
-  void testEnvironment() {
-    String env = "test";
-    props.setEnvironment(env);
-    String actual = props.getEnvironment();
-    assertEquals(actual, env);
   }
 
   @Test
