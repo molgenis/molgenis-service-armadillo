@@ -67,7 +67,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
-  public static final String ADMINISTRATORS = "armadillo_administrators";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
