@@ -17,7 +17,6 @@ import java.util.Set;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@PreAuthorize("hasRole('ROLE_SU')")
 @RequestMapping("metadata")
 public class MetadataController {
 

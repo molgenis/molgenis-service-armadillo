@@ -31,7 +31,7 @@ public class WelcomeController {
     String loginAndLogout =
         """
             <a href="/basic-login/">Login using local account (basic-auth)</a>.<br/>
-            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required.
+            Otherwise you need provide JWT when authentication is required.
             See manual on how to setup oauth2 (recommended).
             """;
 
