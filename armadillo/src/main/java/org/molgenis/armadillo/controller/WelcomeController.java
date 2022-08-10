@@ -3,7 +3,7 @@ package org.molgenis.armadillo.controller;
 import io.swagger.v3.oas.annotations.Hidden;
 import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,12 +19,9 @@ import org.springframework.web.servlet.view.RedirectView;
 @Hidden
 // temporary controller until we have proper UI
 public class WelcomeController {
-
-  private final Environment env;
-
-  public WelcomeController(Environment env) {
-    this.env = env;
-  }
+  // get client id
+  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
+  String clientId;
 
   @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
   @ResponseBody
@@ -38,7 +35,7 @@ public class WelcomeController {
             """;
 
     // when there is oauth set
-    if (env.getProperty("spring.security.oauth2.client.registration.molgenis.client-id") != null) {
+    if (clientId != null) {
       loginAndLogout =
           """
               <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
