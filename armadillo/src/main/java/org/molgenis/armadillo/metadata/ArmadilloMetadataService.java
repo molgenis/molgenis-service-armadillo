@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 // cannot do global @PreAuthorize(hasRole(SU))
 // because anonymous needs to access during login
 public class ArmadilloMetadataService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
   public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService armadilloStorageService;
@@ -64,7 +67,7 @@ public class ArmadilloMetadataService {
                   .map(Object::toString)
                   .map(role -> "ROLE_" + role.toUpperCase())
                   .map(SimpleGrantedAuthority::new)
-                  .collect(Collectors.toList()));
+                  .toList());
     }
 
     // claims from local permissions store
@@ -266,9 +269,10 @@ public class ArmadilloMetadataService {
   private synchronized void save() {
     try {
       String json = objectMapper.writeValueAsString(settings);
-      InputStream inputStream = new ByteArrayInputStream(json.getBytes());
-      armadilloStorageService.saveSystemFile(
-          inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
+      try (InputStream inputStream = new ByteArrayInputStream(json.getBytes())) {
+        armadilloStorageService.saveSystemFile(
+            inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
+      }
     } catch (Exception e) {
       throw new StorageException(e);
     } finally {
@@ -284,7 +288,7 @@ public class ArmadilloMetadataService {
       settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);
     } catch (ValueInstantiationException e) {
       // this is serious, manually edited file maybe?
-      System.err.println("Parsing of " + METADATA_FILE + " failed: " + e.getMessage());
+      LOGGER.error(String.format("Parsing of %s failed: %s", METADATA_FILE, e.getMessage()));
       System.exit(-1);
       settings = ArmadilloMetadata.create();
     } catch (Exception e) {
