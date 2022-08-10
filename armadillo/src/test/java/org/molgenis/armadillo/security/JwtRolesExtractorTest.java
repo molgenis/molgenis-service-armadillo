@@ -40,17 +40,17 @@ class JwtRolesExtractorTest {
     armadilloMetadataService.reload();
     Collection<GrantedAuthority> authorities =
         new JwtRolesExtractor(armadilloMetadataService).convert(jwt);
-    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_myproject_RESEARCHER")));
+    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_MYPROJECT_RESEARCHER")));
     assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_SU")));
     // when role giving from central oauth is disable this shouldn't happen
-    assertFalse(authorities.contains(new SimpleGrantedAuthority("ROLE_lifecycle_RESEARCHER")));
+    assertFalse(authorities.contains(new SimpleGrantedAuthority("ROLE_LIFECYCLE_RESEARCHER")));
 
     // with option of oidc role extraction
     ReflectionTestUtils.setField(armadilloMetadataService, "oidcPermissionsEnabled", true);
 
     authorities = new JwtRolesExtractor(armadilloMetadataService).convert(jwt);
-    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_lifecycle_RESEARCHER")));
-    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_myproject_RESEARCHER")));
+    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_LIFECYCLE_RESEARCHER")));
+    assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_MYPROJECT_RESEARCHER")));
     assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_SU")));
 
     System.clearProperty("datashield.oidc-permission-enabled");
