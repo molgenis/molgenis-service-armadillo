@@ -1,9 +1,11 @@
 package org.molgenis.armadillo.controller;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
+import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,5 +22,10 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(UnknownProjectException.class)
   protected ResponseEntity<String> handleUnknownProject(UnknownProjectException ex) {
     return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());
+  }
+
+  @ExceptionHandler(FileProcessingException.class)
+  protected ResponseEntity<String> handleFileProcessingException(FileProcessingException ex) {
+    return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
   }
 }

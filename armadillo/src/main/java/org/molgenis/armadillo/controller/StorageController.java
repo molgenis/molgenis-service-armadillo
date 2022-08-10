@@ -14,7 +14,9 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import java.io.IOException;
 import java.util.List;
+import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,9 +43,10 @@ import org.springframework.web.multipart.MultipartFile;
 @SecurityScheme(name = "JSESSIONID", in = COOKIE, type = APIKEY)
 @SecurityScheme(name = "http", in = HEADER, type = HTTP, scheme = "basic")
 @SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
-@RestController("/storage")
+@RestController
 @Validated
 @PreAuthorize("hasRole('ROLE_SU')")
+@RequestMapping("storage")
 public class StorageController {
 
   private final ArmadilloStorageService storage;
@@ -84,8 +87,11 @@ public class StorageController {
   @PostMapping("/projects/{project}/objects")
   @ResponseStatus(NO_CONTENT)
   public void uploadObject(@PathVariable String project, @RequestParam MultipartFile file) {
-    // TODO 404 when project doesn't exist
-    // TODO storage.writeObject()
+    try {
+      storage.addObject(project, file.getOriginalFilename(), file.getInputStream());
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
   }
 
   //  @PostMapping("/projects/{project}/objects")

@@ -54,6 +54,15 @@ public class ArmadilloStorageService {
     storageService.deleteProject(SHARED_PREFIX + project);
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public void addObject(String project, String object, InputStream inputStream) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+
+    storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
+  }
+
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
   @SuppressWarnings("java:S6204") // result of method can't be unmodifiable because of @PostFilter
   public List<String> listProjects() {
