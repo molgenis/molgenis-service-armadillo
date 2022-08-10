@@ -1,0 +1,32 @@
+### Authenticate
+GET {{host}}/storage/projects
+Authorization: Basic admin admin
+
+### List projects
+GET {{host}}/storage/projects
+
+### Create project
+POST {{host}}/storage/projects
+Content-Type: application/json
+
+{ "name" : "my-project" }
+
+### Project exists?
+HEAD {{host}}/storage/projects/my-project
+
+### Delete project
+DELETE {{host}}/storage/projects/my-project
+
+### List objects
+GET {{host}}/storage/projects/lifecycle/objects
+
+### Upload object
+POST {{host}}/storage/projects/lifecycle/objects
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="core/dummy.parquet"
+
+< ./dummy.parquet
+
+
