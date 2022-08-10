@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -33,8 +34,8 @@ public class CurrentUserController {
 
   private final OAuth2AuthorizedClientService clientService;
 
-  public CurrentUserController(OAuth2AuthorizedClientService clientService) {
-    this.clientService = clientService;
+  public CurrentUserController(Optional<OAuth2AuthorizedClientService> clientService) {
+    this.clientService = clientService.orElse(null);
   }
 
   @Operation(summary = "Get raw information from the current user")
