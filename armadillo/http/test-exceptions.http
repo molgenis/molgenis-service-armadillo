@@ -1,10 +1,10 @@
-GET http://localhost:8080/tables
+GET {{host}}/tables
 Authorization: Basic admin admin
 
 ###
 # Async and sync assign, parse exception => BAD REQUEST
 # No command created, message in the json
-POST http://localhost:8080/symbols/D
+POST {{host}}/symbols/D
 Content-Type: text/plain
 
 colnames(D
@@ -12,7 +12,7 @@ colnames(D
 ###
 # Async and sync execute, parse exception => BAD REQUEST
 # No command created, message in the json *if you accept it*
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Accept: application/octet-stream,application/json
 Content-Type: text/plain
 
@@ -21,40 +21,40 @@ colnames(D
 ###
 # Synchronous execute, R error => 500
 # Empty response, message in /lastcommand
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Accept: application/octet-stream,application/json
 Content-Type: text/plain
 
 X
 
 ###
-GET http://localhost:8080/lastcommand
+GET {{host}}/lastcommand
 
 ###
 # Synchronous assign, R error => 500
 # Empty response, message in /lastcommand
-POST http://localhost:8080/symbols/D
+POST {{host}}/symbols/D
 Content-Type: text/plain
 
 X
 
 ###
-GET http://localhost:8080/lastcommand
+GET {{host}}/lastcommand
 
 ###
 # async assign, R exception => 201 with Location header because we don't know that anything is wrong yet
-POST http://localhost:8080/symbols/D?async=true
+POST {{host}}/symbols/D?async=true
 Content-Type: text/plain
 
 X
 ### But in the lastcommand status FAILED and message
-GET http://localhost:8080/lastcommand
+GET {{host}}/lastcommand
 
 ### The lastresult returns NOT_FOUND if command failed
-GET http://localhost:8080/lastresult
+GET {{host}}/lastresult
 
 ### Invalid package file BAD_REQUEST
-POST http://localhost:8080/install-package
+POST {{host}}/install-package
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
