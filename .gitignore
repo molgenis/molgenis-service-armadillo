@@ -1,5 +1,8 @@
 .DS_Store
+
+### STORAGE ###
 data/user-*
+data/system
 
 HELP.md
 target/
