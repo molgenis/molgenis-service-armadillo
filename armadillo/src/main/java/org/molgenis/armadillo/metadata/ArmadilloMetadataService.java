@@ -62,7 +62,7 @@ public class ArmadilloMetadataService {
           ((Collection<?>) claims.getOrDefault("roles", emptyList()))
               .stream()
                   .map(Object::toString)
-                  .map(role -> "ROLE_" + role)
+                  .map(role -> "ROLE_" + role.toUpperCase())
                   .map(SimpleGrantedAuthority::new)
                   .collect(Collectors.toList()));
     }
@@ -70,7 +70,7 @@ public class ArmadilloMetadataService {
     // claims from local permissions store
     result.addAll(
         this.getPermissionsForEmail(email).stream()
-            .map(project -> "ROLE_" + project + "_RESEARCHER")
+            .map(project -> "ROLE_" + project.toUpperCase() + "_RESEARCHER")
             .map(SimpleGrantedAuthority::new)
             .toList());
 
