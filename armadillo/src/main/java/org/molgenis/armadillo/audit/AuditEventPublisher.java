@@ -67,6 +67,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
+  private static final String ANONYMOUS = "ANONYMOUS";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
@@ -88,8 +89,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
+    var user = principal != null ? principal.getName() : ANONYMOUS;
     applicationEventPublisher.publishEvent(
-        new AuditApplicationEvent(clock.instant(), principal.getName(), type, sessionData));
+        new AuditApplicationEvent(clock.instant(), user, type, sessionData));
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
