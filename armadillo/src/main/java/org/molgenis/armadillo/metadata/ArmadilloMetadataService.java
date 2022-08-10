@@ -1,25 +1,41 @@
 package org.molgenis.armadillo.metadata;
 
+import static java.util.Collections.emptyList;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 @Service
 // cannot do global @PreAuthorize(hasRole(SU))
 // because anonymous needs to access during login
 public class ArmadilloMetadataService {
+  public static final String METADATA_FILE = "metadata.json";
+  private ArmadilloMetadata settings;
+  private final ArmadilloStorageService armadilloStorageService;
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  @Value("${datashield.oidc-permission-enabled}")
+  private boolean oidcPermissionsEnabled;
+
+  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
+    Objects.requireNonNull(armadilloStorageService);
+    this.armadilloStorageService = armadilloStorageService;
+    this.reload();
+  }
 
   // helper for internal use
   public Set<String> getPermissionsForEmail(String email) {
@@ -35,15 +51,35 @@ public class ArmadilloMetadataService {
         && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
   }
 
-  public static final String METADATA_FILE = "metadata.json";
-  private ArmadilloMetadata settings;
-  private final ArmadilloStorageService armadilloStorageService;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  public Collection<GrantedAuthority> getAuthoritiesForEmail(
+      String email, Map<String, Object> claims) {
+    List<GrantedAuthority> result = new ArrayList<>();
 
-  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
-    Objects.requireNonNull(armadilloStorageService);
-    this.armadilloStorageService = armadilloStorageService;
-    this.reload();
+    // optionally, we will extract roles from claims
+    // in this case you can define roles centrally
+    if (oidcPermissionsEnabled) {
+      result.addAll(
+          ((Collection<?>) claims.getOrDefault("roles", emptyList()))
+              .stream()
+                  .map(Object::toString)
+                  .map(role -> "ROLE_" + role)
+                  .map(SimpleGrantedAuthority::new)
+                  .collect(Collectors.toList()));
+    }
+
+    // claims from local permissions store
+    result.addAll(
+        this.getPermissionsForEmail(email).stream()
+            .map(project -> "ROLE_" + project + "_RESEARCHER")
+            .map(SimpleGrantedAuthority::new)
+            .toList());
+
+    // claims from user 'admin' property
+    if (this.isSuperUser(email)) {
+      result.add(new SimpleGrantedAuthority("ROLE_SU"));
+    }
+
+    return result;
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

@@ -2,7 +2,9 @@ package org.molgenis.armadillo.security;
 
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -21,7 +23,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -131,11 +132,11 @@ public class AuthConfig {
         authorities.forEach(
             authority -> {
               OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
-
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
+
               mappedAuthorities.addAll(
-                  getAuthoritiesForEmail(
-                      armadilloMetadataService, (String) userAttributes.get("email")));
+                  armadilloMetadataService.getAuthoritiesForEmail(
+                      (String) userAttributes.get("email"), userAttributes));
             });
 
         return mappedAuthorities;
@@ -148,19 +149,5 @@ public class AuthConfig {
   // Allow CORS requests, needed for swagger UI to work, if the development profile is active.
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
-  }
-
-  public static Collection<SimpleGrantedAuthority> getAuthoritiesForEmail(
-      ArmadilloMetadataService armadilloMetadataService, String email) {
-    List<SimpleGrantedAuthority> result =
-        new ArrayList<>(
-            armadilloMetadataService.getPermissionsForEmail(email).stream()
-                .map(project -> "ROLE_" + project + "_RESEARCHER")
-                .map(SimpleGrantedAuthority::new)
-                .toList());
-    if (armadilloMetadataService.isSuperUser(email)) {
-      result.add(new SimpleGrantedAuthority("ROLE_SU"));
-    }
-    return result;
   }
 }
