@@ -17,7 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 @ExtendWith(MockitoExtension.class)
-public class JwtRolesExtractorTest {
+class JwtRolesExtractorTest {
   @Mock Jwt jwt;
   @Mock ArmadilloStorageService armadilloStorage;
 

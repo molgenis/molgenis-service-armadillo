@@ -10,9 +10,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
-import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,36 +31,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("my")
 public class CurrentUserController {
 
-  private ArmadilloMetadataService armadilloMetadataService;
-  private AuditEventPublisher auditEventPublisher;
+  private final OAuth2AuthorizedClientService clientService;
 
-  @Autowired(required = false) // will only set when oauth2 login is enabled
-  private OAuth2AuthorizedClientService clientService;
-
-  public CurrentUserController(
-      ArmadilloMetadataService armadilloMetadataService, AuditEventPublisher auditEventPublisher) {
-    this.armadilloMetadataService = armadilloMetadataService;
-    this.auditEventPublisher = auditEventPublisher;
+  public CurrentUserController(OAuth2AuthorizedClientService clientService) {
+    this.clientService = clientService;
   }
 
   @Operation(summary = "Get raw information from the current user")
   @GetMapping("principal")
-  public AbstractAuthenticationToken currentUser_principal_GET(Principal principal) {
+  public AbstractAuthenticationToken currentUserGetPrincipal(Principal principal) {
     return (AbstractAuthenticationToken) principal;
   }
 
   @Operation(summary = "Token of the current user")
   @GetMapping("token")
-  public String currentUser_token_GET() {
+  public String currentUserGetToken() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication instanceof OAuth2AuthenticationToken) {
-      OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+    if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
       OAuth2AuthorizedClient client =
           clientService.loadAuthorizedClient(
               oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName());
       return client.getAccessToken().getTokenValue();
-    } else if (authentication instanceof JwtAuthenticationToken) {
-      return ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
+    } else if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
+      return jwtAuthenticationToken.getToken().getTokenValue();
     }
     throw new UnsupportedOperationException("couldn't get token");
   }
@@ -73,7 +63,8 @@ public class CurrentUserController {
       description =
           "Get information on current user. Note, if you just gave yourself permission, you need to sign via /logout to refresh permissions")
   @GetMapping(value = "projects", produces = APPLICATION_JSON_VALUE)
-  public Set<String> currentUser_accessToProjects_GET() {
+  public Set<String> currentUserGetProjects() {
+    @SuppressWarnings("unchecked")
     Collection<SimpleGrantedAuthority> authorities =
         (Collection<SimpleGrantedAuthority>)
             SecurityContextHolder.getContext().getAuthentication().getAuthorities();

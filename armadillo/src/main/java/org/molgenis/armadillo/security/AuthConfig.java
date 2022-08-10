@@ -125,7 +125,7 @@ public class AuthConfig {
     }
 
     private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-      return (authorities) -> {
+      return authorities -> {
         Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
         authorities.forEach(

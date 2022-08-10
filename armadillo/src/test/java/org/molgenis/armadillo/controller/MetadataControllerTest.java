@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-public class MetadataControllerTest {
+class MetadataControllerTest {
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;

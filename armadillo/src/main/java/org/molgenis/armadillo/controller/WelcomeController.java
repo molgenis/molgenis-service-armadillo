@@ -2,10 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import java.security.Principal;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +19,12 @@ import org.springframework.web.servlet.view.RedirectView;
 @Hidden
 // temporary controller until we have proper UI
 public class WelcomeController {
-  @Autowired private Environment env;
+
+  private final Environment env;
+
+  public WelcomeController(Environment env) {
+    this.env = env;
+  }
 
   @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
   @ResponseBody
@@ -39,13 +41,13 @@ public class WelcomeController {
     if (env.getProperty("spring.security.oauth2.client.registration.molgenis.client-id") != null) {
       loginAndLogout =
           """
-            <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
-            <a href="/basic-login/">Login using local account (basic-auth)</a>.<br/>
-            Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required
-            """;
+              <a href="/oauth2/">Login using institute account (oauth2)</a>.<br/>
+              <a href="/basic-login/">Login using local account (basic-auth)</a>.<br/>
+              Otherwise you need provide JWT or basicAuth login will be displayed when authentication is required
+              """;
     }
 
-    // when basic auth authententicated
+    // when basic auth authenticated
     if (principal instanceof UsernamePasswordAuthenticationToken) {
       loginAndLogout =
           "You have signed in using basic-auth with username: "
@@ -75,14 +77,14 @@ public class WelcomeController {
     }
 
     // when oauth2 authenticated
-    if (principal instanceof OAuth2AuthenticationToken) {
+    if (principal instanceof OAuth2AuthenticationToken oauth2token) {
       loginAndLogout =
           "You have signed in using oauth2 with email address: "
-              + ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email")
+              + oauth2token.getPrincipal().getAttribute("email")
               + """
-            <br/>
-            <a href="/logout">Logout</a><br/>
-            """;
+              <br/>
+              <a href="/logout">Logout</a><br/>
+              """;
     }
 
     // put login into the page
@@ -94,7 +96,7 @@ public class WelcomeController {
               <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
             <head>
             <body>
-            <div class=\"container\">
+            <div class="container">
             <h1>Welcome to Armadillo.</h1>
             %s
             <br/><br/>
@@ -122,8 +124,7 @@ public class WelcomeController {
   }
 
   @GetMapping("/basic-logout")
-  public void basicLogout(
-      HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+  public void basicLogout(HttpServletResponse response) {
     response.setStatus(401);
     response.addHeader("WWW-Authenticate", "Basic realm=\"Armadillo\"");
   }

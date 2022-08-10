@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-public class CurrentUserControllerTest {
+class CurrentUserControllerTest {
 
   public static final String BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON =
       "{\"users\":{\"bofke@email.com\":{\"accessToProjects\":[\"myproject\"]}}}";
@@ -38,7 +38,7 @@ public class CurrentUserControllerTest {
   @WithMockJwtAuth(
       authorities = "ROLE_myproject_RESEARCHER",
       claims = @OpenIdClaims(email = "bofke@email.com"))
-  public void currentUser_permissions_GET() throws Exception {
+  void currentUser_permissions_GET() throws Exception {
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
@@ -51,7 +51,7 @@ public class CurrentUserControllerTest {
 
   @Test
   @WithMockUser
-  public void currentUser_GET_WhenUserHasNoGrantsTest() throws Exception {
+  void currentUser_GET_WhenUserHasNoGrantsTest() throws Exception {
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON.getBytes()));
 
