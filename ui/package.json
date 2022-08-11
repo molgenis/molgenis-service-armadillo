@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@popperjs/core": "2.11.5",
+    "@popperjs/core": "2.11.6",
     "bootstrap": "5.2.0",
     "bootstrap-icons": "1.9.1",
     "vue": "3.2.37"
