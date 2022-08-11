@@ -4,6 +4,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.COOKIE;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
+import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -22,7 +23,6 @@ import java.util.List;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -140,15 +140,16 @@ public class StorageController {
   }
 
   @GetMapping("/projects/{project}/objects/{object}")
-  @ResponseStatus(OK)
-  public @ResponseBody ResponseEntity<Resource> getObject(
+  public @ResponseBody ResponseEntity<ByteArrayResource> getObject(
       @PathVariable String project, @PathVariable String object) {
     var inputStream = storage.loadObject(project, object);
+    var objectParts = object.split("/");
+    var fileName = objectParts[objectParts.length - 1];
 
     try {
       var resource = new ByteArrayResource(inputStream.readAllBytes());
-
       return ResponseEntity.ok()
+          .header(CONTENT_DISPOSITION, "attachment; filename=" + fileName)
           .contentLength(resource.contentLength())
           .contentType(APPLICATION_OCTET_STREAM)
           .body(resource);
