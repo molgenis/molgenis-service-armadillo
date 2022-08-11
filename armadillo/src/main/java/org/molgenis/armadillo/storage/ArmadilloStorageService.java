@@ -35,10 +35,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void createProject(String project) {
-    if (hasProject(project)) {
-      throw new DuplicateProjectException(project);
-    }
-
+    throwIfDuplicate(project);
     storageService.createProjectIfNotExists(SHARED_PREFIX + project);
   }
 
@@ -49,28 +46,19 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteProject(String project) {
-    if (!hasProject(project)) {
-      throw new UnknownProjectException(project);
-    }
-
+    throwIfUnknown(project);
     storageService.deleteProject(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addObject(String project, String object, InputStream inputStream) {
-    if (hasObject(project, object)) {
-      throw new DuplicateObjectException(project, object);
-    }
-
+    throwIfDuplicate(project, object);
     storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean hasObject(String project, String object) {
-    if (!hasProject(project)) {
-      throw new UnknownProjectException(project);
-    }
-
+    throwIfUnknown(project);
     return storageService.listObjects(SHARED_PREFIX + project).stream()
         .anyMatch(objectMetadata -> objectMetadata.name().equals(object));
   }
@@ -83,33 +71,21 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void copyObject(String project, String newObject, String oldObject) {
-    if (!hasObject(project, oldObject)) {
-      throw new UnknownObjectException(project, oldObject);
-    }
-
-    if (hasObject(project, newObject)) {
-      throw new DuplicateObjectException(project, newObject);
-    }
-
+    throwIfUnknown(project, oldObject);
+    throwIfDuplicate(project, newObject);
     var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
     storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteObject(String project, String object) {
-    if (!hasObject(project, object)) {
-      throw new UnknownObjectException(project, object);
-    }
-
+    throwIfUnknown(project, object);
     storageService.delete(SHARED_PREFIX + project, object);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadObject(String project, String object) {
-    if (!hasObject(project, object)) {
-      throw new UnknownObjectException(project, object);
-    }
-
+    throwIfUnknown(project, object);
     return storageService.load(SHARED_PREFIX + project, object);
   }
 
@@ -124,10 +100,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listObjects(String project) {
-    if (!hasProject(project)) {
-      throw new UnknownProjectException(project);
-    }
-
+    throwIfUnknown(project);
     var projectName = SHARED_PREFIX + project;
     return storageService.listObjects(projectName).stream()
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
@@ -211,5 +184,29 @@ public class ArmadilloStorageService {
 
   public void removeWorkspace(Principal principal, String id) {
     storageService.delete(getUserBucketName(principal), getWorkspaceObjectName(id));
+  }
+
+  private void throwIfDuplicate(String project) {
+    if (hasProject(project)) {
+      throw new DuplicateProjectException(project);
+    }
+  }
+
+  private void throwIfDuplicate(String project, String object) {
+    if (hasObject(project, object)) {
+      throw new DuplicateObjectException(project, object);
+    }
+  }
+
+  private void throwIfUnknown(String project) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+  }
+
+  private void throwIfUnknown(String project, String object) {
+    if (!hasObject(project, object)) {
+      throw new UnknownObjectException(project, object);
+    }
   }
 }
