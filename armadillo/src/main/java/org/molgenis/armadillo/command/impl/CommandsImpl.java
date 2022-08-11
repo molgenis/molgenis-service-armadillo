@@ -76,7 +76,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public void selectProfile(String profileName) {
-    Boolean exists =
+    var exists =
         dataShieldConfigProps.getProfiles().stream()
             .map(ProfileConfigProps::getName)
             .anyMatch(profileName::equals);
