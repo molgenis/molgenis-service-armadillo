@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.security.access.prepost.PostFilter;
@@ -54,13 +55,39 @@ public class ArmadilloStorageService {
     storageService.deleteProject(SHARED_PREFIX + project);
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void addObject(String project, String object, InputStream inputStream) {
     if (!hasProject(project)) {
       throw new UnknownProjectException(project);
     }
 
     storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public boolean hasObject(String project, String object) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+
+    return storageService.listObjects(SHARED_PREFIX + project).stream()
+        .anyMatch(objectMetadata -> objectMetadata.name().equals(object));
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void moveObject(String project, String newObject, String oldObject) {
+    copyObject(project, newObject, oldObject);
+    storageService.delete(SHARED_PREFIX + project, oldObject);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void copyObject(String project, String newObject, String oldObject) {
+    if (!hasObject(project, oldObject)) {
+      throw new UnknownObjectException(project, oldObject);
+    }
+
+    var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
+    storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")

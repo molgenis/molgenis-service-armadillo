@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.io.IOException;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class StorageController {
 
   @PostMapping("/projects")
   @ResponseStatus(NO_CONTENT)
-  public void createProject(@RequestBody Project project) {
+  public void createProject(@RequestBody ProjectRequestBody project) {
     storage.createProject(project.name());
   }
 
@@ -94,28 +95,29 @@ public class StorageController {
     }
   }
 
-  //  @PostMapping("/projects/{project}/objects")
-  //  @ResponseStatus(NO_CONTENT)
-  //  public void copyObject(@PathVariable String project, @RequestParam("copyOf") String object) {
-  //    // TODO 404 when project or object doesn't exist
-  //    // TODO storage.copyObject()
-  //  }
-  //
-  //  @PostMapping("/projects/{project}/objects")
-  //  @ResponseStatus(NO_CONTENT)
-  //  public void moveObject(@PathVariable String project, @RequestParam("moveFrom") String object)
-  // {
-  //    // TODO 404 when project or object doesn't exist
-  //    // TODO storage.moveObject()
-  //  }
+  @PostMapping(value = "/projects/{project}/objects", params = "copyOf")
+  @ResponseStatus(NO_CONTENT)
+  public void copyObject(
+      @PathVariable String project,
+      @RequestBody ObjectRequestBody newObject,
+      @RequestParam("copyOf") String sourceObject) {
+    storage.copyObject(project, newObject.name(), sourceObject);
+  }
 
-  @RequestMapping(value = "/projects/{project}/objects/{object}", method = HEAD)
+  @PostMapping(value = "/projects/{project}/objects", params = "movedFrom")
+  @ResponseStatus(NO_CONTENT)
+  public void moveObject(
+      @PathVariable String project,
+      @RequestBody ObjectRequestBody newObject,
+      @RequestParam("movedFrom") String oldObject) {
+    storage.moveObject(project, newObject.name(), oldObject);
+  }
+
+  @RequestMapping(value = "/projects/{project}/objects/**", method = HEAD)
   public ResponseEntity<Void> objectExists(
-      @PathVariable String project, @PathVariable String object) {
-    // TODO 404 when project doesn't exist
-    // TODO storage.hasObject(project)
-    var result = true;
-    return result ? noContent().build() : notFound().build();
+      @PathVariable String project, HttpServletRequest request) {
+    var object = parseObjectFromUrl(request);
+    return storage.hasObject(project, object) ? noContent().build() : notFound().build();
   }
 
   @DeleteMapping("/projects/{project}/objects/{object}")
@@ -131,5 +133,9 @@ public class StorageController {
     // TODO 404 when project or object doesn't exist
     // TODO storage.loadObject()
     return null;
+  }
+
+  private static String parseObjectFromUrl(HttpServletRequest request) {
+    return request.getRequestURL().toString().split("/objects/")[1];
   }
 }

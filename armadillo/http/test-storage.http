@@ -29,4 +29,17 @@ Content-Disposition: form-data; name="file"; filename="core/dummy.parquet"
 
 < ./dummy.parquet
 
+### Copy object
+POST {{host}}/storage/projects/lifecycle/objects?copyOf=core/nonrep.parquet
+Content-Type: application/json
 
+{ "name" : "new/nonrep.parquet" }
+
+### Move object
+POST {{host}}/storage/projects/lifecycle/objects?movedFrom=core/nonrep.parquet
+Content-Type: application/json
+
+{ "name" : "new2/nonrep.parquet" }
+
+### Object exists?
+HEAD {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
