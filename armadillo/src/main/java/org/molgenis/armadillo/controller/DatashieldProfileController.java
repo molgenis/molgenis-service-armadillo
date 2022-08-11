@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityScheme(name = "jwt", in = HEADER, type = APIKEY)
 @RestController
 @Validated
+@RequestMapping("profileConfigs")
 public class DatashieldProfileController {
   // audit log
   AuditEventPublisher auditEventPublisher;
@@ -51,8 +52,7 @@ public class DatashieldProfileController {
       summary = "list profiles",
       description = "List currently installed profiles.",
       security = {@SecurityRequirement(name = "jwt")})
-  @GetMapping(value = "profile-manager", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public List<ProfileConfigProps> listProfiles(Principal principal) {
     this.auditEventPublisher.audit(principal, "List armadillo profiles", Map.of());
     return datashieldProfileManager.listDatashieldProfiles();
@@ -62,8 +62,7 @@ public class DatashieldProfileController {
       summary = "add profile",
       description = "Add a new profile",
       security = {@SecurityRequirement(name = "jwt")})
-  @PutMapping(value = "profile-manager", produces = TEXT_PLAIN_VALUE)
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public void addProfile(Principal principal, @RequestBody ProfileConfigProps profileConfigProps)
       throws InterruptedException {
@@ -78,7 +77,7 @@ public class DatashieldProfileController {
       summary = "remove profile",
       description = "Remove profile",
       security = {@SecurityRequirement(name = "jwt")})
-  @DeleteMapping(value = "profile-manager/{profileName}", produces = APPLICATION_JSON_VALUE)
+  @DeleteMapping(value = "{profileName}", produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ROLE_SU')")
   @ResponseStatus(HttpStatus.OK)
   public void deleteProfile(Principal principal, @PathVariable String profileName) {

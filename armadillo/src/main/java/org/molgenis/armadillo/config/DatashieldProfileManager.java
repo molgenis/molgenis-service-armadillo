@@ -15,9 +15,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.springframework.stereotype.Component;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class DatashieldProfileManager {
   public static final String ARMADILLO_PROFILE = "org.molgenis.armadillo.profile";
   public static final String ARMADILLO_WHITELIST = "org.molgenis.armadillo.whitelist";
@@ -56,6 +57,7 @@ public class DatashieldProfileManager {
     return result;
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void addDockerProfile(ProfileConfigProps props) throws InterruptedException {
     // stop previous image if running
     this.removeDockerProfile(props.getName());
@@ -91,6 +93,7 @@ public class DatashieldProfileManager {
     dockerClient.startContainerCmd(container.getId()).exec();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void removeDockerProfile(String profileName) {
     Map<String, String> result = new LinkedHashMap<>();
     dockerClient

@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
-public class ProfileControllerTest {
+public class DatashieldProfileControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired AuditEventPublisher auditEventPublisher;
 
@@ -57,7 +57,7 @@ public class ProfileControllerTest {
   public void createAndList() throws Exception {
     // list
     mockMvc
-        .perform(get("/profile-manager"))
+        .perform(get("/profileConfigs"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andDo(
@@ -67,7 +67,7 @@ public class ProfileControllerTest {
 
     // delete if exists
     mockMvc
-        .perform(delete("/profile-manager/armadillo"))
+        .perform(delete("/profileConfigs/armadillo"))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -75,7 +75,7 @@ public class ProfileControllerTest {
                     "delete profile returned: " + handler.getResponse().getContentAsString()));
 
     mockMvc
-        .perform(delete("/profile-manager/exposome"))
+        .perform(delete("/profileConfigs/exposome"))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -84,7 +84,7 @@ public class ProfileControllerTest {
 
     // check listing is empty
     mockMvc
-        .perform(get("/profile-manager"))
+        .perform(get("/profileConfigs"))
         .andExpect(status().isOk())
         .andExpect(content().string(not(containsString("armadillo"))));
 
@@ -95,7 +95,7 @@ public class ProfileControllerTest {
     props.setPort(6312);
     mockMvc
         .perform(
-            put("/profile-manager").content(new Gson().toJson(props)).contentType(APPLICATION_JSON))
+            put("/profileConfigs").content(new Gson().toJson(props)).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -104,13 +104,13 @@ public class ProfileControllerTest {
 
     // check listing contains armadillo
     mockMvc
-        .perform(get("/profile-manager"))
+        .perform(get("/profileConfigs"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("armadillo")));
 
     // delete if exists
     mockMvc
-        .perform(delete("/profile-manager/armadillo"))
+        .perform(delete("/profileConfigs/armadillo"))
         .andExpect(status().isOk())
         .andDo(
             handler ->
@@ -119,7 +119,7 @@ public class ProfileControllerTest {
 
     // check listing contains armadillo
     mockMvc
-        .perform(get("/profile-manager"))
+        .perform(get("/profileConfigs"))
         .andExpect(status().isOk())
         .andExpect(content().string(not(containsString("armadillo"))));
   }
