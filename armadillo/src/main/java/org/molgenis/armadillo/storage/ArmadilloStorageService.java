@@ -10,6 +10,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
+import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
@@ -57,8 +58,8 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addObject(String project, String object, InputStream inputStream) {
-    if (!hasProject(project)) {
-      throw new UnknownProjectException(project);
+    if (hasObject(project, object)) {
+      throw new DuplicateObjectException(project, object);
     }
 
     storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
@@ -86,6 +87,10 @@ public class ArmadilloStorageService {
       throw new UnknownObjectException(project, oldObject);
     }
 
+    if (hasObject(project, newObject)) {
+      throw new DuplicateObjectException(project, newObject);
+    }
+
     var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
     storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
   }
@@ -97,6 +102,15 @@ public class ArmadilloStorageService {
     }
 
     storageService.delete(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public InputStream loadObject(String project, String object) {
+    if (!hasObject(project, object)) {
+      throw new UnknownObjectException(project, object);
+    }
+
+    return storageService.load(SHARED_PREFIX + project, object);
   }
 
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")

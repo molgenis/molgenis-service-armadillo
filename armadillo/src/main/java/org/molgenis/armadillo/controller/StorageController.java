@@ -6,6 +6,9 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.APIKEY;
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
@@ -19,6 +22,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -62,7 +67,9 @@ public class StorageController {
     return storage.listProjects();
   }
 
-  @PostMapping("/projects")
+  @PostMapping(
+      value = "/projects",
+      consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void createProject(@RequestBody ProjectRequestBody project) {
     storage.createProject(project.name());
@@ -85,7 +92,9 @@ public class StorageController {
     return storage.listObjects(project);
   }
 
-  @PostMapping("/projects/{project}/objects")
+  @PostMapping(
+      value = "/projects/{project}/objects",
+      consumes = {MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void uploadObject(@PathVariable String project, @RequestParam MultipartFile file) {
     try {
@@ -95,7 +104,10 @@ public class StorageController {
     }
   }
 
-  @PostMapping(value = "/projects/{project}/objects", params = "copyOf")
+  @PostMapping(
+      value = "/projects/{project}/objects",
+      params = "copyOf",
+      consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void copyObject(
       @PathVariable String project,
@@ -104,7 +116,10 @@ public class StorageController {
     storage.copyObject(project, newObject.name(), sourceObject);
   }
 
-  @PostMapping(value = "/projects/{project}/objects", params = "movedFrom")
+  @PostMapping(
+      value = "/projects/{project}/objects",
+      params = "movedFrom",
+      consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void moveObject(
       @PathVariable String project,
@@ -127,12 +142,23 @@ public class StorageController {
     storage.deleteObject(project, object);
   }
 
-  @GetMapping("/projects/{project}/objects/{object}")
+  @GetMapping("/projects/{project}/objects/**")
   @ResponseStatus(OK)
-  public @ResponseBody byte[] getObject(@PathVariable String project, @PathVariable String object) {
-    // TODO 404 when project or object doesn't exist
-    // TODO storage.loadObject()
-    return null;
+  public @ResponseBody ResponseEntity<Resource> getObject(
+      @PathVariable String project, HttpServletRequest request) {
+    var object = parseObjectFromUrl(request);
+    var inputStream = storage.loadObject(project, object);
+
+    try {
+      var resource = new ByteArrayResource(inputStream.readAllBytes());
+
+      return ResponseEntity.ok()
+          .contentLength(resource.contentLength())
+          .contentType(APPLICATION_OCTET_STREAM)
+          .body(resource);
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
   }
 
   private static String parseObjectFromUrl(HttpServletRequest request) {

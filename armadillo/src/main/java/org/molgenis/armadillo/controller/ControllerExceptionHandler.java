@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -25,6 +26,11 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(UnknownProjectException.class)
   protected ResponseEntity<String> handleUnknownProject(UnknownProjectException ex) {
     return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());
+  }
+
+  @ExceptionHandler(DuplicateObjectException.class)
+  protected ResponseEntity<String> handleDuplicateObject(DuplicateObjectException ex) {
+    return ResponseEntity.status(CONFLICT).body(ex.getMessage());
   }
 
   @ExceptionHandler(UnknownObjectException.class)

@@ -46,3 +46,6 @@ HEAD {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
 
 ### Delete object
 DELETE {{host}}/storage/projects/lifecycle/objects/core/dummy.parquet
+
+### Download object
+GET {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
