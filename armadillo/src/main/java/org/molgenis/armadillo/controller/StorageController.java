@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.core.io.ByteArrayResource;
@@ -128,25 +127,22 @@ public class StorageController {
     storage.moveObject(project, newObject.name(), oldObject);
   }
 
-  @RequestMapping(value = "/projects/{project}/objects/**", method = HEAD)
+  @RequestMapping(value = "/projects/{project}/objects/{object}", method = HEAD)
   public ResponseEntity<Void> objectExists(
-      @PathVariable String project, HttpServletRequest request) {
-    var object = parseObjectFromUrl(request);
+      @PathVariable String project, @PathVariable String object) {
     return storage.hasObject(project, object) ? noContent().build() : notFound().build();
   }
 
-  @DeleteMapping("/projects/{project}/objects/**")
+  @DeleteMapping("/projects/{project}/objects/{object}")
   @ResponseStatus(NO_CONTENT)
-  public void deleteObject(@PathVariable String project, HttpServletRequest request) {
-    var object = parseObjectFromUrl(request);
+  public void deleteObject(@PathVariable String project, @PathVariable String object) {
     storage.deleteObject(project, object);
   }
 
-  @GetMapping("/projects/{project}/objects/**")
+  @GetMapping("/projects/{project}/objects/{object}")
   @ResponseStatus(OK)
   public @ResponseBody ResponseEntity<Resource> getObject(
-      @PathVariable String project, HttpServletRequest request) {
-    var object = parseObjectFromUrl(request);
+      @PathVariable String project, @PathVariable String object) {
     var inputStream = storage.loadObject(project, object);
 
     try {
@@ -159,9 +155,5 @@ public class StorageController {
     } catch (IOException e) {
       throw new FileProcessingException();
     }
-  }
-
-  private static String parseObjectFromUrl(HttpServletRequest request) {
-    return request.getRequestURL().toString().split("/objects/")[1];
   }
 }

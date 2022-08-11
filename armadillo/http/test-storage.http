@@ -42,10 +42,10 @@ Content-Type: application/json
 { "name" : "new2/nonrep.parquet" }
 
 ### Object exists?
-HEAD {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
+HEAD {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet
 
 ### Delete object
-DELETE {{host}}/storage/projects/lifecycle/objects/core/dummy.parquet
+DELETE {{host}}/storage/projects/lifecycle/objects/core%2Fdummy.parquet
 
 ### Download object
-GET {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
+GET {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet

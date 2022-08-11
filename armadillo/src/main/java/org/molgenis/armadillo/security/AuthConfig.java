@@ -17,6 +17,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -59,10 +61,18 @@ public class AuthConfig extends WebSecurityConfigurerAdapter {
     return jwtAuthenticationConverter;
   }
 
+  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
   @Profile("development")
   @Bean
-  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
+  }
+
+  /** Allow URL encoded slashes. Needed for the Storage API's object endpoints. */
+  @Bean
+  public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+    DefaultHttpFirewall firewall = new DefaultHttpFirewall();
+    firewall.setAllowUrlEncodedSlash(true);
+    return firewall;
   }
 }
