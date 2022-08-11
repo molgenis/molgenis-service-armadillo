@@ -43,3 +43,6 @@ Content-Type: application/json
 
 ### Object exists?
 HEAD {{host}}/storage/projects/lifecycle/objects/core/nonrep.parquet
+
+### Delete object
+DELETE {{host}}/storage/projects/lifecycle/objects/core/dummy.parquet

@@ -120,11 +120,11 @@ public class StorageController {
     return storage.hasObject(project, object) ? noContent().build() : notFound().build();
   }
 
-  @DeleteMapping("/projects/{project}/objects/{object}")
+  @DeleteMapping("/projects/{project}/objects/**")
   @ResponseStatus(NO_CONTENT)
-  public void deleteObject(@PathVariable String project, @PathVariable String object) {
-    // TODO 404 when project or object doesn't exist
-    // TODO storage.deleteObject(project)
+  public void deleteObject(@PathVariable String project, HttpServletRequest request) {
+    var object = parseObjectFromUrl(request);
+    storage.deleteObject(project, object);
   }
 
   @GetMapping("/projects/{project}/objects/{object}")
