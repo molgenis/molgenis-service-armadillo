@@ -55,7 +55,7 @@ public class DatashieldProfileController {
   @PreAuthorize("hasRole('ROLE_SU')")
   public List<ProfileConfigProps> listProfiles(Principal principal) {
     this.auditEventPublisher.audit(principal, "List armadillo profiles", Map.of());
-    return datashieldProfileManager.listDockers();
+    return datashieldProfileManager.listDatashieldProfiles();
   }
 
   @Operation(

@@ -2,8 +2,11 @@ package org.molgenis.armadillo.config;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import java.util.LinkedHashMap;
@@ -19,14 +22,11 @@ public class DatashieldProfileManager {
   public static final String ARMADILLO_PROFILE = "org.molgenis.armadillo.profile";
   public static final String ARMADILLO_WHITELIST = "org.molgenis.armadillo.whitelist";
   // remote control for docker
-  DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig.createDefaultConfigBuilder();
-  private DockerClient dockerClient;
+  private static final DefaultDockerClientConfig.Builder config =
+      DefaultDockerClientConfig.createDefaultConfigBuilder();
+  private static final DockerClient dockerClient = DockerClientBuilder.getInstance(config).build();
 
-  public DatashieldProfileManager() {
-    dockerClient = DockerClientBuilder.getInstance(config).build();
-  }
-
-  public List<ProfileConfigProps> listDockers() {
+  public List<ProfileConfigProps> listDatashieldProfiles() {
     List<ProfileConfigProps> result =
         dockerClient.listContainersCmd().exec().stream()
             .filter(container -> container.getLabels().containsKey(ARMADILLO_PROFILE))
@@ -37,7 +37,19 @@ public class DatashieldProfileManager {
                   def.setName(container.getLabels().get(ARMADILLO_PROFILE));
                   def.setWhiteList(
                       Set.of(container.getLabels().get(ARMADILLO_WHITELIST).split(",")));
-                  // def.setPort(container.getPorts()[0].getPublicPort());
+                  // below code is a bit expansive and possibly brittle?
+                  // however, systems seems to cache because it is fast on my machine
+                  InspectContainerResponse containerInfo =
+                      dockerClient.inspectContainerCmd(container.getNames()[0]).exec();
+                  def.setPort(
+                      Integer.parseInt(
+                          containerInfo
+                              .getHostConfig()
+                              .getPortBindings()
+                              .getBindings()
+                              .get(new ExposedPort(6311))[0]
+                              .getHostPortSpec()));
+                  def.getOptions();
                   return def;
                 })
             .collect(Collectors.toList());
@@ -55,6 +67,9 @@ public class DatashieldProfileManager {
         .awaitCompletion(5, TimeUnit.MINUTES);
 
     // start the image
+    ExposedPort exposed = ExposedPort.tcp(6311);
+    Ports portBindings = new Ports();
+    portBindings.bind(exposed, Ports.Binding.bindPort(props.getPort()));
     CreateContainerResponse container =
         dockerClient
             .createContainerCmd(props.getDockerImage())
@@ -66,9 +81,12 @@ public class DatashieldProfileManager {
                     ARMADILLO_WHITELIST,
                     String.join(",", props.getWhitelist())))
             // mapping the port
-            .withExposedPorts(new ExposedPort(props.getPort()))
+            .withExposedPorts(exposed)
+            .withHostConfig(new HostConfig().withPortBindings(portBindings))
             // mapping the name
             .withName(props.getName())
+            // environment
+            .withEnv("DEBUG=FALSE")
             .exec();
     dockerClient.startContainerCmd(container.getId()).exec();
   }

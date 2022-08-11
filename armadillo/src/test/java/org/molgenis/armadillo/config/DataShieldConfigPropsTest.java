@@ -13,10 +13,11 @@ class DataShieldConfigPropsTest {
   DataShieldConfigProps dataShieldConfigProps;
 
   @Mock Errors errors;
+  @Mock DatashieldProfileManager datashieldProfileManager;
 
   @BeforeEach
   void beforeEach() {
-    dataShieldConfigProps = new DataShieldConfigProps();
+    dataShieldConfigProps = new DataShieldConfigProps(datashieldProfileManager);
   }
 
   @Test

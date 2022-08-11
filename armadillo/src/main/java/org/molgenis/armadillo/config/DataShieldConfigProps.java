@@ -15,6 +15,11 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class DataShieldConfigProps implements Validator {
   @NotEmpty @Valid private List<ProfileConfigProps> profiles;
+  DatashieldProfileManager profileManager;
+
+  public DataShieldConfigProps(DatashieldProfileManager profileManager) {
+    this.profileManager = profileManager;
+  }
 
   public void setProfiles(List<ProfileConfigProps> profiles) {
     this.profiles = profiles;
@@ -24,7 +29,7 @@ public class DataShieldConfigProps implements Validator {
     List<ProfileConfigProps> result = new ArrayList<>(profiles);
     // we will also report what is running from environment NEXT to what has been configured
     // this is only useful if you want to manage your images via the older docker compose way
-
+    result.addAll(profileManager.listDatashieldProfiles());
     return result;
   }
 
