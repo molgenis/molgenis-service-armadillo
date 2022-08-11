@@ -104,27 +104,25 @@ public class StorageController {
   }
 
   @PostMapping(
-      value = "/projects/{project}/objects",
-      params = "copyOf",
+      value = "/projects/{project}/objects/{object}/copy",
       consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void copyObject(
       @PathVariable String project,
-      @RequestBody ObjectRequestBody newObject,
-      @RequestParam("copyOf") String sourceObject) {
-    storage.copyObject(project, newObject.name(), sourceObject);
+      @PathVariable String object,
+      @RequestBody ObjectRequestBody requestBody) {
+    storage.copyObject(project, requestBody.name(), object);
   }
 
   @PostMapping(
-      value = "/projects/{project}/objects",
-      params = "movedFrom",
+      value = "/projects/{project}/objects/{object}/move",
       consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void moveObject(
       @PathVariable String project,
-      @RequestBody ObjectRequestBody newObject,
-      @RequestParam("movedFrom") String oldObject) {
-    storage.moveObject(project, newObject.name(), oldObject);
+      @PathVariable String object,
+      @RequestBody ObjectRequestBody requestBody) {
+    storage.moveObject(project, requestBody.name(), object);
   }
 
   @RequestMapping(value = "/projects/{project}/objects/{object}", method = HEAD)
