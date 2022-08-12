@@ -412,7 +412,7 @@ resolve@^1.22.1:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-rollup@^2.75.6:
+"rollup@>=2.75.6 <2.77.0 || ~2.77.0":
   version "2.77.0"
   resolved "https://registry.npmjs.org/rollup/-/rollup-2.77.0.tgz"
   integrity sha512-vL8xjY4yOQEw79DvyXLijhnhh+R/O9zpF/LEgkCebZFtb6ELeN9H3/2T0r8+mp+fFTBHZ5qGpOpW2ela2zRt3g==
@@ -455,15 +455,15 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-vite@3.0.5:
-  version "3.0.5"
-  resolved "https://registry.npmjs.org/vite/-/vite-3.0.5.tgz"
-  integrity sha512-bRvrt9Tw8EGW4jj64aYFTnVg134E8hgDxyl/eEHnxiGqYk7/pTPss6CWlurqPOUzqvEoZkZ58Ws+Iu8MB87iMA==
+vite@3.0.6:
+  version "3.0.6"
+  resolved "https://registry.npmjs.org/vite/-/vite-3.0.6.tgz"
+  integrity sha512-pjfsWIzfUlQME/VAmU6SsjdHkTt6WAHysuqPkHDcjzNu6IGtxDSZ/VfRYOwHaCqX4M3Ivz0kxuSfAPM6gAIX+w==
   dependencies:
     esbuild "^0.14.47"
     postcss "^8.4.16"
     resolve "^1.22.1"
-    rollup "^2.75.6"
+    rollup ">=2.75.6 <2.77.0 || ~2.77.0"
   optionalDependencies:
     fsevents "~2.3.2"
 
