@@ -19,9 +19,13 @@ import org.springframework.web.servlet.view.RedirectView;
 @Hidden
 // temporary controller until we have proper UI
 public class WelcomeController {
-  // get client id
-  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
-  String clientId;
+  private String clientId;
+
+  public WelcomeController(
+      @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
+          String clientId) {
+    this.clientId = clientId;
+  }
 
   @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
   @ResponseBody
