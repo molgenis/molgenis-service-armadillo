@@ -1,15 +1,10 @@
 package org.molgenis.armadillo.audit;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 import java.security.Principal;
 import java.time.Clock;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
@@ -45,6 +40,17 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
+  public static final String PERMISSIONS_LIST = "PERMISSIONS_LIST";
+  public static final String PERMISSIONS_ADD = "PERMISSIONS_ADD";
+  public static final String PERMISSIONS_DELETE = "PERMISSIONS_DELETE";
+  public static final String UPSERT_USER = "UPSERT_USER";
+  public static final String DELETE_USER = "DELETE_USER";
+  public static final String GET_USER = "GET_USER";
+  public static final String LIST_PROJECTS = "LIST_PROJECTS";
+  public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
+  public static final String DELETE_PROJECT = "DELETE_PROJECT";
+  public static final String GET_PROJECT = "GET_PROJECT";
+  public static final String LIST_USERS = "LIST_USERS";
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";
   public static final String GET_RESOURCES = "GET_RESOURCES";
@@ -57,9 +63,11 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
+  public static final String EMAIL = "email";
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
+  private static final String ANONYMOUS = "ANONYMOUS";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
@@ -81,8 +89,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
+    var user = principal != null ? principal.getName() : ANONYMOUS;
     applicationEventPublisher.publishEvent(
-        new AuditApplicationEvent(clock.instant(), principal.getName(), type, sessionData));
+        new AuditApplicationEvent(clock.instant(), user, type, sessionData));
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
@@ -94,7 +103,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
         .map(Authentication::getAuthorities)
         .flatMap(Collection::stream)
         .map(GrantedAuthority::getAuthority)
-        .collect(toList());
+        .toList();
   }
 
   public <T> CompletableFuture<T> audit(

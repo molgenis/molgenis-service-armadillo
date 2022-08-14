@@ -77,3 +77,12 @@ Always use profile `development` in combination with these profiles:
 - `development-omics`
 
 For example: `development, development-omics`
+
+#### To enable oauth login you must set environment variables
+
+- SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID
+- SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET
+
+If you don't set these variables, you will be offered with 'basic auth' sign in box.
+
+Note: if you already have signed in with relevant oauth service you will stay signed in even if you switch to basic-auth using login form.

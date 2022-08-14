@@ -5,6 +5,8 @@ rserve:
       port: 6311
 
 datashield:
+  # set this to 'true' if you want to accept permissions from oidc provider
+  oidc-permission-enabled: false
   profiles:
     - name: default
       environment: default
@@ -19,6 +21,7 @@ datashield:
 springdoc:
   swagger-ui:
     enabled: true
+    operationsSorter: alpha
     csrf:
       enabled: true
 
@@ -58,6 +61,14 @@ spring:
     user:
       password: admin
     oauth2:
+      client:
+        provider:
+          molgenis:
+            issuer-uri: 'https://auth.molgenis.org'
+          #recommend to set registration via environment variables
+          #in IntelliJ something like:
+          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID=b396233b-cdb2-449e-ac5c-a0d28b38f791;
+          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET=xxx
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
