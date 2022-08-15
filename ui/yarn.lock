@@ -12,10 +12,10 @@
   "resolved" "https://registry.npmjs.org/@popperjs/core/-/core-2.11.6.tgz"
   "version" "2.11.6"
 
-"@vitejs/plugin-vue@3.0.1":
-  "integrity" "sha512-Ll9JgxG7ONIz/XZv3dssfoMUDu9qAnlJ+km+pBA0teYSXzwPCIzS/e1bmwNYl5dcQGs677D21amgfYAnzMl17A=="
-  "resolved" "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-3.0.1.tgz"
-  "version" "3.0.1"
+"@vitejs/plugin-vue@3.0.3":
+  version "3.0.3"
+  resolved "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-3.0.3.tgz"
+  integrity sha512-U4zNBlz9mg+TA+i+5QPc3N5lQvdUXENZLO2h0Wdzp56gI1MWhqJOv+6R+d4kOzoaSSq6TnGPBdZAXKOe4lXy6g==
 
 "@vue/compiler-core@3.2.37":
   "integrity" "sha512-81KhEjo7YAOh0vQJoSmAD68wLfYqJvoiD4ulyedzF+OEk/bk6/hx3fTNVfuzugIIaTrOx4PGx6pAiBRe5e9Zmg=="
@@ -308,14 +308,14 @@
   "resolved" "https://registry.npmjs.org/resolve/-/resolve-1.22.1.tgz"
   "version" "1.22.1"
   dependencies:
-    "is-core-module" "^2.9.0"
-    "path-parse" "^1.0.7"
-    "supports-preserve-symlinks-flag" "^1.0.0"
+    is-core-module "^2.9.0"
+    path-parse "^1.0.7"
+    supports-preserve-symlinks-flag "^1.0.0"
 
-"rollup@^2.75.6":
-  "integrity" "sha512-vL8xjY4yOQEw79DvyXLijhnhh+R/O9zpF/LEgkCebZFtb6ELeN9H3/2T0r8+mp+fFTBHZ5qGpOpW2ela2zRt3g=="
-  "resolved" "https://registry.npmjs.org/rollup/-/rollup-2.77.0.tgz"
-  "version" "2.77.0"
+"rollup@>=2.75.6 <2.77.0 || ~2.77.0":
+  version "2.77.0"
+  resolved "https://registry.npmjs.org/rollup/-/rollup-2.77.0.tgz"
+  integrity sha512-vL8xjY4yOQEw79DvyXLijhnhh+R/O9zpF/LEgkCebZFtb6ELeN9H3/2T0r8+mp+fFTBHZ5qGpOpW2ela2zRt3g==
   optionalDependencies:
     "fsevents" "~2.3.2"
 
@@ -355,15 +355,15 @@
   dependencies:
     "is-number" "^7.0.0"
 
-"vite@^3.0.0", "vite@3.0.5":
-  "integrity" "sha512-bRvrt9Tw8EGW4jj64aYFTnVg134E8hgDxyl/eEHnxiGqYk7/pTPss6CWlurqPOUzqvEoZkZ58Ws+Iu8MB87iMA=="
-  "resolved" "https://registry.npmjs.org/vite/-/vite-3.0.5.tgz"
-  "version" "3.0.5"
+vite@3.0.7:
+  version "3.0.7"
+  resolved "https://registry.npmjs.org/vite/-/vite-3.0.7.tgz"
+  integrity sha512-dILhvKba1mbP1wCezVQx/qhEK7/+jVn9ciadEcyKMMhZpsuAi/eWZfJRMkmYlkSFG7Qq9NvJbgFq4XOBxugJsA==
   dependencies:
-    "esbuild" "^0.14.47"
-    "postcss" "^8.4.16"
-    "resolve" "^1.22.1"
-    "rollup" "^2.75.6"
+    esbuild "^0.14.47"
+    postcss "^8.4.16"
+    resolve "^1.22.1"
+    rollup ">=2.75.6 <2.77.0 || ~2.77.0"
   optionalDependencies:
     "fsevents" "~2.3.2"
 

@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
@@ -51,6 +52,7 @@ class DevelopmentControllerTest {
   @MockBean private ProfileConfigProps profileConfigProps;
   @MockBean private Commands commands;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
+  @MockBean private ArmadilloStorageService armadilloStorageService;
 
   @Mock(lenient = true)
   private Clock clock;

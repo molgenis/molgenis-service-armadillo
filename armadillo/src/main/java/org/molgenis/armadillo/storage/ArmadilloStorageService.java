@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.model.Workspace;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class ArmadilloStorageService {
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
   public static final String RDS = ".rds";
+  public static final String SYSTEM = "system";
   private final StorageService storageService;
 
   public ArmadilloStorageService(StorageService storageService) {
@@ -118,5 +120,17 @@ public class ArmadilloStorageService {
 
   public void removeWorkspace(Principal principal, String id) {
     storageService.delete(getUserBucketName(principal), getWorkspaceObjectName(id));
+  }
+
+  public void saveSystemFile(InputStream is, String name, MediaType mediaType) {
+    storageService.save(is, SYSTEM, name, mediaType);
+  }
+
+  public InputStream loadSystemFile(String name) {
+    if (storageService.objectExists(SYSTEM, name)) {
+      return storageService.load(SYSTEM, name);
+    } else {
+      return InputStream.nullInputStream();
+    }
   }
 }
