@@ -98,8 +98,21 @@ class MinioStorageService implements StorageService {
 
   @Override
   public void deleteProject(String projectName) {
-    // TODO implement
-    throw new UnsupportedOperationException();
+    try {
+      LOGGER.info("Deleting bucket {}.", projectName);
+      minioClient.removeBucket(projectName);
+    } catch (InvalidBucketNameException
+        | InternalException
+        | InvalidResponseException
+        | InvalidKeyException
+        | NoResponseException
+        | IOException
+        | NoSuchAlgorithmException
+        | ErrorResponseException
+        | XmlPullParserException
+        | InsufficientDataException e) {
+      throw new StorageException(e);
+    }
   }
 
   @Override

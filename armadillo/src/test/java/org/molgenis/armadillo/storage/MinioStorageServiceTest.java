@@ -136,4 +136,11 @@ class MinioStorageServiceTest {
 
     verify(minioClient).removeObject("user-admin", "blah.RData");
   }
+
+  @Test
+  void testDeleteBucket() throws Exception {
+    minioStorageService.deleteProject("test");
+
+    verify(minioClient).removeBucket("test");
+  }
 }
