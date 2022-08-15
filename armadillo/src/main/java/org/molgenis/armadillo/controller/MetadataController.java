@@ -19,15 +19,13 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(
-    name = "metadata",
-    description = "API to list and change access metadata of your armadillo instance")
+@Tag(name = "admin", description = "Admin API to manage users, project and permissions")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("metadata")
+@RequestMapping("admin")
 public class MetadataController {
 
   private final ArmadilloMetadataService armadilloMetadataService;
