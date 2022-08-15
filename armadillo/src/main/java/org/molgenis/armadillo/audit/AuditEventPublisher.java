@@ -47,9 +47,17 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_USER = "DELETE_USER";
   public static final String GET_USER = "GET_USER";
   public static final String LIST_PROJECTS = "LIST_PROJECTS";
+  public static final String CREATE_PROJECT = "CREATE_PROJECT";
   public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
   public static final String GET_PROJECT = "GET_PROJECT";
+  public static final String LIST_OBJECTS = "LIST_OBJECTS";
+  public static final String UPLOAD_OBJECT = "UPLOAD_OBJECT";
+  public static final String COPY_OBJECT = "COPY_OBJECT";
+  public static final String MOVE_OBJECT = "MOVE_OBJECT";
+  public static final String GET_OBJECT = "GET_OBJECT";
+  public static final String DELETE_OBJECT = "DELETE_OBJECT";
+  public static final String DOWNLOAD_OBJECT = "DOWNLOAD_OBJECT";
   public static final String LIST_USERS = "LIST_USERS";
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";
@@ -63,6 +71,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
+  public static final String OBJECT = "object";
   public static final String EMAIL = "email";
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
@@ -98,43 +107,69 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     audit(principal, type, data, MDC.get("sessionID"), getRoles());
   }
 
-  private static List<String> getRoles() {
-    return Optional.ofNullable(getContext()).map(SecurityContext::getAuthentication).stream()
-        .map(Authentication::getAuthorities)
-        .flatMap(Collection::stream)
-        .map(GrantedAuthority::getAuthority)
-        .toList();
-  }
-
+  /** Audits a CompletableFuture. */
   public <T> CompletableFuture<T> audit(
       CompletableFuture<T> future, Principal principal, String type, Map<String, Object> data) {
     // remember context to fill it in when future completes
     final var sessionId = MDC.get("sessionID");
     final var roles = getRoles();
+
     return future.whenComplete(
         (success, failure) -> {
           if (failure == null) {
             audit(principal, type, data, sessionId, roles);
           } else {
-            Map<String, Object> errorData = new HashMap<>(data);
-            errorData.put(MESSAGE, failure.getMessage());
-            errorData.put(TYPE, failure.getClass().getName());
-            audit(principal, type + "_FAILURE", errorData, sessionId, roles);
+            auditFailure(principal, type, data, failure, sessionId, roles);
           }
         });
   }
 
+  /** Audits a function with a return value. */
   public <T> T audit(Supplier<T> c, Principal principal, String type, Map<String, Object> data) {
     try {
       var result = c.get();
       audit(principal, type, data);
       return result;
     } catch (Exception failure) {
-      Map<String, Object> errorData = new HashMap<>(data);
-      errorData.put(MESSAGE, failure.getMessage());
-      errorData.put(TYPE, failure.getClass().getName());
-      audit(principal, type + "_FAILURE", errorData);
+      auditFailure(principal, type, data, failure);
       throw failure;
     }
+  }
+
+  /** Audits a void function. */
+  public void audit(Runnable runnable, Principal principal, String type, Map<String, Object> data) {
+    try {
+      runnable.run();
+      audit(principal, type, data);
+    } catch (Exception failure) {
+      auditFailure(principal, type, data, failure);
+      throw failure;
+    }
+  }
+
+  private void auditFailure(
+      Principal principal, String type, Map<String, Object> data, Throwable failure) {
+    auditFailure(principal, type, data, failure, MDC.get("sessionID"), getRoles());
+  }
+
+  private void auditFailure(
+      Principal principal,
+      String type,
+      Map<String, Object> data,
+      Throwable failure,
+      String sessionId,
+      List<String> roles) {
+    Map<String, Object> errorData = new HashMap<>(data);
+    errorData.put(MESSAGE, failure.getMessage());
+    errorData.put(TYPE, failure.getClass().getName());
+    audit(principal, type + "_FAILURE", errorData, sessionId, roles);
+  }
+
+  private static List<String> getRoles() {
+    return Optional.ofNullable(getContext()).map(SecurityContext::getAuthentication).stream()
+        .map(Authentication::getAuthorities)
+        .flatMap(Collection::stream)
+        .map(GrantedAuthority::getAuthority)
+        .toList();
   }
 }
