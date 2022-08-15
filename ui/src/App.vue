@@ -7,25 +7,27 @@ import TabContent from "./components/TabContent.vue";
 </script>
 
 <template>
-  <div class="col">
-    <Navbar />
-    <div class="container">
-      <div class="col">
+  <div class="row">
+    <div class="col">
+      <Navbar />
+      <div class="container">
         <div class="row mt-1">
-          <Tabs
-            :menu="this.tabs"
-            :activeTab="this.activeTab"
-            v-on:activeTabChange="setActiveTab"
-          >
-            <TabContent
-              v-for="item in this.tabs"
-              :menuItem="item"
-              :menuIndex="this.tabs.indexOf(item)"
-              :isActive="this.activeTab == this.tabs.indexOf(item)"
+          <div class="col">
+            <Tabs
+              :menu="this.tabs"
+              :activeTab="this.activeTab"
+              v-on:activeTabChange="setActiveTab"
             >
-              {{ item }}
-            </TabContent>
-          </Tabs>
+              <TabContent
+                v-for="item in this.tabs"
+                :menuItem="item"
+                :menuIndex="this.tabs.indexOf(item)"
+                :isActive="this.activeTab == this.tabs.indexOf(item)"
+              >
+                {{ item }}
+              </TabContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>
