@@ -11,7 +11,7 @@
         Armadillo portal
       </a>
       <form>
-        <span class="navbar-text"><i class="bi bi-person-fill"></i> username@example.com </span>
+        <span class="navbar-text"><i class="bi bi-person-fill"></i> {{email}} </span>
         <span>
           <button type="button" class="btn btn-primary">Log out</button>
         </span>
@@ -19,3 +19,12 @@
     </div>
   </nav>
 </template>
+
+<script>
+export default {
+  name: "Navbar",
+  props: {
+    email: String,
+  },
+};
+</script>

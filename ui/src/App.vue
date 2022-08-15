@@ -1,20 +1,13 @@
-<script setup>
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import Navbar from "./components/Navbar.vue";
-import Tabs from "./components/Tabs.vue";
-import TabContent from "./components/TabContent.vue";
-</script>
-
 <template>
   <div class="row">
     <div class="col">
-      <Navbar />
+      <Navbar :username="this.principal.name"/>
       <div class="container">
         <div class="row mt-1">
           <div class="col">
             <Tabs
               :menu="this.tabs"
+              :icons="this.tabIcons"
               :activeTab="this.activeTab"
               v-on:activeTabChange="setActiveTab"
             >
@@ -24,7 +17,10 @@ import TabContent from "./components/TabContent.vue";
                 :menuIndex="this.tabs.indexOf(item)"
                 :isActive="this.activeTab == this.tabs.indexOf(item)"
               >
-                {{ item }}
+                <div v-if="item == 'Users'">
+                  <Users></Users>
+                </div>
+                <div v-else>To do: {{ item }}</div>
               </TabContent>
             </Tabs>
           </div>
@@ -35,15 +31,47 @@ import TabContent from "./components/TabContent.vue";
 </template>
 
 <script>
+import Navbar from "./components/Navbar.vue";
+import Tabs from "./components/Tabs.vue";
+import TabContent from "./components/TabContent.vue";
+import Users from "./views/Users.vue";
+import { onMounted, ref } from "vue";
+import { getPrincipal } from "./api/api";
+
 export default {
+  name: "ArmadilloPortal",
+  components: {
+    Navbar,
+    Tabs,
+    TabContent,
+    Users,
+  },
+  setup() {
+    const principal = ref([]);
+    onMounted(() => {
+      loadPrincipal();
+    });
+    const loadPrincipal = async () => {
+      principal.value = await getPrincipal();
+    };
+    return {
+      principal,
+      loadPrincipal,
+    };
+  },
+  mounted(){
+    console.log(this.principal);
+  },
   data() {
     return {
       activeTab: 0,
       tabs: ["Users", "Projects", "Profiles", "Monitoring"],
+      tabIcons: ["people-fill", "folder-fill", "grid", "clipboard-data-fill"],
     };
   },
   methods: {
     setActiveTab(index) {
+      console.log(this.principal.name)
       this.activeTab = index;
     },
   },

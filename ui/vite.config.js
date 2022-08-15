@@ -14,6 +14,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/my/.*": {
+        target: {
+          protocol: 'http:',
+          host: "localhost",
+          port: 8080,
+        },
+      },
     },
   },
 });

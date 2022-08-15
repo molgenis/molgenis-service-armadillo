@@ -13,6 +13,7 @@
           :aria-selected="index == this.activeTab ? 'true' : 'false'"
           @click="this.triggerActiveTabChange(index)"
         >
+          <i v-if="index < this.icons.length" :class="`bi bi-${this.icons[index]}`"></i>
           {{ item }}
         </button>
       </li>
@@ -27,6 +28,7 @@
 export default {
   props: {
     menu: Array,
+    icons: Array,
     activeTab: Number,
   },
   methods: {
