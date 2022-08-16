@@ -59,9 +59,6 @@ export default {
       loadPrincipal,
     };
   },
-  mounted(){
-    console.log(this.principal);
-  },
   data() {
     return {
       activeTab: 0,

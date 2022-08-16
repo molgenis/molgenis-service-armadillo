@@ -8,9 +8,28 @@ export async function get(url) {
   if (response.status != 200) {
     throw response.status;
   } else {
-    console.log(response)
     return response.json();
   }
+}
+
+export async function put(url, body) {
+  // PUT request using fetch with async/await
+  const requestOptions = {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: body
+  };
+  const response = await fetch(url, requestOptions);
+  if (response.status != 200) {
+    throw response.status;
+  } else {
+    return response.json();
+    //updatedAt
+  }
+}
+
+export async function putUser(userJson) {
+  return put("/metadata/users", userJson);
 }
 
 export async function getUsers() {
@@ -23,7 +42,6 @@ export async function getProjects() {
 
 export async function getPrincipal() {
   const principal = get("/my/principal");
-  console.log(principal);
   return principal;
 }
 

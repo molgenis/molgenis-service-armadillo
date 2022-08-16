@@ -2,12 +2,14 @@
   <table class="table">
     <thead>
       <tr>
+        <slot name="extraHeader"></slot>
         <th scope="col" v-for="(value, key) in data[0]">{{ toCapitalizedWords(key) }}</th>
       </tr>
     </thead>
     <tbody>
+      <slot name="extraRow"></slot>
       <tr v-for="item in data">
-        <!-- <th scope="row">1</th> -->
+        <slot name="extraColumn" :item="item"></slot>
         <td v-for="value in item">
           <span v-if="Array.isArray(value)">
             <slot name="arrayType" :data="value">
