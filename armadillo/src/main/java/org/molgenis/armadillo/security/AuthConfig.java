@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.security;
 
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
 import java.util.HashSet;
@@ -137,8 +138,10 @@ public class AuthConfig {
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
 
               mappedAuthorities.addAll(
-                  armadilloMetadataService.getAuthoritiesForEmail(
-                      (String) userAttributes.get("email"), userAttributes));
+                  runAsSystem(
+                      () ->
+                          armadilloMetadataService.getAuthoritiesForEmail(
+                              (String) userAttributes.get("email"), userAttributes)));
             });
 
         return mappedAuthorities;

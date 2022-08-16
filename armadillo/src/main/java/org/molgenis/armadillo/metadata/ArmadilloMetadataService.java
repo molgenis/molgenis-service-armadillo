@@ -22,8 +22,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 @Service
-// cannot do global @PreAuthorize(hasRole(SU))
-// because anonymous needs to access during login
+@PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloMetadataService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
   public static final String METADATA_FILE = "metadata.json";
@@ -71,19 +70,16 @@ public class ArmadilloMetadataService {
     return result;
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public ArmadilloMetadata settingsList() {
     return this.settings;
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public List<UserDetails> usersList() {
     return settings.getUsers().keySet().stream()
         .map(this::usersByEmail) // to add the
         .toList();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void userUpsert(UserDetails userDetails) {
     String email = userDetails.getEmail();
     // strip previous permissions
@@ -124,7 +120,6 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void userDelete(String email) {
     Objects.requireNonNull(email);
     // replace settings
@@ -141,12 +136,10 @@ public class ArmadilloMetadataService {
   }
 
   /** key is project, value list of users */
-  @PreAuthorize("hasRole('ROLE_SU')")
   public List<ProjectDetails> projectsList() {
     return settings.getProjects().keySet().stream().map(this::projectsByName).toList();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public ProjectDetails projectsByName(String projectName) {
     return ProjectDetails.create(
         projectName,
@@ -157,7 +150,6 @@ public class ArmadilloMetadataService {
             .collect(Collectors.toSet()));
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void projectsUpsert(ProjectDetails projectDetails) {
     String projectName = projectDetails.getName();
     // strip previous permissions for this project
@@ -187,7 +179,6 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void projectsDelete(String projectName) {
     settings.getProjects().remove(projectName);
     settings =
@@ -201,12 +192,10 @@ public class ArmadilloMetadataService {
     this.save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public Set<ProjectPermission> permissionsList() {
     return settings.getPermissions();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public synchronized void permissionsAdd(String email, String project) {
     Objects.requireNonNull(email);
     Objects.requireNonNull(project);
@@ -218,7 +207,6 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public synchronized void permissionsDelete(String email, String project) {
 
     Objects.requireNonNull(email);
