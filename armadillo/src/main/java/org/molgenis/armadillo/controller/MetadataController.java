@@ -1,6 +1,18 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.EMAIL;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_USERS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_ADD;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_DELETE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_LIST;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_USER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -16,8 +28,22 @@ import java.util.Objects;
 import java.util.Set;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.*;
-import org.springframework.web.bind.annotation.*;
+import org.molgenis.armadillo.metadata.ArmadilloMetadata;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.ProjectDetails;
+import org.molgenis.armadillo.metadata.ProjectPermission;
+import org.molgenis.armadillo.metadata.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "admin", description = "Admin API to manage users, project and permissions")
 @RestController
@@ -28,29 +54,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("admin")
 public class MetadataController {
 
-  private final ArmadilloMetadataService armadilloMetadataService;
-  private final AuditEventPublisher auditEventPublisher;
+  private final ArmadilloMetadataService metadata;
+  private final AuditEventPublisher auditor;
 
-  public MetadataController(
-      ArmadilloMetadataService armadilloMetadataService, AuditEventPublisher auditEventPublisher) {
-    this.armadilloMetadataService = armadilloMetadataService;
-    this.auditEventPublisher = auditEventPublisher;
+  public MetadataController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
+    this.metadata = metadataService;
+    this.auditor = auditor;
   }
 
   @Operation(summary = "Get all metadata")
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ArmadilloMetadata settingsRaw(Principal principal) {
-    auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of());
-    return armadilloMetadataService.settingsList();
+    return auditor.audit(metadata::settingsList, principal, LIST_PROJECTS, Map.of());
   }
 
   @Operation(summary = "List all permissions")
   @GetMapping(path = "permissions", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public Set<ProjectPermission> permissionList(Principal principal) {
-    auditEventPublisher.audit(principal, PERMISSIONS_LIST, Map.of());
-    return armadilloMetadataService.permissionsList();
+    return auditor.audit(metadata::permissionsList, principal, PERMISSIONS_LIST, Map.of());
   }
 
   @Operation(
@@ -61,8 +84,11 @@ public class MetadataController {
   @ResponseStatus(CREATED)
   public void permissionsAdd(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    armadilloMetadataService.permissionsAdd(email, project);
-    auditEventPublisher.audit(principal, PERMISSIONS_ADD, Map.of(PROJECT, project, EMAIL, email));
+    auditor.audit(
+        () -> metadata.permissionsAdd(email, project),
+        principal,
+        PERMISSIONS_ADD,
+        Map.of(PROJECT, project, EMAIL, email));
   }
 
   @Operation(
@@ -73,9 +99,11 @@ public class MetadataController {
   @ResponseStatus(OK)
   public void permissionsDelete(
       Principal principal, @RequestParam String email, @RequestParam String project) {
-    armadilloMetadataService.permissionsDelete(email, project);
-    auditEventPublisher.audit(
-        principal, PERMISSIONS_DELETE, Map.of(PROJECT, project, EMAIL, email));
+    auditor.audit(
+        () -> metadata.permissionsDelete(email, project),
+        principal,
+        PERMISSIONS_DELETE,
+        Map.of(PROJECT, project, EMAIL, email));
   }
 
   @Operation(
@@ -83,8 +111,7 @@ public class MetadataController {
   @GetMapping(path = "projects", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProjectDetails> projectList(Principal principal) {
-    auditEventPublisher.audit(principal, LIST_PROJECTS, Map.of());
-    return armadilloMetadataService.projectsList();
+    return auditor.audit(metadata::projectsList, principal, LIST_PROJECTS, Map.of());
   }
 
   @Operation(summary = "Get project by name")
@@ -92,24 +119,33 @@ public class MetadataController {
   @ResponseBody
   public ProjectDetails projectGetByProjectName(
       Principal principal, @PathVariable String projectName) {
-    auditEventPublisher.audit(principal, GET_PROJECT, Map.of(PROJECT, projectName));
-    return armadilloMetadataService.projectsByName(projectName);
+    return auditor.audit(
+        () -> metadata.projectsByName(projectName),
+        principal,
+        GET_PROJECT,
+        Map.of(PROJECT, projectName));
   }
 
   @Operation(summary = "Delete project including permissions and data")
   @DeleteMapping(value = "projects/{project}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void projectsDelete(Principal principal, @PathVariable String project) {
-    armadilloMetadataService.projectsDelete(project);
-    auditEventPublisher.audit(principal, DELETE_PROJECT, Map.of(PROJECT, project));
+    auditor.audit(
+        () -> metadata.projectsDelete(project),
+        principal,
+        DELETE_PROJECT,
+        Map.of(PROJECT, project));
   }
 
   @Operation(summary = "Add or update project including permissions")
   @PutMapping(value = "projects", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void projectsUpsert(Principal principal, @RequestBody ProjectDetails projectDetails) {
-    armadilloMetadataService.projectsUpsert(projectDetails);
-    auditEventPublisher.audit(principal, UPSERT_PROJECT, Map.of(PROJECT, projectDetails));
+    auditor.audit(
+        () -> metadata.projectsUpsert(projectDetails),
+        principal,
+        UPSERT_PROJECT,
+        Map.of(PROJECT, projectDetails));
   }
 
   @Operation(
@@ -118,8 +154,7 @@ public class MetadataController {
       description = " projects:['administrators',...] means user is SU")
   @GetMapping(path = "users", produces = APPLICATION_JSON_VALUE)
   public List<UserDetails> userList(Principal principal) {
-    auditEventPublisher.audit(principal, LIST_USERS, Map.of());
-    return armadilloMetadataService.usersList();
+    return auditor.audit(metadata::usersList, principal, LIST_USERS, Map.of());
   }
 
   @Operation(summary = "Get user  using email as id")
@@ -127,23 +162,25 @@ public class MetadataController {
   @ResponseBody
   public UserDetails userByEmail(Principal principal, @PathVariable String email) {
     Objects.requireNonNull(email);
-    auditEventPublisher.audit(principal, GET_USER, Map.of(EMAIL, email));
-    return armadilloMetadataService.usersByEmail(email);
+    return auditor.audit(
+        () -> metadata.usersByEmail(email), principal, GET_USER, Map.of(EMAIL, email));
   }
 
   @Operation(summary = "Add/Update user by email using email as id")
   @PutMapping(value = "users", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void userUpsert(Principal principal, @RequestBody UserDetails userDetails) {
-    armadilloMetadataService.userUpsert(userDetails);
-    auditEventPublisher.audit(principal, UPSERT_USER, Map.of("user", userDetails));
+    auditor.audit(
+        () -> metadata.userUpsert(userDetails),
+        principal,
+        UPSERT_USER,
+        Map.of("user", userDetails));
   }
 
   @Operation(summary = "Delete user including details and permissions using email as id")
   @DeleteMapping(value = "users/{email}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void userDelete(Principal principal, @PathVariable String email) {
-    armadilloMetadataService.userDelete(email);
-    auditEventPublisher.audit(principal, DELETE_USER, Map.of(EMAIL, email));
+    auditor.audit(() -> metadata.userDelete(email), principal, DELETE_USER, Map.of(EMAIL, email));
   }
 }
