@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-dark bg-dark justify-content-end">
+  <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
         <img
@@ -10,9 +10,11 @@
         />
         Armadillo portal
       </a>
-      <form>
-        <span class="navbar-text"><i class="bi bi-person-fill"></i> {{email}} </span>
-        <span>
+      <form class="d-flex">
+        <span class="navbar-text p-2"
+          ><i class="bi bi-person-fill"></i> {{ this.username }}
+        </span>
+        <span class="">
           <button type="button" class="btn btn-primary">Log out</button>
         </span>
       </form>
@@ -24,7 +26,7 @@
 export default {
   name: "Navbar",
   props: {
-    email: String,
+    username: String,
   },
 };
 </script>

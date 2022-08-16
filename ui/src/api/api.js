@@ -8,6 +8,7 @@ export async function get(url) {
   if (response.status != 200) {
     throw response.status;
   } else {
+    console.log(response)
     return response.json();
   }
 }
