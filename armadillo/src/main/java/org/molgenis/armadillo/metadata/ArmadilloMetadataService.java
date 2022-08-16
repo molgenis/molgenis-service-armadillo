@@ -40,20 +40,6 @@ public class ArmadilloMetadataService {
     this.reload();
   }
 
-  // helper for internal use
-  public Set<String> getPermissionsForEmail(String email) {
-    return settings.getPermissions().stream()
-        .filter(projectPermission -> projectPermission.getEmail().equals(email))
-        .map(ProjectPermission::getProject)
-        .collect(Collectors.toSet());
-  }
-
-  // helper for internal use
-  public boolean isSuperUser(String email) {
-    return settings.getUsers().containsKey(email)
-        && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
-  }
-
   public Collection<GrantedAuthority> getAuthoritiesForEmail(
       String email, Map<String, Object> claims) {
     List<GrantedAuthority> result = new ArrayList<>();
@@ -278,6 +264,18 @@ public class ArmadilloMetadataService {
     } finally {
       this.reload();
     }
+  }
+
+  private Set<String> getPermissionsForEmail(String email) {
+    return settings.getPermissions().stream()
+        .filter(projectPermission -> projectPermission.getEmail().equals(email))
+        .map(ProjectPermission::getProject)
+        .collect(Collectors.toSet());
+  }
+
+  private boolean isSuperUser(String email) {
+    return settings.getUsers().containsKey(email)
+        && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
   }
 
   public void reload() {
