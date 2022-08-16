@@ -56,7 +56,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListProjects() {
-    when(storageService.listProjects()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
+    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
     assertEquals(List.of("gecko"), armadilloStorage.listProjects());
   }
 
@@ -81,7 +81,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListTablesListsObjectsInSharedBucket() {
-    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(storageService.listBuckets(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
@@ -109,7 +109,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testTableExistsChecksExistence() {
-    when(storageService.objectExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
+    when(storageService.bucketExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
         .thenReturn(true);
     assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
@@ -149,7 +149,7 @@ class ArmadilloStorageServiceTest {
     Workspace workspace =
         Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
-    when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
+    when(storageService.listBuckets("user-henk")).thenReturn(List.of(item));
     when(item.name()).thenReturn("blah.RData");
     when(item.lastModified()).thenReturn(Date.from(lastModified));
     when(item.size()).thenReturn(workspace.size());
@@ -194,7 +194,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testResourceExists() {
-    when(storageService.objectExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
+    when(storageService.bucketExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
     boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
     assertTrue(exists);
   }
@@ -211,7 +211,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testListResources() {
-    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(storageService.listBuckets(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("hpc-resource.rds");
 
     assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
@@ -222,7 +222,7 @@ class ArmadilloStorageServiceTest {
     String testValue = "test";
     when(storageService.load(SYSTEM, METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(testValue.getBytes()));
-    when(storageService.objectExists(SYSTEM, METADATA_FILE)).thenReturn(true);
+    when(storageService.bucketExists(SYSTEM, METADATA_FILE)).thenReturn(true);
     InputStream result = armadilloStorage.loadSystemFile(METADATA_FILE);
     assertEquals(testValue, new String(result.readAllBytes()));
   }

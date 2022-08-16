@@ -11,18 +11,18 @@ class StorageServiceTest {
 
   @Test
   void testProjectName() {
-    assertDoesNotThrow(() -> StorageService.validateProjectName("lifecycle"));
+    assertDoesNotThrow(() -> StorageService.validateBucketName("lifecycle"));
   }
 
   @Test
   void testProjectNameUppercase() {
     var exception =
-        assertThrows(StorageException.class, () -> StorageService.validateProjectName("Lifecycle"));
+        assertThrows(StorageException.class, () -> StorageService.validateBucketName("Lifecycle"));
     assertEquals("Project names cannot contain uppercase characters", exception.getMessage());
   }
 
   @Test
   void testProjectNameNull() {
-    assertThrows(NullPointerException.class, () -> StorageService.validateProjectName(null));
+    assertThrows(NullPointerException.class, () -> StorageService.validateBucketName(null));
   }
 }

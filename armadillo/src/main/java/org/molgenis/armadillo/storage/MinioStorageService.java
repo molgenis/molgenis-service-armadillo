@@ -48,7 +48,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public boolean objectExists(String bucket, String objectName) {
+  public boolean bucketExists(String bucket, String objectName) {
     try {
       minioClient.statObject(bucket, objectName);
       return true;
@@ -74,10 +74,10 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void createProjectIfNotExists(String projectName) {
+  public void createBucketIfNotExists(String projectName) {
     try {
       if (!minioClient.bucketExists(projectName)) {
-        StorageService.validateProjectName(projectName);
+        StorageService.validateBucketName(projectName);
         minioClient.makeBucket(projectName);
         LOGGER.info("Created bucket {}.", projectName);
       }
@@ -97,7 +97,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void deleteProject(String projectName) {
+  public void deleteBucket(String projectName) {
     try {
       LOGGER.info("Deleting bucket {}.", projectName);
       minioClient.removeBucket(projectName);
@@ -116,7 +116,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<String> listProjects() {
+  public List<String> listBuckets() {
     try {
       return minioClient.listBuckets().stream().map(Bucket::name).toList();
     } catch (InvalidBucketNameException
@@ -135,7 +135,7 @@ class MinioStorageService implements StorageService {
 
   @Override
   public void save(InputStream is, String projectName, String objectName, MediaType mediaType) {
-    createProjectIfNotExists(projectName);
+    createBucketIfNotExists(projectName);
     try {
       LOGGER.info("Putting object {} in bucket {}.", objectName, projectName);
       minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
@@ -155,7 +155,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<ObjectMetadata> listObjects(String projectName) {
+  public List<ObjectMetadata> listBuckets(String projectName) {
     try {
       LOGGER.info("List objects in bucket {}.", projectName);
       List<ObjectMetadata> result = newArrayList();

@@ -38,18 +38,18 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void createProject(String project) {
     throwIfDuplicate(project);
-    storageService.createProjectIfNotExists(SHARED_PREFIX + project);
+    storageService.createBucketIfNotExists(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public boolean hasProject(String project) {
-    return storageService.listProjects().contains(SHARED_PREFIX + project);
+    return storageService.listBuckets().contains(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteProject(String project) {
     throwIfUnknown(project);
-    storageService.deleteProject(SHARED_PREFIX + project);
+    storageService.deleteBucket(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -61,7 +61,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean hasObject(String project, String object) {
     throwIfUnknown(project);
-    return storageService.listObjects(SHARED_PREFIX + project).stream()
+    return storageService.listBuckets(SHARED_PREFIX + project).stream()
         .anyMatch(objectMetadata -> objectMetadata.name().equals(object));
   }
 
@@ -94,7 +94,7 @@ public class ArmadilloStorageService {
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
   @SuppressWarnings("java:S6204") // result of method can't be unmodifiable because of @PostFilter
   public List<String> listProjects() {
-    return storageService.listProjects().stream()
+    return storageService.listBuckets().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
         .collect(toList());
@@ -104,7 +104,7 @@ public class ArmadilloStorageService {
   public List<String> listObjects(String project) {
     throwIfUnknown(project);
     var projectName = SHARED_PREFIX + project;
-    return storageService.listObjects(projectName).stream()
+    return storageService.listBuckets(projectName).stream()
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .toList();
   }
@@ -119,7 +119,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean tableExists(String project, String objectName) {
-    return storageService.objectExists(SHARED_PREFIX + project, objectName + PARQUET);
+    return storageService.bucketExists(SHARED_PREFIX + project, objectName + PARQUET);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -129,7 +129,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean resourceExists(String project, String objectName) {
-    return storageService.objectExists(SHARED_PREFIX + project, objectName + RDS);
+    return storageService.bucketExists(SHARED_PREFIX + project, objectName + RDS);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -148,7 +148,7 @@ public class ArmadilloStorageService {
   public List<Workspace> listWorkspaces(Principal principal) {
     return Stream.of(principal)
         .map(ArmadilloStorageService::getUserBucketName)
-        .map(storageService::listObjects)
+        .map(storageService::listBuckets)
         .flatMap(List::stream)
         .map(ArmadilloStorageService::toWorkspace)
         .toList();
@@ -193,7 +193,7 @@ public class ArmadilloStorageService {
   }
 
   public InputStream loadSystemFile(String name) {
-    if (storageService.objectExists(SYSTEM, name)) {
+    if (storageService.bucketExists(SYSTEM, name)) {
       return storageService.load(SYSTEM, name);
     } else {
       return InputStream.nullInputStream();

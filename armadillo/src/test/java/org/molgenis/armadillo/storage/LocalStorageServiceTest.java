@@ -27,20 +27,20 @@ class LocalStorageServiceTest {
 
   @Test
   void testCheckProjectExistsCreatesProjectIfNotFound() {
-    localStorageService.createProjectIfNotExists(SOME_PROJECT);
-    assertTrue(localStorageService.listProjects().contains(SOME_PROJECT));
+    localStorageService.createBucketIfNotExists(SOME_PROJECT);
+    assertTrue(localStorageService.listBuckets().contains(SOME_PROJECT));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() {
-    assertFalse(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertFalse(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
   void testCheckObjectExistsInvalidProjectName() {
     assertThrows(
         StorageException.class,
-        () -> localStorageService.objectExists("Project", SOME_OBJECT_PATH));
+        () -> localStorageService.bucketExists("Project", SOME_OBJECT_PATH));
   }
 
   @Test
@@ -52,9 +52,9 @@ class LocalStorageServiceTest {
         SOME_OBJECT_PATH,
         MediaType.TEXT_PLAIN);
     // test it exists
-    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
     // test it has expected metadata
-    ObjectMetadata metadata = localStorageService.listObjects(SOME_PROJECT).get(0);
+    ObjectMetadata metadata = localStorageService.listBuckets(SOME_PROJECT).get(0);
     assertTrue(metadata.lastModified().before(new Date()));
     assertTrue(metadata.size() > 0);
   }
@@ -69,12 +69,12 @@ class LocalStorageServiceTest {
         MediaType.TEXT_PLAIN);
 
     // check it exists
-    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
   void testListWorkspacesNoProject() {
-    assertEquals(Collections.emptyList(), localStorageService.listObjects("user-admin"));
+    assertEquals(Collections.emptyList(), localStorageService.listBuckets("user-admin"));
   }
 
   @Test
@@ -101,12 +101,12 @@ class LocalStorageServiceTest {
         MediaType.TEXT_PLAIN);
 
     // check it exists
-    assertTrue(localStorageService.objectExists("user-admin", "blah.RData"));
+    assertTrue(localStorageService.bucketExists("user-admin", "blah.RData"));
 
     // delete a file
     localStorageService.delete("user-admin", "blah.RData");
 
     // check removed
-    assertFalse(localStorageService.objectExists("user-admin", "blah.RData"));
+    assertFalse(localStorageService.bucketExists("user-admin", "blah.RData"));
   }
 }
