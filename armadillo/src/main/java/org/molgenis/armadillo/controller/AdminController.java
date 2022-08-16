@@ -52,12 +52,12 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("admin")
-public class MetadataController {
+public class AdminController {
 
   private final ArmadilloMetadataService metadata;
   private final AuditEventPublisher auditor;
 
-  public MetadataController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
+  public AdminController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
     this.metadata = metadataService;
     this.auditor = auditor;
   }
