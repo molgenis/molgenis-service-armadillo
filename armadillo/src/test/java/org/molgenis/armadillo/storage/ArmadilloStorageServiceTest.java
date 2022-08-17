@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.SYSTEM;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.validateProjectName;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -238,5 +240,21 @@ class ArmadilloStorageServiceTest {
     verify(storageService)
         .save(argument.capture(), eq(SYSTEM), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(testValue, new String(argument.getValue().readAllBytes()));
+  }
+
+  @Test
+  void testValidateProjectName() {
+    assertDoesNotThrow(() -> validateProjectName("lifecycle"));
+  }
+
+  @Test
+  void testValidateProjectNameUppercase() {
+    var exception = assertThrows(StorageException.class, () -> validateProjectName("Lifecycle"));
+    assertEquals("Project names cannot contain uppercase characters", exception.getMessage());
+  }
+
+  @Test
+  void testValidateProjectNameNull() {
+    assertThrows(NullPointerException.class, () -> validateProjectName(null));
   }
 }

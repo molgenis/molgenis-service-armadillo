@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.DuplicateProjectException;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
+import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
@@ -36,6 +37,11 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(UnknownObjectException.class)
   protected ResponseEntity<String> handleUnknownObject(UnknownObjectException ex) {
     return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());
+  }
+
+  @ExceptionHandler(InvalidProjectNameException.class)
+  protected ResponseEntity<String> handleInvalidProjectName(InvalidProjectNameException ex) {
+    return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
   }
 
   @ExceptionHandler(StorageException.class)

@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -8,9 +9,11 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.DuplicateObjectException;
+import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
@@ -36,7 +39,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void upsertProject(String project) {
-    StorageService.validateBucketName(project);
+    validateProjectName(project);
     storageService.createBucketIfNotExists(SHARED_PREFIX + project);
   }
 
@@ -214,6 +217,15 @@ public class ArmadilloStorageService {
   private void throwIfUnknown(String project, String object) {
     if (!hasObject(project, object)) {
       throw new UnknownObjectException(project, object);
+    }
+  }
+
+  static void validateProjectName(String projectName) {
+    requireNonNull(projectName);
+
+    Pattern pattern = Pattern.compile("(?!(^xn--|-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
+    if (!pattern.matcher(projectName).matches()) {
+      throw new InvalidProjectNameException(projectName);
     }
   }
 }
