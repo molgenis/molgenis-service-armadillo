@@ -11,34 +11,34 @@
 ##########################################################
 
 ### authenticate with basic auth
-GET http://localhost:8080/tables
+GET {{host}}/tables
 Authorization: Basic admin admin
 
 ### Load core_nonrep
-POST http://localhost:8080/load-table?symbol=core_nonrep&table=lifecycle/core/nonrep&variables=child_id,cob_m
+POST {{host}}/load-table?symbol=core_nonrep&table=lifecycle/core/nonrep&variables=child_id,cob_m
 
 ### check variable names of core_nonrep
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
 colnamesDS("core_nonrep")
 
 ### Load outcome_nonrep
-POST http://localhost:8080/load-table?symbol=outcome_nonrep&table=lifecycle/core/nonrep&variables=child_id,asthma_ever_CHICOS,pets_preg
+POST {{host}}/load-table?symbol=outcome_nonrep&table=lifecycle/core/nonrep&variables=child_id,asthma_ever_CHICOS,pets_preg
 
 ### check variable names of outcome_nonrep
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
 colnamesDS("outcome_nonrep")
 
 ### Load core_yearlyrep
-POST http://localhost:8080/load-table?symbol=core_yearlyrep&table=lifecycle/core/yearlyrep&variables=child_id,age_years,dogs_,cats_,pets_
+POST {{host}}/load-table?symbol=core_yearlyrep&table=lifecycle/core/yearlyrep&variables=child_id,age_years,dogs_,cats_,pets_
 
 ### check variable names of core_yearlyrep
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -46,7 +46,7 @@ colnamesDS("core_yearlyrep")
 
 
 ### Subset core_yearlyrep, step 1
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -54,7 +54,7 @@ dataFrameSubsetDS1("core_yearlyrep", "core_yearlyrep$age_years",
     "2", 4, NULL, NULL, FALSE)
 
 ### Subset core_yearlyrep, step 2
-POST http://localhost:8080/symbols/core_yearlyrep_1_3
+POST {{host}}/symbols/core_yearlyrep_1_3
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -62,7 +62,7 @@ dataFrameSubsetDS2("core_yearlyrep", "core_yearlyrep$age_years",
     "2", 4, NULL, NULL, FALSE)
 
 ### Reshape into wide format
-POST http://localhost:8080/symbols/core_yearlyrep_1_3_wide
+POST {{host}}/symbols/core_yearlyrep_1_3_wide
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -71,7 +71,7 @@ reShapeDS("core_yearlyrep_1_3", NULL, "pets_,cats_,dogs_",
 
 ### Merge into analysis frame
 # make sure the disclosure measure regarding stringshort is set to '100'
-POST http://localhost:8080/symbols/analysis_df
+POST {{host}}/symbols/analysis_df
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -79,7 +79,7 @@ mergeDS("core_nonrep", "core_yearlyrep_1_3_wide", "child_id",
     "child_id", FALSE, FALSE, TRUE, ".x,.y", TRUE, NULL)
 
 ### Merge outcome into analysis frame
-POST http://localhost:8080/symbols/analysis_df
+POST {{host}}/symbols/analysis_df
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -87,38 +87,38 @@ mergeDS("analysis_df", "outcome_nonrep", "child_id", "child_id",
     FALSE, FALSE, TRUE, ".x,.y", TRUE, NULL)
 
 ### save workspace
-POST http://localhost:8080/workspaces/armadillo%3Aanalysis_df
+POST {{host}}/workspaces/armadillo%3Aanalysis_df
 
 ### logout
-POST http://localhost:8080/logout
+POST {{host}}/logout
 
 ### log back in and load workspace
-POST http://localhost:8080/load-workspace?id=armadillo%3Aanalysis_df
+POST {{host}}/load-workspace?id=armadillo%3Aanalysis_df
 Authorization: Basic admin admin
 
 ### Summary statistics on pets
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
 quantileMeanDS(analysis_df$pets_.1)
 
 ### Histogram statistics on cob_m, part 1
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
 histogramDS1(analysis_df$cob_m,1,3,0.25)
 
 ### Histogram statistics on cob_m, part 2
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
 histogramDS2(analysis_df$cob_m,10,0.976203258484602,348.419621589407,1,3,0.25)
 
 ### GLM step 1
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -126,7 +126,7 @@ glmDS1(asthma_ever_CHICOS ~ pets_preg, "binomial", NULL, NULL,
     "analysis_df")
 
 ### GLM step 2
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -134,7 +134,7 @@ glmDS2(asthma_ever_CHICOS ~ pets_preg, "binomial", "0,0", NULL,
     NULL, "outcome_nonrep")
 
 ### GLM step 2 iteration 2
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -142,7 +142,7 @@ glmDS2(asthma_ever_CHICOS ~ pets_preg, "binomial", "0.142566191446029,-0.1307783
     NULL, NULL, "outcome_nonrep")
 
 ### GLM step 2 iteration 3
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Content-Type: text/plain
 Accept: application/octet-stream
 
@@ -150,4 +150,4 @@ glmDS2(asthma_ever_CHICOS ~ pets_preg, "binomial", "0.142808401134725,-0.1310204
     NULL, NULL, "outcome_nonrep")
 
 ### logout
-POST http://localhost:8080/logout
+POST {{host}}/logout

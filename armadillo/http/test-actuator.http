@@ -1,15 +1,15 @@
 ### get info
-GET http://localhost:8080/actuator/info
+GET {{host}}/actuator/info
 
 ### retrieve R processes
-GET http://localhost:8080/actuator/rserveProcesses
+GET {{host}}/actuator/rserveProcesses
 Authorization: Basic admin admin
 
 ### delete process by pid
-DELETE http://localhost:8080/actuator/rserveProcesses?pid=157
+DELETE {{host}}/actuator/rserveProcesses?pid=157
 Authorization: Basic admin admin
 
-## get current r processes by environment
-GET http://127.0.0.1:8080/actuator/metrics/rserve.processes.current?tag=environment:default
+### get current r processes by environment
+GET {{host}}/actuator/metrics/rserve.processes.current?tag=environment:default
 Accept: application/vnd.spring-boot.actuator.v3+json
 Authorization: Basic admin admin
