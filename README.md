@@ -35,7 +35,7 @@ Or for virtual server deployment look at the [ansible playbook](https://galaxy.a
 
 Find some examples [here](https://github.com/molgenis/molgenis-service-armadillo/tree/master/docker/test)
 
-You can inspect the API endpoints at `localhost:8080/v3/api-docs`
+You can explore the API endpoints at `localhost:8080/swagger-ui/index.html`
 
 # Development
 
@@ -62,7 +62,15 @@ If you want to use MinIO as storage (including the test data), do the following:
 4. Add a bucket `shared-lifecyle`
 5. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
 6. In `application.yml`, uncomment the `minio` section.
-7. Now Armadillo will automatically connect to MinIO at startup. 
+7. Now Armadillo will automatically connect to MinIO at startup.
+
+> **_Note_**: When you run Armadillo locally for the first time, the `lifecycle` project has not been
+> added to the system metadata yet. To add it, do the following:
+> - Go to the Swagger UI (`http://localhost:8080/swagger-ui/index.html`)
+> - Go to the `PUT /admin/projects` endpoint 
+> - Add the project `lifecycle`
+> 
+> Now you're all set!
 
 ### DataSHIELD Profiles
 There are several DataSHIELD profiles you can start. At this stage these are the following:
@@ -78,7 +86,8 @@ Always use profile `development` in combination with these profiles:
 
 For example: `development, development-omics`
 
-#### To enable oauth login you must set environment variables
+### Oauth 2.0
+To enable Oauth 2.0 login you must set environment variables:
 
 - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID
 - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET
