@@ -51,7 +51,6 @@ public class LocalStorageService implements StorageService {
   @Override
   public boolean bucketExists(String bucketName, String objectName) {
     Objects.requireNonNull(objectName);
-    StorageService.validateBucketName(bucketName);
 
     try {
       // check bucket
@@ -69,8 +68,6 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public void createBucketIfNotExists(String bucketName) {
-    StorageService.validateBucketName(bucketName);
-
     try {
       Path path = Paths.get(rootDir, bucketName);
       if (!Files.exists(path)) {
@@ -83,8 +80,6 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public void deleteBucket(String bucketName) {
-    StorageService.validateBucketName(bucketName);
-
     Path path = Paths.get(rootDir, bucketName);
     try (var folder = Files.walk(path)) {
       //noinspection ResultOfMethodCallIgnored

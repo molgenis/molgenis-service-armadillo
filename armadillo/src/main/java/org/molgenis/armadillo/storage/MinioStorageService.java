@@ -77,7 +77,6 @@ class MinioStorageService implements StorageService {
   public void createBucketIfNotExists(String projectName) {
     try {
       if (!minioClient.bucketExists(projectName)) {
-        StorageService.validateBucketName(projectName);
         minioClient.makeBucket(projectName);
         LOGGER.info("Created bucket {}.", projectName);
       }

@@ -36,6 +36,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void upsertProject(String project) {
+    StorageService.validateBucketName(project);
     storageService.createBucketIfNotExists(SHARED_PREFIX + project);
   }
 
