@@ -120,7 +120,7 @@ class MinioStorageServiceTest {
 
   @Test
   void testListWorkspacesNoProject() {
-    assertEquals(emptyList(), minioStorageService.listBuckets("user-admin"));
+    assertEquals(emptyList(), minioStorageService.listObjects("user-admin"));
   }
 
   @Test

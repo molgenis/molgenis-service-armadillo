@@ -15,7 +15,7 @@ public interface StorageService {
 
   void save(InputStream is, String bucketName, String objectName, MediaType mediaType);
 
-  List<ObjectMetadata> listBuckets(String bucketName);
+  List<ObjectMetadata> listObjects(String bucketName);
 
   InputStream load(String bucketName, String objectName);
 

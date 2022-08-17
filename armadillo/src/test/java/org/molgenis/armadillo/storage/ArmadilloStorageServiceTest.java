@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.storage;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -23,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -71,19 +72,22 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testListTablesAllowsSuperUser() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
     assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListTablesAllowsResearcher() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
     assertDoesNotThrow(() -> armadilloStorage.listTables("gecko"));
   }
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testListTablesListsObjectsInSharedBucket() {
-    when(storageService.listBuckets(SHARED_GECKO)).thenReturn(List.of(item));
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
   }
@@ -111,7 +115,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testTableExistsChecksExistence() {
-    when(storageService.bucketExists("shared-gecko", "1_0_release_1_1/gecko.parquet"))
+    when(storageService.bucketExists(SHARED_GECKO, "1_0_release_1_1/gecko.parquet"))
         .thenReturn(true);
     assertTrue(armadilloStorage.tableExists("gecko", "1_0_release_1_1/gecko"));
   }
@@ -139,7 +143,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testLoadTableLoadsTable() {
-    when(storageService.load("shared-gecko", "1_0_release_1_1/gecko.parquet")).thenReturn(is);
+    when(storageService.load(SHARED_GECKO, "1_0_release_1_1/gecko.parquet")).thenReturn(is);
     assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
@@ -151,7 +155,7 @@ class ArmadilloStorageServiceTest {
     Workspace workspace =
         Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
-    when(storageService.listBuckets("user-henk")).thenReturn(List.of(item));
+    when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
     when(item.name()).thenReturn("blah.RData");
     when(item.lastModified()).thenReturn(Date.from(lastModified));
     when(item.size()).thenReturn(workspace.size());
@@ -196,7 +200,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testResourceExists() {
-    when(storageService.bucketExists("shared-gecko", "hpc-resource.rds")).thenReturn(true);
+    when(storageService.bucketExists(SHARED_GECKO, "hpc-resource.rds")).thenReturn(true);
     boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
     assertTrue(exists);
   }
@@ -204,7 +208,7 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testLoadResource() {
-    when(storageService.load("shared-gecko", "hpc-resource.rds")).thenReturn(is);
+    when(storageService.load(SHARED_GECKO, "hpc-resource.rds")).thenReturn(is);
 
     InputStream resource = armadilloStorage.loadResource("gecko", "hpc-resource");
     assertNotNull(resource);
@@ -213,7 +217,8 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testListResources() {
-    when(storageService.listBuckets(SHARED_GECKO)).thenReturn(List.of(item));
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("hpc-resource.rds");
 
     assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
@@ -249,8 +254,7 @@ class ArmadilloStorageServiceTest {
 
   @Test
   void testValidateProjectNameUppercase() {
-    var exception = assertThrows(StorageException.class, () -> validateProjectName("Lifecycle"));
-    assertEquals("Project names cannot contain uppercase characters", exception.getMessage());
+    assertThrows(InvalidProjectNameException.class, () -> validateProjectName("Lifecycle"));
   }
 
   @Test

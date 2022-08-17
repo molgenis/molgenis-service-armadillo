@@ -118,7 +118,7 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public List<ObjectMetadata> listBuckets(String bucketName) {
+  public List<ObjectMetadata> listObjects(String bucketName) {
     try {
       Path bucketPath = Paths.get(rootDir, bucketName);
       if (!Files.exists(bucketPath)) {

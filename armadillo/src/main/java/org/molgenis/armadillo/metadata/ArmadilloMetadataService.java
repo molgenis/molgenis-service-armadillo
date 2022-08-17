@@ -276,6 +276,7 @@ public class ArmadilloMetadataService {
         && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
   }
 
+  @PreAuthorize("permitAll()")
   public void reload() {
     String result;
     try (InputStream inputStream = storage.loadSystemFile(METADATA_FILE)) {

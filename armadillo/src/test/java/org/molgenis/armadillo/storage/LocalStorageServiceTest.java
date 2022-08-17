@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
@@ -37,13 +36,6 @@ class LocalStorageServiceTest {
   }
 
   @Test
-  void testCheckObjectExistsInvalidProjectName() {
-    assertThrows(
-        StorageException.class,
-        () -> localStorageService.bucketExists("Project", SOME_OBJECT_PATH));
-  }
-
-  @Test
   void testCheckObjectExistsChecksExistenceObjectExists() {
     // create some file
     localStorageService.save(
@@ -54,7 +46,7 @@ class LocalStorageServiceTest {
     // test it exists
     assertTrue(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
     // test it has expected metadata
-    ObjectMetadata metadata = localStorageService.listBuckets(SOME_PROJECT).get(0);
+    ObjectMetadata metadata = localStorageService.listObjects(SOME_PROJECT).get(0);
     assertTrue(metadata.lastModified().before(new Date()));
     assertTrue(metadata.size() > 0);
   }
@@ -74,7 +66,7 @@ class LocalStorageServiceTest {
 
   @Test
   void testListWorkspacesNoProject() {
-    assertEquals(Collections.emptyList(), localStorageService.listBuckets("user-admin"));
+    assertEquals(Collections.emptyList(), localStorageService.listObjects("user-admin"));
   }
 
   @Test

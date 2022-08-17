@@ -63,7 +63,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean hasObject(String project, String object) {
     throwIfUnknown(project);
-    return storageService.listBuckets(SHARED_PREFIX + project).stream()
+    return storageService.listObjects(SHARED_PREFIX + project).stream()
         .anyMatch(objectMetadata -> objectMetadata.name().equals(object));
   }
 
@@ -106,7 +106,7 @@ public class ArmadilloStorageService {
   public List<String> listObjects(String project) {
     throwIfUnknown(project);
     var projectName = SHARED_PREFIX + project;
-    return storageService.listBuckets(projectName).stream()
+    return storageService.listObjects(projectName).stream()
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
         .toList();
   }
@@ -150,7 +150,7 @@ public class ArmadilloStorageService {
   public List<Workspace> listWorkspaces(Principal principal) {
     return Stream.of(principal)
         .map(ArmadilloStorageService::getUserBucketName)
-        .map(storageService::listBuckets)
+        .map(storageService::listObjects)
         .flatMap(List::stream)
         .map(ArmadilloStorageService::toWorkspace)
         .toList();

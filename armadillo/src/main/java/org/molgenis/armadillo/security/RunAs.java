@@ -20,4 +20,13 @@ public class RunAs {
       setContext(originalContext);
     }
   }
+
+  /** Run a single void function with elevated permissions (ROLE_SU). */
+  public static void runAsSystem(Runnable runnable) {
+    runAsSystem(
+        () -> {
+          runnable.run();
+          return null;
+        });
+  }
 }

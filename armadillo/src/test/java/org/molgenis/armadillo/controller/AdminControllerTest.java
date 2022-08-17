@@ -3,6 +3,7 @@ package org.molgenis.armadillo.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -51,7 +52,7 @@ class AdminControllerTest {
     // default state
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(EXAMPLE_SETTINGS.getBytes()));
-    armadilloMetadataService.reload();
+    runAsSystem(armadilloMetadataService::reload);
   }
 
   @Test
@@ -236,7 +237,7 @@ class AdminControllerTest {
     // check that 'get' also in sync
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(backendState.getBytes()));
-    armadilloMetadataService.reload();
+    runAsSystem(armadilloMetadataService::reload);
     mockMvc
         .perform(get("/admin/users/chefke@email.com"))
         .andExpect(status().isOk())

@@ -154,7 +154,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<ObjectMetadata> listBuckets(String projectName) {
+  public List<ObjectMetadata> listObjects(String projectName) {
     try {
       LOGGER.info("List objects in bucket {}.", projectName);
       List<ObjectMetadata> result = newArrayList();
