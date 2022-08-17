@@ -7,7 +7,12 @@ import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -24,10 +29,11 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloMetadataService {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
   public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
-  private final ArmadilloStorageService armadilloStorageService;
+  private final ArmadilloStorageService storage;
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Value("${datashield.oidc-permission-enabled}")
@@ -35,7 +41,7 @@ public class ArmadilloMetadataService {
 
   public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
     Objects.requireNonNull(armadilloStorageService);
-    this.armadilloStorageService = armadilloStorageService;
+    this.storage = armadilloStorageService;
     this.reload();
   }
 
@@ -75,9 +81,7 @@ public class ArmadilloMetadataService {
   }
 
   public List<UserDetails> usersList() {
-    return settings.getUsers().keySet().stream()
-        .map(this::usersByEmail) // to add the
-        .toList();
+    return settings.getUsers().keySet().stream().map(this::usersByEmail).toList();
   }
 
   public void userUpsert(UserDetails userDetails) {
@@ -94,6 +98,8 @@ public class ArmadilloMetadataService {
           .getProjects()
           .forEach(
               projectName -> {
+                storage.upsertProject(projectName);
+
                 // add missing project, if applicable
                 settings
                     .getProjects()
@@ -152,11 +158,15 @@ public class ArmadilloMetadataService {
 
   public void projectsUpsert(ProjectDetails projectDetails) {
     String projectName = projectDetails.getName();
+
+    storage.upsertProject(projectName);
+
     // strip previous permissions for this project
     Set<ProjectPermission> permissions =
         settings.getPermissions().stream()
             .filter(permission -> !permission.getProject().equals(projectName))
             .collect(Collectors.toSet());
+
     // add current permissions for this project
     if (projectDetails.getUsers() != null) {
       projectDetails
@@ -171,15 +181,16 @@ public class ArmadilloMetadataService {
     }
 
     // clone projectDetails to strip permissions from value object and save
-    // (permissions are saved seperately)
+    // (permissions are saved separately)
     projectDetails = ProjectDetails.create(projectName, null);
     settings.getProjects().put(projectName, projectDetails);
-    settings =
-        ArmadilloMetadata.create(settings.getUsers(), settingsList().getProjects(), permissions);
+    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
   public void projectsDelete(String projectName) {
+    storage.deleteProject(projectName);
+
     settings.getProjects().remove(projectName);
     settings =
         ArmadilloMetadata.create(
@@ -244,8 +255,7 @@ public class ArmadilloMetadataService {
     try {
       String json = objectMapper.writeValueAsString(settings);
       try (InputStream inputStream = new ByteArrayInputStream(json.getBytes())) {
-        armadilloStorageService.saveSystemFile(
-            inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
+        storage.saveSystemFile(inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
       }
     } catch (Exception e) {
       throw new StorageException(e);
@@ -268,7 +278,7 @@ public class ArmadilloMetadataService {
 
   public void reload() {
     String result;
-    try (InputStream inputStream = armadilloStorageService.loadSystemFile(METADATA_FILE)) {
+    try (InputStream inputStream = storage.loadSystemFile(METADATA_FILE)) {
       result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
       ArmadilloMetadata temp = objectMapper.readValue(result, ArmadilloMetadata.class);
       settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);

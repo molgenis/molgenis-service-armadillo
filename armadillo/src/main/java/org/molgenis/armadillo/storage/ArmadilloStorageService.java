@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.DuplicateObjectException;
-import org.molgenis.armadillo.exceptions.DuplicateProjectException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
@@ -36,8 +35,7 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void createProject(String project) {
-    throwIfDuplicate(project);
+  public void upsertProject(String project) {
     storageService.createBucketIfNotExists(SHARED_PREFIX + project);
   }
 
@@ -197,12 +195,6 @@ public class ArmadilloStorageService {
       return storageService.load(SYSTEM, name);
     } else {
       return InputStream.nullInputStream();
-    }
-  }
-
-  private void throwIfDuplicate(String project) {
-    if (hasProject(project)) {
-      throw new DuplicateProjectException(project);
     }
   }
 

@@ -1,9 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.CREATE_PROJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
@@ -92,25 +90,6 @@ public class StorageController {
     return auditor.audit(storage::listProjects, principal, LIST_PROJECTS, Map.of());
   }
 
-  @Operation(summary = "Create a new project")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Project created successfully"),
-        @ApiResponse(responseCode = "409", description = "Project already exists"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-      })
-  @PostMapping(
-      value = "/projects",
-      consumes = {APPLICATION_JSON_VALUE})
-  @ResponseStatus(NO_CONTENT)
-  public void createProject(Principal principal, @RequestBody ProjectRequestBody project) {
-    auditor.audit(
-        () -> storage.createProject(project.name()),
-        principal,
-        CREATE_PROJECT,
-        Map.of(PROJECT, project.name()));
-  }
-
   @Operation(summary = "Project exists?")
   @ApiResponses(
       value = {
@@ -124,20 +103,6 @@ public class StorageController {
         auditor.audit(
             () -> storage.hasProject(project), principal, GET_PROJECT, Map.of(PROJECT, project));
     return projectExists ? noContent().build() : notFound().build();
-  }
-
-  @Operation(summary = "Delete a project")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Project deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Unknown project"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-      })
-  @DeleteMapping("/projects/{project}")
-  @ResponseStatus(NO_CONTENT)
-  public void deleteProject(Principal principal, @PathVariable String project) {
-    auditor.audit(
-        () -> storage.deleteProject(project), principal, DELETE_PROJECT, Map.of(PROJECT, project));
   }
 
   @Operation(summary = "List objects in a project")
