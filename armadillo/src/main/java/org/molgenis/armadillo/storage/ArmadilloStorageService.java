@@ -223,7 +223,7 @@ public class ArmadilloStorageService {
   static void validateProjectName(String projectName) {
     requireNonNull(projectName);
 
-    Pattern pattern = Pattern.compile("(?!(^xn--|-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
+    Pattern pattern = Pattern.compile("(?!((^xn--)|(-s3alias$)))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
     if (!pattern.matcher(projectName).matches()) {
       throw new InvalidProjectNameException(projectName);
     }

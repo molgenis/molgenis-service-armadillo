@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class LocalStorageService implements StorageService {
         return false;
       }
       // check object
-      Path object = Paths.get(rootDir, bucketName, objectName);
+      Path object = getObjectPathSafely(bucketName, objectName);
       return Files.exists(object);
     } catch (Exception e) {
       throw new StorageException(e);
@@ -101,7 +102,7 @@ public class LocalStorageService implements StorageService {
   @Override
   public void save(
       InputStream inputStream, String bucketName, String objectName, MediaType mediaType) {
-    Path path = Paths.get(rootDir, bucketName, objectName);
+    Path path = getObjectPathSafely(bucketName, objectName);
     try {
       createBucketIfNotExists(bucketName);
 
@@ -115,6 +116,18 @@ public class LocalStorageService implements StorageService {
     } catch (Exception e) {
       throw new StorageException(e);
     }
+  }
+
+  /** Detects path traversal attacks. */
+  Path getObjectPathSafely(String bucketName, String objectName) {
+    Path path = Paths.get(rootDir, bucketName, objectName).toAbsolutePath().normalize();
+    Path rootPath = Paths.get(rootDir, bucketName).toAbsolutePath().normalize();
+
+    if (!path.startsWith(rootPath)) {
+      throw new IllegalPathException(objectName);
+    }
+
+    return path;
   }
 
   @Override
@@ -154,7 +167,7 @@ public class LocalStorageService implements StorageService {
     if (!Files.exists(bucketPath)) {
       throw new StorageException(format("Bucket '%s' doesn't exist", bucketName));
     }
-    Path objectPath = Paths.get(rootDir, bucketName, objectName);
+    Path objectPath = getObjectPathSafely(bucketName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
           format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));

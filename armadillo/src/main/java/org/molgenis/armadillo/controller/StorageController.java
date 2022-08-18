@@ -144,14 +144,20 @@ public class StorageController {
       consumes = {MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void uploadObject(
-      Principal principal, @PathVariable String project, @RequestParam MultipartFile file) {
+      Principal principal,
+      @PathVariable String project,
+      @RequestParam String object,
+      @RequestParam MultipartFile file) {
     auditor.audit(
-        () -> addObject(project, file), principal, UPLOAD_OBJECT, Map.of(PROJECT, project));
+        () -> addObject(project, object, file),
+        principal,
+        UPLOAD_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
   }
 
-  private void addObject(String project, MultipartFile file) {
+  private void addObject(String project, String object, MultipartFile file) {
     try {
-      storage.addObject(project, file.getOriginalFilename(), file.getInputStream());
+      storage.addObject(project, object, file.getInputStream());
     } catch (IOException e) {
       throw new FileProcessingException();
     }

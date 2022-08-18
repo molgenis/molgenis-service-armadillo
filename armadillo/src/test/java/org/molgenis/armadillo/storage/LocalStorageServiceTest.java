@@ -1,6 +1,11 @@
 package org.molgenis.armadillo.storage;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,6 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
@@ -100,5 +106,18 @@ class LocalStorageServiceTest {
 
     // check removed
     assertFalse(localStorageService.bucketExists("user-admin", "blah.RData"));
+  }
+
+  @Test
+  void testGetObjectPathSafely() {
+    assertDoesNotThrow(
+        () -> localStorageService.getObjectPathSafely("test", "core/malicious.parquet"));
+  }
+
+  @Test
+  void testGetObjectPathSafelyMalicious() {
+    assertThrows(
+        IllegalPathException.class,
+        () -> localStorageService.getObjectPathSafely("test", "../../malicious.parquet"));
   }
 }
