@@ -8,6 +8,8 @@ import java.util.function.Supplier;
 
 public class RunAs {
 
+  private RunAs() {}
+
   /** Run a single function with elevated permissions (ROLE_SU). */
   public static <T> T runAsSystem(Supplier<T> runnable) {
     var originalContext = getContext();

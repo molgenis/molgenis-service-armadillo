@@ -7,11 +7,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
 public class SystemSecurityToken extends UsernamePasswordAuthenticationToken {
+
   private static final List<GrantedAuthority> AUTHORITIES =
       AuthorityUtils.createAuthorityList("ROLE_SU");
+  public static final String SYSTEM = "SYSTEM";
 
   public SystemSecurityToken() {
-    super("SYSTEM", "SYSTEM", AUTHORITIES);
+    super(SYSTEM, "SYSTEM", AUTHORITIES);
   }
 
   @Override
@@ -21,11 +23,11 @@ public class SystemSecurityToken extends UsernamePasswordAuthenticationToken {
 
   @Override
   public Object getCredentials() {
-    return "SYSTEM";
+    return SYSTEM;
   }
 
   @Override
   public Object getPrincipal() {
-    return "SYSTEM";
+    return SYSTEM;
   }
 }

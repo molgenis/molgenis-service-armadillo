@@ -47,7 +47,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_USER = "DELETE_USER";
   public static final String GET_USER = "GET_USER";
   public static final String LIST_PROJECTS = "LIST_PROJECTS";
-  public static final String CREATE_PROJECT = "CREATE_PROJECT";
   public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
   public static final String GET_PROJECT = "GET_PROJECT";
@@ -77,6 +76,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String TABLE = "table";
   public static final String ID = "id";
   private static final String ANONYMOUS = "ANONYMOUS";
+  public static final String SESSION_ID = "sessionId";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
@@ -96,7 +96,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
       String sessionId,
       List<String> roles) {
     Map<String, Object> sessionData = new HashMap<>(data);
-    sessionData.put("sessionId", sessionId);
+    sessionData.put(SESSION_ID, sessionId);
     sessionData.put("roles", roles);
     var user = principal != null ? principal.getName() : ANONYMOUS;
     applicationEventPublisher.publishEvent(
@@ -104,14 +104,14 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
-    audit(principal, type, data, MDC.get("sessionID"), getRoles());
+    audit(principal, type, data, MDC.get(SESSION_ID), getRoles());
   }
 
   /** Audits a CompletableFuture. */
   public <T> CompletableFuture<T> audit(
       CompletableFuture<T> future, Principal principal, String type, Map<String, Object> data) {
     // remember context to fill it in when future completes
-    final var sessionId = MDC.get("sessionID");
+    final var sessionId = MDC.get(SESSION_ID);
     final var roles = getRoles();
 
     return future.whenComplete(

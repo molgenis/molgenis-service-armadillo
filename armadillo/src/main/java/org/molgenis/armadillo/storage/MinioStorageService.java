@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.minio.ErrorCode.NO_SUCH_BUCKET;
 import static io.minio.ErrorCode.NO_SUCH_KEY;
 import static io.minio.ErrorCode.NO_SUCH_OBJECT;
+import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
 import io.minio.MinioClient;
@@ -136,7 +137,9 @@ class MinioStorageService implements StorageService {
   public void save(InputStream is, String projectName, String objectName, MediaType mediaType) {
     createBucketIfNotExists(projectName);
     try {
-      LOGGER.info("Putting object {} in bucket {}.", objectName, projectName);
+      LOGGER.info(
+          format("Putting object %s in bucket %s.", objectName, projectName)
+              .replaceAll("[\n\r\t]", "_"));
       minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException

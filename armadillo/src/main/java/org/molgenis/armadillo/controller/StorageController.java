@@ -99,7 +99,7 @@ public class StorageController {
       })
   @RequestMapping(value = "/projects/{project}", method = HEAD)
   public ResponseEntity<Void> projectExists(Principal principal, @PathVariable String project) {
-    var projectExists =
+    boolean projectExists =
         auditor.audit(
             () -> storage.hasProject(project), principal, GET_PROJECT, Map.of(PROJECT, project));
     return projectExists ? noContent().build() : notFound().build();
@@ -221,7 +221,7 @@ public class StorageController {
   @RequestMapping(value = "/projects/{project}/objects/{object}", method = HEAD)
   public ResponseEntity<Void> objectExists(
       Principal principal, @PathVariable String project, @PathVariable String object) {
-    var objectExists =
+    boolean objectExists =
         auditor.audit(
             () -> storage.hasObject(project, object),
             principal,
