@@ -5,15 +5,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
+import org.molgenis.r.config.EnvironmentConfigProps;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-public class ProfileConfigProps {
+public class ProfileConfigProps extends EnvironmentConfigProps {
 
   private Map<String, String> options = new HashMap<>();
-  @NotEmpty private final Set<String> whitelist = new HashSet<>();
-  @NotEmpty private String name;
-  @NotEmpty private String environment;
+  @NotEmpty private Set<String> whitelist = new HashSet<>();
+  private String dockerImage;
 
   public Map<String, String> getOptions() {
     return options;
@@ -31,31 +31,20 @@ public class ProfileConfigProps {
     whitelist.add(pkg);
   }
 
-  public String getEnvironment() {
-    return environment;
-  }
-
-  public void setEnvironment(String environment) {
-    this.environment = environment;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
   @Override
   public String toString() {
-    return "ProfileConfigProps{"
-        + "name='"
-        + name
-        + '\''
-        + ", environment='"
-        + environment
-        + '\''
-        + '}';
+    return "ProfileConfigProps{" + "name='" + getName() + "'}";
+  }
+
+  public String getDockerImage() {
+    return dockerImage;
+  }
+
+  public void setDockerImage(String dockerImage) {
+    this.dockerImage = dockerImage;
+  }
+
+  public void setWhiteList(Set<String> whistlist) {
+    this.whitelist = whistlist;
   }
 }

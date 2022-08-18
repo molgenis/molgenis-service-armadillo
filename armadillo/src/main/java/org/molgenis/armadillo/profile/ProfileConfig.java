@@ -7,7 +7,6 @@ import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RConnectionFactoryImpl;
 import org.molgenis.r.config.EnvironmentConfigProps;
-import org.molgenis.r.config.RServeConfig;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,23 +32,6 @@ public class ProfileConfig {
   @org.molgenis.armadillo.config.annotation.ProfileScope
   public RConnectionFactory rConnectionFactory(EnvironmentConfigProps environmentConfigProps) {
     return new RConnectionFactoryImpl(environmentConfigProps);
-  }
-
-  // N.B. Thou shalt not name they beans "environment"!
-  @Bean
-  @org.molgenis.armadillo.config.annotation.ProfileScope
-  public EnvironmentConfigProps environmentConfigProps(
-      ProfileConfigProps profileConfigProps, RServeConfig rServeConfig) {
-    var selectedEnvironment = profileConfigProps.getEnvironment();
-    return rServeConfig.getEnvironments().stream()
-        .filter(it -> it.getName().equals(selectedEnvironment))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalStateException(
-                    "Missing environment configuration for active environment '"
-                        + selectedEnvironment
-                        + "'."));
   }
 
   @Bean

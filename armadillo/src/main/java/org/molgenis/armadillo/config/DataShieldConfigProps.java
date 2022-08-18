@@ -1,12 +1,9 @@
 package org.molgenis.armadillo.config;
 
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.DEFAULT;
-
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import org.molgenis.r.config.EnvironmentConfigProps;
-import org.molgenis.r.config.RServeConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -18,10 +15,10 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class DataShieldConfigProps implements Validator {
   @NotEmpty @Valid private List<ProfileConfigProps> profiles;
-  private final RServeConfig rServeConfig;
+  DatashieldProfileManager profileManager;
 
-  public DataShieldConfigProps(RServeConfig rServeConfig) {
-    this.rServeConfig = rServeConfig;
+  public DataShieldConfigProps(DatashieldProfileManager profileManager) {
+    this.profileManager = profileManager;
   }
 
   public void setProfiles(List<ProfileConfigProps> profiles) {
@@ -29,7 +26,11 @@ public class DataShieldConfigProps implements Validator {
   }
 
   public List<ProfileConfigProps> getProfiles() {
-    return profiles;
+    List<ProfileConfigProps> result = new ArrayList<>(profiles);
+    // we will also report what is running from environment NEXT to what has been configured
+    // this is only useful if you want to manage your images via the older docker compose way
+    result.addAll(profileManager.listDatashieldProfiles());
+    return result;
   }
 
   @Override
@@ -40,29 +41,6 @@ public class DataShieldConfigProps implements Validator {
 
   @Override
   public void validate(Object target, Errors errors) {
-    if (target instanceof ProfileConfigProps) {
-      var environmentName = ((ProfileConfigProps) target).getEnvironment();
-
-      if (rServeConfig.getEnvironments().stream()
-          .map(EnvironmentConfigProps::getName)
-          .noneMatch(environmentName::equals)) {
-        errors.rejectValue(
-            "environment",
-            "profile.environment.unknown",
-            new Object[] {},
-            "No RServe environment defined with name '" + environmentName + "'");
-      }
-    } else {
-      DataShieldConfigProps props = (DataShieldConfigProps) target;
-      if (props.getProfiles().stream()
-          .map(ProfileConfigProps::getName)
-          .noneMatch(DEFAULT::equals)) {
-        errors.rejectValue(
-            "profiles",
-            "datashield.profiles.missing-default",
-            new Object[] {},
-            "Must specify a profile with name " + DEFAULT);
-      }
-    }
+    // nothing to do here, because user can add 'default' image later, right?
   }
 }
