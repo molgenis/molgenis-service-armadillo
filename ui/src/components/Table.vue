@@ -12,12 +12,12 @@
         <slot name="extraColumn" :item="item"></slot>
         <td v-for="value in item">
           <span v-if="Array.isArray(value)">
-            <slot name="arrayType" :data="value">
+            <slot name="arrayType" :data="value" :row="item">
               {{ value }}
             </slot>
           </span>
           <span v-else-if="typeof value == 'boolean'">
-            <slot name="boolType" :data="value">
+            <slot name="boolType" :data="value" :row="item">
               {{ value }}
             </slot>
           </span>

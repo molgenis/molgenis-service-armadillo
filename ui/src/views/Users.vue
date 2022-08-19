@@ -1,12 +1,27 @@
 <template>
   <div>
-    <Alert v-if="this.errorMessage" type="danger" class="mt-1">
-      <strong>Could not create user:</strong> [{{ this.newUser.email }}].
-      Reason: {{ this.errorMessage }}
+    <Alert v-show="this.errorMessage" type="danger" class="mt-1">
+      <strong>Error: </strong>
+      {{ this.errorMessage }}
+      <button
+        @click="this.clearError"
+        type="button"
+        class="btn-close"
+        aria-label="Close"
+      ></button>
     </Alert>
-    <Alert v-if="this.success" type="success" class="mt-1">
-      <strong>Successfully created user:</strong> [{{ this.newUser.email }}]
+    <Alert v-show="this.success" type="success" class="mt-1">
+      <strong>Success:</strong> [{{ this.success }}]
+      <button
+        @click="this.clearSuccess"
+        type="button"
+        class="btn-close"
+        aria-label="Close"
+      ></button>
     </Alert>
+    <div class="spinner-border" role="status" v-if="this.loading">
+      <span class="visually-hidden">Loading...</span>
+    </div>
     <Table :data="users">
       <template v-slot:extraHeader>
         <th>
@@ -30,14 +45,14 @@
               <button
                 type="button"
                 class="btn btn-success btn-sm bg-success"
-                @click="saveUser"
+                @click="saveNewUser"
               >
                 <i class="bi bi-check-lg"></i>
               </button>
               <button
                 type="button"
                 class="btn btn-danger btn-sm bg-danger"
-                @click="clearUser"
+                @click="clearNewUser"
               >
                 <i class="bi bi-x-lg"></i>
               </button>
@@ -54,7 +69,11 @@
               />
             </div>
             <div v-else-if="column == 'admin'">
-              <input class="form-check-input" type="checkbox" v-model="newUser[column]" />
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="newUser[column]"
+              />
             </div>
             <div class="input-group mb-3" v-else>
               <input
@@ -84,7 +103,12 @@
         <TableColumnBadges :data="arrayProps.data"></TableColumnBadges>
       </template>
       <template #boolType="boolProps">
-        <input class="form-check-input" type="checkbox" :checked="boolProps.data" />
+        <input
+          class="form-check-input"
+          type="checkbox"
+          :checked="boolProps.data"
+          @change="this.updateAdmin(boolProps.row, boolProps.data)"
+        />
       </template>
     </Table>
   </div>
@@ -120,8 +144,9 @@ export default {
   data() {
     return {
       addRow: false,
-      error: false,
+      errorMessage: false,
       success: false,
+      loading: false,
       newUser: {
         email: "",
         firstName: "",
@@ -133,33 +158,56 @@ export default {
     };
   },
   methods: {
+    clearSuccess (){
+        this.success = false;
+    },
+    clearErrorMessage (){
+        this.errorMessage = false;
+    },
     toggleAddRow() {
       this.addRow = !this.addRow;
     },
-    updateUser() {
-        console.log("TODO")
+    updateAdmin(user, admin) {
+      user.admin = !admin;
+      this.saveUser(user);
     },
-    saveUser() {
-      this.errorMessage = false;
-      this.success = false;
-      const response = putUser(this.newUser);
+    saveNewUser() {
+      this.saveUser(this.newUser, () => {
+        if (this.success) {
+          this.clearNewUser();
+          this.toggleAddRow();
+        }
+      });
+    },
+    saveUser(user, callback) {
+      this.clearErrorMessage()
+      this.clearSuccess()
+      const response = putUser(user);
       response
         .then(() => {
-          this.success = true;
-          this.toggleAddRow();
-          this.loadUsers();
-          this.clearUser();
+          this.success = user.email;
+          this.loading = true;
+          if (callback) {
+            callback();
+          }
+          this.loadUsers()
+            .then(() => {
+              this.loading = false;
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         })
         .catch((error) => {
-          this.error = `${error}`;
+          this.errorMessage = `${error}`;
         });
     },
-    clearUser() {
+    clearNewUser() {
       Object.keys(this.newUser).forEach((key) => {
         this.newUser[key] = "";
       });
       this.newUser.admin = false;
-      this.newUser.projects = []
+      this.newUser.projects = [];
     },
   },
 };

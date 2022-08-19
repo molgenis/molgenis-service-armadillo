@@ -68,7 +68,6 @@ export default {
   },
   methods: {
     setActiveTab(index) {
-      console.log(this.principal.name)
       this.activeTab = index;
     },
   },
