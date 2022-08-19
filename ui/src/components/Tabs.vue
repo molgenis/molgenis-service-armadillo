@@ -26,6 +26,7 @@
 
 <script>
 export default {
+  name: 'Tabs',
   props: {
     menu: Array,
     icons: Array,
