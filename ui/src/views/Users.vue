@@ -1,23 +1,21 @@
 <template>
   <div>
-    <Alert v-show="this.errorMessage" type="danger" class="mt-1">
+    <Alert
+      v-show="this.errorMessage"
+      type="danger"
+      class="mt-1"
+      :clearFunction="this.clearErrorMessage"
+    >
       <strong>Error: </strong>
       {{ this.errorMessage }}
-      <button
-        @click="this.clearError"
-        type="button"
-        class="btn-close"
-        aria-label="Close"
-      ></button>
     </Alert>
-    <Alert v-show="this.success" type="success" class="mt-1">
-      <strong>Success:</strong> [{{ this.success }}]
-      <button
-        @click="this.clearSuccess"
-        type="button"
-        class="btn-close"
-        aria-label="Close"
-      ></button>
+    <Alert
+      v-show="this.successMessage"
+      type="success"
+      class="mt-1"
+      :clearFunction="this.clearSuccess"
+    >
+      <strong>Success: </strong>{{ this.successMessage }}
     </Alert>
     <div class="spinner-border" role="status" v-if="this.loading">
       <span class="visually-hidden">Loading...</span>
@@ -93,7 +91,11 @@
             <button type="button" class="btn btn-primary btn-sm bg-primary">
               <i class="bi bi-pencil-fill"></i>
             </button>
-            <button type="button" class="btn btn-danger btn-sm bg-danger">
+            <button
+              type="button"
+              class="btn btn-danger btn-sm bg-danger"
+              @click="this.removeUser(columnProps.item)"
+            >
               <i class="bi bi-trash-fill"></i>
             </button>
           </div>
@@ -118,7 +120,7 @@
 import Alert from "../components/Alert.vue";
 import Table from "../components/Table.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
-import { getUsers, putUser } from "../api/api";
+import { getUsers, putUser, deleteUser } from "../api/api";
 import { onMounted, ref } from "vue";
 
 export default {
@@ -145,7 +147,7 @@ export default {
     return {
       addRow: false,
       errorMessage: false,
-      success: false,
+      successMessage: false,
       loading: false,
       newUser: {
         email: "",
@@ -158,11 +160,11 @@ export default {
     };
   },
   methods: {
-    clearSuccess (){
-        this.success = false;
+    clearSuccess() {
+      this.successMessage = false;
     },
-    clearErrorMessage (){
-        this.errorMessage = false;
+    clearErrorMessage() {
+      this.errorMessage = false;
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
@@ -173,33 +175,47 @@ export default {
     },
     saveNewUser() {
       this.saveUser(this.newUser, () => {
-        if (this.success) {
+        if (this.successMessage) {
           this.clearNewUser();
           this.toggleAddRow();
         }
       });
     },
-    saveUser(user, callback) {
-      this.clearErrorMessage()
-      this.clearSuccess()
-      const response = putUser(user);
-      response
+    reloadUsers() {
+      this.loading = true;
+      this.loadUsers()
         .then(() => {
-          this.success = user.email;
-          this.loading = true;
+          this.loading = false;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+    removeUser(user) {
+      this.clearErrorMessage();
+      this.clearSuccess();
+      deleteUser(user.email)
+        .then(() => {
+          this.successMessage = `[${user.email}] was successfully deleted.`;
+          this.reloadUsers();
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not delete [${user.email}]: ${error}.`;
+        });
+    },
+    saveUser(user, callback) {
+      this.clearErrorMessage();
+      this.clearSuccess();
+      putUser(user)
+        .then(() => {
+          this.successMessage = `[${user.email}] was successfully saved.`;
+          this.reloadUsers();
           if (callback) {
             callback();
           }
-          this.loadUsers()
-            .then(() => {
-              this.loading = false;
-            })
-            .catch((error) => {
-              console.error(error);
-            });
         })
         .catch((error) => {
-          this.errorMessage = `${error}`;
+          this.errorMessage = `Could not save [${user.email}]: ${error}.`;
         });
     },
     clearNewUser() {

@@ -31,6 +31,21 @@ export async function put(url, body) {
   }
 }
 
+export async function delete_(url, item) {
+  const response = await fetch(`${url}/${item}`, { method: "DELETE" });
+  if (response.status != 200) {
+    const error =
+    (response.json && response.json.message) || response.statusText;
+    throw error;
+  } else {
+    return response;
+  }
+}
+
+export async function deleteUser(email) {
+  return delete_("/metadata/users", email);
+}
+
 export async function putUser(userJson) {
   return put("/metadata/users", userJson);
 }
