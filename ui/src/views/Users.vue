@@ -21,53 +21,7 @@
         </th>
       </template>
       <template v-slot:extraRow v-if="addRow">
-        <tr>
-          <th scope="row">
-            <div class="btn-group" role="group">
-              <button
-                type="button"
-                class="btn btn-success btn-sm bg-success"
-                @click="saveNewUser"
-              >
-                <i class="bi bi-check-lg"></i>
-              </button>
-              <button
-                type="button"
-                class="btn btn-danger btn-sm bg-danger"
-                @click="clearNewUser"
-              >
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </div>
-          </th>
-          <td v-for="(value, column) in users[0]">
-            <div class="input-group mb-3" v-if="column == 'projects'">
-              <input
-                type="text"
-                class="form-control"
-                v-model="newUser[column][0]"
-                :placeholder="column"
-                :aria-label="column"
-              />
-            </div>
-            <div v-else-if="column == 'admin'">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                v-model="newUser[column]"
-              />
-            </div>
-            <div class="input-group mb-3" v-else>
-              <input
-                type="text"
-                class="form-control"
-                v-model="newUser[column]"
-                :placeholder="column"
-                :aria-label="column"
-              />
-            </div>
-          </td>
-        </tr>
+      <InlineRowEdit :row="this.newUser" :save="this.saveNewUser" :clear="this.clearNewUser"></InlineRowEdit>
       </template>
       <template #extraColumn="columnProps">
         <th scope="row">
@@ -102,6 +56,7 @@
 
 <script>
 import Table from "../components/Table.vue";
+import InlineRowEdit from '../components/InlineRowEdit.vue'
 import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
@@ -110,6 +65,7 @@ import { onMounted, ref } from "vue";
 export default {
   name: "Users",
   components: {
+    InlineRowEdit,
     Table,
     TableColumnBadges,
     UserFeedback
