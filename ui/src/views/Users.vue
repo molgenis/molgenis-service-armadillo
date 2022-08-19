@@ -1,22 +1,6 @@
 <template>
   <div>
-    <Alert
-      v-show="this.errorMessage"
-      type="danger"
-      class="mt-1"
-      :clearFunction="this.clearErrorMessage"
-    >
-      <strong>Error: </strong>
-      {{ this.errorMessage }}
-    </Alert>
-    <Alert
-      v-show="this.successMessage"
-      type="success"
-      class="mt-1"
-      :clearFunction="this.clearSuccess"
-    >
-      <strong>Success: </strong>{{ this.successMessage }}
-    </Alert>
+    <UserFeedback :successMessage="this.successMessage" :errorMessage="this.errorMessage"></UserFeedback>
     <div class="spinner-border" role="status" v-if="this.loading">
       <span class="visually-hidden">Loading...</span>
     </div>
@@ -117,18 +101,18 @@
 </template>
 
 <script>
-import Alert from "../components/Alert.vue";
 import Table from "../components/Table.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
+import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
 import { onMounted, ref } from "vue";
 
 export default {
   name: "Users",
   components: {
-    Alert,
     Table,
     TableColumnBadges,
+    UserFeedback
   },
   setup() {
     const users = ref([]);
@@ -146,8 +130,8 @@ export default {
   data() {
     return {
       addRow: false,
-      errorMessage: false,
-      successMessage: false,
+      errorMessage: "",
+      successMessage: "",
       loading: false,
       newUser: {
         email: "",
@@ -161,10 +145,10 @@ export default {
   },
   methods: {
     clearSuccess() {
-      this.successMessage = false;
+      this.successMessage = "";
     },
     clearErrorMessage() {
-      this.errorMessage = false;
+      this.errorMessage = "";
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
@@ -188,7 +172,7 @@ export default {
           this.loading = false;
         })
         .catch((error) => {
-          console.error(error);
+          this.errorMessage = `Could not load users: ${error}.`
         });
     },
     removeUser(user) {
