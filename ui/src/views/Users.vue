@@ -1,10 +1,10 @@
 <template>
   <div>
-    <Alert v-if="this.errorMessage" type="danger">
+    <Alert v-if="this.errorMessage" type="danger" class="mt-1">
       <strong>Could not create user:</strong> [{{ this.newUser.email }}].
       Reason: {{ this.errorMessage }}
     </Alert>
-    <Alert v-if="this.success" type="success">
+    <Alert v-if="this.success" type="success" class="mt-1">
       <strong>Successfully created user:</strong> [{{ this.newUser.email }}]
     </Alert>
     <Table :data="users">
@@ -138,6 +138,8 @@ export default {
         .then(() => {
           this.success = true;
           this.toggleAddRow();
+          this.loadUsers();
+          this.clearUser();
         })
         .catch((error) => {
           this.error = `${error}`;
