@@ -1,5 +1,12 @@
 <template>
   <div>
+    <Alert v-if="this.errorMessage" type="danger">
+      <strong>Could not create user:</strong> [{{ this.newUser.email }}].
+      Reason: {{ this.errorMessage }}
+    </Alert>
+    <Alert v-if="this.success" type="success">
+      <strong>Successfully created user:</strong> [{{ this.newUser.email }}]
+    </Alert>
     <Table :data="users">
       <template v-slot:extraHeader>
         <th>
@@ -37,7 +44,7 @@
             </div>
           </th>
           <td v-for="(value, column) in users[0]">
-          <div class="input-group mb-3" v-if="column=='projects'">
+            <div class="input-group mb-3" v-if="column == 'projects'">
               <input
                 type="text"
                 class="form-control"
@@ -78,23 +85,16 @@
 </template>
 
 <script>
-// {
-//   "email": "string",
-//   "firstName": "string",
-//   "lastName": "string",
-//   "institution": "string",
-//   "admin": true,
-//   "projects": [
-//     "string"
-//   ]
-// }
+import Alert from "../components/Alert.vue";
 import Table from "../components/Table.vue";
+import TableColumnBadges from "../components/TableColumnBadges.vue";
 import { getUsers, putUser } from "../api/api";
 import { onMounted, ref } from "vue";
-import TableColumnBadges from "../components/TableColumnBadges.vue";
+
 export default {
   name: "Users",
   components: {
+    Alert,
     Table,
     TableColumnBadges,
   },
@@ -114,6 +114,8 @@ export default {
   data() {
     return {
       addRow: false,
+      error: false,
+      success: false,
       newUser: {
         email: "",
         firstName: "",
@@ -129,13 +131,22 @@ export default {
       this.addRow = !this.addRow;
     },
     saveUser() {
+      this.errorMessage = false;
+      this.success = false;
       const response = putUser(this.newUser);
-      console.log(response);
+      response
+        .then(() => {
+          this.success = true;
+          this.toggleAddRow();
+        })
+        .catch((error) => {
+          this.error = `${error}`;
+        });
     },
     clearUser() {
-      Object.keys(this.newUser).forEach(key => {
-        this.newUser[key] = ''
-      }) 
+      Object.keys(this.newUser).forEach((key) => {
+        this.newUser[key] = "";
+      });
     },
   },
 };

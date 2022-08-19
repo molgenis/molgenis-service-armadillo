@@ -1,5 +1,3 @@
 export const APISettings = {
-    headers: new Headers({
-        'Accept': 'application/json'
-    })
-}
+  headers: new Headers({ "Content-Type": "application/json", accept: "*/*" }),
+};

@@ -6,7 +6,9 @@ export async function get(url) {
     headers: APISettings.headers,
   });
   if (response.status != 200) {
-    throw response.status;
+    const error =
+      (response.json && response.json.message) || response.statusText;
+    throw error;
   } else {
     return response.json();
   }
@@ -16,15 +18,16 @@ export async function put(url, body) {
   // PUT request using fetch with async/await
   const requestOptions = {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: body
+    headers: APISettings.headers,
+    body: JSON.stringify(body),
   };
   const response = await fetch(url, requestOptions);
   if (response.status != 200) {
-    throw response.status;
+    const error =
+      (response.json && response.json.message) || response.statusText;
+    throw error;
   } else {
-    return response.json();
-    //updatedAt
+    return response;
   }
 }
 
