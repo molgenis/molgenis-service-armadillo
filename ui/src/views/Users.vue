@@ -53,6 +53,9 @@
                 :aria-label="column"
               />
             </div>
+            <div v-else-if="column == 'admin'">
+              <input class="form-check-input" type="checkbox" v-model="newUser[column]" />
+            </div>
             <div class="input-group mb-3" v-else>
               <input
                 type="text"
@@ -79,6 +82,9 @@
       </template>
       <template #arrayType="arrayProps">
         <TableColumnBadges :data="arrayProps.data"></TableColumnBadges>
+      </template>
+      <template #boolType="boolProps">
+        <input class="form-check-input" type="checkbox" :checked="boolProps.data" />
       </template>
     </Table>
   </div>
@@ -122,13 +128,16 @@ export default {
         lastName: "",
         institution: "",
         admin: false,
-        projects: [""],
+        projects: [],
       },
     };
   },
   methods: {
     toggleAddRow() {
       this.addRow = !this.addRow;
+    },
+    updateUser() {
+        console.log("TODO")
     },
     saveUser() {
       this.errorMessage = false;
@@ -149,6 +158,8 @@ export default {
       Object.keys(this.newUser).forEach((key) => {
         this.newUser[key] = "";
       });
+      this.newUser.admin = false;
+      this.newUser.projects = []
     },
   },
 };
