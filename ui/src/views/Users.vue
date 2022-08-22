@@ -1,6 +1,9 @@
 <template>
   <div>
-    <UserFeedback :successMessage="this.successMessage" :errorMessage="this.errorMessage"></UserFeedback>
+    <UserFeedback
+      :successMessage="this.successMessage"
+      :errorMessage="this.errorMessage"
+    ></UserFeedback>
     <div class="spinner-border" role="status" v-if="this.loading">
       <span class="visually-hidden">Loading...</span>
     </div>
@@ -21,7 +24,11 @@
         </th>
       </template>
       <template v-slot:extraRow v-if="addRow">
-      <InlineRowEdit :row="this.newUser" :save="this.saveNewUser" :clear="this.clearNewUser"></InlineRowEdit>
+        <InlineRowEdit
+          :row="this.newUser"
+          :save="this.saveNewUser"
+          :clear="this.clearNewUser"
+        ></InlineRowEdit>
       </template>
       <template #extraColumn="columnProps">
         <th scope="row">
@@ -40,7 +47,11 @@
         </th>
       </template>
       <template #arrayType="arrayProps">
-        <TableColumnBadges :data="arrayProps.data"></TableColumnBadges>
+        <TableColumnBadges
+          :data="arrayProps.data"
+          :row="arrayProps.row"
+          :saveCallback="this.deleteProject"
+        ></TableColumnBadges>
       </template>
       <template #boolType="boolProps">
         <input
@@ -56,7 +67,7 @@
 
 <script>
 import Table from "../components/Table.vue";
-import InlineRowEdit from '../components/InlineRowEdit.vue'
+import InlineRowEdit from "../components/InlineRowEdit.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
@@ -68,7 +79,7 @@ export default {
     InlineRowEdit,
     Table,
     TableColumnBadges,
-    UserFeedback
+    UserFeedback,
   },
   setup() {
     const users = ref([]);
@@ -109,6 +120,11 @@ export default {
     toggleAddRow() {
       this.addRow = !this.addRow;
     },
+    deleteProject(projects, user) {
+      const updatedUser = user;
+      user.projects = projects;
+      this.saveUser(updatedUser);
+    },
     updateAdmin(user, admin) {
       user.admin = !admin;
       this.saveUser(user);
@@ -128,7 +144,7 @@ export default {
           this.loading = false;
         })
         .catch((error) => {
-          this.errorMessage = `Could not load users: ${error}.`
+          this.errorMessage = `Could not load users: ${error}.`;
         });
     },
     removeUser(user) {
