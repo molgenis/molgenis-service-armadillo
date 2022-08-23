@@ -33,6 +33,7 @@ export async function put(url, body) {
 
 export async function delete_(url, item) {
   const response = await fetch(`${url}/${item}`, { method: "DELETE" });
+  console.log(item)
   if (response.status != 200) {
     const error =
     (response.json && response.json.message) || response.statusText;
@@ -43,6 +44,7 @@ export async function delete_(url, item) {
 }
 
 export async function deleteUser(email) {
+  console.log(email);
   return delete_("/metadata/users", email);
 }
 

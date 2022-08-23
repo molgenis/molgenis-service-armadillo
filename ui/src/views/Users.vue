@@ -1,14 +1,24 @@
 <template>
   <div>
-    <!-- Error messages will appear here -->
-    <UserFeedback
-      :successMessage="this.successMessage"
-      :errorMessage="this.errorMessage"
-    ></UserFeedback>
-    <!-- Loading spinner -->
-    <LoadingSpinner v-if="this.loading"></LoadingSpinner>
+    <div class="row">
+      <div class="col">
+        <!-- Error messages will appear here -->
+        <UserFeedback
+          :successMessage="this.successMessage"
+          :errorMessage="this.errorMessage"
+        ></UserFeedback>
+        <!-- Loading spinner -->
+        <LoadingSpinner v-if="this.loading"></LoadingSpinner>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-0 col-sm-9"></div>
+      <div class="col-12 col-sm-3">
+        <SearchBar class="mt-1" v-model="searchString" />
+      </div>
+    </div>
     <!-- Actual table -->
-    <Table :data="users">
+    <Table :data="filteredUsers">
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
         <th>
@@ -97,9 +107,10 @@
 
 <script>
 import Badge from "../components/Badge.vue";
-import Table from "../components/Table.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import SearchBar from "../components/SearchBar.vue";
+import Table from "../components/Table.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
@@ -111,6 +122,7 @@ export default {
     Badge,
     InlineRowEdit,
     LoadingSpinner,
+    SearchBar,
     Table,
     TableColumnBadges,
     UserFeedback,
@@ -130,6 +142,7 @@ export default {
   },
   data() {
     return {
+      searchString: "",
       addRow: false,
       errorMessage: "",
       successMessage: "",
@@ -150,8 +163,22 @@ export default {
     newUserProjectsLength() {
       return this.newUser.projects.length;
     },
+    filteredUsers() {
+      if (this.searchString) {
+        return this.users.filter((user) => {
+          return this.stringIncludesOtherString(user.email, this.searchString) ||
+            this.stringIncludesOtherString(user.firstName, this.searchString) ||
+            this.stringIncludesOtherString(user.lastName, this.searchString);
+        });
+      } else {
+        return this.users;
+      }
+    },
   },
   methods: {
+    stringIncludesOtherString(string, substring) {
+      return string.toLowerCase().includes(substring.toLowerCase());
+    },
     clearSuccess() {
       this.successMessage = "";
     },
