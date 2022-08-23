@@ -1,18 +1,16 @@
 <template>
   <div>
-<!-- Error messages will appear here -->
+    <!-- Error messages will appear here -->
     <UserFeedback
       :successMessage="this.successMessage"
       :errorMessage="this.errorMessage"
     ></UserFeedback>
-<!-- Loading spinner -->
-    <div class="spinner-border" role="status" v-if="this.loading">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-<!-- Actual table -->
+    <!-- Loading spinner -->
+    <LoadingSpinner v-if="this.loading"></LoadingSpinner>
+    <!-- Actual table -->
     <Table :data="users">
       <template v-slot:extraHeader>
-<!-- Add extra header for buttons (add user button) -->
+        <!-- Add extra header for buttons (add user button) -->
         <th>
           <button
             type="button"
@@ -28,13 +26,13 @@
         </th>
       </template>
       <template v-slot:extraRow v-if="addRow">
-<!-- Extra row for adding a new user  -->
+        <!-- Extra row for adding a new user  -->
         <InlineRowEdit
           :row="this.newUser"
           :save="this.saveNewUser"
           :clear="this.clearNewUser"
         >
-<!-- Enable adding/removing multiple projects -->
+          <!-- Enable adding/removing multiple projects -->
           <template #arrayEdit="array">
             <TableColumnBadges
               :itemArray="this.newUser.projects"
@@ -42,10 +40,7 @@
               :saveCallback="this.deleteProject"
             ></TableColumnBadges>
             <Badge v-if="this.addProjectToNewRow">
-              <input
-                type="text"
-                v-model="projectToAdd"
-              />
+              <input type="text" v-model="projectToAdd" />
               <button
                 class="check-badge text-light bg-secondary"
                 @click="this.saveProject(array.rowData, array.arrayData)"
@@ -63,7 +58,7 @@
         </InlineRowEdit>
       </template>
       <template #extraColumn="columnProps">
-<!-- Add buttons for editing/deleting users -->
+        <!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-primary btn-sm bg-primary">
@@ -80,7 +75,7 @@
         </th>
       </template>
       <template #arrayType="arrayProps">
-<!-- Show Projects as badges -->
+        <!-- Show Projects as badges -->
         <TableColumnBadges
           :itemArray="arrayProps.data"
           :row="arrayProps.row"
@@ -88,7 +83,7 @@
         ></TableColumnBadges>
       </template>
       <template #boolType="boolProps">
-<!-- Show booleans as checkboxes -->
+        <!-- Show booleans as checkboxes -->
         <input
           class="form-check-input"
           type="checkbox"
@@ -104,6 +99,7 @@
 import Badge from "../components/Badge.vue";
 import Table from "../components/Table.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
@@ -112,11 +108,12 @@ import { onMounted, ref } from "vue";
 export default {
   name: "Users",
   components: {
+    Badge,
     InlineRowEdit,
+    LoadingSpinner,
     Table,
     TableColumnBadges,
     UserFeedback,
-    Badge,
   },
   setup() {
     const users = ref([]);
