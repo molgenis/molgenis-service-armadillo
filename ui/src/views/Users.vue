@@ -1,20 +1,24 @@
 <template>
   <div>
+<!-- Error messages will appear here -->
     <UserFeedback
       :successMessage="this.successMessage"
       :errorMessage="this.errorMessage"
     ></UserFeedback>
+<!-- Loading spinner -->
     <div class="spinner-border" role="status" v-if="this.loading">
       <span class="visually-hidden">Loading...</span>
     </div>
+<!-- Actual table -->
     <Table :data="users">
       <template v-slot:extraHeader>
+<!-- Add extra header for buttons (add user button) -->
         <th>
           <button
             type="button"
             class="btn btn-sm me-1"
             :class="
-              this.addRow ? 'btn-danger  bg-danger' : 'btn-primary bg-primary'
+              this.addRow ? 'btn-danger bg-danger' : 'btn-primary bg-primary'
             "
             @click="toggleAddRow"
           >
@@ -24,11 +28,13 @@
         </th>
       </template>
       <template v-slot:extraRow v-if="addRow">
+<!-- Extra row for adding a new user  -->
         <InlineRowEdit
           :row="this.newUser"
           :save="this.saveNewUser"
           :clear="this.clearNewUser"
         >
+<!-- Enable adding/removing multiple projects -->
           <template #arrayEdit="array">
             <TableColumnBadges
               :itemArray="this.newUser.projects"
@@ -57,6 +63,7 @@
         </InlineRowEdit>
       </template>
       <template #extraColumn="columnProps">
+<!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-primary btn-sm bg-primary">
@@ -73,6 +80,7 @@
         </th>
       </template>
       <template #arrayType="arrayProps">
+<!-- Show Projects as badges -->
         <TableColumnBadges
           :itemArray="arrayProps.data"
           :row="arrayProps.row"
@@ -80,6 +88,7 @@
         ></TableColumnBadges>
       </template>
       <template #boolType="boolProps">
+<!-- Show booleans as checkboxes -->
         <input
           class="form-check-input"
           type="checkbox"
@@ -92,13 +101,13 @@
 </template>
 
 <script>
+import Badge from "../components/Badge.vue";
 import Table from "../components/Table.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
 import { onMounted, ref } from "vue";
-import Badge from "../components/Badge.vue";
 
 export default {
   name: "Users",
