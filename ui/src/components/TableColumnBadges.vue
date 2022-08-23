@@ -1,9 +1,6 @@
 <template>
   <span>
-    <span
-      class="badge text-bg-secondary me-1"
-      v-for="(badgeItem, index) in badgeItems"
-    >
+    <Badge v-for="(badgeItem, index) in badgeItems">
       {{ badgeItem }}
       <button
         class="cancel-badge text-light bg-secondary"
@@ -11,13 +8,16 @@
       >
         <i class="bi bi-x"></i>
       </button>
-    </span>
+    </Badge>
   </span>
 </template>
 
 <script>
+import Badge from "./Badge.vue";
+
 export default {
   name: "TableColumnBadges",
+  components: { Badge },
   props: {
     data: Array,
     saveCallback: Function,
@@ -42,7 +42,6 @@ export default {
 button.cancel-badge {
   border: none;
   padding: 0;
-  /* padding-right: -1em; */
   margin-right: -0.2em;
 }
 </style>

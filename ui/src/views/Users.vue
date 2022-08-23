@@ -28,7 +28,33 @@
           :row="this.newUser"
           :save="this.saveNewUser"
           :clear="this.clearNewUser"
-        ></InlineRowEdit>
+        >
+          <template #arrayEdit="array">
+            <TableColumnBadges
+              :data="this.newUser.projects"
+              :row="array.rowData"
+              :saveCallback="this.deleteProject"
+            ></TableColumnBadges>
+            <Badge v-if="this.addProjectToNewRow">
+              <input
+                type="text"
+                v-model="projectToAdd"
+              />
+              <button
+                class="check-badge text-light bg-secondary"
+                @click="this.saveProject(array.rowData, array.arrayData)"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </Badge>
+            <button
+              class="btn btn-primary btn-sm float-end"
+              @click="addProject"
+            >
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </template>
+        </InlineRowEdit>
       </template>
       <template #extraColumn="columnProps">
         <th scope="row">
@@ -72,6 +98,7 @@ import TableColumnBadges from "../components/TableColumnBadges.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
 import { onMounted, ref } from "vue";
+import Badge from "../components/Badge.vue";
 
 export default {
   name: "Users",
@@ -80,6 +107,7 @@ export default {
     Table,
     TableColumnBadges,
     UserFeedback,
+    Badge,
   },
   setup() {
     const users = ref([]);
@@ -100,6 +128,8 @@ export default {
       errorMessage: "",
       successMessage: "",
       loading: false,
+      projectToAdd: "",
+      addProjectToNewRow: false,
       newUser: {
         email: "",
         firstName: "",
@@ -110,12 +140,25 @@ export default {
       },
     };
   },
+  computed: {
+    newUserProjectsLength() {
+      return this.newUser.projects.length;
+    },
+  },
   methods: {
     clearSuccess() {
       this.successMessage = "";
     },
     clearErrorMessage() {
       this.errorMessage = "";
+    },
+    addProject() {
+      this.addProjectToNewRow = true;
+    },
+    saveProject() {
+      this.newUser.projects[this.newUserProjectsLength] = this.projectToAdd;
+      this.projectToAdd = "";
+      this.addProjectToNewRow = false;
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
@@ -184,3 +227,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+button.check-badge {
+  border: none;
+  padding: 0;
+  margin-left: 0.2em;
+  margin-right: -0.2em;
+}
+</style>

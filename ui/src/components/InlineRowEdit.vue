@@ -19,14 +19,16 @@
       </div>
     </th>
     <td v-for="(value, column) in this.rowData">
-      <div class="input-group mb-3" v-if="Array.isArray(value)">
-        <input
-          type="text"
-          class="form-control"
-          v-model="rowData[column][0]"
-          :placeholder="column"
-          :aria-label="column"
-        />
+      <div v-if="Array.isArray(value)">
+        <slot name="arrayEdit" :arrayData="value" :rowData="this.rowData">
+          <input
+            type="text"
+            class="form-control"
+            v-model="rowData[column][0]"
+            :placeholder="column"
+            :aria-label="column"
+          />
+        </slot>
       </div>
       <div v-else-if="typeof value == 'boolean'">
         <input
