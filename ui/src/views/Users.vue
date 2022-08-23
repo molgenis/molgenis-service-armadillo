@@ -31,7 +31,7 @@
         >
           <template #arrayEdit="array">
             <TableColumnBadges
-              :data="this.newUser.projects"
+              :itemArray="this.newUser.projects"
               :row="array.rowData"
               :saveCallback="this.deleteProject"
             ></TableColumnBadges>
@@ -74,7 +74,7 @@
       </template>
       <template #arrayType="arrayProps">
         <TableColumnBadges
-          :data="arrayProps.data"
+          :itemArray="arrayProps.data"
           :row="arrayProps.row"
           :saveCallback="this.deleteProject"
         ></TableColumnBadges>

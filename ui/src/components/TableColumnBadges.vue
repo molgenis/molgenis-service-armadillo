@@ -19,14 +19,14 @@ export default {
   name: "TableColumnBadges",
   components: { Badge },
   props: {
-    data: Array,
+    itemArray: Array,
     saveCallback: Function,
     // Some kind of row indicator
     row: Object,
   },
   data() {
     return {
-      badgeItems: this.data,
+      badgeItems: this.itemArray,
     };
   },
   methods: {
@@ -35,6 +35,11 @@ export default {
       this.saveCallback(this.badgeItems, this.row);
     },
   },
+   watch: {
+      itemArray: function () {
+        this.badgeItems = this.itemArray;
+      },
+    },
 };
 </script>
 
