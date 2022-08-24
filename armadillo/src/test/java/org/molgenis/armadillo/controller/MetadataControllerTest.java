@@ -81,7 +81,7 @@ class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -113,7 +113,7 @@ class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -159,7 +159,7 @@ class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\"}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -176,7 +176,7 @@ class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"}},\"projects\":{},\"permissions\":[]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -229,7 +229,7 @@ class MetadataControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     final String backendState =
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\"},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\"},\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true,\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(backendState, new String(argument.getValue().readAllBytes()));
@@ -258,7 +258,7 @@ class MetadataControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\"}},\"permissions\":[]}",
+        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 }

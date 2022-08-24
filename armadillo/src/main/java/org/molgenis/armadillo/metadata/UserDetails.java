@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 
 @AutoValue
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class UserDetails {
   @JsonProperty("email")
   abstract String getEmail();
@@ -30,7 +31,6 @@ public abstract class UserDetails {
   abstract Boolean getAdmin();
 
   @JsonProperty("projects")
-  @Nullable
   public abstract Set<String> getProjects();
 
   @JsonCreator
@@ -42,10 +42,15 @@ public abstract class UserDetails {
       @JsonProperty("admin") Boolean newAdmin,
       @JsonProperty("projects") Set<String> newProjects) {
     return new AutoValue_UserDetails(
-        newEmail, newFirstName, newLastName, newInstitution, newAdmin, newProjects);
+        newEmail,
+        newFirstName,
+        newLastName,
+        newInstitution,
+        newAdmin,
+        newProjects != null ? newProjects : new HashSet<>());
   }
 
   public static UserDetails create(String newEmail) {
-    return new AutoValue_UserDetails(newEmail, null, null, null, null, null);
+    return new AutoValue_UserDetails(newEmail, null, null, null, null, new HashSet<>());
   }
 }
