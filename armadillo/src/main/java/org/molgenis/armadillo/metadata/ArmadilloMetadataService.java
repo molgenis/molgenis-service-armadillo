@@ -115,7 +115,7 @@ public class ArmadilloMetadataService {
                 // add missing project, if applicable
                 settings
                     .getProjects()
-                    .putIfAbsent(projectName, ProjectDetails.create(projectName, null));
+                    .putIfAbsent(projectName, ProjectDetails.create(projectName, new HashSet<>()));
                 // add permission to that project
                 permissions.add(ProjectPermission.create(email, projectName));
               });
@@ -194,7 +194,7 @@ public class ArmadilloMetadataService {
 
     // clone projectDetails to strip permissions from value object and save
     // (permissions are saved seperately)
-    projectDetails = ProjectDetails.create(projectName, null);
+    projectDetails = ProjectDetails.create(projectName, Collections.emptySet());
     settings.getProjects().put(projectName, projectDetails);
     settings =
         ArmadilloMetadata.create(settings.getUsers(), settingsList().getProjects(), permissions);
