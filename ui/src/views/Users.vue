@@ -18,7 +18,11 @@
       </div>
     </div>
     <!-- Actual table -->
-    <Table :data="filteredUsers">
+    <Table
+      :data="filteredUsers"
+      idCol="email"
+      :indexToEdit="this.userToEditIndex"
+    >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
         <th>
@@ -37,41 +41,26 @@
       </template>
       <template v-slot:extraRow v-if="addRow">
         <!-- Extra row for adding a new user  -->
-        <InlineRowEdit
-          :row="this.newUser"
-          :save="this.saveNewUser"
-          :clear="this.clearNewUser"
-        >
-          <!-- Enable adding/removing multiple projects -->
-          <template #arrayEdit="array">
-            <TableColumnBadges
-              :itemArray="this.newUser.projects"
-              :row="array.rowData"
-              :saveCallback="this.deleteProject"
-            ></TableColumnBadges>
-            <Badge v-if="this.addProjectToNewRow">
-              <input type="text" v-model="projectToAdd" />
-              <button
-                class="check-badge text-light bg-secondary"
-                @click="this.saveProject(array.rowData, array.arrayData)"
-              >
-                <i class="bi bi-check-lg"></i>
-              </button>
-            </Badge>
-            <button
-              class="btn btn-primary btn-sm float-end"
-              @click="addProject"
-            >
-              <i class="bi bi-plus-lg"></i>
-            </button>
-          </template>
-        </InlineRowEdit>
+        <UserEditor
+          :userToEdit="this.newUser"
+          :saveCallback="this.saveNewUser"
+          :cancelCallback="this.clearNewUser"
+          :addProjectCallback="this.addProjectToNewUser"
+          :deleteProjectCallback="this.deleteProject"
+          :saveProjectCallback="this.saveProjectInAddMode"
+          :addProjectToRow="this.addProjectToNewRow"
+          v-model="this.projectToAdd"
+        ></UserEditor>
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-primary btn-sm bg-primary">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm bg-primary"
+              @click="this.editUser(columnProps.item)"
+            >
               <i class="bi bi-pencil-fill"></i>
             </button>
             <button
@@ -101,6 +90,18 @@
           @change="this.updateAdmin(boolProps.row, boolProps.data)"
         />
       </template>
+      <template #editRow="rowProps">
+        <UserEditor
+          :userToEdit="rowProps.row"
+          :saveCallback="this.saveEditedUser"
+          :cancelCallback="this.clearUserToEdit"
+          :addProjectCallback="this.addProjectToEditUser"
+          :deleteProjectCallback="this.deleteProject"
+          :saveProjectCallback="this.saveProjectInEditMode"
+          :addProjectToRow="this.addProjectToEditRow"
+          v-model="this.projectToEdit"
+        ></UserEditor>
+      </template>
     </Table>
   </div>
 </template>
@@ -112,6 +113,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableColumnBadges from "../components/TableColumnBadges.vue";
+import UserEditor from "../components/UserEditor.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api";
 import { onMounted, ref } from "vue";
@@ -125,6 +127,7 @@ export default {
     SearchBar,
     Table,
     TableColumnBadges,
+    UserEditor,
     UserFeedback,
   },
   setup() {
@@ -142,13 +145,11 @@ export default {
   },
   data() {
     return {
-      searchString: "",
+      addProjectToEditRow: false,
+      addProjectToNewRow: false,
       addRow: false,
       errorMessage: "",
-      successMessage: "",
       loading: false,
-      projectToAdd: "",
-      addProjectToNewRow: false,
       newUser: {
         email: "",
         firstName: "",
@@ -157,27 +158,40 @@ export default {
         admin: false,
         projects: [],
       },
+      projectToAdd: "",
+      projectToEdit: "",
+      searchString: "",
+      successMessage: "",
+      userToEdit: "",
+      userToEditIndex: -1,
     };
   },
   computed: {
-    newUserProjectsLength() {
-      return this.newUser.projects.length;
-    },
     filteredUsers() {
       if (this.searchString) {
         return this.users.filter((user) => {
-          return this.stringIncludesOtherString(user.email, this.searchString) ||
+          return (
+            this.stringIncludesOtherString(user.email, this.searchString) ||
             this.stringIncludesOtherString(user.firstName, this.searchString) ||
-            this.stringIncludesOtherString(user.lastName, this.searchString);
+            this.stringIncludesOtherString(user.lastName, this.searchString)
+          );
         });
       } else {
         return this.users;
       }
     },
   },
+  watch: {
+    userToEdit() {
+      this.userToEditIndex = this.getEditIndex();
+    },
+  },
   methods: {
-    stringIncludesOtherString(string, substring) {
-      return string.toLowerCase().includes(substring.toLowerCase());
+    addProjectToNewUser() {
+      this.addProjectToNewRow = true;
+    },
+    addProjectToEditUser() {
+      this.addProjectToEditRow = true;
     },
     clearSuccess() {
       this.successMessage = "";
@@ -185,33 +199,35 @@ export default {
     clearErrorMessage() {
       this.errorMessage = "";
     },
-    addProject() {
-      this.addProjectToNewRow = true;
+    clearUserToEdit() {
+      this.userToEdit = "";
     },
-    saveProject() {
-      this.newUser.projects[this.newUserProjectsLength] = this.projectToAdd;
-      this.projectToAdd = "";
-      this.addProjectToNewRow = false;
-    },
-    toggleAddRow() {
-      this.addRow = !this.addRow;
+    clearNewUser() {
+      Object.keys(this.newUser).forEach((key) => {
+        this.newUser[key] = "";
+      });
+      this.newUser.admin = false;
+      this.newUser.projects = [];
     },
     deleteProject(projects, user) {
       const updatedUser = user;
       user.projects = projects;
-      this.saveUser(updatedUser);
+      // Don't save immediately while editing
+      if (user.email !== this.userToEdit && user.email !== this.newUser.email) {
+        this.saveUser(updatedUser);
+      }
     },
-    updateAdmin(user, admin) {
-      user.admin = !admin;
-      this.saveUser(user);
+    editUser(user) {
+      this.userToEdit = user.email;
     },
-    saveNewUser() {
-      this.saveUser(this.newUser, () => {
-        if (this.successMessage) {
-          this.clearNewUser();
-          this.toggleAddRow();
-        }
+    getEditIndex() {
+      const index = this.users.findIndex((user) => {
+        return user.email === this.userToEdit;
       });
+      // only change when user is cleared, otherwise it will return -1 when email is altered
+      if (this.userToEdit === "" || index !== -1) {
+        return index;
+      } else return this.userToEditIndex;
     },
     reloadUsers() {
       this.loading = true;
@@ -235,33 +251,75 @@ export default {
           this.errorMessage = `Could not delete [${user.email}]: ${error}.`;
         });
     },
+    saveEditedUser() {
+      const user = this.users[this.userToEditIndex];
+      this.saveUser(user, () => {
+        // Check if email was altered, then delete the old row
+        if (user.email != this.userToEdit) {
+          deleteUser(this.userToEdit).then(() => {
+            this.reloadUsers();
+          });
+        }
+        this.clearUserToEdit();
+      });
+    },
+    saveNewUser() {
+      this.saveUser(this.newUser, () => {
+        if (this.successMessage) {
+          this.clearNewUser();
+          this.toggleAddRow();
+        }
+      });
+    },
+    saveProject() {
+      projects.push(newProject);
+      newProject = "";
+      projectBool = false;
+    },
+    saveProjectInAddMode() {
+      this.newUser.projects.push(this.projectToAdd);
+      this.projectToAdd = "";
+      this.addProjectToNewRow = false;
+    },
+    saveProjectInEditMode() {
+      this.users[this.userToEditIndex].projects.push(this.projectToEdit);
+      this.projectToEdit = "";
+      this.addProjectToEditRow = false;
+    },
     saveUser(user, callback) {
       this.clearErrorMessage();
       this.clearSuccess();
-      putUser(user)
-        .then(() => {
-          this.successMessage = `[${user.email}] was successfully saved.`;
-          this.reloadUsers();
-          if (callback) {
-            callback();
-          }
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not save [${user.email}]: ${error}.`;
-        });
+      if (user.email === "") {
+        this.errorMessage = "Cannot create user with empty email adress.";
+      } else {
+        putUser(user)
+          .then(() => {
+            this.successMessage = `[${user.email}] was successfully saved.`;
+            this.reloadUsers();
+            if (callback) {
+              callback();
+            }
+          })
+          .catch((error) => {
+            this.errorMessage = `Could not save [${user.email}]: ${error}.`;
+          });
+      }
     },
-    clearNewUser() {
-      Object.keys(this.newUser).forEach((key) => {
-        this.newUser[key] = "";
-      });
-      this.newUser.admin = false;
-      this.newUser.projects = [];
+    stringIncludesOtherString(string, substring) {
+      return string.toLowerCase().includes(substring.toLowerCase());
+    },
+    toggleAddRow() {
+      this.addRow = !this.addRow;
+    },
+    updateAdmin(user, admin) {
+      user.admin = !admin;
+      this.saveUser(user);
     },
   },
 };
 </script>
 
-<style scoped>
+<style>
 button.check-badge {
   border: none;
   padding: 0;

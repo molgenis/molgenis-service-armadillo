@@ -44,7 +44,6 @@ export async function delete_(url, item) {
 }
 
 export async function deleteUser(email) {
-  console.log(email);
   return delete_("/metadata/users", email);
 }
 

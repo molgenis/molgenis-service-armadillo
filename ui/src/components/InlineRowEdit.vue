@@ -12,7 +12,7 @@
         <button
           type="button"
           class="btn btn-danger btn-sm bg-danger"
-          @click="this.clear"
+          @click="this.cancel"
         >
           <i class="bi bi-x-lg"></i>
         </button>
@@ -20,7 +20,7 @@
     </th>
     <td v-for="(value, column) in this.rowData">
       <div v-if="Array.isArray(value)">
-        <slot name="arrayEdit" :arrayData="value" :rowData="this.rowData">
+        <slot name="arrayEdit" :arrayData="value" :row="this.rowData">
           <input
             type="text"
             class="form-control"
@@ -55,7 +55,7 @@ export default {
   name: "InlineRowEdit",
   props: {
     save: Function,
-    clear: Function,
+    cancel: Function,
     row: { String: String },
   },
   data() {
