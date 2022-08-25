@@ -3,8 +3,8 @@
     <thead>
       <tr>
         <slot name="extraHeader"></slot>
-        <th scope="col" v-for="(value, key) in data[0]">
-          {{ toCapitalizedWords(key) }}
+        <th scope="col" v-for="head in this.capitalizedHeaders">
+          {{ head }}
         </th>
       </tr>
     </thead>
@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import { toCapitalizedWords } from "../helpers/utils.js";
+
 export default {
   name: "Table",
   props: {
@@ -41,13 +43,9 @@ export default {
     idCol: String,
     indexToEdit: Number,
   },
-  methods: {
-    toCapitalizedWords(name) {
-      const words = name.match(/[A-Za-z][a-z]*/g) || [];
-      return words.map(this.capitalize).join(" ");
-    },
-    capitalize(word) {
-      return word.charAt(0).toUpperCase() + word.substring(1);
+  computed: {
+    capitalizedHeaders() {
+     return this.data.length !== 0 ? Object.keys(this.data[0]).map((head) => toCapitalizedWords(head)) : [];
     },
   },
 };

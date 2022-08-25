@@ -33,7 +33,6 @@ export async function put(url, body) {
 
 export async function delete_(url, item) {
   const response = await fetch(`${url}/${item}`, { method: "DELETE" });
-  console.log(item)
   if (response.status != 200) {
     const error =
     (response.json && response.json.message) || response.statusText;
@@ -63,5 +62,3 @@ export async function getPrincipal() {
   const principal = get("/my/principal");
   return principal;
 }
-
-export default { get };

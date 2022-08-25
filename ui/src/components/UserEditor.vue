@@ -6,11 +6,11 @@
   >
     <!-- Enable adding/removing multiple projects -->
     <template #arrayEdit="array">
-      <TableColumnBadges
+      <BadgeList
         :itemArray="this.userToEdit.projects"
         :row="array.row"
         :saveCallback="this.deleteProjectCallback"
-      ></TableColumnBadges>
+      ></BadgeList>
       <Badge v-if="this.addProjectToRow">
         <input
           type="text"
@@ -36,14 +36,14 @@
 <script>
 import Badge from "../components/Badge.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
-import TableColumnBadges from "../components/TableColumnBadges.vue";
+import BadgeList from "../components/BadgeList.vue";
 
 export default {
   name: "UserEditor",
   components: {
     Badge,
     InlineRowEdit,
-    TableColumnBadges,
+    BadgeList,
   },
   props: {
     userToEdit: { String: String },

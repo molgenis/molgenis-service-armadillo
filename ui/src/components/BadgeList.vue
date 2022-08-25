@@ -16,7 +16,7 @@
 import Badge from "./Badge.vue";
 
 export default {
-  name: "TableColumnBadges",
+  name: "BadgeList",
   components: { Badge },
   props: {
     itemArray: Array,
