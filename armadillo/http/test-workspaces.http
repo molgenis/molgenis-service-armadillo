@@ -1,30 +1,30 @@
 ###
-POST http://localhost:8080/logout
+POST {{host}}/logout
 
 ###
-GET http://localhost:8080/symbols
+GET {{host}}/symbols
 Authorization: Basic admin admin
 
 ###
-POST http://localhost:8080/symbols/D
+POST {{host}}/symbols/D
 Content-Type: text/plain
 
 1:5
 
 ###
-GET http://localhost:8080/symbols
+GET {{host}}/symbols
 
 ###
-DELETE http://localhost:8080/symbols/D
+DELETE {{host}}/symbols/D
 
 ### List user workspaces
-GET http://localhost:8080/workspaces
+GET {{host}}/workspaces
 
 ### Create a user workspace
-POST http://localhost:8080/workspaces/test
+POST {{host}}/workspaces/test
 
 ### Load a user workspace
-POST http://localhost:8080/load-workspace?id=test
+POST {{host}}/load-workspace?id=test
 
 ### Delete a user workspace
-DELETE http://localhost:8080/workspaces/test
+DELETE {{host}}/workspaces/test

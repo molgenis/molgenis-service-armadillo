@@ -8,30 +8,30 @@
 ##########################################################
 
 ###
-POST http://localhost:8080/logout
+POST {{host}}/logout
 
 ###
-GET http://localhost:8080/v3/api-docs
+GET {{host}}/v3/api-docs
 
 ### authenticate with JWT token
-GET http://localhost:8080/tables
+GET {{host}}/tables
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlcwbmltejhpYU9DLW16OXNaTVRiVzRfbFdMMCJ9.eyJhdWQiOiJiMzk2MjMzYi1jZGIyLTQ0OWUtYWM1Yy1hMGQyOGIzOGY3OTEiLCJleHAiOjE1OTMxMDEwNTAsImlhdCI6MTU5MzA5NzQ1MCwiaXNzIjoiaHR0cHM6Ly9hdXRoLm1vbGdlbmlzLm9yZyIsInN1YiI6ImNjY2RlMmZlLTc0NWEtNDUxMS05Yjk1LTNlZTgzNDYxOTNiNiIsImF1dGhlbnRpY2F0aW9uVHlwZSI6IlBBU1NXT1JEIiwiZW1haWwiOiJmLmtlbHBpbkB1bWNnLm5sIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJJYVpGajZWRGl0TWpTcmxhbTlWZGJBIiwiY19oYXNoIjoidHdxWS1kMl9IOG5leWNjQmVmMFE5USIsImFwcGxpY2F0aW9uSWQiOiJiMzk2MjMzYi1jZGIyLTQ0OWUtYWM1Yy1hMGQyOGIzOGY3OTEiLCJyb2xlcyI6WyJTVSJdLCJwb2xpY3kiOiJyZWFkd3JpdGUifQ.mEZfqpBfNnaLKZw0tn0VJwGlx3TKqtGKX4TqeeMg0wvwetVrTfk_7nCc2a1BgnrhHQzFncUc5uM67B95yVsZuxpJ-T2uBKGp2k890n5D2i5o0hM6kvfv3OJHHHNyF_MuDHS0ST3bVBuUo8Sc1nbvUVJtSqQZ51HXaXbwKH_fbRxvBpuHMWSGXZdzHNdHELvaBFHPV_aMHpN6jyK1AY5oc-vXVIOsLOy6-i2tK1Hjnm6iI8O6CD1f4IF7H_mp_x3Dfbk30nvR4RchgPq26ekPpYm7P96L_RZTwh4FLxbjN43AdOgmiLjL_RMkGL3spsnQX-nkzwvkvuL-PmSjsB7jcw
 
 ### authenticate with basic auth
-GET http://localhost:8080/tables
+GET {{host}}/tables
 Authorization: Basic admin admin
 
 ###
-HEAD http://localhost:8080/tables/lifecycle/core/nonrep
+HEAD {{host}}/tables/lifecycle/core/nonrep
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=lifecycle/core/nonrep
+POST {{host}}/load-table?symbol=D&table=lifecycle/core/nonrep
 
 ###
-POST http://localhost:8080/load-table?symbol=D&table=lifecycle/core/nonrep&variables=agebirth_m_d
+POST {{host}}/load-table?symbol=D&table=lifecycle/core/nonrep&variables=agebirth_m_d
 
 ### get R-options
-POST http://localhost:8080/debug
+POST {{host}}/debug
 Accept: application/json
 Content-Type: text/plain
 
@@ -39,60 +39,60 @@ options()
 
 
 ###
-POST http://localhost:8080/debug
+POST {{host}}/debug
 Accept: application/json
 Content-Type: text/plain
 
 dsBase::meanDS(D$agebirth_m_d)$EstimatedMean
 
 ###
-GET http://localhost:8080/symbols
+GET {{host}}/symbols
 
 ###
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Accept: application/octet-stream
 Content-Type: text/plain
 
 meanDS(D$agebirth_m_d)
 
 ###
-DELETE http://localhost:8080/symbols/D
+DELETE {{host}}/symbols/D
 
 ###
-GET http://localhost:8080/methods/aggregate
+GET {{host}}/methods/aggregate
 
 ###
-GET http://localhost:8080/methods/assign
+GET {{host}}/methods/assign
 
 ###
-POST http://localhost:8080/symbols/D?async=true
+POST {{host}}/symbols/D?async=true
 Content-Type: text/plain
 
 0:5
 
 ###
-POST http://localhost:8080/debug
+POST {{host}}/debug
 Content-Type: text/plain
 
 dsBase::meanDS(D)$EstimatedMean
 
 ###
-POST http://localhost:8080/execute?async=true
+POST {{host}}/execute?async=true
 Accept: application/octet-stream
 Content-Type: text/plain
 
 meanDS(D)
 
 ###
-GET http://localhost:8080/lastcommand
+GET {{host}}/lastcommand
 accept: application/json
 
 ###
-GET http://localhost:8080/lastresult
+GET {{host}}/lastresult
 accept: application/octet-stream
 
 ###
-GET http://localhost:8080/whitelist
+GET {{host}}/whitelist
 
 ###
-POST http://localhost:8080/whitelist/DSI
+POST {{host}}/whitelist/DSI
