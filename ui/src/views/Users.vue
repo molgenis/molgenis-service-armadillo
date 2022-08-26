@@ -103,7 +103,6 @@
 import Badge from "../components/Badge.vue";
 import BadgeList from "../components/BadgeList.vue";
 import ButtonGroup from "../components/ButtonGroup.vue";
-import InlineRowEdit from "../components/InlineRowEdit.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
@@ -119,7 +118,6 @@ export default {
     Badge,
     BadgeList,
     ButtonGroup,
-    InlineRowEdit,
     LoadingSpinner,
     SearchBar,
     Table,
