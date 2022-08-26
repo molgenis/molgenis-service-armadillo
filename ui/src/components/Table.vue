@@ -10,8 +10,8 @@
     </thead>
     <tbody>
       <slot name="extraRow"></slot>
-      <template v-for="(item, index) in data">
-        <tr v-if="index != this.indexToEdit">
+      <template v-for="item in dataToShow">
+        <tr v-if="this.getIndex(item) != this.indexToEdit">
           <slot name="extraColumn" :item="item"></slot>
           <td v-for="value in item">
             <span v-if="Array.isArray(value)">
@@ -39,14 +39,24 @@ import { toCapitalizedWords } from "../helpers/utils.js";
 export default {
   name: "Table",
   props: {
-    data: Array,
+    // filtered data
+    dataToShow: Array,
+    // all data to ensure we have correct index when editing
+    allData: Array,
     idCol: String,
     indexToEdit: Number,
   },
   computed: {
     capitalizedHeaders() {
-     return this.data.length !== 0 ? Object.keys(this.data[0]).map((head) => toCapitalizedWords(head)) : [];
+     return this.dataToShow.length !== 0 ? Object.keys(this.dataToShow[0]).map((head) => toCapitalizedWords(head)) : [];
     },
+  },
+  methods: {
+    getIndex (itemToFind) {
+      return this.allData.findIndex((item) => {
+        return item === itemToFind;
+      })
+    }
   },
 };
 </script>

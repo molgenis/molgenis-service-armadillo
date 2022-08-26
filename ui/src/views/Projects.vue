@@ -19,7 +19,8 @@
     </div>
     <!-- Actual table -->
     <Table
-      :data="filteredProjects"
+      :dataToShow="filteredProjects"
+      :allData="projects"
       idCol="name"
       :indexToEdit="this.projectToEditIndex"
     >
@@ -55,7 +56,6 @@
         ></BadgeList>
       </template>
       <template #editRow="rowProps">
-        Hello!
         <TableRowEditor
           :rowToEdit="rowProps.row"
           arrayColumn="users"

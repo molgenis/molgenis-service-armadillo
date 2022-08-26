@@ -19,7 +19,8 @@
     </div>
     <!-- Actual table -->
     <Table
-      :data="filteredUsers"
+      :dataToShow="filteredUsers"
+      :allData="users"
       idCol="email"
       :indexToEdit="this.editMode.userToEditIndex"
     >
@@ -59,10 +60,7 @@
           <ButtonGroup
             :buttonIcons="['pencil-fill', 'trash-fill']"
             :buttonColors="['primary', 'danger']"
-            :clickCallbacks="[
-              this.editUser,
-              this.removeUser,
-            ]"
+            :clickCallbacks="[this.editUser, this.removeUser]"
             :callbackArguments="[columnProps.item, columnProps.item]"
           ></ButtonGroup>
         </th>
