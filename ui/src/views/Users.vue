@@ -41,16 +41,17 @@
       </template>
       <template v-slot:extraRow v-if="addRow">
         <!-- Extra row for adding a new user  -->
-        <UserEditor
-          :userToEdit="this.addMode.newUser"
+        <TableRowEditor
+          :rowToEdit="this.addMode.newUser"
+          arrayColumn="projects"
           :saveCallback="this.saveNewUser"
           :cancelCallback="this.clearNewUser"
-          :addProjectCallback="this.addProjectToNewUser"
-          :deleteProjectCallback="this.deleteProject"
-          :saveProjectCallback="this.saveProjectInAddMode"
-          :addProjectToRow="this.addMode.addProjectToRow"
+          :addArrayElementCallback="this.addProjectToNewUser"
+          :deleteArrayElementCallback="this.deleteProject"
+          :saveArrayElementCallback="this.saveProjectInAddMode"
+          :addArrayElementToRow="this.addMode.addProjectToRow"
           v-model="this.addMode.project"
-        ></UserEditor>
+        ></TableRowEditor>
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
@@ -84,16 +85,17 @@
         />
       </template>
       <template #editRow="rowProps">
-        <UserEditor
-          :userToEdit="rowProps.row"
+        <TableRowEditor
+          :rowToEdit="rowProps.row"
+          arrayColumn="projects"
           :saveCallback="this.saveEditedUser"
           :cancelCallback="this.clearUserToEdit"
-          :addProjectCallback="this.addProjectToEditUser"
-          :deleteProjectCallback="this.deleteProject"
-          :saveProjectCallback="this.saveProjectInEditMode"
-          :addProjectToRow="this.editMode.addProjectToRow"
+          :addArrayElementCallback="this.addProjectToEditUser"
+          :deleteArrayElementCallback="this.deleteProject"
+          :saveArrayElementCallback="this.saveProjectInEditMode"
+          :addArrayElementToRow="this.editMode.addProjectToRow"
           v-model="this.editMode.project"
-        ></UserEditor>
+        ></TableRowEditor>
       </template>
     </Table>
   </div>
@@ -106,7 +108,7 @@ import ButtonGroup from "../components/ButtonGroup.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
-import UserEditor from "../components/UserEditor.vue";
+import TableRowEditor from "../components/TableRowEditor.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api.js";
 import { stringIncludesOtherString } from "../helpers/utils.js";
@@ -121,7 +123,7 @@ export default {
     LoadingSpinner,
     SearchBar,
     Table,
-    UserEditor,
+    TableRowEditor,
     UserFeedback,
   },
   setup() {

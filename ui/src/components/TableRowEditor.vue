@@ -1,17 +1,17 @@
 <template>
   <InlineRowEdit
-    :row="this.userToEdit"
+    :row="this.rowToEdit"
     :save="this.saveCallback"
     :cancel="this.cancelCallback"
   >
-    <!-- Enable adding/removing multiple projects -->
+    <!-- Enable adding/removing multiple array elements -->
     <template #arrayEdit="array">
       <BadgeList
-        :itemArray="this.userToEdit.projects"
+        :itemArray="this.rowToEdit[arrayColumn]"
         :row="array.row"
-        :saveCallback="this.deleteProjectCallback"
+        :saveCallback="this.deleteArrayElementCallback"
       ></BadgeList>
-      <Badge v-if="this.addProjectToRow">
+      <Badge v-if="this.addArrayElementToRow">
         <input
           type="text"
           :value="modelValue"
@@ -19,14 +19,14 @@
         />
         <button
           class="check-badge text-light bg-secondary"
-          @click="this.saveProjectCallback"
+          @click="this.saveArrayElementCallback"
         >
           <i class="bi bi-check-lg"></i>
         </button>
       </Badge>
       <button
         class="btn btn-primary btn-sm float-end"
-        @click="this.addProjectCallback"
+        @click="this.addArrayElementCallback"
       >
         <i class="bi bi-plus-lg"></i>
       </button>
@@ -39,21 +39,22 @@ import InlineRowEdit from "../components/InlineRowEdit.vue";
 import BadgeList from "../components/BadgeList.vue";
 
 export default {
-  name: "UserEditor",
+  name: "TableRowEditor",
   components: {
     Badge,
     InlineRowEdit,
     BadgeList,
   },
   props: {
-    userToEdit: { String: String },
+    rowToEdit: { String: String },
+    arrayColumn: String,
     saveCallback: Function,
     cancelCallback: Function,
-    addProjectCallback: Function,
-    deleteProjectCallback: Function,
-    saveProjectCallback: Function,
-    addProjectToRow: Boolean,
-    // projectToAdd
+    addArrayElementCallback: Function,
+    deleteArrayElementCallback: Function,
+    saveArrayElementCallback: Function,
+    addArrayElementToRow: Boolean,
+    // v-model to the element to model the input of the new array element to
     modelValue: String,
   },
 };
