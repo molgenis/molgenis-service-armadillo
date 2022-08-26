@@ -316,12 +316,3 @@ export default {
   },
 };
 </script>
-
-<style>
-button.check-badge {
-  border: none;
-  padding: 0;
-  margin-left: 0.2em;
-  margin-right: -0.2em;
-}
-</style>
