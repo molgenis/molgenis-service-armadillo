@@ -219,7 +219,10 @@ export default {
       const updatedUser = user;
       user.projects = projects;
       // Don't save immediately while editing
-      if (user.email !== this.editMode.userToEdit && user.email !== this.addMode.newUser.email) {
+      if (
+        user.email !== this.editMode.userToEdit &&
+        user.email !== this.addMode.newUser.email
+      ) {
         this.saveUser(updatedUser);
       }
     },
@@ -228,10 +231,14 @@ export default {
     },
     getEditIndex() {
       const index = this.users.findIndex((user) => {
-        console.log(user, user.email === this.editMode.userToEdit, this.editMode.userToEdit)
+        console.log(
+          user,
+          user.email === this.editMode.userToEdit,
+          this.editMode.userToEdit
+        );
         return user.email === this.editMode.userToEdit;
       });
-      console.log(index)
+      console.log(index);
       // only change when user is cleared, otherwise it will return -1 when email is altered
       if (this.editMode.userToEdit === "" || index !== -1) {
         return index;
@@ -278,20 +285,19 @@ export default {
         }
       });
     },
-    saveProject(projects, newProject, projectBool) {
-      projects.push(newProject);
-      newProject = "";
-      projectBool = false;
+    saveProject(projects, mode) {
+      projects.push(this[mode].project);
+      this[mode].project = "";
+      this[mode].addProjectToRow = false;
     },
     saveProjectInAddMode() {
-      this.addMode.newUser.projects.push(this.addMode.project)
-      this.addMode.project = "";
-      this.addMode.addProjectToRow = false;
+      this.saveProject(this.addMode.newUser.projects, "addMode");
     },
     saveProjectInEditMode() {
-      this.users[this.editMode.userToEditIndex].projects.push(this.editMode.project);
-      this.editMode.project = "";
-      this.editMode.addProjectToRow = false;
+      this.saveProject(
+        this.users[this.editMode.userToEditIndex].projects,
+        "editMode"
+      );
     },
     saveUser(user, callback) {
       this.clearUserMessages();
