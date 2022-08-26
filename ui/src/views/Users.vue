@@ -291,7 +291,7 @@ export default {
     saveUser(user, callback) {
       this.clearUserMessages();
       if (user.email === "") {
-        this.errorMessage = "Cannot create user with empty email adress.";
+        this.errorMessage = "Cannot create user with empty email address.";
       } else {
         putUser(user)
           .then(() => {
