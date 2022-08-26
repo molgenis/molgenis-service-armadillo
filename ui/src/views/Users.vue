@@ -55,22 +55,15 @@
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
         <th scope="row">
-          <div class="btn-group" role="group">
-            <button
-              type="button"
-              class="btn btn-primary btn-sm bg-primary"
-              @click="this.editUser(columnProps.item)"
-            >
-              <i class="bi bi-pencil-fill"></i>
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger btn-sm bg-danger"
-              @click="this.removeUser(columnProps.item)"
-            >
-              <i class="bi bi-trash-fill"></i>
-            </button>
-          </div>
+          <ButtonGroup
+            :buttonIcons="['pencil-fill', 'trash-fill']"
+            :buttonColors="['primary', 'danger']"
+            :clickCallbacks="[
+              this.editUser,
+              this.removeUser,
+            ]"
+            :callbackArguments="[columnProps.item, columnProps.item]"
+          ></ButtonGroup>
         </th>
       </template>
       <template #arrayType="arrayProps">
@@ -108,11 +101,12 @@
 
 <script>
 import Badge from "../components/Badge.vue";
+import BadgeList from "../components/BadgeList.vue";
+import ButtonGroup from "../components/ButtonGroup.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
-import BadgeList from "../components/BadgeList.vue";
 import UserEditor from "../components/UserEditor.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api.js";
@@ -124,6 +118,7 @@ export default {
   components: {
     Badge,
     BadgeList,
+    ButtonGroup,
     InlineRowEdit,
     LoadingSpinner,
     SearchBar,
@@ -231,14 +226,8 @@ export default {
     },
     getEditIndex() {
       const index = this.users.findIndex((user) => {
-        console.log(
-          user,
-          user.email === this.editMode.userToEdit,
-          this.editMode.userToEdit
-        );
         return user.email === this.editMode.userToEdit;
       });
-      console.log(index);
       // only change when user is cleared, otherwise it will return -1 when email is altered
       if (this.editMode.userToEdit === "" || index !== -1) {
         return index;

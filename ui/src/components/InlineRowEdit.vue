@@ -1,22 +1,11 @@
 <template>
   <tr>
     <th scope="row">
-      <div class="btn-group" role="group">
-        <button
-          type="button"
-          class="btn btn-success btn-sm bg-success"
-          @click="this.save"
-        >
-          <i class="bi bi-check-lg"></i>
-        </button>
-        <button
-          type="button"
-          class="btn btn-danger btn-sm bg-danger"
-          @click="this.cancel"
-        >
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
+      <ButtonGroup
+        :buttonIcons="['check-lg', 'x-lg']"
+        :buttonColors="['success', 'danger']"
+        :clickCallbacks="[this.save, this.cancel]"
+      ></ButtonGroup>
     </th>
     <td v-for="(value, column) in this.rowData">
       <div v-if="Array.isArray(value)">
@@ -51,8 +40,12 @@
 </template>
 
 <script>
+import ButtonGroup from "../components/ButtonGroup.vue";
 export default {
   name: "InlineRowEdit",
+  components: {
+    ButtonGroup,
+  },
   props: {
     save: Function,
     cancel: Function,
