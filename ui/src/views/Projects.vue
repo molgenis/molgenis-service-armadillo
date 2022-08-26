@@ -19,7 +19,7 @@
     </div>
     <!-- Actual table -->
     <Table
-      :dataToShow="filteredProjects"
+      :dataToShow="filteredAndSortedProjects"
       :allData="projects"
       idCol="name"
       :indexToEdit="this.projectToEditIndex"
@@ -83,7 +83,7 @@ import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getProjects, putProject, deleteProject } from "../api/api.js";
-import { stringIncludesOtherString } from "../helpers/utils.js";
+import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.js";
 import { onMounted, ref } from "vue";
 
 export default {
@@ -125,14 +125,14 @@ export default {
     };
   },
   computed: {
-    filteredProjects() {
+    filteredAndSortedProjects() {
+      const projects = this.projects;
       if (this.searchString) {
-        return this.projects.filter((project) => {
+        projects = this.projects.filter((project) => {
           return stringIncludesOtherString(project.name, this.searchString);
         });
-      } else {
-        return this.projects;
       }
+      return sortAlphabetically(projects, "name");
     },
   },
   watch: {

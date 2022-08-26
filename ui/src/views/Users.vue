@@ -19,7 +19,7 @@
     </div>
     <!-- Actual table -->
     <Table
-      :dataToShow="filteredUsers"
+      :dataToShow="filteredAndSortedUsers"
       :allData="users"
       idCol="email"
       :indexToEdit="this.editMode.userToEditIndex"
@@ -109,7 +109,7 @@ import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import UserFeedback from "../components/UserFeedback.vue";
 import { getUsers, putUser, deleteUser } from "../api/api.js";
-import { stringIncludesOtherString } from "../helpers/utils.js";
+import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.js";
 import { onMounted, ref } from "vue";
 
 export default {
@@ -168,18 +168,18 @@ export default {
     userToEdit() {
       return this.editMode.userToEdit;
     },
-    filteredUsers() {
+    filteredAndSortedUsers() {
+      const users = this.users;
       if (this.searchString) {
-        return this.users.filter((user) => {
+        users = this.users.filter((user) => {
           return (
             stringIncludesOtherString(user.email, this.searchString) ||
             stringIncludesOtherString(user.firstName, this.searchString) ||
             stringIncludesOtherString(user.lastName, this.searchString)
           );
         });
-      } else {
-        return this.users;
-      }
+      } 
+      return sortAlphabetically(users, 'email');
     },
   },
   watch: {
