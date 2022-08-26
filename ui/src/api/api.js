@@ -50,6 +50,14 @@ export async function putUser(userJson) {
   return put("/metadata/users", userJson);
 }
 
+export async function deleteProject(name) {
+  return delete_("/metadata/projects", name);
+}
+
+export async function putProject(projectJson) {
+  return put("/metadata/projects", projectJson);
+}
+
 export async function getUsers() {
   return get("/metadata/users");
 }

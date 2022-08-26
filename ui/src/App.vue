@@ -15,10 +15,13 @@
                 v-for="item in this.tabs"
                 :menuItem="item"
                 :menuIndex="this.tabs.indexOf(item)"
-                :isActive="this.activeTab == this.tabs.indexOf(item)"
+                :isActive="this.activeTab === this.tabs.indexOf(item)"
               >
-                <div v-if="item == 'Users'">
+                <div v-if="item === 'Users'">
                   <Users></Users>
+                </div>
+                <div v-else-if="item === 'Projects'">
+                  <Projects></Projects>
                 </div>
                 <div v-else>To do: {{ item }}</div>
               </TabContent>
@@ -34,6 +37,7 @@
 import Navbar from "./components/Navbar.vue";
 import Tabs from "./components/Tabs.vue";
 import TabContent from "./components/TabContent.vue";
+import Projects from "./views/Projects.vue";
 import Users from "./views/Users.vue";
 import { onMounted, ref } from "vue";
 import { getPrincipal } from "./api/api";
@@ -42,6 +46,7 @@ export default {
   name: "ArmadilloPortal",
   components: {
     Navbar,
+    Projects,
     Tabs,
     TabContent,
     Users,
