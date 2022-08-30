@@ -6,7 +6,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -32,20 +34,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.security.Principal;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
@@ -63,24 +61,14 @@ import org.obiba.datashield.r.expr.v2.ParseException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
-import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
-@ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-@Import(AuditEventPublisher.class)
-class DataControllerTest {
+class DataControllerTest extends ArmadilloControllerTest {
 
   private static final RPackage BASE =
       RPackage.builder()
@@ -98,33 +86,12 @@ class DataControllerTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  @Autowired private MockMvc mockMvc;
-  @Autowired AuditEventPublisher auditEventPublisher;
   @MockBean private ExpressionRewriter expressionRewriter;
   @MockBean private Commands commands;
   @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean private DSEnvironmentCache environments;
-  @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @Mock private REXP rexp;
   @Mock private DSEnvironment assignEnvironment;
-
-  @Mock(lenient = true)
-  private Clock clock;
-
-  @Captor private ArgumentCaptor<AuditApplicationEvent> eventCaptor;
-  MockHttpSession session = new MockHttpSession();
-  private String sessionId;
-  private final Instant instant = Instant.now();
-  private AuditEventValidator auditEventValidator;
-
-  @BeforeEach
-  public void setup() {
-    auditEventValidator = new AuditEventValidator(applicationEventPublisher, eventCaptor);
-    auditEventPublisher.setClock(clock);
-    auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
-    when(clock.instant()).thenReturn(instant);
-    sessionId = session.changeSessionId();
-  }
 
   @Test
   @WithMockUser
@@ -156,7 +123,6 @@ class DataControllerTest {
   @Test
   @WithMockUser
   void testGetPackages() throws Exception {
-    when(clock.instant()).thenReturn(instant);
     when(commands.getPackages()).thenReturn(completedFuture(List.of(BASE, DESC)));
     mockMvc
         .perform(get("/packages").session(session))
