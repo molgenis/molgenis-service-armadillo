@@ -76,7 +76,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String TABLE = "table";
   public static final String ID = "id";
   private static final String ANONYMOUS = "ANONYMOUS";
-  public static final String SESSION_ID = "sessionId";
+  public static final String MDC_SESSION_ID = "sessionID";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
 
@@ -96,7 +96,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
       String sessionId,
       List<String> roles) {
     Map<String, Object> sessionData = new HashMap<>(data);
-    sessionData.put(SESSION_ID, sessionId);
+    sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
     var user = principal != null ? principal.getName() : ANONYMOUS;
     applicationEventPublisher.publishEvent(
@@ -104,14 +104,14 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
-    audit(principal, type, data, MDC.get(SESSION_ID), getRoles());
+    audit(principal, type, data, MDC.get(MDC_SESSION_ID), getRoles());
   }
 
   /** Audits a CompletableFuture. */
   public <T> CompletableFuture<T> audit(
       CompletableFuture<T> future, Principal principal, String type, Map<String, Object> data) {
     // remember context to fill it in when future completes
-    final var sessionId = MDC.get(SESSION_ID);
+    final var sessionId = MDC.get(MDC_SESSION_ID);
     final var roles = getRoles();
 
     return future.whenComplete(
@@ -149,7 +149,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
   private void auditFailure(
       Principal principal, String type, Map<String, Object> data, Throwable failure) {
-    auditFailure(principal, type, data, failure, MDC.get("sessionID"), getRoles());
+    auditFailure(principal, type, data, failure, MDC.get(MDC_SESSION_ID), getRoles());
   }
 
   private void auditFailure(
