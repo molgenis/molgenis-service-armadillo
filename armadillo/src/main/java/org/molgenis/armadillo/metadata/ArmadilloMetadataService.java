@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,6 +132,11 @@ public class ArmadilloMetadataService {
 
   public void userDelete(String email) {
     Objects.requireNonNull(email);
+
+    if (!settings.getUsers().containsKey(email)) {
+      throw new UnknownUserException(email);
+    }
+
     // replace settings
     settings.getUsers().remove(email);
     settings =
@@ -149,6 +156,10 @@ public class ArmadilloMetadataService {
   }
 
   public ProjectDetails projectsByName(String projectName) {
+    if (!settings.getProjects().containsKey(projectName)) {
+      throw new UnknownProjectException(projectName);
+    }
+
     return ProjectDetails.create(
         projectName,
         // add permissions
@@ -240,10 +251,11 @@ public class ArmadilloMetadataService {
   }
 
   public UserDetails usersByEmail(String email) {
-    UserDetails userDetails =
-        settings
-            .getUsers()
-            .getOrDefault(email, UserDetails.create(email, null, null, null, null, null));
+    if (!settings.getUsers().containsKey(email)) {
+      throw new UnknownUserException(email);
+    }
+
+    UserDetails userDetails = settings.getUsers().get(email);
     return UserDetails.create(
         userDetails.getEmail(),
         userDetails.getFirstName(),
