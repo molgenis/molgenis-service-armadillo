@@ -51,7 +51,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 @WebMvcTest(StorageController.class)
 @WithMockUser(roles = "SU")
-class StorageControllerTest extends ArmadilloControllerTest {
+class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @MockBean ArmadilloStorageService storage;
 

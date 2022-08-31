@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
 @WebMvcTest
-public class ArmadilloControllerTest {
+public class ArmadilloControllerTestBase {
 
   @Autowired protected MockMvc mockMvc;
   @Autowired AuditEventPublisher auditEventPublisher;

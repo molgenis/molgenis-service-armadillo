@@ -137,9 +137,11 @@ class MinioStorageService implements StorageService {
   public void save(InputStream is, String projectName, String objectName, MediaType mediaType) {
     createBucketIfNotExists(projectName);
     try {
-      LOGGER.info(
-          format("Putting object %s in bucket %s.", objectName, projectName)
-              .replaceAll("[\n\r\t]", "_"));
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info(
+            format("Putting object %s in bucket %s.", objectName, projectName)
+                .replaceAll("[\n\r\t]", "_"));
+      }
       minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException

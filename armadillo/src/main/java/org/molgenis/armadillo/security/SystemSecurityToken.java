@@ -13,7 +13,7 @@ public class SystemSecurityToken extends UsernamePasswordAuthenticationToken {
   public static final String SYSTEM = "SYSTEM";
 
   public SystemSecurityToken() {
-    super(SYSTEM, "SYSTEM", AUTHORITIES);
+    super(SYSTEM, SYSTEM, AUTHORITIES);
   }
 
   @Override

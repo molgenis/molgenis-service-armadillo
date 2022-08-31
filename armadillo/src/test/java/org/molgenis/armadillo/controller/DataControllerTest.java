@@ -68,7 +68,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(DataController.class)
-class DataControllerTest extends ArmadilloControllerTest {
+class DataControllerTest extends ArmadilloControllerTestBase {
 
   private static final RPackage BASE =
       RPackage.builder()
