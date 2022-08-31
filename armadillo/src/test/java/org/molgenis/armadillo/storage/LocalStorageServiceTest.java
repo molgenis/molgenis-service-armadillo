@@ -38,7 +38,7 @@ class LocalStorageServiceTest {
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() {
-    assertFalse(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertFalse(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
@@ -50,7 +50,7 @@ class LocalStorageServiceTest {
         SOME_OBJECT_PATH,
         MediaType.TEXT_PLAIN);
     // test it exists
-    assertTrue(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
     // test it has expected metadata
     ObjectMetadata metadata = localStorageService.listObjects(SOME_PROJECT).get(0);
     assertTrue(metadata.lastModified().before(new Date()));
@@ -67,7 +67,7 @@ class LocalStorageServiceTest {
         MediaType.TEXT_PLAIN);
 
     // check it exists
-    assertTrue(localStorageService.bucketExists(SOME_PROJECT, SOME_OBJECT_PATH));
+    assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }
 
   @Test
@@ -99,13 +99,28 @@ class LocalStorageServiceTest {
         MediaType.TEXT_PLAIN);
 
     // check it exists
-    assertTrue(localStorageService.bucketExists("user-admin", "blah.RData"));
+    assertTrue(localStorageService.objectExists("user-admin", "blah.RData"));
 
     // delete a file
     localStorageService.delete("user-admin", "blah.RData");
 
     // check removed
-    assertFalse(localStorageService.bucketExists("user-admin", "blah.RData"));
+    assertFalse(localStorageService.objectExists("user-admin", "blah.RData"));
+  }
+
+  @Test
+  void testDeleteBucket() {
+    localStorageService.createBucketIfNotExists("delete-bucket-test");
+
+    assertTrue(
+        localStorageService.listBuckets().stream()
+            .anyMatch(bucket -> bucket.equals("delete-bucket-test")));
+
+    localStorageService.deleteBucket("delete-bucket-test");
+
+    assertTrue(
+        localStorageService.listBuckets().stream()
+            .noneMatch(bucket -> bucket.equals("delete-bucket-test")));
   }
 
   @Test

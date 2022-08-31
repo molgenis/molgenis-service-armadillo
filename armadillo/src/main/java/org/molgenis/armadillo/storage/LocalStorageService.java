@@ -50,7 +50,7 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public boolean bucketExists(String bucketName, String objectName) {
+  public boolean objectExists(String bucketName, String objectName) {
     Objects.requireNonNull(objectName);
 
     try {
