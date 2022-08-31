@@ -10,9 +10,7 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
@@ -56,44 +54,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @MockBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
-
-  @Test
-  void listProjects() throws Exception {
-    when(storage.listProjects()).thenReturn(List.of("lifecycle", "test"));
-
-    mockMvc
-        .perform(get("/storage/projects").session(session))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[\"lifecycle\", \"test\"]"));
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(instant, "user", LIST_PROJECTS, mockSuAuditMap()));
-  }
-
-  @Test
-  void projectExists() throws Exception {
-    when(storage.hasProject("lifecycle")).thenReturn(true);
-
-    mockMvc
-        .perform(head("/storage/projects/lifecycle").session(session))
-        .andExpect(status().isNoContent());
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(instant, "user", GET_PROJECT, mockSuAuditMap(Map.of(PROJECT, "lifecycle"))));
-  }
-
-  @Test
-  void projectNotExists() throws Exception {
-    when(storage.hasProject("lifecycle")).thenReturn(false);
-
-    mockMvc
-        .perform(head("/storage/projects/lifecycle").session(session))
-        .andExpect(status().isNotFound());
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(instant, "user", GET_PROJECT, mockSuAuditMap(Map.of(PROJECT, "lifecycle"))));
-  }
 
   @Test
   void listObjects() throws Exception {

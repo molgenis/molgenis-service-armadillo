@@ -4,9 +4,7 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
@@ -67,42 +65,6 @@ public class StorageController {
   public StorageController(ArmadilloStorageService storage, AuditEventPublisher auditor) {
     this.storage = storage;
     this.auditor = auditor;
-  }
-
-  @Operation(summary = "List all projects")
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Projects listed",
-            content =
-                @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized",
-            content = @Content(schema = @Schema(hidden = true)))
-      })
-  @GetMapping(
-      value = "/projects",
-      produces = {APPLICATION_JSON_VALUE})
-  @ResponseStatus(OK)
-  public List<String> listProjects(Principal principal) {
-    return auditor.audit(storage::listProjects, principal, LIST_PROJECTS, Map.of());
-  }
-
-  @Operation(summary = "Project exists?")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Project exists"),
-        @ApiResponse(responseCode = "404", description = "Project does not exist"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-      })
-  @RequestMapping(value = "/projects/{project}", method = HEAD)
-  public ResponseEntity<Void> projectExists(Principal principal, @PathVariable String project) {
-    boolean projectExists =
-        auditor.audit(
-            () -> storage.hasProject(project), principal, GET_PROJECT, Map.of(PROJECT, project));
-    return projectExists ? noContent().build() : notFound().build();
   }
 
   @Operation(summary = "List objects in a project")
