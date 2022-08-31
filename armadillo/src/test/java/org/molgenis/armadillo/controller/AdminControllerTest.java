@@ -76,7 +76,7 @@ class AdminControllerTest {
                 .param("project", "chefkesProject")
                 .param("email", "chefke@email.com")
                 .with(csrf()))
-        .andExpect(status().isCreated());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -108,7 +108,7 @@ class AdminControllerTest {
                 .param("email", "bofke@email.com")
                 .param("project", "bofkesProject")
                 .with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -171,7 +171,7 @@ class AdminControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(delete("/admin/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -225,7 +225,7 @@ class AdminControllerTest {
                     Set.of("chefkesProject")));
     mockMvc
         .perform(put("/admin/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     final String backendState =
@@ -250,7 +250,9 @@ class AdminControllerTest {
   void users_email_DELETE() throws Exception {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
-    mockMvc.perform(delete("/admin/users/bofke@email.com").with(csrf())).andExpect(status().isOk());
+    mockMvc
+        .perform(delete("/admin/users/bofke@email.com").with(csrf()))
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
