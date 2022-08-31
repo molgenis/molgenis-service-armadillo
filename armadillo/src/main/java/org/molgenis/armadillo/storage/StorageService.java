@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
-  boolean bucketExists(String bucket, String objectName);
+  boolean objectExists(String bucket, String objectName);
 
   void createBucketIfNotExists(String bucketName);
 

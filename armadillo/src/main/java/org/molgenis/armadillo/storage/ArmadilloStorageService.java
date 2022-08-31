@@ -63,8 +63,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean hasObject(String project, String object) {
     throwIfUnknown(project);
-    return storageService.listObjects(SHARED_PREFIX + project).stream()
-        .anyMatch(objectMetadata -> objectMetadata.name().equals(object));
+    return storageService.objectExists(SHARED_PREFIX + project, object);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -87,7 +86,7 @@ public class ArmadilloStorageService {
     storageService.delete(SHARED_PREFIX + project, object);
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public InputStream loadObject(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.load(SHARED_PREFIX + project, object);
@@ -121,7 +120,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean tableExists(String project, String objectName) {
-    return storageService.bucketExists(SHARED_PREFIX + project, objectName + PARQUET);
+    return storageService.objectExists(SHARED_PREFIX + project, objectName + PARQUET);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -131,7 +130,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean resourceExists(String project, String objectName) {
-    return storageService.bucketExists(SHARED_PREFIX + project, objectName + RDS);
+    return storageService.objectExists(SHARED_PREFIX + project, objectName + RDS);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -195,7 +194,7 @@ public class ArmadilloStorageService {
   }
 
   public InputStream loadSystemFile(String name) {
-    if (storageService.bucketExists(SYSTEM, name)) {
+    if (storageService.objectExists(SYSTEM, name)) {
       return storageService.load(SYSTEM, name);
     } else {
       return InputStream.nullInputStream();

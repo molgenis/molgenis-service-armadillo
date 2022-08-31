@@ -49,7 +49,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public boolean bucketExists(String bucket, String objectName) {
+  public boolean objectExists(String bucket, String objectName) {
     try {
       minioClient.statObject(bucket, objectName);
       return true;

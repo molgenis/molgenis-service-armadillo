@@ -65,7 +65,7 @@ class MinioStorageServiceTest {
     when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_KEY);
     doThrow(errorResponseException).when(minioClient).statObject("project", "object");
 
-    assertFalse(minioStorageService.bucketExists("project", "object"));
+    assertFalse(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
@@ -74,7 +74,7 @@ class MinioStorageServiceTest {
     when(errorResponse.errorCode()).thenReturn(ErrorCode.NO_SUCH_OBJECT);
     doThrow(errorResponseException).when(minioClient).statObject("project", "object");
 
-    assertFalse(minioStorageService.bucketExists("project", "object"));
+    assertFalse(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
@@ -84,14 +84,14 @@ class MinioStorageServiceTest {
         .statObject("Project", "object");
 
     assertThrows(
-        StorageException.class, () -> minioStorageService.bucketExists("Project", "object"));
+        StorageException.class, () -> minioStorageService.objectExists("Project", "object"));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceObjectExists() throws Exception {
     when(minioClient.statObject("project", "object")).thenReturn(objectStat);
 
-    assertTrue(minioStorageService.bucketExists("project", "object"));
+    assertTrue(minioStorageService.objectExists("project", "object"));
   }
 
   @Test
