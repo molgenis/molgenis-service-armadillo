@@ -47,14 +47,14 @@ class MinioStorageServiceTest {
     doThrow(new IOException("blah")).when(minioClient).bucketExists("project");
 
     assertThrows(
-        StorageException.class, () -> minioStorageService.createProjectIfNotExists("project"));
+        StorageException.class, () -> minioStorageService.createBucketIfNotExists("project"));
   }
 
   @Test
   void testCheckProjectExistsCreatesProjectIfNotFound() throws Exception {
     when(minioClient.bucketExists("project")).thenReturn(false);
 
-    minioStorageService.createProjectIfNotExists("project");
+    minioStorageService.createBucketIfNotExists("project");
 
     verify(minioClient).makeBucket("project");
   }
@@ -135,5 +135,12 @@ class MinioStorageServiceTest {
     minioStorageService.delete("user-admin", "blah.RData");
 
     verify(minioClient).removeObject("user-admin", "blah.RData");
+  }
+
+  @Test
+  void testDeleteBucket() throws Exception {
+    minioStorageService.deleteBucket("test");
+
+    verify(minioClient).removeBucket("test");
   }
 }

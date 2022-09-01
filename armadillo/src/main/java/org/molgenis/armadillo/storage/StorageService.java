@@ -1,32 +1,23 @@
 package org.molgenis.armadillo.storage;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.InputStream;
 import java.util.List;
-import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
   boolean objectExists(String bucket, String objectName);
 
-  void createProjectIfNotExists(String projectName);
+  void createBucketIfNotExists(String bucketName);
 
-  List<String> listProjects();
+  void deleteBucket(String bucketName);
 
-  void save(InputStream is, String projectName, String objectName, MediaType mediaType);
+  List<String> listBuckets();
 
-  List<ObjectMetadata> listObjects(String projectName);
+  void save(InputStream is, String bucketName, String objectName, MediaType mediaType);
 
-  InputStream load(String projectName, String objectName);
+  List<ObjectMetadata> listObjects(String bucketName);
 
-  void delete(String projectName, String objectName);
+  InputStream load(String bucketName, String objectName);
 
-  static void validateProjectName(String projectName) {
-    requireNonNull(projectName);
-
-    if (!projectName.toLowerCase().equals(projectName)) {
-      throw new StorageException("Project names cannot contain uppercase characters");
-    }
-  }
+  void delete(String bucketName, String objectName);
 }

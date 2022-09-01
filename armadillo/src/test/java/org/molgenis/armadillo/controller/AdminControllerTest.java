@@ -3,6 +3,7 @@ package org.molgenis.armadillo.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -33,11 +34,11 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(MetadataController.class)
+@WebMvcTest(AdminController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-class MetadataControllerTest {
+class AdminControllerTest {
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
   @MockBean private ArmadilloStorageService armadilloStorage;
@@ -51,14 +52,14 @@ class MetadataControllerTest {
     // default state
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(EXAMPLE_SETTINGS.getBytes()));
-    armadilloMetadataService.reload();
+    runAsSystem(armadilloMetadataService::reload);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void settings_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata"))
+        .perform(get("/admin"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(EXAMPLE_SETTINGS));
@@ -71,11 +72,11 @@ class MetadataControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            post("/metadata/permissions")
+            post("/admin/permissions")
                 .param("project", "chefkesProject")
                 .param("email", "chefke@email.com")
                 .with(csrf()))
-        .andExpect(status().isCreated());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -89,7 +90,7 @@ class MetadataControllerTest {
   @WithMockUser(roles = "SU")
   void permissions_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata/permissions"))
+        .perform(get("/admin/permissions"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -103,11 +104,11 @@ class MetadataControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            delete("/metadata/permissions")
+            delete("/admin/permissions")
                 .param("email", "bofke@email.com")
                 .param("project", "bofkesProject")
                 .with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -121,7 +122,7 @@ class MetadataControllerTest {
   @WithMockUser(roles = "SU")
   void projects_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata/projects"))
+        .perform(get("/admin/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -133,7 +134,7 @@ class MetadataControllerTest {
   @WithUserDetails("bofke")
   void projects_name_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata/projects/bofkesProject"))
+        .perform(get("/admin/projects/bofkesProject"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"name\":\"bofkesProject\"}"));
@@ -146,7 +147,7 @@ class MetadataControllerTest {
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
-            put("/metadata/projects")
+            put("/admin/projects")
                 .content(
                     new Gson()
                         .toJson(
@@ -169,8 +170,8 @@ class MetadataControllerTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
-        .perform(delete("/metadata/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
-        .andExpect(status().isOk());
+        .perform(delete("/admin/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
@@ -183,14 +184,14 @@ class MetadataControllerTest {
   @Test
   @WithMockUser
   void settings_projects_GET_PermissionDenied() throws Exception {
-    mockMvc.perform(get("/metadata/projects")).andExpect(status().is(403));
+    mockMvc.perform(get("/admin/projects")).andExpect(status().is(403));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void users_GET() throws Exception {
     mockMvc
-        .perform(get("/metadata/users"))
+        .perform(get("/admin/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"email\":\"bofke@email.com\"}]"));
@@ -200,7 +201,7 @@ class MetadataControllerTest {
   @WithMockUser(roles = "SU")
   void users_GET_byEmail() throws Exception {
     mockMvc
-        .perform(get("/metadata/users/bofke@email.com"))
+        .perform(get("/admin/users/bofke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"email\": \"bofke@email.com\"}"));
@@ -223,9 +224,8 @@ class MetadataControllerTest {
                     true,
                     Set.of("chefkesProject")));
     mockMvc
-        .perform(
-            put("/metadata/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
-        .andExpect(status().isOk());
+        .perform(put("/admin/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     final String backendState =
@@ -237,9 +237,9 @@ class MetadataControllerTest {
     // check that 'get' also in sync
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(new ByteArrayInputStream(backendState.getBytes()));
-    armadilloMetadataService.reload();
+    runAsSystem(armadilloMetadataService::reload);
     mockMvc
-        .perform(get("/metadata/users/chefke@email.com"))
+        .perform(get("/admin/users/chefke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(testUser));
@@ -251,8 +251,8 @@ class MetadataControllerTest {
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
-        .perform(delete("/metadata/users/bofke@email.com").with(csrf()))
-        .andExpect(status().isOk());
+        .perform(delete("/admin/users/bofke@email.com").with(csrf()))
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
