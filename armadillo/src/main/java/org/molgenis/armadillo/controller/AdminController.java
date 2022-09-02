@@ -224,7 +224,7 @@ public class AdminController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PutMapping(value = "projects", produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(OK)
+  @ResponseStatus(NO_CONTENT)
   public void projectsUpsert(Principal principal, @RequestBody ProjectDetails projectDetails) {
     auditor.audit(
         () -> metadata.projectsUpsert(projectDetails),

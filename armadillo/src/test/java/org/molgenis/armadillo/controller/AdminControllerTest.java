@@ -154,7 +154,7 @@ class AdminControllerTest {
                             ProjectDetails.create("chefkesProject", Set.of("chefke@email.com"))))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     verify(armadilloStorage)
