@@ -1,6 +1,7 @@
 package org.molgenis.armadillo;
 
 import java.util.Arrays;
+import java.util.List;
 import org.molgenis.armadillo.config.DatashieldProfileManager;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -25,11 +26,6 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public DatashieldProfileManager datashieldProfileManager() {
-    return new DatashieldProfileManager();
-  }
-
-  @Bean
   ArmadilloMetadataService accessStorageService(ArmadilloStorageService storageService) {
     return new ArmadilloMetadataService(storageService);
   }
@@ -39,11 +35,16 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
     GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_SU");
     User userDetails =
-        new User("bofke", "bofke", Arrays.asList(authority)) {
+        new User("bofke", "bofke", List.of(authority)) {
           public String getEmail() {
             return "bofke@email.com";
           }
         };
     return new InMemoryUserDetailsManager(Arrays.asList(userDetails));
+  }
+
+  @Bean
+  public DatashieldProfileManager datashieldProfileManager() {
+    return new DatashieldProfileManager();
   }
 }

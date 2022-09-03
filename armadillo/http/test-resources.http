@@ -1,44 +1,44 @@
-POST http://localhost:8080/logout
+POST {{host}}/logout
 
 ###
-GET http://localhost:8080/packages
+GET {{host}}/packages
 Authorization: Basic admin admin
 
 ###
-GET http://localhost:8080/resources
+GET {{host}}/resources
 Authorization: Basic admin admin
 
 ###
-HEAD http://localhost:8080/resources/local/project/patient
+HEAD {{host}}/resources/local/project/patient
 
 ###
-POST http://localhost:8080/load-resource?symbol=patientResource&resource=local/project/patient
+POST {{host}}/load-resource?symbol=patientResource&resource=local/project/patient
 
 ###
-POST http://localhost:8080/symbols/patient
+POST {{host}}/symbols/patient
 Content-Type: text/plain
 
 dataFrameDS("patientResource")
 
 ###
-GET http://localhost:8080/symbols
+GET {{host}}/symbols
 
 ###
-POST http://localhost:8080/execute
+POST {{host}}/execute
 Accept: application/octet-stream
 Content-Type: text/plain
 
 meanDS("patientResource")
 
 ###
-DELETE http://localhost:8080/symbols/D
+DELETE {{host}}/symbols/D
 
 ###
-GET http://localhost:8080/lastcommand
+GET {{host}}/lastcommand
 accept: application/json
 
 ###
-GET http://localhost:8080/lastresult
+GET {{host}}/lastresult
 accept: application/octet-stream
 
 ###
