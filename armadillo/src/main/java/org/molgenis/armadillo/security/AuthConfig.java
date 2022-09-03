@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.security;
 
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
 import java.util.HashSet;
@@ -27,6 +28,8 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
@@ -135,8 +138,10 @@ public class AuthConfig {
               Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
 
               mappedAuthorities.addAll(
-                  armadilloMetadataService.getAuthoritiesForEmail(
-                      (String) userAttributes.get("email"), userAttributes));
+                  runAsSystem(
+                      () ->
+                          armadilloMetadataService.getAuthoritiesForEmail(
+                              (String) userAttributes.get("email"), userAttributes)));
             });
 
         return mappedAuthorities;
@@ -144,10 +149,18 @@ public class AuthConfig {
     }
   }
 
+  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
   @Profile("development")
   @Bean
-  // Allow CORS requests, needed for swagger UI to work, if the development profile is active.
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
+  }
+
+  /** Allow URL encoded slashes. Needed for the Storage API's object endpoints. */
+  @Bean
+  public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+    DefaultHttpFirewall firewall = new DefaultHttpFirewall();
+    firewall.setAllowUrlEncodedSlash(true);
+    return firewall;
   }
 }

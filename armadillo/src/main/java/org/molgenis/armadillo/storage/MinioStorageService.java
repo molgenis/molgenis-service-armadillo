@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.minio.ErrorCode.NO_SUCH_BUCKET;
 import static io.minio.ErrorCode.NO_SUCH_KEY;
 import static io.minio.ErrorCode.NO_SUCH_OBJECT;
+import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
 import io.minio.MinioClient;
@@ -74,10 +75,9 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public void createProjectIfNotExists(String projectName) {
+  public void createBucketIfNotExists(String projectName) {
     try {
       if (!minioClient.bucketExists(projectName)) {
-        StorageService.validateProjectName(projectName);
         minioClient.makeBucket(projectName);
         LOGGER.info("Created bucket {}.", projectName);
       }
@@ -97,7 +97,26 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public List<String> listProjects() {
+  public void deleteBucket(String projectName) {
+    try {
+      LOGGER.info("Deleting bucket {}.", projectName);
+      minioClient.removeBucket(projectName);
+    } catch (InvalidBucketNameException
+        | InternalException
+        | InvalidResponseException
+        | InvalidKeyException
+        | NoResponseException
+        | IOException
+        | NoSuchAlgorithmException
+        | ErrorResponseException
+        | XmlPullParserException
+        | InsufficientDataException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public List<String> listBuckets() {
     try {
       return minioClient.listBuckets().stream().map(Bucket::name).toList();
     } catch (InvalidBucketNameException
@@ -116,9 +135,13 @@ class MinioStorageService implements StorageService {
 
   @Override
   public void save(InputStream is, String projectName, String objectName, MediaType mediaType) {
-    createProjectIfNotExists(projectName);
+    createBucketIfNotExists(projectName);
     try {
-      LOGGER.info("Putting object {} in bucket {}.", objectName, projectName);
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info(
+            format("Putting object %s in bucket %s.", objectName, projectName)
+                .replaceAll("[\n\r\t]", "_"));
+      }
       minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
     } catch (InvalidKeyException
         | InvalidArgumentException

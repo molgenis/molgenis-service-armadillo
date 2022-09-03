@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
-      Principal principal, @RequestParam MultipartFile file) throws IOException {
+      Principal principal, @RequestParam MultipartFile file) {
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
       Map<String, Object> data = new HashMap<>();
@@ -69,8 +70,14 @@ public class DevelopmentController {
       String filename = file.getOriginalFilename();
 
       auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
-      CompletableFuture<Void> result =
-          commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
+
+      CompletableFuture<Void> result;
+      try {
+        result =
+            commands.installPackage(principal, new ByteArrayResource(file.getBytes()), filename);
+      } catch (IOException e) {
+        throw new FileProcessingException();
+      }
 
       String packageName = getPackageNameFromFilename(filename);
 

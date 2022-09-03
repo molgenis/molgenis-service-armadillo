@@ -1,0 +1,51 @@
+### Authenticate
+GET {{host}}/storage/projects
+Authorization: Basic admin admin
+
+### List projects
+GET {{host}}/storage/projects
+
+### Create project
+POST {{host}}/storage/projects
+Content-Type: application/json
+
+{ "name" : "my-project" }
+
+### Project exists?
+HEAD {{host}}/storage/projects/my-project
+
+### Delete project
+DELETE {{host}}/storage/projects/my-project
+
+### List objects
+GET {{host}}/storage/projects/lifecycle/objects
+
+### Upload object
+POST {{host}}/storage/projects/lifecycle/objects
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="core/dummy.parquet"
+
+< ./dummy.parquet
+
+### Copy object
+POST {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet/copy
+Content-Type: application/json
+
+{ "name" : "new/nonrep.parquet" }
+
+### Move object
+POST {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet/move
+Content-Type: application/json
+
+{ "name" : "new2/nonrep.parquet" }
+
+### Object exists?
+HEAD {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet
+
+### Delete object
+DELETE {{host}}/storage/projects/lifecycle/objects/core%2Fdummy.parquet
+
+### Download object
+GET {{host}}/storage/projects/lifecycle/objects/core%2Fnonrep.parquet

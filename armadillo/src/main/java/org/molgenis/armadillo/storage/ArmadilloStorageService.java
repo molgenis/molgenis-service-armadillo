@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -8,8 +9,13 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
+import org.molgenis.armadillo.exceptions.DuplicateObjectException;
+import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
+import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
@@ -18,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ArmadilloStorageService {
+
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
@@ -30,20 +37,82 @@ public class ArmadilloStorageService {
     this.storageService = storageService;
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void upsertProject(String project) {
+    validateProjectName(project);
+    storageService.createBucketIfNotExists(SHARED_PREFIX + project);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public boolean hasProject(String project) {
+    return storageService.listBuckets().contains(SHARED_PREFIX + project);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteProject(String project) {
+    throwIfUnknown(project);
+    storageService.deleteBucket(SHARED_PREFIX + project);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void addObject(String project, String object, InputStream inputStream) {
+    throwIfDuplicate(project, object);
+    storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public boolean hasObject(String project, String object) {
+    throwIfUnknown(project);
+    return storageService.objectExists(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void moveObject(String project, String newObject, String oldObject) {
+    copyObject(project, newObject, oldObject);
+    storageService.delete(SHARED_PREFIX + project, oldObject);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void copyObject(String project, String newObject, String oldObject) {
+    throwIfUnknown(project, oldObject);
+    throwIfDuplicate(project, newObject);
+    var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
+    storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteObject(String project, String object) {
+    throwIfUnknown(project, object);
+    storageService.delete(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public InputStream loadObject(String project, String object) {
+    throwIfUnknown(project, object);
+    return storageService.load(SHARED_PREFIX + project, object);
+  }
+
   @PostFilter("hasAnyRole('ROLE_SU', 'ROLE_' + filterObject.toUpperCase() + '_RESEARCHER')")
   @SuppressWarnings("java:S6204") // result of method can't be unmodifiable because of @PostFilter
   public List<String> listProjects() {
-    return storageService.listProjects().stream()
+    return storageService.listBuckets().stream()
         .filter(it -> it.startsWith(SHARED_PREFIX))
         .map(it -> it.substring(SHARED_PREFIX.length()))
         .collect(toList());
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
-  public List<String> listTables(String project) {
-    var bucketName = SHARED_PREFIX + project;
-    return storageService.listObjects(bucketName).stream()
+  public List<String> listObjects(String project) {
+    throwIfUnknown(project);
+    var projectName = SHARED_PREFIX + project;
+    return storageService.listObjects(projectName).stream()
         .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
+        .toList();
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public List<String> listTables(String project) {
+    return listObjects(project).stream()
         .filter(it -> it.endsWith(PARQUET))
         .map(FilenameUtils::removeExtension)
         .toList();
@@ -71,9 +140,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listResources(String project) {
-    var bucketName = SHARED_PREFIX + project;
-    return storageService.listObjects(bucketName).stream()
-        .map(objectMetadata -> format("%s/%s", project, objectMetadata.name()))
+    return listObjects(project).stream()
         .filter(it -> it.endsWith(RDS))
         .map(FilenameUtils::removeExtension)
         .toList();
@@ -131,6 +198,33 @@ public class ArmadilloStorageService {
       return storageService.load(SYSTEM, name);
     } else {
       return InputStream.nullInputStream();
+    }
+  }
+
+  private void throwIfDuplicate(String project, String object) {
+    if (hasObject(project, object)) {
+      throw new DuplicateObjectException(project, object);
+    }
+  }
+
+  private void throwIfUnknown(String project) {
+    if (!hasProject(project)) {
+      throw new UnknownProjectException(project);
+    }
+  }
+
+  private void throwIfUnknown(String project, String object) {
+    if (!hasObject(project, object)) {
+      throw new UnknownObjectException(project, object);
+    }
+  }
+
+  static void validateProjectName(String projectName) {
+    requireNonNull(projectName);
+
+    Pattern pattern = Pattern.compile("(?!((^xn--)|(-s3alias$)))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
+    if (!pattern.matcher(projectName).matches()) {
+      throw new InvalidProjectNameException(projectName);
     }
   }
 }

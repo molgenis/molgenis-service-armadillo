@@ -13,8 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +50,17 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public boolean objectExists(String projectName, String objectName) {
+  public boolean objectExists(String bucketName, String objectName) {
     Objects.requireNonNull(objectName);
-    StorageService.validateProjectName(projectName);
 
     try {
-      // check project
-      Path dir = Paths.get(rootDir, projectName);
+      // check bucket
+      Path dir = Paths.get(rootDir, bucketName);
       if (!Files.exists(dir)) {
         return false;
       }
       // check object
-      Path object = Paths.get(rootDir, projectName, objectName);
+      Path object = getObjectPathSafely(bucketName, objectName);
       return Files.exists(object);
     } catch (Exception e) {
       throw new StorageException(e);
@@ -67,11 +68,9 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public void createProjectIfNotExists(String projectName) {
-    StorageService.validateProjectName(projectName);
-
+  public void createBucketIfNotExists(String bucketName) {
     try {
-      Path path = Paths.get(rootDir, projectName);
+      Path path = Paths.get(rootDir, bucketName);
       if (!Files.exists(path)) {
         Files.createDirectory(path);
       }
@@ -81,7 +80,18 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public List<String> listProjects() {
+  public void deleteBucket(String bucketName) {
+    Path path = Paths.get(rootDir, bucketName);
+    try (var folder = Files.walk(path)) {
+      //noinspection ResultOfMethodCallIgnored
+      folder.map(Path::toFile).sorted(Comparator.reverseOrder()).forEach(File::delete);
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public List<String> listBuckets() {
     var files = new File(rootDir).listFiles();
     if (files == null) {
       return emptyList();
@@ -91,10 +101,10 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public void save(
-      InputStream inputStream, String projectName, String objectName, MediaType mediaType) {
-    Path path = Paths.get(rootDir, projectName, objectName);
+      InputStream inputStream, String bucketName, String objectName, MediaType mediaType) {
+    Path path = getObjectPathSafely(bucketName, objectName);
     try {
-      createProjectIfNotExists(projectName);
+      createBucketIfNotExists(bucketName);
 
       // create parent dirs if needed
       //noinspection ResultOfMethodCallIgnored
@@ -108,17 +118,29 @@ public class LocalStorageService implements StorageService {
     }
   }
 
+  /** Detects path traversal attacks. */
+  Path getObjectPathSafely(String bucketName, String objectName) {
+    Path path = Paths.get(rootDir, bucketName, objectName).toAbsolutePath().normalize();
+    Path rootPath = Paths.get(rootDir, bucketName).toAbsolutePath().normalize();
+
+    if (!path.startsWith(rootPath)) {
+      throw new IllegalPathException(objectName);
+    }
+
+    return path;
+  }
+
   @Override
-  public List<ObjectMetadata> listObjects(String projectName) {
+  public List<ObjectMetadata> listObjects(String bucketName) {
     try {
-      Path projectPath = Paths.get(rootDir, projectName);
-      if (!Files.exists(projectPath)) {
+      Path bucketPath = Paths.get(rootDir, bucketName);
+      if (!Files.exists(bucketPath)) {
         return emptyList();
       } else {
-        try (var files = Files.walk(projectPath)) {
+        try (var files = Files.walk(bucketPath)) {
           return files
               .filter(Files::isRegularFile)
-              .map(objectPath -> ObjectMetadata.of(projectPath, objectPath))
+              .map(objectPath -> ObjectMetadata.of(bucketPath, objectPath))
               .toList();
         }
       }
@@ -128,38 +150,38 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public InputStream load(String projectName, String objectName) {
+  public InputStream load(String bucketName, String objectName) {
     try {
-      Objects.requireNonNull(projectName);
+      Objects.requireNonNull(bucketName);
       Objects.requireNonNull(objectName);
 
-      Path objectPath = getPathIfObjectExists(projectName, objectName);
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
       return new FileInputStream(objectPath.toFile());
     } catch (Exception e) {
       throw new StorageException(e);
     }
   }
 
-  private Path getPathIfObjectExists(String projectName, String objectName) {
-    Path projectPath = Paths.get(rootDir, projectName);
-    if (!Files.exists(projectPath)) {
-      throw new StorageException(format("Project '%s' doesn't exist", projectName));
+  private Path getPathIfObjectExists(String bucketName, String objectName) {
+    Path bucketPath = Paths.get(rootDir, bucketName);
+    if (!Files.exists(bucketPath)) {
+      throw new StorageException(format("Bucket '%s' doesn't exist", bucketName));
     }
-    Path objectPath = Paths.get(rootDir, projectName, objectName);
+    Path objectPath = getObjectPathSafely(bucketName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          format("Object '%s' doesn't exist in project '%s'", projectName, objectName));
+          format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));
     }
     return objectPath;
   }
 
   @Override
-  public void delete(String projectName, String objectName) {
-    Objects.requireNonNull(projectName);
+  public void delete(String bucketName, String objectName) {
+    Objects.requireNonNull(bucketName);
     Objects.requireNonNull(objectName);
 
     try {
-      Path objectPath = getPathIfObjectExists(projectName, objectName);
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
       Files.delete(objectPath);
     } catch (Exception e) {
       throw new StorageException(e);
