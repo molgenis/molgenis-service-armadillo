@@ -1,18 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EMAIL;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_USERS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_ADD;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_DELETE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_LIST;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_USER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -33,23 +21,10 @@ import java.util.Objects;
 import java.util.Set;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadata;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.ProjectDetails;
-import org.molgenis.armadillo.metadata.ProjectPermission;
-import org.molgenis.armadillo.metadata.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.molgenis.armadillo.metadata.*;
+import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "admin", description = "Admin API to manage users, project and permissions")
+@Tag(name = "admin", description = "Admin API to manage users, projects, profiles, and permissions")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
@@ -180,15 +155,11 @@ public class AdminController {
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
-  @GetMapping(value = "projects/{projectName}", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "projects/{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ProjectDetails projectGetByProjectName(
-      Principal principal, @PathVariable String projectName) {
+  public ProjectDetails projectGetByProjectName(Principal principal, @PathVariable String name) {
     return auditor.audit(
-        () -> metadata.projectsByName(projectName),
-        principal,
-        GET_PROJECT,
-        Map.of(PROJECT, projectName));
+        () -> metadata.projectsByName(name), principal, GET_PROJECT, Map.of(PROJECT, name));
   }
 
   @Operation(summary = "Delete project including permissions and data")
@@ -204,14 +175,11 @@ public class AdminController {
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
-  @DeleteMapping(value = "projects/{project}", produces = TEXT_PLAIN_VALUE)
+  @DeleteMapping(value = "projects/{name}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void projectsDelete(Principal principal, @PathVariable String project) {
+  public void projectsDelete(Principal principal, @PathVariable String name) {
     auditor.audit(
-        () -> metadata.projectsDelete(project),
-        principal,
-        DELETE_PROJECT,
-        Map.of(PROJECT, project));
+        () -> metadata.projectsDelete(name), principal, DELETE_PROJECT, Map.of(PROJECT, name));
   }
 
   @Operation(summary = "Add or update project including permissions")
@@ -316,5 +284,87 @@ public class AdminController {
   @ResponseStatus(NO_CONTENT)
   public void userDelete(Principal principal, @PathVariable String email) {
     auditor.audit(() -> metadata.userDelete(email), principal, DELETE_USER, Map.of(EMAIL, email));
+  }
+
+  @Operation(summary = "List profiles")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "All profiles listed",
+            content =
+                @Content(
+                    array = @ArraySchema(schema = @Schema(implementation = ProfileDetails.class)))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @GetMapping(path = "profiles", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(OK)
+  public List<ProfileDetails> profileList(Principal principal) {
+    return auditor.audit(metadata::profileList, principal, LIST_PROFILES, Map.of());
+  }
+
+  @Operation(summary = "Get profile by name")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Profile listed",
+            content = @Content(schema = @Schema(implementation = ProfileDetails.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Profile does not exist",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @GetMapping(value = "profiles/{name}", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(OK)
+  public ProfileDetails profileGetByProfileName(Principal principal, @PathVariable String name) {
+    return auditor.audit(
+        () -> metadata.profileByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+  }
+
+  @Operation(summary = "Add or update profile (if enabled, including docker image)")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Profile added or updated"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @PutMapping(value = "profiles", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(OK)
+  public void profileUpsert(Principal principal, @RequestBody ProfileDetails profileDetails) {
+    auditor.audit(
+        () -> metadata.profileUpsert(profileDetails),
+        principal,
+        UPSERT_PROFILE,
+        Map.of(PROFILE, profileDetails));
+  }
+
+  @Operation(summary = "Delete profile (if enabled, including docker image)")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Profile deleted"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Profile does not exist",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @DeleteMapping(value = "profiles/{name}", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void profileDelete(Principal principal, @PathVariable String name) {
+    auditor.audit(
+        () -> metadata.profileDelete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
   }
 }

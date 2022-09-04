@@ -50,6 +50,10 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
   public static final String GET_PROJECT = "GET_PROJECT";
+  public static final String LIST_PROFILES = "LIST_PROFILES";
+  public static final String UPSERT_PROFILE = "UPSERT_PROFILE";
+  public static final String DELETE_PROFILE = "DELETE_PROFILE";
+  public static final String GET_PROFILE = "GET_PROFILE";
   public static final String LIST_OBJECTS = "LIST_OBJECTS";
   public static final String UPLOAD_OBJECT = "UPLOAD_OBJECT";
   public static final String COPY_OBJECT = "COPY_OBJECT";
@@ -70,6 +74,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
+  public static final String PROFILE = "profile";
   public static final String OBJECT = "object";
   public static final String EMAIL = "email";
   public static final String MESSAGE = "message";

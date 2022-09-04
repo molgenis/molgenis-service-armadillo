@@ -7,17 +7,12 @@ import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
+import org.molgenis.armadillo.config.ArmadilloProfileService;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -38,14 +33,19 @@ public class ArmadilloMetadataService {
   public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
+  private ArmadilloProfileService profiles;
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
-  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
+  public ArmadilloMetadataService(
+      ArmadilloStorageService armadilloStorageService,
+      ArmadilloProfileService armadilloProfileService) {
     Objects.requireNonNull(armadilloStorageService);
+    Objects.requireNonNull(armadilloProfileService);
     this.storage = armadilloStorageService;
+    this.profiles = armadilloProfileService;
     this.reload();
   }
 
@@ -126,7 +126,9 @@ public class ArmadilloMetadataService {
     // update users
     settings.getUsers().put(userDetails.getEmail(), userDetails);
     // replace permissions
-    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
+    settings =
+        ArmadilloMetadata.create(
+            settings.getUsers(), settings.getProjects(), settings.getProfiles(), permissions);
     save();
   }
 
@@ -143,6 +145,7 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
+            settings.getProfiles(),
             // strip from permissions
             settings.getPermissions().stream()
                 .filter(permission -> !permission.getEmail().equals(email))
@@ -150,7 +153,6 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  /** key is project, value list of users */
   public List<ProjectDetails> projectsList() {
     return settings.getProjects().keySet().stream().map(this::projectsByName).toList();
   }
@@ -197,7 +199,9 @@ public class ArmadilloMetadataService {
     // (permissions are saved separately)
     projectDetails = ProjectDetails.create(projectName, Collections.emptySet());
     settings.getProjects().put(projectName, projectDetails);
-    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
+    settings =
+        ArmadilloMetadata.create(
+            settings.getUsers(), settings.getProjects(), settings.getProfiles(), permissions);
     save();
   }
 
@@ -209,10 +213,56 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
+            settings.getProfiles(),
             // strip from permissions
             settings.getPermissions().stream()
                 .filter(permission -> !permission.getProject().equals(projectName))
                 .collect(Collectors.toSet()));
+    this.save();
+  }
+
+  public List<ProfileDetails> profileList() {
+    return settings.getProfiles().keySet().stream().map(this::profileByName).toList();
+  }
+
+  public ProfileDetails profileByName(String profileName) {
+    if (!settings.getProfiles().containsKey(profileName)) {
+      throw new UnknownProfileException(profileName);
+    }
+    ProfileDetails details = settings.getProfiles().get(profileName);
+    // todo: if docker management is enabled
+    // better alternative might be to try and connect?
+    ProfileDetails.Status status = profiles.getProfileStatus(details);
+    return ProfileDetails.create(
+        details.getName(),
+        details.getImage(),
+        details.getPort(),
+        details.getWhitelist(),
+        details.getSeed(),
+        status);
+  }
+
+  public void profileUpsert(ProfileDetails profileDetails) {
+    String profileName = profileDetails.getName();
+    profiles.startProfile(profileDetails);
+    settings
+        .getProfiles()
+        .put(
+            profileName,
+            ProfileDetails.create(
+                profileName,
+                profileDetails.getImage(),
+                profileDetails.getPort(),
+                profileDetails.getWhitelist(),
+                profileDetails.getSeed(),
+                // we don't save running state
+                null));
+    save();
+  }
+
+  public void profileDelete(String profileName) {
+    profiles.removeProfile(profileName);
+    settings.getProfiles().remove(profileName);
     this.save();
   }
 
@@ -240,6 +290,7 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
+            settings.getProfiles(),
             settings.getPermissions().stream()
                 .filter(
                     projectPermission ->

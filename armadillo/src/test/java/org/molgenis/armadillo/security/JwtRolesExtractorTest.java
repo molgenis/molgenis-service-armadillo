@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.ArmadilloProfileService;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,6 +25,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 class JwtRolesExtractorTest {
   @Mock Jwt jwt;
   @Mock ArmadilloStorageService armadilloStorage;
+  @Mock ArmadilloProfileService profileService;
+
   ArmadilloMetadataService armadilloMetadataService;
 
   @Test
@@ -31,11 +34,11 @@ class JwtRolesExtractorTest {
     when(jwt.getClaims()).thenReturn(Map.of("roles", List.of("lifecycle_RESEARCHER")));
     when(jwt.getClaimAsString("email")).thenReturn("bofke@email.com");
     // local only
-    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage);
+    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage, profileService);
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(
             new ByteArrayInputStream(
-                "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\", \"admin\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}"
+                "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\", \"admin\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}],\"profiles\":{}}"
                     .getBytes()));
     armadilloMetadataService.reload();
     Collection<GrantedAuthority> authorities =

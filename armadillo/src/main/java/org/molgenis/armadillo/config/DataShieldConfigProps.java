@@ -2,8 +2,10 @@ package org.molgenis.armadillo.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -15,10 +17,10 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class DataShieldConfigProps implements Validator {
   @NotEmpty @Valid private List<ProfileConfigProps> profiles;
-  DatashieldProfileManager profileManager;
+  ArmadilloMetadataService metadataService;
 
-  public DataShieldConfigProps(DatashieldProfileManager profileManager) {
-    this.profileManager = profileManager;
+  public DataShieldConfigProps(ArmadilloMetadataService metadataService) {
+    this.metadataService = metadataService;
   }
 
   public void setProfiles(List<ProfileConfigProps> profiles) {
@@ -27,10 +29,18 @@ public class DataShieldConfigProps implements Validator {
 
   public List<ProfileConfigProps> getProfiles() {
     List<ProfileConfigProps> result = new ArrayList<>(profiles);
-    // we will also report what is running from environment NEXT to what has been configured
-    // this is only useful if you want to manage your images via the older docker compose way
-    result.addAll(profileManager.listDatashieldProfiles());
-    return result;
+    // todo bootstrap from settings file
+
+    // silly adapter? or nice isolation?
+    return metadataService.profileList().stream()
+        .map(
+            profileDetails -> {
+              ProfileConfigProps props = new ProfileConfigProps();
+              props.setName(profileDetails.getName());
+              props.setPort(profileDetails.getPort());
+              return props;
+            })
+        .collect(Collectors.toList());
   }
 
   @Override

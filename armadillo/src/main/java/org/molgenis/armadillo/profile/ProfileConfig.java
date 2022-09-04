@@ -19,6 +19,8 @@ public class ProfileConfig {
     var activeProfileName = getActiveProfileName();
     return dataShieldConfigProps.getProfiles().stream()
         .filter(it -> it.getName().equals(activeProfileName))
+        // todo
+        .map(it -> new ProfileConfigProps())
         .findFirst()
         .orElseThrow(
             () ->
