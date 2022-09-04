@@ -6,10 +6,9 @@ import static org.mockito.Mockito.lenient;
 import static org.molgenis.armadillo.metadata.ProfileDetails.Status.RUNNING;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.*;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.PullImageCmd;
+import com.github.dockerjava.api.command.PullImageResultCallback;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,17 +20,12 @@ import org.molgenis.armadillo.metadata.ProfileDetails;
 
 @ExtendWith(MockitoExtension.class)
 public class ArmadilloProfileServiceTest {
-  @Mock InspectContainerCmd containerCmd;
-
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   InspectContainerResponse containerInfo;
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   DockerClient dockerClient;
 
-  @Mock InspectContainerResponse.ContainerState containerState;
-  @Mock ListContainersCmd listContainersCmd;
-  @Mock Container container;
   @Mock PullImageCmd pullImageCmd;
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
@@ -66,17 +60,20 @@ public class ArmadilloProfileServiceTest {
     armadilloProfileService.removeProfile(profileDetails.getName());
   }
 
-  @Test
-  public void forReal() {
-    ProfileDetails profileDetails =
-        ProfileDetails.create(
-            "exposome", "datashield/armadillo-rserver:6.2.0", 6133, List.of("dsBase"), null, null);
-    ArmadilloProfileService armadilloProfileService =
-        new ArmadilloProfileService(
-            DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder())
-                .build());
-    armadilloProfileService.startProfile(profileDetails);
-    assertEquals(RUNNING, armadilloProfileService.getProfileStatus(profileDetails));
-    armadilloProfileService.removeProfile(profileDetails.getName());
-  }
+  //  @Test
+  //  @IfProfileValue(name = "spring.profiles.active", value = "integration-test")
+  //  public void forReal() {
+  //    ProfileDetails profileDetails =
+  //        ProfileDetails.create(
+  //            "exposome", "datashield/armadillo-rserver:6.2.0", 6133, List.of("dsBase"), null,
+  // null);
+  //    ArmadilloProfileService armadilloProfileService =
+  //        new ArmadilloProfileService(
+  //
+  // DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder())
+  //                .build());
+  //    armadilloProfileService.startProfile(profileDetails);
+  //    assertEquals(RUNNING, armadilloProfileService.getProfileStatus(profileDetails));
+  //    armadilloProfileService.removeProfile(profileDetails.getName());
+  //  }
 }
