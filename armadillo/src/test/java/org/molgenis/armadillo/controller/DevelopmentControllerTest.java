@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.time.Clock;
 import java.time.Instant;
@@ -53,6 +54,7 @@ class DevelopmentControllerTest {
   @MockBean private Commands commands;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @MockBean private ArmadilloStorageService armadilloStorageService;
+  @MockBean DockerClient dockerClient;
 
   @Mock(lenient = true)
   private Clock clock;

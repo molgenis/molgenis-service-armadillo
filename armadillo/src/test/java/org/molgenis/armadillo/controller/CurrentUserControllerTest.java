@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.github.dockerjava.api.DockerClient;
 import java.io.ByteArrayInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ class CurrentUserControllerTest {
 
   public static final String BOFKE_EMAIL_COM_PROJECTS_MYPROJECT_JSON =
       "{\"users\":{\"bofke@email.com\":{\"accessToProjects\":[\"myproject\"]}}}";
+  @MockBean DockerClient dockerClient;
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired private MockMvc mockMvc;
   @MockBean OAuth2AuthorizedClientService auth2AuthorizedClientService;
