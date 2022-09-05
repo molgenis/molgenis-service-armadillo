@@ -51,7 +51,7 @@ public class ArmadilloProfileServiceTest {
   }
 
   @Test
-  public void testDeployDocker() {
+  public void testDeployDocker() throws InterruptedException {
     ProfileDetails profileDetails =
         ProfileDetails.create("dummy", "dummy/image", 6133, List.of(), null, null);
     ArmadilloProfileService armadilloProfileService = new ArmadilloProfileService(dockerClient);

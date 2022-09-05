@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.config;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
@@ -39,35 +40,33 @@ public class ArmadilloProfileService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void startProfile(ProfileDetails profileDetails) {
+  public void startProfile(ProfileDetails profileDetails) throws InterruptedException {
     // stop previous image if running
     this.removeProfile(profileDetails.getName());
 
     // load the image if needed
-    try {
-      dockerClient
-          .pullImageCmd(profileDetails.getImage())
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(5, TimeUnit.MINUTES);
-    } catch (InterruptedException ie) {
-      throw new CannotConnectToDockerException(profileDetails, ie);
-    }
+    dockerClient
+        .pullImageCmd(profileDetails.getImage())
+        .exec(new PullImageResultCallback())
+        .awaitCompletion(5, TimeUnit.MINUTES);
 
     // start the image
     ExposedPort exposed = ExposedPort.tcp(6311);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileDetails.getPort()));
-    CreateContainerResponse container =
-        dockerClient
-            .createContainerCmd(profileDetails.getImage())
-            // mapping the port
-            .withExposedPorts(exposed)
-            .withHostConfig(new HostConfig().withPortBindings(portBindings))
-            // mapping the name
-            .withName(profileDetails.getName())
-            // environment
-            .withEnv("DEBUG=FALSE")
-            .exec();
+    CreateContainerResponse container;
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileDetails.getImage())) {
+      container =
+          cmd
+              // mapping the port
+              .withExposedPorts(exposed)
+              .withHostConfig(new HostConfig().withPortBindings(portBindings))
+              // mapping the name
+              .withName(profileDetails.getName())
+              // environment
+              .withEnv("DEBUG=FALSE")
+              .exec();
+    }
     dockerClient.startContainerCmd(container.getId()).exec();
   }
 

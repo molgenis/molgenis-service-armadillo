@@ -242,7 +242,7 @@ public class ArmadilloMetadataService {
         status);
   }
 
-  public void profileUpsert(ProfileDetails profileDetails) {
+  public void profileUpsert(ProfileDetails profileDetails) throws InterruptedException {
     String profileName = profileDetails.getName();
     profiles.startProfile(profileDetails);
     settings

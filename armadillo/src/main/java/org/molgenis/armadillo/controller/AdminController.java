@@ -340,9 +340,11 @@ public class AdminController {
       })
   @PutMapping(value = "profiles", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void profileUpsert(Principal principal, @RequestBody ProfileDetails profileDetails) {
+  public void profileUpsert(Principal principal, @RequestBody ProfileDetails profileDetails)
+      throws InterruptedException {
+    metadata.profileUpsert(profileDetails);
     auditor.audit(
-        () -> metadata.profileUpsert(profileDetails),
+        () -> {}, // because of the exception that might happen, and cannot be caught
         principal,
         UPSERT_PROFILE,
         Map.of(PROFILE, profileDetails));
