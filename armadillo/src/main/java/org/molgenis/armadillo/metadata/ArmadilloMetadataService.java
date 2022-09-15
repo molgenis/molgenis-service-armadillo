@@ -43,10 +43,16 @@ public class ArmadilloMetadataService {
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
-  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
+  private final String adminUser;
+
+  public ArmadilloMetadataService(
+      ArmadilloStorageService armadilloStorageService,
+      @Value("${datashield.bootstrap.oidc-admin-user}") String adminUser) {
     Objects.requireNonNull(armadilloStorageService);
     this.storage = armadilloStorageService;
-    this.reload();
+    this.adminUser = adminUser;
+    reload();
+    bootstrap();
   }
 
   public Collection<GrantedAuthority> getAuthoritiesForEmail(
@@ -85,7 +91,7 @@ public class ArmadilloMetadataService {
   }
 
   public List<UserDetails> usersList() {
-    return settings.getUsers().keySet().stream().map(this::usersByEmail).toList();
+    return settings.getUsers().keySet().stream().map(this::userByEmail).toList();
   }
 
   public void userUpsert(UserDetails userDetails) {
@@ -250,7 +256,7 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  public UserDetails usersByEmail(String email) {
+  public UserDetails userByEmail(String email) {
     if (!settings.getUsers().containsKey(email)) {
       throw new UnknownUserException(email);
     }
@@ -305,6 +311,12 @@ public class ArmadilloMetadataService {
     } catch (Exception e) {
       // this probably just means first time
       settings = ArmadilloMetadata.create();
+    }
+  }
+
+  private void bootstrap() {
+    if (adminUser != null && !settings.getUsers().containsKey(adminUser)) {
+      userUpsert(UserDetails.createAdmin(adminUser));
     }
   }
 }

@@ -31,7 +31,7 @@ class JwtRolesExtractorTest {
     when(jwt.getClaims()).thenReturn(Map.of("roles", List.of("lifecycle_RESEARCHER")));
     when(jwt.getClaimAsString("email")).thenReturn("bofke@email.com");
     // local only
-    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage);
+    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage, null);
     when(armadilloStorage.loadSystemFile(METADATA_FILE))
         .thenReturn(
             new ByteArrayInputStream(
