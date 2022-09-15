@@ -1,5 +1,8 @@
 .DS_Store
 
+### LOCAL SETTINGS ###
+armadillo/src/main/resources/application-local.yml
+
 ### STORAGE ###
 data/user-*
 data/system
