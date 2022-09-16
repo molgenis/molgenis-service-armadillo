@@ -1,6 +1,9 @@
 package org.molgenis.armadillo.metadata;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,10 +11,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -33,22 +34,24 @@ public class ArmadilloMetadataService {
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
+  private final String defaultProject;
 
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
       MetadataLoader metadataLoader,
-      @Value("${datashield.bootstrap.oidc-admin-user}") String adminUser) {
-    this.loader = metadataLoader;
-    Objects.requireNonNull(armadilloStorageService);
-    this.storage = armadilloStorageService;
+      @Value("${datashield.bootstrap.oidc-admin-user}") String adminUser,
+      @Value("${datashield.bootstrap.default-project}") String defaultProject) {
+    this.loader = requireNonNull(metadataLoader);
+    this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;
+    this.defaultProject = defaultProject;
+    runAsSystem(this::initialize);
   }
 
   /**
    * Initialization separated from constructor so that it can be called in WemMvc tests
    * <strong>after</strong> mocks have been initialized.
    */
-  @PostConstruct
   public void initialize() {
     settings = loader.load();
     bootstrap();
@@ -136,7 +139,7 @@ public class ArmadilloMetadataService {
   }
 
   public void userDelete(String email) {
-    Objects.requireNonNull(email);
+    requireNonNull(email);
 
     if (!settings.getUsers().containsKey(email)) {
       throw new UnknownUserException(email);
@@ -226,8 +229,8 @@ public class ArmadilloMetadataService {
   }
 
   public synchronized void permissionsAdd(String email, String project) {
-    Objects.requireNonNull(email);
-    Objects.requireNonNull(project);
+    requireNonNull(email);
+    requireNonNull(project);
 
     settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null, null));
     settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null));
@@ -238,8 +241,8 @@ public class ArmadilloMetadataService {
 
   public synchronized void permissionsDelete(String email, String project) {
 
-    Objects.requireNonNull(email);
-    Objects.requireNonNull(project);
+    requireNonNull(email);
+    requireNonNull(project);
 
     settings =
         ArmadilloMetadata.create(
@@ -289,6 +292,10 @@ public class ArmadilloMetadataService {
   private void bootstrap() {
     if (adminUser != null && !settings.getUsers().containsKey(adminUser)) {
       userUpsert(UserDetails.createAdmin(adminUser));
+    }
+
+    if (defaultProject != null && !settings.getProjects().containsKey(defaultProject)) {
+      projectsUpsert(ProjectDetails.create(defaultProject, emptySet()));
     }
   }
 }

@@ -38,7 +38,8 @@ class JwtRolesExtractorTest {
             new ByteArrayInputStream(
                 "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\", \"admin\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}"
                     .getBytes()));
-    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage, metadataLoader, null);
+    armadilloMetadataService =
+        new ArmadilloMetadataService(armadilloStorage, metadataLoader, null, null);
     Collection<GrantedAuthority> authorities =
         new JwtRolesExtractor(armadilloMetadataService).convert(jwt);
     assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_MYPROJECT_RESEARCHER")));

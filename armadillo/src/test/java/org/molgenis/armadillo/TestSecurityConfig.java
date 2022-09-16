@@ -33,7 +33,7 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   ArmadilloMetadataService accessStorageService(
       ArmadilloStorageService storageService, MetadataLoader metadataLoader) {
-    return new ArmadilloMetadataService(storageService, metadataLoader, null);
+    return new ArmadilloMetadataService(storageService, metadataLoader, null, null);
   }
 
   @Bean

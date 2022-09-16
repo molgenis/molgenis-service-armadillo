@@ -11,6 +11,7 @@ datashield:
   # Uncomment this section to bootstrap the application with default values.
   # bootstrap:
     # oidc-admin-user: user@yourdomain.org
+    # default-project: your-project
 
   profiles:
     - name: default

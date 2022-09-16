@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.metadata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +17,27 @@ class ArmadilloMetadataServiceTest {
   private final MetadataLoader loader = new DummyMetadataLoader();
 
   @Test
-  void test() {
-    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com");
+  void testBootstrapAdmin() {
+    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com", null);
     metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
+  }
+
+  @Test
+  void testBootstrapDefaultProject() {
+    var metadataService = new ArmadilloMetadataService(storage, loader, null, "test");
+    metadataService.initialize();
+
+    assertNotNull(metadataService.projectsByName("test"));
+  }
+
+  @Test
+  void testBootstrapAll() {
+    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com", "test");
+    metadataService.initialize();
+
+    assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
+    assertNotNull(metadataService.projectsByName("test"));
   }
 }
