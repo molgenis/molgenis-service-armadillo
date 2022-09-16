@@ -1,11 +1,10 @@
 package org.molgenis.armadillo.security;
 
+import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.metadata.StorageMetadataLoader.METADATA_FILE;
 
-import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.metadata.ArmadilloMetadata;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.MetadataLoader;
+import org.molgenis.armadillo.metadata.ProjectDetails;
+import org.molgenis.armadillo.metadata.ProjectPermission;
+import org.molgenis.armadillo.metadata.UserDetails;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,12 +35,13 @@ class JwtRolesExtractorTest {
   void convertTest() {
     when(jwt.getClaims()).thenReturn(Map.of("roles", List.of("lifecycle_RESEARCHER")));
     when(jwt.getClaimAsString("email")).thenReturn("bofke@email.com");
-    // local only
-    when(armadilloStorage.loadSystemFile(METADATA_FILE))
-        .thenReturn(
-            new ByteArrayInputStream(
-                "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\", \"admin\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}]}"
-                    .getBytes()));
+
+    var metadata = ArmadilloMetadata.create();
+    metadata.getUsers().put("bofke@email.com", UserDetails.createAdmin("bofke@email.com"));
+    metadata.getProjects().put("myproject", ProjectDetails.create("myproject", emptySet()));
+    metadata.getPermissions().add(ProjectPermission.create("bofke@email.com", "myproject"));
+    when(metadataLoader.load()).thenReturn(metadata);
+
     armadilloMetadataService =
         new ArmadilloMetadataService(armadilloStorage, metadataLoader, null, null);
     Collection<GrantedAuthority> authorities =
