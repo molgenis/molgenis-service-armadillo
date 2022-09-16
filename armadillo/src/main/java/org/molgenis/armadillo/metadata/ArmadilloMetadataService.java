@@ -2,11 +2,6 @@ package org.molgenis.armadillo.metadata;
 
 import static java.util.Collections.emptyList;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,15 +11,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.io.IOUtils;
-import org.molgenis.armadillo.exceptions.StorageException;
+import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,11 +25,9 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloMetadataService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
-  public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private final MetadataLoader loader;
 
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
@@ -47,11 +36,17 @@ public class ArmadilloMetadataService {
 
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
+      MetadataLoader metadataLoader,
       @Value("${datashield.bootstrap.oidc-admin-user}") String adminUser) {
+    this.loader = metadataLoader;
     Objects.requireNonNull(armadilloStorageService);
     this.storage = armadilloStorageService;
     this.adminUser = adminUser;
-    reload();
+  }
+
+  @PostConstruct
+  public void initialize() {
+    settings = loader.load();
     bootstrap();
   }
 
@@ -271,17 +266,8 @@ public class ArmadilloMetadataService {
         getPermissionsForEmail(email));
   }
 
-  private synchronized void save() {
-    try {
-      String json = objectMapper.writeValueAsString(settings);
-      try (InputStream inputStream = new ByteArrayInputStream(json.getBytes())) {
-        storage.saveSystemFile(inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
-      }
-    } catch (Exception e) {
-      throw new StorageException(e);
-    } finally {
-      this.reload();
-    }
+  private void save() {
+    settings = loader.save(settings);
   }
 
   private Set<String> getPermissionsForEmail(String email) {
@@ -294,24 +280,6 @@ public class ArmadilloMetadataService {
   private boolean isSuperUser(String email) {
     return settings.getUsers().containsKey(email)
         && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
-  }
-
-  @PreAuthorize("permitAll()")
-  public void reload() {
-    String result;
-    try (InputStream inputStream = storage.loadSystemFile(METADATA_FILE)) {
-      result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-      ArmadilloMetadata temp = objectMapper.readValue(result, ArmadilloMetadata.class);
-      settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);
-    } catch (ValueInstantiationException e) {
-      // this is serious, manually edited file maybe?
-      LOGGER.error(String.format("Parsing of %s failed: %s", METADATA_FILE, e.getMessage()));
-      System.exit(-1);
-      settings = ArmadilloMetadata.create();
-    } catch (Exception e) {
-      // this probably just means first time
-      settings = ArmadilloMetadata.create();
-    }
   }
 
   private void bootstrap() {

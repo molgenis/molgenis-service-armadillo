@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
+import static org.molgenis.armadillo.metadata.StorageMetadataLoader.METADATA_FILE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
