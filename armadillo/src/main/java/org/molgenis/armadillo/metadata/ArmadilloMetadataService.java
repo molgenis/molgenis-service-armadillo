@@ -44,6 +44,10 @@ public class ArmadilloMetadataService {
     this.adminUser = adminUser;
   }
 
+  /**
+   * Initialization separated from constructor so that it can be called in WemMvc tests
+   * <strong>after</strong> mocks have been initialized.
+   */
   @PostConstruct
   public void initialize() {
     settings = loader.load();

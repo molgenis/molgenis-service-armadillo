@@ -18,6 +18,7 @@ class ArmadilloMetadataServiceTest {
   @Test
   void test() {
     var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com");
+    metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
   }
