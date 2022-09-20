@@ -169,7 +169,7 @@ export default {
       return this.editMode.userToEdit;
     },
     filteredAndSortedUsers() {
-      const users = this.users;
+      let users = this.users;
       if (this.searchString) {
         users = this.users.filter((user) => {
           return (

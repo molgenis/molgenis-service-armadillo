@@ -126,7 +126,7 @@ export default {
   },
   computed: {
     filteredAndSortedProjects() {
-      const projects = this.projects;
+      let projects = this.projects;
       if (this.searchString) {
         projects = this.projects.filter((project) => {
           return stringIncludesOtherString(project.name, this.searchString);
