@@ -23,7 +23,7 @@
 <script>
 import Alert from "../components/Alert.vue";
 export default {
-  name: "UserFeedback",
+  name: "FeedbackMessage",
   components: {
     Alert,
   },

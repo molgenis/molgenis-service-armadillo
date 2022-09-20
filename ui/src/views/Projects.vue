@@ -3,10 +3,10 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
-        <UserFeedback
+        <FeedbackMessage
           :successMessage="this.successMessage"
           :errorMessage="this.errorMessage"
-        ></UserFeedback>
+        ></FeedbackMessage>
         <!-- Loading spinner -->
         <LoadingSpinner v-if="this.loading"></LoadingSpinner>
       </div>
@@ -81,7 +81,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
-import UserFeedback from "../components/UserFeedback.vue";
+import FeedbackMessage from "../components/FeedbackMessage.vue";
 import { getProjects, putProject, deleteProject } from "../api/api.js";
 import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.js";
 import { onMounted, ref } from "vue";
@@ -92,12 +92,12 @@ export default {
     Badge,
     BadgeList,
     ButtonGroup,
+    FeedbackMessage,
     InlineRowEdit,
     LoadingSpinner,
     SearchBar,
     Table,
     TableRowEditor,
-    UserFeedback,
   },
   setup() {
     const projects = ref([]);
