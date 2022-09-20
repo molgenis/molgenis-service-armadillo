@@ -1,6 +1,11 @@
 package org.molgenis.armadillo.storage;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,7 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
@@ -27,20 +32,13 @@ class LocalStorageServiceTest {
 
   @Test
   void testCheckProjectExistsCreatesProjectIfNotFound() {
-    localStorageService.createProjectIfNotExists(SOME_PROJECT);
-    assertTrue(localStorageService.listProjects().contains(SOME_PROJECT));
+    localStorageService.createBucketIfNotExists(SOME_PROJECT);
+    assertTrue(localStorageService.listBuckets().contains(SOME_PROJECT));
   }
 
   @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() {
     assertFalse(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
-  }
-
-  @Test
-  void testCheckObjectExistsInvalidProjectName() {
-    assertThrows(
-        StorageException.class,
-        () -> localStorageService.objectExists("Project", SOME_OBJECT_PATH));
   }
 
   @Test
@@ -108,5 +106,33 @@ class LocalStorageServiceTest {
 
     // check removed
     assertFalse(localStorageService.objectExists("user-admin", "blah.RData"));
+  }
+
+  @Test
+  void testDeleteBucket() {
+    localStorageService.createBucketIfNotExists("delete-bucket-test");
+
+    assertTrue(
+        localStorageService.listBuckets().stream()
+            .anyMatch(bucket -> bucket.equals("delete-bucket-test")));
+
+    localStorageService.deleteBucket("delete-bucket-test");
+
+    assertTrue(
+        localStorageService.listBuckets().stream()
+            .noneMatch(bucket -> bucket.equals("delete-bucket-test")));
+  }
+
+  @Test
+  void testGetObjectPathSafely() {
+    assertDoesNotThrow(
+        () -> localStorageService.getObjectPathSafely("test", "core/malicious.parquet"));
+  }
+
+  @Test
+  void testGetObjectPathSafelyMalicious() {
+    assertThrows(
+        IllegalPathException.class,
+        () -> localStorageService.getObjectPathSafely("test", "../../malicious.parquet"));
   }
 }
