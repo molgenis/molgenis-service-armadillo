@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -81,11 +82,24 @@ public class ArmadilloMetadataService {
   }
 
   public ArmadilloMetadata settingsList() {
-    return this.settings;
+    return ArmadilloMetadata.create(
+        new ConcurrentHashMap<>(usersMap()),
+        new ConcurrentHashMap<>(projectsMap()),
+        settings.getPermissions());
+  }
+
+  /**
+   * Gets a map of email -> UserDetails. Permissions are not stored in the user, so they are
+   * injected here.
+   */
+  private Map<String, UserDetails> usersMap() {
+    return settings.getUsers().keySet().stream()
+        .map(this::usersByEmail)
+        .collect(Collectors.toMap(UserDetails::getEmail, u -> u));
   }
 
   public List<UserDetails> usersList() {
-    return settings.getUsers().keySet().stream().map(this::usersByEmail).toList();
+    return new ArrayList<>(usersMap().values());
   }
 
   public void userUpsert(UserDetails userDetails) {
@@ -150,9 +164,18 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  /** key is project, value list of users */
+  /**
+   * Gets a map of name -> ProjectDetails. Permissions are not stored in the project, so they are
+   * injected here.
+   */
+  private Map<String, ProjectDetails> projectsMap() {
+    return settings.getProjects().keySet().stream()
+        .map(this::projectsByName)
+        .collect(Collectors.toMap(ProjectDetails::getName, p -> p));
+  }
+
   public List<ProjectDetails> projectsList() {
-    return settings.getProjects().keySet().stream().map(this::projectsByName).toList();
+    return new ArrayList<>(projectsMap().values());
   }
 
   public ProjectDetails projectsByName(String projectName) {
