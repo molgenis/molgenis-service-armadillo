@@ -91,7 +91,7 @@ def create_project(armadillo_client: Session, bucket: Bucket):
         "name": project_name
     })
     armadillo_client.put(armadillo_url + "/admin/projects", data=project_json)
-    print(f"> Created project test")
+    print(f"> Created project {project_name}")
 
 
 # noinspection DuplicatedCode

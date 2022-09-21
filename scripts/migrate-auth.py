@@ -87,7 +87,7 @@ def create_armadillo_client():
 def create_fusion_client():
     api_key = getpass("Fusion Auth API Key:")
 
-    # Remove trailing / to work around an issue in the FusionAuth
+    # Remove trailing / to work around an issue in the FusionAuthClient
     # See https://github.com/FusionAuth/fusionauth-python-client/issues/12
     url = auth_url.rstrip("/")
 
@@ -144,7 +144,7 @@ def get_production_applications_with_users(client: FusionAuthClient,
                                            users: list) -> dict:
     """
     Returns a dict of application id:name pairs. Only returns production applications
-    that have more than one user.
+    that have at least one user.
     """
     response = client.retrieve_applications()
     result = get_result_or_exit(response)
