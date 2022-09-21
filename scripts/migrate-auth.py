@@ -1,3 +1,11 @@
+"""
+Migration script for Armadillo 2.x -> 3.0
+
+This script copies users and their roles from Fusion Auth to Armadillo. It automatically
+creates users, projects, and permissions. Credentials are requested during execution of
+the script.
+"""
+
 import getopt
 import json
 import sys
@@ -9,7 +17,8 @@ from fusionauth.rest_client import ClientResponse
 from requests import Session
 from simple_term_menu import TerminalMenu
 
-help_string = "migrate-auth --fusion-auth auth_server --armadillo armadillo_server"
+help_string = "python migrate-auth.py --fusion-auth auth_server --armadillo " \
+              "armadillo_server "
 armadillo_url = ""
 auth_url = ""
 
@@ -60,6 +69,7 @@ def migrate():
                         armadillo_client=armadillo_client)
 
 
+# noinspection DuplicatedCode
 def create_armadillo_client():
     username = input("Armadillo username:")
     password = getpass("Armadillo password:")
