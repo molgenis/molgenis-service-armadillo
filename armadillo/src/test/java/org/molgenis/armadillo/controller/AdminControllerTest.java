@@ -1,27 +1,31 @@
 package org.molgenis.armadillo.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
+import static java.util.Collections.emptySet;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.gson.Gson;
-import java.io.ByteArrayInputStream;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.metadata.ArmadilloMetadata;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.MetadataLoader;
 import org.molgenis.armadillo.metadata.ProjectDetails;
+import org.molgenis.armadillo.metadata.ProjectPermission;
 import org.molgenis.armadillo.metadata.UserDetails;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,20 +43,32 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
 class AdminControllerTest {
+
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
+
   @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired private MockMvc mockMvc;
   @MockBean JwtDecoder jwtDecoder;
+  @MockBean MetadataLoader metadataLoader;
   @Autowired ArmadilloMetadataService armadilloMetadataService;
 
   @BeforeEach
-  void setup() {
-    // default state
-    when(armadilloStorage.loadSystemFile(METADATA_FILE))
-        .thenReturn(new ByteArrayInputStream(EXAMPLE_SETTINGS.getBytes()));
-    runAsSystem(armadilloMetadataService::reload);
+  public void before() {
+    var exampleSettings = createExampleSettings();
+    when(metadataLoader.load()).thenReturn(exampleSettings);
+    runAsSystem(() -> armadilloMetadataService.initialize());
+  }
+
+  private ArmadilloMetadata createExampleSettings() {
+    var settings = ArmadilloMetadata.create();
+    settings.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
+    settings
+        .getProjects()
+        .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
+    settings.getPermissions().add(ProjectPermission.create("bofke@email.com", "bofkesProject"));
+    return settings;
   }
 
   @Test
@@ -68,8 +84,6 @@ class AdminControllerTest {
   @Test
   @WithMockUser(roles = "SU")
   void permissions_POST() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
             post("/admin/permissions")
@@ -78,12 +92,17 @@ class AdminControllerTest {
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
-        new String(argument.getValue().readAllBytes()));
+    var expected = createExampleSettings();
+    expected
+        .getUsers()
+        .put(
+            "chefke@email.com",
+            UserDetails.create("chefke@email.com", null, null, null, null, emptySet()));
+    expected
+        .getProjects()
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+    expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
+    verify(metadataLoader).save(expected);
   }
 
   @Test
@@ -100,8 +119,6 @@ class AdminControllerTest {
   @Test
   @WithMockUser(roles = "SU")
   void permissions_DELETE() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
             delete("/admin/permissions")
@@ -110,12 +127,9 @@ class AdminControllerTest {
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[]}",
-        new String(argument.getValue().readAllBytes()));
+    var expected = createExampleSettings();
+    expected.getPermissions().clear();
+    verify(metadataLoader).save(expected);
   }
 
   @Test
@@ -143,8 +157,6 @@ class AdminControllerTest {
   @Test
   @WithMockUser(roles = "SU")
   void projects_PUT() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
             put("/admin/projects")
@@ -156,29 +168,25 @@ class AdminControllerTest {
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
-        new String(argument.getValue().readAllBytes()));
+    var expected = createExampleSettings();
+    expected.getUsers().put("chefke@email.com", UserDetails.create("chefke@email.com"));
+    expected
+        .getProjects()
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+    expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
+    verify(metadataLoader).save(expected);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void projects_DELETE() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(delete("/admin/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{},\"permissions\":[]}",
-        new String(argument.getValue().readAllBytes()));
+    var expected = ArmadilloMetadata.create();
+    expected.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
+    verify(metadataLoader).save(expected);
   }
 
   @Test
@@ -210,8 +218,19 @@ class AdminControllerTest {
   @Test
   @WithMockUser(roles = "SU")
   void users_PUT() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
+    var expected = createExampleSettings();
+    expected
+        .getUsers()
+        .put(
+            "chefke@email.com",
+            UserDetails.create(
+                "chefke@email.com", "Chefke", "von Chefke", "Chefke & co", true, emptySet()));
+    expected
+        .getProjects()
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+    expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
+
+    when(metadataLoader.save(expected)).thenReturn(expected);
 
     String testUser =
         new Gson()
@@ -227,17 +246,9 @@ class AdminControllerTest {
         .perform(put("/admin/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    final String backendState =
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true,\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(backendState, new String(argument.getValue().readAllBytes()));
+    verify(metadataLoader).save(expected);
 
     // check that 'get' also in sync
-    when(armadilloStorage.loadSystemFile(METADATA_FILE))
-        .thenReturn(new ByteArrayInputStream(backendState.getBytes()));
-    runAsSystem(armadilloMetadataService::reload);
     mockMvc
         .perform(get("/admin/users/chefke@email.com"))
         .andExpect(status().isOk())
@@ -248,17 +259,14 @@ class AdminControllerTest {
   @Test
   @WithMockUser(roles = "SU")
   void users_email_DELETE() throws Exception {
-    ArgumentCaptor<ByteArrayInputStream> argument =
-        ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(delete("/admin/users/bofke@email.com").with(csrf()))
         .andExpect(status().isNoContent());
 
-    // verify mock magic, I must say I prefer integration tests above this nonsense
-    verify(armadilloStorage)
-        .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
-    assertEquals(
-        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"permissions\":[]}",
-        new String(argument.getValue().readAllBytes()));
+    var expected = ArmadilloMetadata.create();
+    expected
+        .getProjects()
+        .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
+    verify(metadataLoader).save(expected);
   }
 }

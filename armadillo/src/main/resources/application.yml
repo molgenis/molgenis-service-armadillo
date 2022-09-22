@@ -7,6 +7,12 @@ rserve:
 datashield:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
+
+  # Uncomment this section to bootstrap the application with default values.
+  # bootstrap:
+    # oidc-admin-user: user@yourdomain.org
+    # default-project: your-project
+
   profiles:
     - name: default
       environment: default
