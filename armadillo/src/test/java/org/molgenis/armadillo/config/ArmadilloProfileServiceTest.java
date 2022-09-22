@@ -56,7 +56,8 @@ public class ArmadilloProfileServiceTest {
   public void testDeployDocker() throws InterruptedException {
     ProfileConfig profileConfig =
         ProfileConfig.create("dummy", "dummy/image", 6133, Set.of(), Map.of(), null);
-    ArmadilloProfileService armadilloProfileService = new ArmadilloProfileService(dockerClient);
+    ArmadilloProfileService armadilloProfileService =
+        new ArmadilloProfileService(dockerClient, true);
     armadilloProfileService.startProfile(profileConfig);
     assertEquals(RUNNING, armadilloProfileService.getProfileStatus(profileConfig));
     armadilloProfileService.removeProfile(profileConfig.getName());

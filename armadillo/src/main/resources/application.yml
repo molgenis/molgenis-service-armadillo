@@ -1,6 +1,8 @@
 datashield:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
+  # set this true if you want Armadillo to create/edit/delete profile docker images
+  docker-management-enabled: true
   profiles:
     - name: default
       port: 6311

@@ -27,7 +27,7 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public ArmadilloProfileService armadilloProfileService(DockerClient dockerClient) {
-    return new ArmadilloProfileService(dockerClient);
+    return new ArmadilloProfileService(dockerClient, true);
   }
 
   @Bean
