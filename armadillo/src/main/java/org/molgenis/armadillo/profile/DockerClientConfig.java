@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.config;
+package org.molgenis.armadillo.profile;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;

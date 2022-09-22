@@ -16,9 +16,9 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.config.DataShieldConfigProps;
-import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -44,7 +44,7 @@ class CommandsImpl implements Commands {
   private final TaskExecutor taskExecutor;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final DataShieldConfigProps dataShieldConfigProps;
+  private final ArmadilloMetadataService armadilloMetadataService;
 
   private ArmadilloSession armadilloSession;
 
@@ -58,7 +58,7 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      DataShieldConfigProps dataShieldConfigProps) {
+      ArmadilloMetadataService armadilloMetadataService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
@@ -66,7 +66,7 @@ class CommandsImpl implements Commands {
     this.connectionFactory = connectionFactory;
     this.processService = processService;
     this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
-    this.dataShieldConfigProps = dataShieldConfigProps;
+    this.armadilloMetadataService = armadilloMetadataService;
   }
 
   @Override
@@ -77,8 +77,8 @@ class CommandsImpl implements Commands {
   @Override
   public void selectProfile(String profileName) {
     var exists =
-        dataShieldConfigProps.getProfiles().stream()
-            .map(ProfileConfigProps::getName)
+        armadilloMetadataService.profileList().stream()
+            .map(ProfileConfig::getName)
             .anyMatch(profileName::equals);
     if (!exists) {
       throw new UnknownProfileException(profileName);
@@ -90,7 +90,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return dataShieldConfigProps.getProfiles().stream().map(ProfileConfigProps::getName).toList();
+    return armadilloMetadataService.profileList().stream().map(ProfileConfig::getName).toList();
   }
 
   @Override

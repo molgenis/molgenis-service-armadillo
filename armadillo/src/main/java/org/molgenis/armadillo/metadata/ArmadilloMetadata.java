@@ -17,7 +17,7 @@ public abstract class ArmadilloMetadata {
   public abstract ConcurrentMap<String, ProjectDetails> getProjects();
 
   @JsonProperty("profiles")
-  public abstract ConcurrentMap<String, ProfileDetails> getProfiles();
+  public abstract ConcurrentMap<String, ProfileConfig> getProfiles();
 
   @JsonProperty("permissions")
   public abstract Set<ProjectPermission> getPermissions();
@@ -35,7 +35,7 @@ public abstract class ArmadilloMetadata {
   public static ArmadilloMetadata create(
       @JsonProperty("users") ConcurrentMap<String, UserDetails> newUsers,
       @JsonProperty("projects") ConcurrentMap<String, ProjectDetails> newProjects,
-      @JsonProperty("profiles") ConcurrentMap<String, ProfileDetails> newProfiles,
+      @JsonProperty("profiles") ConcurrentMap<String, ProfileConfig> newProfiles,
       @JsonProperty("permissions") Set<ProjectPermission> newPermissions) {
     return new AutoValue_ArmadilloMetadata(newUsers, newProjects, newProfiles, newPermissions);
   }

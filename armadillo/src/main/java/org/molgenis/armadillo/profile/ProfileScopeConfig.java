@@ -2,8 +2,8 @@ package org.molgenis.armadillo.profile;
 
 import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
 
-import org.molgenis.armadillo.config.DataShieldConfigProps;
-import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RConnectionFactoryImpl;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -12,15 +12,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ProfileConfig {
+public class ProfileScopeConfig {
   @Bean
-  @org.molgenis.armadillo.config.annotation.ProfileScope
-  public ProfileConfigProps profileConfigProps(DataShieldConfigProps dataShieldConfigProps) {
+  @org.molgenis.armadillo.profile.annotation.ProfileScope
+  public ProfileConfig profileConfig(ArmadilloMetadataService armadilloMetadataService) {
     var activeProfileName = getActiveProfileName();
-    return dataShieldConfigProps.getProfiles().stream()
+    return armadilloMetadataService.profileList().stream()
         .filter(it -> it.getName().equals(activeProfileName))
-        // todo
-        .map(it -> new ProfileConfigProps())
         .findFirst()
         .orElseThrow(
             () ->
@@ -31,9 +29,12 @@ public class ProfileConfig {
   }
 
   @Bean
-  @org.molgenis.armadillo.config.annotation.ProfileScope
-  public RConnectionFactory rConnectionFactory(EnvironmentConfigProps environmentConfigProps) {
-    return new RConnectionFactoryImpl(environmentConfigProps);
+  @org.molgenis.armadillo.profile.annotation.ProfileScope
+  public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
+    EnvironmentConfigProps props = new EnvironmentConfigProps();
+    props.setName(profileConfig.getName());
+    props.setPort(profileConfig.getPort());
+    return new RConnectionFactoryImpl(props);
   }
 
   @Bean

@@ -10,11 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
-import org.molgenis.armadillo.config.ArmadilloProfileService;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
+import org.molgenis.armadillo.profile.ArmadilloProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +28,11 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloMetadataService {
-
   private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
   public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private ArmadilloProfileService profiles;
+  private ArmadilloProfileService profileService;
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Value("${datashield.oidc-permission-enabled}")
@@ -45,7 +44,7 @@ public class ArmadilloMetadataService {
     Objects.requireNonNull(armadilloStorageService);
     Objects.requireNonNull(armadilloProfileService);
     this.storage = armadilloStorageService;
-    this.profiles = armadilloProfileService;
+    this.profileService = armadilloProfileService;
     this.reload();
   }
 
@@ -221,47 +220,44 @@ public class ArmadilloMetadataService {
     this.save();
   }
 
-  public List<ProfileDetails> profileList() {
-    return settings.getProfiles().keySet().stream().map(this::profileByName).toList();
+  public List<ProfileConfig> profileList() {
+    return new ArrayList<>(settings.getProfiles().values());
   }
 
-  public ProfileDetails profileByName(String profileName) {
+  public ProfileConfig profileByName(String profileName) {
     if (!settings.getProfiles().containsKey(profileName)) {
       throw new UnknownProfileException(profileName);
     }
-    ProfileDetails details = settings.getProfiles().get(profileName);
-    // todo: if docker management is enabled
-    // better alternative might be to try and connect?
-    ProfileDetails.Status status = profiles.getProfileStatus(details);
-    return ProfileDetails.create(
-        details.getName(),
-        details.getImage(),
-        details.getPort(),
-        details.getWhitelist(),
-        details.getSeed(),
-        status);
+    ProfileConfig config = settings.getProfiles().get(profileName);
+    // add the status
+    return ProfileConfig.create(
+        config.getName(),
+        config.getImage(),
+        config.getPort(),
+        config.getWhitelist(),
+        config.getOptions(),
+        profileService.getProfileStatus(config));
   }
 
-  public void profileUpsert(ProfileDetails profileDetails) throws InterruptedException {
-    String profileName = profileDetails.getName();
-    profiles.startProfile(profileDetails);
+  public void profileUpsert(ProfileConfig profileConfig) throws InterruptedException {
+    String profileName = profileConfig.getName();
+    profileService.startProfile(profileConfig);
     settings
         .getProfiles()
         .put(
             profileName,
-            ProfileDetails.create(
+            ProfileConfig.create(
                 profileName,
-                profileDetails.getImage(),
-                profileDetails.getPort(),
-                profileDetails.getWhitelist(),
-                profileDetails.getSeed(),
-                // we don't save running state
+                profileConfig.getImage(),
+                profileConfig.getPort(),
+                profileConfig.getWhitelist(),
+                profileConfig.getOptions(),
                 null));
     save();
   }
 
   public void profileDelete(String profileName) {
-    profiles.removeProfile(profileName);
+    profileService.removeProfile(profileName);
     settings.getProfiles().remove(profileName);
     this.save();
   }

@@ -3,6 +3,7 @@ package org.molgenis.armadillo.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.metadata.ArmadilloMetadataService.METADATA_FILE;
+import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -13,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,11 +22,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.config.ArmadilloProfileService;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.ProfileDetails;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.UserDetails;
+import org.molgenis.armadillo.profile.ArmadilloProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,7 +44,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({AuditEventPublisher.class})
 class AdminControllerTest {
   public static final String DEFAULT_PROFILE =
-      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}";
+      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}";
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}],\"profiles\":{\"default\":"
           + DEFAULT_PROFILE
@@ -63,14 +64,14 @@ class AdminControllerTest {
     runAsSystem(armadilloMetadataService::reload);
     // default return of profile service
     when(armadilloProfileService.getProfileStatus(
-            ProfileDetails.create(
+            ProfileConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 6311,
-                List.of("dsBase"),
-                null,
+                Set.of("dsBase"),
+                Map.of(),
                 null)))
-        .thenReturn(ProfileDetails.Status.RUNNING);
+        .thenReturn(RUNNING);
   }
 
   @Test
@@ -100,7 +101,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -132,7 +133,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -178,7 +179,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -195,7 +196,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -247,8 +248,7 @@ class AdminControllerTest {
 
     // verify mock magic, I must say I prefer integration tests above this nonsense
     final String backendState =
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true,\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
-
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]},\"chefke@email.com\":{\"email\":\"chefke@email.com\",\"firstName\":\"Chefke\",\"lastName\":\"von Chefke\",\"institution\":\"Chefke & co\",\"admin\":true,\"projects\":[]}},\"projects\":{\"chefkesProject\":{\"name\":\"chefkesProject\",\"users\":[]},\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"},{\"email\":\"chefke@email.com\",\"project\":\"chefkesProject\"}]}";
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(backendState, new String(argument.getValue().readAllBytes()));
@@ -277,7 +277,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[]}",
+        "{\"users\":{},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[]}",
         new String(argument.getValue().readAllBytes()));
   }
 
@@ -291,7 +291,7 @@ class AdminControllerTest {
         .andExpect(
             content()
                 .json(
-                    "[{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"status\": \"RUNNING\"}]"));
+                    "[{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}]"));
   }
 
   @Test
@@ -304,22 +304,22 @@ class AdminControllerTest {
         .andExpect(
             content()
                 .json(
-                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"status\": \"RUNNING\"}"));
+                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void profiles_PUT() throws Exception {
-    ProfileDetails profileDetails =
-        ProfileDetails.create(
-            "dummy", "dummy/armadillo:2.0.0", 6312, List.of("dsBase"), null, null);
+    ProfileConfig profileConfig =
+        ProfileConfig.create(
+            "dummy", "dummy/armadillo:2.0.0", 6312, Set.of("dsBase"), Map.of(), null);
 
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);
     mockMvc
         .perform(
             put("/admin/profiles")
-                .content(new Gson().toJson(profileDetails))
+                .content(new Gson().toJson(profileConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk());
@@ -327,7 +327,7 @@ class AdminControllerTest {
     verify(armadilloStorage)
         .saveSystemFile(argument.capture(), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(
-        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"dummy\":{\"name\":\"dummy\",\"image\":\"dummy/armadillo:2.0.0\",\"port\":6312,\"whitelist\":[\"dsBase\"]},\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"}]}",
+        "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",\"projects\":[]}},\"projects\":{\"bofkesProject\":{\"name\":\"bofkesProject\",\"users\":[]}},\"profiles\":{\"dummy\":{\"name\":\"dummy\",\"image\":\"dummy/armadillo:2.0.0\",\"port\":6312,\"whitelist\":[\"dsBase\"],\"options\":{}},\"default\":{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"bofkesProject\"}]}",
         new String(argument.getValue().readAllBytes()));
   }
 

@@ -23,7 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -50,7 +50,7 @@ class DevelopmentControllerTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired AuditEventPublisher auditEventPublisher;
-  @MockBean private ProfileConfigProps profileConfigProps;
+  @MockBean private ProfileConfig profileConfig;
   @MockBean private Commands commands;
   @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @MockBean private ArmadilloStorageService armadilloStorageService;
@@ -133,7 +133,7 @@ class DevelopmentControllerTest {
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
     DevelopmentController controller =
-        new DevelopmentController(commands, auditEventPublisher, profileConfigProps);
+        new DevelopmentController(commands, auditEventPublisher, profileConfig);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }

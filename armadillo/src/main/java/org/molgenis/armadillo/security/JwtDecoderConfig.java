@@ -9,12 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.*;
 
 @ConditionalOnProperty(
     prefix = "spring.security.oauth2.resourceserver",
@@ -24,17 +19,29 @@ public class JwtDecoderConfig {
 
   @Bean
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
-    String issuerUri = properties.getJwt().getIssuerUri();
-    NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuerUri);
+    try {
+      String issuerUri = properties.getJwt().getIssuerUri();
+      NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuerUri);
 
-    var audienceValidator =
-        new JwtClaimValidator<Collection<String>>(
-            AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
-    OAuth2TokenValidator<Jwt> jwtValidator =
-        new DelegatingOAuth2TokenValidator<>(
-            JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
+      var audienceValidator =
+          new JwtClaimValidator<Collection<String>>(
+              AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
+      OAuth2TokenValidator<Jwt> jwtValidator =
+          new DelegatingOAuth2TokenValidator<>(
+              JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
 
-    jwtDecoder.setJwtValidator(jwtValidator);
-    return jwtDecoder;
+      jwtDecoder.setJwtValidator(jwtValidator);
+      return jwtDecoder;
+    } catch (Exception e) {
+      // how to elegantly fail if the provided issuer is not responding?
+      e.printStackTrace();
+      return new JwtDecoder() {
+        @Override
+        public Jwt decode(String token) throws JwtException {
+          throw new UnsupportedOperationException(
+              "JWT configuration failed, please check the logs. Probably the auth server is offline?");
+        }
+      };
+    }
   }
 }

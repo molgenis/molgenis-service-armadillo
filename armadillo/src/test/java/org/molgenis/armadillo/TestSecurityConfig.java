@@ -2,9 +2,8 @@ package org.molgenis.armadillo;
 
 import com.github.dockerjava.api.DockerClient;
 import java.util.Arrays;
-import java.util.List;
-import org.molgenis.armadillo.config.ArmadilloProfileService;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.profile.ArmadilloProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +41,7 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
     GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_SU");
     User userDetails =
-        new User("bofke", "bofke", List.of(authority)) {
+        new User("bofke", "bofke", Arrays.asList(authority)) {
           public String getEmail() {
             return "bofke@email.com";
           }

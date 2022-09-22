@@ -1,21 +1,16 @@
 package org.molgenis.armadillo.command.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
 import java.io.InputStream;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -25,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.config.DataShieldConfigProps;
-import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -51,7 +46,7 @@ class CommandsImplTest {
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
-  @Mock DataShieldConfigProps dataShieldConfigProps;
+  @Mock ArmadilloMetadataService armadilloMetadataService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -80,7 +75,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            dataShieldConfigProps);
+            armadilloMetadataService);
   }
 
   @Test
@@ -230,11 +225,11 @@ class CommandsImplTest {
   @Test
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ProfileConfigProps profileConfigProps = new ProfileConfigProps();
-    profileConfigProps.setName("exposome");
-    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of(profileConfigProps));
+    ProfileConfig profileConfig =
+        ProfileConfig.create("exposome", "dummy", 6311, Set.of(), Map.of(), RUNNING);
+    when(armadilloMetadataService.profileList()).thenReturn(List.of(profileConfig));
     commands.selectProfile("exposome");
-    verify(dataShieldConfigProps).getProfiles();
+    verify(armadilloMetadataService).profileList();
     verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
@@ -242,7 +237,7 @@ class CommandsImplTest {
 
   @Test
   void testSelectUnknownProfile() {
-    when(dataShieldConfigProps.getProfiles()).thenReturn(List.of());
+    when(armadilloMetadataService.profileList()).thenReturn(List.of());
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
 }

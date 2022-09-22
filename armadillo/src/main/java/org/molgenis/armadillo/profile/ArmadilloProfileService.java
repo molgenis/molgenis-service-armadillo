@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.config;
+package org.molgenis.armadillo.profile;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
@@ -10,14 +10,12 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import java.util.concurrent.TimeUnit;
-import org.molgenis.armadillo.exceptions.CannotConnectToDockerException;
-import org.molgenis.armadillo.metadata.ProfileDetails;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ArmadilloProfileService {
-  public static final String ARMADILLO_PROFILE = "org.molgenis.armadillo.profile";
   // remote control for docker
   private DockerClient dockerClient;
 
@@ -25,44 +23,47 @@ public class ArmadilloProfileService {
     this.dockerClient = dockerClient;
   }
 
-  public ProfileDetails.Status getProfileStatus(ProfileDetails profileDetails) {
+  public ProfileStatus getProfileStatus(ProfileConfig profileConfig) {
     try {
       InspectContainerResponse containerInfo =
-          dockerClient.inspectContainerCmd(profileDetails.getName()).exec();
+          dockerClient.inspectContainerCmd(profileConfig.getName()).exec();
       if (containerInfo.getState().getRunning()) {
-        return ProfileDetails.Status.RUNNING;
+        return ProfileStatus.RUNNING;
       } else {
-        return ProfileDetails.Status.STOPPED;
+        return ProfileStatus.STOPPED;
       }
     } catch (Exception e) {
-      throw new CannotConnectToDockerException(profileDetails, e);
+      if (e.getMessage().contains("Connection refused")) {
+        return ProfileStatus.CONNECTION_REFUSED;
+      } else {
+        throw e;
+      }
     }
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
-  public void startProfile(ProfileDetails profileDetails) throws InterruptedException {
+  public void startProfile(ProfileConfig profileConfig) throws InterruptedException {
     // stop previous image if running
-    this.removeProfile(profileDetails.getName());
+    this.removeProfile(profileConfig.getName());
 
     // load the image if needed
     dockerClient
-        .pullImageCmd(profileDetails.getImage())
+        .pullImageCmd(profileConfig.getImage())
         .exec(new PullImageResultCallback())
         .awaitCompletion(5, TimeUnit.MINUTES);
 
     // start the image
     ExposedPort exposed = ExposedPort.tcp(6311);
     Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(profileDetails.getPort()));
+    portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
     CreateContainerResponse container;
-    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileDetails.getImage())) {
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       container =
           cmd
               // mapping the port
               .withExposedPorts(exposed)
               .withHostConfig(new HostConfig().withPortBindings(portBindings))
               // mapping the name
-              .withName(profileDetails.getName())
+              .withName(profileConfig.getName())
               // environment
               .withEnv("DEBUG=FALSE")
               .exec();
@@ -70,13 +71,13 @@ public class ArmadilloProfileService {
     dockerClient.startContainerCmd(container.getId()).exec();
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void removeProfile(String profileName) {
     try {
       dockerClient.stopContainerCmd(profileName).exec();
       dockerClient.removeContainerCmd(profileName).exec();
     } catch (NotFoundException nfe) {
       // no problem, might not exist anymore
+      // idempotent :-)
     }
   }
 }

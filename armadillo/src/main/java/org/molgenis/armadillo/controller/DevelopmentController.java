@@ -13,13 +13,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.config.ProfileConfigProps;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +40,13 @@ public class DevelopmentController {
 
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
-  private final ProfileConfigProps profileConfigProps;
+  private ProfileConfig profileConfig;
 
   public DevelopmentController(
-      Commands commands,
-      AuditEventPublisher auditEventPublisher,
-      ProfileConfigProps profileConfigProps) {
+      Commands commands, AuditEventPublisher auditEventPublisher, ProfileConfig profileConfig) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
-    this.profileConfigProps = requireNonNull(profileConfigProps);
+    this.profileConfig = requireNonNull(profileConfig);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -84,7 +83,7 @@ public class DevelopmentController {
       return result
           .thenApply(
               body -> {
-                profileConfigProps.addToWhitelist(packageName);
+                this.addToWhitelist(packageName);
                 return ResponseEntity.ok(body);
               })
           .exceptionally(
@@ -96,7 +95,7 @@ public class DevelopmentController {
   @GetMapping("whitelist")
   @ResponseBody
   public Set<String> getWhitelist() {
-    return profileConfigProps.getWhitelist();
+    return profileConfig.getWhitelist();
   }
 
   @Operation(
@@ -108,7 +107,17 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg) {
-    profileConfigProps.addToWhitelist(pkg);
+    Set whiteList = new LinkedHashSet();
+    whiteList.addAll(profileConfig.getWhitelist());
+    whiteList.add(pkg);
+    profileConfig =
+        ProfileConfig.create(
+            profileConfig.getName(),
+            profileConfig.getImage(),
+            profileConfig.getPort(),
+            whiteList,
+            profileConfig.getOptions(),
+            null);
   }
 
   protected String getPackageNameFromFilename(String filename) {

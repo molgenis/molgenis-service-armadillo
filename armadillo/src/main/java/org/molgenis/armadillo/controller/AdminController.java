@@ -155,11 +155,15 @@ public class AdminController {
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
-  @GetMapping(value = "projects/{name}", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "projects/{projectName}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ProjectDetails projectGetByProjectName(Principal principal, @PathVariable String name) {
+  public ProjectDetails projectGetByProjectName(
+      Principal principal, @PathVariable String projectName) {
     return auditor.audit(
-        () -> metadata.projectsByName(name), principal, GET_PROJECT, Map.of(PROJECT, name));
+        () -> metadata.projectsByName(projectName),
+        principal,
+        GET_PROJECT,
+        Map.of(PROJECT, projectName));
   }
 
   @Operation(summary = "Delete project including permissions and data")
@@ -175,11 +179,14 @@ public class AdminController {
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
-  @DeleteMapping(value = "projects/{name}", produces = TEXT_PLAIN_VALUE)
+  @DeleteMapping(value = "projects/{project}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void projectsDelete(Principal principal, @PathVariable String name) {
+  public void projectsDelete(Principal principal, @PathVariable String project) {
     auditor.audit(
-        () -> metadata.projectsDelete(name), principal, DELETE_PROJECT, Map.of(PROJECT, name));
+        () -> metadata.projectsDelete(project),
+        principal,
+        DELETE_PROJECT,
+        Map.of(PROJECT, project));
   }
 
   @Operation(summary = "Add or update project including permissions")
@@ -294,7 +301,7 @@ public class AdminController {
             description = "All profiles listed",
             content =
                 @Content(
-                    array = @ArraySchema(schema = @Schema(implementation = ProfileDetails.class)))),
+                    array = @ArraySchema(schema = @Schema(implementation = ProfileConfig.class)))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -302,8 +309,16 @@ public class AdminController {
       })
   @GetMapping(path = "profiles", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ProfileDetails> profileList(Principal principal) {
-    return auditor.audit(metadata::profileList, principal, LIST_PROFILES, Map.of());
+  public List<ProfileConfig> profileList(Principal principal) {
+    return auditor.audit(
+        () -> {
+          return metadata.profileList().stream()
+              .map(profile -> metadata.profileByName(profile.getName()))
+              .toList();
+        },
+        principal,
+        LIST_PROFILES,
+        Map.of());
   }
 
   @Operation(summary = "Get profile by name")
@@ -312,7 +327,7 @@ public class AdminController {
         @ApiResponse(
             responseCode = "200",
             description = "Profile listed",
-            content = @Content(schema = @Schema(implementation = ProfileDetails.class))),
+            content = @Content(schema = @Schema(implementation = ProfileConfig.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Profile does not exist",
@@ -324,7 +339,7 @@ public class AdminController {
       })
   @GetMapping(value = "profiles/{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ProfileDetails profileGetByProfileName(Principal principal, @PathVariable String name) {
+  public ProfileConfig profileGetByProfileName(Principal principal, @PathVariable String name) {
     return auditor.audit(
         () -> metadata.profileByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
   }
@@ -340,14 +355,14 @@ public class AdminController {
       })
   @PutMapping(value = "profiles", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void profileUpsert(Principal principal, @RequestBody ProfileDetails profileDetails)
+  public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig)
       throws InterruptedException {
-    metadata.profileUpsert(profileDetails);
+    metadata.profileUpsert(profileConfig);
     auditor.audit(
         () -> {}, // because of the exception that might happen, and cannot be caught
         principal,
         UPSERT_PROFILE,
-        Map.of(PROFILE, profileDetails));
+        Map.of(PROFILE, profileConfig));
   }
 
   @Operation(summary = "Delete profile (if enabled, including docker image)")
