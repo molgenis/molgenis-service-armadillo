@@ -114,6 +114,7 @@ public class DevelopmentController {
         ProfileConfig.create(
             profileConfig.getName(),
             profileConfig.getImage(),
+            profileConfig.getHost(),
             profileConfig.getPort(),
             whiteList,
             profileConfig.getOptions(),

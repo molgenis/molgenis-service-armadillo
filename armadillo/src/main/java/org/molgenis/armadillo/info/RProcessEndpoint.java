@@ -48,6 +48,7 @@ public class RProcessEndpoint {
                 it -> {
                   EnvironmentConfigProps props = new EnvironmentConfigProps();
                   props.setName(it.getName());
+                  props.setHost(it.getHost());
                   props.setPort(it.getPort());
                   return props;
                 })

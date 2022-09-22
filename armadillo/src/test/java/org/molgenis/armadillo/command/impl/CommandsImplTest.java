@@ -226,7 +226,7 @@ class CommandsImplTest {
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
-        ProfileConfig.create("exposome", "dummy", 6311, Set.of(), Map.of(), RUNNING);
+        ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Map.of(), RUNNING);
     when(armadilloMetadataService.profileList()).thenReturn(List.of(profileConfig));
     commands.selectProfile("exposome");
     verify(armadilloMetadataService).profileList();

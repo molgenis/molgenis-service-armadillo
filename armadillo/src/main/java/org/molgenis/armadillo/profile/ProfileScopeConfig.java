@@ -33,6 +33,7 @@ public class ProfileScopeConfig {
   public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
     EnvironmentConfigProps props = new EnvironmentConfigProps();
     props.setName(profileConfig.getName());
+    props.setHost(profileConfig.getHost());
     props.setPort(profileConfig.getPort());
     return new RConnectionFactoryImpl(props);
   }

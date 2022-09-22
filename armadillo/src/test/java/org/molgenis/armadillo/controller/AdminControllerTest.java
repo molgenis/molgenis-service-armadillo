@@ -26,7 +26,7 @@ import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.UserDetails;
-import org.molgenis.armadillo.profile.ArmadilloProfileService;
+import org.molgenis.armadillo.profile.ProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -54,7 +54,7 @@ class AdminControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean JwtDecoder jwtDecoder;
   @Autowired ArmadilloMetadataService armadilloMetadataService;
-  @MockBean ArmadilloProfileService armadilloProfileService;
+  @MockBean ProfileService armadilloProfileService;
 
   @BeforeEach
   void setup() {
@@ -67,6 +67,7 @@ class AdminControllerTest {
             ProfileConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
+                "localhost",
                 6311,
                 Set.of("dsBase"),
                 Map.of(),
@@ -312,7 +313,7 @@ class AdminControllerTest {
   void profiles_PUT() throws Exception {
     ProfileConfig profileConfig =
         ProfileConfig.create(
-            "dummy", "dummy/armadillo:2.0.0", 6312, Set.of("dsBase"), Map.of(), null);
+            "dummy", "dummy/armadillo:2.0.0", "localhost", 6312, Set.of("dsBase"), Map.of(), null);
 
     ArgumentCaptor<ByteArrayInputStream> argument =
         ArgumentCaptor.forClass(ByteArrayInputStream.class);

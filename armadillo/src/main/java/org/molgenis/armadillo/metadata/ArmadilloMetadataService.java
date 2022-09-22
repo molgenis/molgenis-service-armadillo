@@ -14,7 +14,7 @@ import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
-import org.molgenis.armadillo.profile.ArmadilloProfileService;
+import org.molgenis.armadillo.profile.ProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +32,14 @@ public class ArmadilloMetadataService {
   public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private ArmadilloProfileService profileService;
+  private ProfileService profileService;
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
   public ArmadilloMetadataService(
-      ArmadilloStorageService armadilloStorageService,
-      ArmadilloProfileService armadilloProfileService) {
+      ArmadilloStorageService armadilloStorageService, ProfileService armadilloProfileService) {
     Objects.requireNonNull(armadilloStorageService);
     Objects.requireNonNull(armadilloProfileService);
     this.storage = armadilloStorageService;
@@ -233,6 +232,7 @@ public class ArmadilloMetadataService {
     return ProfileConfig.create(
         config.getName(),
         config.getImage(),
+        config.getHost(),
         config.getPort(),
         config.getWhitelist(),
         config.getOptions(),
@@ -249,6 +249,7 @@ public class ArmadilloMetadataService {
             ProfileConfig.create(
                 profileName,
                 profileConfig.getImage(),
+                profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getWhitelist(),
                 profileConfig.getOptions(),

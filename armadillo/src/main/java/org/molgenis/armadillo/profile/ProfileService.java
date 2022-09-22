@@ -18,15 +18,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ArmadilloProfileService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloProfileService.class);
+public class ProfileService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ProfileService.class);
 
   // remote control for docker
   private DockerClient dockerClient;
   // get if docker management is enabled from config file
   private boolean dockerManagementEnabled;
 
-  public ArmadilloProfileService(
+  public ProfileService(
       DockerClient dockerClient,
       @Value("${datashield.docker-management-enabled}") boolean dockerManagementEnabled) {
     this.dockerClient = dockerClient;

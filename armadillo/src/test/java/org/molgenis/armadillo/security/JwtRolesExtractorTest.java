@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.profile.ArmadilloProfileService;
+import org.molgenis.armadillo.profile.ProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,7 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class JwtRolesExtractorTest {
   @Mock Jwt jwt;
   @Mock ArmadilloStorageService armadilloStorage;
-  @Mock ArmadilloProfileService profileService;
+  @Mock ProfileService profileService;
   ArmadilloMetadataService armadilloMetadataService;
 
   @Test

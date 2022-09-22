@@ -18,10 +18,10 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.profile.ArmadilloProfileService;
+import org.molgenis.armadillo.profile.ProfileService;
 
 @ExtendWith(MockitoExtension.class)
-public class ArmadilloProfileServiceTest {
+public class ProfileServiceTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   InspectContainerResponse containerInfo;
 
@@ -55,9 +55,8 @@ public class ArmadilloProfileServiceTest {
   @Test
   public void testDeployDocker() throws InterruptedException {
     ProfileConfig profileConfig =
-        ProfileConfig.create("dummy", "dummy/image", 6133, Set.of(), Map.of(), null);
-    ArmadilloProfileService armadilloProfileService =
-        new ArmadilloProfileService(dockerClient, true);
+        ProfileConfig.create("dummy", "dummy/image", "localhost", 6133, Set.of(), Map.of(), null);
+    ProfileService armadilloProfileService = new ProfileService(dockerClient, true);
     armadilloProfileService.startProfile(profileConfig);
     assertEquals(RUNNING, armadilloProfileService.getProfileStatus(profileConfig));
     armadilloProfileService.removeProfile(profileConfig.getName());
