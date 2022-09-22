@@ -102,7 +102,7 @@ public class ArmadilloMetadataService {
    */
   private Map<String, UserDetails> usersMap() {
     return settings.getUsers().keySet().stream()
-        .map(this::usersByEmail)
+        .map(this::userByEmail)
         .collect(Collectors.toMap(UserDetails::getEmail, u -> u));
   }
 
