@@ -40,8 +40,8 @@ public class ArmadilloMetadataService {
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
       MetadataLoader metadataLoader,
-      @Value("${datashield.bootstrap.oidc-admin-user}") String adminUser,
-      @Value("${datashield.bootstrap.default-project}") String defaultProject) {
+      @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser,
+      @Value("${datashield.bootstrap.default-project:#{null}}") String defaultProject) {
     this.loader = requireNonNull(metadataLoader);
     this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;
