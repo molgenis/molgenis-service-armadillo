@@ -42,8 +42,7 @@ class JwtRolesExtractorTest {
     metadata.getPermissions().add(ProjectPermission.create("bofke@email.com", "myproject"));
     when(metadataLoader.load()).thenReturn(metadata);
 
-    armadilloMetadataService =
-        new ArmadilloMetadataService(armadilloStorage, metadataLoader, null, null);
+    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage, metadataLoader, null);
     Collection<GrantedAuthority> authorities =
         new JwtRolesExtractor(armadilloMetadataService).convert(jwt);
     assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_MYPROJECT_RESEARCHER")));

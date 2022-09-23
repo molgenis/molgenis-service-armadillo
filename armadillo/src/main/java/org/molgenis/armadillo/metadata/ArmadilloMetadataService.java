@@ -7,7 +7,6 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,17 +34,14 @@ public class ArmadilloMetadataService {
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
-  private final String defaultProject;
 
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
       MetadataLoader metadataLoader,
-      @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser,
-      @Value("${datashield.bootstrap.default-project:#{null}}") String defaultProject) {
+      @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(metadataLoader);
     this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;
-    this.defaultProject = defaultProject;
     runAsSystem(this::initialize);
   }
 
@@ -226,7 +222,7 @@ public class ArmadilloMetadataService {
 
     // clone projectDetails to strip permissions from value object and save
     // (permissions are saved separately)
-    projectDetails = ProjectDetails.create(projectName, Collections.emptySet());
+    projectDetails = ProjectDetails.create(projectName, emptySet());
     settings.getProjects().put(projectName, projectDetails);
     settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
@@ -317,8 +313,9 @@ public class ArmadilloMetadataService {
       userUpsert(UserDetails.createAdmin(adminUser));
     }
 
-    if (defaultProject != null && !settings.getProjects().containsKey(defaultProject)) {
-      projectsUpsert(ProjectDetails.create(defaultProject, emptySet()));
-    }
+    storage.listProjects().stream()
+        .filter(project -> !settings.getProjects().containsKey(project))
+        .map(project -> ProjectDetails.create(project, emptySet()))
+        .forEach(this::projectsUpsert);
   }
 }

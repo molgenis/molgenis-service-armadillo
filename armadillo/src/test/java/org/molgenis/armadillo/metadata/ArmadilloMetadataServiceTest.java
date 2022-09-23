@@ -1,8 +1,12 @@
 package org.molgenis.armadillo.metadata;
 
+import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -14,30 +18,30 @@ class ArmadilloMetadataServiceTest {
 
   @Mock private ArmadilloStorageService storage;
 
-  private final MetadataLoader loader = new DummyMetadataLoader();
-
   @Test
   void testBootstrapAdmin() {
-    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com", null);
+    var loader = new DummyMetadataLoader();
+    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com");
     metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
   }
 
   @Test
-  void testBootstrapDefaultProject() {
-    var metadataService = new ArmadilloMetadataService(storage, loader, null, "test");
+  void testBootstrapProjects() {
+    var project1 = ProjectDetails.create("project1", emptySet());
+    var project2 = ProjectDetails.create("project2", emptySet());
+    var metadata =
+        ArmadilloMetadata.create(
+            new ConcurrentHashMap<>(),
+            new ConcurrentHashMap<>(Map.of("project1", project1)),
+            emptySet());
+    var loader = new DummyMetadataLoader(metadata);
+    when(storage.listProjects()).thenReturn(List.of("project1", "project2"));
+
+    var metadataService = new ArmadilloMetadataService(storage, loader, null);
     metadataService.initialize();
 
-    assertNotNull(metadataService.projectsByName("test"));
-  }
-
-  @Test
-  void testBootstrapAll() {
-    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com", "test");
-    metadataService.initialize();
-
-    assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
-    assertNotNull(metadataService.projectsByName("test"));
+    assertEquals(List.of(project2, project1), metadataService.projectsList());
   }
 }
