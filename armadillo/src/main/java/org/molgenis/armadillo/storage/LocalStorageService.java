@@ -2,7 +2,6 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.molgenis.armadillo.storage.LocalStorageService.ROOT_DIR_PROPERTY;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,12 +20,12 @@ import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnProperty(ROOT_DIR_PROPERTY)
+@ConditionalOnMissingBean(MinioStorageService.class)
 public class LocalStorageService implements StorageService {
 
   static final String ROOT_DIR_PROPERTY = "storage.root-dir";
