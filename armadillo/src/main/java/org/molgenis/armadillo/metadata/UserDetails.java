@@ -53,4 +53,8 @@ public abstract class UserDetails {
   public static UserDetails create(String newEmail) {
     return new AutoValue_UserDetails(newEmail, null, null, null, null, new HashSet<>());
   }
+
+  public static UserDetails createAdmin(String newEmail) {
+    return new AutoValue_UserDetails(newEmail, null, null, null, true, new HashSet<>());
+  }
 }

@@ -74,13 +74,13 @@ public class PackageServiceImpl implements PackageService {
 
   @Override
   public void loadPackages(RConnection connection, Set<String> pkgs) {
+    String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
     try {
-      String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
       LOGGER.trace("Loading packages [ {} ]", packages);
       connection.eval("base::lapply(c(" + packages + "), library, character.only = TRUE)");
       LOGGER.trace("Successfully loaded packages [ {} ]", packages);
     } catch (RserveException e) {
-      throw new RExecutionException(e);
+      throw new RExecutionException("Error loading packages: " + packages);
     }
   }
 

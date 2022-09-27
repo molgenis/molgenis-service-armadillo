@@ -65,12 +65,33 @@ If you want to use MinIO as storage (including the test data), do the following:
 7. Now Armadillo will automatically connect to MinIO at startup.
 
 > **_Note_**: When you run Armadillo locally for the first time, the `lifecycle` project has not been
-> added to the system metadata yet. To add it, do the following:
+> added to the system metadata yet. To add it automatically, see [Application properties](#application-properties).
+> Or you can add it manually:
 > - Go to the Swagger UI (`http://localhost:8080/swagger-ui/index.html`)
 > - Go to the `PUT /admin/projects` endpoint 
 > - Add the project `lifecycle`
 > 
 > Now you're all set!
+
+### Application properties
+You can configure the application in `application.yml`. During development however, it is more
+convenient to override these settings in a local .yml file that you do not commit to git. Here's
+how to set that up:
+
+- Next to `application.yml`, create a file `application-local.yml` (this file is ignored by git)
+- Give it the following content:
+```
+datashield:
+  bootstrap:
+    oidc-admin-user: <your OIDC email>
+    default-project: lifecycle
+```
+- Now, in the Run Configuration for the DatashieldServiceApplication, add the following program argument: 
+
+```--spring.config.additional-location=file:armadillo/src/main/resources/application-local.yml```
+
+Now the lifecycle test project (including its data) will work out of the box, and you will be able to log in 
+with your OIDC account immediately.
 
 ### DataSHIELD Profiles
 There are several DataSHIELD profiles you can start. At this stage these are the following:

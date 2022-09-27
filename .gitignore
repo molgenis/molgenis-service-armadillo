@@ -38,3 +38,6 @@ build/
 /docker/logs/
 /docker/data/
 **/audit.log
+
+### LOCAL SETTINGS ###
+/armadillo/src/main/resources/application-local.yml

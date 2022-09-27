@@ -199,7 +199,7 @@ public class AdminController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PutMapping(value = "projects", produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(OK)
+  @ResponseStatus(NO_CONTENT)
   public void projectsUpsert(Principal principal, @RequestBody ProjectDetails projectDetails) {
     auditor.audit(
         () -> metadata.projectsUpsert(projectDetails),
@@ -252,7 +252,7 @@ public class AdminController {
   public UserDetails userByEmail(Principal principal, @PathVariable String email) {
     Objects.requireNonNull(email);
     return auditor.audit(
-        () -> metadata.usersByEmail(email), principal, GET_USER, Map.of(EMAIL, email));
+        () -> metadata.userByEmail(email), principal, GET_USER, Map.of(EMAIL, email));
   }
 
   @Operation(summary = "Add/Update user by email using email as id")
