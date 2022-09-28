@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.metadata;
 
-public class DummyMetadataLoader implements MetadataLoader {
+public class DummyMetadataLoader extends MetadataLoader {
 
   private final ArmadilloMetadata initialMetadata;
 

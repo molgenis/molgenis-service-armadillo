@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-public abstract class ArmadilloMetadata {
+public abstract class ArmadilloMetadata extends Metadata {
   @JsonProperty("users")
   public abstract ConcurrentMap<String, UserDetails> getUsers();
 

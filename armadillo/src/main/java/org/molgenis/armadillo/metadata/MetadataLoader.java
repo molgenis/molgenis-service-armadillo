@@ -1,8 +1,17 @@
 package org.molgenis.armadillo.metadata;
 
-public interface MetadataLoader {
+import org.springframework.stereotype.Service;
 
-  ArmadilloMetadata save(ArmadilloMetadata metadata);
+@Service
+public class MetadataLoader extends StorageJsonLoader<ArmadilloMetadata> {
 
-  ArmadilloMetadata load();
+  @Override
+  public ArmadilloMetadata createDefault() {
+    return ArmadilloMetadata.create();
+  }
+
+  @Override
+  public String getJsonFilename() {
+    return "metadata.json";
+  }
 }

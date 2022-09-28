@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.metadata.StorageMetadataLoader.METADATA_FILE;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.SYSTEM;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.validateProjectName;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -53,6 +52,7 @@ class ArmadilloStorageServiceTest {
 
   final String SHARED_GECKO = "shared-gecko";
   final String SHARED_DIABETES = "shared-diabetes";
+  final String METADATA_FILE = "metadata.json";
 
   @MockBean StorageService storageService;
   @Mock Principal principal;
@@ -588,6 +588,7 @@ class ArmadilloStorageServiceTest {
     assertThrows(InvalidProjectNameException.class, () -> validateProjectName("illegal~name"));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void mockExistingObject(String bucketName, String objectName) {
     mockExistingTestObjects(bucketName, List.of(objectName));
   }
