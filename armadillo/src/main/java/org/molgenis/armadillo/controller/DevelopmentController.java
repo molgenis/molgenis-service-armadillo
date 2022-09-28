@@ -107,8 +107,7 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg) {
-    Set whiteList = new LinkedHashSet();
-    whiteList.addAll(profileConfig.getWhitelist());
+    var whiteList = new LinkedHashSet<>(profileConfig.getWhitelist());
     whiteList.add(pkg);
     profileConfig =
         ProfileConfig.create(

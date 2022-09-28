@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.profile;
 
+import static java.lang.Boolean.TRUE;
+
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -22,9 +24,9 @@ public class ProfileService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProfileService.class);
 
   // remote control for docker
-  private DockerClient dockerClient;
+  private final DockerClient dockerClient;
   // get if docker management is enabled from config file
-  private boolean dockerManagementEnabled;
+  private final boolean dockerManagementEnabled;
 
   public ProfileService(
       DockerClient dockerClient,
@@ -38,7 +40,7 @@ public class ProfileService {
       try {
         InspectContainerResponse containerInfo =
             dockerClient.inspectContainerCmd(profileConfig.getName()).exec();
-        if (containerInfo.getState().getRunning()) {
+        if (TRUE.equals(containerInfo.getState().getRunning())) {
           return ProfileStatus.RUNNING;
         } else {
           return ProfileStatus.STOPPED;

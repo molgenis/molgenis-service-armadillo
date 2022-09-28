@@ -311,11 +311,10 @@ public class AdminController {
   @ResponseStatus(OK)
   public List<ProfileConfig> profileList(Principal principal) {
     return auditor.audit(
-        () -> {
-          return metadata.profileList().stream()
-              .map(profile -> metadata.profileByName(profile.getName()))
-              .toList();
-        },
+        () ->
+            metadata.profileList().stream()
+                .map(profile -> metadata.profileByName(profile.getName()))
+                .toList(),
         principal,
         LIST_PROFILES,
         Map.of());

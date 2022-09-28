@@ -21,7 +21,7 @@ public class JwtDecoderConfig {
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
-      NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuerUri);
+      NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
 
       var audienceValidator =
           new JwtClaimValidator<Collection<String>>(
@@ -33,14 +33,11 @@ public class JwtDecoderConfig {
       jwtDecoder.setJwtValidator(jwtValidator);
       return jwtDecoder;
     } catch (Exception e) {
-      // how to elegantly fail if the provided issuer is not responding?
+      // TODO how to elegantly fail if the provided issuer is not responding?
       e.printStackTrace();
-      return new JwtDecoder() {
-        @Override
-        public Jwt decode(String token) throws JwtException {
-          throw new UnsupportedOperationException(
-              "JWT configuration failed, please check the logs. Probably the auth server is offline?");
-        }
+      return token -> {
+        throw new UnsupportedOperationException(
+            "JWT configuration failed, please check the logs. Probably the auth server is offline?");
       };
     }
   }

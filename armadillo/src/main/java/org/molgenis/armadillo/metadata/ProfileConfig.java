@@ -54,6 +54,6 @@ public abstract class ProfileConfig {
         newPort,
         newWhitelist,
         newOptions != null ? newOptions : Map.of(),
-        newStatus != null ? newStatus : null);
+        newStatus);
   }
 }
