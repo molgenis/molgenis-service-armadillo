@@ -20,15 +20,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProfileService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProfileService.class);
+public class DockerService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DockerService.class);
 
   // remote control for docker
   private final DockerClient dockerClient;
   // get if docker management is enabled from config file
   private final boolean dockerManagementEnabled;
 
-  public ProfileService(
+  public DockerService(
       DockerClient dockerClient,
       @Value("${datashield.docker-management-enabled}") boolean dockerManagementEnabled) {
     this.dockerClient = dockerClient;

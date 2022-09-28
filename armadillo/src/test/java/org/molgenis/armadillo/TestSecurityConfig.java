@@ -5,7 +5,7 @@ import java.util.List;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.DummyMetadataLoader;
 import org.molgenis.armadillo.metadata.MetadataLoader;
-import org.molgenis.armadillo.profile.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +28,8 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public ProfileService armadilloProfileService(DockerClient dockerClient) {
-    return new ProfileService(dockerClient, true);
+  public DockerService armadilloProfileService(DockerClient dockerClient) {
+    return new DockerService(dockerClient, true);
   }
 
   @Bean
@@ -40,9 +40,9 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   ArmadilloMetadataService accessStorageService(
       ArmadilloStorageService storageService,
-      ProfileService profileService,
+      DockerService dockerService,
       MetadataLoader metadataLoader) {
-    return new ArmadilloMetadataService(storageService, profileService, metadataLoader, null);
+    return new ArmadilloMetadataService(storageService, dockerService, metadataLoader, null);
   }
 
   @Bean

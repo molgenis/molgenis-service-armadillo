@@ -11,20 +11,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.profile.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloMetadataServiceTest {
 
   @Mock private ArmadilloStorageService storage;
-  @Mock private ProfileService profileService;
+  @Mock private DockerService dockerService;
 
   @Test
   void testBootstrapAdmin() {
     var loader = new DummyMetadataLoader();
     var metadataService =
-        new ArmadilloMetadataService(storage, profileService, loader, "bofke@gmail.com");
+        new ArmadilloMetadataService(storage, dockerService, loader, "bofke@gmail.com");
     metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
@@ -43,7 +43,7 @@ class ArmadilloMetadataServiceTest {
     var loader = new DummyMetadataLoader(metadata);
     when(storage.listProjects()).thenReturn(List.of("project1", "project2"));
 
-    var metadataService = new ArmadilloMetadataService(storage, profileService, loader, null);
+    var metadataService = new ArmadilloMetadataService(storage, dockerService, loader, null);
     metadataService.initialize();
 
     assertEquals(List.of(project2, project1), metadataService.projectsList());

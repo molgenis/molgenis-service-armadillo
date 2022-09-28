@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
-import org.molgenis.armadillo.profile.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +30,7 @@ public class ArmadilloMetadataService {
 
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private final ProfileService profileService;
+  private final DockerService dockerService;
   private final MetadataLoader loader;
 
   @Value("${datashield.oidc-permission-enabled}")
@@ -40,12 +40,12 @@ public class ArmadilloMetadataService {
 
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
-      ProfileService profileService,
+      DockerService dockerService,
       MetadataLoader metadataLoader,
       @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(metadataLoader);
     this.storage = requireNonNull(armadilloStorageService);
-    this.profileService = requireNonNull(profileService);
+    this.dockerService = requireNonNull(dockerService);
     this.adminUser = adminUser;
     runAsSystem(this::initialize);
   }
@@ -272,12 +272,12 @@ public class ArmadilloMetadataService {
         config.getPort(),
         config.getWhitelist(),
         config.getOptions(),
-        profileService.getProfileStatus(config));
+        dockerService.getProfileStatus(config));
   }
 
   public void profileUpsert(ProfileConfig profileConfig) throws InterruptedException {
     String profileName = profileConfig.getName();
-    profileService.startProfile(profileConfig);
+    dockerService.startProfile(profileConfig);
     settings
         .getProfiles()
         .put(
@@ -294,7 +294,7 @@ public class ArmadilloMetadataService {
   }
 
   public void profileDelete(String profileName) {
-    profileService.removeProfile(profileName);
+    dockerService.removeProfile(profileName);
     settings.getProfiles().remove(profileName);
     this.save();
   }

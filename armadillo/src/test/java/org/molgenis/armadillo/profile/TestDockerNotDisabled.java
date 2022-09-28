@@ -13,15 +13,15 @@ import org.molgenis.armadillo.metadata.ProfileConfig;
 public class TestDockerNotDisabled {
 
   @Mock DockerClient dockerClient;
-  ProfileService profileService = new ProfileService(dockerClient, false);
+  DockerService dockerService = new DockerService(dockerClient, false);
 
   @Test
   public void testDockerNotDisabled() throws InterruptedException {
     // nothing should happen
     ProfileConfig dummyConfig =
         ProfileConfig.create("test", "test", "localhost", 6111, Set.of(), Map.of(), null);
-    profileService.getProfileStatus(dummyConfig);
-    profileService.startProfile(dummyConfig);
-    profileService.removeProfile(dummyConfig.getName());
+    dockerService.getProfileStatus(dummyConfig);
+    dockerService.startProfile(dummyConfig);
+    dockerService.removeProfile(dummyConfig.getName());
   }
 }
