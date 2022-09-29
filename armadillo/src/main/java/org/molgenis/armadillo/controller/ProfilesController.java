@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("profiles")
+@RequestMapping("ds-profiles")
 public class ProfilesController {
 
   private final ProfileService profiles;
