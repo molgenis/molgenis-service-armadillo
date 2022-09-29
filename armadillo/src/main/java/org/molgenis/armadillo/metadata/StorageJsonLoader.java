@@ -21,12 +21,6 @@ public abstract class StorageJsonLoader<T extends Metadata> {
   private static final Logger LOGGER = LoggerFactory.getLogger(StorageJsonLoader.class);
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final Class<? extends Metadata> _class;
-
-  public StorageJsonLoader() {
-    _class = createDefault().getClass();
-  }
-
   public synchronized T save(T metadata) {
     try {
       String json = objectMapper.writeValueAsString(metadata);
@@ -43,7 +37,7 @@ public abstract class StorageJsonLoader<T extends Metadata> {
     String result;
     try (InputStream inputStream = storage.loadSystemFile(getJsonFilename())) {
       result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-      var temp = objectMapper.readValue(result, _class);
+      var temp = objectMapper.readValue(result, getTargetClass());
 
       //noinspection unchecked
       return temp == null ? createDefault() : (T) temp;
@@ -60,6 +54,8 @@ public abstract class StorageJsonLoader<T extends Metadata> {
   }
 
   public abstract T createDefault();
+
+  public abstract Class<? extends Metadata> getTargetClass();
 
   public abstract String getJsonFilename();
 }

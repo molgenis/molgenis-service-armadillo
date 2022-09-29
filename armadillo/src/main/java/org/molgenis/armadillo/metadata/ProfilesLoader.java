@@ -11,6 +11,11 @@ public class ProfilesLoader extends StorageJsonLoader<ProfilesMetadata> {
   }
 
   @Override
+  public Class<? extends Metadata> getTargetClass() {
+    return ProfilesMetadata.class;
+  }
+
+  @Override
   public String getJsonFilename() {
     return "profiles.json";
   }

@@ -11,6 +11,11 @@ public class MetadataLoader extends StorageJsonLoader<ArmadilloMetadata> {
   }
 
   @Override
+  public Class<? extends Metadata> getTargetClass() {
+    return ArmadilloMetadata.class;
+  }
+
+  @Override
   public String getJsonFilename() {
     return "metadata.json";
   }
