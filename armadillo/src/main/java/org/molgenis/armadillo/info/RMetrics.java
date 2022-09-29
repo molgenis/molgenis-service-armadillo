@@ -4,8 +4,8 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,13 +13,12 @@ import org.springframework.context.annotation.Configuration;
 public class RMetrics {
 
   @Bean
-  MeterBinder rProcesses(
-      ArmadilloMetadataService armadilloMetadataService, RProcessEndpoint processes) {
+  MeterBinder rProcesses(ProfileService profileService, RProcessEndpoint processes) {
 
     return registry ->
         runAsSystem(
             () ->
-                armadilloMetadataService.profileList().stream()
+                profileService.profileList().stream()
                     .map(ProfileConfig::getName)
                     .forEach(
                         environment ->

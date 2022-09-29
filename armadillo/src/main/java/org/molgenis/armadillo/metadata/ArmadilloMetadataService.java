@@ -13,10 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
-import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +28,6 @@ public class ArmadilloMetadataService {
 
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private final DockerService dockerService;
   private final MetadataLoader loader;
 
   @Value("${datashield.oidc-permission-enabled}")
@@ -40,12 +37,10 @@ public class ArmadilloMetadataService {
 
   public ArmadilloMetadataService(
       ArmadilloStorageService armadilloStorageService,
-      DockerService dockerService,
       MetadataLoader metadataLoader,
       @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(metadataLoader);
     this.storage = requireNonNull(armadilloStorageService);
-    this.dockerService = requireNonNull(dockerService);
     this.adminUser = adminUser;
     runAsSystem(this::initialize);
   }
@@ -252,50 +247,6 @@ public class ArmadilloMetadataService {
             settings.getPermissions().stream()
                 .filter(permission -> !permission.getProject().equals(projectName))
                 .collect(Collectors.toSet()));
-    this.save();
-  }
-
-  public List<ProfileConfig> profileList() {
-    return new ArrayList<>(settings.getProfiles().values());
-  }
-
-  public ProfileConfig profileByName(String profileName) {
-    if (!settings.getProfiles().containsKey(profileName)) {
-      throw new UnknownProfileException(profileName);
-    }
-    ProfileConfig config = settings.getProfiles().get(profileName);
-    // add the status
-    return ProfileConfig.create(
-        config.getName(),
-        config.getImage(),
-        config.getHost(),
-        config.getPort(),
-        config.getWhitelist(),
-        config.getOptions(),
-        dockerService.getProfileStatus(config));
-  }
-
-  public void profileUpsert(ProfileConfig profileConfig) throws InterruptedException {
-    String profileName = profileConfig.getName();
-    dockerService.startProfile(profileConfig);
-    settings
-        .getProfiles()
-        .put(
-            profileName,
-            ProfileConfig.create(
-                profileName,
-                profileConfig.getImage(),
-                profileConfig.getHost(),
-                profileConfig.getPort(),
-                profileConfig.getWhitelist(),
-                profileConfig.getOptions(),
-                null));
-    save();
-  }
-
-  public void profileDelete(String profileName) {
-    dockerService.removeProfile(profileName);
-    settings.getProfiles().remove(profileName);
     this.save();
   }
 

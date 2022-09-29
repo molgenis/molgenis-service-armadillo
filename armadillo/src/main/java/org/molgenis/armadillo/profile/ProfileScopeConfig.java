@@ -2,8 +2,8 @@ package org.molgenis.armadillo.profile;
 
 import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
 
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RConnectionFactoryImpl;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Configuration;
 public class ProfileScopeConfig {
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
-  public ProfileConfig profileConfig(ArmadilloMetadataService armadilloMetadataService) {
+  public ProfileConfig profileConfig(ProfileService profileService) {
     var activeProfileName = getActiveProfileName();
-    return armadilloMetadataService.profileList().stream()
+    return profileService.profileList().stream()
         .filter(it -> it.getName().equals(activeProfileName))
         .findFirst()
         .orElseThrow(

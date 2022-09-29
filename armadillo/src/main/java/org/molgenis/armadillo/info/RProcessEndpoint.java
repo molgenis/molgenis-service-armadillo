@@ -3,8 +3,8 @@ package org.molgenis.armadillo.info;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RConnectionFactoryImpl;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.model.REnvironment;
@@ -19,18 +19,17 @@ import org.springframework.stereotype.Component;
 @Endpoint(id = "rserveProcesses")
 public class RProcessEndpoint {
   private final ProcessService processService;
-  private final ArmadilloMetadataService armadilloMetadataService;
+  private final ProfileService profileService;
 
-  public RProcessEndpoint(
-      ProcessService processService, ArmadilloMetadataService armadilloMetadataService) {
+  public RProcessEndpoint(ProcessService processService, ProfileService profileService) {
     this.processService = processService;
-    this.armadilloMetadataService = armadilloMetadataService;
+    this.profileService = profileService;
   }
 
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
-    return armadilloMetadataService.profileList().stream()
+    return profileService.profileList().stream()
         .map(ProfileConfig::getName)
         .map(
             environmentName ->
@@ -42,7 +41,7 @@ public class RProcessEndpoint {
 
   <T> T doWithConnection(String environmentName, Function<RConnection, T> action) {
     var environment =
-        armadilloMetadataService.profileList().stream()
+        profileService.profileList().stream()
             .filter(it -> environmentName.equals(it.getName()))
             .map(
                 it -> {

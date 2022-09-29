@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,11 +43,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("profiles")
 public class ProfilesController {
 
-  private final ArmadilloMetadataService metadata;
+  private final ProfileService profiles;
   private final AuditEventPublisher auditor;
 
-  public ProfilesController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
-    this.metadata = metadataService;
+  public ProfilesController(ProfileService profileService, AuditEventPublisher auditor) {
+    this.profiles = profileService;
     this.auditor = auditor;
   }
 
@@ -70,8 +70,8 @@ public class ProfilesController {
   public List<ProfileConfig> profileList(Principal principal) {
     return auditor.audit(
         () ->
-            metadata.profileList().stream()
-                .map(profile -> metadata.profileByName(profile.getName()))
+            profiles.profileList().stream()
+                .map(profile -> profiles.profileByName(profile.getName()))
                 .toList(),
         principal,
         LIST_PROFILES,
@@ -98,7 +98,7 @@ public class ProfilesController {
   @ResponseStatus(OK)
   public ProfileConfig profileGetByProfileName(Principal principal, @PathVariable String name) {
     return auditor.audit(
-        () -> metadata.profileByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+        () -> profiles.profileByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
   }
 
   @Operation(summary = "Add or update profile (if enabled, including docker image)")
@@ -114,7 +114,7 @@ public class ProfilesController {
   @ResponseStatus(OK)
   public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig)
       throws InterruptedException {
-    metadata.profileUpsert(profileConfig);
+    profiles.profileUpsert(profileConfig);
     auditor.audit(
         () -> {}, // because of the exception that might happen, and cannot be caught
         principal,
@@ -139,6 +139,6 @@ public class ProfilesController {
   @ResponseStatus(NO_CONTENT)
   public void profileDelete(Principal principal, @PathVariable String name) {
     auditor.audit(
-        () -> metadata.profileDelete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
+        () -> profiles.profileDelete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
   }
 }

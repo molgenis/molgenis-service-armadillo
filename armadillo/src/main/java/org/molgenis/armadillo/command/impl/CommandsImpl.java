@@ -17,8 +17,8 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -44,7 +44,7 @@ class CommandsImpl implements Commands {
   private final TaskExecutor taskExecutor;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final ArmadilloMetadataService armadilloMetadataService;
+  private final ProfileService profileService;
 
   private ArmadilloSession armadilloSession;
 
@@ -58,15 +58,15 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ArmadilloMetadataService armadilloMetadataService) {
+      ProfileService profileService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.taskExecutor = taskExecutor;
     this.connectionFactory = connectionFactory;
     this.processService = processService;
+    this.profileService = profileService;
     this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
-    this.armadilloMetadataService = armadilloMetadataService;
   }
 
   @Override
@@ -77,7 +77,7 @@ class CommandsImpl implements Commands {
   @Override
   public void selectProfile(String profileName) {
     var exists =
-        armadilloMetadataService.profileList().stream()
+        profileService.profileList().stream()
             .map(ProfileConfig::getName)
             .anyMatch(profileName::equals);
     if (!exists) {
@@ -90,7 +90,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return armadilloMetadataService.profileList().stream().map(ProfileConfig::getName).toList();
+    return profileService.profileList().stream().map(ProfileConfig::getName).toList();
   }
 
   @Override

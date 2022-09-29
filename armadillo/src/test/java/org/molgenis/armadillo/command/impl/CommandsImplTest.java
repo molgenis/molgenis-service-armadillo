@@ -21,8 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -46,7 +46,7 @@ class CommandsImplTest {
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
-  @Mock ArmadilloMetadataService armadilloMetadataService;
+  @Mock ProfileService profileService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -75,7 +75,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            armadilloMetadataService);
+            profileService);
   }
 
   @Test
@@ -227,9 +227,9 @@ class CommandsImplTest {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
         ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Map.of(), RUNNING);
-    when(armadilloMetadataService.profileList()).thenReturn(List.of(profileConfig));
+    when(profileService.profileList()).thenReturn(List.of(profileConfig));
     commands.selectProfile("exposome");
-    verify(armadilloMetadataService).profileList();
+    verify(profileService).profileList();
     verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
@@ -237,7 +237,7 @@ class CommandsImplTest {
 
   @Test
   void testSelectUnknownProfile() {
-    when(armadilloMetadataService.profileList()).thenReturn(List.of());
+    when(profileService.profileList()).thenReturn(List.of());
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
 }
