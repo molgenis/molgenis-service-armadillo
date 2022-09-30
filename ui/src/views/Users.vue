@@ -108,8 +108,8 @@ import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import FeedbackMessage from "../components/FeedbackMessage.vue";
-import { getUsers, putUser, deleteUser } from "../api/api.js";
-import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.js";
+import { getUsers, putUser, deleteUser } from "../api/api.ts";
+import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.ts";
 import { onMounted, ref } from "vue";
 
 export default {

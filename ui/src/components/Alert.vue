@@ -9,20 +9,14 @@
     ></button>
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from "vue";
+export default defineComponent({
   name: "Alert",
   props: {
     clearFunction: Function,
-    type:
-      "primary" |
-      "secondary" |
-      "success" |
-      "warning" |
-      "info" |
-      "danger" |
-      "light" |
-      "dark",
+    type: String
+    // TODO create enum with: "primary" | "secondary" | "success" |"warning" | "info" | "danger" |"light" | "dark"
   },
-};
+});
 </script>

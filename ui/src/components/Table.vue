@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { toCapitalizedWords } from "../helpers/utils.js";
+import { toCapitalizedWords } from "../helpers/utils.ts";
 
 export default {
   name: "Table",

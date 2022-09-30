@@ -20,9 +20,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Alert from "../components/Alert.vue";
-export default {
+import { defineComponent } from "vue";
+
+export default defineComponent({
   name: "FeedbackMessage",
   components: {
     Alert,
@@ -53,5 +55,5 @@ export default {
       this.errorMsg = newVal;
     },
   },
-};
+});
 </script>
