@@ -12,10 +12,10 @@
   resolved "https://registry.npmjs.org/@popperjs/core/-/core-2.11.6.tgz"
   integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
-"@vitejs/plugin-vue@3.0.3":
-  version "3.0.3"
-  resolved "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-3.0.3.tgz"
-  integrity sha512-U4zNBlz9mg+TA+i+5QPc3N5lQvdUXENZLO2h0Wdzp56gI1MWhqJOv+6R+d4kOzoaSSq6TnGPBdZAXKOe4lXy6g==
+"@vitejs/plugin-vue@3.1.2":
+  version "3.1.2"
+  resolved "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-3.1.2.tgz"
+  integrity sha512-3zxKNlvA3oNaKDYX0NBclgxTQ1xaFdL7PzwF6zj9tGFziKwmBa3Q/6XcJQxudlT81WxDjEhHmevvIC4Orc1LhQ==
 
 "@vue/compiler-core@3.2.38":
   version "3.2.38"
