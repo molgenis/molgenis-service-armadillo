@@ -35,7 +35,6 @@ class ArmadilloMetadataServiceTest {
         ArmadilloMetadata.create(
             new ConcurrentHashMap<>(),
             new ConcurrentHashMap<>(Map.of("project1", project1)),
-            new ConcurrentHashMap<>(),
             emptySet());
     var loader = new DummyMetadataLoader(metadata);
     when(storage.listProjects()).thenReturn(List.of("project1", "project2"));

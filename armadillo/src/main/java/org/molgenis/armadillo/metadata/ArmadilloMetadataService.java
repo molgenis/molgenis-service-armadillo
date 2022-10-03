@@ -89,7 +89,6 @@ public class ArmadilloMetadataService {
     return ArmadilloMetadata.create(
         new ConcurrentHashMap<>(usersMap()),
         new ConcurrentHashMap<>(projectsMap()),
-        settings.getProfiles(),
         settings.getPermissions());
   }
 
@@ -145,9 +144,7 @@ public class ArmadilloMetadataService {
     // update users
     settings.getUsers().put(userDetails.getEmail(), userDetails);
     // replace permissions
-    settings =
-        ArmadilloMetadata.create(
-            settings.getUsers(), settings.getProjects(), settings.getProfiles(), permissions);
+    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
@@ -164,7 +161,6 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
-            settings.getProfiles(),
             // strip from permissions
             settings.getPermissions().stream()
                 .filter(permission -> !permission.getEmail().equals(email))
@@ -228,9 +224,7 @@ public class ArmadilloMetadataService {
     // (permissions are saved separately)
     projectDetails = ProjectDetails.create(projectName, emptySet());
     settings.getProjects().put(projectName, projectDetails);
-    settings =
-        ArmadilloMetadata.create(
-            settings.getUsers(), settings.getProjects(), settings.getProfiles(), permissions);
+    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
@@ -242,7 +236,6 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
-            settings.getProfiles(),
             // strip from permissions
             settings.getPermissions().stream()
                 .filter(permission -> !permission.getProject().equals(projectName))
@@ -274,7 +267,6 @@ public class ArmadilloMetadataService {
         ArmadilloMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
-            settings.getProfiles(),
             settings.getPermissions().stream()
                 .filter(
                     projectPermission ->

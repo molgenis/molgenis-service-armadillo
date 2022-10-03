@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.profile.DockerService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
+@PreAuthorize("hasRole('ROLE_SU')")
 public class ProfileService {
 
   private final ProfilesLoader loader;
