@@ -81,7 +81,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
-import FeedbackMessage from "../components/FeedbackMessage.vue";
+import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProjects, putProject, deleteProject } from "../api/api.ts";
 import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.ts";
 import { onMounted, ref } from "vue";
