@@ -21,7 +21,7 @@ public abstract class AccessMetadata extends Metadata {
 
   @JsonCreator
   public static AccessMetadata create() {
-    return new AutoValue_ArmadilloMetadata(
+    return new AutoValue_AccessMetadata(
         new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new HashSet<>());
   }
 
@@ -30,6 +30,6 @@ public abstract class AccessMetadata extends Metadata {
       @JsonProperty("users") ConcurrentMap<String, UserDetails> newUsers,
       @JsonProperty("projects") ConcurrentMap<String, ProjectDetails> newProjects,
       @JsonProperty("permissions") Set<ProjectPermission> newPermissions) {
-    return new AutoValue_ArmadilloMetadata(newUsers, newProjects, newPermissions);
+    return new AutoValue_AccessMetadata(newUsers, newProjects, newPermissions);
   }
 }
