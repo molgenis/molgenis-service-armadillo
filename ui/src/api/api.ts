@@ -1,6 +1,7 @@
+import { Project, User } from "@/types/api.js";
 import { APISettings } from "./config.js";
 
-export async function get(url) {
+export async function get(url: string) {
   const response = await fetch(url, {
     method: "GET",
     headers: APISettings.headers,
@@ -14,7 +15,7 @@ export async function get(url) {
   }
 }
 
-export async function put(url, body) {
+export async function put(url: string, body: Object) {
   // PUT request using fetch with async/await
   const requestOptions = {
     method: "PUT",
@@ -31,7 +32,7 @@ export async function put(url, body) {
   }
 }
 
-export async function delete_(url, item) {
+export async function delete_(url: string, item: string) {
   const response = await fetch(`${url}/${item}`, { method: "DELETE" });
   if (response.status != 200) {
     const error =
@@ -42,28 +43,28 @@ export async function delete_(url, item) {
   }
 }
 
-export async function deleteUser(email) {
-  return delete_("/metadata/users", email);
+export async function deleteUser(email: string) {
+  return delete_("/admin/users", email);
 }
 
-export async function putUser(userJson) {
-  return put("/metadata/users", userJson);
+export async function putUser(userJson: User) {
+  return put("/admin/users", userJson);
 }
 
-export async function deleteProject(name) {
-  return delete_("/metadata/projects", name);
+export async function deleteProject(name: string) {
+  return delete_("/admin/projects", name);
 }
 
-export async function putProject(projectJson) {
-  return put("/metadata/projects", projectJson);
+export async function putProject(projectJson: Project) {
+  return put("/admin/projects", projectJson);
 }
 
 export async function getUsers() {
-  return get("/metadata/users");
+  return get("/admin/users");
 }
 
 export async function getProjects() {
-  return get("/metadata/projects");
+  return get("/admin/projects");
 }
 
 export async function getPrincipal() {
