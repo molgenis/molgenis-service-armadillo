@@ -14,14 +14,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 
 @ExtendWith(MockitoExtension.class)
-class ArmadilloMetadataServiceTest {
+class AccessServiceTest {
 
   @Mock private ArmadilloStorageService storage;
 
   @Test
   void testBootstrapAdmin() {
-    var loader = new DummyMetadataLoader();
-    var metadataService = new ArmadilloMetadataService(storage, loader, "bofke@gmail.com");
+    var loader = new DummyAccessLoader();
+    var metadataService = new AccessService(storage, loader, "bofke@gmail.com");
     metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
@@ -32,14 +32,14 @@ class ArmadilloMetadataServiceTest {
     var project1 = ProjectDetails.create("project1", emptySet());
     var project2 = ProjectDetails.create("project2", emptySet());
     var metadata =
-        ArmadilloMetadata.create(
+        AccessMetadata.create(
             new ConcurrentHashMap<>(),
             new ConcurrentHashMap<>(Map.of("project1", project1)),
             emptySet());
-    var loader = new DummyMetadataLoader(metadata);
+    var loader = new DummyAccessLoader(metadata);
     when(storage.listProjects()).thenReturn(List.of("project1", "project2"));
 
-    var metadataService = new ArmadilloMetadataService(storage, loader, null);
+    var metadataService = new AccessService(storage, loader, null);
     metadataService.initialize();
 
     assertEquals(List.of(project2, project1), metadataService.projectsList());

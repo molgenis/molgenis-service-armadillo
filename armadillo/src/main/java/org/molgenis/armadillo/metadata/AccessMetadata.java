@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-public abstract class ArmadilloMetadata extends Metadata {
+public abstract class AccessMetadata extends Metadata {
   @JsonProperty("users")
   public abstract ConcurrentMap<String, UserDetails> getUsers();
 
@@ -20,13 +20,13 @@ public abstract class ArmadilloMetadata extends Metadata {
   public abstract Set<ProjectPermission> getPermissions();
 
   @JsonCreator
-  public static ArmadilloMetadata create() {
+  public static AccessMetadata create() {
     return new AutoValue_ArmadilloMetadata(
         new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new HashSet<>());
   }
 
   @JsonCreator
-  public static ArmadilloMetadata create(
+  public static AccessMetadata create(
       @JsonProperty("users") ConcurrentMap<String, UserDetails> newUsers,
       @JsonProperty("projects") ConcurrentMap<String, ProjectDetails> newProjects,
       @JsonProperty("permissions") Set<ProjectPermission> newPermissions) {

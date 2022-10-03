@@ -2,9 +2,9 @@ package org.molgenis.armadillo;
 
 import com.github.dockerjava.api.DockerClient;
 import java.util.List;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.DummyMetadataLoader;
-import org.molgenis.armadillo.metadata.MetadataLoader;
+import org.molgenis.armadillo.metadata.AccessLoader;
+import org.molgenis.armadillo.metadata.AccessService;
+import org.molgenis.armadillo.metadata.DummyAccessLoader;
 import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
@@ -33,14 +33,13 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  MetadataLoader metadataLoader() {
-    return new DummyMetadataLoader();
+  AccessLoader metadataLoader() {
+    return new DummyAccessLoader();
   }
 
   @Bean
-  ArmadilloMetadataService metadataService(
-      ArmadilloStorageService storageService, MetadataLoader metadataLoader) {
-    return new ArmadilloMetadataService(storageService, metadataLoader, null);
+  AccessService metadataService(ArmadilloStorageService storageService, AccessLoader accessLoader) {
+    return new AccessService(storageService, accessLoader, null);
   }
 
   @Bean

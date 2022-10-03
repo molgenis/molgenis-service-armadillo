@@ -3,20 +3,20 @@ package org.molgenis.armadillo.metadata;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MetadataLoader extends StorageJsonLoader<ArmadilloMetadata> {
+public class AccessLoader extends StorageJsonLoader<AccessMetadata> {
 
   @Override
-  public ArmadilloMetadata createDefault() {
-    return ArmadilloMetadata.create();
+  public AccessMetadata createDefault() {
+    return AccessMetadata.create();
   }
 
   @Override
   public Class<? extends Metadata> getTargetClass() {
-    return ArmadilloMetadata.class;
+    return AccessMetadata.class;
   }
 
   @Override
   public String getJsonFilename() {
-    return "metadata.json";
+    return "access.json";
   }
 }

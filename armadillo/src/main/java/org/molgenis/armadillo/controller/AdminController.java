@@ -33,10 +33,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("admin")
 public class AdminController {
 
-  private final ArmadilloMetadataService metadata;
+  private final AccessService metadata;
   private final AuditEventPublisher auditor;
 
-  public AdminController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
+  public AdminController(AccessService metadataService, AuditEventPublisher auditor) {
     this.metadata = metadataService;
     this.auditor = auditor;
   }
@@ -47,7 +47,7 @@ public class AdminController {
         @ApiResponse(
             responseCode = "200",
             description = "All metadata listed",
-            content = @Content(schema = @Schema(implementation = ArmadilloMetadata.class))),
+            content = @Content(schema = @Schema(implementation = AccessMetadata.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -55,7 +55,7 @@ public class AdminController {
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ArmadilloMetadata settingsRaw(Principal principal) {
+  public AccessMetadata settingsRaw(Principal principal) {
     return auditor.audit(metadata::settingsList, principal, LIST_PROJECTS, Map.of());
   }
 

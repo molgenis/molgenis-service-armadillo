@@ -6,7 +6,7 @@ import static org.springframework.boot.actuate.autoconfigure.security.servlet.En
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
@@ -53,10 +53,10 @@ public class AuthConfig {
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
-    ArmadilloMetadataService armadilloMetadataService;
+    AccessService accessService;
 
-    public JwtConfig(ArmadilloMetadataService armadilloMetadataService) {
-      this.armadilloMetadataService = armadilloMetadataService;
+    public JwtConfig(AccessService accessService) {
+      this.accessService = accessService;
     }
 
     @Override
@@ -94,7 +94,7 @@ public class AuthConfig {
     Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-          new JwtRolesExtractor(armadilloMetadataService));
+          new JwtRolesExtractor(accessService));
       return jwtAuthenticationConverter;
     }
   }
@@ -106,10 +106,10 @@ public class AuthConfig {
   @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
-    ArmadilloMetadataService armadilloMetadataService;
+    AccessService accessService;
 
-    public Oauth2LoginConfig(ArmadilloMetadataService armadilloMetadataService) {
-      this.armadilloMetadataService = armadilloMetadataService;
+    public Oauth2LoginConfig(AccessService accessService) {
+      this.accessService = accessService;
     }
 
     @Override
@@ -140,7 +140,7 @@ public class AuthConfig {
               mappedAuthorities.addAll(
                   runAsSystem(
                       () ->
-                          armadilloMetadataService.getAuthoritiesForEmail(
+                          accessService.getAuthoritiesForEmail(
                               (String) userAttributes.get("email"), userAttributes)));
             });
 
