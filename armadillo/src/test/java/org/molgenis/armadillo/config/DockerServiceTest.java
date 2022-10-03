@@ -56,7 +56,7 @@ public class DockerServiceTest {
   public void testDeployDocker() throws InterruptedException {
     ProfileConfig profileConfig =
         ProfileConfig.create("dummy", "dummy/image", "localhost", 6133, Set.of(), Map.of(), null);
-    DockerService armadilloDockerService = new DockerService(dockerClient, true);
+    DockerService armadilloDockerService = new DockerService(dockerClient);
     armadilloDockerService.startProfile(profileConfig);
     assertEquals(RUNNING, armadilloDockerService.getProfileStatus(profileConfig));
     armadilloDockerService.removeProfile(profileConfig.getName());

@@ -7,13 +7,10 @@ import com.google.auto.value.AutoValue;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.springframework.beans.factory.annotation.Value;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
-  private static @Value("${datashield.docker-management-enabled}") boolean dockerManagementEnabled;
-
   @JsonProperty("name")
   public abstract String getName();
 

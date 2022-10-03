@@ -29,7 +29,7 @@ public class RProcessEndpoint {
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
-    return profileService.profileList().stream()
+    return profileService.getAll().stream()
         .map(ProfileConfig::getName)
         .map(
             environmentName ->
@@ -41,7 +41,7 @@ public class RProcessEndpoint {
 
   <T> T doWithConnection(String environmentName, Function<RConnection, T> action) {
     var environment =
-        profileService.profileList().stream()
+        profileService.getAll().stream()
             .filter(it -> environmentName.equals(it.getName()))
             .map(
                 it -> {

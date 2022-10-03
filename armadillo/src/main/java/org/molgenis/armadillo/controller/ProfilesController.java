@@ -68,14 +68,7 @@ public class ProfilesController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public List<ProfileConfig> profileList(Principal principal) {
-    return auditor.audit(
-        () ->
-            profiles.profileList().stream()
-                .map(profile -> profiles.profileByName(profile.getName()))
-                .toList(),
-        principal,
-        LIST_PROFILES,
-        Map.of());
+    return auditor.audit(profiles::getAll, principal, LIST_PROFILES);
   }
 
   @Operation(summary = "Get profile by name")
@@ -98,10 +91,10 @@ public class ProfilesController {
   @ResponseStatus(OK)
   public ProfileConfig profileGetByProfileName(Principal principal, @PathVariable String name) {
     return auditor.audit(
-        () -> profiles.profileByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+        () -> profiles.getByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
   }
 
-  @Operation(summary = "Add or update profile (if enabled, including docker image)")
+  @Operation(summary = "Add or update profile")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile added or updated"),
@@ -112,24 +105,17 @@ public class ProfilesController {
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig)
-      throws InterruptedException {
-    profiles.profileUpsert(profileConfig);
-    auditor.audit(
-        () -> {}, // because of the exception that might happen, and cannot be caught
-        principal,
-        UPSERT_PROFILE,
-        Map.of(PROFILE, profileConfig));
+  public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig) {
+    profiles.upsert(profileConfig);
+    // TODO is this about the interruptedexception?
+    auditor.audit( // because of the exception that might happen, and cannot be caught
+        principal, UPSERT_PROFILE, Map.of(PROFILE, profileConfig));
   }
 
-  @Operation(summary = "Delete profile (if enabled, including docker image)")
+  @Operation(summary = "Delete profile")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile deleted"),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Profile does not exist",
-            content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -138,7 +124,6 @@ public class ProfilesController {
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void profileDelete(Principal principal, @PathVariable String name) {
-    auditor.audit(
-        () -> profiles.profileDelete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
+    auditor.audit(() -> profiles.delete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
   }
 }

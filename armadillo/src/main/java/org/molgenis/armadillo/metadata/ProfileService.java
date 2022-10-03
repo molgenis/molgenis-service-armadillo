@@ -20,7 +20,7 @@ public class ProfileService {
 
   public ProfileService(DockerService dockerService, ProfilesLoader profilesLoader) {
     this.loader = requireNonNull(profilesLoader);
-    this.dockerService = requireNonNull(dockerService);
+    this.dockerService = dockerService;
     runAsSystem(this::initialize);
   }
 
@@ -33,11 +33,12 @@ public class ProfileService {
     bootstrap();
   }
 
-  public List<ProfileConfig> profileList() {
+  public List<ProfileConfig> getAll() {
+    // TODO profile status isn't included here
     return new ArrayList<>(settings.getProfiles().values());
   }
 
-  public ProfileConfig profileByName(String profileName) {
+  public ProfileConfig getByName(String profileName) {
     if (!settings.getProfiles().containsKey(profileName)) {
       throw new UnknownProfileException(profileName);
     }
@@ -50,12 +51,11 @@ public class ProfileService {
         config.getPort(),
         config.getWhitelist(),
         config.getOptions(),
-        dockerService.getProfileStatus(config));
+        dockerService != null ? dockerService.getProfileStatus(config) : null);
   }
 
-  public void profileUpsert(ProfileConfig profileConfig) throws InterruptedException {
+  public void upsert(ProfileConfig profileConfig) {
     String profileName = profileConfig.getName();
-    dockerService.startProfile(profileConfig);
     settings
         .getProfiles()
         .put(
@@ -71,10 +71,26 @@ public class ProfileService {
     save();
   }
 
-  public void profileDelete(String profileName) {
-    dockerService.removeProfile(profileName);
+  public void delete(String profileName) {
     settings.getProfiles().remove(profileName);
     save();
+  }
+
+  public void start(String profileName) {
+    if (dockerService == null) {
+      throw new IllegalStateException("Docker management disabled but attempting to start image");
+    }
+
+    var profile = getByName(profileName);
+    dockerService.startProfile(profile);
+  }
+
+  public void stop(String profileName) {
+    if (dockerService == null) {
+      throw new IllegalStateException("Docker management disabled but attempting to stop image");
+    }
+
+    dockerService.removeProfile(profileName);
   }
 
   private void save() {

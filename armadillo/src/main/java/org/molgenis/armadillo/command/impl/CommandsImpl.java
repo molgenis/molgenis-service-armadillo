@@ -77,9 +77,7 @@ class CommandsImpl implements Commands {
   @Override
   public void selectProfile(String profileName) {
     var exists =
-        profileService.profileList().stream()
-            .map(ProfileConfig::getName)
-            .anyMatch(profileName::equals);
+        profileService.getAll().stream().map(ProfileConfig::getName).anyMatch(profileName::equals);
     if (!exists) {
       throw new UnknownProfileException(profileName);
     }
@@ -90,7 +88,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return profileService.profileList().stream().map(ProfileConfig::getName).toList();
+    return profileService.getAll().stream().map(ProfileConfig::getName).toList();
   }
 
   @Override

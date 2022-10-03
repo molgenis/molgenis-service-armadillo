@@ -36,7 +36,7 @@ class RProcessEndpointTest {
           }
         };
 
-    when(profileService.profileList()).thenReturn(List.of(environment1, environment2));
+    when(profileService.getAll()).thenReturn(List.of(environment1, environment2));
     when(environment1.getName()).thenReturn("kick");
     when(environment2.getName()).thenReturn("windsock");
 

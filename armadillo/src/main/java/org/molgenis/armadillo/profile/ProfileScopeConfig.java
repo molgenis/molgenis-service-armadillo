@@ -17,7 +17,7 @@ public class ProfileScopeConfig {
   @org.molgenis.armadillo.profile.annotation.ProfileScope
   public ProfileConfig profileConfig(ProfileService profileService) {
     var activeProfileName = getActiveProfileName();
-    return profileService.profileList().stream()
+    return profileService.getAll().stream()
         .filter(it -> it.getName().equals(activeProfileName))
         .findFirst()
         .orElseThrow(

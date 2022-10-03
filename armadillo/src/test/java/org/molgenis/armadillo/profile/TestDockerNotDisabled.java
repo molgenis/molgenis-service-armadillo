@@ -13,7 +13,7 @@ import org.molgenis.armadillo.metadata.ProfileConfig;
 public class TestDockerNotDisabled {
 
   @Mock DockerClient dockerClient;
-  DockerService dockerService = new DockerService(dockerClient, false);
+  DockerService dockerService = new DockerService(dockerClient);
 
   @Test
   public void testDockerNotDisabled() throws InterruptedException {

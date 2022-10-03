@@ -54,6 +54,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String UPSERT_PROFILE = "UPSERT_PROFILE";
   public static final String DELETE_PROFILE = "DELETE_PROFILE";
   public static final String GET_PROFILE = "GET_PROFILE";
+  public static final String START_PROFILE = "START_PROFILE";
+  public static final String STOP_PROFILE = "STOP_PROFILE";
   public static final String LIST_OBJECTS = "LIST_OBJECTS";
   public static final String UPLOAD_OBJECT = "UPLOAD_OBJECT";
   public static final String COPY_OBJECT = "COPY_OBJECT";
@@ -141,6 +143,11 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     }
   }
 
+  /** Audits a function with a return value. */
+  public <T> T audit(Supplier<T> c, Principal principal, String type) {
+    return audit(c, principal, type, Map.of());
+  }
+
   /** Audits a void function. */
   public void audit(Runnable runnable, Principal principal, String type, Map<String, Object> data) {
     try {
@@ -150,6 +157,11 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
       auditFailure(principal, type, data, failure);
       throw failure;
     }
+  }
+
+  /** Audits a void function. */
+  public void audit(Runnable runnable, Principal principal, String type) {
+    audit(runnable, principal, type, Map.of());
   }
 
   private void auditFailure(

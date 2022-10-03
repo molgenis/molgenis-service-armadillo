@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.profile;
 
 import static java.lang.Boolean.TRUE;
+import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_MANAGEMENT_ENABLED;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
@@ -14,28 +15,19 @@ import com.github.dockerjava.api.model.Ports;
 import java.util.concurrent.TimeUnit;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileStatus;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerService {
-  // remote control for docker
   private final DockerClient dockerClient;
-  // get if docker management is enabled from config file
-  private final boolean dockerManagementEnabled;
 
-  public DockerService(
-      DockerClient dockerClient,
-      @Value("${datashield.docker-management-enabled}") boolean dockerManagementEnabled) {
+  public DockerService(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
-    this.dockerManagementEnabled = dockerManagementEnabled;
   }
 
   public ProfileStatus getProfileStatus(ProfileConfig profileConfig) {
-    if (!dockerManagementEnabled) {
-      return ProfileStatus.DOCKER_MANAGEMENT_DISABLED;
-    }
-
     try {
       InspectContainerResponse containerInfo =
           dockerClient.inspectContainerCmd(profileConfig.getName()).exec();
@@ -58,19 +50,20 @@ public class DockerService {
     }
   }
 
-  public void startProfile(ProfileConfig profileConfig) throws InterruptedException {
-    if (!dockerManagementEnabled) {
-      return;
-    }
-
+  public void startProfile(ProfileConfig profileConfig) {
     // stop previous image if running
-    this.removeProfile(profileConfig.getName());
+    removeProfile(profileConfig.getName());
 
     // load the image if needed
-    dockerClient
-        .pullImageCmd(profileConfig.getImage())
-        .exec(new PullImageResultCallback())
-        .awaitCompletion(5, TimeUnit.MINUTES);
+    try {
+      dockerClient
+          .pullImageCmd(profileConfig.getImage())
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(5, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      // TODO handle exception
+      e.printStackTrace();
+    }
 
     // start the image
     ExposedPort exposed = ExposedPort.tcp(6311);
@@ -93,10 +86,6 @@ public class DockerService {
   }
 
   public void removeProfile(String profileName) {
-    if (!dockerManagementEnabled) {
-      return;
-    }
-
     try {
       dockerClient.stopContainerCmd(profileName).exec();
       dockerClient.removeContainerCmd(profileName).exec();

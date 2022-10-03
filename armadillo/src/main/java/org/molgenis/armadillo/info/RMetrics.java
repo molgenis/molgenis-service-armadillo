@@ -18,7 +18,7 @@ public class RMetrics {
     return registry ->
         runAsSystem(
             () ->
-                profileService.profileList().stream()
+                profileService.getAll().stream()
                     .map(ProfileConfig::getName)
                     .forEach(
                         environment ->
