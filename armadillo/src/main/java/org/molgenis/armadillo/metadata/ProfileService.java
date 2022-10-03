@@ -42,16 +42,7 @@ public class ProfileService {
     if (!settings.getProfiles().containsKey(profileName)) {
       throw new UnknownProfileException(profileName);
     }
-    ProfileConfig config = settings.getProfiles().get(profileName);
-    // add the status
-    return ProfileConfig.create(
-        config.getName(),
-        config.getImage(),
-        config.getHost(),
-        config.getPort(),
-        config.getWhitelist(),
-        config.getOptions(),
-        dockerService != null ? dockerService.getProfileStatus(config) : null);
+    return settings.getProfiles().get(profileName);
   }
 
   public void upsert(ProfileConfig profileConfig) {
@@ -91,6 +82,14 @@ public class ProfileService {
     }
 
     dockerService.removeProfile(profileName);
+  }
+
+  public ProfileStatus getStatus(String profileName) {
+    if (dockerService == null) {
+      throw new IllegalStateException("Docker management disabled but attempting to get status");
+    }
+
+    return dockerService.getProfileStatus(profileName);
   }
 
   private void save() {

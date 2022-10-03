@@ -17,7 +17,9 @@ import java.util.Map;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,5 +75,20 @@ public class ProfilesDockerController {
   @PostMapping("{name}/stop")
   public void stopProfile(Principal principal, @PathVariable String name) {
     auditor.audit(() -> profiles.stop(name), principal, STOP_PROFILE, Map.of(PROFILE, name));
+  }
+
+  @Operation(summary = "Get the status of a profile's Docker container")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Profile stopped"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @GetMapping("{name}/status")
+  public ProfileStatus getProfileStatus(Principal principal, @PathVariable String name) {
+    return auditor.audit(
+        () -> profiles.getStatus(name), principal, STOP_PROFILE, Map.of(PROFILE, name));
   }
 }

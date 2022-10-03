@@ -16,11 +16,11 @@ public class TestDockerNotDisabled {
   DockerService dockerService = new DockerService(dockerClient);
 
   @Test
-  public void testDockerNotDisabled() throws InterruptedException {
+  public void testDockerNotDisabled() {
     // nothing should happen
     ProfileConfig dummyConfig =
         ProfileConfig.create("test", "test", "localhost", 6111, Set.of(), Map.of(), null);
-    dockerService.getProfileStatus(dummyConfig);
+    dockerService.getProfileStatus(dummyConfig.getName());
     dockerService.startProfile(dummyConfig);
     dockerService.removeProfile(dummyConfig.getName());
   }

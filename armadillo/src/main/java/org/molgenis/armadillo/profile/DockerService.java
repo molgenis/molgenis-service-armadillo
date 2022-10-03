@@ -16,9 +16,11 @@ import java.util.concurrent.TimeUnit;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
+@PreAuthorize("hasRole('ROLE_SU')")
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerService {
   private final DockerClient dockerClient;
@@ -27,10 +29,9 @@ public class DockerService {
     this.dockerClient = dockerClient;
   }
 
-  public ProfileStatus getProfileStatus(ProfileConfig profileConfig) {
+  public ProfileStatus getProfileStatus(String profileName) {
     try {
-      InspectContainerResponse containerInfo =
-          dockerClient.inspectContainerCmd(profileConfig.getName()).exec();
+      InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
       if (TRUE.equals(containerInfo.getState().getRunning())) {
         return ProfileStatus.RUNNING;
       } else {
