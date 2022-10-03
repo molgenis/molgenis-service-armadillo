@@ -1,7 +1,9 @@
 package org.molgenis.armadillo;
 
-import java.util.Arrays;
+import java.util.List;
 import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.DummyMetadataLoader;
+import org.molgenis.armadillo.metadata.MetadataLoader;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +26,14 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  ArmadilloMetadataService accessStorageService(ArmadilloStorageService storageService) {
-    return new ArmadilloMetadataService(storageService);
+  MetadataLoader metadataLoader() {
+    return new DummyMetadataLoader();
+  }
+
+  @Bean
+  ArmadilloMetadataService accessStorageService(
+      ArmadilloStorageService storageService, MetadataLoader metadataLoader) {
+    return new ArmadilloMetadataService(storageService, metadataLoader, null);
   }
 
   @Bean
@@ -33,11 +41,11 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   public UserDetailsService userDetailsService() {
     GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_SU");
     User userDetails =
-        new User("bofke", "bofke", Arrays.asList(authority)) {
+        new User("bofke", "bofke", List.of(authority)) {
           public String getEmail() {
             return "bofke@email.com";
           }
         };
-    return new InMemoryUserDetailsManager(Arrays.asList(userDetails));
+    return new InMemoryUserDetailsManager(List.of(userDetails));
   }
 }

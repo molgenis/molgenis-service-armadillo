@@ -1,30 +1,22 @@
 package org.molgenis.armadillo.metadata;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.apache.commons.io.IOUtils;
-import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,19 +26,32 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ArmadilloMetadataService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloMetadataService.class);
-  public static final String METADATA_FILE = "metadata.json";
   private ArmadilloMetadata settings;
   private final ArmadilloStorageService storage;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private final MetadataLoader loader;
 
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
-  public ArmadilloMetadataService(ArmadilloStorageService armadilloStorageService) {
-    Objects.requireNonNull(armadilloStorageService);
-    this.storage = armadilloStorageService;
-    this.reload();
+  private final String adminUser;
+
+  public ArmadilloMetadataService(
+      ArmadilloStorageService armadilloStorageService,
+      MetadataLoader metadataLoader,
+      @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
+    this.loader = requireNonNull(metadataLoader);
+    this.storage = requireNonNull(armadilloStorageService);
+    this.adminUser = adminUser;
+    runAsSystem(this::initialize);
+  }
+
+  /**
+   * Initialization separated from constructor so that it can be called in WemMvc tests
+   * <strong>after</strong> mocks have been initialized.
+   */
+  public void initialize() {
+    settings = loader.load();
+    bootstrap();
   }
 
   public Collection<GrantedAuthority> getAuthoritiesForEmail(
@@ -81,11 +86,24 @@ public class ArmadilloMetadataService {
   }
 
   public ArmadilloMetadata settingsList() {
-    return this.settings;
+    return ArmadilloMetadata.create(
+        new ConcurrentHashMap<>(usersMap()),
+        new ConcurrentHashMap<>(projectsMap()),
+        settings.getPermissions());
+  }
+
+  /**
+   * Gets a map of email -> UserDetails. Permissions are not stored in the user, so they are
+   * injected here.
+   */
+  private Map<String, UserDetails> usersMap() {
+    return settings.getUsers().keySet().stream()
+        .map(this::userByEmail)
+        .collect(Collectors.toMap(UserDetails::getEmail, u -> u));
   }
 
   public List<UserDetails> usersList() {
-    return settings.getUsers().keySet().stream().map(this::usersByEmail).toList();
+    return new ArrayList<>(usersMap().values());
   }
 
   public void userUpsert(UserDetails userDetails) {
@@ -131,7 +149,7 @@ public class ArmadilloMetadataService {
   }
 
   public void userDelete(String email) {
-    Objects.requireNonNull(email);
+    requireNonNull(email);
 
     if (!settings.getUsers().containsKey(email)) {
       throw new UnknownUserException(email);
@@ -150,9 +168,18 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  /** key is project, value list of users */
+  /**
+   * Gets a map of name -> ProjectDetails. Permissions are not stored in the project, so they are
+   * injected here.
+   */
+  private Map<String, ProjectDetails> projectsMap() {
+    return settings.getProjects().keySet().stream()
+        .map(this::projectsByName)
+        .collect(Collectors.toMap(ProjectDetails::getName, p -> p));
+  }
+
   public List<ProjectDetails> projectsList() {
-    return settings.getProjects().keySet().stream().map(this::projectsByName).toList();
+    return new ArrayList<>(projectsMap().values());
   }
 
   public ProjectDetails projectsByName(String projectName) {
@@ -195,7 +222,7 @@ public class ArmadilloMetadataService {
 
     // clone projectDetails to strip permissions from value object and save
     // (permissions are saved separately)
-    projectDetails = ProjectDetails.create(projectName, Collections.emptySet());
+    projectDetails = ProjectDetails.create(projectName, emptySet());
     settings.getProjects().put(projectName, projectDetails);
     settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
@@ -221,8 +248,8 @@ public class ArmadilloMetadataService {
   }
 
   public synchronized void permissionsAdd(String email, String project) {
-    Objects.requireNonNull(email);
-    Objects.requireNonNull(project);
+    requireNonNull(email);
+    requireNonNull(project);
 
     settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null, null));
     settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null));
@@ -233,8 +260,8 @@ public class ArmadilloMetadataService {
 
   public synchronized void permissionsDelete(String email, String project) {
 
-    Objects.requireNonNull(email);
-    Objects.requireNonNull(project);
+    requireNonNull(email);
+    requireNonNull(project);
 
     settings =
         ArmadilloMetadata.create(
@@ -250,7 +277,7 @@ public class ArmadilloMetadataService {
     save();
   }
 
-  public UserDetails usersByEmail(String email) {
+  public UserDetails userByEmail(String email) {
     if (!settings.getUsers().containsKey(email)) {
       throw new UnknownUserException(email);
     }
@@ -265,17 +292,8 @@ public class ArmadilloMetadataService {
         getPermissionsForEmail(email));
   }
 
-  private synchronized void save() {
-    try {
-      String json = objectMapper.writeValueAsString(settings);
-      try (InputStream inputStream = new ByteArrayInputStream(json.getBytes())) {
-        storage.saveSystemFile(inputStream, METADATA_FILE, MediaType.APPLICATION_JSON);
-      }
-    } catch (Exception e) {
-      throw new StorageException(e);
-    } finally {
-      this.reload();
-    }
+  private void save() {
+    settings = loader.save(settings);
   }
 
   private Set<String> getPermissionsForEmail(String email) {
@@ -290,21 +308,14 @@ public class ArmadilloMetadataService {
         && Boolean.TRUE.equals(settings.getUsers().get(email).getAdmin());
   }
 
-  @PreAuthorize("permitAll()")
-  public void reload() {
-    String result;
-    try (InputStream inputStream = storage.loadSystemFile(METADATA_FILE)) {
-      result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-      ArmadilloMetadata temp = objectMapper.readValue(result, ArmadilloMetadata.class);
-      settings = Objects.requireNonNullElseGet(temp, ArmadilloMetadata::create);
-    } catch (ValueInstantiationException e) {
-      // this is serious, manually edited file maybe?
-      LOGGER.error(String.format("Parsing of %s failed: %s", METADATA_FILE, e.getMessage()));
-      System.exit(-1);
-      settings = ArmadilloMetadata.create();
-    } catch (Exception e) {
-      // this probably just means first time
-      settings = ArmadilloMetadata.create();
+  private void bootstrap() {
+    if (adminUser != null && !settings.getUsers().containsKey(adminUser)) {
+      userUpsert(UserDetails.createAdmin(adminUser));
     }
+
+    storage.listProjects().stream()
+        .filter(project -> !settings.getProjects().containsKey(project))
+        .map(project -> ProjectDetails.create(project, emptySet()))
+        .forEach(this::projectsUpsert);
   }
 }
