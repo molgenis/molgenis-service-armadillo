@@ -6,7 +6,6 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +14,10 @@ import org.springframework.stereotype.Service;
 public class ProfileService {
 
   private final ProfilesLoader loader;
-  private final DockerService dockerService;
   private ProfilesMetadata settings;
 
-  public ProfileService(DockerService dockerService, ProfilesLoader profilesLoader) {
+  public ProfileService(ProfilesLoader profilesLoader) {
     this.loader = requireNonNull(profilesLoader);
-    this.dockerService = dockerService;
     runAsSystem(this::initialize);
   }
 
@@ -65,31 +62,6 @@ public class ProfileService {
   public void delete(String profileName) {
     settings.getProfiles().remove(profileName);
     save();
-  }
-
-  public void start(String profileName) {
-    if (dockerService == null) {
-      throw new IllegalStateException("Docker management disabled but attempting to start image");
-    }
-
-    var profile = getByName(profileName);
-    dockerService.startProfile(profile);
-  }
-
-  public void stop(String profileName) {
-    if (dockerService == null) {
-      throw new IllegalStateException("Docker management disabled but attempting to stop image");
-    }
-
-    dockerService.removeProfile(profileName);
-  }
-
-  public ProfileStatus getStatus(String profileName) {
-    if (dockerService == null) {
-      throw new IllegalStateException("Docker management disabled but attempting to get status");
-    }
-
-    return dockerService.getProfileStatus(profileName);
   }
 
   private void save() {

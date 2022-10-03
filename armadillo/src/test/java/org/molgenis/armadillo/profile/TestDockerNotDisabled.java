@@ -8,12 +8,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 
 @ExtendWith(MockitoExtension.class)
 public class TestDockerNotDisabled {
 
   @Mock DockerClient dockerClient;
-  DockerService dockerService = new DockerService(dockerClient);
+  @Mock ProfileService profileService;
+  DockerService dockerService = new DockerService(dockerClient, profileService);
 
   @Test
   public void testDockerNotDisabled() {
@@ -21,7 +23,7 @@ public class TestDockerNotDisabled {
     ProfileConfig dummyConfig =
         ProfileConfig.create("test", "test", "localhost", 6111, Set.of(), Map.of(), null);
     dockerService.getProfileStatus(dummyConfig.getName());
-    dockerService.startProfile(dummyConfig);
+    dockerService.startProfile(dummyConfig.getName());
     dockerService.removeProfile(dummyConfig.getName());
   }
 }

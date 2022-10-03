@@ -13,7 +13,7 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import java.util.concurrent.TimeUnit;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,9 +24,11 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerService {
   private final DockerClient dockerClient;
+  private final ProfileService profileService;
 
-  public DockerService(DockerClient dockerClient) {
+  public DockerService(DockerClient dockerClient, ProfileService profileService) {
     this.dockerClient = dockerClient;
+    this.profileService = profileService;
   }
 
   public ProfileStatus getProfileStatus(String profileName) {
@@ -51,7 +53,9 @@ public class DockerService {
     }
   }
 
-  public void startProfile(ProfileConfig profileConfig) {
+  public void startProfile(String profileName) {
+    var profileConfig = profileService.getByName(profileName);
+
     // stop previous image if running
     removeProfile(profileConfig.getName());
 
