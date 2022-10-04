@@ -16,7 +16,7 @@ export default defineConfig({
   server: {
     port: "8081",
     proxy: {
-      "^/metadata/.*": {
+      "^/admin/.*": {
         target: {
           protocol: "http:",
           host: "localhost",

@@ -1,42 +1,44 @@
 <template>
   <InlineRowEdit
-    :row="this.rowToEdit"
-    :save="this.saveCallback"
-    :cancel="this.cancelCallback"
+    :row="rowToEdit"
+    :save="saveCallback"
+    :cancel="cancelCallback"
   >
     <!-- Enable adding/removing multiple array elements -->
     <template #arrayEdit="array">
       <BadgeList
-        :itemArray="this.rowToEdit[arrayColumn]"
+        :itemArray="rowToEdit[arrayColumn]"
         :row="array.row"
-        :saveCallback="this.deleteArrayElementCallback"
+        :saveCallback="deleteArrayElementCallback"
       ></BadgeList>
-      <Badge v-if="this.addArrayElementToRow">
+      <Badge v-if="addArrayElementToRow">
         <input
           type="text"
           :value="modelValue"
-          @input="$emit('update:modelValue', $event.target.value)"
+          @input="$emit('update:modelValue', getValue($event))"
         />
         <button
           class="check-badge text-light bg-secondary"
-          @click="this.saveArrayElementCallback"
+          @click="saveArrayElementCallback"
         >
           <i class="bi bi-check-lg"></i>
         </button>
       </Badge>
       <button
         class="btn btn-primary btn-sm float-end"
-        @click="this.addArrayElementCallback"
+        @click="addArrayElementCallback"
       >
         <i class="bi bi-plus-lg"></i>
       </button>
     </template>
   </InlineRowEdit>
 </template>
-<script>
+
+<script lang="ts">
 import Badge from "../components/Badge.vue";
 import InlineRowEdit from "../components/InlineRowEdit.vue";
 import BadgeList from "../components/BadgeList.vue";
+import { getEventValue } from "@/helpers/utils";
 
 export default {
   name: "TableRowEditor",
@@ -56,6 +58,12 @@ export default {
     addArrayElementToRow: Boolean,
     // v-model to the element to model the input of the new array element to
     modelValue: String,
+  },
+  methods: {
+    // not excactly sure why, but calling this method directly won't work
+    getValue(event: Event) {
+      return getEventValue(event);
+    },
   },
 };
 </script>

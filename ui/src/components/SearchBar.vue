@@ -6,15 +6,22 @@
       class="form-control"
       placeholder="Search"
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @input="$emit('update:modelValue', getValue($event))"
     />
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { getEventValue } from "../helpers/utils";
 export default {
   name: "SearchBar",
   props: { modelValue: String },
+  methods: {
+    // not excactly sure why, but calling this method directly won't work
+    getValue(event: Event) {
+      return getEventValue(event);
+    },
+  },
 };
 </script>
 

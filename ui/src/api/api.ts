@@ -8,7 +8,7 @@ export async function get(url: string) {
   });
   if (response.status != 200) {
     const error =
-      (response.json && response.json.message) || response.statusText;
+      (response.json && 'message' in response.json) || response.statusText;
     throw error;
   } else {
     return response.json();
@@ -23,9 +23,10 @@ export async function put(url: string, body: Object) {
     body: JSON.stringify(body),
   };
   const response = await fetch(url, requestOptions);
-  if (response.status != 200) {
+  console.log(response)
+  if (response.status != 204) {
     const error =
-      (response.json && response.json.message) || response.statusText;
+      (response.json && 'message' in response.json) || response.statusText;
     throw error;
   } else {
     return response;
@@ -34,9 +35,9 @@ export async function put(url: string, body: Object) {
 
 export async function delete_(url: string, item: string) {
   const response = await fetch(`${url}/${item}`, { method: "DELETE" });
-  if (response.status != 200) {
+  if (response.status != 204) {
     const error =
-    (response.json && response.json.message) || response.statusText;
+    (response.json && 'message' in response.json) || response.statusText;
     throw error;
   } else {
     return response;
@@ -48,6 +49,7 @@ export async function deleteUser(email: string) {
 }
 
 export async function putUser(userJson: User) {
+  console.log(userJson)
   return put("/admin/users", userJson);
 }
 

@@ -3,17 +3,17 @@
     <ul class="nav nav-tabs">
       <li v-for="(item, index) in menu" class="nav-item">
         <button
-          :class="index == this.activeTab ? 'nav-link active' : 'nav-link'"
+          :class="index == activeTab ? 'nav-link active' : 'nav-link'"
           :id="`${item}-tab`"
           data-bs-toggle="tab"
           :data-bs-target="`#${item}-tab-pane`"
           type="button"
           role="tab"
           :aria-controls="`${item}-tab-pane`"
-          :aria-selected="index == this.activeTab ? 'true' : 'false'"
-          @click="this.triggerActiveTabChange(index)"
+          :aria-selected="index == activeTab ? 'true' : 'false'"
+          v-on:click="$emit('activeTabChange', index)"
         >
-          <i v-if="index < this.icons.length" :class="`bi bi-${this.icons[index]}`"></i>
+          <i v-if="index < icons.length" :class="`bi bi-${icons[index]}`"></i>
           {{ item }}
         </button>
       </li>
@@ -24,18 +24,13 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'Tabs',
   props: {
     menu: Array,
     icons: Array,
     activeTab: Number,
-  },
-  methods: {
-    triggerActiveTabChange(index) {
-      this.$emit("activeTabChange", index);
-    },
   },
 };
 </script>

@@ -1,20 +1,20 @@
 <template>
   <div
     :class="
-      this.isActive
+      isActive
         ? 'tab-pane fade show active'
         : 'tab-pane fade'
     "
     id="users-tab-pane"
     role="tabpanel"
     :aria-labelledby="`${menuItem}-tab`"
-    :tabindex="this.menuIndex"
+    :tabindex="menuIndex"
   >
     <slot></slot>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'TabContent',
   props: {

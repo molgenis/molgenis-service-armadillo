@@ -3,7 +3,8 @@
     <span class="visually-hidden">Loading...</span>
   </div>
 </template>
-<script>
+
+<script lang="ts">
 export default {
     name: "LoadingSpinner"
 }

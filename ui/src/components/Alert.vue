@@ -1,8 +1,8 @@
 <template>
-  <div :class="`alert alert-${this.type} alert-dismissible`" role="alert">
+  <div :class="`alert alert-${type} alert-dismissible`" role="alert">
     <slot></slot>
     <button
-      @click="this.clearFunction"
+      v-on:click="$emit('clear')"
       type="button"
       class="btn-close"
       aria-label="Close"
@@ -14,9 +14,9 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "Alert",
   props: {
-    clearFunction: Function,
-    type: String
+    type: String,
     // TODO create enum with: "primary" | "secondary" | "success" |"warning" | "info" | "danger" |"light" | "dark"
   },
+  emits: ["clear"],
 });
 </script>

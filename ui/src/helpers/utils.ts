@@ -1,17 +1,19 @@
-export function stringIncludesOtherString(string, substring) {
+import { ListOfStringObjects } from "@/types/types";
+
+export function stringIncludesOtherString(string: string, substring: string): boolean {
   return string.toLowerCase().includes(substring.toLowerCase());
 }
 
-export function toCapitalizedWords(name) {
+export function toCapitalizedWords(name: string): string {
   const words = name.match(/[A-Za-z][a-z]*/g) || [];
   return words.map(capitalize).join(" ");
 }
 
-export function capitalize(word) {
+export function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.substring(1);
 }
 
-export function sortAlphabetically(listOfObjects, key) {
+export function sortAlphabetically(listOfObjects: ListOfStringObjects, key: string): ListOfStringObjects {
   return listOfObjects.sort((object1, object2) => {
     if (object1[key] < object2[key]) {
       return -1;
@@ -21,4 +23,9 @@ export function sortAlphabetically(listOfObjects, key) {
     }
     return 0;
   });
+}
+
+export function getEventValue(event: Event): string {
+  const target = event.target as HTMLInputElement;
+  return target.value;
 }

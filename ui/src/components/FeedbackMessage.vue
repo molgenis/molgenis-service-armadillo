@@ -1,21 +1,21 @@
 <template>
   <div>
     <Alert
-      v-show="this.errorMsg"
+      v-show="errorMsg"
       type="danger"
       class="mt-1"
-      :clearFunction="this.clearError"
+      @clear="clearError"
     >
       <strong>Error: </strong>
-      {{ this.errorMsg }}
+      {{ errorMsg }}
     </Alert>
     <Alert
-      v-show="this.successMsg"
+      v-show="successMsg"
       type="success"
       class="mt-1"
-      :clearFunction="this.clearSuccess"
+      @clear="clearSuccess"
     >
-      <strong>Success: </strong>{{ this.successMsg }}
+      <strong>Success: </strong>{{ successMsg }}
     </Alert>
   </div>
 </template>

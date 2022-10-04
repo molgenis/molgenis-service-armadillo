@@ -12,7 +12,7 @@
       </a>
       <form class="d-flex">
         <span class="navbar-text p-2"
-          ><i class="bi bi-person-fill"></i> {{ this.username }}
+          ><i class="bi bi-person-fill"></i> {{ username }}
         </span>
         <span class="">
           <button type="button" class="btn btn-primary">Log out</button>
@@ -22,7 +22,7 @@
   </nav>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: "Navbar",
   props: {

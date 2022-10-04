@@ -1,0 +1,1 @@
+export type ListOfStringObjects = {[key:string]: string}[];
