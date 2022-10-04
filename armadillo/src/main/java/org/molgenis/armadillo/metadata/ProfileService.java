@@ -14,10 +14,13 @@ import org.springframework.stereotype.Service;
 public class ProfileService {
 
   private final ProfilesLoader loader;
+  private final InitialProfileConfigs initialProfiles;
   private ProfilesMetadata settings;
 
-  public ProfileService(ProfilesLoader profilesLoader) {
+  public ProfileService(
+      ProfilesLoader profilesLoader, InitialProfileConfigs initialProfileConfigs) {
     this.loader = requireNonNull(profilesLoader);
+    initialProfiles = requireNonNull(initialProfileConfigs);
     runAsSystem(this::initialize);
   }
 
@@ -68,5 +71,10 @@ public class ProfileService {
     settings = loader.save(settings);
   }
 
-  private void bootstrap() {}
+  private void bootstrap() {
+    initialProfiles.getProfiles().stream()
+        .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
+        .map(InitialProfileConfig::toProfileConfig)
+        .forEach(this::upsert);
+  }
 }

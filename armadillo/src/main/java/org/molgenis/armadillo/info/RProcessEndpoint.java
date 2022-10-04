@@ -43,7 +43,7 @@ public class RProcessEndpoint {
     var environment =
         profileService.getAll().stream()
             .filter(it -> environmentName.equals(it.getName()))
-            .map(ProfileConfig::getEnvironmentConfigProps)
+            .map(ProfileConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow();
     RConnection connection = connect(environment);

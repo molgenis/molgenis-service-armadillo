@@ -10,6 +10,7 @@ datashield:
 
   profiles:
     - name: default
+      image: datashield/armadillo-rserver
       port: 6311
       whitelist:
         - dsBase

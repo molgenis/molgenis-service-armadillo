@@ -30,7 +30,7 @@ public class ProfileScopeConfig {
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
   public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
-    return new RConnectionFactoryImpl(profileConfig.getEnvironmentConfigProps());
+    return new RConnectionFactoryImpl(profileConfig.toEnvironmentConfigProps());
   }
 
   @Bean

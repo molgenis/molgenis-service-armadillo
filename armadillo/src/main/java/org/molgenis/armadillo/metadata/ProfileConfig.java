@@ -55,7 +55,7 @@ public abstract class ProfileConfig {
         newStatus);
   }
 
-  public EnvironmentConfigProps getEnvironmentConfigProps() {
+  public EnvironmentConfigProps toEnvironmentConfigProps() {
     var props = new EnvironmentConfigProps();
     props.setName(getName());
     props.setHost(getHost());
