@@ -6,7 +6,6 @@ import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RConnectionFactoryImpl;
-import org.molgenis.r.config.EnvironmentConfigProps;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,11 +30,7 @@ public class ProfileScopeConfig {
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
   public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
-    EnvironmentConfigProps props = new EnvironmentConfigProps();
-    props.setName(profileConfig.getName());
-    props.setHost(profileConfig.getHost());
-    props.setPort(profileConfig.getPort());
-    return new RConnectionFactoryImpl(props);
+    return new RConnectionFactoryImpl(profileConfig.getEnvironmentConfigProps());
   }
 
   @Bean

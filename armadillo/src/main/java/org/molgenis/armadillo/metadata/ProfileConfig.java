@@ -7,6 +7,7 @@ import com.google.auto.value.AutoValue;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -52,5 +53,13 @@ public abstract class ProfileConfig {
         newWhitelist,
         newOptions != null ? newOptions : Map.of(),
         newStatus);
+  }
+
+  public EnvironmentConfigProps getEnvironmentConfigProps() {
+    var props = new EnvironmentConfigProps();
+    props.setName(getName());
+    props.setHost(getHost());
+    props.setPort(getPort());
+    return props;
   }
 }
