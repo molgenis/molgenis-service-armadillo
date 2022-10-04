@@ -10,12 +10,12 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
+import { AlertType } from "@/types/types";
+import { defineComponent, PropType } from "vue";
 export default defineComponent({
   name: "Alert",
   props: {
-    type: String,
-    // TODO create enum with: "primary" | "secondary" | "success" |"warning" | "info" | "danger" |"light" | "dark"
+    type: String as PropType<AlertType>,
   },
   emits: ["clear"],
 });
