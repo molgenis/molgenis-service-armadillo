@@ -58,7 +58,7 @@ public class DockerServiceTest {
   @Test
   public void testDeployDocker() {
     ProfileConfig profileConfig =
-        ProfileConfig.create("dummy", "dummy/image", "localhost", 6133, Set.of(), Map.of(), null);
+        ProfileConfig.create("dummy", "dummy/image", "localhost", 6133, Set.of(), Map.of());
     DockerService armadilloDockerService = new DockerService(dockerClient, profileService);
     armadilloDockerService.startProfile(profileConfig.getName());
     assertEquals(RUNNING, armadilloDockerService.getProfileStatus(profileConfig.getName()));

@@ -57,8 +57,7 @@ public class ProfileService {
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getWhitelist(),
-                profileConfig.getOptions(),
-                null));
+                profileConfig.getOptions()));
     save();
   }
 

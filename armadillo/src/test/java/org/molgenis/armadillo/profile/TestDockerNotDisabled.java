@@ -21,7 +21,7 @@ public class TestDockerNotDisabled {
   public void testDockerNotDisabled() {
     // nothing should happen
     ProfileConfig dummyConfig =
-        ProfileConfig.create("test", "test", "localhost", 6111, Set.of(), Map.of(), null);
+        ProfileConfig.create("test", "test", "localhost", 6111, Set.of(), Map.of());
     dockerService.getProfileStatus(dummyConfig.getName());
     dockerService.startProfile(dummyConfig.getName());
     dockerService.removeProfile(dummyConfig.getName());

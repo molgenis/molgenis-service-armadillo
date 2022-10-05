@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
-import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
 import java.io.InputStream;
@@ -226,7 +225,7 @@ class CommandsImplTest {
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
-        ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Map.of(), RUNNING);
+        ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Map.of());
     when(profileService.getAll()).thenReturn(List.of(profileConfig));
     commands.selectProfile("exposome");
     verify(profileService).getAll();

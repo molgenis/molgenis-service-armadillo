@@ -16,7 +16,7 @@ public class InitialProfileConfig {
   private Map<String, String> options;
 
   public ProfileConfig toProfileConfig() {
-    return ProfileConfig.create(name, null, host, port, whitelist, options, null);
+    return ProfileConfig.create(name, null, host, port, whitelist, options);
   }
 
   public String getName() {

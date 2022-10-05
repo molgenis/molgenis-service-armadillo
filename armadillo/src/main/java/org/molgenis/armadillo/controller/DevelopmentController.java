@@ -116,8 +116,7 @@ public class DevelopmentController {
             profileConfig.getHost(),
             profileConfig.getPort(),
             whiteList,
-            profileConfig.getOptions(),
-            null);
+            profileConfig.getOptions());
   }
 
   protected String getPackageNameFromFilename(String filename) {

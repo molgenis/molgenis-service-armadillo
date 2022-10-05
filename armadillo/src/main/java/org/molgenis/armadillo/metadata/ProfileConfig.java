@@ -32,10 +32,6 @@ public abstract class ProfileConfig {
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
-  @JsonProperty("status")
-  @Nullable
-  public abstract ProfileStatus getStatus();
-
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
@@ -43,16 +39,14 @@ public abstract class ProfileConfig {
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("whitelist") Set<String> newWhitelist,
-      @JsonProperty("options") Map<String, String> newOptions,
-      @JsonProperty("status") ProfileStatus newStatus) {
+      @JsonProperty("options") Map<String, String> newOptions) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
         newHost != null ? newHost : "localhost",
         newPort,
         newWhitelist,
-        newOptions != null ? newOptions : Map.of(),
-        newStatus);
+        newOptions != null ? newOptions : Map.of());
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {
