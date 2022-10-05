@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+/** Collects the profiles that are passed as configuration parameters. */
 @ConfigurationProperties(prefix = "datashield")
 @Component
 @Validated

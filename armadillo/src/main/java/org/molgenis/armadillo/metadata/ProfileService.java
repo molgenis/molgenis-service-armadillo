@@ -72,8 +72,8 @@ public class ProfileService {
 
   private void bootstrap() {
     initialProfiles.getProfiles().stream()
-        .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
         .map(InitialProfileConfig::toProfileConfig)
+        .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
         .forEach(this::upsert);
   }
 }
