@@ -54,13 +54,16 @@ public class ProfilesDockerController {
             description = "Profile does not exist",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
+            responseCode = "405",
+            description = "Profile configuration is incomplete",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PostMapping("{name}/start")
   public void startProfile(Principal principal, @PathVariable String name) {
-    // TODO throw error if profile's image field is not set
     auditor.audit(
         () -> dockerService.startProfile(name), principal, START_PROFILE, Map.of(PROFILE, name));
   }

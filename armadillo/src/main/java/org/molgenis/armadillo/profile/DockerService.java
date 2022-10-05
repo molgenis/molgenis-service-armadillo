@@ -13,6 +13,7 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import java.util.concurrent.TimeUnit;
+import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -55,6 +56,10 @@ public class DockerService {
 
   public void startProfile(String profileName) {
     var profileConfig = profileService.getByName(profileName);
+
+    if (profileConfig.getImage() == null) {
+      throw new MissingImageException(profileName);
+    }
 
     // stop previous image if running
     removeProfile(profileConfig.getName());
