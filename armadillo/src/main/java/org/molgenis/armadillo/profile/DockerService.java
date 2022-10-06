@@ -12,8 +12,13 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import java.net.SocketException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.ws.rs.ProcessingException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,6 +29,7 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerService {
+
   private final DockerClient dockerClient;
   private final ProfileService profileService;
 
@@ -32,7 +38,36 @@ public class DockerService {
     this.profileService = profileService;
   }
 
+  public Map<String, ProfileStatus> getAllProfileStatuses() {
+    var names = profileService.getAll().stream().map(ProfileConfig::getName).toList();
+    var statuses =
+        names.stream().collect(Collectors.toMap(name -> name, name -> ProfileStatus.NOT_FOUND));
+
+    try {
+      dockerClient
+          .listContainersCmd()
+          .withShowAll(true)
+          .withNameFilter(names)
+          .exec()
+          .forEach(
+              container ->
+                  statuses.replace(
+                      container.getNames()[0].substring(1),
+                      ProfileStatus.ofDockerStatus(container.getState())));
+    } catch (ProcessingException e) {
+      if (e.getCause() instanceof SocketException) {
+        statuses.replaceAll((key, value) -> ProfileStatus.DOCKER_OFFLINE);
+      } else {
+        throw e;
+      }
+    }
+    return statuses;
+  }
+
   public ProfileStatus getProfileStatus(String profileName) {
+    // check profile exists
+    profileService.getByName(profileName);
+
     try {
       InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
       if (TRUE.equals(containerInfo.getState().getRunning())) {
@@ -40,14 +75,9 @@ public class DockerService {
       } else {
         return ProfileStatus.STOPPED;
       }
-    } catch (Exception e) {
-      // TODO catch DockerException instead of all exceptions
-
-      // if this fails we could try to connect to the server without docker client
-      // that would also work in case the profiles would be managed by hand.
-      // proposal: make this depend on a configuration option whether to manage docker manually.
-      if (e.getMessage().contains("Connection refused")) {
-        return ProfileStatus.CONNECTION_REFUSED;
+    } catch (ProcessingException e) {
+      if (e.getCause() instanceof SocketException) {
+        return ProfileStatus.DOCKER_OFFLINE;
       } else {
         throw e;
       }
@@ -93,6 +123,10 @@ public class DockerService {
               .exec();
     }
     dockerClient.startContainerCmd(container.getId()).exec();
+  }
+
+  public void stopProfile(String profileName) {
+    // TODO
   }
 
   public void removeProfile(String profileName) {

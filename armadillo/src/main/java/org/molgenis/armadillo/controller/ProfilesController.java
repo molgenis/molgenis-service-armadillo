@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -27,6 +28,7 @@ import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,9 +83,21 @@ public class ProfilesController {
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ProfileConfig> profileList(Principal principal) {
-    // TODO merge with docker status
-    return auditor.audit(profiles::getAll, principal, LIST_PROFILES);
+  public List<ProfileResponse> profileList(Principal principal) {
+    return auditor.audit(this::getProfiles, principal, LIST_PROFILES);
+  }
+
+  private List<ProfileResponse> getProfiles() {
+    var statuses = new HashMap<String, ProfileStatus>();
+    if (dockerService != null) {
+      statuses.putAll(dockerService.getAllProfileStatuses());
+    }
+
+    return profiles.getAll().stream()
+        .map(
+            profile ->
+                ProfileResponse.create(profile, statuses.getOrDefault(profile.getName(), null)))
+        .toList();
   }
 
   @Operation(
@@ -110,10 +124,16 @@ public class ProfilesController {
       })
   @GetMapping(value = "{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ProfileConfig profileGetByProfileName(Principal principal, @PathVariable String name) {
-    // TODO merge with profile container status
-    return auditor.audit(
-        () -> profiles.getByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+  public ProfileResponse profileGetByProfileName(Principal principal, @PathVariable String name) {
+    return auditor.audit(() -> getProfile(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+  }
+
+  private ProfileResponse getProfile(String name) {
+    ProfileStatus status = null;
+    if (dockerService != null) {
+      status = dockerService.getProfileStatus(name);
+    }
+    return ProfileResponse.create(profiles.getByName(name), status);
   }
 
   @Operation(summary = "Add or update profile")
