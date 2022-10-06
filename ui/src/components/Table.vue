@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <slot name="extraHeader"></slot>
-        <th scope="col" v-for="head in this.capitalizedHeaders">
+        <th scope="col" v-for="head in capitalizedHeaders">
           {{ head }}
         </th>
       </tr>
@@ -11,7 +11,7 @@
     <tbody>
       <slot name="extraRow"></slot>
       <template v-for="item in dataToShow">
-        <tr v-if="this.getIndex(item) != this.indexToEdit">
+        <tr v-if="getIndex(item) != indexToEdit">
           <slot name="extraColumn" :item="item"></slot>
           <td v-for="value in item">
             <span v-if="Array.isArray(value)">
@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { StringArray } from "@/types/types";
+import { ListOfObjectsWithStringKey, ObjectWithStringKey } from "@/types/types";
 import { defineComponent, PropType } from "vue";
 import { toCapitalizedWords } from "../helpers/utils";
 
@@ -43,34 +43,38 @@ export default defineComponent({
   props: {
     // filtered data
     dataToShow: {
-      type: Array as PropType<StringArray>,
-      required: true
+      type: Array as PropType<ListOfObjectsWithStringKey>,
+      required: true,
     },
     // all data to ensure we have correct index when editing
     allData: {
-      type: Array as PropType<StringArray>,
-      required: true
+      type: Array as PropType<ListOfObjectsWithStringKey>,
+      required: true,
     },
     idCol: {
       type: String,
-      required: true
+      required: true,
     },
     indexToEdit: {
       type: Number,
-      required: true
+      required: true,
     },
   },
   computed: {
     capitalizedHeaders() {
-     return this.dataToShow.length !== 0 ? Object.keys(this.dataToShow[0]).map((head) => toCapitalizedWords(head)) : [];
+      return this.dataToShow.length !== 0
+        ? Object.keys(this.dataToShow[0]).map((head) =>
+            toCapitalizedWords(head)
+          )
+        : [];
     },
   },
   methods: {
-    getIndex (itemToFind: string) {
+    getIndex(itemToFind: ObjectWithStringKey) {
       return this.allData.findIndex((item) => {
         return item === itemToFind;
-      })
-    }
+      });
+    },
   },
 });
 </script>

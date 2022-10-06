@@ -28,16 +28,16 @@ export default defineComponent({
       required: true,
     },
     clickCallbacks: {
-      type: Array, 
+      type: Array as PropType<Function[]>, 
       required: true
     },
     callbackArguments: {
       type: Array, 
-      required: true
+      required: false
     },
   },
   methods: {
-    getButtonColor(index: number): string {
+    getButtonColor(index: number): BootstrapType {
       // info button has dark icon, which is ugly with the light primary/success/danger
       return this.buttonColors[index] === "info"
         ? "primary"

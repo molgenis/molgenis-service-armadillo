@@ -4,11 +4,11 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <FeedbackMessage
-          :successMessage="this.successMessage"
-          :errorMessage="this.errorMessage"
+          :successMessage="successMessage"
+          :errorMessage="errorMessage"
         ></FeedbackMessage>
         <!-- Loading spinner -->
-        <LoadingSpinner v-if="this.loading"></LoadingSpinner>
+        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
     <div class="row">
@@ -22,7 +22,7 @@
       :dataToShow="filteredAndSortedUsers"
       :allData="users"
       idCol="email"
-      :indexToEdit="this.editMode.userToEditIndex"
+      :indexToEdit="editMode.userToEditIndex"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -30,12 +30,10 @@
           <button
             type="button"
             class="btn btn-sm me-1"
-            :class="
-              this.addRow ? 'btn-danger bg-danger' : 'btn-primary bg-primary'
-            "
+            :class="addRow ? 'btn-danger bg-danger' : 'btn-primary bg-primary'"
             @click="toggleAddRow"
           >
-            <i class="bi bi-person-x-fill" v-if="this.addRow"></i>
+            <i class="bi bi-person-x-fill" v-if="addRow"></i>
             <i class="bi bi-person-plus-fill" v-else></i>
           </button>
         </th>
@@ -43,15 +41,15 @@
       <template v-slot:extraRow v-if="addRow">
         <!-- Extra row for adding a new user  -->
         <TableRowEditor
-          :rowToEdit="this.addMode.newUser"
+          :rowToEdit="addMode.newUser"
           arrayColumn="projects"
-          :saveCallback="this.saveNewUser"
-          :cancelCallback="this.clearNewUser"
-          :addArrayElementCallback="this.addProjectToNewUser"
-          :deleteArrayElementCallback="this.deleteProject"
-          :saveArrayElementCallback="this.saveProjectInAddMode"
-          :addArrayElementToRow="this.addMode.addProjectToRow"
-          v-model="this.addMode.project"
+          :saveCallback="saveNewUser"
+          :cancelCallback="clearNewUser"
+          :addArrayElementCallback="addProjectToNewUser"
+          :deleteArrayElementCallback="deleteProject"
+          :saveArrayElementCallback="saveProjectInAddMode"
+          :addArrayElementToRow="addMode.addProjectToRow"
+          v-model="addMode.project"
         ></TableRowEditor>
       </template>
       <template #extraColumn="columnProps">
@@ -60,7 +58,7 @@
           <ButtonGroup
             :buttonIcons="['pencil-fill', 'trash-fill']"
             :buttonColors="['primary', 'danger']"
-            :clickCallbacks="[this.editUser, this.removeUser]"
+            :clickCallbacks="[editUser, removeUser]"
             :callbackArguments="[columnProps.item, columnProps.item]"
           ></ButtonGroup>
         </th>
@@ -70,7 +68,7 @@
         <BadgeList
           :itemArray="arrayProps.data"
           :row="arrayProps.row"
-          :saveCallback="this.deleteProject"
+          :saveCallback="deleteProject"
         ></BadgeList>
       </template>
       <template #boolType="boolProps">
@@ -79,27 +77,28 @@
           class="form-check-input"
           type="checkbox"
           :checked="boolProps.data"
-          @change="this.updateAdmin(boolProps.row, boolProps.data)"
+          @change="updateAdmin(boolProps.row, boolProps.data)"
         />
       </template>
       <template #editRow="rowProps">
         <TableRowEditor
           :rowToEdit="rowProps.row"
           arrayColumn="projects"
-          :saveCallback="this.saveEditedUser"
-          :cancelCallback="this.clearUserToEdit"
-          :addArrayElementCallback="this.addProjectToEditUser"
-          :deleteArrayElementCallback="this.deleteProject"
-          :saveArrayElementCallback="this.saveProjectInEditMode"
-          :addArrayElementToRow="this.editMode.addProjectToRow"
-          v-model="this.editMode.project"
+          :saveCallback="saveEditedUser"
+          :cancelCallback="clearUserToEdit"
+          :addArrayElementCallback="addProjectToEditUser"
+          :deleteArrayElementCallback="deleteProject"
+          :saveArrayElementCallback="saveProjectInEditMode"
+          :addArrayElementToRow="editMode.addProjectToRow"
+          v-model="editMode.project"
         ></TableRowEditor>
       </template>
     </Table>
   </div>
 </template>
+å
 
-<script>
+<script lang="ts">
 import Badge from "../components/Badge.vue";
 import BadgeList from "../components/BadgeList.vue";
 import ButtonGroup from "../components/ButtonGroup.vue";
@@ -108,11 +107,16 @@ import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import FeedbackMessage from "../components/FeedbackMessage.vue";
-import { getUsers, putUser, deleteUser } from "../api/api.ts";
-import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.ts";
-import { onMounted, ref } from "vue";
+import { getUsers, putUser, deleteUser, deleteProject } from "../api/api";
+import {
+  stringIncludesOtherString,
+  sortAlphabetically,
+} from "../helpers/utils";
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { User } from "@/types/api";
+import { StringArray } from "@/types/types";
 
-export default {
+export default defineComponent({
   name: "Users",
   components: {
     Badge,
@@ -125,7 +129,7 @@ export default {
     TableRowEditor,
   },
   setup() {
-    const users = ref([]);
+    const users: Ref<User[]> = ref([]);
     onMounted(() => {
       loadUsers();
     });
@@ -137,7 +141,24 @@ export default {
       loadUsers,
     };
   },
-  data() {
+  data(): {
+    editMode: {
+      addProjectToRow: boolean;
+      project: string;
+      userToEdit: string;
+      userToEditIndex: number;
+    };
+    addMode: {
+      addProjectToRow: boolean;
+      newUser: User;
+      project: string;
+    };
+    addRow: boolean;
+    errorMessage: string;
+    loading: boolean;
+    successMessage: string;
+    searchString: string;
+  } {
     return {
       editMode: {
         addProjectToRow: false,
@@ -168,18 +189,18 @@ export default {
     userToEdit() {
       return this.editMode.userToEdit;
     },
-    filteredAndSortedUsers() {
+    filteredAndSortedUsers(): User[] {
       let users = this.users;
       if (this.searchString) {
-        users = this.users.filter((user) => {
+        users = this.users.filter((user: User) => {
           return (
             stringIncludesOtherString(user.email, this.searchString) ||
             stringIncludesOtherString(user.firstName, this.searchString) ||
             stringIncludesOtherString(user.lastName, this.searchString)
           );
         });
-      } 
-      return sortAlphabetically(users, 'email');
+      }
+      return sortAlphabetically(users, "email") as User[];
     },
   },
   watch: {
@@ -202,28 +223,30 @@ export default {
       this.editMode.userToEdit = "";
     },
     clearNewUser() {
-      Object.keys(this.addMode.newUser).forEach((key) => {
-        this.addMode.newUser[key] = "";
+      Object.keys(this.addMode.newUser).forEach((key: string) => {
+        if (key != "projects" && key != "admin") {
+          this.addMode.newUser.projects = [];
+        }
       });
       this.addMode.newUser.admin = false;
       this.addMode.newUser.projects = [];
     },
-    deleteProject(projects, user) {
-      const updatedUser = user;
+    deleteProject(projects: StringArray, user: User) {
+      const updatedUser: User = user;
       user.projects = projects;
       // Don't save immediately while editing
       if (
         user.email !== this.editMode.userToEdit &&
         user.email !== this.addMode.newUser.email
       ) {
-        this.saveUser(updatedUser);
+        this.saveUser(updatedUser, undefined);
       }
     },
-    editUser(user) {
+    editUser(user: User) {
       this.editMode.userToEdit = user.email;
     },
     getEditIndex() {
-      const index = this.users.findIndex((user) => {
+      const index = this.users.findIndex((user: User) => {
         return user.email === this.editMode.userToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when email is altered
@@ -241,7 +264,7 @@ export default {
           this.errorMessage = `Could not load users: ${error}.`;
         });
     },
-    removeUser(user) {
+    removeUser(user: User) {
       this.clearUserMessages();
       deleteUser(user.email)
         .then(() => {
@@ -253,7 +276,7 @@ export default {
         });
     },
     saveEditedUser() {
-      const user = this.users[this.editMode.userToEditIndex];
+      const user: User = this.users[this.editMode.userToEditIndex];
       this.saveUser(user, () => {
         // Check if email was altered, then delete the old row
         if (user.email != this.editMode.userToEdit) {
@@ -272,7 +295,7 @@ export default {
         }
       });
     },
-    saveProject(projects, mode) {
+    saveProject(projects: StringArray, mode: "editMode" | "addMode") {
       projects.push(this[mode].project);
       this[mode].project = "";
       this[mode].addProjectToRow = false;
@@ -286,7 +309,7 @@ export default {
         "editMode"
       );
     },
-    saveUser(user, callback) {
+    saveUser(user: User, callback: Function | undefined) {
       this.clearUserMessages();
       if (user.email === "") {
         this.errorMessage = "Cannot create user with empty email address.";
@@ -307,10 +330,10 @@ export default {
     toggleAddRow() {
       this.addRow = !this.addRow;
     },
-    updateAdmin(user, admin) {
-      user.admin = !admin;
-      this.saveUser(user);
+    updateAdmin(user: User, isAdmin: boolean) {
+      user.admin = !isAdmin;
+      this.saveUser(user, undefined);
     },
   },
-};
+});
 </script>

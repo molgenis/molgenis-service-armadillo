@@ -1,4 +1,4 @@
-import { ListOfStringObjects } from "@/types/types";
+import { ListOfObjectsWithStringKey } from "@/types/types";
 
 export function stringIncludesOtherString(string: string, substring: string): boolean {
   return string.toLowerCase().includes(substring.toLowerCase());
@@ -13,7 +13,7 @@ export function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.substring(1);
 }
 
-export function sortAlphabetically(listOfObjects: ListOfStringObjects, key: string): ListOfStringObjects {
+export function sortAlphabetically(listOfObjects: ListOfObjectsWithStringKey, key: string): ListOfObjectsWithStringKey {
   return listOfObjects.sort((object1, object2) => {
     if (object1[key] < object2[key]) {
       return -1;

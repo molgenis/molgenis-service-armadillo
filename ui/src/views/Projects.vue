@@ -4,11 +4,11 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <FeedbackMessage
-          :successMessage="this.successMessage"
-          :errorMessage="this.errorMessage"
+          :successMessage="successMessage"
+          :errorMessage="errorMessage"
         ></FeedbackMessage>
         <!-- Loading spinner -->
-        <LoadingSpinner v-if="this.loading"></LoadingSpinner>
+        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
     <div class="row">
@@ -22,7 +22,7 @@
       :dataToShow="filteredAndSortedProjects"
       :allData="projects"
       idCol="name"
-      :indexToEdit="this.projectToEditIndex"
+      :indexToEdit="projectToEditIndex"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -35,9 +35,9 @@
             :buttonIcons="['search', 'pencil-fill', 'trash-fill']"
             :buttonColors="['info', 'primary', 'danger']"
             :clickCallbacks="[
-              this.inspectProject,
-              this.editProject,
-              this.removeProject,
+              inspectProject,
+              editProject,
+              removeProject,
             ]"
             :callbackArguments="[
               columnProps.item,
@@ -52,27 +52,27 @@
         <BadgeList
           :itemArray="arrayProps.data"
           :row="arrayProps.row"
-          :saveCallback="this.deleteUser"
+          :saveCallback="deleteUser"
         ></BadgeList>
       </template>
       <template #editRow="rowProps">
         <TableRowEditor
           :rowToEdit="rowProps.row"
           arrayColumn="users"
-          :saveCallback="this.saveEditedProject"
-          :cancelCallback="this.clearProjectToEdit"
-          :addArrayElementCallback="this.addUserToEditProject"
-          :deleteArrayElementCallback="this.deleteUser"
-          :saveArrayElementCallback="this.saveUser"
-          :addArrayElementToRow="this.addUserToRow"
-          v-model="this.userToAdd"
+          :saveCallback="saveEditedProject"
+          :cancelCallback="clearProjectToEdit"
+          :addArrayElementCallback="addUserToEditProject"
+          :deleteArrayElementCallback="deleteUser"
+          :saveArrayElementCallback="saveUser"
+          :addArrayElementToRow="addUserToRow"
+          v-model="userToAdd"
         ></TableRowEditor>
       </template>
     </Table>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Badge from "../components/Badge.vue";
 import BadgeList from "../components/BadgeList.vue";
 import ButtonGroup from "../components/ButtonGroup.vue";
@@ -82,11 +82,13 @@ import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { getProjects, putProject, deleteProject } from "../api/api.ts";
-import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils.ts";
-import { onMounted, ref } from "vue";
+import { getProjects, putProject, deleteProject, deleteUser } from "../api/api";
+import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils";
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { Project } from "@/types/api";
+import { StringArray } from "@/types/types";
 
-export default {
+export default defineComponent({
   name: "Projects",
   components: {
     Badge,
@@ -100,7 +102,7 @@ export default {
     TableRowEditor,
   },
   setup() {
-    const projects = ref([]);
+    const projects: Ref<Project[]> = ref([]);
     onMounted(() => {
       loadProjects();
     });
@@ -125,14 +127,14 @@ export default {
     };
   },
   computed: {
-    filteredAndSortedProjects() {
+    filteredAndSortedProjects(): Project[] {
       let projects = this.projects;
       if (this.searchString) {
-        projects = this.projects.filter((project) => {
+        projects = this.projects.filter((project: Project) => {
           return stringIncludesOtherString(project.name, this.searchString);
         });
       }
-      return sortAlphabetically(projects, "name");
+      return sortAlphabetically(projects, "name") as Project[];
     },
   },
   watch: {
@@ -151,22 +153,22 @@ export default {
     clearProjectToEdit() {
       this.projectToEdit = "";
     },
-    deleteUser(users, project) {
+    deleteUser(users: StringArray, project: Project) {
       const updatedProject = project;
       project.users = users;
       // Don't save immediately while editing
       if (project.name !== this.projectToEdit) {
-        this.saveProject(updatedProject);
+        this.saveProject(updatedProject, undefined);
       }
     },
-    editProject(project) {
+    editProject(project: Project) {
       this.projectToEdit = project.name;
     },
     inspectProject() {
       console.log("inspecting");
     },
     getEditIndex() {
-      const index = this.projects.findIndex((project) => {
+      const index = this.projects.findIndex((project: Project) => {
         return project.name === this.projectToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when name is altered
@@ -184,7 +186,7 @@ export default {
           this.errorMessage = `Could not load projects: ${error}.`;
         });
     },
-    removeProject(project) {
+    removeProject(project: Project) {
       this.clearUserMessages();
       deleteProject(project.name)
         .then(() => {
@@ -196,7 +198,7 @@ export default {
         });
     },
     saveEditedProject() {
-      const project = this.projects[this.projectToEditIndex];
+      const project: Project = this.projects[this.projectToEditIndex];
       this.saveProject(project, () => {
         // Check if name was altered, then delete the old row
         if (project.name != this.projectToEdit) {
@@ -212,7 +214,7 @@ export default {
       this.userToAdd = "";
       this.addUserToRow = false;
     },
-    saveProject(project, callback) {
+    saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
       if (project.name === "") {
         this.errorMessage = "Cannot create project with empty name.";
@@ -231,5 +233,5 @@ export default {
       }
     },
   },
-};
+});
 </script>
