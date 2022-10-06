@@ -71,7 +71,7 @@ public class ProfilesDockerController {
         () -> dockerService.startProfile(name), principal, START_PROFILE, Map.of(PROFILE, name));
   }
 
-  @Operation(summary = "Stop a profile's Docker container")
+  @Operation(summary = "Stop and remove a profile's Docker container")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile container stopped"),
@@ -83,7 +83,6 @@ public class ProfilesDockerController {
   @PostMapping("{name}/stop")
   @ResponseStatus(NO_CONTENT)
   public void stopProfileContainer(Principal principal, @PathVariable String name) {
-    // TODO stop instead of remove
     auditor.audit(
         () -> dockerService.removeProfile(name), principal, STOP_PROFILE, Map.of(PROFILE, name));
   }

@@ -148,10 +148,11 @@ public class ProfilesController {
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
   public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig) {
-    profiles.upsert(profileConfig);
-    // TODO is this about the interruptedexception?
-    auditor.audit( // because of the exception that might happen, and cannot be caught
-        principal, UPSERT_PROFILE, Map.of(PROFILE, profileConfig));
+    auditor.audit(
+        () -> profiles.upsert(profileConfig),
+        principal,
+        UPSERT_PROFILE,
+        Map.of(PROFILE, profileConfig));
   }
 
   @Operation(
@@ -172,7 +173,13 @@ public class ProfilesController {
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void profileDelete(Principal principal, @PathVariable String name) {
-    // TODO delete container
-    auditor.audit(() -> profiles.delete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
+    auditor.audit(() -> deleteProfile(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
+  }
+
+  private void deleteProfile(String name) {
+    if (dockerService != null) {
+      dockerService.removeProfile(name);
+    }
+    profiles.delete(name);
   }
 }
