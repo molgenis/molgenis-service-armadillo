@@ -33,18 +33,32 @@
   </table>
 </template>
 
-<script>
-import { toCapitalizedWords } from "../helpers/utils.ts";
+<script lang="ts">
+import { StringArray } from "@/types/types";
+import { defineComponent, PropType } from "vue";
+import { toCapitalizedWords } from "../helpers/utils";
 
-export default {
+export default defineComponent({
   name: "Table",
   props: {
     // filtered data
-    dataToShow: Array,
+    dataToShow: {
+      type: Array as PropType<StringArray>,
+      required: true
+    },
     // all data to ensure we have correct index when editing
-    allData: Array,
-    idCol: String,
-    indexToEdit: Number,
+    allData: {
+      type: Array as PropType<StringArray>,
+      required: true
+    },
+    idCol: {
+      type: String,
+      required: true
+    },
+    indexToEdit: {
+      type: Number,
+      required: true
+    },
   },
   computed: {
     capitalizedHeaders() {
@@ -52,11 +66,11 @@ export default {
     },
   },
   methods: {
-    getIndex (itemToFind) {
+    getIndex (itemToFind: string) {
       return this.allData.findIndex((item) => {
         return item === itemToFind;
       })
     }
   },
-};
+});
 </script>

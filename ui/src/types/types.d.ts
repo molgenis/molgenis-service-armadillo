@@ -1,3 +1,7 @@
-export type ListOfStringObjects = {[key:string]: string}[];
+export type StringObject = {[key:string]: string};
 
-export type AlertType = "primary" | "secondary" | "success" |"warning" | "info" | "danger" |"light" | "dark";
+export type ListOfStringObjects = StringObject[];
+
+export type BootstrapType = "primary" | "secondary" | "success" |"warning" | "info" | "danger" |"light" | "dark";
+
+export type StringArray = string[];

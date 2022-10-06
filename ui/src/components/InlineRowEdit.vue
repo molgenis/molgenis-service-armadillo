@@ -39,22 +39,33 @@
   </tr>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, PropType } from "vue";
+import { StringObject } from "@/types/types";
 import ButtonGroup from "../components/ButtonGroup.vue";
-export default {
+export default defineComponent({
   name: "InlineRowEdit",
   components: {
     ButtonGroup,
   },
   props: {
-    save: Function,
-    cancel: Function,
-    row: { String: String },
+    save: {
+      type: Function,
+      required: true,
+    },
+    cancel: {
+      type: Function,
+      required: true,
+    },
+    row: {
+      type: Object as PropType<StringObject>,
+      required: true,
+    },
   },
   data() {
     return {
       rowData: this.row,
     };
   },
-};
+});
 </script>

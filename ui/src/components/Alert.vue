@@ -10,12 +10,12 @@
   </div>
 </template>
 <script lang="ts">
-import { AlertType } from "@/types/types";
+import { BootstrapType } from "@/types/types";
 import { defineComponent, PropType } from "vue";
 export default defineComponent({
   name: "Alert",
   props: {
-    type: String as PropType<AlertType>,
+    type: String as PropType<BootstrapType>,
   },
   emits: ["clear"],
 });

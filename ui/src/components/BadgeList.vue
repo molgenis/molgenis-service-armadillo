@@ -4,7 +4,7 @@
       {{ badgeItem }}
       <button
         class="cancel-badge text-light bg-secondary"
-        @click="this.remove(index)"
+        @click="remove(index)"
       >
         <i class="bi bi-x"></i>
       </button>
@@ -12,17 +12,29 @@
   </span>
 </template>
 
-<script>
+<script lang="ts">
+import { StringArray } from "@/types/types";
+import { remove } from "@vue/shared";
+import { defineComponent, PropType } from "vue";
 import Badge from "./Badge.vue";
 
-export default {
+export default defineComponent({
   name: "BadgeList",
   components: { Badge },
   props: {
-    itemArray: Array,
-    saveCallback: Function,
+    itemArray: {
+      type: Array as PropType<StringArray>, 
+        required: true 
+      },
+    saveCallback: {
+      type: Function, 
+      required: true
+    },
     // Some kind of row indicator
-    row: Object,
+    row: {
+      type: Object, 
+      required: true
+    },
   },
   data() {
     return {
@@ -30,17 +42,17 @@ export default {
     };
   },
   methods: {
-    remove(index) {
+    remove(index: number) {
       this.badgeItems.splice(index);
       this.saveCallback(this.badgeItems, this.row);
     },
   },
-   watch: {
-      itemArray: function () {
-        this.badgeItems = this.itemArray;
-      },
+  watch: {
+    itemArray: function () {
+      this.badgeItems = this.itemArray;
     },
-};
+  },
+});
 </script>
 
 <style scoped>
