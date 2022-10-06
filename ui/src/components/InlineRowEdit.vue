@@ -42,7 +42,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { StringArray, BootstrapType } from "@/types/types";
-import ButtonGroup from "../components/ButtonGroup.vue";
+import ButtonGroup from "@/components/ButtonGroup.vue";
 
 export default defineComponent({
   name: "InlineRowEdit",

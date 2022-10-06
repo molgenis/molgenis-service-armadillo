@@ -36,8 +36,8 @@
 
 <script lang="ts">
 import Badge from "../components/Badge.vue";
-import InlineRowEdit from "../components/InlineRowEdit.vue";
-import BadgeList from "../components/BadgeList.vue";
+import InlineRowEdit from "@/components/InlineRowEdit.vue";
+import BadgeList from "@/components/BadgeList.vue";
 import { getEventValue } from "@/helpers/utils";
 
 export default {

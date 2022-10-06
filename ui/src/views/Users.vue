@@ -224,9 +224,10 @@ export default defineComponent({
     },
     clearNewUser() {
       Object.keys(this.addMode.newUser).forEach((key: string) => {
-        if (key != "projects" && key != "admin") {
+        if (key != "projects" && key!= "admin") {
           this.addMode.newUser.projects = [];
         }
+        
       });
       this.addMode.newUser.admin = false;
       this.addMode.newUser.projects = [];

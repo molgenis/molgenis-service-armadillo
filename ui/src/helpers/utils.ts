@@ -1,7 +1,7 @@
 import { ListOfObjectsWithStringKey } from "@/types/types";
 
-export function stringIncludesOtherString(string: string, substring: string): boolean {
-  return string.toLowerCase().includes(substring.toLowerCase());
+export function stringIncludesOtherString(completeString: string, substring: string): boolean {
+  return completeString.toLowerCase().includes(substring.toLowerCase());
 }
 
 export function toCapitalizedWords(name: string): string {

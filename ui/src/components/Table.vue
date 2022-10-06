@@ -36,7 +36,7 @@
 <script lang="ts">
 import { ListOfObjectsWithStringKey, ObjectWithStringKey } from "@/types/types";
 import { defineComponent, PropType } from "vue";
-import { toCapitalizedWords } from "../helpers/utils";
+import { toCapitalizedWords } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Table",

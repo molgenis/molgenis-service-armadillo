@@ -12,7 +12,8 @@
 </template>
 
 <script lang="ts">
-import { getEventValue } from "../helpers/utils";
+import { getEventValue } from "@/helpers/utils";
+
 export default {
   name: "SearchBar",
   props: { modelValue: String },

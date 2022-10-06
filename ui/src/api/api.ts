@@ -1,5 +1,5 @@
-import { Project, User } from "@/types/api.js";
-import { APISettings } from "./config.js";
+import { Project, User } from "@/types/api";
+import { APISettings } from "./config";
 
 export async function get(url: string) {
   const response = await fetch(url, {
