@@ -11,18 +11,10 @@ public enum ProfileStatus {
   DOCKER_OFFLINE;
 
   public static ProfileStatus ofDockerStatus(ContainerState state) {
-    if (TRUE.equals(state.getRunning())) {
-      return RUNNING;
-    } else {
-      return NOT_RUNNING;
-    }
+    return TRUE.equals(state.getRunning()) ? RUNNING : NOT_RUNNING;
   }
 
   public static ProfileStatus ofDockerStatus(String status) {
-    if (status.equals("running")) {
-      return RUNNING;
-    } else {
-      return NOT_RUNNING;
-    }
+    return status.equals("running") ? RUNNING : NOT_RUNNING;
   }
 }

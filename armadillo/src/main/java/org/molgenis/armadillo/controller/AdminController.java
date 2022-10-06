@@ -24,7 +24,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "admin", description = "Admin API to manage users, projects, profiles, and permissions")
+@Tag(name = "admin", description = "Admin API to manage users, projects, and permissions")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")

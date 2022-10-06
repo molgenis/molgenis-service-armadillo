@@ -34,7 +34,6 @@ public class ProfileService {
   }
 
   public List<ProfileConfig> getAll() {
-    // TODO profile status isn't included here
     return new ArrayList<>(settings.getProfiles().values());
   }
 
