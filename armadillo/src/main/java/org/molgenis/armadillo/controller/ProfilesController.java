@@ -168,6 +168,10 @@ public class ProfilesController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Couldn't remove profile's container (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)

@@ -47,7 +47,9 @@ public class ProfilesDockerController {
 
   @Operation(
       summary = "Start a profile's Docker container",
-      description = "This will create a Docker container if it doesn't exist yet")
+      description =
+          """
+          This will create a new container, or recreate an existing container.""")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile started"),
@@ -62,6 +64,10 @@ public class ProfilesDockerController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Profile's container couldn't be started (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PostMapping("{name}/start")
@@ -78,6 +84,10 @@ public class ProfilesDockerController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Profile's container couldn't be stopped (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PostMapping("{name}/stop")

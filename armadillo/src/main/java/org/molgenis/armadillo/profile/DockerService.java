@@ -10,6 +10,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.api.exception.NotModifiedException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
@@ -17,12 +18,15 @@ import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.ProcessingException;
+import org.molgenis.armadillo.exceptions.ContainerRemoveFailedException;
 import org.molgenis.armadillo.exceptions.ImagePullFailedException;
 import org.molgenis.armadillo.exceptions.ImageStartFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,8 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
 
   private final DockerClient dockerClient;
   private final ProfileService profileService;
@@ -109,6 +115,7 @@ public class DockerService {
               .exec();
       dockerClient.startContainerCmd(container.getId()).exec();
     } catch (DockerException e) {
+      LOG.error("Failed to start image", e);
       throw new ImageStartFailedException(profileConfig.getImage(), e);
     }
   }
@@ -124,17 +131,28 @@ public class DockerService {
           .exec(new PullImageResultCallback())
           .awaitCompletion(5, TimeUnit.MINUTES);
     } catch (InterruptedException | NotFoundException e) {
+      LOG.error("Couldn't pull image", e);
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     }
   }
 
   public void removeProfile(String profileName) {
+    // check profile exists
+    profileService.getByName(profileName);
+
     try {
       dockerClient.stopContainerCmd(profileName).exec();
+    } catch (NotFoundException e) {
+      return;
+    } catch (NotModifiedException e) {
+      // container is not running but does exist, do nothing
+    }
+
+    try {
       dockerClient.removeContainerCmd(profileName).exec();
-    } catch (NotFoundException nfe) {
-      // no problem, might not exist anymore
-      // idempotent :-)
+    } catch (DockerException e) {
+      LOG.error("Couldn't remove container", e);
+      throw new ContainerRemoveFailedException(profileName, e);
     }
   }
 }
