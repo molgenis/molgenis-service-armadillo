@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES;
@@ -21,10 +22,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,14 +47,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfilesController {
 
   private final ProfileService profiles;
+  private final DockerService dockerService;
   private final AuditEventPublisher auditor;
 
-  public ProfilesController(ProfileService profileService, AuditEventPublisher auditor) {
-    this.profiles = profileService;
-    this.auditor = auditor;
+  public ProfilesController(
+      ProfileService profileService,
+      @Nullable DockerService dockerService,
+      AuditEventPublisher auditor) {
+    this.profiles = requireNonNull(profileService);
+    this.dockerService = dockerService;
+    this.auditor = requireNonNull(auditor);
   }
 
-  @Operation(summary = "List profiles")
+  @Operation(
+      summary = "List profiles",
+      description =
+          """
+              If Docker management is enabled, this will also display each profile's Docker
+              container status.
+              """)
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -68,10 +82,17 @@ public class ProfilesController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public List<ProfileConfig> profileList(Principal principal) {
+    // TODO merge with docker status
     return auditor.audit(profiles::getAll, principal, LIST_PROFILES);
   }
 
-  @Operation(summary = "Get profile by name")
+  @Operation(
+      summary = "Get profile by name",
+      description =
+          """
+              If Docker management is enabled, this will also display the profile's Docker
+              container status.
+              """)
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -90,6 +111,7 @@ public class ProfilesController {
   @GetMapping(value = "{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public ProfileConfig profileGetByProfileName(Principal principal, @PathVariable String name) {
+    // TODO merge with profile container status
     return auditor.audit(
         () -> profiles.getByName(name), principal, GET_PROFILE, Map.of(PROFILE, name));
   }
@@ -112,7 +134,13 @@ public class ProfilesController {
         principal, UPSERT_PROFILE, Map.of(PROFILE, profileConfig));
   }
 
-  @Operation(summary = "Delete profile")
+  @Operation(
+      summary = "Delete profile",
+      description =
+          """
+              If Docker management is enabled, this will also stop and delete the profile's
+              Docker container.
+              """)
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile deleted"),
@@ -124,6 +152,7 @@ public class ProfilesController {
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void profileDelete(Principal principal, @PathVariable String name) {
+    // TODO delete container
     auditor.audit(() -> profiles.delete(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
   }
 }
