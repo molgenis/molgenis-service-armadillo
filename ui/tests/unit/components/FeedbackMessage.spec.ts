@@ -1,18 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { mount } from "@vue/test-utils";
+import FeedbackMessage from "@/components/FeedbackMessage.vue"
 
-// The component to test
-const MessageComponent = {
-  template: '<p>{{ msg }}</p>',
-  props: ['msg']
-}
-
-test('displays message', () => {
-  const wrapper = mount(MessageComponent, {
+test("displays message", () => {
+  const wrapper = mount(FeedbackMessage, {
     props: {
-      msg: 'Hello world'
-    }
-  })
+      successMessage: "Hello world",
+      errorMessage: "Destructing world in 3...2...1",
+    },
+  });
 
   // Assert the rendered text of the component
-  expect(wrapper.text()).toContain('Hello world')
-})
+  expect(wrapper.text()).toContain("Hello world");
+  expect(wrapper.text()).toContain("Destructing world in 3...2...1");
+});
