@@ -23,7 +23,6 @@ export async function put(url: string, body: Object) {
     body: JSON.stringify(body),
   };
   const response = await fetch(url, requestOptions);
-  console.log(response)
   if (response.status != 204) {
     const error =
       (response.json && 'message' in response.json) || response.statusText;
@@ -49,7 +48,6 @@ export async function deleteUser(email: string) {
 }
 
 export async function putUser(userJson: User) {
-  console.log(userJson)
   return put("/admin/users", userJson);
 }
 
