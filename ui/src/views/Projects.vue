@@ -21,7 +21,6 @@
     <Table
       :dataToShow="filteredAndSortedProjects"
       :allData="projects"
-      idCol="name"
       :indexToEdit="projectToEditIndex"
     >
       <template v-slot:extraHeader>

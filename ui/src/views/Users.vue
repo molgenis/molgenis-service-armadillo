@@ -21,7 +21,6 @@
     <Table
       :dataToShow="filteredAndSortedUsers"
       :allData="users"
-      idCol="email"
       :indexToEdit="editMode.userToEditIndex"
     >
       <template v-slot:extraHeader>

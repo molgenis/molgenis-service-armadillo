@@ -51,10 +51,6 @@ export default defineComponent({
       type: Array as PropType<ListOfObjectsWithStringKey>,
       required: true,
     },
-    idCol: {
-      type: String,
-      required: true,
-    },
     indexToEdit: {
       type: Number,
       required: true,
