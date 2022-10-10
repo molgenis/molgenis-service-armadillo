@@ -13,14 +13,12 @@ const wrapper = mount(ButtonGroup, {
 
 describe("ButtonGroup", () => {
   test("triggers function on click of button", () => {
-    // Assert the rendered text of the component
     const buttons = wrapper.findAll("button");
     buttons[0].trigger("click");
     expect(mockFunction).toHaveBeenCalledWith("hello");
   });
 
   test("creates buttons with correct text and background colors", () => {
-    // Assert the rendered text of the component
     const buttons = wrapper.findAll("button");
     expect(buttons.length).toBe(3);
     expect(buttons[0].attributes("class")).toContain("bg-danger");
@@ -32,7 +30,6 @@ describe("ButtonGroup", () => {
   });
 
   test("creates buttons with correct icons", () => {
-    // Assert the rendered text of the component
     const icons = wrapper.findAll("i");
     expect(icons.length).toBe(3);
     expect(icons[0].attributes("class")).toContain("bi-pencil-fill");
