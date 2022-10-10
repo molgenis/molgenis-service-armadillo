@@ -1,13 +1,9 @@
 <template>
-  <InlineRowEdit
-    :row="rowToEdit"
-    :save="saveCallback"
-    :cancel="cancelCallback"
-  >
+  <InlineRowEdit :row="rowToEdit" :save="saveCallback" :cancel="cancelCallback">
     <!-- Enable adding/removing multiple array elements -->
     <template #arrayEdit="array">
       <BadgeList
-        :itemArray="rowToEdit[arrayColumn]"
+        :itemArray="(rowToEdit[arrayColumn] as StringArray)"
         :row="array.row"
         :saveCallback="deleteArrayElementCallback"
       ></BadgeList>
@@ -19,14 +15,14 @@
         />
         <button
           class="check-badge text-light bg-secondary"
-          @click="saveArrayElementCallback"
+          @click="saveArrayElementCallback()"
         >
           <i class="bi bi-check-lg"></i>
         </button>
       </Badge>
       <button
         class="btn btn-primary btn-sm float-end"
-        @click="addArrayElementCallback"
+        @click="addArrayElementCallback()"
       >
         <i class="bi bi-plus-lg"></i>
       </button>
@@ -39,6 +35,8 @@ import Badge from "../components/Badge.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import BadgeList from "@/components/BadgeList.vue";
 import { getEventValue } from "@/helpers/utils";
+import { ObjectWithStringKey, StringArray } from "@/types/types";
+import { PropType } from "vue";
 
 export default {
   name: "TableRowEditor",
@@ -48,13 +46,13 @@ export default {
     BadgeList,
   },
   props: {
-    rowToEdit: { String: String },
-    arrayColumn: String,
-    saveCallback: Function,
-    cancelCallback: Function,
-    addArrayElementCallback: Function,
-    deleteArrayElementCallback: Function,
-    saveArrayElementCallback: Function,
+    rowToEdit: { type: Object as PropType<ObjectWithStringKey>, required: true },
+    arrayColumn: { type: String, required: true },
+    saveCallback: { type: Function, required: true },
+    cancelCallback: { type: Function, required: true },
+    addArrayElementCallback: { type: Function, required: true },
+    deleteArrayElementCallback: { type: Function, required: true },
+    saveArrayElementCallback: { type: Function, required: true },
     addArrayElementToRow: Boolean,
     // v-model to the element to model the input of the new array element to
     modelValue: String,
