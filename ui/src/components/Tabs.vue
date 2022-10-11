@@ -13,13 +13,15 @@
           :aria-selected="index == activeTab ? 'true' : 'false'"
           v-on:click="$emit('activeTabChange', index)"
         >
-          <i v-if="index < icons.length" :class="`bi bi-${icons[index]}`"></i>
-          {{ item }}
+          <router-link :to="`/${item.toLowerCase()}`">
+            <i v-if="index < icons.length" :class="`bi bi-${icons[index]}`"></i>
+            {{ item }}
+          </router-link>
         </button>
       </li>
     </ul>
     <div class="tab-content">
-      <slot></slot>
+      <router-view />
     </div>
   </div>
 </template>

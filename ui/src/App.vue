@@ -23,7 +23,12 @@
                 <div v-else-if="item === 'Projects'">
                   <Projects></Projects>
                 </div>
-                <div v-else>To do: {{ item }}</div>
+                <div v-else-if="item === 'Profiles'">
+                  <Profiles></Profiles>
+                </div>
+                <div v-else-if="item === 'Monitoring'">
+                  <Monitoring></Monitoring>
+                </div>
               </TabContent>
             </Tabs>
           </div>
