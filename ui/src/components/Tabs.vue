@@ -25,12 +25,15 @@
 </template>
 
 <script lang="ts">
+import { StringArray } from "@/types/types";
+import { PropType } from "vue";
+
 export default {
-  name: 'Tabs',
+  name: "Tabs",
   props: {
-    menu: Array,
-    icons: Array,
-    activeTab: Number,
+    menu: { type: Array as PropType<StringArray>, required: true },
+    icons: { type: Array as PropType<StringArray>, required: true },
+    activeTab: { type: Number, required: true },
   },
 };
 </script>
