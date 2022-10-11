@@ -10,6 +10,7 @@
       <Badge v-if="addArrayElementToRow">
         <input
           type="text"
+          class="arrayElementInput"
           :value="modelValue"
           @input="$emit('update:modelValue', getValue($event))"
         />
