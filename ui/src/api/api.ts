@@ -1,4 +1,4 @@
-import { Project, User } from "@/types/api";
+import { Principal, Project, User } from "@/types/api";
 import { APISettings } from "./config";
 
 export async function get(url: string) {
@@ -59,15 +59,14 @@ export async function putProject(projectJson: Project) {
   return put("/admin/projects", projectJson);
 }
 
-export async function getUsers() {
+export async function getUsers(): Promise<User[]> {
   return get("/admin/users");
 }
 
-export async function getProjects() {
+export async function getProjects(): Promise<Project[]>  {
   return get("/admin/projects");
 }
 
-export async function getPrincipal() {
-  const principal = get("/my/principal");
-  return principal;
+export async function getPrincipal(): Promise<Principal> {
+  return get("/my/principal");
 }

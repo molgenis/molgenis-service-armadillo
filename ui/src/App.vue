@@ -1,21 +1,21 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="this.principal.name"/>
+      <Navbar :username="principal.name" />
       <div class="container">
         <div class="row mt-1">
           <div class="col">
             <Tabs
-              :menu="this.tabs"
-              :icons="this.tabIcons"
-              :activeTab="this.activeTab"
+              :menu="tabs"
+              :icons="tabIcons"
+              :activeTab="activeTab"
               v-on:activeTabChange="setActiveTab"
             >
               <TabContent
-                v-for="item in this.tabs"
+                v-for="item in tabs"
                 :menuItem="item"
-                :menuIndex="this.tabs.indexOf(item)"
-                :isActive="this.activeTab === this.tabs.indexOf(item)"
+                :menuIndex="tabs.indexOf(item)"
+                :isActive="activeTab === tabs.indexOf(item)"
               >
                 <div v-if="item === 'Users'">
                   <Users></Users>
@@ -33,14 +33,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Navbar from "./components/Navbar.vue";
 import Tabs from "./components/Tabs.vue";
 import TabContent from "./components/TabContent.vue";
 import Projects from "./views/Projects.vue";
 import Users from "./views/Users.vue";
-import { onMounted, ref } from "vue";
+import { onMounted, Ref, ref } from "vue";
 import { getPrincipal } from "./api/api";
+import { Principal } from "@/types/api";
 
 export default {
   name: "ArmadilloPortal",
@@ -52,7 +53,18 @@ export default {
     Users,
   },
   setup() {
-    const principal = ref([]);
+    const principal: Ref<Principal> = ref({
+      authorities: [
+        {
+          authority: "",
+        },
+      ],
+      details: null,
+      authenticated: false,
+      principal: null,
+      credentials: null,
+      name: "",
+    } as Principal);
     onMounted(() => {
       loadPrincipal();
     });
@@ -72,7 +84,7 @@ export default {
     };
   },
   methods: {
-    setActiveTab(index) {
+    setActiveTab(index: number) {
       this.activeTab = index;
     },
   },
