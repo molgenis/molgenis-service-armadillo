@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.profile.ContainerInfo;
 
 @AutoValue
 @JsonInclude(Include.NON_NULL)
@@ -26,11 +26,11 @@ public abstract class ProfileResponse {
 
   public abstract Map<String, String> getOptions();
 
-  @JsonProperty("container_status")
-  @Nullable // only present when docker management is enabled
-  public abstract ProfileStatus getStatus();
+  @JsonProperty("container")
+  @Nullable // only present when docker management is enabled and Docker is online
+  public abstract ContainerInfo getContainer();
 
-  public static ProfileResponse create(ProfileConfig profileConfig, ProfileStatus status) {
+  public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
         profileConfig.getImage(),
@@ -38,6 +38,6 @@ public abstract class ProfileResponse {
         profileConfig.getPort(),
         profileConfig.getWhitelist(),
         profileConfig.getOptions(),
-        status);
+        containerInfo);
   }
 }

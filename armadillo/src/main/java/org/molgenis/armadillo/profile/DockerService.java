@@ -15,6 +15,7 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import java.net.SocketException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.ProcessingException;
@@ -46,10 +47,12 @@ public class DockerService {
     this.profileService = profileService;
   }
 
-  public Map<String, ProfileStatus> getAllProfileStatuses() {
+  public Map<String, ContainerInfo> getAllProfileStatuses() {
     var names = profileService.getAll().stream().map(ProfileConfig::getName).toList();
 
-    var statuses = names.stream().collect(toMap(name -> name, name -> ProfileStatus.NOT_FOUND));
+    var statuses =
+        names.stream()
+            .collect(toMap(name -> name, name -> ContainerInfo.create(ProfileStatus.NOT_FOUND)));
 
     try {
       dockerClient
@@ -61,10 +64,12 @@ public class DockerService {
               container ->
                   statuses.replace(
                       container.getNames()[0].substring(1),
-                      ProfileStatus.ofDockerStatus(container.getState())));
+                      ContainerInfo.create(
+                          getImageTags(container.getImageId()),
+                          ProfileStatus.of(container.getState()))));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
-        statuses.replaceAll((key, value) -> ProfileStatus.DOCKER_OFFLINE);
+        statuses.replaceAll((key, value) -> ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE));
       } else {
         throw e;
       }
@@ -72,21 +77,23 @@ public class DockerService {
     return statuses;
   }
 
-  public ProfileStatus getProfileStatus(String profileName) {
+  public ContainerInfo getProfileStatus(String profileName) {
     // check profile exists
     profileService.getByName(profileName);
 
     try {
       InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
-      return ProfileStatus.ofDockerStatus(containerInfo.getState());
+      var tags = getImageTags(containerInfo.getImageId());
+      return ContainerInfo.create(tags, ProfileStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
-        return ProfileStatus.DOCKER_OFFLINE;
+        return ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
       } else {
+        LOG.error("Error getting container info", e);
         throw e;
       }
     } catch (NotFoundException e) {
-      return ProfileStatus.NOT_FOUND;
+      return ContainerInfo.create(ProfileStatus.NOT_FOUND);
     }
   }
 
@@ -154,5 +161,15 @@ public class DockerService {
       LOG.error("Couldn't remove container", e);
       throw new ContainerRemoveFailedException(profileName, e);
     }
+  }
+
+  private List<String> getImageTags(String imageId) {
+    try {
+      return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
+    } catch (DockerException e) {
+      LOG.warn("Couldn't inspect image", e);
+      // getting image tags is non-essential, don't throw error
+    }
+    return null;
   }
 }

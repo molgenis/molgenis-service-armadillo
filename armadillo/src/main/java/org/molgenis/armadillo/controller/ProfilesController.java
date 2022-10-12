@@ -28,7 +28,7 @@ import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,9 +65,9 @@ public class ProfilesController {
       summary = "List profiles",
       description =
           """
-              If Docker management is enabled, this will also display each profile's Docker
-              container status.
-              """)
+                If Docker management is enabled, this will also display each profile's Docker
+                container status.
+                """)
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -75,7 +75,8 @@ public class ProfilesController {
             description = "All profiles listed",
             content =
                 @Content(
-                    array = @ArraySchema(schema = @Schema(implementation = ProfileConfig.class)))),
+                    array =
+                        @ArraySchema(schema = @Schema(implementation = ProfileResponse.class)))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -88,7 +89,7 @@ public class ProfilesController {
   }
 
   private List<ProfileResponse> getProfiles() {
-    var statuses = new HashMap<String, ProfileStatus>();
+    var statuses = new HashMap<String, ContainerInfo>();
     if (dockerService != null) {
       statuses.putAll(dockerService.getAllProfileStatuses());
     }
@@ -129,11 +130,11 @@ public class ProfilesController {
   }
 
   private ProfileResponse getProfile(String name) {
-    ProfileStatus status = null;
+    ContainerInfo container = null;
     if (dockerService != null) {
-      status = dockerService.getProfileStatus(name);
+      container = dockerService.getProfileStatus(name);
     }
-    return ProfileResponse.create(profiles.getByName(name), status);
+    return ProfileResponse.create(profiles.getByName(name), container);
   }
 
   @Operation(summary = "Add or update profile")
