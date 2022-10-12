@@ -60,6 +60,11 @@ public class ProfileService {
     save();
   }
 
+  public void addToWhitelist(String profileName, String pack) {
+    getByName(profileName).getWhitelist().add(pack);
+    save();
+  }
+
   public void delete(String profileName) {
     settings.getProfiles().remove(profileName);
     save();
