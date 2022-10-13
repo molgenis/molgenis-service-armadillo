@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.profile.ProfileScope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +16,16 @@ public class ProfileService {
 
   private final ProfilesLoader loader;
   private final InitialProfileConfigs initialProfiles;
+  private final ProfileScope profileScope;
   private ProfilesMetadata settings;
 
   public ProfileService(
-      ProfilesLoader profilesLoader, InitialProfileConfigs initialProfileConfigs) {
+      ProfilesLoader profilesLoader,
+      InitialProfileConfigs initialProfileConfigs,
+      ProfileScope profileScope) {
     this.loader = requireNonNull(profilesLoader);
     initialProfiles = requireNonNull(initialProfileConfigs);
+    this.profileScope = requireNonNull(profileScope);
     runAsSystem(this::initialize);
   }
 
@@ -57,17 +62,25 @@ public class ProfileService {
                 profileConfig.getPort(),
                 profileConfig.getWhitelist(),
                 profileConfig.getOptions()));
+
+    flushProfileBeans(profileName);
     save();
   }
 
   public void addToWhitelist(String profileName, String pack) {
     getByName(profileName).getWhitelist().add(pack);
+    flushProfileBeans(profileName);
     save();
   }
 
   public void delete(String profileName) {
     settings.getProfiles().remove(profileName);
+    flushProfileBeans(profileName);
     save();
+  }
+
+  private void flushProfileBeans(String profileName) {
+    profileScope.removeAllProfileBeans(profileName);
   }
 
   private void save() {

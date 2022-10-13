@@ -16,7 +16,6 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
@@ -76,11 +75,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public void selectProfile(String profileName) {
-    var exists =
-        profileService.getAll().stream().map(ProfileConfig::getName).anyMatch(profileName::equals);
-    if (!exists) {
-      throw new UnknownProfileException(profileName);
-    }
+    profileService.getByName(profileName);
     armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
