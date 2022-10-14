@@ -88,9 +88,11 @@ public class ProfileService {
   }
 
   private void bootstrap() {
-    initialProfiles.getProfiles().stream()
-        .map(InitialProfileConfig::toProfileConfig)
-        .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
-        .forEach(this::upsert);
+    if (initialProfiles.getProfiles() != null) {
+      initialProfiles.getProfiles().stream()
+          .map(InitialProfileConfig::toProfileConfig)
+          .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
+          .forEach(this::upsert);
+    }
   }
 }
