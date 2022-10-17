@@ -28,12 +28,11 @@
         <th>
           <button
             type="button"
-            class="btn btn-sm me-1"
-            :class="addRow ? 'btn-danger bg-danger' : 'btn-primary bg-primary'"
+            class="btn btn-sm me-1 btn-primary bg-primary"
+            :disabled="addRow"
             @click="toggleAddRow"
           >
-            <i class="bi bi-person-x-fill" v-if="addRow"></i>
-            <i class="bi bi-person-plus-fill" v-else></i>
+            <i class="bi bi-person-plus-fill"></i>
           </button>
         </th>
       </template>
@@ -223,13 +222,13 @@ export default defineComponent({
     },
     clearNewUser() {
       Object.keys(this.addMode.newUser).forEach((key: string) => {
-        if (key != "projects" && key!= "admin") {
+        if (key != "projects" && key != "admin") {
           this.addMode.newUser.projects = [];
         }
-        
       });
       this.addMode.newUser.admin = false;
       this.addMode.newUser.projects = [];
+      this.toggleAddRow();
     },
     deleteProject(projects: StringArray, user: User) {
       const updatedUser: User = user;
