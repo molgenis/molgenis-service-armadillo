@@ -49,6 +49,17 @@ public abstract class ProfileConfig {
         newOptions != null ? newOptions : Map.of());
   }
 
+  @JsonCreator
+  public static ProfileConfig createDefault() {
+    return create(
+        "default",
+        "datashield/armadillo-rserver",
+        "localhost",
+        6311,
+        Set.of("dsBase"),
+        Map.of("datashield.seed", "342325352"));
+  }
+
   public EnvironmentConfigProps toEnvironmentConfigProps() {
     var props = new EnvironmentConfigProps();
     props.setName(getName());

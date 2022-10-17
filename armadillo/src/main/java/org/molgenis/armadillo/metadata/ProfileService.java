@@ -1,10 +1,12 @@
 package org.molgenis.armadillo.metadata;
 
 import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.molgenis.armadillo.exceptions.DefaultProfileDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,6 +76,10 @@ public class ProfileService {
   }
 
   public void delete(String profileName) {
+    if (profileName.equals(DEFAULT)) {
+      throw new DefaultProfileDeleteException();
+    }
+
     settings.getProfiles().remove(profileName);
     flushProfileBeans(profileName);
     save();
@@ -93,6 +99,10 @@ public class ProfileService {
           .map(InitialProfileConfig::toProfileConfig)
           .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
           .forEach(this::upsert);
+    }
+
+    if (!settings.getProfiles().containsKey(DEFAULT)) {
+      upsert(ProfileConfig.createDefault());
     }
   }
 }
