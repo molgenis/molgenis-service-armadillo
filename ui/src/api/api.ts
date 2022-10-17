@@ -1,4 +1,5 @@
 import { Principal, Project, User } from "@/types/api";
+import { StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
 export async function get(url: string) {
@@ -69,4 +70,8 @@ export async function getProjects(): Promise<Project[]>  {
 
 export async function getPrincipal(): Promise<Principal> {
   return get("/my/principal");
+}
+
+export async function getProject(projectId: string): Promise<StringArray> {
+  return get(`/storage/projects/${projectId}/objects`);
 }

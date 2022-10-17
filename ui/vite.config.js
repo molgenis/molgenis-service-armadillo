@@ -30,6 +30,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/storage/.*": {
+        target: {
+          protocol: "http:",
+          host: "localhost",
+          port: 8080,
+        },
+      },
     },
   },
 });

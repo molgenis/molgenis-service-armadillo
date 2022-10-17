@@ -1,5 +1,6 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Projects from "@/views/Projects.vue";
+import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
 import Profiles from "@/views/Profiles.vue";
 import Monitoring from "@/views/Monitoring.vue";
@@ -11,22 +12,27 @@ const routes = [
   },
   {
     path: "/users",
-    name: "Users",
+    name: "users",
     component: Users,
   },
   {
     path: "/projects",
-    name: "Projects",
+    name: "projects",
     component: Projects,
   },
   {
+    path: "/projects-explorer/:projectId",
+    name: "projects-explorer",
+    component: ProjectsExplorer,
+  },
+  {
     path: "/profiles",
-    name: "Profiles",
+    name: "profiles",
     component: Profiles,
   },
   {
     path: "/monitoring",
-    name: "Monitoring",
+    name: "monitoring",
     component: Monitoring,
   },
 ];

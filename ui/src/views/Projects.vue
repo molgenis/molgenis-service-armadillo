@@ -33,11 +33,7 @@
           <ButtonGroup
             :buttonIcons="['search', 'pencil-fill', 'trash-fill']"
             :buttonColors="['info', 'primary', 'danger']"
-            :clickCallbacks="[
-              inspectProject,
-              editProject,
-              removeProject,
-            ]"
+            :clickCallbacks="[inspectProject, editProject, removeProject]"
             :callbackArguments="[
               columnProps.item,
               columnProps.item,
@@ -82,7 +78,10 @@ import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProjects, putProject, deleteProject, deleteUser } from "../api/api";
-import { stringIncludesOtherString, sortAlphabetically } from "../helpers/utils";
+import {
+  stringIncludesOtherString,
+  sortAlphabetically,
+} from "../helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
 import { StringArray } from "@/types/types";
@@ -163,8 +162,11 @@ export default defineComponent({
     editProject(project: Project) {
       this.projectToEdit = project.name;
     },
-    inspectProject() {
-      console.log("inspecting");
+    inspectProject(project: Project) {
+      this.$router.push({
+        name: "projects-explorer",
+        params: { projectId: project.name },
+      });
     },
     getEditIndex() {
       const index = this.projects.findIndex((project: Project) => {
