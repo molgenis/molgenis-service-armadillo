@@ -17,8 +17,9 @@ import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {
-  @Mock private ProfileConfig environment1;
-  @Mock private ProfileConfig environment2;
+  @Mock private ProfileConfig profile1;
+  @Mock private ProfileConfig profile2;
+  @Mock private EnvironmentConfigProps environment2;
   @Mock private ProcessService processService;
   @Mock private ProfileService profileService;
   @Mock private RConnection connection;
@@ -36,11 +37,13 @@ class RProcessEndpointTest {
           }
         };
 
-    when(profileService.getAll()).thenReturn(List.of(environment1, environment2));
-    when(environment1.getName()).thenReturn("kick");
+    when(profileService.getAll()).thenReturn(List.of(profile1, profile2));
+    when(profile1.getName()).thenReturn("kick");
+    when(profile2.getName()).thenReturn("windsock");
+    when(profile2.toEnvironmentConfigProps()).thenReturn(environment2);
     when(environment2.getName()).thenReturn("windsock");
 
     assertSame(connection, endpoint.doWithConnection("windsock", connection -> connection));
-    assertEquals(environment2.getName(), endpoint.selectedEnvironment.getName());
+    assertEquals(profile2.getName(), endpoint.selectedEnvironment.getName());
   }
 }

@@ -226,9 +226,8 @@ class CommandsImplTest {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
         ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Map.of());
-    when(profileService.getAll()).thenReturn(List.of(profileConfig));
+    when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
-    verify(profileService).getAll();
     verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
@@ -236,7 +235,7 @@ class CommandsImplTest {
 
   @Test
   void testSelectUnknownProfile() {
-    when(profileService.getAll()).thenReturn(List.of());
+    when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
 }
