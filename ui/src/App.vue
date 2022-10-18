@@ -11,25 +11,6 @@
               :activeTab="activeTab"
               v-on:activeTabChange="setActiveTab"
             >
-              <TabContent
-                v-for="item in tabs"
-                :menuItem="item"
-                :menuIndex="tabs.indexOf(item)"
-                :isActive="activeTab === tabs.indexOf(item)"
-              >
-                <div v-if="item === 'Users'">
-                  <Users></Users>
-                </div>
-                <div v-else-if="item === 'Projects'">
-                  <Projects></Projects>
-                </div>
-                <div v-else-if="item === 'Profiles'">
-                  <Profiles></Profiles>
-                </div>
-                <div v-else-if="item === 'Monitoring'">
-                  <Monitoring></Monitoring>
-                </div>
-              </TabContent>
             </Tabs>
           </div>
         </div>
@@ -41,7 +22,6 @@
 <script lang="ts">
 import Navbar from "./components/Navbar.vue";
 import Tabs from "./components/Tabs.vue";
-import TabContent from "./components/TabContent.vue";
 import Projects from "./views/Projects.vue";
 import Users from "./views/Users.vue";
 import { onMounted, Ref, ref } from "vue";
@@ -54,7 +34,6 @@ export default {
     Navbar,
     Projects,
     Tabs,
-    TabContent,
     Users,
   },
   setup() {
