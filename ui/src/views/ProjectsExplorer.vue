@@ -25,7 +25,7 @@
               <i class="bi bi-arrow-left text-light"></i>
             </router-link>
           </button>
-          Project: {{ $route.params.project }}
+          Project: {{ $route.params.projectId }}
         </h1>
         <div>{{ project }}</div>
       </div>
