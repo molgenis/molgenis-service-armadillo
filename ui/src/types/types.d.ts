@@ -1,8 +1,12 @@
 export type StringObject = { [key: string]: string | Array<string> };
 
-export type ObjectWithStringKeyAndStringArrayValue = { [key: string]: Array<string> };
+export type ObjectWithStringKeyAndStringArrayValue = {
+  [key: string]: Array<string>;
+};
 
-export type ObjectWithStringKey =  { [key: string]: string | StringArray | boolean | number};
+export type ObjectWithStringKey = {
+  [key: string]: string | StringArray | boolean | number | Object;
+};
 
 export type ListOfObjectsWithStringKey = ObjectWithStringKey[];
 

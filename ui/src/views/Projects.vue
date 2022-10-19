@@ -47,7 +47,6 @@
         <BadgeList
             :itemArray="arrayProps.data"
             :row="arrayProps.row"
-            :saveCallback="deleteUser"
         ></BadgeList>
       </template>
       <template #editRow="rowProps">

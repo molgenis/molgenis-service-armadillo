@@ -14,7 +14,7 @@
     <!-- Loading spinner -->
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <Table v-else
-           :dataToShow="profiles"
+           :dataToShow="(profiles as ListOfObjectsWithStringKey)"
            :allData="profiles"
            :indexToEdit="profileToEditIndex"
     >
@@ -24,7 +24,6 @@
           <button
               type="button"
               class="btn btn-sm me-1 btn-primary bg-primary"
-              :disabled="addRow"
               @click="addNewProfile"
           >
             <i class="bi bi-plus"></i>
@@ -85,7 +84,6 @@
             :saveCallback="saveEditedProfile"
             :cancelCallback="clearProfileToEdit"
             :hideColumns="['container']"
-            v-model="whiteListToAdd"
         ></TableRowEditor>
       </template>
     </Table>
@@ -102,6 +100,7 @@ import TableRowEditor from "@/components/TableRowEditor.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
+import { ListOfObjectsWithStringKey } from "@/types/types";
 
 export default defineComponent({
   name: "Profiles",
