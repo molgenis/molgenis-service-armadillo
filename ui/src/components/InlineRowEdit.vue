@@ -8,16 +8,14 @@
       ></ButtonGroup>
     </th>
     <td v-for="(value, column) in rowData">
-      <div v-if="Array.isArray(value)">
-        <slot name="arrayEdit" :arrayData="value" :row="rowData">
-          <input
-            type="text"
-            class="form-control"
-            v-model="(rowData[column][0] as string)"
-            :placeholder="value[0]"
-            :aria-label="column"
-          />
-        </slot>
+      <div v-if="hideColumns.includes(column)">
+        <!-- skipped column {{column}}-->
+      </div>
+      <div v-else-if="Array.isArray(value)">
+        <StringArrayInput v-model="(rowData[column] as StringArray)"/>
+      </div>
+      <div v-else-if="typeof value == 'object'">
+        <KeyValueInput v-model="(rowData[column] as Object)"/>
       </div>
       <div v-else-if="typeof value == 'boolean'">
         <input
@@ -41,12 +39,15 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { StringArray, BootstrapType } from "@/types/types";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import StringArrayInput from "@/components/StringArrayInput.vue";
+import KeyValueInput from "@/components/KeyValueInput.vue";
 
 export default defineComponent({
   name: "InlineRowEdit",
   components: {
+    KeyValueInput,
+    StringArrayInput,
     ButtonGroup,
   },
   props: {
@@ -62,6 +63,10 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    hideColumns: {
+      type: Array,
+      default: []
+    }
   },
   data() {
     return {

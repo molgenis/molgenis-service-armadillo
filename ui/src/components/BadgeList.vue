@@ -2,9 +2,9 @@
   <span>
     <Badge v-for="(badgeItem, index) in badgeItems">
       {{ badgeItem }}
-      <button
-        class="cancel-badge text-light bg-secondary"
-        @click="remove(index)"
+      <button v-if="canEdit"
+              class="cancel-badge text-light bg-secondary"
+              @click="remove(index)"
       >
         <i class="bi bi-x"></i>
       </button>
@@ -13,27 +13,21 @@
 </template>
 
 <script lang="ts">
-import { StringArray } from "@/types/types";
-import { remove } from "@vue/shared";
-import { defineComponent, PropType } from "vue";
+import {StringArray} from "@/types/types";
+import {defineComponent, PropType} from "vue";
 import Badge from "./Badge.vue";
 
 export default defineComponent({
   name: "BadgeList",
-  components: { Badge },
+  components: {Badge},
   props: {
     itemArray: {
-      type: Array as PropType<StringArray>, 
-        required: true 
-      },
-    saveCallback: {
-      type: Function, 
+      type: Array as PropType<StringArray>,
       required: true
     },
-    // Some kind of row indicator
-    row: {
-      type: Object, 
-      required: true
+    canEdit: {
+      type: Boolean,
+      default: false
     },
   },
   data() {
@@ -44,7 +38,7 @@ export default defineComponent({
   methods: {
     remove(index: number) {
       this.badgeItems.splice(index);
-      this.saveCallback(this.badgeItems, this.row);
+      this.$emit('update', this.badgeItems);
     },
   },
   watch: {

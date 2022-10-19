@@ -1,35 +1,23 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="principal.name" />
+      <Navbar :username="principal.name"/>
       <div class="container">
-        <div class="row mt-1">
+        <div class="row mt-2">
           <div class="col">
             <Tabs
-              :menu="tabs"
-              :icons="tabIcons"
-              :activeTab="activeTab"
-              v-on:activeTabChange="setActiveTab"
+                :menu="tabs"
+                :icons="tabIcons"
+                :activeTab="activeTab"
+                v-on:activeTabChange="setActiveTab"
             >
+              <!-- can't we use RouterView here? -->
               <TabContent
-                v-for="item in tabs"
-                :menuItem="item"
-                :menuIndex="tabs.indexOf(item)"
-                :isActive="activeTab === tabs.indexOf(item)"
-              >
-                <div v-if="item === 'Users'">
-                  <Users></Users>
-                </div>
-                <div v-else-if="item === 'Projects'">
-                  <Projects></Projects>
-                </div>
-                <div v-else-if="item === 'Profiles'">
-                  <Profiles></Profiles>
-                </div>
-                <div v-else-if="item === 'Monitoring'">
-                  <Monitoring></Monitoring>
-                </div>
-              </TabContent>
+                  v-for="item in tabs"
+                  :menuItem="item"
+                  :menuIndex="tabs.indexOf(item)"
+                  :isActive="activeTab === tabs.indexOf(item)"
+              />
             </Tabs>
           </div>
         </div>
@@ -44,9 +32,9 @@ import Tabs from "./components/Tabs.vue";
 import TabContent from "./components/TabContent.vue";
 import Projects from "./views/Projects.vue";
 import Users from "./views/Users.vue";
-import { onMounted, Ref, ref } from "vue";
-import { getPrincipal } from "./api/api";
-import { Principal } from "@/types/api";
+import {onMounted, Ref, ref} from "vue";
+import {getPrincipal} from "./api/api";
+import {Principal} from "@/types/api";
 
 export default {
   name: "ArmadilloPortal",
@@ -84,8 +72,8 @@ export default {
   data() {
     return {
       activeTab: 0,
-      tabs: ["Users", "Projects", "Profiles", "Monitoring"],
-      tabIcons: ["people-fill", "folder-fill", "grid", "clipboard-data-fill"],
+      tabs: ["Projects", "Users", "Profiles"],
+      tabIcons: ["clipboard2-data", "people-fill", "shield-shaded"],
     };
   },
   methods: {

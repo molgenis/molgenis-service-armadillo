@@ -4,8 +4,8 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <FeedbackMessage
-          :successMessage="successMessage"
-          :errorMessage="errorMessage"
+            :successMessage="successMessage"
+            :errorMessage="errorMessage"
         ></FeedbackMessage>
         <!-- Loading spinner -->
         <LoadingSpinner v-if="loading"></LoadingSpinner>
@@ -14,14 +14,14 @@
     <div class="row">
       <div class="col-0 col-sm-9"></div>
       <div class="col-12 col-sm-3">
-        <SearchBar class="mt-1" v-model="searchString" />
+        <SearchBar class="mt-1" v-model="searchString"/>
       </div>
     </div>
     <!-- Actual table -->
     <Table
-      :dataToShow="filteredAndSortedProjects"
-      :allData="projects"
-      :indexToEdit="projectToEditIndex"
+        :dataToShow="filteredAndSortedProjects"
+        :allData="projects"
+        :indexToEdit="projectToEditIndex"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -31,10 +31,10 @@
         <!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <ButtonGroup
-            :buttonIcons="['search', 'pencil-fill', 'trash-fill']"
-            :buttonColors="['info', 'primary', 'danger']"
-            :clickCallbacks="[inspectProject, editProject, removeProject]"
-            :callbackArguments="[
+              :buttonIcons="['search', 'pencil-fill', 'trash-fill']"
+              :buttonColors="['info', 'primary', 'danger']"
+              :clickCallbacks="[inspectProject, editProject, removeProject]"
+              :callbackArguments="[
               columnProps.item,
               columnProps.item,
               columnProps.item,
@@ -45,22 +45,17 @@
       <template #arrayType="arrayProps">
         <!-- Show Projects as badges -->
         <BadgeList
-          :itemArray="arrayProps.data"
-          :row="arrayProps.row"
-          :saveCallback="deleteUser"
+            :itemArray="arrayProps.data"
+            :row="arrayProps.row"
+            :saveCallback="deleteUser"
         ></BadgeList>
       </template>
       <template #editRow="rowProps">
         <TableRowEditor
-          :rowToEdit="rowProps.row"
-          arrayColumn="users"
-          :saveCallback="saveEditedProject"
-          :cancelCallback="clearProjectToEdit"
-          :addArrayElementCallback="addUserToEditProject"
-          :deleteArrayElementCallback="deleteUser"
-          :saveArrayElementCallback="saveUser"
-          :addArrayElementToRow="addUserToRow"
-          v-model="userToAdd"
+            :rowToEdit="rowProps.row"
+            arrayColumn="users"
+            :saveCallback="saveEditedProject"
+            :cancelCallback="clearProjectToEdit"
         ></TableRowEditor>
       </template>
     </Table>
@@ -77,14 +72,10 @@ import SearchBar from "../components/SearchBar.vue";
 import Table from "../components/Table.vue";
 import TableRowEditor from "../components/TableRowEditor.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { getProjects, putProject, deleteProject, deleteUser } from "../api/api";
-import {
-  stringIncludesOtherString,
-  sortAlphabetically,
-} from "../helpers/utils";
-import { defineComponent, onMounted, Ref, ref } from "vue";
-import { Project } from "@/types/api";
-import { StringArray } from "@/types/types";
+import {deleteProject, getProjects, putProject} from "../api/api";
+import {sortAlphabetically, stringIncludesOtherString,} from "../helpers/utils";
+import {defineComponent, onMounted, Ref, ref} from "vue";
+import {Project} from "@/types/api";
 
 export default defineComponent({
   name: "Projects",
@@ -114,8 +105,6 @@ export default defineComponent({
   },
   data() {
     return {
-      addUserToRow: false,
-      userToAdd: "",
       projectToEdit: "",
       projectToEditIndex: -1,
       errorMessage: "",
@@ -141,9 +130,6 @@ export default defineComponent({
     },
   },
   methods: {
-    addUserToEditProject() {
-      this.addUserToRow = true;
-    },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
@@ -151,21 +137,13 @@ export default defineComponent({
     clearProjectToEdit() {
       this.projectToEdit = "";
     },
-    deleteUser(users: StringArray, project: Project) {
-      const updatedProject = project;
-      project.users = users;
-      // Don't save immediately while editing
-      if (project.name !== this.projectToEdit) {
-        this.saveProject(updatedProject, undefined);
-      }
-    },
     editProject(project: Project) {
       this.projectToEdit = project.name;
     },
     inspectProject(project: Project) {
       this.$router.push({
         name: "projects-explorer",
-        params: { projectId: project.name },
+        params: {projectId: project.name},
       });
     },
     getEditIndex() {
@@ -180,23 +158,23 @@ export default defineComponent({
     reloadProjects() {
       this.loading = true;
       this.loadProjects()
-        .then(() => {
-          this.loading = false;
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not load projects: ${error}.`;
-        });
+          .then(() => {
+            this.loading = false;
+          })
+          .catch((error) => {
+            this.errorMessage = `Could not load projects: ${error}.`;
+          });
     },
     removeProject(project: Project) {
       this.clearUserMessages();
       deleteProject(project.name)
-        .then(() => {
-          this.successMessage = `[${project.name}] was successfully deleted.`;
-          this.reloadProjects();
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not delete [${project.name}]: ${error}.`;
-        });
+          .then(() => {
+            this.successMessage = `[${project.name}] was successfully deleted.`;
+            this.reloadProjects();
+          })
+          .catch((error) => {
+            this.errorMessage = `Could not delete [${project.name}]: ${error}.`;
+          });
     },
     saveEditedProject() {
       const project: Project = this.projects[this.projectToEditIndex];
@@ -210,27 +188,22 @@ export default defineComponent({
         this.clearProjectToEdit();
       });
     },
-    saveUser() {
-      this.projects[this.projectToEditIndex].users.push(this.userToAdd);
-      this.userToAdd = "";
-      this.addUserToRow = false;
-    },
     saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
       if (project.name === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
         putProject(project)
-          .then(() => {
-            this.successMessage = `[${project.name}] was successfully saved.`;
-            this.reloadProjects();
-            if (callback) {
-              callback();
-            }
-          })
-          .catch((error) => {
-            this.errorMessage = `Could not save [${project.name}]: ${error}.`;
-          });
+            .then(() => {
+              this.successMessage = `[${project.name}] was successfully saved.`;
+              this.reloadProjects();
+              if (callback) {
+                callback();
+              }
+            })
+            .catch((error) => {
+              this.errorMessage = `Could not save [${project.name}]: ${error}.`;
+            });
       }
     },
   },
