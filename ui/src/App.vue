@@ -10,15 +10,7 @@
                 :icons="tabIcons"
                 :activeTab="activeTab"
                 v-on:activeTabChange="setActiveTab"
-            >
-              <!-- can't we use RouterView here? -->
-              <TabContent
-                  v-for="item in tabs"
-                  :menuItem="item"
-                  :menuIndex="tabs.indexOf(item)"
-                  :isActive="activeTab === tabs.indexOf(item)"
-              />
-            </Tabs>
+            />
           </div>
         </div>
       </div>
@@ -29,7 +21,6 @@
 <script lang="ts">
 import Navbar from "./components/Navbar.vue";
 import Tabs from "./components/Tabs.vue";
-import TabContent from "./components/TabContent.vue";
 import Projects from "./views/Projects.vue";
 import Users from "./views/Users.vue";
 import {onMounted, Ref, ref} from "vue";
@@ -42,7 +33,6 @@ export default {
     Navbar,
     Projects,
     Tabs,
-    TabContent,
     Users,
   },
   setup() {
