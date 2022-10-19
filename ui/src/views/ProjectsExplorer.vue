@@ -12,12 +12,6 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-0 col-sm-9"></div>
-      <div class="col-12 col-sm-3">
-        <SearchBar class="mt-1" v-model="searchString" />
-      </div>
-    </div>
-    <div class="row">
       <div class="col-12">
         <h1>
           <button type="button" class="btn btn-sm me-1 btn-primary bg-primary">
@@ -27,42 +21,92 @@
           </button>
           Project: {{ $route.params.projectId }}
         </h1>
-        <div>{{ project }}</div>
+        <div class="row">
+          <div class="col-3 p-0 m-0">
+            <ListGroup
+              ref="folderComponent"
+              :listContent="Object.keys(projectContent)"
+              rowIcon="folder"
+              rowIconAlt="folder2-open"
+              :altIconCondition="showSelectedFolderIcon"
+              selectionColor="secondary"
+            ></ListGroup>
+          </div>
+          <div class="col-3 p-0 m-0">
+            <ListGroup
+              v-show="selectedFolder != ''"
+              ref="fileComponent"
+              :listContent="projectContent[selectedFolder] ? projectContent[selectedFolder] : []"
+              rowIcon="table"
+              rowIconAlt="file-earmark"
+              :altIconCondition="showFileIcon"
+              selectionColor="primary"
+            ></ListGroup>
+          </div>
+          <div class="col-6">Preview: {{ selectedFile }}</div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import SearchBar from "@/components/SearchBar.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { putProject, deleteProject, getProject } from "@/api/api";
-import { defineComponent, onMounted, Ref, ref } from "vue";
+import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { Project } from "@/types/api";
-import { StringArray } from "@/types/types";
+import {
+  StringArray,
+  ObjectWithStringKeyAndStringArrayValue,
+} from "@/types/types";
 import { useRoute } from "vue-router";
 
 export default defineComponent({
-  name: "Projects",
+  name: "ProjectsExplorer",
   components: {
     FeedbackMessage,
+    ListGroup,
     LoadingSpinner,
-    SearchBar,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
+    const projectId: Ref<string> = ref("");
+    const folderComponent: Ref = ref({});
+    const fileComponent: Ref = ref({});
+    const selectedFolder = ref("");
+    const selectedFile = ref("");
     onMounted(() => {
       loadProject();
+      watch(
+        () => folderComponent.value.selectedItem,
+        (newVal) => {
+          selectedFolder.value = newVal;
+        }
+      );
+
+      watch(
+        () => fileComponent.value.selectedItem,
+        (newVal) => {
+          selectedFile.value = newVal;
+        }
+      );
     });
     const loadProject = async () => {
       const route = useRoute();
-      const projectId = route.params.projectId as string;
-      project.value = await getProject(projectId);
+      const idParam = route.params.projectId as string;
+      project.value = await getProject(idParam);
+      projectId.value = idParam;
     };
     return {
       project,
+      projectId,
       loadProject,
+      folderComponent,
+      fileComponent,
+      selectedFolder,
+      selectedFile,
     };
   },
   data() {
@@ -72,10 +116,32 @@ export default defineComponent({
       errorMessage: "",
       loading: false,
       successMessage: "",
-      searchString: "",
     };
   },
+  computed: {
+    projectContent(): ObjectWithStringKeyAndStringArrayValue {
+      let content: ObjectWithStringKeyAndStringArrayValue = {};
+      this.project.forEach((item) => {
+        const splittedItem = item.split("/");
+        if (splittedItem[0] == this.projectId) {
+          splittedItem.splice(0, 1);
+        }
+        if (splittedItem[0] in content) {
+          content[splittedItem[0]].push(splittedItem[1]);
+        } else {
+          content[splittedItem[0]] = [splittedItem[1]];
+        }
+      });
+      return content;
+    },
+  },
   methods: {
+    showSelectedFolderIcon(item: string) {
+      return item === this.selectedFolder;
+    },
+    showFileIcon(item: string) {
+      return !item.endsWith(".parquet");
+    },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
@@ -85,9 +151,6 @@ export default defineComponent({
     },
     editProject(project: Project) {
       this.projectToEdit = project.name;
-    },
-    inspectProject() {
-      console.log("inspecting");
     },
     reloadProjects() {
       this.loading = true;
@@ -127,6 +190,9 @@ export default defineComponent({
             this.errorMessage = `Could not save [${project.name}]: ${error}.`;
           });
       }
+    },
+    selectFolder(key: string) {
+      this.selectedFolder = key;
     },
   },
 });
