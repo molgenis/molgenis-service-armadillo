@@ -3,18 +3,11 @@ package org.molgenis.armadillo.storage;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
@@ -159,6 +152,24 @@ public class LocalStorageService implements StorageService {
     } catch (Exception e) {
       throw new StorageException(e);
     }
+  }
+
+  @Override
+  public List<Map<String, String>> preview(
+      String bucketName, String objectName, int rowLimit, int columnLimit) {
+    List<Map<String, String>> result = new ArrayList<>();
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+    return result;
   }
 
   private Path getPathIfObjectExists(String bucketName, String objectName) {
