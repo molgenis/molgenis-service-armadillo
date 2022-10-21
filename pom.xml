@@ -118,7 +118,7 @@
             <dependency>
                 <groupId>io.minio</groupId>
                 <artifactId>minio</artifactId>
-                <version>6.0.13</version>
+                <version>8.4.5</version>
             </dependency>
             <!-- https://github.com/spring-projects/spring-boot/issues/21939 -->
             <dependency>
