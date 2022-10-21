@@ -157,19 +157,15 @@ public class LocalStorageService implements StorageService {
   @Override
   public List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit) {
-    List<Map<String, String>> result = new ArrayList<>();
     try {
       Objects.requireNonNull(bucketName);
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
       return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
-    } catch (IOException e) {
-      e.printStackTrace();
     } catch (Exception e) {
       throw new StorageException(e);
     }
-    return result;
   }
 
   private Path getPathIfObjectExists(String bucketName, String objectName) {
