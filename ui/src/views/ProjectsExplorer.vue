@@ -57,10 +57,14 @@
             </div>
             <div class="row mt-3">
               <div class="col-6">
-                <FileUpload></FileUpload>
+                <!-- <FileUpload></FileUpload> -->
               </div>
               <div class="col-6">
-                <FileUpload v-show="selectedFolder != ''"></FileUpload>
+                <FileUpload
+                  v-show="selectedFolder != ''"
+                  :project="projectId"
+                  :object="selectedFolder"
+                ></FileUpload>
               </div>
             </div>
           </div>
@@ -82,7 +86,7 @@ import ButtonGroup from "@/components/ButtonGroup.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { putProject, deleteProject, getProject } from "@/api/api";
+import { getProject } from "@/api/api";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { Project } from "@/types/api";
 import {
@@ -187,7 +191,7 @@ export default defineComponent({
     editProject(project: Project) {
       this.projectToEdit = project.name;
     },
-    reloadProjects() {
+    reloadProject() {
       this.loading = true;
       this.loadProject()
         .then(() => {
@@ -196,35 +200,6 @@ export default defineComponent({
         .catch((error) => {
           this.errorMessage = `Could not load project: ${error}.`;
         });
-    },
-    removeProject(project: Project) {
-      this.clearUserMessages();
-      deleteProject(project.name)
-        .then(() => {
-          this.successMessage = `[${project.name}] was successfully deleted.`;
-          this.reloadProjects();
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not delete [${project.name}]: ${error}.`;
-        });
-    },
-    saveProject(project: Project, callback: Function | undefined) {
-      this.clearUserMessages();
-      if (project.name === "") {
-        this.errorMessage = "Cannot create project with empty name.";
-      } else {
-        putProject(project)
-          .then(() => {
-            this.successMessage = `[${project.name}] was successfully saved.`;
-            this.reloadProjects();
-            if (callback) {
-              callback();
-            }
-          })
-          .catch((error) => {
-            this.errorMessage = `Could not save [${project.name}]: ${error}.`;
-          });
-      }
     },
     selectFolder(key: string) {
       this.selectedFolder = key;
