@@ -91,7 +91,7 @@ import {
 } from "@/types/types";
 import { useRoute } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
-import SimpleTable from "../components/SimpleTable.vue";
+import SimpleTable from "@/components/SimpleTable.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -101,8 +101,8 @@ export default defineComponent({
     ListGroup,
     LoadingSpinner,
     FileUpload,
-    SimpleTable
-},
+    SimpleTable,
+  },
   setup() {
     const project: Ref<StringArray> = ref([]);
     const projectId: Ref<string> = ref("");
@@ -159,10 +159,12 @@ export default defineComponent({
         if (splittedItem[0] == this.projectId) {
           splittedItem.splice(0, 1);
         }
-        if (splittedItem[0] in content) {
-          content[splittedItem[0]].push(splittedItem[1]);
-        } else {
-          content[splittedItem[0]] = [splittedItem[1]];
+        if (!splittedItem[0].startsWith(".")) {
+          if (splittedItem[0] in content) {
+            content[splittedItem[0]].push(splittedItem[1]);
+          } else {
+            content[splittedItem[0]] = [splittedItem[1]];
+          }
         }
       });
       return content;
