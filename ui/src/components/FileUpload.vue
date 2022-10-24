@@ -6,7 +6,7 @@
           <div><i class="bi bi-upload"></i></div>
         </h1>
         <div>Drag to upload</div>
-        <input ref="file" v-on:change="handleFileUpload(object, project)"  type="file">
+        <input ref="file" v-on:change="handleFileUpload()"  type="file">
       </p>
     </div>
   </div>
@@ -19,14 +19,18 @@ import { file } from '@babel/types';
 
 export default defineComponent({
   name: "FileUpload",
-  setup () {
-     const file: Ref = ref(null)
+  setup (props, { emit }) {
+     const file: Ref = ref(null);
 
-        const handleFileUpload = async(object:string, project: string) => {
-           // debugger;
-            console.log("selected file",file.value.files)
+        const handleFileUpload = async() => {
             //Upload to server
-            uploadFile(file.value.files[0], object, project);
+            const response = uploadFile(file.value.files[0], props.object, props.project);
+            response.then(()=>{
+              emit('upload_success');
+            }).catch((error) => {
+              emit('upload_error');
+              console.error(error);
+            })
         }
         return {
           handleFileUpload,
@@ -37,10 +41,13 @@ export default defineComponent({
     object: String,
     project: String
   },
+  emits: ['upload_success', 'upload_error'],
+  data(){
+    return {
+      uploadDone: false
+    }
+  },
   methods: {
-    remove(index: number) {
-      this.files.splice(index, 1);
-    },
     dragover(event: Event) {
       event.preventDefault();
     },

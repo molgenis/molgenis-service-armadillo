@@ -64,6 +64,7 @@
                   v-show="selectedFolder != ''"
                   :project="projectId"
                   :object="selectedFolder"
+                  @upload_success="reloadProject"
                 ></FileUpload>
               </div>
             </div>
@@ -115,7 +116,7 @@ export default defineComponent({
     const selectedFolder = ref("");
     const selectedFile = ref("");
     onMounted(() => {
-      loadProject();
+      loadProject(undefined);
       watch(
         () => folderComponent.value.selectedItem,
         (newVal) => {
@@ -130,9 +131,11 @@ export default defineComponent({
         }
       );
     });
-    const loadProject = async () => {
+    const loadProject = async (idParam: string | undefined) => {
       const route = useRoute();
-      const idParam = route.params.projectId as string;
+      if (idParam === undefined) {
+        idParam = route.params.projectId as string;
+      }
       project.value = await getProject(idParam);
       projectId.value = idParam;
     };
@@ -163,18 +166,33 @@ export default defineComponent({
         if (splittedItem[0] == this.projectId) {
           splittedItem.splice(0, 1);
         }
+
         if (!splittedItem[0].startsWith(".")) {
-          if (splittedItem[0] in content) {
-            content[splittedItem[0]].push(splittedItem[1]);
-          } else {
-            content[splittedItem[0]] = [splittedItem[1]];
+          if (!splittedItem[1].startsWith(".")) {
+            if (splittedItem[0] in content) {
+              content[splittedItem[0]].push(splittedItem[1]);
+            } else {
+              content[splittedItem[0]] = [splittedItem[1]];
+            }
           }
         }
+        // if (!splittedItem[0].startsWith(".") && !splittedItem[1].startsWith(".")) {
+        //   console.log(splittedItem[0]);
+        //   if (splittedItem[0] in content) {
+        //     content[splittedItem[0]].push(splittedItem[1]);
+        //   } else if (!splittedItem[1]) {
+        //     content[splittedItem[0]] = [splittedItem[1]];
+        //   }
+        // }
       });
       return content;
     },
   },
   methods: {
+    onUploadSuccess() {
+      this.reloadProject();
+      this.successMessage = `Successfully uploaded file into ${this.projectId}`;
+    },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
     },
@@ -193,7 +211,7 @@ export default defineComponent({
     },
     reloadProject() {
       this.loading = true;
-      this.loadProject()
+      this.loadProject(this.projectId)
         .then(() => {
           this.loading = false;
         })

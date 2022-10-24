@@ -36,7 +36,6 @@ export async function post(url: string) {
 }
 
 export async function postFormData(url: string, formData: FormData) {
-  console.log(formData);
   // PUT request using fetch with async/await
   const requestOptions = {
     method: "POST",
