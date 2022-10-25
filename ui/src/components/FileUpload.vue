@@ -28,8 +28,7 @@ export default defineComponent({
             response.then(()=>{
               emit('upload_success');
             }).catch((error) => {
-              emit('upload_error');
-              console.error(error);
+              emit('upload_error', error);
             })
         }
         return {
@@ -38,8 +37,8 @@ export default defineComponent({
        }
   },
   props: {
-    object: String,
-    project: String
+    object: { type: String, required: true},
+    project: { type: String, required: true}
   },
   emits: ['upload_success', 'upload_error'],
   data(){

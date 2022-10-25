@@ -64,7 +64,8 @@
                   v-show="selectedFolder != ''"
                   :project="projectId"
                   :object="selectedFolder"
-                  @upload_success="reloadProject"
+                  @upload_success="onUploadSuccess"
+                  @upload_error="showErrorMessage"
                 ></FileUpload>
               </div>
             </div>
@@ -176,22 +177,17 @@ export default defineComponent({
             }
           }
         }
-        // if (!splittedItem[0].startsWith(".") && !splittedItem[1].startsWith(".")) {
-        //   console.log(splittedItem[0]);
-        //   if (splittedItem[0] in content) {
-        //     content[splittedItem[0]].push(splittedItem[1]);
-        //   } else if (!splittedItem[1]) {
-        //     content[splittedItem[0]] = [splittedItem[1]];
-        //   }
-        // }
       });
       return content;
     },
   },
   methods: {
     onUploadSuccess() {
+      const currentFiles = this.projectContent[this.projectId];
       this.reloadProject();
-      this.successMessage = `Successfully uploaded file into ${this.projectId}`;
+      const refreshedFiles = this.projectContent[this.projectId];
+      const newFile = currentFiles.filter((x) => refreshedFiles.includes(x));
+      this.successMessage = `Successfully uploaded file [${newFile}] into project: [${this.projectId}]`;
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
@@ -221,6 +217,9 @@ export default defineComponent({
     },
     selectFolder(key: string) {
       this.selectedFolder = key;
+    },
+    showErrorMessage(error: string) {
+      this.errorMessage = error;
     },
   },
 });

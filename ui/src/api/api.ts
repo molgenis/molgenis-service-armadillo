@@ -53,7 +53,6 @@ export async function delete_(url: string, item: string) {
 export async function handleResponse(response: Response) {
   if (!response.ok) {
     const json = await response.json();
-    console.log(json.message);
     if (json.message) throw json.message;
     else throw response.statusText;
   } else {
