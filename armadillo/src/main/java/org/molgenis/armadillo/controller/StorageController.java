@@ -1,21 +1,10 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+import static org.springframework.http.MediaType.*;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
@@ -38,16 +27,7 @@ import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "storage", description = "API to manipulate the storage")
@@ -190,6 +170,25 @@ public class StorageController {
             GET_OBJECT,
             Map.of(PROJECT, project, OBJECT, object));
     return objectExists ? noContent().build() : notFound().build();
+  }
+
+  @Operation(summary = "Retrieve first 10 rows of the data?")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Preview succes"),
+        @ApiResponse(responseCode = "404", description = "Object does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(
+      path = "/projects/{project}/objects/{object}/preview",
+      produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<Map<String, String>> objectPreview(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> storage.getPreview(project, object),
+        principal,
+        PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
   }
 
   @Operation(summary = "Delete an object")

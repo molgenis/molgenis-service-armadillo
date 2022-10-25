@@ -1,27 +1,19 @@
 package org.molgenis.armadillo.storage;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.minio.ErrorCode.NO_SUCH_BUCKET;
-import static io.minio.ErrorCode.NO_SUCH_KEY;
-import static io.minio.ErrorCode.NO_SUCH_OBJECT;
+import static io.minio.ErrorCode.*;
 import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
 import io.minio.MinioClient;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidArgumentException;
-import io.minio.errors.InvalidBucketNameException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.NoResponseException;
-import io.minio.errors.RegionConflictException;
+import io.minio.errors.*;
 import io.minio.messages.Bucket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,6 +191,14 @@ class MinioStorageService implements StorageService {
         | IOException e) {
       throw new StorageException(e);
     }
+  }
+
+  @Override
+  public List<Map<String, String>> preview(
+      String bucketName, String objectName, int rowLimit, int columnLimit) {
+    throw new UnsupportedOperationException();
+    // would require us I suppose to download the file to temp and then run the ParquetUtils.preview
+    // from there
   }
 
   @Override
