@@ -98,7 +98,8 @@
                 Preview:
                 {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
               </div>
-              <SimpleTable></SimpleTable>
+              <!-- <SimpleTable></SimpleTable> -->
+              {{filePreview}}
             </div>
           </div>
         </div>
@@ -112,7 +113,7 @@ import ButtonGroup from "@/components/ButtonGroup.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { getProject, deleteObject } from "@/api/api";
+import { getProject, deleteObject, previewObject } from "@/api/api";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { Project } from "@/types/api";
 import {
@@ -180,7 +181,26 @@ export default defineComponent({
       errorMessage: "",
       loading: false,
       successMessage: "",
+      filePreview: {}
     };
+  },
+  watch: {
+    // whenever question changes, this function will run
+    selectedFile() {
+      if (this.selectedFile.endsWith(".parquet")) {
+        const response = previewObject(
+          this.projectId,
+          `${this.selectedFolder}%2F${this.selectedFile}`
+        );
+        response
+          .then((data) => {
+            this.filePreview = data;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    },
   },
   computed: {
     projectContent(): ObjectWithStringKeyAndStringArrayValue {
@@ -229,7 +249,10 @@ export default defineComponent({
       this.projectToEdit = "";
     },
     deleteSelectedFile() {
-      const response = deleteObject(this.projectId, `${this.selectedFolder}%2F${this.selectedFile}`);
+      const response = deleteObject(
+        this.projectId,
+        `${this.selectedFolder}%2F${this.selectedFile}`
+      );
       response
         .then(() => {
           this.reloadProject();

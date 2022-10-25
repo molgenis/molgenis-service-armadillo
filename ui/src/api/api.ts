@@ -127,3 +127,7 @@ export async function uploadIntoProject(
   formData.append("object", `${object}/${fileToUpload.name}`);
   return postFormData(`/storage/projects/${project}/objects`, formData);
 }
+
+export async function previewObject(projectId: string, object: string) {
+  return get(`/storage/projects/${projectId}/objects/${object}/preview`);
+}
