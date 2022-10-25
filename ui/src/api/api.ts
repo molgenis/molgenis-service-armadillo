@@ -117,7 +117,7 @@ export async function stopProfile(name: string) {
   return post(`/ds-profiles/${name}/stop`);
 }
 
-export async function uploadFile(
+export async function uploadIntoProject(
   fileToUpload: File,
   object: string,
   project: string

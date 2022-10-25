@@ -22,9 +22,26 @@
           Project: {{ $route.params.projectId }}
         </h1>
         <ButtonGroup
-          :buttonIcons="['folder-plus', 'file-earmark-plus', 'trash-fill']"
-          :buttonColors="['primary', 'primary', 'danger']"
-          :clickCallbacks="[function () {}, function () {}, function () {}]"
+          :buttonIcons="[
+            // 'folder-plus',
+            'file-earmark-plus',
+            'trash-fill',
+          ]"
+          :buttonColors="[
+            // 'primary',
+            'primary',
+            'danger',
+          ]"
+          :disabledButtons="[
+            // false,
+            selectedFolder === '',
+            selectedFolder === '' || selectedFile === '',
+          ]"
+          :clickCallbacks="[
+            // function () {},
+            function () {},
+            deleteSelectedFile,
+          ]"
         ></ButtonGroup>
         <div class="row mt-1 border border-1">
           <div class="col-6">
@@ -36,7 +53,7 @@
                   rowIcon="folder"
                   rowIconAlt="folder2-open"
                   :altIconCondition="showSelectedFolderIcon"
-                  selectionColor="secondary"
+                  :selectionColor="selectedFile ? 'secondary' : 'primary'"
                 ></ListGroup>
               </div>
               <div class="col-6 p-0 m-0">
@@ -50,14 +67,14 @@
                   "
                   rowIcon="table"
                   rowIconAlt="file-earmark"
-                  :altIconCondition="showFileIcon"
+                  :altIconCondition="isNonTableType"
                   selectionColor="primary"
                 ></ListGroup>
               </div>
             </div>
             <div class="row mt-3">
               <div class="col-6">
-                <!-- <FileUpload></FileUpload> -->
+                <!-- Placeholder for file upload for uploading complete project in future-->
               </div>
               <div class="col-6">
                 <FileUpload
@@ -70,12 +87,19 @@
               </div>
             </div>
           </div>
-          <div class="col-6" v-show="selectedFile">
-            <div class="text-end fst-italic">
-              Preview:
-              {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
+          <div class="col-6" v-show="selectedFile && selectedFolder">
+            <div v-if="isNonTableType(selectedFile)">
+              <div class="fst-italic">
+                No preview available for: {{ selectedFile }}
+              </div>
             </div>
-            <SimpleTable></SimpleTable>
+            <div v-else>
+              <div class="text-end fst-italic">
+                Preview:
+                {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
+              </div>
+              <SimpleTable></SimpleTable>
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +112,7 @@ import ButtonGroup from "@/components/ButtonGroup.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { getProject } from "@/api/api";
+import { getProject, deleteObject } from "@/api/api";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { Project } from "@/types/api";
 import {
@@ -124,7 +148,6 @@ export default defineComponent({
           selectedFolder.value = newVal;
         }
       );
-
       watch(
         () => fileComponent.value.selectedItem,
         (newVal) => {
@@ -182,17 +205,20 @@ export default defineComponent({
     },
   },
   methods: {
-    onUploadSuccess() {
-      const currentFiles = this.projectContent[this.projectId];
+    onUploadSuccess({
+      object,
+      filename,
+    }: {
+      object: string;
+      filename: string;
+    }) {
       this.reloadProject();
-      const refreshedFiles = this.projectContent[this.projectId];
-      const newFile = currentFiles.filter((x) => refreshedFiles.includes(x));
-      this.successMessage = `Successfully uploaded file [${newFile}] into project: [${this.projectId}]`;
+      this.successMessage = `Successfully uploaded file [${filename}] into directory [${object}] of project: [${this.projectId}]`;
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
     },
-    showFileIcon(item: string) {
+    isNonTableType(item: string) {
       return !item.endsWith(".parquet");
     },
     clearUserMessages() {
@@ -201,6 +227,17 @@ export default defineComponent({
     },
     clearProjectToEdit() {
       this.projectToEdit = "";
+    },
+    deleteSelectedFile() {
+      const response = deleteObject(this.projectId, `${this.selectedFolder}%2F${this.selectedFile}`);
+      response
+        .then(() => {
+          this.reloadProject();
+          this.successMessage = `Successfully deleted file [${this.selectedFile}] from directory [${this.selectedFolder}] of project: [${this.projectId}]`;
+        })
+        .catch((error) => {
+          this.errorMessage = error;
+        });
     },
     editProject(project: Project) {
       this.projectToEdit = project.name;

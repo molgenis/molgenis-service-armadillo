@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, Ref, ref } from 'vue';
-import { uploadFile } from '@/api/api'
+import { uploadIntoProject } from '@/api/api'
 import { file } from '@babel/types';
 
 export default defineComponent({
@@ -24,10 +24,10 @@ export default defineComponent({
 
         const handleFileUpload = async() => {
             //Upload to server
-            const response = uploadFile(file.value.files[0], props.object, props.project);
+            const response = uploadIntoProject(file.value.files[0], props.object, props.project);
             response.then(()=>{
-              emit('upload_success');
-            }).catch((error) => {
+              emit('upload_success', {object: props.object, filename: file.value.files[0].name});
+            }).catch((error: Error) => {
               emit('upload_error', error);
             })
         }

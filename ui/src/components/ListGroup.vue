@@ -6,7 +6,7 @@
       :class="
         key == selectedItem ? `text-bg-${selectionColor}` : 'link-primary'
       "
-      @click="selectItem(key)"
+      @click="toggleSelectedItem(key)"
     >
       <a>
         <i
@@ -51,8 +51,12 @@ export default {
     selectionColor: { type: String as PropType<BootstrapType> },
   },
   methods: {
-    selectItem(newItem: string) {
-      this.selectedItem = newItem;
+    toggleSelectedItem(newItem: string) {
+      if(this.selectedItem !==  newItem) {
+        this.selectedItem = newItem;
+      } else {
+        this.selectedItem = '';
+      }
     },
   },
 };

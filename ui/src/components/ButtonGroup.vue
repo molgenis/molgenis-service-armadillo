@@ -5,6 +5,7 @@
       v-for="(icon, index) in buttonIcons"
       class="btn btn-sm"
       :class="`btn-${getButtonColor(index)} bg-${buttonColors[index]}`"
+      :disabled="disabledButtons ? disabledButtons[index] : false"
       @click="clickCallbacks[index](getCallbackArgument(index))"
     >
       <i :class="`bi bi-${icon}`"></i>
@@ -26,6 +27,9 @@ export default defineComponent({
     buttonColors: {
       type: Array as PropType<BootstrapType[]>,
       required: true,
+    },
+    disabledButtons: {
+      type: Array as PropType<boolean[]>
     },
     clickCallbacks: {
       type: Array as PropType<Function[]>, 
