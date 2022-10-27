@@ -87,7 +87,11 @@
               </div>
             </div>
           </div>
-          <div class="col-6" v-show="selectedFile && selectedFolder">
+          <div
+            class="col-6"
+            :style="{visibility: selectedFile && selectedFolder ? 'visible' : 'hidden'}"
+            ref="previewContainer"
+          >
             <!-- Loading spinner -->
             <LoadingSpinner v-if="loading_preview"></LoadingSpinner>
             <div v-if="isNonTableType(selectedFile)">
@@ -100,8 +104,10 @@
                 Preview:
                 {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
               </div>
-              <!-- <SimpleTable></SimpleTable> -->
-              {{ filePreview }}
+              <SimpleTable
+                :data="filePreview"
+                :maxWidth="previewContainerWidth"
+              ></SimpleTable>
             </div>
           </div>
         </div>
@@ -143,6 +149,7 @@ export default defineComponent({
     const fileComponent: Ref = ref({});
     const selectedFolder = ref("");
     const selectedFile = ref("");
+
     onMounted(() => {
       loadProject(undefined);
       watch(
@@ -209,6 +216,9 @@ export default defineComponent({
     },
   },
   computed: {
+    previewContainerWidth(): number {
+      return this.$refs.previewContainer.clientWidth;
+    },
     projectContent(): ObjectWithStringKeyAndStringArrayValue {
       let content: ObjectWithStringKeyAndStringArrayValue = {};
       this.project.forEach((item) => {
