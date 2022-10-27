@@ -7,8 +7,6 @@
             :successMessage="successMessage"
             :errorMessage="errorMessage"
         ></FeedbackMessage>
-        <!-- Loading spinner -->
-        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
     <div class="row">
@@ -17,6 +15,8 @@
         <SearchBar class="mt-1" v-model="searchString"/>
       </div>
     </div>
+    <!-- Loading spinner -->
+    <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
         :dataToShow="filteredAndSortedProjects"
