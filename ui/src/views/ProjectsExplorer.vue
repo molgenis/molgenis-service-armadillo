@@ -7,8 +7,6 @@
           :successMessage="successMessage"
           :errorMessage="errorMessage"
         ></FeedbackMessage>
-        <!-- Loading spinner -->
-        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
     <div class="row">
@@ -44,6 +42,8 @@
           ]"
         ></ButtonGroup>
         <div class="row mt-1 border border-1">
+          <!-- Loading spinner -->
+          <LoadingSpinner v-if="loading"></LoadingSpinner>
           <div class="col-6">
             <div class="row">
               <div class="col-6 p-0 m-0">
@@ -88,18 +88,20 @@
             </div>
           </div>
           <div class="col-6" v-show="selectedFile && selectedFolder">
+            <!-- Loading spinner -->
+            <LoadingSpinner v-if="loading_preview"></LoadingSpinner>
             <div v-if="isNonTableType(selectedFile)">
               <div class="fst-italic">
                 No preview available for: {{ selectedFile }}
               </div>
             </div>
-            <div v-else>
+            <div v-else-if="!loading_preview">
               <div class="text-end fst-italic">
                 Preview:
                 {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
               </div>
               <!-- <SimpleTable></SimpleTable> -->
-              {{filePreview}}
+              {{ filePreview }}
             </div>
           </div>
         </div>
@@ -180,14 +182,16 @@ export default defineComponent({
       projectToEditIndex: -1,
       errorMessage: "",
       loading: false,
+      loading_preview: false,
       successMessage: "",
-      filePreview: {}
+      filePreview: [{}],
     };
   },
   watch: {
     // whenever question changes, this function will run
     selectedFile() {
       if (this.selectedFile.endsWith(".parquet")) {
+        this.loading_preview = true;
         const response = previewObject(
           this.projectId,
           `${this.selectedFolder}%2F${this.selectedFile}`
@@ -195,9 +199,11 @@ export default defineComponent({
         response
           .then((data) => {
             this.filePreview = data;
+            this.loading_preview = false;
           })
           .catch((error) => {
             console.error(error);
+            this.loading_preview = false;
           });
       }
     },
@@ -272,6 +278,7 @@ export default defineComponent({
           this.loading = false;
         })
         .catch((error) => {
+          this.loading = false;
           this.errorMessage = `Could not load project: ${error}.`;
         });
     },
