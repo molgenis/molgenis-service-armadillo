@@ -1,8 +1,10 @@
 package org.molgenis.armadillo.config;
 
+import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 
 import com.github.dockerjava.api.DockerClient;
@@ -19,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +48,8 @@ public class DockerServiceTest {
         .when(dockerClient.inspectContainerCmd("dummy").exec().getState().getRunning())
         .thenReturn(true);
 
+    //    lenient().when(dockerClient.inspectContainerCmd("dummy").exec().getImageId()).thenReturn()
+
     // to get state of a container
     lenient().when(containerInfo.getState().getRunning()).thenReturn(true);
 
@@ -60,8 +65,11 @@ public class DockerServiceTest {
     ProfileConfig profileConfig =
         ProfileConfig.create("dummy", "dummy/image", "localhost", 6133, Set.of(), Map.of());
     DockerService armadilloDockerService = new DockerService(dockerClient, profileService);
+    when(profileService.getByName("dummy")).thenReturn(profileConfig);
     armadilloDockerService.startProfile(profileConfig.getName());
-    assertEquals(RUNNING, armadilloDockerService.getProfileStatus(profileConfig.getName()));
+    var expected = ContainerInfo.create(emptyList(), RUNNING);
+
+    assertEquals(expected, armadilloDockerService.getProfileStatus(profileConfig.getName()));
     armadilloDockerService.removeProfile(profileConfig.getName());
   }
 }
