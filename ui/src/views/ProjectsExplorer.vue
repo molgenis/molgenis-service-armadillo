@@ -217,7 +217,8 @@ export default defineComponent({
   },
   computed: {
     previewContainerWidth(): number {
-      return this.$refs.previewContainer.clientWidth;
+      const previewContainer: Element = this.$refs.previewContainer as Element;
+      return previewContainer.clientWidth;
     },
     projectContent(): ObjectWithStringKeyAndStringArrayValue {
       let content: ObjectWithStringKeyAndStringArrayValue = {};

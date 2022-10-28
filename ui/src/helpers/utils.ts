@@ -1,4 +1,4 @@
-import { ListOfObjectsWithStringKey } from "@/types/types";
+import { ListOfObjectsWithStringKey, StringArray } from "@/types/types";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -38,4 +38,35 @@ export function getEventValue(event: Event): string {
 
 export function truncate(stringToCut: string, maxLength: number) {
   return stringToCut.substring(0, maxLength) + "\u2026";
+}
+
+export function isInt(itemToCheck: number) {
+  return itemToCheck % 1 === 0;
+}
+
+export function isIntArray(listOfItems: StringArray){
+  let itemIsIntArray = true;
+  listOfItems.forEach((item)=>{
+    const numberToCheck = parseFloat(item);
+    if (!isInt(numberToCheck)) {
+      itemIsIntArray = false;
+      return;
+    }
+  });
+  return itemIsIntArray;
+}
+
+export function transformTable(table: {[key: string]: string}[]) {
+  let transformed: {[key: string]: StringArray}  = {};
+  table.forEach((row)=>{
+    const keys = Object.keys(row);
+    keys.forEach((key) => {
+      if(key in transformed) {
+        transformed[key].push(row[key]);
+      } else {
+        transformed[key] = [row[key]];
+      }
+    });
+  })
+  return transformed;
 }
