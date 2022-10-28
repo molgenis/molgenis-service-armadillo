@@ -32,10 +32,7 @@
 </template>
 
 <script lang="ts">
-import {
-  ListOfObjectsWithStringKey,
-  StringArray,
-} from "@/types/types";
+import { ListOfObjectsWithStringKey, StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
 import { isIntArray, transformTable, truncate } from "@/helpers/utils";
 
@@ -43,7 +40,7 @@ export default defineComponent({
   name: "SimpleTable",
   props: {
     data: {
-      type: Array as PropType<{[key: string]: string}[]>,
+      type: Array as PropType<{ [key: string]: string }[]>,
       required: true,
     },
     maxWidth: {
@@ -53,7 +50,22 @@ export default defineComponent({
   },
   computed: {
     maxNumberCharacters() {
-      return Math.ceil(this.maxWidth / 200);
+      // don't question the logic, it's a formula that figures out how many characters fit in each header label
+      // but if you do question it:
+      // maxWidth/200 spreads out nicely for 10 columns, to get 200 when the length of columns is 10, we do it times 20 (20 * l)
+      // for 5 columns, this leaves a lot of whitespace. There maxWidth/50, rather than 100, fits better.
+      // therefore, we need to substract 50 from the 20 * l if the number of columns is 5 and 0 if the number of columns is 1
+      // to get that: (10 / l - 1) * 50, that's what we substract from the 20 * l
+      // example (l = 10):
+      // 20 * 10 = 200
+      // 10 / 10 - 1 = 0 -> 0 * 50 = 0
+      // 200 - 0 = 200
+      // example (l = 5):
+      // 20 * 5 = 100
+      // 10 / 5 - 1 = 1 -> 1 * 50 = 50
+      // 100 - 50 = 50
+      const l = this.tableKeys.length;
+      return Math.ceil(this.maxWidth / (20 * l - (10 / l - 1) * 50));
     },
     dataToPreview() {
       // converting ints to in, otherwise the id numbers look awkward
@@ -66,8 +78,8 @@ export default defineComponent({
         }
       });
       this.data.forEach((row) => {
-        let newRow: {[key: string]: string | number} = {};
-        Object.keys(row).forEach((key) => {
+        let newRow: { [key: string]: string | number } = {};
+        this.tableKeys.forEach((key) => {
           if (intKeys.includes(key)) {
             newRow[key] = parseInt(row[key]);
           } else {
@@ -78,15 +90,17 @@ export default defineComponent({
       });
       return dataToPreview;
     },
+    tableKeys() {
+      return Object.keys(this.data[0]);
+    },
     tableHeader() {
       return this.data.length > 0
-        ? Object.keys(this.data[0]).map((item) => {
-            return truncate(item, this.maxNumberCharacters);
+        ? this.tableKeys.map((item) => {
+            return item.length > this.maxNumberCharacters + 2
+              ? truncate(item, this.maxNumberCharacters)
+              : item;
           })
         : [];
-    },
-    numberOfColumnsToPreview() {
-      return Math.ceil(this.maxWidth / 100);
     },
   },
 });

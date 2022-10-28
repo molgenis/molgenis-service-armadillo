@@ -37,7 +37,7 @@ export function getEventValue(event: Event): string {
 }
 
 export function truncate(stringToCut: string, maxLength: number) {
-  return stringToCut.substring(0, maxLength) + "\u2026";
+  return stringToCut.substring(0, maxLength) + "..";
 }
 
 export function isInt(itemToCheck: number) {

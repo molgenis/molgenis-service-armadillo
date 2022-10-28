@@ -102,7 +102,8 @@
             <div v-else-if="!loading_preview">
               <div class="text-end fst-italic">
                 Preview:
-                {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }}
+                <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
+                {{ `${selectedFile.replace(".parquet", "")}` }}
               </div>
               <SimpleTable
                 :data="filePreview"
