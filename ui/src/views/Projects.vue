@@ -22,7 +22,11 @@
         :dataToShow="filteredAndSortedProjects"
         :allData="projects"
         :indexToEdit="projectToEditIndex"
+        :customColumns="['name']"
     >
+      <template #customType="customProps">
+        <router-link :to="`/projects-explorer/${customProps.data}`">{{customProps.data}}</router-link>
+      </template>
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
         <th></th>
@@ -31,11 +35,10 @@
         <!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <ButtonGroup
-              :buttonIcons="['search', 'pencil-fill', 'trash-fill']"
-              :buttonColors="['info', 'primary', 'danger']"
-              :clickCallbacks="[inspectProject, editProject, removeProject]"
+              :buttonIcons="['pencil-fill', 'trash-fill']"
+              :buttonColors="['primary', 'danger']"
+              :clickCallbacks="[editProject, removeProject]"
               :callbackArguments="[
-              columnProps.item,
               columnProps.item,
               columnProps.item,
             ]"
@@ -138,12 +141,6 @@ export default defineComponent({
     },
     editProject(project: Project) {
       this.projectToEdit = project.name;
-    },
-    inspectProject(project: Project) {
-      this.$router.push({
-        name: "projects-explorer",
-        params: {projectId: project.name},
-      });
     },
     getEditIndex() {
       const index = this.projects.findIndex((project: Project) => {
