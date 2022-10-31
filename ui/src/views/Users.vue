@@ -84,7 +84,6 @@
     </Table>
   </div>
 </template>
-å
 
 <script lang="ts">
 import Badge from "../components/Badge.vue";
