@@ -16,7 +16,7 @@
       </div>
     </div>
     <!-- Loading spinner -->
-    <LoadingSpinner></LoadingSpinner>
+    <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
         :dataToShow="filteredAndSortedUsers"
