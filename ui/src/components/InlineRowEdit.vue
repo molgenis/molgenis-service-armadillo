@@ -42,6 +42,7 @@ import { defineComponent } from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
+import { StringArray, BootstrapType } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
