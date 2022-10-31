@@ -1,7 +1,7 @@
 export type StringObject = { [key: string]: string | Array<string> };
 
 export type ObjectWithStringKeyAndStringArrayValue = {
-  [key: string]: StringArray;
+  [key: string]: Array<string>;
 };
 
 export type ObjectWithStringKey = {
