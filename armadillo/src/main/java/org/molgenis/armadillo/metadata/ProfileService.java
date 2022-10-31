@@ -94,6 +94,10 @@ public class ProfileService {
   }
 
   private void bootstrap() {
+    if (settings == null) {
+      return;
+    }
+
     if (initialProfiles.getProfiles() != null) {
       initialProfiles.getProfiles().stream()
           .map(InitialProfileConfig::toProfileConfig)

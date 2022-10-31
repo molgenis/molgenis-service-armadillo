@@ -27,7 +27,6 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.ProjectPermission;
 import org.molgenis.armadillo.metadata.UserDetails;
-import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -54,7 +53,6 @@ class AdminControllerTest {
   @MockBean JwtDecoder jwtDecoder;
   @MockBean AccessLoader accessLoader;
   @Autowired AccessService accessService;
-  @MockBean DockerService dockerService;
 
   @BeforeEach
   public void before() {
