@@ -211,7 +211,6 @@ export default defineComponent({
       });
       this.addMode.newUser.admin = false;
       this.addMode.newUser.projects = [];
-      console.log(this.addMode.newUser);
       this.toggleAddRow();
     },
     deleteProject(projects: StringArray, user: User) {
@@ -227,6 +226,7 @@ export default defineComponent({
     },
     editUser(user: User) {
       this.editMode.userToEdit = user.email;
+      this.addRow = false;
     },
     getEditIndex() {
       const index = this.users.findIndex((user: User) => {
@@ -302,6 +302,7 @@ export default defineComponent({
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
+      this.clearUserToEdit();
     },
     updateAdmin(user: User, isAdmin: boolean) {
       user.admin = !isAdmin;
