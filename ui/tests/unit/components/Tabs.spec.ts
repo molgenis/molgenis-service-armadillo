@@ -2,11 +2,18 @@ import { mount } from "@vue/test-utils";
 import Tabs from "@/components/Tabs.vue";
 
 describe("Tabs", () => {
+  const mockRoute = {
+    fullPath: "/item_b",
+  };
   const wrapper = mount(Tabs, {
     props: {
       menu: ["item_a", "item_b", "item_c"],
       icons: ["monkey", "horse", "zebra"],
-      activeTab: 1
+    },
+    global: {
+      mocks: {
+        $route: mockRoute,
+      },
     },
   });
   test("shows tabs with icons", () => {
@@ -20,7 +27,7 @@ describe("Tabs", () => {
   });
 
   test("expect item_b to be active", () => {
-    const activeTab = wrapper.find('button.nav-link.active');
+    const activeTab = wrapper.find("button.nav-link.active");
     expect(activeTab.html()).toContain("item_b");
   });
 });
