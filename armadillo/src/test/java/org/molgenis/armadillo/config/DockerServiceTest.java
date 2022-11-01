@@ -122,15 +122,23 @@ class DockerServiceTest {
     assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
   }
 
+  @SuppressWarnings("ConstantConditions")
+  @Test
+  void testStartProfile() {
+    var profileConfig = ProfileConfig.createDefault();
+    when(profileService.getByName("default")).thenReturn(profileConfig);
+
+    dockerService.startProfile("default");
+
+    verify(dockerClient).pullImageCmd(profileConfig.getImage());
+    verify(dockerClient).stopContainerCmd("default");
+    verify(dockerClient).removeContainerCmd("default");
+    verify(dockerClient).createContainerCmd(profileConfig.getImage());
+    verify(dockerClient).startContainerCmd("default");
+  }
+
   private List<ProfileConfig> createExampleSettings() {
-    var profile1 =
-        ProfileConfig.create(
-            "default",
-            "datashield/armadillo-rserver:6.2.0",
-            "localhost",
-            6311,
-            Set.of("dsBase"),
-            emptyMap());
+    var profile1 = ProfileConfig.createDefault();
     var profile2 =
         ProfileConfig.create(
             "omics",
