@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.profile;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toMap;
 import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_MANAGEMENT_ENABLED;
 
@@ -95,13 +96,17 @@ public class DockerService {
   public void startProfile(String profileName) {
     var profileConfig = profileService.getByName(profileName);
     pullImage(profileConfig);
-    stopImage(profileName);
-    removeImage(profileName); // for reinstall
+    stopContainer(profileName);
+    removeContainer(profileName); // for reinstall
     installImage(profileConfig);
-    startImage(profileName);
+    startContainer(profileName);
   }
 
   private void installImage(ProfileConfig profileConfig) {
+    if (profileConfig.getImage() == null) {
+      throw new MissingImageException(profileConfig.getName());
+    }
+
     ExposedPort exposed = ExposedPort.tcp(6311);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
@@ -117,7 +122,7 @@ public class DockerService {
     }
   }
 
-  private void startImage(String profileName) {
+  private void startContainer(String profileName) {
     try {
       dockerClient.startContainerCmd(profileName).exec();
     } catch (DockerException e) {
@@ -126,7 +131,7 @@ public class DockerService {
     }
   }
 
-  private void stopImage(String profileName) {
+  private void stopContainer(String profileName) {
     try {
       dockerClient.stopContainerCmd(profileName).exec();
     } catch (DockerException e) {
@@ -135,7 +140,7 @@ public class DockerService {
         InspectContainerResponse containerInfo =
             dockerClient.inspectContainerCmd(profileName).exec();
         // should not be a problem if not running
-        if (containerInfo.getState().getRunning()) {
+        if (TRUE.equals(containerInfo.getState().getRunning())) {
           throw new ImageStopFailedException(profileName, e);
         }
       } catch (NotFoundException nfe) {
@@ -168,11 +173,11 @@ public class DockerService {
   public void removeProfile(String profileName) {
     // check profile exists
     profileService.getByName(profileName);
-    stopImage(profileName);
-    removeImage(profileName);
+    stopContainer(profileName);
+    removeContainer(profileName);
   }
 
-  private void removeImage(String profileName) {
+  private void removeContainer(String profileName) {
     try {
       dockerClient.removeContainerCmd(profileName).exec();
     } catch (NotFoundException nfe) {
