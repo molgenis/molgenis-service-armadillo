@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-public abstract class ProfilesMetadata extends Metadata {
+public abstract class ProfilesMetadata implements Persistable {
   @JsonProperty("profiles")
   public abstract ConcurrentMap<String, ProfileConfig> getProfiles();
 

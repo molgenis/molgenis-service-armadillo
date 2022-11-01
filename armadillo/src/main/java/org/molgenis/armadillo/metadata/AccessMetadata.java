@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-public abstract class AccessMetadata extends Metadata {
+public abstract class AccessMetadata implements Persistable {
   @JsonProperty("users")
   public abstract ConcurrentMap<String, UserDetails> getUsers();
 

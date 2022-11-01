@@ -12,9 +12,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class DockerClientConfig {
+
   @Bean
   DockerClient getDockerClient() {
-    return DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder())
+    return DockerClientBuilder.getInstance(
+            DefaultDockerClientConfig.createDefaultConfigBuilder().build())
         .build();
   }
 }

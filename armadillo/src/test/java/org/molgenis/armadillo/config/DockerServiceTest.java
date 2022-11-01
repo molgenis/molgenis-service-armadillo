@@ -32,7 +32,7 @@ import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
 
 @ExtendWith(MockitoExtension.class)
-public class DockerServiceTest {
+class DockerServiceTest {
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   DockerClient dockerClient;

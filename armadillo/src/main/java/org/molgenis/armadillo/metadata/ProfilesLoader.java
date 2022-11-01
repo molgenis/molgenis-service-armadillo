@@ -11,7 +11,7 @@ public class ProfilesLoader extends StorageJsonLoader<ProfilesMetadata> {
   }
 
   @Override
-  public Class<? extends Metadata> getTargetClass() {
+  public Class<? extends Persistable> getTargetClass() {
     return ProfilesMetadata.class;
   }
 

@@ -11,7 +11,7 @@ public class AccessLoader extends StorageJsonLoader<AccessMetadata> {
   }
 
   @Override
-  public Class<? extends Metadata> getTargetClass() {
+  public Class<? extends Persistable> getTargetClass() {
     return AccessMetadata.class;
   }
 

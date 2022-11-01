@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.profile;
 
 import static java.lang.Boolean.TRUE;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_MANAGEMENT_ENABLED;
 
@@ -85,7 +86,6 @@ public class DockerService {
       if (e.getCause() instanceof SocketException) {
         return ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
       } else {
-        LOG.error("Error getting container info", e);
         throw e;
       }
     } catch (NotFoundException e) {
@@ -117,7 +117,6 @@ public class DockerService {
           .withEnv("DEBUG=FALSE")
           .exec();
     } catch (DockerException e) {
-      LOG.error("Failed to install image", e);
       throw new ImageStartFailedException(profileConfig.getImage(), e);
     }
   }
@@ -126,7 +125,6 @@ public class DockerService {
     try {
       dockerClient.startContainerCmd(profileName).exec();
     } catch (DockerException e) {
-      LOG.error("Failed to start profile", e);
       throw new ImageStartFailedException(profileName, e);
     }
   }
@@ -135,7 +133,6 @@ public class DockerService {
     try {
       dockerClient.stopContainerCmd(profileName).exec();
     } catch (DockerException e) {
-      LOG.error("Failed to stop profile", e);
       try {
         InspectContainerResponse containerInfo =
             dockerClient.inspectContainerCmd(profileName).exec();
@@ -144,6 +141,7 @@ public class DockerService {
           throw new ImageStopFailedException(profileName, e);
         }
       } catch (NotFoundException nfe) {
+        LOG.warn("Failed to stop profile", e);
         // not a problem, its gone
       } catch (Exception e2) {
         throw new ImageStopFailedException(profileName, e);
@@ -161,12 +159,14 @@ public class DockerService {
           .pullImageCmd(profileConfig.getImage())
           .exec(new PullImageResultCallback())
           .awaitCompletion(5, TimeUnit.MINUTES);
-    } catch (InterruptedException | NotFoundException e) {
-      LOG.error("Couldn't pull image", e);
+    } catch (NotFoundException e) {
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     } catch (RuntimeException e) {
-      LOG.error("Couldn't pull image", e);
-      // typically network offline, for local use we can continue.
+      LOG.warn("Couldn't pull image", e);
+      // typically, network offline, for local use we can continue.
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImagePullFailedException(profileConfig.getImage(), e);
     }
   }
 
@@ -181,9 +181,9 @@ public class DockerService {
     try {
       dockerClient.removeContainerCmd(profileName).exec();
     } catch (NotFoundException nfe) {
+      LOG.warn("Couldn't remove container", nfe);
       // not a problem, wanted to remove anyway
     } catch (DockerException e) {
-      LOG.error("Couldn't remove container", e);
       throw new ContainerRemoveFailedException(profileName, e);
     }
   }
@@ -195,6 +195,6 @@ public class DockerService {
       LOG.warn("Couldn't inspect image", e);
       // getting image tags is non-essential, don't throw error
     }
-    return null;
+    return emptyList();
   }
 }

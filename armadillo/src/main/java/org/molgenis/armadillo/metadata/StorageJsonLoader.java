@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-public abstract class StorageJsonLoader<T extends Metadata> {
+public abstract class StorageJsonLoader<T extends Persistable> {
 
   @Autowired // constructor injection not possible because of bean inheritance
   private ArmadilloStorageService storage;
@@ -55,7 +55,7 @@ public abstract class StorageJsonLoader<T extends Metadata> {
 
   public abstract T createDefault();
 
-  public abstract Class<? extends Metadata> getTargetClass();
+  public abstract Class<? extends Persistable> getTargetClass();
 
   public abstract String getJsonFilename();
 }

@@ -47,9 +47,7 @@ public class ProfilesDockerController {
 
   @Operation(
       summary = "Start a profile's Docker container",
-      description =
-          """
-          This will create a new container, or recreate an existing container.""")
+      description = "This will create a new container, or recreate an existing container.")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile started"),
