@@ -26,7 +26,6 @@ import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
@@ -40,7 +39,6 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
 
   @MockBean private ProfileService profileService;
   @MockBean private Commands commands;
-  @MockBean private ApplicationEventPublisher applicationEventPublisher;
   @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean DockerClient dockerClient;
 
