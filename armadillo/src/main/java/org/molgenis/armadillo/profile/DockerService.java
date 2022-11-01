@@ -5,12 +5,10 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.exception.NotModifiedException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
@@ -19,10 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.ProcessingException;
-import org.molgenis.armadillo.exceptions.ContainerRemoveFailedException;
-import org.molgenis.armadillo.exceptions.ImagePullFailedException;
-import org.molgenis.armadillo.exceptions.ImageStartFailedException;
-import org.molgenis.armadillo.exceptions.MissingImageException;
+import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
@@ -100,30 +95,54 @@ public class DockerService {
   public void startProfile(String profileName) {
     var profileConfig = profileService.getByName(profileName);
     pullImage(profileConfig);
-    removeProfile(profileName);
-    startImage(profileConfig);
+    stopImage(profileName);
+    removeImage(profileName); // for reinstall
+    installImage(profileConfig);
+    startImage(profileName);
   }
 
-  private void startImage(ProfileConfig profileConfig) {
-    if (profileConfig.getImage() == null) {
-      throw new MissingImageException(profileConfig.getName());
-    }
-
+  private void installImage(ProfileConfig profileConfig) {
     ExposedPort exposed = ExposedPort.tcp(6311);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
-    CreateContainerResponse container;
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
-      container =
-          cmd.withExposedPorts(exposed)
-              .withHostConfig(new HostConfig().withPortBindings(portBindings))
-              .withName(profileConfig.getName())
-              .withEnv("DEBUG=FALSE")
-              .exec();
-      dockerClient.startContainerCmd(container.getId()).exec();
+      cmd.withExposedPorts(exposed)
+          .withHostConfig(new HostConfig().withPortBindings(portBindings))
+          .withName(profileConfig.getName())
+          .withEnv("DEBUG=FALSE")
+          .exec();
     } catch (DockerException e) {
-      LOG.error("Failed to start image", e);
+      LOG.error("Failed to install image", e);
       throw new ImageStartFailedException(profileConfig.getImage(), e);
+    }
+  }
+
+  private void startImage(String profileName) {
+    try {
+      dockerClient.startContainerCmd(profileName).exec();
+    } catch (DockerException e) {
+      LOG.error("Failed to start profile", e);
+      throw new ImageStartFailedException(profileName, e);
+    }
+  }
+
+  private void stopImage(String profileName) {
+    try {
+      dockerClient.stopContainerCmd(profileName).exec();
+    } catch (DockerException e) {
+      LOG.error("Failed to stop profile", e);
+      try {
+        InspectContainerResponse containerInfo =
+            dockerClient.inspectContainerCmd(profileName).exec();
+        // should not be a problem if not running
+        if (containerInfo.getState().getRunning()) {
+          throw new ImageStopFailedException(profileName, e);
+        }
+      } catch (NotFoundException nfe) {
+        // not a problem, its gone
+      } catch (Exception e2) {
+        throw new ImageStopFailedException(profileName, e);
+      }
     }
   }
 
@@ -140,23 +159,24 @@ public class DockerService {
     } catch (InterruptedException | NotFoundException e) {
       LOG.error("Couldn't pull image", e);
       throw new ImagePullFailedException(profileConfig.getImage(), e);
+    } catch (RuntimeException e) {
+      LOG.error("Couldn't pull image", e);
+      // typically network offline, for local use we can continue.
     }
   }
 
   public void removeProfile(String profileName) {
     // check profile exists
     profileService.getByName(profileName);
+    stopImage(profileName);
+    removeImage(profileName);
+  }
 
-    try {
-      dockerClient.stopContainerCmd(profileName).exec();
-    } catch (NotFoundException e) {
-      return;
-    } catch (NotModifiedException e) {
-      // container is not running but does exist, do nothing
-    }
-
+  private void removeImage(String profileName) {
     try {
       dockerClient.removeContainerCmd(profileName).exec();
+    } catch (NotFoundException nfe) {
+      // not a problem, wanted to remove anyway
     } catch (DockerException e) {
       LOG.error("Couldn't remove container", e);
       throw new ContainerRemoveFailedException(profileName, e);
