@@ -78,25 +78,19 @@
         </th>
       </template>
       <template #editRow="rowProps">
-        <TableRowEditor
-            :rowToEdit="rowProps.row"
-            arrayColumn="whitelist"
-            :saveCallback="saveEditedProfile"
-            :cancelCallback="clearProfileToEdit"
-            :hideColumns="['container']"
-        ></TableRowEditor>
+        <InlineRowEdit :row="rowProps.row" :save="saveEditedProfile" :cancel="clearProfileToEdit" :hideColumns="['container']"/>
       </template>
     </Table>
   </div>
 </template>
 
 <script lang="ts">
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import {defineComponent, onMounted, Ref, ref} from "vue";
 import {Profile} from "@/types/api";
 import {deleteProfile, getProfiles, putProfile, startProfile, stopProfile} from "@/api/api";
-import TableRowEditor from "@/components/TableRowEditor.vue";
+import InlineRowEdit from '@/components/InlineRowEdit.vue';
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
@@ -107,8 +101,8 @@ export default defineComponent({
   components: {
     Badge,
     FeedbackMessage,
+    InlineRowEdit,
     LoadingSpinner,
-    TableRowEditor,
     Table, ButtonGroup
   },
   setup() {

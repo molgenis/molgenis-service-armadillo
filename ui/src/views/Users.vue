@@ -38,12 +38,12 @@
       </template>
       <template v-slot:extraRow v-if="addRow">
         <!-- Extra row for adding a new user  -->
-        <TableRowEditor
-          :rowToEdit="addMode.newUser"
-          arrayColumn="projects"
-          :saveCallback="saveNewUser"
-          :cancelCallback="clearNewUser"
-        ></TableRowEditor>
+        <InlineRowEdit
+          :row="addMode.newUser"
+          :save="saveNewUser"
+          :cancel="clearNewUser"
+          :hideColumns="[]"
+        />
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
@@ -74,31 +74,28 @@
         />
       </template>
       <template #editRow="rowProps">
-        <TableRowEditor
-          :rowToEdit="rowProps.row"
-          arrayColumn="projects"
-          :saveCallback="saveEditedUser"
-          :cancelCallback="clearUserToEdit"
-        ></TableRowEditor>
+        <InlineRowEdit
+          :row="rowProps.row"
+          :save="saveEditedUser"
+          :cancel="clearUserToEdit"
+          :hideColumns="[]"
+        />
       </template>
     </Table>
   </div>
 </template>
 
 <script lang="ts">
-import Badge from "../components/Badge.vue";
-import BadgeList from "../components/BadgeList.vue";
-import ButtonGroup from "../components/ButtonGroup.vue";
-import LoadingSpinner from "../components/LoadingSpinner.vue";
-import SearchBar from "../components/SearchBar.vue";
-import Table from "../components/Table.vue";
-import TableRowEditor from "../components/TableRowEditor.vue";
-import FeedbackMessage from "../components/FeedbackMessage.vue";
-import { deleteUser, getUsers, putUser } from "../api/api";
-import {
-  sortAlphabetically,
-  stringIncludesOtherString,
-} from "../helpers/utils";
+import Badge from "@/components/Badge.vue";
+import BadgeList from "@/components/BadgeList.vue";
+import ButtonGroup from "@/components/ButtonGroup.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import SearchBar from "@/components/SearchBar.vue";
+import Table from "@/components/Table.vue";
+import InlineRowEdit from "@/components/InlineRowEdit.vue";
+import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import { deleteUser, getUsers, putUser } from "@/api/api";
+import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
 import { StringArray } from "@/types/types";
@@ -110,10 +107,10 @@ export default defineComponent({
     BadgeList,
     ButtonGroup,
     FeedbackMessage,
+    InlineRowEdit,
     LoadingSpinner,
     SearchBar,
     Table,
-    TableRowEditor,
   },
   setup() {
     const users: Ref<User[]> = ref([]);

@@ -53,29 +53,23 @@
         ></BadgeList>
       </template>
       <template #editRow="rowProps">
-        <TableRowEditor
-            :rowToEdit="rowProps.row"
-            arrayColumn="users"
-            :saveCallback="saveEditedProject"
-            :cancelCallback="clearProjectToEdit"
-        ></TableRowEditor>
+        <InlineRowEdit :row="rowProps.row" :save="saveEditedProject" :cancel="clearProjectToEdit" :hideColumns="[]"/>
       </template>
     </Table>
   </div>
 </template>
 
 <script lang="ts">
-import Badge from "../components/Badge.vue";
-import BadgeList from "../components/BadgeList.vue";
-import ButtonGroup from "../components/ButtonGroup.vue";
-import InlineRowEdit from "../components/InlineRowEdit.vue";
-import LoadingSpinner from "../components/LoadingSpinner.vue";
-import SearchBar from "../components/SearchBar.vue";
-import Table from "../components/Table.vue";
-import TableRowEditor from "../components/TableRowEditor.vue";
+import Badge from "@/components/Badge.vue";
+import BadgeList from "@/components/BadgeList.vue";
+import ButtonGroup from "@/components/ButtonGroup.vue";
+import InlineRowEdit from "@/components/InlineRowEdit.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import SearchBar from "@/components/SearchBar.vue";
+import Table from "@/components/Table.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import {deleteProject, getProjects, putProject} from "../api/api";
-import {sortAlphabetically, stringIncludesOtherString,} from "../helpers/utils";
+import {deleteProject, getProjects, putProject} from "@/api/api";
+import {sortAlphabetically, stringIncludesOtherString,} from "@/helpers/utils";
 import {defineComponent, onMounted, Ref, ref} from "vue";
 import {Project} from "@/types/api";
 
@@ -90,7 +84,6 @@ export default defineComponent({
     LoadingSpinner,
     SearchBar,
     Table,
-    TableRowEditor,
   },
   setup() {
     const projects: Ref<Project[]> = ref([]);
