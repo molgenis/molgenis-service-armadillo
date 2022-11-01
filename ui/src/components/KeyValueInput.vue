@@ -43,8 +43,9 @@
 
 <script lang="ts">
 import Badge from "@/components/Badge.vue";
+import { defineComponent } from "vue";
 
-export default {
+export default defineComponent({
   name: "KeyValueInput",
   components: { Badge },
   props: {
@@ -78,7 +79,7 @@ export default {
       this.showAdd = false;
     },
   },
-};
+});
 </script>
 
 <style scoped>

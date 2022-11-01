@@ -1,18 +1,17 @@
 <template>
   <div>
-    <BadgeList :item-array="modelValue" :canEdit="true" @update="$emit(event)"/>
-    <div v-if="showAdd == false"><i class="bi bi-plus-circle text-primary" @click="showAdd = true"></i></div>
+    <BadgeList :item-array="modelValue" :canEdit="true" @update="$emit('update')" />
+    <div v-if="!showAdd">
+      <i class="bi bi-plus-circle text-primary" @click="showAdd = true"></i>
+    </div>
     <span v-else>
-      <input type="text"
-             class="arrayElementInput"
-             v-model="newValue"/>
-      <button class="check-badge text-light bg-secondary"
-              @click="addNewValue"
-      >
+      <input type="text" class="arrayElementInput" v-model="newValue" />
+      <button class="check-badge text-light bg-secondary" @click="addNewValue">
         <i class="bi bi-check-lg"></i>
       </button>
-      <button class="check-badge text-light bg-secondary"
-              @click="cancelNewValue"
+      <button
+        class="check-badge text-light bg-secondary"
+        @click="cancelNewValue"
       >
         <i class="bi bi-x-lg"></i>
       </button>
@@ -29,22 +28,23 @@ button.check-badge {
 }
 </style>
 
-<script type="ts">
-
+<script lang="ts">
 import BadgeList from "@/components/BadgeList.vue";
+import { StringArray } from "@/types/types";
+import { defineComponent, PropType } from "vue";
 
-export default {
+export default defineComponent({
   name: "StringArrayInput",
-  components: {BadgeList},
+  components: { BadgeList },
   props: {
-    modelValue: Array
+    modelValue: { type: Array as PropType<StringArray>, required: true },
   },
-  emits: ['update'],
+  emits: ["update"],
   data() {
     return {
       showAdd: false,
-      newValue: ""
-    }
+      newValue: "",
+    };
   },
   methods: {
     addNewValue() {
@@ -52,17 +52,17 @@ export default {
       result.push(this.newValue);
       this.newValue = "";
       this.showAdd = false;
-      this.$emit('update', result);
+      this.$emit("update", result);
     },
-    removeItem(index) {
+    removeItem(index: number) {
       const result = this.modelValue;
       result.slice(index, 0);
-      this.$emit('update', result);
+      this.$emit("update", result);
     },
     cancelNewValue() {
       this.newValue = "";
       this.showAdd = false;
-    }
-  }
-}
+    },
+  },
+});
 </script>
