@@ -1,13 +1,15 @@
 #######
-# This assumes you have manually added a 'test' via API
-# e.g. PUT
+# This assumes you have added a 'test' profile via API or UI
+#######
+
 {
   "name": "test",
+  "host": "localhost",
+  "image": "datashield/armadillo-rserver:6.2.0"
   "port": 6313,
   "whitelist": [
     "dsBase"
-  ],
-  "dockerImage": "datashield/armadillo-rserver:6.2.0"
+  ]
 }
 #######
 
