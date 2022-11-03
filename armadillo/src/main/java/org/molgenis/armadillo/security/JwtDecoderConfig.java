@@ -1,20 +1,19 @@
 package org.molgenis.armadillo.security;
 
+import static java.util.Arrays.asList;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.*;
 
 @ConditionalOnProperty(
     prefix = "spring.security.oauth2.resourceserver",
@@ -22,19 +21,37 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 @Configuration
 public class JwtDecoderConfig {
 
+  private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
+  private final Environment environment;
+
+  public JwtDecoderConfig(Environment environment) {
+    this.environment = environment;
+  }
+
   @Bean
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
-    String issuerUri = properties.getJwt().getIssuerUri();
-    NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuerUri);
+    try {
+      String issuerUri = properties.getJwt().getIssuerUri();
+      NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
 
-    var audienceValidator =
-        new JwtClaimValidator<Collection<String>>(
-            AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
-    OAuth2TokenValidator<Jwt> jwtValidator =
-        new DelegatingOAuth2TokenValidator<>(
-            JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
+      var audienceValidator =
+          new JwtClaimValidator<Collection<String>>(
+              AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
+      OAuth2TokenValidator<Jwt> jwtValidator =
+          new DelegatingOAuth2TokenValidator<>(
+              JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
 
-    jwtDecoder.setJwtValidator(jwtValidator);
-    return jwtDecoder;
+      jwtDecoder.setJwtValidator(jwtValidator);
+      return jwtDecoder;
+    } catch (Exception e) {
+      LOG.error("Couldn't configure JWT decoder", e);
+      if (!asList(environment.getActiveProfiles()).contains("development")) {
+        throw e;
+      }
+      return token -> {
+        throw new UnsupportedOperationException(
+            "JWT configuration failed, please check the logs. Probably the auth server is offline?");
+      };
+    }
   }
 }

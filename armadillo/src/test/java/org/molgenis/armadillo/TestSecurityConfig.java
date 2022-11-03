@@ -1,9 +1,16 @@
 package org.molgenis.armadillo;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.DummyMetadataLoader;
-import org.molgenis.armadillo.metadata.MetadataLoader;
+import org.molgenis.armadillo.metadata.AccessLoader;
+import org.molgenis.armadillo.metadata.AccessService;
+import org.molgenis.armadillo.metadata.DummyAccessLoader;
+import org.molgenis.armadillo.metadata.DummyProfilesLoader;
+import org.molgenis.armadillo.metadata.InitialProfileConfigs;
+import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ProfilesLoader;
+import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,14 +33,31 @@ public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  MetadataLoader metadataLoader() {
-    return new DummyMetadataLoader();
+  AccessLoader accessLoader() {
+    return new DummyAccessLoader();
   }
 
   @Bean
-  ArmadilloMetadataService accessStorageService(
-      ArmadilloStorageService storageService, MetadataLoader metadataLoader) {
-    return new ArmadilloMetadataService(storageService, metadataLoader, null);
+  ProfilesLoader profilesLoader() {
+    return new DummyProfilesLoader();
+  }
+
+  @Bean
+  ProfileScope profileScope() {
+    return new ProfileScope();
+  }
+
+  @Bean
+  AccessService accessService(ArmadilloStorageService storageService, AccessLoader accessLoader) {
+    return new AccessService(storageService, accessLoader, null);
+  }
+
+  @Bean
+  ProfileService profileService(ProfilesLoader profilesLoader, ProfileScope profileScope) {
+    var initialProfiles = new InitialProfileConfigs();
+    initialProfiles.setProfiles(emptyList());
+
+    return new ProfileService(profilesLoader, initialProfiles, profileScope);
   }
 
   @Bean

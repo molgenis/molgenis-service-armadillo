@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadata;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.MetadataLoader;
+import org.molgenis.armadillo.metadata.AccessLoader;
+import org.molgenis.armadillo.metadata.AccessMetadata;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.ProjectPermission;
 import org.molgenis.armadillo.metadata.UserDetails;
@@ -45,24 +45,24 @@ import org.springframework.test.web.servlet.MockMvc;
 class AdminControllerTest {
 
   public static final String EXAMPLE_SETTINGS =
-      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
+      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\":  \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
+  @MockBean ArmadilloStorageService armadilloStorage;
 
-  @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
-  @Autowired private MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
   @MockBean JwtDecoder jwtDecoder;
-  @MockBean MetadataLoader metadataLoader;
-  @Autowired ArmadilloMetadataService armadilloMetadataService;
+  @MockBean AccessLoader accessLoader;
+  @Autowired AccessService accessService;
 
   @BeforeEach
   public void before() {
     var exampleSettings = createExampleSettings();
-    when(metadataLoader.load()).thenReturn(exampleSettings);
-    runAsSystem(() -> armadilloMetadataService.initialize());
+    when(accessLoader.load()).thenReturn(exampleSettings);
+    runAsSystem(() -> accessService.initialize());
   }
 
-  private ArmadilloMetadata createExampleSettings() {
-    var settings = ArmadilloMetadata.create();
+  private AccessMetadata createExampleSettings() {
+    var settings = AccessMetadata.create();
     settings.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
     settings
         .getProjects()
@@ -102,7 +102,7 @@ class AdminControllerTest {
         .getProjects()
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
@@ -129,7 +129,7 @@ class AdminControllerTest {
 
     var expected = createExampleSettings();
     expected.getPermissions().clear();
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
@@ -174,7 +174,7 @@ class AdminControllerTest {
         .getProjects()
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
@@ -184,9 +184,9 @@ class AdminControllerTest {
         .perform(delete("/admin/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
         .andExpect(status().isNoContent());
 
-    var expected = ArmadilloMetadata.create();
+    var expected = AccessMetadata.create();
     expected.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
@@ -230,7 +230,7 @@ class AdminControllerTest {
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
 
-    when(metadataLoader.save(expected)).thenReturn(expected);
+    when(accessLoader.save(expected)).thenReturn(expected);
 
     String testUser =
         new Gson()
@@ -246,7 +246,7 @@ class AdminControllerTest {
         .perform(put("/admin/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
         .andExpect(status().isNoContent());
 
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
 
     // check that 'get' also in sync
     mockMvc
@@ -263,10 +263,10 @@ class AdminControllerTest {
         .perform(delete("/admin/users/bofke@email.com").with(csrf()))
         .andExpect(status().isNoContent());
 
-    var expected = ArmadilloMetadata.create();
+    var expected = AccessMetadata.create();
     expected
         .getProjects()
         .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 }

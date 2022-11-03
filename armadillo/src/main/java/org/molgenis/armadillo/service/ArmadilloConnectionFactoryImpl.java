@@ -4,8 +4,8 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.config.annotation.ProfileScope;
+import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
@@ -19,17 +19,17 @@ import org.springframework.stereotype.Component;
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;
-  private final ProfileConfigProps profileConfigProps;
+  private final ProfileConfig profileConfig;
   private final DataShieldOptions dataShieldOptions;
   private final RConnectionFactory rConnectionFactory;
 
   public ArmadilloConnectionFactoryImpl(
       PackageService packageService,
-      ProfileConfigProps profileConfigProps,
+      ProfileConfig profileConfig,
       DataShieldOptions dataShieldOptions,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
-    this.profileConfigProps = profileConfigProps;
+    this.profileConfig = profileConfig;
     this.dataShieldOptions = dataShieldOptions;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -47,7 +47,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   private void loadPackages(RConnection connection) {
-    packageService.loadPackages(connection, profileConfigProps.getWhitelist());
+    packageService.loadPackages(connection, profileConfig.getWhitelist());
   }
 
   private void setDataShieldOptions(RConnection con) throws RserveException {

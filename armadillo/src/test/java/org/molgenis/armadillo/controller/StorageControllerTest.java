@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.dockerjava.api.DockerClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @WithMockUser(roles = "SU")
 class StorageControllerTest extends ArmadilloControllerTestBase {
 
+  @MockBean DockerClient dockerClient;
   @MockBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;

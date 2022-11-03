@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 public class ArmadilloControllerTestBase {
 
   @Autowired protected MockMvc mockMvc;
-  @Autowired AuditEventPublisher auditEventPublisher;
+  @Autowired protected AuditEventPublisher auditEventPublisher;
 
   @MockBean protected ApplicationEventPublisher applicationEventPublisher;
 

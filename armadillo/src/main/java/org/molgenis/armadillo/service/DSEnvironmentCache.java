@@ -7,10 +7,10 @@ import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-import org.molgenis.armadillo.config.ProfileConfigProps;
-import org.molgenis.armadillo.config.annotation.ProfileScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
+import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -31,7 +31,7 @@ public class DSEnvironmentCache {
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private final ProfileConfigProps profileConfigProps;
+  private final ProfileConfig profileConfig;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -39,10 +39,10 @@ public class DSEnvironmentCache {
   public DSEnvironmentCache(
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
-      ProfileConfigProps dataShieldProperties) {
+      ProfileConfig profileConfig) {
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
-    this.profileConfigProps = requireNonNull(dataShieldProperties);
+    this.profileConfig = requireNonNull(profileConfig);
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
@@ -109,7 +109,7 @@ public class DSEnvironmentCache {
   }
 
   private boolean isPackageWhitelisted(String rPackageName) {
-    if (!profileConfigProps.getWhitelist().contains(rPackageName)) {
+    if (!profileConfig.getWhitelist().contains(rPackageName)) {
       LOGGER.warn(
           "Package '{}' is not whitelisted and will not be added to environment", rPackageName);
       return false;
