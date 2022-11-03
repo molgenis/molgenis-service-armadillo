@@ -28,14 +28,14 @@
 <script lang="ts">
 import { StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
-import { RouterLink, RouterView } from "vue-router";
+import RouterLink from "vue-router";
+import RouterView from "vue-router";
 
 export default defineComponent({
   name: "Tabs",
   props: {
     menu: { type: Array as PropType<StringArray>, required: true },
     icons: { type: Array as PropType<StringArray>, required: true },
-    activeTab: { type: Number, required: true },
   },
   methods: {
     isSelectedPage(page: string) {
