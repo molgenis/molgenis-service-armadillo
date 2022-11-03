@@ -7,6 +7,14 @@ const wrapper = mount(InlineRowEdit, {
   props: {
     save: saveMock,
     cancel: cancelMock,
+    dataStructure: {
+      column_a: "string",
+      column_b: "string",
+      column_c: "string",
+      column_d: "boolean",
+      column_e: "array",
+      column_f: "string",
+    },
     row: {
       column_a: "hello",
       column_b: "goodbye",
@@ -22,6 +30,10 @@ describe("InlineRowEdit", () => {
     expect(wrapper.html()).toContain("hello");
     expect(wrapper.html()).toContain("goodbye");
     expect(wrapper.html()).toContain("ciao");
+  });
+
+  test("shows header of missing element", () => {
+    expect(wrapper.html()).toContain("column_f");
   });
 
   test("provides the correct number of input boxes", () => {
