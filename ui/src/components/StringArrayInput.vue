@@ -1,21 +1,30 @@
 <template>
   <div>
-    <BadgeList :item-array="modelValue" :canEdit="true" @update="$emit('update')" />
+    <BadgeList
+      :item-array="modelValue"
+      :canEdit="true"
+      @update="$emit('update')"
+    />
     <div v-if="!showAdd">
       <i class="bi bi-plus-circle text-primary" @click="showAdd = true"></i>
     </div>
-    <span v-else>
-      <input type="text" class="arrayElementInput" v-model="newValue" />
-      <button class="check-badge text-light bg-secondary" @click="addNewValue">
-        <i class="bi bi-check-lg"></i>
-      </button>
-      <button
-        class="check-badge text-light bg-secondary"
-        @click="cancelNewValue"
-      >
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </span>
+    <div v-else class="pt-0">
+      <input type="text" class="arrayElementInput mt-1" v-model="newValue" />
+      <div class="btn-group mt-0" role="group" aria-label="Basic example">
+        <button
+          class="btn btn-sm check-badge btn-success me-0"
+          @click="addNewValue"
+        >
+          <i class="bi bi-check"></i>
+        </button>
+        <button
+          class="btn btn-sm check-badge btn-danger"
+          @click="cancelNewValue"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
