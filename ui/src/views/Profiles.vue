@@ -5,26 +5,28 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <FeedbackMessage
-            :successMessage="successMessage"
-            :errorMessage="errorMessage"
+          :successMessage="successMessage"
+          :errorMessage="errorMessage"
         ></FeedbackMessage>
       </div>
     </div>
     <!-- Actual table -->
     <!-- Loading spinner -->
     <LoadingSpinner v-if="loading"></LoadingSpinner>
-    <Table v-else
-           :dataToShow="(profiles as ListOfObjectsWithStringKey)"
-           :allData="profiles"
-           :indexToEdit="profileToEditIndex"
+    <Table
+      v-else
+      :dataToShow="(profiles as ListOfObjectsWithStringKey)"
+      :allData="profiles"
+      :indexToEdit="profileToEditIndex"
+      :dataStructure="(profilesDataStructure as TypeObject)"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add profile button) -->
         <th>
           <button
-              type="button"
-              class="btn btn-sm me-1 btn-primary bg-primary"
-              @click="addNewProfile"
+            type="button"
+            class="btn btn-sm me-1 btn-primary bg-primary"
+            @click="addNewProfile"
           >
             <i class="bi bi-plus"></i>
           </button>
@@ -33,52 +35,69 @@
       <template #objectType="objectProps">
         <div v-if="objectProps.data.status">
           <div v-if="objectProps.data.status === 'RUNNING'">
-          <span class="badge bg-success">
-            {{ objectProps.data.status }}
-          </span>
-            <a href="" @click.prevent="stopProfile(objectProps.row.name)" class="p-2">stop</a>
+            <span class="badge bg-success">
+              {{ objectProps.data.status }}
+            </span>
+            <a
+              href=""
+              @click.prevent="stopProfile(objectProps.row.name)"
+              class="p-2"
+              >stop</a
+            >
           </div>
           <div v-else-if="objectProps.data.status === 'NOT_RUNNING'">
-             <span class="badge bg-warning text-dark">
-            {{ objectProps.data.status }}
-          </span>
-            <a href="" @click.prevent="startProfile(objectProps.row.name)" class="p-2">start</a>
+            <span class="badge bg-warning text-dark">
+              {{ objectProps.data.status }}
+            </span>
+            <a
+              href=""
+              @click.prevent="startProfile(objectProps.row.name)"
+              class="p-2"
+              >start</a
+            >
           </div>
           <div v-else-if="objectProps.data.status === 'NOT_FOUND'">
-             <span class="badge bg-danger">
-            {{ objectProps.data.status }}
-          </span>
-            <a href="" @click.prevent="startProfile(objectProps.row.name)" class="p-2">start</a>
+            <span class="badge bg-danger">
+              {{ objectProps.data.status }}
+            </span>
+            <a
+              href=""
+              @click.prevent="startProfile(objectProps.row.name)"
+              class="p-2"
+              >start</a
+            >
           </div>
           <div v-else>
-             <span class="badge bg-dark">
-            {{ objectProps.data.status }}
-          </span>
+            <span class="badge bg-dark">
+              {{ objectProps.data.status }}
+            </span>
           </div>
         </div>
         <div v-else>
-          <div v-for="(value,key) in objectProps.data ">
+          <div v-for="(value, key) in objectProps.data">
             {{ key }} = {{ value }}
           </div>
-
         </div>
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting profiles -->
         <th scope="row">
           <ButtonGroup
-              :buttonIcons="['pencil-fill', 'trash-fill']"
-              :buttonColors="['primary', 'danger']"
-              :clickCallbacks="[editProfile, removeProfile]"
-              :callbackArguments="[
-              columnProps.item,
-              columnProps.item,
-            ]"
+            :buttonIcons="['pencil-fill', 'trash-fill']"
+            :buttonColors="['primary', 'danger']"
+            :clickCallbacks="[editProfile, removeProfile]"
+            :callbackArguments="[columnProps.item, columnProps.item]"
           ></ButtonGroup>
         </th>
       </template>
       <template #editRow="rowProps">
-        <InlineRowEdit :row="rowProps.row" :save="saveEditedProfile" :cancel="clearProfileToEdit" :hideColumns="['container']"/>
+        <InlineRowEdit
+          :row="rowProps.row"
+          :save="saveEditedProfile"
+          :cancel="clearProfileToEdit"
+          :hideColumns="['container']"
+          :dataStructure="(profilesDataStructure as TypeObject)"
+        />
       </template>
     </Table>
   </div>
@@ -87,14 +106,20 @@
 <script lang="ts">
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import {defineComponent, onMounted, Ref, ref} from "vue";
-import {Profile} from "@/types/api";
-import {deleteProfile, getProfiles, putProfile, startProfile, stopProfile} from "@/api/api";
-import InlineRowEdit from '@/components/InlineRowEdit.vue';
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { Profile } from "@/types/api";
+import {
+  deleteProfile,
+  getProfiles,
+  putProfile,
+  startProfile,
+  stopProfile,
+} from "@/api/api";
+import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
-import { ListOfObjectsWithStringKey } from "@/types/types";
+import { ListOfObjectsWithStringKey, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "Profiles",
@@ -103,7 +128,8 @@ export default defineComponent({
     FeedbackMessage,
     InlineRowEdit,
     LoadingSpinner,
-    Table, ButtonGroup
+    Table,
+    ButtonGroup,
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
@@ -120,6 +146,15 @@ export default defineComponent({
   },
   data() {
     return {
+      profilesDataStructure: {
+        name: "string",
+        image: "string",
+        host: "string",
+        port: "string",
+        whitelist: "array",
+        options: "object",
+        container: "object"
+      },
       errorMessage: "",
       loading: false,
       successMessage: "",
@@ -130,11 +165,11 @@ export default defineComponent({
   computed: {
     firstFreePort(): number {
       var port = 6311;
-      while (this.profiles.find(profile => profile.port === port)) {
+      while (this.profiles.find((profile) => profile.port === port)) {
         port++;
       }
       return port;
-    }
+    },
   },
   watch: {
     profileToEdit() {
@@ -148,33 +183,44 @@ export default defineComponent({
     saveEditedProfile() {
       this.clearUserMessages();
       const profile: Profile = this.profiles[this.profileToEditIndex];
-      if (this.profileToEdit === 'default' && profile.name != this.profileToEdit) {
+      if (
+        this.profileToEdit === "default" &&
+        profile.name != this.profileToEdit
+      ) {
         this.errorMessage = "Save failed: cannot rename 'default' package";
         return;
       }
       //add/update
       putProfile(profile)
-          .then(() => {
-            this.successMessage = `[${profile.name}] was successfully saved.`;
-            this.loadProfiles();
-            this.profileToEditIndex = -1;
-          })
-          .catch(error => this.errorMessage = `Save failed: Could not save [${profile.name}]: ${error}.`);
+        .then(() => {
+          this.successMessage = `[${profile.name}] was successfully saved.`;
+          this.loadProfiles();
+          this.profileToEditIndex = -1;
+        })
+        .catch(
+          (error) =>
+            (this.errorMessage = `Save failed: Could not save [${profile.name}]: ${error}.`)
+        );
       //check if new name
       if (profile.name !== this.profileToEdit) {
-        deleteProfile(this.profileToEdit).then(() => this.loadProfiles()).catch(error => this.errorMessage = `Could not rename: delete previous profile [${profile.name}]: ${error}.`);
+        deleteProfile(this.profileToEdit)
+          .then(() => this.loadProfiles())
+          .catch(
+            (error) =>
+              (this.errorMessage = `Could not rename: delete previous profile [${profile.name}]: ${error}.`)
+          );
       }
     },
     removeProfile(profile: Profile) {
       this.clearUserMessages();
       deleteProfile(profile.name)
-          .then(() => {
-            this.successMessage = `[${profile.name}] was successfully deleted.`;
-            this.loadProfiles();
-          })
-          .catch((error) => {
-            this.errorMessage = `Could not delete [${profile.name}]: ${error}.`;
-          });
+        .then(() => {
+          this.successMessage = `[${profile.name}] was successfully deleted.`;
+          this.loadProfiles();
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not delete [${profile.name}]: ${error}.`;
+        });
     },
     clearProfileToEdit() {
       this.loadProfiles();
@@ -196,10 +242,10 @@ export default defineComponent({
         image: "molgenis/armadillo:latest",
         host: "localhost",
         port: this.firstFreePort,
-        whitelist: ['dsBase'],
+        whitelist: ["dsBase"],
         options: {},
-        container: {tags: [], status: "unknown"}
-      })
+        container: { tags: [], status: "unknown" },
+      });
       this.profileToEditIndex = 0;
     },
     clearUserMessages() {
@@ -210,30 +256,29 @@ export default defineComponent({
       this.clearUserMessages();
       this.loading = true;
       startProfile(name)
-          .then(() => {
-            this.successMessage = `[${name}] was successfully started.`;
-            this.loadProfiles();
-            this.loading = false
-          })
-          .catch(error => {
-            this.errorMessage = `Could not start [${name}]: ${error}.`;
-            this.loading = false
-            ;
-          });
+        .then(() => {
+          this.successMessage = `[${name}] was successfully started.`;
+          this.loadProfiles();
+          this.loading = false;
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not start [${name}]: ${error}.`;
+          this.loading = false;
+        });
     },
     stopProfile(name: string) {
       this.clearUserMessages();
       this.loading = true;
       stopProfile(name)
-          .then(() => {
-            this.successMessage = `[${name}] was successfully stopped.`;
-            this.loadProfiles();
-            this.loading = false
-          })
-          .catch(error => {
-            this.errorMessage = `Could not stop [${name}]: ${error}.`;
-            this.loading = false
-          });
+        .then(() => {
+          this.successMessage = `[${name}] was successfully stopped.`;
+          this.loadProfiles();
+          this.loading = false;
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not stop [${name}]: ${error}.`;
+          this.loading = false;
+        });
     },
   },
 });

@@ -7,17 +7,17 @@
         :clickCallbacks="[save, cancel]"
       ></ButtonGroup>
     </th>
-    <td v-for="(value, column) in rowData">
+    <td v-for="(type, column) in dataStructure">
       <div v-if="hideColumns.includes(column)">
         <!-- skipped column {{column}}-->
       </div>
-      <div v-else-if="Array.isArray(value)">
+      <div v-else-if="type === 'array'">
         <StringArrayInput v-model="(rowData[column] as StringArray)"/>
       </div>
-      <div v-else-if="typeof value == 'object'">
+      <div v-else-if="type === 'object'">
         <KeyValueInput v-model="(rowData[column] as Object)"/>
       </div>
-      <div v-else-if="typeof value == 'boolean'">
+      <div v-else-if="type === 'boolean'">
         <input
           class="form-check-input"
           type="checkbox"
@@ -29,8 +29,8 @@
           type="text"
           class="form-control"
           v-model="(rowData[column] as string)"
-          :placeholder="value"
-          :aria-label="column"
+          :placeholder="rowData[column]"
+          :aria-label="(column as string)"
         />
       </div>
     </td>
@@ -38,11 +38,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
-import { StringArray, BootstrapType } from "@/types/types";
+import { StringArray, BootstrapType, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
@@ -67,6 +67,10 @@ export default defineComponent({
     hideColumns: {
       type: Array,
       default: []
+    },
+    dataStructure: {
+      type: Object as PropType<TypeObject>,
+      required: true
     }
   },
   data() {

@@ -22,6 +22,7 @@
       :dataToShow="filteredAndSortedUsers"
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
+      :dataStructure="userDataStructure"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -43,6 +44,7 @@
           :save="saveNewUser"
           :cancel="clearNewUser"
           :hideColumns="[]"
+          :dataStructure="userDataStructure"
         />
       </template>
       <template #extraColumn="columnProps">
@@ -79,6 +81,7 @@
           :save="saveEditedUser"
           :cancel="clearUserToEdit"
           :hideColumns="[]"
+          :dataStructure="userDataStructure"
         />
       </template>
     </Table>
@@ -98,7 +101,7 @@ import { deleteUser, getUsers, putUser } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
-import { StringArray } from "@/types/types";
+import { StringArray, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "Users",
@@ -126,6 +129,7 @@ export default defineComponent({
     };
   },
   data(): {
+    userDataStructure: TypeObject;
     editMode: {
       addProjectToRow: boolean;
       project: string;
@@ -144,6 +148,14 @@ export default defineComponent({
     searchString: string;
   } {
     return {
+      userDataStructure: {
+        email: "string",
+        firstName: "string",
+        lastName: "string",
+        institution: "string",
+        admin: "boolean",
+        projects: "array",
+      },
       editMode: {
         addProjectToRow: false,
         project: "",

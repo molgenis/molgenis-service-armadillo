@@ -21,3 +21,6 @@ export type BootstrapType =
   | "dark";
 
 export type StringArray = string[];
+
+// Maybe later expand with float/int/enum/character
+export type TypeObject = {[key: string]: "string" | "number" | "boolean" | "array" | "date" | "object"}
