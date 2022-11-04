@@ -1,15 +1,15 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="principal.name"/>
+      <Navbar :username="username" />
       <div class="container">
         <div class="row mt-2">
           <div class="col">
             <Tabs
-                :menu="tabs"
-                :icons="tabIcons"
-                :activeTab="activeTab"
-                v-on:activeTabChange="setActiveTab"
+              :menu="tabs"
+              :icons="tabIcons"
+              :activeTab="activeTab"
+              v-on:activeTabChange="setActiveTab"
             />
           </div>
         </div>
@@ -19,15 +19,15 @@
 </template>
 
 <script lang="ts">
-import Navbar from "./components/Navbar.vue";
-import Tabs from "./components/Tabs.vue";
-import Projects from "./views/Projects.vue";
-import Users from "./views/Users.vue";
-import {onMounted, Ref, ref} from "vue";
-import {getPrincipal} from "./api/api";
-import {Principal} from "@/types/api";
+import Navbar from "@/components/Navbar.vue";
+import Tabs from "@/components/Tabs.vue";
+import Projects from "@/views/Projects.vue";
+import Users from "@/views/Users.vue";
+import { onMounted, Ref, ref, defineComponent } from "vue";
+import { getPrincipal } from "@/api/api";
+import { Principal } from "@/types/api";
 
-export default {
+export default defineComponent({
   name: "ArmadilloPortal",
   components: {
     Navbar,
@@ -66,12 +66,21 @@ export default {
       tabIcons: ["clipboard2-data", "people-fill", "shield-shaded"],
     };
   },
+  computed: {
+    username() {
+      return this.principal.principal &&
+      this.principal.principal.attributes &&
+      this.principal.principal.attributes.email
+        ? this.principal.principal.attributes.email
+        : this.principal.name;
+    },
+  },
   methods: {
     setActiveTab(index: number) {
       this.activeTab = index;
     },
   },
-};
+});
 </script>
 
 <style scoped>

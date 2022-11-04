@@ -1,4 +1,4 @@
-import { StringArray } from "@/types/types";
+import { StringArray, StringObject } from "@/types/types";
 
 export type Project = {
   name: string;
@@ -30,7 +30,19 @@ export type Principal = {
   authenticated: boolean;
   name: string;
   credentials: Object | null;
-  principal: Object | null;
+  principal: {
+    authorities: Array<Object>,
+    attributes: {
+      applicationId: string,
+      email: string,
+      email_verified: boolean,
+      family_name: string,
+      given_name: string,
+      roles: StringArray,
+      sub: string
+    }
+    name: string
+  } | null;
 };
 
 export type Profile = {
