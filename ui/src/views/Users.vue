@@ -196,7 +196,11 @@ export default defineComponent({
           );
         });
       }
-      return sortAlphabetically(users, "email") as User[];
+      if (this.userToEdit) {
+        return users;
+      } else {
+        return sortAlphabetically(users, "email") as User[];
+      }
     },
   },
   watch: {
@@ -241,6 +245,7 @@ export default defineComponent({
       const index = this.users.findIndex((user: User) => {
         return user.email === this.editMode.userToEdit;
       });
+      console.log(index);
       // only change when user is cleared, otherwise it will return -1 when email is altered
       if (this.editMode.userToEdit === "" || index !== -1) {
         return index;
