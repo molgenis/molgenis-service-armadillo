@@ -24,19 +24,19 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "admin", description = "Admin API to manage users, projects, and permissions")
+@Tag(name = "access", description = "Access API to manage users, projects, and permissions")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("admin")
-public class AdminController {
+@RequestMapping("access")
+public class AccessController {
 
   private final AccessService metadata;
   private final AuditEventPublisher auditor;
 
-  public AdminController(AccessService metadataService, AuditEventPublisher auditor) {
+  public AccessController(AccessService metadataService, AuditEventPublisher auditor) {
     this.metadata = metadataService;
     this.auditor = auditor;
   }
