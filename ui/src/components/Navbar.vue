@@ -1,21 +1,31 @@
 <template>
-  <nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-dark bg-dark pt-1">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand align-middle" href="#">
         <img
-          src="/logo_molgenis.png"
+          src="/armadillo_logo_lightblue_darkbg.png"
           alt="molgenis"
-          width="24"
-          class="d-inline-block align-text-top"
+          width="30"
+          class="d-inline-block me-2"
         />
         Armadillo portal
       </a>
-      <form class="d-flex">
-        <span class="navbar-text p-2"
+      <form class="d-flex mt-1">
+        <span class="navbar-text p-2" v-show="username"
           ><i class="bi bi-person-fill"></i> {{ username }}
         </span>
-        <span class="">
-          <button type="button" class="btn btn-primary">Log out</button>
+        <span>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('logout')"
+            v-if="username"
+          >
+            Log out
+          </button>
+          <router-link to="/login" v-else>
+            <button type="button" class="btn btn-primary">Log in</button>
+          </router-link>
         </span>
       </form>
     </div>
@@ -23,10 +33,14 @@
 </template>
 
 <script lang="ts">
-export default {
+import { defineComponent } from "vue";
+import RouterLink from "vue-router";
+
+export default defineComponent({
   name: "Navbar",
   props: {
     username: String,
   },
-};
+  emits: ["logout"],
+});
 </script>

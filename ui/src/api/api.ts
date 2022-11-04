@@ -2,15 +2,23 @@ import { Principal, Profile, Project, User } from "@/types/api";
 import { StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
-export async function get(url: string) {
+export async function get(
+  url: string,
+  auth: { user: string; pwd: string } | undefined = undefined
+) {
+  let headers = APISettings.headers;
+  if (auth) {
+    headers.set("Authorization", "Basic " + btoa(auth.user + ":" + auth.pwd));
+  }
   const response = await fetch(url, {
     method: "GET",
-    headers: APISettings.headers,
+    headers: headers,
   });
-  if (!response.ok) {
-    return handleResponse(response);
+  const outcome = handleResponse(response);
+  if (response.status === 204) {
+    return outcome;
   } else {
-    return response.json();
+    return (await outcome).json();
   }
 }
 
@@ -130,4 +138,15 @@ export async function uploadIntoProject(
 
 export async function previewObject(projectId: string, object: string) {
   return get(`/storage/projects/${projectId}/objects/${object}/preview`);
+}
+
+export function logout() {
+  const response = get("/logout");
+  //rand password to prevent caching
+  const response2 = get("/basic-logout", {
+    user: "logout",
+    pwd: new Date().getTime().toString(),
+  });
+  console.log(response);
+  console.log(response2);
 }

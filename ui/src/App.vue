@@ -1,16 +1,12 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="username" />
+      <Navbar :username="username" @logout="logoutUser" />
       <div class="container">
         <div class="row mt-2">
           <div class="col">
-            <Tabs
-              :menu="tabs"
-              :icons="tabIcons"
-              :activeTab="activeTab"
-              v-on:activeTabChange="setActiveTab"
-            />
+            <Tabs v-if="username !== ''" :menu="tabs" :icons="tabIcons" />
+            <router-view v-else />
           </div>
         </div>
       </div>
@@ -24,7 +20,7 @@ import Tabs from "@/components/Tabs.vue";
 import Projects from "@/views/Projects.vue";
 import Users from "@/views/Users.vue";
 import { onMounted, Ref, ref, defineComponent } from "vue";
-import { getPrincipal } from "@/api/api";
+import { getPrincipal, logout } from "@/api/api";
 import { Principal } from "@/types/api";
 
 export default defineComponent({
@@ -61,23 +57,53 @@ export default defineComponent({
   },
   data() {
     return {
-      activeTab: 0,
+      loading: false,
       tabs: ["Projects", "Users", "Profiles"],
       tabIcons: ["clipboard2-data", "people-fill", "shield-shaded"],
     };
   },
   computed: {
+    authenticated() {
+      return this.principal.authenticated;
+    },
+    isOauthUser() {
+      return (
+        this.principal.principal &&
+        this.principal.principal.attributes &&
+        this.principal.principal.attributes.email
+      );
+    },
     username() {
-      return this.principal.principal &&
-      this.principal.principal.attributes &&
-      this.principal.principal.attributes.email
-        ? this.principal.principal.attributes.email
+      // disabled ts here bc only way to fix error is by copy pasting code of isOauthUser (which is called)
+      return this.isOauthUser
+        ? // @ts-ignore
+          this.principal.principal.attributes.email
         : this.principal.name;
     },
   },
+  watch: {
+    authenticated(newValue) {
+      if (!newValue) {
+        this.$router.push("/login");
+      }
+    },
+  },
   methods: {
-    setActiveTab(index: number) {
-      this.activeTab = index;
+    logoutUser() {
+      logout().then(() => {
+        this.reloadUser();
+      });
+    },
+    reloadUser() {
+      this.loadPrincipal()
+        .then(() => {
+          if (!this.username) {
+            this.$router.push("/login");
+          }
+        })
+        .catch((error) => {
+          console.error(`Could not load projects: ${error}.`);
+        });
     },
   },
 });
