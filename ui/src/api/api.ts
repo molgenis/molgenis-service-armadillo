@@ -69,27 +69,27 @@ export async function handleResponse(response: Response) {
 }
 
 export async function deleteUser(email: string) {
-  return delete_("/admin/users", email);
+  return delete_("/access/users", email);
 }
 
 export async function putUser(userJson: User) {
-  return put("/admin/users", userJson);
+  return put("/access/users", userJson);
 }
 
 export async function deleteProject(name: string) {
-  return delete_("/admin/projects", name);
+  return delete_("/access/projects", name);
 }
 
 export async function putProject(projectJson: Project) {
-  return put("/admin/projects", projectJson);
+  return put("/access/projects", projectJson);
 }
 
 export async function getUsers(): Promise<User[]> {
-  return get("/admin/users");
+  return get("/access/users");
 }
 
 export async function getProjects(): Promise<Project[]> {
-  return get("/admin/projects");
+  return get("/access/projects");
 }
 
 export async function getPrincipal(): Promise<Principal> {
@@ -141,12 +141,5 @@ export async function previewObject(projectId: string, object: string) {
 }
 
 export function logout() {
-  const response = get("/logout");
-  //rand password to prevent caching
-  const response2 = get("/basic-logout", {
-    user: "logout",
-    pwd: new Date().getTime().toString(),
-  });
-  console.log(response);
-  console.log(response2);
+  console.log('to do')
 }
