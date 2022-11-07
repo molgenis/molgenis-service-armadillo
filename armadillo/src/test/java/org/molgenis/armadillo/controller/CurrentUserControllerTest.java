@@ -47,4 +47,9 @@ class CurrentUserControllerTest extends ArmadilloControllerTestBase {
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[]"));
   }
+
+  @Test
+  void testNotAuthenticated() throws Exception {
+    mockMvc.perform(get("/my/principal")).andExpect(status().isUnauthorized());
+  }
 }
