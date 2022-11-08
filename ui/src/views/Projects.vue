@@ -79,7 +79,7 @@ import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
 import { TypeObject } from "@/types/types";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Projects",
@@ -95,14 +95,24 @@ export default defineComponent({
   },
   setup() {
     const projects: Ref<Project[]> = ref([]);
+    const errorMessage: Ref<string> = ref('');
+    const router = useRouter();
     onMounted(() => {
       loadProjects();
     });
     const loadProjects = async () => {
-      projects.value = await getProjects();
+      projects.value = await getProjects().catch((error: string) => {
+        if (error === "Unauthorized") {
+          router.push("/login");
+        } else {
+          errorMessage.value = error;
+        }
+        return [];
+      });
     };
     return {
       projects,
+      errorMessage,
       loadProjects,
     };
   },
@@ -114,7 +124,6 @@ export default defineComponent({
       },
       projectToEdit: "",
       projectToEditIndex: -1,
-      errorMessage: "",
       loading: false,
       successMessage: "",
       searchString: "",

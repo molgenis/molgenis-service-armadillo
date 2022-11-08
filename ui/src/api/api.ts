@@ -140,6 +140,11 @@ export async function previewObject(projectId: string, object: string) {
   return get(`/storage/projects/${projectId}/objects/${object}/preview`);
 }
 
-export function logout() {
-  console.log('to do')
+export async function logout() {
+  return get("/logout").then(() => {
+    get("/basic-logout", {
+      user: "logout",
+      pwd: new Date().getTime().toString(),
+    });
+  });
 }

@@ -58,6 +58,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/login/oauth2/.*":{
+        target: {
+          protocol: "http:",
+          host: "localhost",
+          port: 8080,
+        },
+      },
       "^/logout": {
         target: {
           protocol: "http:",

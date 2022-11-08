@@ -5,7 +5,7 @@
       <div class="container">
         <div class="row mt-2">
           <div class="col">
-            <Tabs v-if="username !== ''" :menu="tabs" :icons="tabIcons" />
+            <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
             <router-view v-else />
           </div>
         </div>
@@ -22,6 +22,7 @@ import Users from "@/views/Users.vue";
 import { onMounted, Ref, ref, defineComponent } from "vue";
 import { getPrincipal, logout } from "@/api/api";
 import { Principal } from "@/types/api";
+import { RouterView } from "vue-router";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -82,8 +83,8 @@ export default defineComponent({
     },
   },
   watch: {
-    authenticated(newValue) {
-      if (!newValue) {
+    authenticated() {
+      if (!this.authenticated) {
         this.$router.push("/login");
       }
     },
@@ -101,8 +102,22 @@ export default defineComponent({
             this.$router.push("/login");
           }
         })
-        .catch((error) => {
-          console.error(`Could not load projects: ${error}.`);
+        .catch((error: string) => {
+          if (error === "Unauthorized") {
+            this.principal = {
+              authorities: [
+                {
+                  authority: "",
+                },
+              ],
+              details: null,
+              authenticated: false,
+              principal: null,
+              credentials: null,
+              name: "",
+            };
+            this.$router.push("/login");
+          }
         });
     },
   },

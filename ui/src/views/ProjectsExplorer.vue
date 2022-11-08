@@ -37,7 +37,7 @@
           ]"
           :clickCallbacks="[
             // function () {},
-            function () {},
+            clickUploadFile,
             deleteSelectedFile,
           ]"
         ></ButtonGroup>
@@ -89,7 +89,9 @@
           </div>
           <div
             class="col-6"
-            :style="{visibility: selectedFile && selectedFolder ? 'visible' : 'hidden'}"
+            :style="{
+              visibility: selectedFile && selectedFolder ? 'visible' : 'hidden',
+            }"
             ref="previewContainer"
           >
             <!-- Loading spinner -->
@@ -129,7 +131,7 @@ import {
   StringArray,
   ObjectWithStringKeyAndStringArrayValue,
 } from "@/types/types";
-import { useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
 
@@ -150,6 +152,8 @@ export default defineComponent({
     const fileComponent: Ref = ref({});
     const selectedFolder = ref("");
     const selectedFile = ref("");
+    const errorMessage: Ref<string> = ref("");
+    const router = useRouter();
 
     onMounted(() => {
       loadProject(undefined);
@@ -171,13 +175,21 @@ export default defineComponent({
       if (idParam === undefined) {
         idParam = route.params.projectId as string;
       }
-      project.value = await getProject(idParam);
+      project.value = await getProject(idParam).catch((error: string) => {
+        if (error === "Unauthorized") {
+          router.push("/login");
+        } else {
+          errorMessage.value = error;
+        }
+        return [];
+      });
       projectId.value = idParam;
     };
     return {
       project,
       projectId,
       loadProject,
+      errorMessage,
       folderComponent,
       fileComponent,
       selectedFolder,
@@ -188,7 +200,6 @@ export default defineComponent({
     return {
       projectToEdit: "",
       projectToEditIndex: -1,
-      errorMessage: "",
       loading: false,
       loading_preview: false,
       successMessage: "",
@@ -210,7 +221,6 @@ export default defineComponent({
             this.loading_preview = false;
           })
           .catch((error) => {
-            console.error(error);
             this.loading_preview = false;
           });
       }
@@ -265,6 +275,9 @@ export default defineComponent({
     },
     clearProjectToEdit() {
       this.projectToEdit = "";
+    },
+    clickUploadFile() {
+      console.log(this.$refs.file);
     },
     deleteSelectedFile() {
       const response = deleteObject(

@@ -120,6 +120,7 @@ import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
 import { ListOfObjectsWithStringKey, TypeObject } from "@/types/types";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Profiles",
@@ -133,14 +134,24 @@ export default defineComponent({
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
+    const errorMessage: Ref<string> = ref('');
+    const router = useRouter();
     onMounted(() => {
       loadProfiles();
     });
     const loadProfiles = async () => {
-      profiles.value = await getProfiles();
+      profiles.value = await getProfiles().catch((error: string) => {
+        if (error === "Unauthorized") {
+          router.push("/login");
+        } else {
+          errorMessage.value = error;
+        }
+        return [];
+      });
     };
     return {
       profiles,
+      errorMessage,
       loadProfiles,
     };
   },
@@ -155,7 +166,6 @@ export default defineComponent({
         options: "object",
         container: "object"
       },
-      errorMessage: "",
       loading: false,
       successMessage: "",
       profileToEditIndex: -1,

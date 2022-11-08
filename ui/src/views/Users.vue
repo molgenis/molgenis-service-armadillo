@@ -97,11 +97,12 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteUser, getUsers, putUser } from "@/api/api";
+import { deleteProject, deleteUser, getUsers, putUser } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
 import { StringArray, TypeObject } from "@/types/types";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Users",
@@ -117,14 +118,24 @@ export default defineComponent({
   },
   setup() {
     const users: Ref<User[]> = ref([]);
+    const errorMessage: Ref<string> = ref("");
+    const router = useRouter();
     onMounted(() => {
       loadUsers();
     });
     const loadUsers = async () => {
-      users.value = await getUsers();
+      users.value = await getUsers().catch((error: string) => {
+        if (error === "Unauthorized") {
+          router.push("/login");
+        } else {
+          errorMessage.value = error;
+        }
+        return [];
+      });
     };
     return {
       users,
+      errorMessage,
       loadUsers,
     };
   },
@@ -142,7 +153,6 @@ export default defineComponent({
       project: string;
     };
     addRow: boolean;
-    errorMessage: string;
     loading: boolean;
     successMessage: string;
     searchString: string;
@@ -175,7 +185,6 @@ export default defineComponent({
         project: "",
       },
       addRow: false,
-      errorMessage: "",
       loading: false,
       successMessage: "",
       searchString: "",

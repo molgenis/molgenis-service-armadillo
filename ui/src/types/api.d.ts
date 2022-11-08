@@ -1,4 +1,4 @@
-import { StringArray, StringObject } from "@/types/types";
+import { StringArray } from "@/types/types";
 
 export type Project = {
   name: string;

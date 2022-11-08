@@ -12,7 +12,7 @@
               <button
                 class="btn btn-secondary"
                 type="button"
-                @click="redirect('/basic-login')"
+                @click="getUrl('/basic-login')"
               >
                 <i class="bi bi-person-fill"></i> Local account (basic-auth)
               </button>
@@ -26,6 +26,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import {get} from "@/api/api";
 
 export default defineComponent({
   name: "Login",
@@ -33,6 +34,9 @@ export default defineComponent({
     redirect(url: string) {
       window.location.href = url;
     },
+    getUrl(url: string){
+      get(url);
+    }
   },
 });
 </script>
