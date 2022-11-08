@@ -80,6 +80,7 @@ public class AuthConfig {
           .cors()
           .and()
           .httpBasic()
+          .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint())
           .realmName("Armadillo")
           .and()
           .logout()
