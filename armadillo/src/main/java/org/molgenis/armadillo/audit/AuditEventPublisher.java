@@ -46,6 +46,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String UPSERT_USER = "UPSERT_USER";
   public static final String DELETE_USER = "DELETE_USER";
   public static final String GET_USER = "GET_USER";
+  public static final String LIST_ACCESS_DATA = "LIST_ACCESS_DATA";
   public static final String LIST_PROJECTS = "LIST_PROJECTS";
   public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
