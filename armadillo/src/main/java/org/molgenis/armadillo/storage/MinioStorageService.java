@@ -40,6 +40,10 @@ import org.springframework.stereotype.Service;
 class MinioStorageService implements StorageService {
 
   static final String MINIO_URL_PROPERTY = "minio.url";
+  static final String ERROR_NO_SUCH_KEY = "NoSuchKey";
+  static final String ERROR_NO_SUCH_OBJECT = "NoSuchObject";
+  static final String ERROR_NO_SUCH_BUCKET = "NoSuchBucket";
+  static final int PART_SIZE = 10 * 1024 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
 
@@ -58,7 +62,9 @@ class MinioStorageService implements StorageService {
       return true;
     } catch (ErrorResponseException error) {
       var code = error.errorResponse().code();
-      if (code.equals("NoSuchKey") || code.equals("NoSuchObject") || code.equals("NoSuchBucket")) {
+      if (code.equals(ERROR_NO_SUCH_KEY)
+          || code.equals(ERROR_NO_SUCH_OBJECT)
+          || code.equals(ERROR_NO_SUCH_BUCKET)) {
         return false;
       } else {
         throw new StorageException(error);
@@ -140,8 +146,7 @@ class MinioStorageService implements StorageService {
                 .replaceAll("[\n\r\t]", "_"));
       }
       minioClient.putObject(
-          PutObjectArgs.builder().bucket(projectName).object(objectName).stream(
-                  is, -1, 5 * 1024 * 1024 + 1)
+          PutObjectArgs.builder().bucket(projectName).object(objectName).stream(is, -1, PART_SIZE)
               .contentType(mediaType.toString())
               .build());
     } catch (InvalidKeyException
