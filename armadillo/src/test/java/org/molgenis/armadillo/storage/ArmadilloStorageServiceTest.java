@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.storage;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +35,7 @@ import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -464,21 +468,21 @@ class ArmadilloStorageServiceTest {
     assertSame(is, armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
   }
 
-  //  @Test
-  //  @WithMockUser
-  //  void testListWorkspaces() {
-  //    when(principal.getName()).thenReturn("henk");
-  //    Instant lastModified = Instant.now().truncatedTo(MILLIS);
-  //    Workspace workspace =
-  //        Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
-  //
-  //    when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
-  //    when(item.name()).thenReturn("blah.RData");
-  //    when(item.lastModified()).thenReturn(Date.from(lastModified));
-  //    when(item.size()).thenReturn(workspace.size());
-  //
-  //    assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
-  //  }
+  @Test
+  @WithMockUser
+  void testListWorkspaces() {
+    when(principal.getName()).thenReturn("henk");
+    var lastModified = Instant.now().truncatedTo(MILLIS).atZone(ZoneId.systemDefault());
+    Workspace workspace =
+        Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
+
+    when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
+    when(item.name()).thenReturn("blah.RData");
+    when(item.lastModified()).thenReturn(lastModified);
+    when(item.size()).thenReturn(workspace.size());
+
+    assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
+  }
 
   @Test
   void testDeleteWorkspace() {
