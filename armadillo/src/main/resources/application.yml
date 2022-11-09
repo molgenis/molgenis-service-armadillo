@@ -91,7 +91,7 @@ logging:
           actuate:
             audit:
               listener:
-                AuditListener: DEBUG
+                AuditListener: INFO
           web:
             context: DEBUG
 

@@ -56,7 +56,7 @@ public class AccessController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public AccessMetadata settingsRaw(Principal principal) {
-    return auditor.audit(metadata::settingsList, principal, LIST_PROJECTS, Map.of());
+    return auditor.audit(metadata::settingsList, principal, LIST_ACCESS_DATA, Map.of());
   }
 
   @Operation(summary = "List all permissions")
