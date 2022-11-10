@@ -83,6 +83,9 @@
                   :object="selectedFolder"
                   @upload_success="onUploadSuccess"
                   @upload_error="showErrorMessage"
+                  uniqueClass="project-file-upload"
+                  :triggerUpload="triggerFileUpload"
+                  @upload_triggered="resetFileUpload"
                 ></FileUpload>
               </div>
             </div>
@@ -137,6 +140,7 @@ import SimpleTable from "@/components/SimpleTable.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
+  emits: ["triggerUploadFile"],
   components: {
     ButtonGroup,
     FeedbackMessage,
@@ -198,6 +202,7 @@ export default defineComponent({
   },
   data() {
     return {
+      triggerFileUpload: false,
       projectToEdit: "",
       projectToEditIndex: -1,
       loading: false,
@@ -253,6 +258,9 @@ export default defineComponent({
     },
   },
   methods: {
+    resetFileUpload(){
+      this.triggerFileUpload = false;
+    },
     onUploadSuccess({
       object,
       filename,
@@ -277,7 +285,7 @@ export default defineComponent({
       this.projectToEdit = "";
     },
     clickUploadFile() {
-      console.log(this.$refs.file);
+      this.triggerFileUpload = true;
     },
     deleteSelectedFile() {
       const response = deleteObject(

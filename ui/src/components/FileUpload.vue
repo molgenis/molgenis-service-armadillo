@@ -5,8 +5,11 @@
         <h1>
           <div><i class="bi bi-upload"></i></div>
         </h1>
-        <div>Drag to upload</div>
-        <input ref="file" v-on:change="handleFileUpload()"  type="file">
+        <!-- <div>Drag to upload</div> -->
+        <div class="mb-3">
+          <label class="form-label">Select file to upload</label>
+          <input class="form-control form-control-sm" ref="file" v-on:change="handleFileUpload()" :class="uniqueClass" type="file">
+        </div>
       </p>
     </div>
   </div>
@@ -38,9 +41,19 @@ export default defineComponent({
   },
   props: {
     object: { type: String, required: true},
-    project: { type: String, required: true}
+    project: { type: String, required: true},
+    uniqueClass: {type: String, required: true},
+    triggerUpload: {type: Boolean, default: false},
   },
-  emits: ['upload_success', 'upload_error'],
+  emits: ['upload_success', 'upload_error', 'upload_triggered'],
+  watch: {
+    triggerUpload: function () {
+      if(this.triggerUpload) {
+        (document.getElementsByClassName(this.uniqueClass)[0] as HTMLButtonElement).click();
+        this.$emit('upload_triggered');
+      }
+    },
+  },
   data(){
     return {
       uploadDone: false
