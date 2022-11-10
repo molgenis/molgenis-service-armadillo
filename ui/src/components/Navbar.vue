@@ -3,9 +3,9 @@
     <div class="container-fluid">
       <a class="navbar-brand align-middle" href="#">
         <img
-          src="/armadillo_logo_lightblue_darkbg.png"
+          src="/armadillo-logov5a.png"
           alt="molgenis"
-          width="30"
+          width="35"
           class="d-inline-block me-2"
         />
         Armadillo portal

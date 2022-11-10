@@ -1,14 +1,11 @@
-import { Principal, Profile, Project, User } from "@/types/api";
+import { Principal, Profile, Project, User, Auth } from "@/types/api";
 import { StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
-export async function get(
-  url: string,
-  auth: { user: string; pwd: string } | undefined = undefined
-) {
+export async function get(url: string, auth: Auth | undefined = undefined) {
   let headers = APISettings.headers;
   if (auth) {
-    headers.set("Authorization", "Basic " + btoa(auth.user + ":" + auth.pwd));
+    headers.set("Authorization", `Basic ${btoa(auth.user + ":" + auth.pwd)}`);
   }
   const response = await fetch(url, {
     method: "GET",
@@ -18,7 +15,7 @@ export async function get(
   if (response.status === 204) {
     return outcome;
   } else {
-    return (await outcome).json();
+    return response.json();
   }
 }
 
@@ -61,8 +58,14 @@ export async function delete_(url: string, item: string) {
 export async function handleResponse(response: Response) {
   if (!response.ok) {
     const json = await response.json();
-    if (json.message) throw json.message;
-    else throw response.statusText;
+    let error = new Error();
+    if (json.message) {
+      error.message = json.message;
+    } else {
+      error.message = response.statusText;
+    }
+    error.cause = response.status;
+    throw error;
   } else {
     return response;
   }
@@ -141,10 +144,18 @@ export async function previewObject(projectId: string, object: string) {
 }
 
 export async function logout() {
+  const auth = { user: "logout", pwd: new Date().getTime().toString() };
   return get("/logout").then(() => {
-    get("/basic-logout", {
-      user: "logout",
-      pwd: new Date().getTime().toString(),
-    });
+    authenticate(auth);
   });
+}
+
+export async function authenticate(auth: Auth) {
+  const response = await fetch("/basic-login", {
+    method: "GET",
+    headers: {
+      Authorization: `Basic ${btoa(auth.user + ":" + auth.pwd)}`,
+    },
+  });
+  return handleResponse(response);
 }

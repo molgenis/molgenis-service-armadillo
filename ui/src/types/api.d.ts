@@ -14,11 +14,7 @@ export type User = {
   projects: string[];
 };
 
-export type UserStringKey =
-  | "email"
-  | "firstName"
-  | "lastName"
-  | "institution";
+export type UserStringKey = "email" | "firstName" | "lastName" | "institution";
 
 export type Principal = {
   authorities: [
@@ -31,17 +27,17 @@ export type Principal = {
   name: string;
   credentials: Object | null;
   principal: {
-    authorities: Array<Object>,
+    authorities: Array<Object>;
     attributes: {
-      applicationId: string,
-      email: string,
-      email_verified: boolean,
-      family_name: string,
-      given_name: string,
-      roles: StringArray,
-      sub: string
-    }
-    name: string
+      applicationId: string;
+      email: string;
+      email_verified: boolean;
+      family_name: string;
+      given_name: string;
+      roles: StringArray;
+      sub: string;
+    };
+    name: string;
   } | null;
 };
 
@@ -57,3 +53,5 @@ export type Profile = {
     status: string;
   };
 };
+
+export type Auth = { user: string; pwd: string };

@@ -6,7 +6,7 @@
         <div class="row mt-2">
           <div class="col">
             <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
-            <router-view v-else />
+            <Login @loginEvent="reloadUser" v-else/>
           </div>
         </div>
       </div>
@@ -19,10 +19,11 @@ import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Projects from "@/views/Projects.vue";
 import Users from "@/views/Users.vue";
+import Login from "@/views/Login.vue";
 import { onMounted, Ref, ref, defineComponent } from "vue";
 import { getPrincipal, logout } from "@/api/api";
 import { Principal } from "@/types/api";
-import { RouterView } from "vue-router";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -31,9 +32,10 @@ export default defineComponent({
     Projects,
     Tabs,
     Users,
+    Login
   },
   setup() {
-    const principal: Ref<Principal> = ref({
+    const emptyPrincipal: Principal = {
       authorities: [
         {
           authority: "",
@@ -44,14 +46,23 @@ export default defineComponent({
       principal: null,
       credentials: null,
       name: "",
-    } as Principal);
+    };
+    const principal: Ref<Principal> = ref( emptyPrincipal as Principal);
+    const router = useRouter();
+    
     onMounted(() => {
       loadPrincipal();
     });
     const loadPrincipal = async () => {
-      principal.value = await getPrincipal();
+      principal.value = await getPrincipal().catch((error: Error) => {
+        if (error.cause === 401) {
+          router.push("/login");
+        }
+        return emptyPrincipal;
+      });
     };
     return {
+      emptyPrincipal,
       principal,
       loadPrincipal,
     };
@@ -102,20 +113,9 @@ export default defineComponent({
             this.$router.push("/login");
           }
         })
-        .catch((error: string) => {
-          if (error === "Unauthorized") {
-            this.principal = {
-              authorities: [
-                {
-                  authority: "",
-                },
-              ],
-              details: null,
-              authenticated: false,
-              principal: null,
-              credentials: null,
-              name: "",
-            };
+        .catch((error: Error) => {
+          if (error.cause === 401) {
+            this.principal = this.emptyPrincipal;
             this.$router.push("/login");
           }
         });
@@ -130,11 +130,9 @@ export default defineComponent({
   padding: 1.5em;
   will-change: filter;
 }
-
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
-
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
