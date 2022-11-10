@@ -3,28 +3,15 @@ package org.molgenis.armadillo.controller;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
+import static org.mockito.Mockito.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.dockerjava.api.DockerClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +38,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @WithMockUser(roles = "SU")
 class StorageControllerTest extends ArmadilloControllerTestBase {
 
+  @MockBean DockerClient dockerClient;
   @MockBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
@@ -412,6 +400,24 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             instant,
             "user",
             DOWNLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
+  }
+
+  @Test
+  void previewObject() throws Exception {
+    when(storage.getPreview("lifecycle", "test.parquet")).thenReturn(List.of(Map.of("foo", "bar")));
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet/preview").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[{\"foo\": \"bar\"}]"));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            PREVIEW_OBJECT,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
   }
 

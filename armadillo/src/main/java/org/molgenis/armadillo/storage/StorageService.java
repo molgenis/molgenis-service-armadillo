@@ -2,6 +2,7 @@ package org.molgenis.armadillo.storage;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
@@ -18,6 +19,9 @@ public interface StorageService {
   List<ObjectMetadata> listObjects(String bucketName);
 
   InputStream load(String bucketName, String objectName);
+
+  List<Map<String, String>> preview(
+      String bucketName, String objectName, int rowLimit, int columnLimit);
 
   void delete(String bucketName, String objectName);
 }

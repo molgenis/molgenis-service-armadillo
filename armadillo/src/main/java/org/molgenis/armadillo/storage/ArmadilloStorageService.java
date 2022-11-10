@@ -9,6 +9,7 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -226,5 +227,11 @@ public class ArmadilloStorageService {
     if (!pattern.matcher(projectName).matches()) {
       throw new InvalidProjectNameException(projectName);
     }
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public List<Map<String, String>> getPreview(String project, String object) {
+    throwIfUnknown(project, object);
+    return storageService.preview(SHARED_PREFIX + project, object, 10, 10);
   }
 }

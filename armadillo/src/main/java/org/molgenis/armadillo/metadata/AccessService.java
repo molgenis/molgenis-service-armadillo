@@ -24,29 +24,29 @@ import org.springframework.stereotype.Service;
 
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
-public class ArmadilloMetadataService {
+public class AccessService {
 
-  private ArmadilloMetadata settings;
+  private AccessMetadata settings;
   private final ArmadilloStorageService storage;
-  private final MetadataLoader loader;
+  private final AccessLoader loader;
 
   @Value("${datashield.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
 
-  public ArmadilloMetadataService(
+  public AccessService(
       ArmadilloStorageService armadilloStorageService,
-      MetadataLoader metadataLoader,
+      AccessLoader accessLoader,
       @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
-    this.loader = requireNonNull(metadataLoader);
+    this.loader = requireNonNull(accessLoader);
     this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;
     runAsSystem(this::initialize);
   }
 
   /**
-   * Initialization separated from constructor so that it can be called in WemMvc tests
+   * Initialization separated from constructor so that it can be called in WebMvc tests
    * <strong>after</strong> mocks have been initialized.
    */
   public void initialize() {
@@ -85,8 +85,8 @@ public class ArmadilloMetadataService {
     return result;
   }
 
-  public ArmadilloMetadata settingsList() {
-    return ArmadilloMetadata.create(
+  public AccessMetadata settingsList() {
+    return AccessMetadata.create(
         new ConcurrentHashMap<>(usersMap()),
         new ConcurrentHashMap<>(projectsMap()),
         settings.getPermissions());
@@ -144,7 +144,7 @@ public class ArmadilloMetadataService {
     // update users
     settings.getUsers().put(userDetails.getEmail(), userDetails);
     // replace permissions
-    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
+    settings = AccessMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
@@ -158,7 +158,7 @@ public class ArmadilloMetadataService {
     // replace settings
     settings.getUsers().remove(email);
     settings =
-        ArmadilloMetadata.create(
+        AccessMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             // strip from permissions
@@ -224,7 +224,7 @@ public class ArmadilloMetadataService {
     // (permissions are saved separately)
     projectDetails = ProjectDetails.create(projectName, emptySet());
     settings.getProjects().put(projectName, projectDetails);
-    settings = ArmadilloMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
+    settings = AccessMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
   }
 
@@ -233,7 +233,7 @@ public class ArmadilloMetadataService {
 
     settings.getProjects().remove(projectName);
     settings =
-        ArmadilloMetadata.create(
+        AccessMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             // strip from permissions
@@ -264,7 +264,7 @@ public class ArmadilloMetadataService {
     requireNonNull(project);
 
     settings =
-        ArmadilloMetadata.create(
+        AccessMetadata.create(
             settings.getUsers(),
             settings.getProjects(),
             settings.getPermissions().stream()

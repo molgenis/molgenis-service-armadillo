@@ -1,12 +1,8 @@
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-
 datashield:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
+  # set this true if you want Armadillo to create/edit/delete profile docker images
+  docker-management-enabled: true
 
   # Uncomment this section to bootstrap the application with default values.
   # bootstrap:
@@ -14,7 +10,8 @@ datashield:
 
   profiles:
     - name: default
-      environment: default
+      image: datashield/armadillo-rserver
+      port: 6311
       whitelist:
         - dsBase
       options:
@@ -94,7 +91,7 @@ logging:
           actuate:
             audit:
               listener:
-                AuditListener: DEBUG
+                AuditListener: INFO
           web:
             context: DEBUG
 
@@ -114,26 +111,17 @@ spring:
     activate:
       on-profile: development-omics
 
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-    - name: omics
-      host: localhost
-      port: 6313
-
 datashield:
   profiles:
     - name: default
-      environment: default
+      port: 6311
       whitelist:
         - dsBase
       options:
         datashield:
           seed: 342325352
     - name: omics
-      environment: omics
+      port: 6313
       whitelist:
         - dsBase
         - dsOmics
@@ -149,19 +137,11 @@ spring:
     activate:
       on-profile: development-exposome
 
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-    - name: exposome
-      host: localhost
-      port: 6312
-
 datashield:
   profiles:
     - name: default
       environment: default
+      port: 6311
       whitelist:
         - dsBase
       options:
@@ -169,6 +149,7 @@ datashield:
           seed: 342325352
     - name: exposome
       environment: exposome
+      port: 6312
       whitelist:
         - dsBase
         - dsExposome
@@ -183,22 +164,11 @@ spring:
     activate:
       on-profile: docker-compose
 
-rserve:
-  environments:
-    - name: default
-      host: rserver
-      port: 6311
-    - name: exposome
-      host: rserver-exposome
-      port: 6311
-    - name: omics
-      host: rserver-omics
-      port: 6311
-
 datashield:
   profiles:
     - name: default
-      environment: default
+      host: rserver
+      port: 6311
       whitelist:
         - dsBase
       options:
@@ -206,6 +176,8 @@ datashield:
           seed: 342325352
     - name: exposome
       environment: exposome
+      host: rserver-exposome
+      port: 6311
       whitelist:
         - dsBase
         - dsExposome
@@ -214,6 +186,8 @@ datashield:
           seed: 039284230
     - name: omics
       environment: omics
+      host: rserver-omics
+      port: 6311
       whitelist:
         - dsBase
         - dsOmics
