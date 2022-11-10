@@ -225,7 +225,7 @@ export default defineComponent({
             this.filePreview = data;
             this.loading_preview = false;
           })
-          .catch((error) => {
+          .catch(() => {
             this.loading_preview = false;
           });
       }
