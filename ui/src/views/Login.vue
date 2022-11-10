@@ -3,8 +3,13 @@
     <div class="row">
       <div class="col">
         <div class="card mx-auto mt-3" style="max-width: 30rem">
-          <div class="card-body">
-            <h4 class="card-title">Login using</h4>
+          <div class="card-body position-relative">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+              <img src="/armadillo-logov5a.png" alt="armadillo" width="100"/>
+            </div>
+            <h5 class="card-title text-center">Welcome to Armadillo</h5>
+            <hr />
+            <p class="ms-5">Login with: </p>
             <div class="d-grid gap-2 ms-5 me-5">
               <button
                 class="btn btn-primary"
@@ -27,7 +32,7 @@
                   :successMessage="successMessage"
                   :errorMessage="errorMessage"
                 ></FeedbackMessage>
-                <h5>Local account</h5>
+                <p class="fw-bold">Login using local account:</p>
                 <form>
                   <div class="input-group mb-3">
                     <span class="input-group-text" id="basic-user-addon">
