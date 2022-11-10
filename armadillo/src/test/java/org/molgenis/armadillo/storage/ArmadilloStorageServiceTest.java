@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -472,13 +472,13 @@ class ArmadilloStorageServiceTest {
   @WithMockUser
   void testListWorkspaces() {
     when(principal.getName()).thenReturn("henk");
-    Instant lastModified = Instant.now().truncatedTo(MILLIS);
+    var lastModified = Instant.now().truncatedTo(MILLIS).atZone(ZoneId.systemDefault());
     Workspace workspace =
         Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
     when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
     when(item.name()).thenReturn("blah.RData");
-    when(item.lastModified()).thenReturn(Date.from(lastModified));
+    when(item.lastModified()).thenReturn(lastModified);
     when(item.size()).thenReturn(workspace.size());
 
     assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));

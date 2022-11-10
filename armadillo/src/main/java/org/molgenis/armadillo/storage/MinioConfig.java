@@ -3,8 +3,6 @@ package org.molgenis.armadillo.storage;
 import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
 import io.minio.MinioClient;
-import io.minio.errors.InvalidEndpointException;
-import io.minio.errors.InvalidPortException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,16 +18,17 @@ import org.springframework.validation.annotation.Validated;
 public class MinioConfig {
   @NotBlank private String accessKey;
   @NotBlank private String secretKey;
-  private boolean secure = false;
-  @NotBlank private String sharedBucket = "shared";
-  @NotBlank private String userBucket = "user";
   @NotBlank private String url = "http://localhost";
   @Positive private int port = 9000;
   private String region = null;
 
   @Bean
-  public MinioClient minioClient() throws InvalidPortException, InvalidEndpointException {
-    return new MinioClient(url, port, accessKey, secretKey, region, secure);
+  public MinioClient minioClient() {
+    return MinioClient.builder()
+        .credentials(accessKey, secretKey)
+        .region(region)
+        .endpoint(url + ":" + port)
+        .build();
   }
 
   public String getAccessKey() {
@@ -46,14 +45,6 @@ public class MinioConfig {
 
   public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
-  }
-
-  public boolean isSecure() {
-    return secure;
-  }
-
-  public void setSecure(boolean secure) {
-    this.secure = secure;
   }
 
   public String getUrl() {
