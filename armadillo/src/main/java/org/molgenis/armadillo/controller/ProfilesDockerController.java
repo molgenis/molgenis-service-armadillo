@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("ds-profiles")
 public class ProfilesDockerController {
 
-  public static final String DOCKER_MANAGEMENT_ENABLED = "datashield.docker-management-enabled";
+  public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
 
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;

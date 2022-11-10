@@ -1,12 +1,10 @@
-datashield:
+armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
-
-  # Uncomment this section to bootstrap the application with default values.
-  # bootstrap:
-    # oidc-admin-user: user@yourdomain.org
+  # uncomment this to configure a default admin user
+  # oidc-admin-user: user@yourdomain.org
 
   profiles:
     - name: default
@@ -111,7 +109,7 @@ spring:
     activate:
       on-profile: development-omics
 
-datashield:
+armadillo:
   profiles:
     - name: default
       port: 6311
@@ -137,7 +135,7 @@ spring:
     activate:
       on-profile: development-exposome
 
-datashield:
+armadillo:
   profiles:
     - name: default
       environment: default
@@ -164,7 +162,7 @@ spring:
     activate:
       on-profile: docker-compose
 
-datashield:
+armadillo:
   profiles:
     - name: default
       host: rserver
