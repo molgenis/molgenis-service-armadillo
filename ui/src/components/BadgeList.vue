@@ -15,7 +15,7 @@
 <script lang="ts">
 import {StringArray} from "@/types/types";
 import {defineComponent, PropType} from "vue";
-import Badge from "./Badge.vue";
+import Badge from "@/components/Badge.vue";
 
 export default defineComponent({
   name: "BadgeList",
