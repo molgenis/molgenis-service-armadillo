@@ -30,7 +30,7 @@
           <button
             type="button"
             class="btn btn-sm me-1 btn-primary bg-primary"
-            :disabled="addRow"
+            :disabled="addRow || editMode.userToEditIndex != -1"
             @click="toggleAddRow"
           >
             <i class="bi bi-person-plus-fill"></i>
@@ -54,6 +54,7 @@
             :buttonIcons="['pencil-fill', 'trash-fill']"
             :buttonColors="['primary', 'danger']"
             :clickCallbacks="[editUser, removeUser]"
+            :disabledButtons="disabledButtons"
             :callbackArguments="[columnProps.item, columnProps.item]"
           ></ButtonGroup>
         </th>
@@ -191,6 +192,9 @@ export default defineComponent({
     };
   },
   computed: {
+    disabledButtons () {
+      return [this.addRow, this.addRow];
+    },
     userToEdit() {
       return this.editMode.userToEdit;
     },
@@ -254,7 +258,6 @@ export default defineComponent({
       const index = this.users.findIndex((user: User) => {
         return user.email === this.editMode.userToEdit;
       });
-      console.log(index);
       // only change when user is cleared, otherwise it will return -1 when email is altered
       if (this.editMode.userToEdit === "" || index !== -1) {
         return index;
