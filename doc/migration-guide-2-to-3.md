@@ -127,11 +127,11 @@ scripts.
 
 ### User migration script
 To migrate users from Fusion Auth to Armadillo, you can use the script found [here](/scripts/migrate-auth.py).
-More information on how to run it can be found in the script or by calling it with the `--help` flag. Make
+More information on how to run it can be found in the script or by calling it with the `-h` flag. Make
 sure Armadillo is running when you run the script.
 
 ### User migration script
 To migrate data from MinIO to the local file system, you can use the script found [here](/scripts/migrate-minio.py).
-More information on how to run it can be found in the script or by calling it with the `--help` flag. Make
+More information on how to run it can be found in the script or by calling it with the `-h` flag. Make
 sure Armadillo is running when you run the script.
 
