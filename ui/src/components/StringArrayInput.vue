@@ -6,19 +6,21 @@
       @update="$emit('update')"
     />
     <div v-if="!showAdd">
-      <i class="bi bi-plus-circle text-primary" @click="showAdd = true"></i>
+      <button class="btn-add-value btn btn-link p-0" @click="showAdd = true">
+        <i class="bi bi-plus-circle text-primary"></i>
+      </button>
     </div>
     <div v-else class="pt-0">
       <input type="text" class="arrayElementInput mt-1" v-model="newValue" />
       <div class="btn-group mt-0" role="group" aria-label="Basic example">
         <button
-          class="btn btn-sm check-badge btn-success me-0"
+          class="btn btn-sm check-badge btn-success me-0 add-new-value"
           @click="addNewValue"
         >
           <i class="bi bi-check"></i>
         </button>
         <button
-          class="btn btn-sm check-badge btn-danger"
+          class="btn btn-sm check-badge btn-danger cancel-new-value"
           @click="cancelNewValue"
         >
           <i class="bi bi-x"></i>
@@ -61,11 +63,6 @@ export default defineComponent({
       result.push(this.newValue);
       this.newValue = "";
       this.showAdd = false;
-      this.$emit("update", result);
-    },
-    removeItem(index: number) {
-      const result = this.modelValue;
-      result.slice(index, 0);
       this.$emit("update", result);
     },
     cancelNewValue() {
