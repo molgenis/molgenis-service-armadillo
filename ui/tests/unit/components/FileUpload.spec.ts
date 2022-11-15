@@ -4,12 +4,6 @@ import FileUpload from "@/components/FileUpload.vue";
 jest.mock("@/api/api");
 
 describe("FileUpload", () => {
-  jest.mock("@/api/api", () => ({
-    uploadIntoProject: jest.fn(() =>
-      Promise.resolve({ data: { answer: "yes" } })
-    ),
-  }));
-
   let localImageInput: DOMWrapper<Element>;
   let localImageInputFilesGet: jest.Mock<any, any>;
   let localImageInputValueGet;
