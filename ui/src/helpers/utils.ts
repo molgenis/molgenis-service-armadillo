@@ -44,9 +44,9 @@ export function isInt(itemToCheck: number) {
   return itemToCheck % 1 === 0;
 }
 
-export function isIntArray(listOfItems: StringArray){
+export function isIntArray(listOfItems: StringArray) {
   let itemIsIntArray = true;
-  listOfItems.forEach((item)=>{
+  listOfItems.forEach((item) => {
     const numberToCheck = parseFloat(item);
     if (!isInt(numberToCheck)) {
       itemIsIntArray = false;
@@ -56,17 +56,17 @@ export function isIntArray(listOfItems: StringArray){
   return itemIsIntArray;
 }
 
-export function transformTable(table: {[key: string]: string}[]) {
-  let transformed: {[key: string]: StringArray}  = {};
-  table.forEach((row)=>{
+export function transformTable(table: { [key: string]: string }[]) {
+  let transformed: { [key: string]: StringArray } = {};
+  table.forEach((row) => {
     const keys = Object.keys(row);
     keys.forEach((key) => {
-      if(key in transformed) {
+      if (key in transformed) {
         transformed[key].push(row[key]);
       } else {
         transformed[key] = [row[key]];
       }
     });
-  })
+  });
   return transformed;
 }
