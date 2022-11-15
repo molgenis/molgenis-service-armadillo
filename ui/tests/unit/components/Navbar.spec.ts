@@ -7,6 +7,9 @@ describe("Navbar", () => {
       props: {
         username: "Bofke",
       },
+      global: {
+        stubs: ["router-link"],
+      },
     });
 
     // Assert the rendered text of the component

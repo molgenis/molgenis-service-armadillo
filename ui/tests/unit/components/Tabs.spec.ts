@@ -1,9 +1,43 @@
 import { mount } from "@vue/test-utils";
 import Tabs from "@/components/Tabs.vue";
+import { createRouter, createWebHistory } from "vue-router";
+
+const mock_routes = [
+  {
+    path: "/",
+    redirect: "/item_a",
+  },
+  {
+    path: "/item_a",
+    component: {
+      template: "Welcome to item a",
+    },
+  },
+  {
+    path: "/item_b",
+    component: {
+      template: "Welcome to item b",
+    },
+  },
+  {
+    path: "/item_c",
+    component: {
+      template: "Welcome to item c",
+    },
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: mock_routes,
+});
 
 describe("Tabs", () => {
   const mockRoute = {
     fullPath: "/item_b",
+  };
+  const mockRouter = {
+    push: jest.fn(),
   };
   const wrapper = mount(Tabs, {
     props: {
@@ -11,8 +45,10 @@ describe("Tabs", () => {
       icons: ["monkey", "horse", "zebra"],
     },
     global: {
+      plugins: [router],
       mocks: {
         $route: mockRoute,
+        $router: mockRouter,
       },
     },
   });
