@@ -65,10 +65,11 @@ spring:
         provider:
           molgenis:
             issuer-uri: 'https://auth.molgenis.org'
-          #recommend to set registration via environment variables
-          #in IntelliJ something like:
-          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID=b396233b-cdb2-449e-ac5c-a0d28b38f791;
-          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET=xxx
+# Uncomment the following section to enable OIDC login:
+#        registration:
+#            molgenis:
+#               client-id: <your client id>
+#               client-secret: <your client secret>
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
@@ -94,7 +95,7 @@ logging:
             context: DEBUG
 
 storage:
-  root-dir: "data"
+  root-dir: data
 
 # Uncomment the following block to enable MinIO storage (overrules local storage)
 #minio:
