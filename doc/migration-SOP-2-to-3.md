@@ -2,8 +2,6 @@
 The release of Armadillo 3.0 introduces some breaking changes. These instructions will guide you 
 through the steps needed to migrate your old Armadillo service to the new version.
 
-
-
 ## Configuration
 This section is about changes in the `application.yml` configuration file. For a full
 example you can look at [the application.yml in the code](/armadillo/src/main/resources/application.yml).
@@ -12,26 +10,45 @@ example you can look at [the application.yml in the code](/armadillo/src/main/re
 Besides accepting JWTs from a trusted authentication provider, you can now enable OIDC authentication.
 This will make it possible for admins to log in with their institute account in the UI.
 
+To enable this, add the following properties:
 
+```
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          molgenis:
+            client-id: <client_id>
+            client-secret: <client_secret>
+```
 
 ### Armadillo Settings
-The `datashield` parameter has been renamed to `armadillo`, and some new settings have been
+The `datashield` property has been renamed to `armadillo`, and some new settings have been
 introduced:
 
 ```
 armadillo:
   oidc-permission-enabled: false
-  docker-management-enabled: true
   oidc-admin-user: user@yourinstitute.org
+  docker-management-enabled: true
 ```
 
 These settings are explained in more detail below.
 
-#### OIDC
+#### OIDC Permission Enabled
+By default, roles and permissions are managed in Armadillo itself. However, you can still accept 
+roles from your authentication provider by setting `oidc-permission-enabled` to `true`. This is
+not recommended.
 
+#### OIDC Admin User
+You can configure a default OIDC admin user by setting the `oidc-admin-user` property. Armadillo
+will add this user when the application starts. This admin will then immediately be able to login
+with their institute account.
 
-#### Docker Management
-
+#### Docker Management Enabled
+Armadillo can manage the Docker containers used for profiles. To enable, set `docker-management-enabled`
+to `true`. Keep in mind that Armadillo needs to be able to access a local Docker instance.
 
 ### Profiles
 Profiles can now be created and managed at runtime in the UI or via the profiles API. However,
@@ -101,5 +118,20 @@ storage:
 
 MinIO has precedence over local file storage, so keep that in mind when you have both configured.
 
-## Migration scripts
+## Migrating users and data
+
+Since users and permissions are now managed in Armadillo instead of the authentication server, this
+information needs to be migrated. And if you choose to host the data on the local file system
+instead of a MinIO server, the data needs to be migrated as well. For both scenarios we have migration
+scripts.
+
+### User migration script
+To migrate users from Fusion Auth to Armadillo, you can use the script found [here](/scripts/migrate-auth.py).
+More information on how to run it can be found in the script or by calling it with the `--help` flag. Make
+sure Armadillo is running when you run the script.
+
+### User migration script
+To migrate data from MinIO to the local file system, you can use the script found [here](/scripts/migrate-minio.py).
+More information on how to run it can be found in the script or by calling it with the `--help` flag. Make
+sure Armadillo is running when you run the script.
 
