@@ -8,7 +8,7 @@
         <!-- <div>Drag to upload</div> -->
         <div class="mb-3">
           <label class="form-label">Select file to upload</label>
-          <input class="form-control form-control-sm" ref="file" v-on:change="handleFileUpload()" :class="uniqueClass" type="file">
+          <input class="form-control form-control-sm" v-on:change="handleFileUpload" :class="uniqueClass" type="file">
         </div>
       </p>
     </div>
@@ -16,29 +16,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { uploadIntoProject } from '@/api/api'
-import { file } from '@babel/types';
 
 export default defineComponent({
   name: "FileUpload",
-  setup (props, { emit }) {
-     const file: Ref = ref(null);
-
-        const handleFileUpload = async() => {
-            //Upload to server
-            const response = uploadIntoProject(file.value.files[0], props.object, props.project);
-            response.then(()=>{
-              emit('upload_success', {object: props.object, filename: file.value.files[0].name});
-            }).catch((error: Error) => {
-              emit('upload_error', error);
-            })
-        }
-        return {
-          handleFileUpload,
-          file
-       }
-  },
   props: {
     object: { type: String, required: true},
     project: { type: String, required: true},
@@ -60,6 +42,20 @@ export default defineComponent({
     }
   },
   methods: {
+    handleFileUpload(event: Event) {
+      const eventTarget = event.target as HTMLInputElement;
+      if (eventTarget  && eventTarget.files && eventTarget.files.length > 0) {
+        const file = eventTarget.files[0];
+        const response = uploadIntoProject(file, this.object, this.project);
+        response.then(()=>{
+          this.$emit('upload_success', {object: this.object, filename: file.name});
+        }).catch((error: Error) => {
+          this.$emit('upload_error', error);
+        })
+      } else {
+        this.$emit('upload_error', "Please select a file");
+      }
+    },
     dragover(event: Event) {
       event.preventDefault();
     },
