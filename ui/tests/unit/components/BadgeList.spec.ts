@@ -16,17 +16,18 @@ describe("BadgeList", () => {
     expect(wrapper.text()).toContain("item_b");
     expect(wrapper.text()).toContain("item_c");
   });
-});
-test("removes badges", () => {
-  const wrapper = mount(BadgeList, {
-    props: {
-      itemArray: ["item_a", "item_b", "item_c"],
-      saveCallback: jest.fn(),
-      row: { firstName: "James", lastName: "Doe" },
-    },
+  
+  test("removes badges", () => {
+    const wrapper = mount(BadgeList, {
+      props: {
+        itemArray: ["item_a", "item_b", "item_c"],
+        saveCallback: jest.fn(),
+        row: { firstName: "James", lastName: "Doe" },
+      },
+    });
+    wrapper.vm.remove(1);
+    // We cannot check if the property is really removed, since the watcher will reset it to the "props"
+    // The parent component will be updated when the update event is emitted, causing the item to be removed.
+    expect(wrapper.emitted()).toHaveProperty("update");
   });
-  wrapper.vm.remove(1);
-  // We cannot check if the property is really removed, since the watcher will reset it to the "props"
-  // The parent component will be updated when the update event is emitted, causing the item to be removed.
-  expect(wrapper.emitted()).toHaveProperty('update');
 });
