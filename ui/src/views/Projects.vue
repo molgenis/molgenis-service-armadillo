@@ -116,7 +116,7 @@ export default defineComponent({
   },
   data() {
     return {
-      updatedProjectIndex: -1, 
+      updatedProjectIndex: -1,
       projectsDataStructure: {
         name: "string",
         users: "array",
@@ -165,15 +165,14 @@ export default defineComponent({
         return index;
       } else return this.projectToEditIndex;
     },
-    reloadProjects() {
+    async reloadProjects() {
       this.loading = true;
-      return this.loadProjects()
-        .then(() => {
-          this.loading = false;
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not load projects: ${error}.`;
-        });
+      try {
+        await this.loadProjects();
+        this.loading = false;
+      } catch (error) {
+        this.errorMessage = `Could not load projects: ${error}.`;
+      }
     },
     removeProject(project: Project) {
       this.clearUserMessages();
