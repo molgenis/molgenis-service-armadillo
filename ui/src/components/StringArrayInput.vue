@@ -11,7 +11,7 @@
       </button>
     </div>
     <div v-else class="pt-0">
-      <input type="text" class="arrayElementInput mt-1" v-model="newValue" />
+      <input type="text" class="array-element-input mt-1" v-model="newValue" />
       <div class="btn-group mt-0" role="group" aria-label="Basic example">
         <button
           class="btn btn-sm check-badge btn-success me-0 add-new-value"

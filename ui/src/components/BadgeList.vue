@@ -37,7 +37,7 @@ export default defineComponent({
   },
   methods: {
     remove(index: number) {
-      this.badgeItems.splice(index);
+      this.badgeItems.splice(index, 1);
       this.$emit('update', this.badgeItems);
     },
   },

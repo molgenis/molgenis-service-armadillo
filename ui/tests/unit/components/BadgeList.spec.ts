@@ -3,26 +3,26 @@ import BadgeList from "@/components/BadgeList.vue";
 
 describe("BadgeList", () => {
   let wrapper: VueWrapper<any>;
+  let projects = ["lifecycle", "hallo", "molgenis"];
   beforeEach(function () {
     wrapper = mount(BadgeList, {
       props: {
-        itemArray: ["item_a", "item_b", "item_c"],
-        saveCallback: jest.fn(),
-        row: { firstName: "James", lastName: "Doe" },
+        itemArray: projects,
+        canEdit: true,
       },
     });
   });
   test("shows badges", () => {
-    // Assert the rendered text of the componentgg
-    expect(wrapper.text()).toContain("item_a");
-    expect(wrapper.text()).toContain("item_b");
-    expect(wrapper.text()).toContain("item_c");
+    // Assert the rendered text of the component
+    expect(wrapper.text()).toContain("lifecycle");
+    expect(wrapper.text()).toContain("molgenis");
   });
-  
-  test("removes badges", () => {
-  wrapper.vm.remove(1);
-    // We cannot check if the property is really removed, since the watcher will reset it to the "props"
-    // The parent component will be updated when the update event is emitted, causing the item to be removed.
+
+  test("removes correct badge", () => {
+    wrapper.vm.remove(1);
     expect(wrapper.emitted()).toHaveProperty("update");
+    expect(wrapper.emitted("update")).toEqual([[["lifecycle", "molgenis"]]]);
   });
+  test("adds badge, saves it and then removes the correct one", () => {});
 });
+
