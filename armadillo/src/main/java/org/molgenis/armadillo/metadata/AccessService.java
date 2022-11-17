@@ -30,7 +30,7 @@ public class AccessService {
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
 
-  @Value("${datashield.oidc-permission-enabled}")
+  @Value("${armadillo.oidc-permission-enabled}")
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
@@ -38,7 +38,7 @@ public class AccessService {
   public AccessService(
       ArmadilloStorageService armadilloStorageService,
       AccessLoader accessLoader,
-      @Value("${datashield.bootstrap.oidc-admin-user:#{null}}") String adminUser) {
+      @Value("${armadillo.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(accessLoader);
     this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 /** Collects the profiles that are passed as configuration parameters. */
-@ConfigurationProperties(prefix = "datashield")
+@ConfigurationProperties(prefix = "armadillo")
 @Component
 @Validated
 public class InitialProfileConfigs {
