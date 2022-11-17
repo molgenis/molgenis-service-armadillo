@@ -4,7 +4,7 @@
       <Badge
         >{{ key }} = {{ value }}
         <button
-          class="cancel-badge text-light bg-secondary"
+          class="cancel-badge text-light bg-secondary remove-badge"
           @click="remove(key)"
         >
           <i class="bi bi-x"></i>
@@ -12,27 +12,32 @@
       </Badge>
     </div>
     <div v-if="showAdd == false">
-      <i class="text-primary bi bi-plus-circle" @click="showAdd = true"></i>
+      <button class="btn-add-value btn btn-link p-0" @click="showAdd = true">
+        <i class="bi bi-plus-circle text-primary"></i>
+      </button>
     </div>
     <span v-else>
       <input
         type="text"
         id="key"
-        class="form-control-sm"
+        class="form-control-sm key-input"
         placeholder="option"
         v-model="newKey"
       />
       <input
         type="text"
-        class="form-control-sm"
+        class="form-control-sm value-input"
         v-model="newValue"
         placeholder="value"
       />
-      <button class="check-badge text-light bg-secondary" @click="addNewValue">
+      <button
+        class="check-badge text-light bg-secondary add-new-value"
+        @click="addNewValue"
+      >
         <i class="bi bi-check-lg"></i>
       </button>
       <button
-        class="check-badge text-light bg-secondary"
+        class="check-badge text-light bg-secondary cancel-new-value"
         @click="cancelNewValue"
       >
         <i class="bi bi-x-lg"></i>
