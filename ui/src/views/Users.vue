@@ -265,15 +265,14 @@ export default defineComponent({
         return index;
       } else return this.editMode.userToEditIndex;
     },
-    reloadUsers() {
+    async reloadUsers() {
       this.loading = true;
-      return this.loadUsers()
-        .then(() => {
-          this.loading = false;
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not load users: ${error}.`;
-        });
+      try {
+        await this.loadUsers();
+        this.loading = false;
+      } catch (error) {
+        this.errorMessage = `Could not load users: ${error}.`;
+      }
     },
     removeUser(user: User) {
       this.clearUserMessages();
