@@ -1,21 +1,15 @@
 <template>
   <div>
-    <Alert
-      v-show="errorMsg"
-      type="danger"
-      class="mt-1"
-      @clear="clearError"
-    >
-      <strong>Error: </strong>
-      {{ errorMsg }}
+    <Alert v-show="errorMsg" type="danger" class="mt-1" @clear="clearError">
+      <strong>Error: </strong> {{ errorMsg }}
     </Alert>
     <Alert
-      v-show="successMsg"
+      v-show="successMsg != ''"
       type="success"
       class="mt-1"
       @clear="clearSuccess"
     >
-      <strong>Success: </strong>{{ successMsg }}
+      <strong>Success: </strong> {{ successMsg }}
     </Alert>
   </div>
 </template>
@@ -50,6 +44,11 @@ export default defineComponent({
   watch: {
     successMessage: function (newVal) {
       this.successMsg = newVal;
+    },
+    successMsg: function () {
+      setTimeout( () => {
+        this.successMsg = "";
+      }, 5000);
     },
     errorMessage: function (newVal) {
       this.errorMsg = newVal;
