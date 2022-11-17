@@ -1,4 +1,4 @@
-import { mount, shallowMount, VueWrapper } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 
 describe("StringArrayInput", () => {
@@ -17,26 +17,25 @@ describe("StringArrayInput", () => {
 
   test("can save added value", async () => {
     wrapper.vm.showAdd = true;
-    wrapper.vm.$nextTick().then(async () => {
-      const input = wrapper.find("input.arrayElementInput");
-      await input.setValue("value_d");
-      const addButton = wrapper.find("button.add-new-value");
-      addButton.trigger("click");
-      expect(wrapper.emitted()).toHaveProperty("update");
-      expect(wrapper.emitted("update")).toEqual([[["a", "b", "c", "value_d"]]]);
-    });
+    await wrapper.vm.$nextTick();
+    const input = wrapper.find("input.arrayElementInput");
+    await input.setValue("value_d");
+    const addButton = wrapper.find("button.add-new-value");
+    addButton.trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted()).toHaveProperty("update");
+    expect(wrapper.emitted("update")).toEqual([[["a", "b", "c", "value_d"]]]);
   });
 
-
-  test("can save cancel add value", async () => {
+  test("can cancel adding value", async () => {
     wrapper.vm.showAdd = true;
-    wrapper.vm.$nextTick().then(async () => {
-      const input = wrapper.find("input.arrayElementInput");
-      await input.setValue("value_d");
-      const cancelButton = wrapper.find("button.cancel-new-value");
-      cancelButton.trigger("click");
-      expect(wrapper.vm.showAdd).toBe(false);
-      expect(wrapper.vm.newValue).toBe("");
-    });
+    await wrapper.vm.$nextTick();
+    const input = wrapper.find("input.arrayElementInput");
+    await input.setValue("value_d");
+    const cancelButton = wrapper.find("button.cancel-new-value");
+    cancelButton.trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.showAdd).toBe(false);
+    expect(wrapper.vm.newValue).toBe("");
   });
 });
