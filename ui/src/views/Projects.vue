@@ -49,7 +49,7 @@
         <!-- Show Projects as badges -->
         <BadgeList
           :itemArray="arrayProps.data"
-          :row="arrayProps.row"
+          :canEdit="false"
         ></BadgeList>
       </template>
       <template #editRow="rowProps">

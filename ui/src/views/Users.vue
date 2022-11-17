@@ -61,11 +61,7 @@
       </template>
       <template #arrayType="arrayProps">
         <!-- Show Projects as badges -->
-        <BadgeList
-          :itemArray="arrayProps.data"
-          :row="arrayProps.row"
-          :saveCallback="deleteProject"
-        ></BadgeList>
+        <BadgeList :itemArray="arrayProps.data" :canEdit="false"></BadgeList>
       </template>
       <template #boolType="boolProps">
         <!-- Show booleans as checkboxes -->
@@ -98,7 +94,7 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteProject, deleteUser, getUsers, putUser } from "@/api/api";
+import { deleteUser, getUsers, putUser } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
@@ -192,7 +188,7 @@ export default defineComponent({
     };
   },
   computed: {
-    disabledButtons () {
+    disabledButtons() {
       return [this.addRow, this.addRow];
     },
     userToEdit() {
