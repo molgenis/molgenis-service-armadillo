@@ -23,6 +23,7 @@
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
       :dataStructure="userDataStructure"
+      :highlightedRowIndex="updatedUserIndex"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -137,6 +138,7 @@ export default defineComponent({
     };
   },
   data(): {
+    updatedUserIndex: number;
     userDataStructure: TypeObject;
     editMode: {
       addProjectToRow: boolean;
@@ -155,6 +157,7 @@ export default defineComponent({
     searchString: string;
   } {
     return {
+      updatedUserIndex: -1,
       userDataStructure: {
         email: "string",
         firstName: "string",
@@ -218,6 +221,9 @@ export default defineComponent({
     },
   },
   methods: {
+    clearUpdatedUserIndex() {
+      this.updatedUserIndex = -1;
+    },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
@@ -261,7 +267,7 @@ export default defineComponent({
     },
     reloadUsers() {
       this.loading = true;
-      this.loadUsers()
+      return this.loadUsers()
         .then(() => {
           this.loading = false;
         })
@@ -317,13 +323,20 @@ export default defineComponent({
       ) {
         this.errorMessage = `User with email address [${user.email}] already exists.`;
       } else {
+        const userEmail = user.email;
         putUser(user)
-          .then(() => {
+          .then(async () => {
             this.successMessage = `[${user.email}] was successfully saved.`;
-            this.reloadUsers();
+            await this.reloadUsers();
             if (callback) {
               callback();
             }
+            this.updatedUserIndex = this.filteredAndSortedUsers.findIndex(
+              (u) => {
+                return u.email === userEmail;
+              }
+            );
+            setTimeout(this.clearUpdatedUserIndex, 1000);
           })
           .catch((error) => {
             this.errorMessage = `Could not save [${user.email}]: ${error}.`;

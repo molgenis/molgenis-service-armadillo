@@ -24,6 +24,7 @@
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
       :dataStructure="(projectsDataStructure as TypeObject)"
+      :highlightedRowIndex="updatedProjectIndex"
     >
       <template #customType="customProps">
         <router-link :to="`/projects-explorer/${customProps.data}`">{{
@@ -47,10 +48,7 @@
       </template>
       <template #arrayType="arrayProps">
         <!-- Show Projects as badges -->
-        <BadgeList
-          :itemArray="arrayProps.data"
-          :canEdit="false"
-        ></BadgeList>
+        <BadgeList :itemArray="arrayProps.data" :canEdit="false"></BadgeList>
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
@@ -95,7 +93,7 @@ export default defineComponent({
   },
   setup() {
     const projects: Ref<Project[]> = ref([]);
-    const errorMessage: Ref<string> = ref('');
+    const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     onMounted(() => {
       loadProjects();
@@ -118,6 +116,7 @@ export default defineComponent({
   },
   data() {
     return {
+      updatedProjectIndex: -1, 
       projectsDataStructure: {
         name: "string",
         users: "array",
@@ -167,7 +166,7 @@ export default defineComponent({
     },
     reloadProjects() {
       this.loading = true;
-      this.loadProjects()
+      return this.loadProjects()
         .then(() => {
           this.loading = false;
         })
@@ -203,18 +202,28 @@ export default defineComponent({
       if (project.name === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
+        const projectName = project.name;
         putProject(project)
-          .then(() => {
+          .then(async () => {
             this.successMessage = `[${project.name}] was successfully saved.`;
-            this.reloadProjects();
+            await this.reloadProjects();
             if (callback) {
               callback();
             }
+            this.updatedProjectIndex = this.filteredAndSortedProjects.findIndex(
+              (p) => {
+                return p.name === projectName;
+              }
+            );
+            setTimeout(this.clearUpdatedProjectIndex, 1000);
           })
           .catch((error) => {
             this.errorMessage = `Could not save [${project.name}]: ${error}.`;
           });
       }
+    },
+    clearUpdatedProjectIndex() {
+      this.updatedProjectIndex = -1;
     },
   },
 });

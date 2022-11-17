@@ -11,7 +11,7 @@
     <tbody>
       <slot name="extraRow"></slot>
       <template v-for="dataRow in dataToShow">
-        <tr v-if="getIndex(dataRow) != indexToEdit">
+        <tr v-if="getIndex(dataRow) != indexToEdit" :class="getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''">
           <slot name="extraColumn" :item="dataRow"></slot>
           <td v-for="(type, propertyName) in dataStructure">
             <span v-if="customColumns.includes(propertyName as string)">
@@ -90,6 +90,10 @@ export default defineComponent({
       type: Object as PropType<TypeObject>,
       required: true,
     },
+    highlightedRowIndex: {
+      type: Number,
+      default: -1
+    }
   },
   computed: {
     capitalizedHeaders() {
