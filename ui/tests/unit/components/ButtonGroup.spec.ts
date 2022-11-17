@@ -1,17 +1,20 @@
-import { mount } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 
-const mockFunction = jest.fn();
-const wrapper = mount(ButtonGroup, {
-  props: {
-    buttonIcons: ["pencil-fill", "trash-fill", "1-circle"],
-    buttonColors: ["danger", "info", "light"],
-    clickCallbacks: [mockFunction, mockFunction, mockFunction],
-    callbackArguments: ["hello", undefined, undefined],
-  },
-});
-
 describe("ButtonGroup", () => {
+  const mockFunction = jest.fn();
+  let wrapper: VueWrapper<any>;
+  beforeEach(function () {
+    wrapper = shallowMount(ButtonGroup, {
+      props: {
+        buttonIcons: ["pencil-fill", "trash-fill", "1-circle"],
+        buttonColors: ["danger", "info", "light"],
+        clickCallbacks: [mockFunction, mockFunction, mockFunction],
+        callbackArguments: ["hello", undefined, undefined],
+      },
+    });
+  });
+
   test("triggers function on click of button", () => {
     const buttons = wrapper.findAll("button");
     buttons[0].trigger("click");

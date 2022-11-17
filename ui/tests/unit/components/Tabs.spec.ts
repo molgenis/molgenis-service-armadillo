@@ -1,56 +1,60 @@
-import { mount } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import Tabs from "@/components/Tabs.vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-const mock_routes = [
-  {
-    path: "/",
-    redirect: "/item_a",
-  },
-  {
-    path: "/item_a",
-    component: {
-      template: "Welcome to item a",
-    },
-  },
-  {
-    path: "/item_b",
-    component: {
-      template: "Welcome to item b",
-    },
-  },
-  {
-    path: "/item_c",
-    component: {
-      template: "Welcome to item c",
-    },
-  },
-];
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes: mock_routes,
-});
-
 describe("Tabs", () => {
+  const mock_routes = [
+    {
+      path: "/",
+      redirect: "/item_a",
+    },
+    {
+      path: "/item_a",
+      component: {
+        template: "Welcome to item a",
+      },
+    },
+    {
+      path: "/item_b",
+      component: {
+        template: "Welcome to item b",
+      },
+    },
+    {
+      path: "/item_c",
+      component: {
+        template: "Welcome to item c",
+      },
+    },
+  ];
+
+  const router = createRouter({
+    history: createWebHistory(),
+    routes: mock_routes,
+  });
+
   const mockRoute = {
     fullPath: "/item_b",
   };
   const mockRouter = {
     push: jest.fn(),
   };
-  const wrapper = mount(Tabs, {
-    props: {
-      menu: ["item_a", "item_b", "item_c"],
-      icons: ["monkey", "horse", "zebra"],
-    },
-    global: {
-      plugins: [router],
-      mocks: {
-        $route: mockRoute,
-        $router: mockRouter,
+
+  let wrapper: VueWrapper<any>;
+  beforeEach(function () {
+    wrapper = mount(Tabs, {
+      props: {
+        menu: ["item_a", "item_b", "item_c"],
+        icons: ["monkey", "horse", "zebra"],
       },
-    },
+      global: {
+        plugins: [router],
+        mocks: {
+          $route: mockRoute,
+          $router: mockRouter,
+        },
+      },
+    });
   });
   test("shows tabs with icons", () => {
     // Assert the rendered text of the component

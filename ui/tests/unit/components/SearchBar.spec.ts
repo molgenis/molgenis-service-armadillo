@@ -1,10 +1,10 @@
-import { mount } from "@vue/test-utils";
+import { shallowMount } from "@vue/test-utils";
 import SearchBar from "@/components/SearchBar.vue";
 
 describe("SearchBar", () => {
   test("searchString should be updated on input", async () => {
     const searchValue = "somesearchvalue";
-    const wrapper = mount(SearchBar);
+    const wrapper = shallowMount(SearchBar);
     const input = wrapper.find("input");
 
     await input.setValue(searchValue);

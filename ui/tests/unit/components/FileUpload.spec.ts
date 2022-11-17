@@ -1,4 +1,4 @@
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, mount, shallowMount, VueWrapper } from "@vue/test-utils";
 import FileUpload from "@/components/FileUpload.vue";
 
 jest.mock("@/api/api");
@@ -20,7 +20,7 @@ describe("FileUpload", () => {
 
   // https://stackoverflow.com/questions/48993134/how-to-test-input-file-with-jest-and-vue-test-utils
   beforeEach(function () {
-    wrapper = mount(FileUpload, {
+    wrapper = shallowMount(FileUpload, {
       props: {
         object: "testObject",
         project: "molgenius",
@@ -63,39 +63,32 @@ describe("FileUpload", () => {
     expect(wrapper.emitted("upload_error")).toEqual([["Please select a file"]]);
   });
 
-  test("emits event on upload success", () => {
+  test("emits event on upload success", async () => {
     api.uploadIntoProject.mockImplementation(() => {
       return Promise.resolve({});
     });
     localImageInputFilesGet.mockReturnValue(mockFiles);
-
     localImageInput.trigger("change");
-
-    return wrapper.vm.$nextTick().then(() => {
-      //test if upload function called
-      expect(api.uploadIntoProject).toHaveBeenCalled();
-      // test if event emitted
-      expect(wrapper.emitted()).toHaveProperty("upload_success");
-    });
+    await wrapper.vm.$nextTick();
+    //test if upload function called
+    expect(api.uploadIntoProject).toHaveBeenCalled();
+    // test if event emitted
+    expect(wrapper.emitted()).toHaveProperty("upload_success");
   });
 
-  test("emits event on upload fail", () => {
+  test("emits event on upload fail", async () => {
     const error = new Error("fail");
     api.uploadIntoProject.mockImplementation(() => {
       return Promise.reject(error);
     });
     localImageInputFilesGet.mockReturnValue(mockFiles);
-
     localImageInput.trigger("change");
-
-    return wrapper.vm.$nextTick().then(() => {
-      wrapper.vm.$nextTick().then(() => {
-        //test if upload function called
-        expect(api.uploadIntoProject).toHaveBeenCalled();
-        // test if event emitted
-        expect(wrapper.emitted()).toHaveProperty("upload_error");
-        expect(wrapper.emitted("upload_error")).toEqual([[error]]);
-      });
-    });
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    //test if upload function called
+    expect(api.uploadIntoProject).toHaveBeenCalled();
+    // test if event emitted
+    expect(wrapper.emitted()).toHaveProperty("upload_error");
+    expect(wrapper.emitted("upload_error")).toEqual([[error]]);
   });
 });

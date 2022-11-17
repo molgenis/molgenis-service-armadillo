@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import Table from "@/components/Table.vue";
 
 describe("Table", () => {
@@ -38,19 +38,22 @@ describe("Table", () => {
       isSuperhero: true,
     },
   ];
-  const wrapper = mount(Table, {
-    props: {
-      allData: data,
-      dataToShow: [data[0], data[3], data[4]],
-      indexToEdit: -1,
-      dataStructure: {
-        firstName: "string",
-        lastName: "string",
-        favouriteAnimal: "string",
-        fears: "array",
-        isSuperhero: "boolean",
+  let wrapper: VueWrapper<any>;
+  beforeEach(function () {
+    wrapper = shallowMount(Table, {
+      props: {
+        allData: data,
+        dataToShow: [data[0], data[3], data[4]],
+        indexToEdit: -1,
+        dataStructure: {
+          firstName: "string",
+          lastName: "string",
+          favouriteAnimal: "string",
+          fears: "array",
+          isSuperhero: "boolean",
+        },
       },
-    },
+    });
   });
 
   test("displays table with filtered data", () => {

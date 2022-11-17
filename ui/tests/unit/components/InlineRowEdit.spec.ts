@@ -1,31 +1,34 @@
-import { mount } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 
-const saveMock = jest.fn();
-const cancelMock = jest.fn();
-const wrapper = mount(InlineRowEdit, {
-  props: {
-    save: saveMock,
-    cancel: cancelMock,
-    dataStructure: {
-      column_a: "string",
-      column_b: "string",
-      column_c: "string",
-      column_d: "boolean",
-      column_e: "array",
-      column_f: "string",
-    },
-    row: {
-      column_a: "hello",
-      column_b: "goodbye",
-      column_c: "ciao",
-      column_d: true,
-      column_e: ["a", "b", "c"],
-    },
-  },
-});
-
 describe("InlineRowEdit", () => {
+  const saveMock = jest.fn();
+  const cancelMock = jest.fn();
+  let wrapper: VueWrapper<any>;
+  beforeEach(function () {
+    wrapper = mount(InlineRowEdit, {
+      props: {
+        save: saveMock,
+        cancel: cancelMock,
+        dataStructure: {
+          column_a: "string",
+          column_b: "string",
+          column_c: "string",
+          column_d: "boolean",
+          column_e: "array",
+          column_f: "string",
+        },
+        row: {
+          column_a: "hello",
+          column_b: "goodbye",
+          column_c: "ciao",
+          column_d: true,
+          column_e: ["a", "b", "c"],
+        },
+      },
+    });
+  });
+
   test("shows provided row", () => {
     expect(wrapper.html()).toContain("hello");
     expect(wrapper.html()).toContain("goodbye");
@@ -46,15 +49,17 @@ describe("InlineRowEdit", () => {
     expect(inputs.length).toBe(1);
   });
 
-  test("triggers save function on click of save button", () => {
+  test("triggers save function on click of save button", async () => {
     const buttons = wrapper.findAll("button.btn.btn-sm.btn-success.bg-success");
     buttons[0].trigger("click");
+    await wrapper.vm.$nextTick();
     expect(saveMock).toHaveBeenCalled();
   });
 
-  test("triggers save function on click of save button", () => {
+  test("triggers save function on click of save button", async () => {
     const buttons = wrapper.findAll("button.btn.btn-sm.btn-danger.bg-danger");
     buttons[0].trigger("click");
+    await wrapper.vm.$nextTick();
     expect(cancelMock).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { shallowMount, VueWrapper } from "@vue/test-utils";
 import SimpleTable from "@/components/SimpleTable.vue";
 
 function getListOfColumnValues(
@@ -66,11 +66,14 @@ describe("SimpleTable", () => {
       isSuperhero: "yes",
     },
   ];
-  const wrapper = mount(SimpleTable, {
-    props: {
-      data: data,
-      maxWidth: 600,
-    },
+  let wrapper: VueWrapper<any>;
+  beforeEach(function () {
+    wrapper = shallowMount(SimpleTable, {
+      props: {
+        data: data,
+        maxWidth: 600,
+      },
+    });
   });
 
   test("displays data", () => {
