@@ -151,6 +151,7 @@ export default defineComponent({
     },
     clearProjectToEdit() {
       this.projectToEdit = "";
+      this.reloadProjects();
     },
     editProject(project: Project) {
       this.projectToEdit = project.name;
@@ -199,10 +200,10 @@ export default defineComponent({
     },
     saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
-      if (project.name === "") {
+      const projectName = project.name;
+      if (projectName === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
-        const projectName = project.name;
         putProject(project)
           .then(async () => {
             this.successMessage = `[${project.name}] was successfully saved.`;

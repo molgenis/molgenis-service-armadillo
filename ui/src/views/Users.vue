@@ -230,6 +230,7 @@ export default defineComponent({
     },
     clearUserToEdit() {
       this.editMode.userToEdit = "";
+      this.reloadUsers();
     },
     clearNewUser() {
       Object.keys(this.addMode.newUser).forEach((key) => {
@@ -240,6 +241,7 @@ export default defineComponent({
       this.addMode.newUser.admin = false;
       this.addMode.newUser.projects = [];
       this.toggleAddRow();
+      this.reloadUsers();
     },
     deleteProject(projects: StringArray, user: User) {
       const updatedUser: User = user;
