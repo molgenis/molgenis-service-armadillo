@@ -125,12 +125,12 @@ information needs to be migrated. And if you choose to host the data on the loca
 instead of a MinIO server, the data needs to be migrated as well. For both scenarios we have migration
 scripts.
 
-### User migration script
+### User migration script: Fusion Auth to Armadillo
 To migrate users from Fusion Auth to Armadillo, you can use the script found [here](/scripts/migrate-auth.py).
 More information on how to run it can be found in the script or by calling it with the `-h` flag. Make
 sure Armadillo is running when you run the script.
 
-### User migration script
+### Data migration script: MinIO to local file system
 To migrate data from MinIO to the local file system, you can use the script found [here](/scripts/migrate-minio.py).
 More information on how to run it can be found in the script or by calling it with the `-h` flag. Make
 sure Armadillo is running when you run the script.
