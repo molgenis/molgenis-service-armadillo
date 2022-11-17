@@ -306,8 +306,16 @@ export default defineComponent({
     },
     saveUser(user: User, callback: Function | undefined) {
       this.clearUserMessages();
+      const emailList = this.users.map((existingUser) => {
+        return existingUser.email;
+      });
       if (user.email === "") {
         this.errorMessage = "Cannot create user with empty email address.";
+      } else if (
+        user.email === this.addMode.newUser.email &&
+        emailList.includes(user.email)
+      ) {
+        this.errorMessage = `User with email address [${user.email}] already exists.`;
       } else {
         putUser(user)
           .then(() => {
