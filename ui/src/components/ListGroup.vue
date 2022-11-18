@@ -28,20 +28,15 @@
 
 <script lang="ts">
 import { BootstrapType, StringArray } from "@/types/types";
-import { PropType, Ref, ref } from "vue";
+import { PropType } from "vue";
 
 export default {
   name: "ListGroup",
-  setup() {
-    const selectedItem: Ref<string> = ref("");
-    return {
-      selectedItem,
-    };
-  },
   props: {
     listContent: { type: Array as PropType<StringArray>, required: true },
     rowIcon: { type: String, required: true },
     rowIconAlt: { type: String },
+    preselectedItem: { type: String, default: "" },
     altIconCondition: {
       type: Function,
       default: () => {
@@ -50,12 +45,20 @@ export default {
     },
     selectionColor: { type: String as PropType<BootstrapType> },
   },
+  data() {
+    return { selectedItem: this.preselectedItem };
+  },
+  watch: {
+    preselectedItem: function () {
+      this.selectedItem = this.preselectedItem;
+    },
+  },
   methods: {
     toggleSelectedItem(newItem: string) {
-      if(this.selectedItem !==  newItem) {
+      if (this.selectedItem !== newItem) {
         this.selectedItem = newItem;
       } else {
-        this.selectedItem = '';
+        this.selectedItem = "";
       }
     },
   },

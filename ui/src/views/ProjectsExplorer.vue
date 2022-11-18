@@ -53,6 +53,7 @@
                   rowIcon="folder"
                   rowIconAlt="folder2-open"
                   :altIconCondition="showSelectedFolderIcon"
+                  :preselectedItem="selectedFolder"
                   :selectionColor="selectedFile ? 'secondary' : 'primary'"
                 ></ListGroup>
               </div>
@@ -158,9 +159,18 @@ export default defineComponent({
     const selectedFile = ref("");
     const errorMessage: Ref<string> = ref("");
     const router = useRouter();
-
+    const route = useRoute();
+    const previewParam = ref();
+    watch(
+      () => route.params.folderId,
+      (newVal) => {
+        selectedFolder.value = newVal as string;
+      }
+    );
     onMounted(() => {
       loadProject(undefined);
+      if (route.params.folderId)
+        selectedFolder.value = route.params.folderId as string;
       watch(
         () => folderComponent.value.selectedItem,
         (newVal) => {
@@ -198,6 +208,7 @@ export default defineComponent({
       fileComponent,
       selectedFolder,
       selectedFile,
+      previewParam,
     };
   },
   data() {
@@ -212,7 +223,6 @@ export default defineComponent({
     };
   },
   watch: {
-    // whenever question changes, this function will run
     selectedFile() {
       if (this.selectedFile.endsWith(".parquet")) {
         this.loading_preview = true;
@@ -258,7 +268,7 @@ export default defineComponent({
     },
   },
   methods: {
-    resetFileUpload(){
+    resetFileUpload() {
       this.triggerFileUpload = false;
     },
     onUploadSuccess({

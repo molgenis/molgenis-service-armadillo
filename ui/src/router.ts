@@ -20,8 +20,9 @@ const routes = [
         name: "projects",
         component: Projects,
     },
+
     {
-        path: "/projects-explorer/:projectId",
+        path: "/projects-explorer/:projectId/:folderId?/:fileId?",
         name: "projects-explorer",
         component: ProjectsExplorer,
     },
