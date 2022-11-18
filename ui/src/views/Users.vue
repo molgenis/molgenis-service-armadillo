@@ -194,8 +194,13 @@ export default defineComponent({
     disabledButtons() {
       return [this.addRow, this.addRow];
     },
-    userToEdit() {
-      return this.editMode.userToEdit;
+    userToEdit: {
+      get() {
+        return this.editMode.userToEdit;
+      },
+      set(newValue: string) {
+        this.editMode.userToEdit = newValue;
+      },
     },
     filteredAndSortedUsers(): User[] {
       let users = this.users;
@@ -229,7 +234,7 @@ export default defineComponent({
       this.errorMessage = "";
     },
     clearUserToEdit() {
-      this.editMode.userToEdit = "";
+      this.userToEdit = "";
       this.reloadUsers();
     },
     clearNewUser() {
@@ -248,22 +253,22 @@ export default defineComponent({
       user.projects = projects;
       // Don't save immediately while editing
       if (
-        user.email !== this.editMode.userToEdit &&
+        user.email !== this.userToEdit &&
         user.email !== this.addMode.newUser.email
       ) {
         this.saveUser(updatedUser, undefined);
       }
     },
     editUser(user: User) {
-      this.editMode.userToEdit = user.email;
+      this.userToEdit = user.email;
       this.addRow = false;
     },
     getEditIndex() {
       const index = this.users.findIndex((user: User) => {
-        return user.email === this.editMode.userToEdit;
+        return user.email === this.userToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when email is altered
-      if (this.editMode.userToEdit === "" || index !== -1) {
+      if (this.userToEdit === "" || index !== -1) {
         return index;
       } else return this.editMode.userToEditIndex;
     },
@@ -291,8 +296,8 @@ export default defineComponent({
       const user: User = this.users[this.editMode.userToEditIndex];
       this.saveUser(user, () => {
         // Check if email was altered, then delete the old row
-        if (user.email != this.editMode.userToEdit) {
-          deleteUser(this.editMode.userToEdit).then(() => {
+        if (user.email != this.userToEdit) {
+          deleteUser(this.userToEdit).then(() => {
             this.reloadUsers();
           });
         }
