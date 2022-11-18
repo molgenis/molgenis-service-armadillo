@@ -136,7 +136,11 @@ export default defineComponent({
           return stringIncludesOtherString(project.name, this.searchString);
         });
       }
-      return sortAlphabetically(projects, "name") as Project[];
+      if (this.projectToEdit) {
+        return projects;
+      } else {
+        return sortAlphabetically(projects, "name") as Project[];
+      }
     },
   },
   watch: {
@@ -160,7 +164,7 @@ export default defineComponent({
       const index = this.projects.findIndex((project: Project) => {
         return project.name === this.projectToEdit;
       });
-      // only change when user is cleared, otherwise it will return -1 when name is altered
+      // only change when project is cleared, otherwise it will return -1 when name is altered
       if (this.projectToEdit === "" || index !== -1) {
         return index;
       } else return this.projectToEditIndex;
@@ -200,6 +204,7 @@ export default defineComponent({
     saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
       const projectName = project.name;
+      console.log("this is my name", projectName);
       if (projectName === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
