@@ -19,7 +19,7 @@
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
-      :dataToShow="filteredAndSortedProjects"
+      :dataToShow="getFilteredAndSortedProjects()"
       :allData="projects"
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
@@ -128,21 +128,6 @@ export default defineComponent({
       searchString: "",
     };
   },
-  computed: {
-    filteredAndSortedProjects(): Project[] {
-      let projects = this.projects;
-      if (this.searchString) {
-        projects = this.projects.filter((project: Project) => {
-          return stringIncludesOtherString(project.name, this.searchString);
-        });
-      }
-      if (this.projectToEdit) {
-        return projects;
-      } else {
-        return sortAlphabetically(projects, "name") as Project[];
-      }
-    },
-  },
   watch: {
     projectToEdit() {
       this.projectToEditIndex = this.getEditIndex();
@@ -176,6 +161,19 @@ export default defineComponent({
         this.loading = false;
       } catch (error) {
         this.errorMessage = `Could not load projects: ${error}.`;
+      }
+    },
+    getFilteredAndSortedProjects(): Project[] {
+      let projects = this.projects;
+      if (this.searchString) {
+        projects = this.projects.filter((project: Project) => {
+          return stringIncludesOtherString(project.name, this.searchString);
+        });
+      }
+      if (this.projectToEdit) {
+        return projects;
+      } else {
+        return sortAlphabetically(projects, "name") as Project[];
       }
     },
     removeProject(project: Project) {
@@ -215,7 +213,7 @@ export default defineComponent({
             if (callback) {
               callback();
             }
-            this.updatedProjectIndex = this.filteredAndSortedProjects.findIndex(
+            this.updatedProjectIndex = this.getFilteredAndSortedProjects().findIndex(
               (p) => {
                 return p.name === projectName;
               }
