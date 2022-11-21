@@ -19,7 +19,7 @@
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
-      :dataToShow="filteredAndSortedUsers"
+      :dataToShow="getFilteredAndSortedUsers()"
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
       :dataStructure="userDataStructure"
@@ -202,23 +202,6 @@ export default defineComponent({
         this.editMode.userToEdit = newValue;
       },
     },
-    filteredAndSortedUsers(): User[] {
-      let users = this.users;
-      if (this.searchString) {
-        users = this.users.filter((user: User) => {
-          return (
-            stringIncludesOtherString(user.email, this.searchString) ||
-            stringIncludesOtherString(user.firstName, this.searchString) ||
-            stringIncludesOtherString(user.lastName, this.searchString)
-          );
-        });
-      }
-      if (this.userToEdit) {
-        return users;
-      } else {
-        return sortAlphabetically(users, "email") as User[];
-      }
-    },
   },
   watch: {
     userToEdit() {
@@ -281,6 +264,23 @@ export default defineComponent({
         this.errorMessage = `Could not load users: ${error}.`;
       }
     },
+    getFilteredAndSortedUsers(): User[] {
+      let users = this.users;
+      if (this.searchString) {
+        users = this.users.filter((user: User) => {
+          return (
+            stringIncludesOtherString(user.email, this.searchString) ||
+            stringIncludesOtherString(user.firstName, this.searchString) ||
+            stringIncludesOtherString(user.lastName, this.searchString)
+          );
+        });
+      }
+      if (this.userToEdit) {
+        return users;
+      } else {
+        return sortAlphabetically(users, "email") as User[];
+      }
+    },
     removeUser(user: User) {
       this.clearUserMessages();
       deleteUser(user.email)
@@ -337,7 +337,7 @@ export default defineComponent({
             if (callback) {
               callback();
             }
-            this.updatedUserIndex = this.filteredAndSortedUsers.findIndex(
+            this.updatedUserIndex = this.getFilteredAndSortedUsers().findIndex(
               (u) => {
                 return u.email === userEmail;
               }
