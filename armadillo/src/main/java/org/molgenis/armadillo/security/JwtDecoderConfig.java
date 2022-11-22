@@ -3,6 +3,8 @@ package org.molgenis.armadillo.security;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
 import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -18,6 +20,8 @@ import org.springframework.security.oauth2.jwt.*;
 @Configuration
 public class JwtDecoderConfig {
 
+  private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
+
   @Value("${spring.profiles.active}")
   private String activeProfile;
 
@@ -25,7 +29,7 @@ public class JwtDecoderConfig {
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
-      NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuerUri);
+      NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
 
       var audienceValidator =
           new JwtClaimValidator<Collection<String>>(
@@ -37,16 +41,12 @@ public class JwtDecoderConfig {
       jwtDecoder.setJwtValidator(jwtValidator);
       return jwtDecoder;
     } catch (Exception e) {
-      // in development we will not fail but allow offline development
       if ("development".equals(activeProfile)) {
-        // how to elegantly fail if the provided issuer is not responding?
-        e.printStackTrace();
-        return new JwtDecoder() {
-          @Override
-          public Jwt decode(String token) throws JwtException {
-            throw new UnsupportedOperationException(
-                "JWT configuration failed, please check the logs. Probably the auth server is offline?");
-          }
+        // allow offline development
+        LOG.error("Couldn't configure JWT decoder", e);
+        return token -> {
+          throw new UnsupportedOperationException(
+              "JWT configuration failed, please check the logs. Probably the auth server is offline?");
         };
       } else {
         throw e;
