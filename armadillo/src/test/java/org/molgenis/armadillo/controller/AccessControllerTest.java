@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadata;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.MetadataLoader;
+import org.molgenis.armadillo.metadata.AccessLoader;
+import org.molgenis.armadillo.metadata.AccessMetadata;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.ProjectPermission;
 import org.molgenis.armadillo.metadata.UserDetails;
@@ -38,31 +38,31 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(AdminController.class)
+@WebMvcTest(AccessController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class})
-class AdminControllerTest {
+class AccessControllerTest {
 
   public static final String EXAMPLE_SETTINGS =
-      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\": \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
+      "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\":  \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
+  @MockBean ArmadilloStorageService armadilloStorage;
 
-  @MockBean private ArmadilloStorageService armadilloStorage;
   @Autowired AuditEventPublisher auditEventPublisher;
-  @Autowired private MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
   @MockBean JwtDecoder jwtDecoder;
-  @MockBean MetadataLoader metadataLoader;
-  @Autowired ArmadilloMetadataService armadilloMetadataService;
+  @MockBean AccessLoader accessLoader;
+  @Autowired AccessService accessService;
 
   @BeforeEach
   public void before() {
     var exampleSettings = createExampleSettings();
-    when(metadataLoader.load()).thenReturn(exampleSettings);
-    runAsSystem(() -> armadilloMetadataService.initialize());
+    when(accessLoader.load()).thenReturn(exampleSettings);
+    runAsSystem(() -> accessService.initialize());
   }
 
-  private ArmadilloMetadata createExampleSettings() {
-    var settings = ArmadilloMetadata.create();
+  private AccessMetadata createExampleSettings() {
+    var settings = AccessMetadata.create();
     settings.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
     settings
         .getProjects()
@@ -75,7 +75,7 @@ class AdminControllerTest {
   @WithMockUser(roles = "SU")
   void settings_GET() throws Exception {
     mockMvc
-        .perform(get("/admin"))
+        .perform(get("/access"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(EXAMPLE_SETTINGS));
@@ -86,7 +86,7 @@ class AdminControllerTest {
   void permissions_POST() throws Exception {
     mockMvc
         .perform(
-            post("/admin/permissions")
+            post("/access/permissions")
                 .param("project", "chefkesProject")
                 .param("email", "chefke@email.com")
                 .with(csrf()))
@@ -102,14 +102,14 @@ class AdminControllerTest {
         .getProjects()
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void permissions_GET() throws Exception {
     mockMvc
-        .perform(get("/admin/permissions"))
+        .perform(get("/access/permissions"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -121,7 +121,7 @@ class AdminControllerTest {
   void permissions_DELETE() throws Exception {
     mockMvc
         .perform(
-            delete("/admin/permissions")
+            delete("/access/permissions")
                 .param("email", "bofke@email.com")
                 .param("project", "bofkesProject")
                 .with(csrf()))
@@ -129,14 +129,14 @@ class AdminControllerTest {
 
     var expected = createExampleSettings();
     expected.getPermissions().clear();
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void projects_GET() throws Exception {
     mockMvc
-        .perform(get("/admin/projects"))
+        .perform(get("/access/projects"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -148,7 +148,7 @@ class AdminControllerTest {
   @WithUserDetails("bofke")
   void projects_name_GET() throws Exception {
     mockMvc
-        .perform(get("/admin/projects/bofkesProject"))
+        .perform(get("/access/projects/bofkesProject"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"name\":\"bofkesProject\"}"));
@@ -159,7 +159,7 @@ class AdminControllerTest {
   void projects_PUT() throws Exception {
     mockMvc
         .perform(
-            put("/admin/projects")
+            put("/access/projects")
                 .content(
                     new Gson()
                         .toJson(
@@ -174,32 +174,32 @@ class AdminControllerTest {
         .getProjects()
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void projects_DELETE() throws Exception {
     mockMvc
-        .perform(delete("/admin/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
+        .perform(delete("/access/projects/bofkesProject").contentType(TEXT_PLAIN).with(csrf()))
         .andExpect(status().isNoContent());
 
-    var expected = ArmadilloMetadata.create();
+    var expected = AccessMetadata.create();
     expected.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 
   @Test
   @WithMockUser
   void settings_projects_GET_PermissionDenied() throws Exception {
-    mockMvc.perform(get("/admin/projects")).andExpect(status().is(403));
+    mockMvc.perform(get("/access/projects")).andExpect(status().is(403));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void users_GET() throws Exception {
     mockMvc
-        .perform(get("/admin/users"))
+        .perform(get("/access/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"email\":\"bofke@email.com\"}]"));
@@ -209,7 +209,7 @@ class AdminControllerTest {
   @WithMockUser(roles = "SU")
   void users_GET_byEmail() throws Exception {
     mockMvc
-        .perform(get("/admin/users/bofke@email.com"))
+        .perform(get("/access/users/bofke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"email\": \"bofke@email.com\"}"));
@@ -230,7 +230,7 @@ class AdminControllerTest {
         .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
 
-    when(metadataLoader.save(expected)).thenReturn(expected);
+    when(accessLoader.save(expected)).thenReturn(expected);
 
     String testUser =
         new Gson()
@@ -243,14 +243,14 @@ class AdminControllerTest {
                     true,
                     Set.of("chefkesProject")));
     mockMvc
-        .perform(put("/admin/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
+        .perform(put("/access/users").content(testUser).contentType(APPLICATION_JSON).with(csrf()))
         .andExpect(status().isNoContent());
 
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
 
     // check that 'get' also in sync
     mockMvc
-        .perform(get("/admin/users/chefke@email.com"))
+        .perform(get("/access/users/chefke@email.com"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(testUser));
@@ -260,13 +260,13 @@ class AdminControllerTest {
   @WithMockUser(roles = "SU")
   void users_email_DELETE() throws Exception {
     mockMvc
-        .perform(delete("/admin/users/bofke@email.com").with(csrf()))
+        .perform(delete("/access/users/bofke@email.com").with(csrf()))
         .andExpect(status().isNoContent());
 
-    var expected = ArmadilloMetadata.create();
+    var expected = AccessMetadata.create();
     expected
         .getProjects()
         .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
-    verify(metadataLoader).save(expected);
+    verify(accessLoader).save(expected);
   }
 }

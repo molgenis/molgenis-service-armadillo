@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.12</version>
+        <version>2.7.5</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.molgenis</groupId>
@@ -55,8 +55,8 @@
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <release-maven-plugin.version>2.5.3</release-maven-plugin.version>
-        <reproducable-build-plugin.version>0.15</reproducable-build-plugin.version>
-        <jib-maven-plugin.version>3.3.0</jib-maven-plugin.version>
+        <reproducable-build-plugin.version>0.16</reproducable-build-plugin.version>
+        <jib-maven-plugin.version>3.3.1</jib-maven-plugin.version>
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>molgenis</sonar.organization>
@@ -65,7 +65,7 @@
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
         <sonar.coverage.exclusions>**/*Config.*</sonar.coverage.exclusions>
 
-        <auto-value.version>1.9</auto-value.version>
+        <auto-value.version>1.10.1</auto-value.version>
         <auto-service-annotations.version>1.0.1</auto-service-annotations.version>
 
         <RServe.version>1.8.1</RServe.version>
@@ -98,12 +98,12 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
-                <version>1.9</version>
+                <version>1.10.0</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>2.2.2</version>
+                <version>2.2.7</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -113,12 +113,12 @@
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-ui</artifactId>
-                <version>1.6.11</version>
+                <version>1.6.12</version>
             </dependency>
             <dependency>
                 <groupId>io.minio</groupId>
                 <artifactId>minio</artifactId>
-                <version>6.0.13</version>
+                <version>8.4.5</version>
             </dependency>
             <!-- https://github.com/spring-projects/spring-boot/issues/21939 -->
             <dependency>
@@ -194,7 +194,7 @@
                             <path>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-configuration-processor</artifactId>
-                                <version>2.4.1</version>
+                                <version>2.7.5</version>
                             </path>
                             <path>
                                 <groupId>com.google.auto.value</groupId>

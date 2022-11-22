@@ -1,9 +1,8 @@
 package org.molgenis.armadillo.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.molgenis.r.service.PackageService;
@@ -27,7 +26,7 @@ class ArmadilloConnectionFactoryImplTest {
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
   @Mock RConnection rConnection;
-  @Mock ProfileConfigProps profileConfigProps;
+  @Mock ProfileConfig profileConfig;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
 
@@ -36,7 +35,7 @@ class ArmadilloConnectionFactoryImplTest {
 
     armadilloConnectionFactory =
         new ArmadilloConnectionFactoryImpl(
-            packageService, profileConfigProps, dataShieldOptions, rConnectionFactory);
+            packageService, profileConfig, dataShieldOptions, rConnectionFactory);
   }
 
   @Test

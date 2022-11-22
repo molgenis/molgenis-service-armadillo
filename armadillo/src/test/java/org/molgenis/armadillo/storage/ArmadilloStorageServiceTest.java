@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.metadata.StorageMetadataLoader.METADATA_FILE;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.SYSTEM;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.validateProjectName;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -25,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +52,7 @@ class ArmadilloStorageServiceTest {
 
   final String SHARED_GECKO = "shared-gecko";
   final String SHARED_DIABETES = "shared-diabetes";
+  final String METADATA_FILE = "metadata.json";
 
   @MockBean StorageService storageService;
   @Mock Principal principal;
@@ -472,13 +472,13 @@ class ArmadilloStorageServiceTest {
   @WithMockUser
   void testListWorkspaces() {
     when(principal.getName()).thenReturn("henk");
-    Instant lastModified = Instant.now().truncatedTo(MILLIS);
+    var lastModified = Instant.now().truncatedTo(MILLIS).atZone(ZoneId.systemDefault());
     Workspace workspace =
         Workspace.builder().setName("blah").setLastModified(lastModified).setSize(56).build();
 
     when(storageService.listObjects("user-henk")).thenReturn(List.of(item));
     when(item.name()).thenReturn("blah.RData");
-    when(item.lastModified()).thenReturn(Date.from(lastModified));
+    when(item.lastModified()).thenReturn(lastModified);
     when(item.size()).thenReturn(workspace.size());
 
     assertEquals(List.of(workspace), armadilloStorage.listWorkspaces(principal));
@@ -588,6 +588,7 @@ class ArmadilloStorageServiceTest {
     assertThrows(InvalidProjectNameException.class, () -> validateProjectName("illegal~name"));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void mockExistingObject(String bucketName, String objectName) {
     mockExistingTestObjects(bucketName, List.of(objectName));
   }

@@ -3,7 +3,7 @@ package org.molgenis.armadillo.security;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.Collection;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,16 +14,14 @@ import org.springframework.stereotype.Service;
 @Service
 @Profile({"armadillo"})
 public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAuthority>> {
-  private final ArmadilloMetadataService armadilloMetadataService;
+  private final AccessService accessService;
 
-  public JwtRolesExtractor(ArmadilloMetadataService armadilloMetadataService) {
-    this.armadilloMetadataService = armadilloMetadataService;
+  public JwtRolesExtractor(AccessService accessService) {
+    this.accessService = accessService;
   }
 
   public Collection<GrantedAuthority> convert(Jwt jwt) {
     return runAsSystem(
-        () ->
-            armadilloMetadataService.getAuthoritiesForEmail(
-                jwt.getClaimAsString("email"), jwt.getClaims()));
+        () -> accessService.getAuthoritiesForEmail(jwt.getClaimAsString("email"), jwt.getClaims()));
   }
 }

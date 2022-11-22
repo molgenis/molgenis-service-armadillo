@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
@@ -53,7 +55,10 @@ class LocalStorageServiceTest {
     assertTrue(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
     // test it has expected metadata
     ObjectMetadata metadata = localStorageService.listObjects(SOME_PROJECT).get(0);
-    assertTrue(metadata.lastModified().before(new Date()));
+    assertTrue(
+        metadata
+            .lastModified()
+            .isBefore(ZonedDateTime.from(Instant.now().atZone(ZoneId.systemDefault()))));
     assertTrue(metadata.size() > 0);
   }
 

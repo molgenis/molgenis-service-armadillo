@@ -1,27 +1,31 @@
 package org.molgenis.armadillo.storage;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.minio.ErrorCode.NO_SUCH_BUCKET;
-import static io.minio.ErrorCode.NO_SUCH_KEY;
-import static io.minio.ErrorCode.NO_SUCH_OBJECT;
 import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.MinioStorageService.MINIO_URL_PROPERTY;
 
+import io.minio.BucketExistsArgs;
+import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveBucketArgs;
+import io.minio.RemoveObjectArgs;
+import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
-import io.minio.errors.InvalidArgumentException;
-import io.minio.errors.InvalidBucketNameException;
 import io.minio.errors.InvalidResponseException;
-import io.minio.errors.NoResponseException;
-import io.minio.errors.RegionConflictException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.minio.messages.Bucket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +33,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.xmlpull.v1.XmlPullParserException;
 
 @Service
 @Primary
@@ -37,6 +40,10 @@ import org.xmlpull.v1.XmlPullParserException;
 class MinioStorageService implements StorageService {
 
   static final String MINIO_URL_PROPERTY = "minio.url";
+  static final String ERROR_NO_SUCH_KEY = "NoSuchKey";
+  static final String ERROR_NO_SUCH_OBJECT = "NoSuchObject";
+  static final String ERROR_NO_SUCH_BUCKET = "NoSuchBucket";
+  static final int PART_SIZE = 10 * 1024 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MinioStorageService.class);
 
@@ -51,25 +58,25 @@ class MinioStorageService implements StorageService {
   @Override
   public boolean objectExists(String bucket, String objectName) {
     try {
-      minioClient.statObject(bucket, objectName);
+      minioClient.statObject(StatObjectArgs.builder().bucket(bucket).object(objectName).build());
       return true;
     } catch (ErrorResponseException error) {
-      var code = error.errorResponse().errorCode();
-      if (code == NO_SUCH_KEY || code == NO_SUCH_OBJECT || code == NO_SUCH_BUCKET) {
+      var code = error.errorResponse().code();
+      if (code.equals(ERROR_NO_SUCH_KEY)
+          || code.equals(ERROR_NO_SUCH_OBJECT)
+          || code.equals(ERROR_NO_SUCH_BUCKET)) {
         return false;
       } else {
         throw new StorageException(error);
       }
-    } catch (InvalidBucketNameException
-        | NoSuchAlgorithmException
-        | InvalidArgumentException
+    } catch (NoSuchAlgorithmException
         | InvalidResponseException
         | InternalException
-        | XmlPullParserException
-        | NoResponseException
         | InvalidKeyException
         | IOException
-        | InsufficientDataException e) {
+        | InsufficientDataException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -77,21 +84,19 @@ class MinioStorageService implements StorageService {
   @Override
   public void createBucketIfNotExists(String projectName) {
     try {
-      if (!minioClient.bucketExists(projectName)) {
-        minioClient.makeBucket(projectName);
+      if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(projectName).build())) {
+        minioClient.makeBucket(MakeBucketArgs.builder().bucket(projectName).build());
         LOGGER.info("Created bucket {}.", projectName);
       }
     } catch (InvalidKeyException
         | InsufficientDataException
         | NoSuchAlgorithmException
-        | NoResponseException
         | InvalidResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
         | ErrorResponseException
         | InternalException
         | IOException
-        | RegionConflictException e) {
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -100,17 +105,16 @@ class MinioStorageService implements StorageService {
   public void deleteBucket(String projectName) {
     try {
       LOGGER.info("Deleting bucket {}.", projectName);
-      minioClient.removeBucket(projectName);
-    } catch (InvalidBucketNameException
-        | InternalException
+      minioClient.removeBucket(RemoveBucketArgs.builder().bucket(projectName).build());
+    } catch (InternalException
         | InvalidResponseException
         | InvalidKeyException
-        | NoResponseException
         | IOException
         | NoSuchAlgorithmException
         | ErrorResponseException
-        | XmlPullParserException
-        | InsufficientDataException e) {
+        | InsufficientDataException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -119,16 +123,15 @@ class MinioStorageService implements StorageService {
   public List<String> listBuckets() {
     try {
       return minioClient.listBuckets().stream().map(Bucket::name).toList();
-    } catch (InvalidBucketNameException
-        | NoSuchAlgorithmException
+    } catch (NoSuchAlgorithmException
         | InsufficientDataException
         | InvalidResponseException
         | InternalException
         | ErrorResponseException
-        | XmlPullParserException
-        | NoResponseException
         | InvalidKeyException
-        | IOException e) {
+        | IOException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -142,18 +145,19 @@ class MinioStorageService implements StorageService {
             format("Putting object %s in bucket %s.", objectName, projectName)
                 .replaceAll("[\n\r\t]", "_"));
       }
-      minioClient.putObject(projectName, objectName, is, null, null, null, mediaType.toString());
+      minioClient.putObject(
+          PutObjectArgs.builder().bucket(projectName).object(objectName).stream(is, -1, PART_SIZE)
+              .contentType(mediaType.toString())
+              .build());
     } catch (InvalidKeyException
-        | InvalidArgumentException
         | InsufficientDataException
         | NoSuchAlgorithmException
-        | NoResponseException
         | InvalidResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
         | ErrorResponseException
         | InternalException
-        | IOException e) {
+        | IOException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -163,7 +167,8 @@ class MinioStorageService implements StorageService {
     try {
       LOGGER.info("List objects in bucket {}.", projectName);
       List<ObjectMetadata> result = newArrayList();
-      for (var itemResult : minioClient.listObjects(projectName)) {
+      for (var itemResult :
+          minioClient.listObjects(ListObjectsArgs.builder().bucket(projectName).build())) {
         var item = itemResult.get();
         result.add(ObjectMetadata.of(item));
       }
@@ -171,12 +176,12 @@ class MinioStorageService implements StorageService {
     } catch (InvalidKeyException
         | InsufficientDataException
         | NoSuchAlgorithmException
-        | NoResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
         | ErrorResponseException
         | InternalException
-        | IOException e) {
+        | IOException
+        | InvalidResponseException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }
@@ -185,38 +190,44 @@ class MinioStorageService implements StorageService {
   public InputStream load(String projectName, String objectName) {
     try {
       LOGGER.info("Getting object {}.", objectName);
-      return minioClient.getObject(projectName, objectName);
+      return minioClient.getObject(
+          GetObjectArgs.builder().bucket(projectName).object(objectName).build());
     } catch (InvalidKeyException
-        | InvalidArgumentException
         | InsufficientDataException
         | NoSuchAlgorithmException
-        | NoResponseException
         | InvalidResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
         | ErrorResponseException
         | InternalException
-        | IOException e) {
+        | IOException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
+  }
+
+  @Override
+  public List<Map<String, String>> preview(
+      String bucketName, String objectName, int rowLimit, int columnLimit) {
+    throw new UnsupportedOperationException();
+    // would require us I suppose to download the file to temp and then run the ParquetUtils.preview
+    // from there
   }
 
   @Override
   public void delete(String projectName, String objectName) {
     try {
       LOGGER.info("Deleting object {}.", objectName);
-      minioClient.removeObject(projectName, objectName);
+      minioClient.removeObject(
+          RemoveObjectArgs.builder().bucket(projectName).object(objectName).build());
     } catch (InvalidKeyException
-        | InvalidArgumentException
         | InsufficientDataException
         | NoSuchAlgorithmException
-        | NoResponseException
         | InvalidResponseException
-        | XmlPullParserException
-        | InvalidBucketNameException
         | ErrorResponseException
         | InternalException
-        | IOException e) {
+        | IOException
+        | ServerException
+        | XmlParserException e) {
       throw new StorageException(e);
     }
   }

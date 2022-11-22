@@ -1,20 +1,15 @@
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-
-datashield:
+armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
-
-  # Uncomment this section to bootstrap the application with default values.
-  # bootstrap:
-    # oidc-admin-user: user@yourdomain.org
+  # set this true if you want Armadillo to create/edit/delete profile docker images
+  docker-management-enabled: true
+  # uncomment this to configure a default admin user
+  # oidc-admin-user: user@yourdomain.org
 
   profiles:
     - name: default
-      environment: default
+      image: datashield/armadillo-rserver
+      port: 6311
       whitelist:
         - dsBase
       options:
@@ -70,10 +65,11 @@ spring:
         provider:
           molgenis:
             issuer-uri: 'https://auth.molgenis.org'
-          #recommend to set registration via environment variables
-          #in IntelliJ something like:
-          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID=b396233b-cdb2-449e-ac5c-a0d28b38f791;
-          #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET=xxx
+# Uncomment the following section to enable OIDC login:
+#        registration:
+#            molgenis:
+#               client-id: <your client id>
+#               client-secret: <your client secret>
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
@@ -94,12 +90,12 @@ logging:
           actuate:
             audit:
               listener:
-                AuditListener: DEBUG
+                AuditListener: INFO
           web:
             context: DEBUG
 
 storage:
-  root-dir: "data"
+  root-dir: data
 
 # Uncomment the following block to enable MinIO storage (overrules local storage)
 #minio:
@@ -114,26 +110,17 @@ spring:
     activate:
       on-profile: development-omics
 
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-    - name: omics
-      host: localhost
-      port: 6313
-
-datashield:
+armadillo:
   profiles:
     - name: default
-      environment: default
+      port: 6311
       whitelist:
         - dsBase
       options:
         datashield:
           seed: 342325352
     - name: omics
-      environment: omics
+      port: 6313
       whitelist:
         - dsBase
         - dsOmics
@@ -149,19 +136,11 @@ spring:
     activate:
       on-profile: development-exposome
 
-rserve:
-  environments:
-    - name: default
-      host: localhost
-      port: 6311
-    - name: exposome
-      host: localhost
-      port: 6312
-
-datashield:
+armadillo:
   profiles:
     - name: default
       environment: default
+      port: 6311
       whitelist:
         - dsBase
       options:
@@ -169,6 +148,7 @@ datashield:
           seed: 342325352
     - name: exposome
       environment: exposome
+      port: 6312
       whitelist:
         - dsBase
         - dsExposome
@@ -183,22 +163,11 @@ spring:
     activate:
       on-profile: docker-compose
 
-rserve:
-  environments:
+armadillo:
+  profiles:
     - name: default
       host: rserver
       port: 6311
-    - name: exposome
-      host: rserver-exposome
-      port: 6311
-    - name: omics
-      host: rserver-omics
-      port: 6311
-
-datashield:
-  profiles:
-    - name: default
-      environment: default
       whitelist:
         - dsBase
       options:
@@ -206,6 +175,8 @@ datashield:
           seed: 342325352
     - name: exposome
       environment: exposome
+      host: rserver-exposome
+      port: 6311
       whitelist:
         - dsBase
         - dsExposome
@@ -214,6 +185,8 @@ datashield:
           seed: 039284230
     - name: omics
       environment: omics
+      host: rserver-omics
+      port: 6311
       whitelist:
         - dsBase
         - dsOmics

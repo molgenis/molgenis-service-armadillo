@@ -81,11 +81,23 @@ how to set that up:
 - Next to `application.yml`, create a file `application-local.yml` (this file is ignored by git)
 - Give it the following content:
 ```
-datashield:
-  bootstrap:
-    oidc-admin-user: <your OIDC email>
-    default-project: lifecycle
+armadillo:
+  oidc-permission-enabled: false
+  docker-management-enabled: true
+  oidc-admin-user: <your OIDC email>
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          molgenis:
+            client-id: <OIDC client ID>
+            client-secret: <OIDC client secret>
 ```
+
+>Note: If can't configure an oauth2 client for any reason, just remove the `spring` section.
+
 - Now, in the Run Configuration for the DatashieldServiceApplication, add the following program argument: 
 
 ```--spring.config.additional-location=file:armadillo/src/main/resources/application-local.yml```
@@ -106,13 +118,3 @@ Always use profile `development` in combination with these profiles:
 - `development-omics`
 
 For example: `development, development-omics`
-
-### Oauth 2.0
-To enable Oauth 2.0 login you must set environment variables:
-
-- SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-ID
-- SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MOLGENIS_CLIENT-SECRET
-
-If you don't set these variables, you will be offered with 'basic auth' sign in box.
-
-Note: if you already have signed in with relevant oauth service you will stay signed in even if you switch to basic-auth using login form.

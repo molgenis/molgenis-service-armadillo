@@ -1,18 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EMAIL;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_USERS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_ADD;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_DELETE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_LIST;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_USER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -33,35 +21,22 @@ import java.util.Objects;
 import java.util.Set;
 import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ArmadilloMetadata;
-import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
-import org.molgenis.armadillo.metadata.ProjectDetails;
-import org.molgenis.armadillo.metadata.ProjectPermission;
-import org.molgenis.armadillo.metadata.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.molgenis.armadillo.metadata.*;
+import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "admin", description = "Admin API to manage users, project and permissions")
+@Tag(name = "access", description = "Access API to manage users, projects, and permissions")
 @RestController
 @Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("admin")
-public class AdminController {
+@RequestMapping("access")
+public class AccessController {
 
-  private final ArmadilloMetadataService metadata;
+  private final AccessService metadata;
   private final AuditEventPublisher auditor;
 
-  public AdminController(ArmadilloMetadataService metadataService, AuditEventPublisher auditor) {
+  public AccessController(AccessService metadataService, AuditEventPublisher auditor) {
     this.metadata = metadataService;
     this.auditor = auditor;
   }
@@ -72,7 +47,7 @@ public class AdminController {
         @ApiResponse(
             responseCode = "200",
             description = "All metadata listed",
-            content = @Content(schema = @Schema(implementation = ArmadilloMetadata.class))),
+            content = @Content(schema = @Schema(implementation = AccessMetadata.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -80,8 +55,8 @@ public class AdminController {
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ArmadilloMetadata settingsRaw(Principal principal) {
-    return auditor.audit(metadata::settingsList, principal, LIST_PROJECTS, Map.of());
+  public AccessMetadata settingsRaw(Principal principal) {
+    return auditor.audit(metadata::settingsList, principal, LIST_ACCESS_DATA, Map.of());
   }
 
   @Operation(summary = "List all permissions")

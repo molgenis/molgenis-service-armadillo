@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.time.Clock;
 import java.time.Instant;
@@ -15,44 +16,31 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.config.ProfileConfigProps;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(DevelopmentController.class)
-@ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-@Import(AuditEventPublisher.class)
-class DevelopmentControllerTest {
+class DevelopmentControllerTest extends ArmadilloControllerTestBase {
 
-  @Autowired private MockMvc mockMvc;
-  @Autowired AuditEventPublisher auditEventPublisher;
-  @MockBean private ProfileConfigProps profileConfigProps;
+  @MockBean private ProfileService profileService;
   @MockBean private Commands commands;
-  @MockBean private ApplicationEventPublisher applicationEventPublisher;
-  @MockBean private ArmadilloStorageService armadilloStorageService;
+  @MockBean private ArmadilloStorageService armadilloStorage;
+  @MockBean DockerClient dockerClient;
 
   @Mock(lenient = true)
   private Clock clock;
@@ -131,7 +119,7 @@ class DevelopmentControllerTest {
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
     DevelopmentController controller =
-        new DevelopmentController(commands, auditEventPublisher, profileConfigProps);
+        new DevelopmentController(commands, auditEventPublisher, profileService);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }

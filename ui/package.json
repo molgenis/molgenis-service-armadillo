@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@popperjs/core": "2.11.6",
-    "bootstrap": "5.2.2",
-    "bootstrap-icons": "1.9.1",
-    "vue": "3.2.41"
+    "bootstrap": "5.2.3",
+    "bootstrap-icons": "1.10.2",
+    "vue": "3.2.45"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "3.1.2",
-    "sass": "1.54.5",
-    "vite": "3.1.8"
+    "@vitejs/plugin-vue": "3.2.0",
+    "sass": "1.56.1",
+    "vite": "3.2.4"
   }
 }

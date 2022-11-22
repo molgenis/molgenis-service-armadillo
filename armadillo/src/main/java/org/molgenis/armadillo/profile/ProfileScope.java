@@ -29,6 +29,18 @@ public class ProfileScope implements Scope {
     return scopedBeans.remove(getFullyQualifiedBeanName(beanName));
   }
 
+  public void removeAllProfileBeans(String profileName) {
+    scopedBeans
+        .keys()
+        .asIterator()
+        .forEachRemaining(
+            key -> {
+              if (key.startsWith(profileName)) {
+                scopedBeans.remove(key);
+              }
+            });
+  }
+
   @Override
   public void registerDestructionCallback(String beanName, Runnable runnable) {
     // We do not use this because our set of beans is application scoped
