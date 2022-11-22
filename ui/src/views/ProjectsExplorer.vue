@@ -20,23 +20,15 @@
           Project: {{ $route.params.projectId }}
         </h1>
         <ButtonGroup
-          :buttonIcons="[
-            // 'folder-plus',
-            'file-earmark-plus',
-            'trash-fill',
-          ]"
-          :buttonColors="[
-            // 'primary',
-            'primary',
-            'danger',
-          ]"
+          :buttonIcons="['folder-plus', 'file-earmark-plus', 'trash-fill']"
+          :buttonColors="['primary', 'primary', 'danger']"
           :disabledButtons="[
-            // false,
+            false,
             selectedFolder === '',
             selectedFolder === '' || selectedFile === '',
           ]"
           :clickCallbacks="[
-            // function () {},
+            setCreateNewFolder,
             clickUploadFile,
             deleteSelectedFile,
           ]"
@@ -46,16 +38,47 @@
           <LoadingSpinner v-if="loading"></LoadingSpinner>
           <div class="col-6">
             <div class="row">
+              <div
+                class="col-12 fst-italic"
+                v-if="projectFolders.length === 0 && !createNewFolder"
+              >
+                Create a folder to get started
+              </div>
               <div class="col-6 p-0 m-0">
                 <ListGroup
                   ref="folderComponent"
-                  :listContent="Object.keys(projectContent)"
+                  :listContent="projectFolders"
                   rowIcon="folder"
                   rowIconAlt="folder2-open"
                   :altIconCondition="showSelectedFolderIcon"
                   :preselectedItem="selectedFolder"
                   :selectionColor="selectedFile ? 'secondary' : 'primary'"
                 ></ListGroup>
+                <div
+                  class="input-group input-group-sm m-1"
+                  v-if="createNewFolder"
+                >
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Folder name"
+                    v-model="newFolder"
+                  />
+                  <button
+                    class="btn btn-sm btn-success"
+                    type="button"
+                    @click="addNewFolder"
+                  >
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    type="button"
+                    @click="cancelNewFolder"
+                  >
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
               </div>
               <div class="col-6 p-0 m-0">
                 <ListGroup
@@ -211,7 +234,18 @@ export default defineComponent({
       previewParam,
     };
   },
-  data() {
+  data(): {
+    triggerFileUpload: boolean;
+    projectToEdit: string;
+    projectToEditIndex: number;
+    loading: boolean;
+    successMessage: string;
+    filePreview: Array<any>;
+    createNewFolder: boolean;
+    loading_preview: boolean;
+    newFolder: string;
+    projectContent: ObjectWithStringKeyAndStringArrayValue;
+  } {
     return {
       triggerFileUpload: false,
       projectToEdit: "",
@@ -220,6 +254,9 @@ export default defineComponent({
       loading_preview: false,
       successMessage: "",
       filePreview: [{}],
+      createNewFolder: false,
+      newFolder: "",
+      projectContent: {},
     };
   },
   watch: {
@@ -240,13 +277,21 @@ export default defineComponent({
           });
       }
     },
+    project() {
+      this.setProjectContent();
+    },
   },
   computed: {
     previewContainerWidth(): number {
       const previewContainer: Element = this.$refs.previewContainer as Element;
       return previewContainer.clientWidth;
     },
-    projectContent(): ObjectWithStringKeyAndStringArrayValue {
+    projectFolders() {
+      return Object.keys(this.projectContent);
+    },
+  },
+  methods: {
+    setProjectContent() {
       let content: ObjectWithStringKeyAndStringArrayValue = {};
       this.project.forEach((item) => {
         const splittedItem = item.split("/");
@@ -255,7 +300,9 @@ export default defineComponent({
         }
 
         if (!splittedItem[0].startsWith(".")) {
-          if (!splittedItem[1].startsWith(".")) {
+          if (splittedItem[1] == "") {
+            content[splittedItem[0]] = [];
+          } else if (!splittedItem[1].startsWith(".")) {
             if (splittedItem[0] in content) {
               content[splittedItem[0]].push(splittedItem[1]);
             } else {
@@ -264,10 +311,29 @@ export default defineComponent({
           }
         }
       });
-      return content;
+      this.projectContent = content;
     },
-  },
-  methods: {
+    setCreateNewFolder() {
+      this.createNewFolder = true;
+    },
+    addNewFolder() {
+      if (this.newFolder) {
+        if (!this.newFolder.includes("/")) {
+          this.project.push(this.newFolder.toLocaleLowerCase() + "/");
+          this.successMessage = `Succesfully created folder: [${this.newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
+          this.setProjectContent();
+          this.cancelNewFolder();
+        } else {
+          this.errorMessage = "Folder name cannot contain /";
+        }
+      } else {
+        this.errorMessage = "Folder name cannot be empty";
+      }
+    },
+    cancelNewFolder() {
+      this.createNewFolder = false;
+      this.newFolder = "";
+    },
     resetFileUpload() {
       this.triggerFileUpload = false;
     },
@@ -298,14 +364,23 @@ export default defineComponent({
       this.triggerFileUpload = true;
     },
     deleteSelectedFile() {
+      const folder = this.selectedFolder;
+      const file = this.selectedFile;
       const response = deleteObject(
         this.projectId,
         `${this.selectedFolder}%2F${this.selectedFile}`
       );
       response
         .then(() => {
-          this.reloadProject();
-          this.successMessage = `Successfully deleted file [${this.selectedFile}] from directory [${this.selectedFolder}] of project: [${this.projectId}]`;
+          this.selectedFile = "";
+          this.reloadProject( () => {
+            if (this.projectFolders.length === 0) {
+              this.project.push(folder + "/");
+            }
+            this.setProjectContent();
+          });
+
+          this.successMessage = `Successfully deleted file [${file}] from directory [${folder}] of project: [${this.projectId}]`;
         })
         .catch((error) => {
           this.errorMessage = error;
@@ -314,11 +389,14 @@ export default defineComponent({
     editProject(project: Project) {
       this.projectToEdit = project.name;
     },
-    reloadProject() {
+    reloadProject(callback: Function | undefined = undefined) {
       this.loading = true;
       this.loadProject(this.projectId)
         .then(() => {
           this.loading = false;
+          if (callback) {
+            callback();
+          }
         })
         .catch((error) => {
           this.loading = false;
