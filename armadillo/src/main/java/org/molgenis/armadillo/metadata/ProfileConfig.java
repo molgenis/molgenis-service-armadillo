@@ -7,12 +7,15 @@ import com.google.auto.value.AutoValue;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
   @JsonProperty("name")
+  @NotEmpty
   public abstract String getName();
 
   @JsonProperty("image")
@@ -21,9 +24,11 @@ public abstract class ProfileConfig {
 
   @JsonProperty("host")
   @Nullable // defaults to localhost
+  @NotEmpty
   public abstract String getHost();
 
   @JsonProperty("port")
+  @Positive
   public abstract Integer getPort();
 
   @JsonProperty("whitelist")
