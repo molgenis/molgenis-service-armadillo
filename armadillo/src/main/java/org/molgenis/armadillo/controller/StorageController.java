@@ -1,10 +1,22 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PREVIEW_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
@@ -22,17 +34,26 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "storage", description = "API to manipulate the storage")
 @RestController
-@Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
@@ -88,8 +109,8 @@ public class StorageController {
   public void uploadObject(
       Principal principal,
       @PathVariable String project,
-      @RequestParam String object,
-      @RequestParam MultipartFile file) {
+      @RequestParam @NotEmpty String object,
+      @Valid @RequestParam MultipartFile file) {
     auditor.audit(
         () -> addObject(project, object, file),
         principal,
@@ -105,7 +126,10 @@ public class StorageController {
     }
   }
 
-  @Operation(summary = "Copy an object within a project")
+  @Operation(
+      summary = "Copy an object within a project",
+      description =
+          "The request body should contain the new object's name in full (e.g. core/nonrep.parquet)")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object copied successfully"),
@@ -129,7 +153,10 @@ public class StorageController {
         Map.of(PROJECT, project, "from", object, "to", requestBody.name()));
   }
 
-  @Operation(summary = "Move an object within a project")
+  @Operation(
+      summary = "Move an object within a project",
+      description =
+          "The request body should contain the new object's name in full (e.g. core/nonrep.parquet)")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object moved successfully"),
@@ -145,7 +172,7 @@ public class StorageController {
       Principal principal,
       @PathVariable String project,
       @PathVariable String object,
-      @RequestBody ObjectRequestBody requestBody) {
+      @Valid @RequestBody ObjectRequestBody requestBody) {
     auditor.audit(
         () -> storage.moveObject(project, requestBody.name(), object),
         principal,
@@ -182,7 +209,7 @@ public class StorageController {
   @GetMapping(
       path = "/projects/{project}/objects/{object}/preview",
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody List<Map<String, String>> objectPreview(
+  public @ResponseBody List<Map<String, String>> previewObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> storage.getPreview(project, object),

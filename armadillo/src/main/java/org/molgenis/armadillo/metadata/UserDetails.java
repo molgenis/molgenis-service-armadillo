@@ -7,11 +7,13 @@ import com.google.auto.value.AutoValue;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotEmpty;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class UserDetails {
   @JsonProperty("email")
+  @NotEmpty
   abstract String getEmail();
 
   @JsonProperty("firstName")
