@@ -23,6 +23,5 @@ describe("BadgeList", () => {
     expect(wrapper.emitted()).toHaveProperty("update");
     expect(wrapper.emitted("update")).toEqual([[["lifecycle", "molgenis"]]]);
   });
-  test("adds badge, saves it and then removes the correct one", () => {});
 });
 
