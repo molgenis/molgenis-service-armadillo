@@ -65,7 +65,7 @@
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
         <sonar.coverage.exclusions>**/*Config.*</sonar.coverage.exclusions>
 
-        <auto-value.version>1.10</auto-value.version>
+        <auto-value.version>1.10.1</auto-value.version>
         <auto-service-annotations.version>1.0.1</auto-service-annotations.version>
 
         <RServe.version>1.8.1</RServe.version>
@@ -113,12 +113,12 @@
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-ui</artifactId>
-                <version>1.6.12</version>
+                <version>1.6.13</version>
             </dependency>
             <dependency>
                 <groupId>io.minio</groupId>
                 <artifactId>minio</artifactId>
-                <version>8.4.5</version>
+                <version>8.4.6</version>
             </dependency>
             <!-- https://github.com/spring-projects/spring-boot/issues/21939 -->
             <dependency>

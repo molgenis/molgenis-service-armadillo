@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "profiles", description = "API to manage DataSHIELD profiles")
 @RestController
-@Valid
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
@@ -148,7 +147,7 @@ public class ProfilesController {
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(OK)
-  public void profileUpsert(Principal principal, @RequestBody ProfileConfig profileConfig) {
+  public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
     auditor.audit(
         () -> profiles.upsert(profileConfig),
         principal,

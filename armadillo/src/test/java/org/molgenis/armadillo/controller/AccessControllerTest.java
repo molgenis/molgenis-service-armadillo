@@ -87,8 +87,10 @@ class AccessControllerTest {
     mockMvc
         .perform(
             post("/access/permissions")
-                .param("project", "chefkesProject")
-                .param("email", "chefke@email.com")
+                .content(
+                    new Gson()
+                        .toJson(ProjectPermission.create("chefke@email.com", "chefkesProject")))
+                .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
@@ -122,8 +124,9 @@ class AccessControllerTest {
     mockMvc
         .perform(
             delete("/access/permissions")
-                .param("email", "bofke@email.com")
-                .param("project", "bofkesProject")
+                .content(
+                    new Gson().toJson(ProjectPermission.create("bofke@email.com", "bofkesProject")))
+                .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
