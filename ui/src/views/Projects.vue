@@ -103,7 +103,7 @@ export default defineComponent({
         if (error === "Unauthorized") {
           router.push("/login");
         } else {
-          errorMessage.value = error;
+          errorMessage.value = `Could not load projects: ${error}.`;
         }
         return [];
       });
@@ -149,7 +149,7 @@ export default defineComponent({
       const index = this.projects.findIndex((project: Project) => {
         return project.name === this.projectToEdit;
       });
-      // only change when project is cleared, otherwise it will return -1 when name is altered
+      // only change when project is cleared and when index available, otherwise it will return -1 when name is altered
       if (this.projectToEdit === "" || index !== -1) {
         return index;
       } else return this.projectToEditIndex;
@@ -160,6 +160,7 @@ export default defineComponent({
         await this.loadProjects();
         this.loading = false;
       } catch (error) {
+        this.loading = false;
         this.errorMessage = `Could not load projects: ${error}.`;
       }
     },
@@ -191,7 +192,7 @@ export default defineComponent({
       const project: Project = this.projects[this.projectToEditIndex];
       this.saveProject(project, () => {
         // Check if name was altered, then delete the old row
-        if (project.name != this.projectToEdit) {
+        if (project.name !== this.projectToEdit) {
           deleteProject(this.projectToEdit).then(() => {
             this.reloadProjects();
           });
@@ -202,7 +203,6 @@ export default defineComponent({
     saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
       const projectName = project.name;
-      console.log("this is my name", projectName);
       if (projectName === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
@@ -219,9 +219,6 @@ export default defineComponent({
               }
             );
             setTimeout(this.clearUpdatedProjectIndex, 1000);
-          })
-          .catch((error) => {
-            this.errorMessage = `Could not save [${project.name}]: ${error}.`;
           });
       }
     },
