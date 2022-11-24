@@ -1,6 +1,8 @@
-import { DOMWrapper, mount, shallowMount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, shallowMount, VueWrapper } from "@vue/test-utils";
 import FileUpload from "@/components/FileUpload.vue";
+import * as _api from "@/api/api";
 
+const api = _api as any;
 jest.mock("@/api/api");
 
 describe("FileUpload", () => {
@@ -16,7 +18,6 @@ describe("FileUpload", () => {
     width: number;
     height: number;
   }[];
-  const api = require("@/api/api");
 
   // https://stackoverflow.com/questions/48993134/how-to-test-input-file-with-jest-and-vue-test-utils
   beforeEach(function () {
