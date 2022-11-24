@@ -82,7 +82,7 @@
               </div>
               <div class="col-6 p-0 m-0">
                 <ListGroup
-                  v-show="selectedFolder != ''"
+                  v-show="selectedFolder !== ''"
                   ref="fileComponent"
                   :listContent="
                     projectContent[selectedFolder]
@@ -100,9 +100,9 @@
               <div class="col-6">
                 <!-- Placeholder for file upload for uploading complete project in future-->
               </div>
-              <div class="col-6">
+              <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <FileUpload
-                  v-show="selectedFolder != ''"
+     
                   :project="projectId"
                   :object="selectedFolder"
                   @upload_success="onUploadSuccess"
@@ -158,7 +158,7 @@ import {
   StringArray,
   ObjectWithStringKeyAndStringArrayValue,
 } from "@/types/types";
-import { RouterLink, useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
 
