@@ -1,10 +1,11 @@
 import { User } from "./api";
 
-export type StringObject = { [key: string]: string | Array<string> };
+export type StringObject = Record<string, string | Array<string>>;
 
-export type ObjectWithStringKey = {
-  [key: string]: string | StringArray | boolean | number | Object;
-};
+export type ObjectWithStringKey = Record<
+  string,
+  string | StringArray | boolean | number | Object
+>;
 
 export type ListOfObjectsWithStringKey = ObjectWithStringKey[];
 
@@ -28,10 +29,7 @@ export type TypeString =
 export type StringArray = string[];
 
 // Maybe later expand with float/int/enum/character
-export type TypeObject = {
-  [key: string]: TypeString;
-};
-
+export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {
   triggerFileUpload: boolean;
   projectToEdit: string;

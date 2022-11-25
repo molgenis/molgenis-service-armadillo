@@ -6,7 +6,7 @@
     <thead>
       <tr>
         <!-- for each key of the first element of data-->
-        <th scope="col" v-for="key in tableHeader">
+        <th scope="col" v-for="key in tableHeader" :key="key">
           {{ key }}
         </th>
         <th scope="col">...</th>
@@ -14,9 +14,9 @@
     </thead>
     <tbody class="table-group-divider">
       <!-- for each row-->
-      <tr v-for="(row, index) in dataToPreview">
+      <tr v-for="(row, index) in dataToPreview" :key="index">
         <!-- for each value in row -->
-        <td v-for="value in row">
+        <td v-for="(value,key) in row" :key="key">
           {{ value }}
         </td>
         <!-- if index is 0 -->

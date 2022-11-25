@@ -1,6 +1,6 @@
 <template>
   <span>
-    <Badge v-for="(badgeItem, index) in badgeItems">
+    <Badge v-for="(badgeItem, index) in badgeItems" :key="badgeItem">
       {{ badgeItem }}
       <button v-if="canEdit"
               class="cancel-badge text-light bg-secondary"

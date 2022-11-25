@@ -3,6 +3,7 @@
     <button
       type="button"
       v-for="(icon, index) in buttonIcons"
+      :key="icon"
       class="btn btn-sm"
       :class="`btn-${getButtonColor(index)} bg-${buttonColors[index]}`"
       :disabled="disabledButtons ? disabledButtons[index] : false"

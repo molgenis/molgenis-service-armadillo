@@ -6,6 +6,7 @@
       :class="
         key == selectedItem ? `text-bg-${selectionColor}` : 'link-primary'
       "
+      :key="key"
       @click="toggleSelectedItem(key)"
     >
       <a>

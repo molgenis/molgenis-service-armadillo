@@ -2,20 +2,20 @@
   <tr>
     <th scope="row">
       <ButtonGroup
-        :buttonIcons='(["check-lg", "x-lg"] as StringArray)'
-        :buttonColors='(["success", "danger"] as BootstrapType[])'
+        :buttonIcons="buttonIcons"
+        :buttonColors="buttonTypes"
         :clickCallbacks="[save, cancel]"
       ></ButtonGroup>
     </th>
-    <td v-for="(type, column) in dataStructure">
+    <td v-for="(type, column) in dataStructure" :key="column">
       <div v-if="hideColumns.includes(column)">
         <!-- skipped column {{column}}-->
       </div>
       <div v-else-if="type === 'array'">
-        <StringArrayInput v-model="(rowData[column] as StringArray)"/>
+        <StringArrayInput v-model="(rowData[column] as StringArray)" />
       </div>
       <div v-else-if="type === 'object'">
-        <KeyValueInput v-model="(rowData[column] as Object)"/>
+        <KeyValueInput v-model="(rowData[column] as Object)" />
       </div>
       <div v-else-if="type === 'boolean'">
         <input
@@ -29,7 +29,7 @@
           type="text"
           class="form-control"
           v-model="(rowData[column] as string)"
-          :placeholder="rowData[column]"
+          :placeholder="(rowData[column] as string)"
           :aria-label="(column as string)"
         />
       </div>
@@ -42,7 +42,11 @@ import { defineComponent, PropType } from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
-import { StringArray, BootstrapType, TypeObject } from "@/types/types";
+import {
+  StringArray,
+  BootstrapType,
+  TypeObject,
+} from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
@@ -66,15 +70,21 @@ export default defineComponent({
     },
     hideColumns: {
       type: Array,
-      default: []
+      default: [],
     },
     dataStructure: {
       type: Object as PropType<TypeObject>,
-      required: true
-    }
+      required: true,
+    },
   },
-  data() {
+  data(): {
+    buttonIcons: StringArray;
+    buttonTypes: BootstrapType[];
+    rowData: Record<string, StringArray|Object|boolean|string>;
+  } {
     return {
+      buttonIcons: ["check-lg", "x-lg"],
+      buttonTypes: ["success", "danger"],
       rowData: this.row,
     };
   },

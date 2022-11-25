@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="(value, key) in modelValue">
+    <div v-for="(value, key) in modelValue" :key="key">
       <Badge
         >{{ key }} = {{ value }}
         <button

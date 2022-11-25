@@ -3,18 +3,18 @@
     <thead>
       <tr>
         <slot name="extraHeader"></slot>
-        <th scope="col" v-for="head in capitalizedHeaders">
+        <th scope="col" v-for="head in capitalizedHeaders" :key="head">
           {{ head }}
         </th>
       </tr>
     </thead>
     <tbody>
       <slot name="extraRow"></slot>
-      <template v-for="dataRow in dataToShow">
+      <template v-for="(dataRow, dataRowIndex) in dataToShow" :key="dataRowIndex">
         <tr v-if="getIndex(dataRow) != indexToEdit" :class="getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''">
           <slot name="extraColumn" :item="dataRow"></slot>
-          <td v-for="(type, propertyName) in dataStructure">
-            <span v-if="customColumns.includes(propertyName as string)">
+          <td v-for="(type, propertyName) in dataStructure" :key="type">
+            <span v-if="customColumns.includes(propertyName)">
               <slot
                 name="customType"
                 :data="dataRow[propertyName]"
