@@ -1,4 +1,4 @@
-# Instruction for migration a 2.x Armadillo to 3.x
+# Instructions for migrating a 2.x Armadillo to 3.x
 The release of Armadillo 3.0 introduces some breaking changes. These instructions will guide you 
 through the steps needed to migrate your old Armadillo service to the new version.
 
