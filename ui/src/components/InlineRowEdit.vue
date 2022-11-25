@@ -12,25 +12,25 @@
         <!-- skipped column {{column}}-->
       </div>
       <div v-else-if="type === 'array'">
-        <StringArrayInput v-model="(rowData[column] as StringArray)" />
+        <StringArrayInput v-model="rowData[column]" />
       </div>
       <div v-else-if="type === 'object'">
-        <KeyValueInput v-model="(rowData[column] as Object)" />
+        <KeyValueInput v-model="rowData[column]" />
       </div>
       <div v-else-if="type === 'boolean'">
         <input
           class="form-check-input"
           type="checkbox"
-          v-model="(rowData[column] as boolean)"
+          v-model="rowData[column]"
         />
       </div>
       <div class="input-group mb-3" v-else>
         <input
           type="text"
           class="form-control"
-          v-model="(rowData[column] as string)"
-          :placeholder="(rowData[column] as string)"
-          :aria-label="(column as string)"
+          v-model="rowData[column]"
+          :placeholder="rowData[column]"
+          :aria-label="column"
         />
       </div>
     </td>
@@ -42,11 +42,7 @@ import { defineComponent, PropType } from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
-import {
-  StringArray,
-  BootstrapType,
-  TypeObject,
-} from "@/types/types";
+import { StringArray, BootstrapType, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
@@ -65,7 +61,9 @@ export default defineComponent({
       required: true,
     },
     row: {
-      type: Object,
+      type: Object as PropType<
+        Record<string, StringArray | Object | boolean | string>
+      >,
       required: true,
     },
     hideColumns: {
@@ -80,7 +78,7 @@ export default defineComponent({
   data(): {
     buttonIcons: StringArray;
     buttonTypes: BootstrapType[];
-    rowData: Record<string, StringArray|Object|boolean|string>;
+    rowData: Record<string, StringArray | Object | boolean | string>;
   } {
     return {
       buttonIcons: ["check-lg", "x-lg"],

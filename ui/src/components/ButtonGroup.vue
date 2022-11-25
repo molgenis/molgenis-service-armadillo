@@ -30,7 +30,8 @@ export default defineComponent({
       required: true,
     },
     disabledButtons: {
-      type: Array as PropType<boolean[]>
+      type: Array as PropType<boolean[]>,
+      required: false,
     },
     clickCallbacks: {
       type: Array as PropType<Function[]>, 

@@ -1,7 +1,7 @@
 <template>
   <div>
     <ul class="nav nav-tabs">
-      <li v-for="(item, index) in menu" class="nav-item">
+      <li v-for="(item, index) in menu" class="nav-item" :key="index">
         <router-link :to="`/${item.toLowerCase()}`">
           <button
             :class="isSelectedPage(item) ? 'nav-link active' : 'nav-link'"

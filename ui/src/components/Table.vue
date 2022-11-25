@@ -10,8 +10,16 @@
     </thead>
     <tbody>
       <slot name="extraRow"></slot>
-      <template v-for="(dataRow, dataRowIndex) in dataToShow" :key="dataRowIndex">
-        <tr v-if="getIndex(dataRow) != indexToEdit" :class="getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''">
+      <template
+        v-for="(dataRow, dataRowIndex) in dataToShow"
+        :key="dataRowIndex"
+      >
+        <tr
+          v-if="getIndex(dataRow) != indexToEdit"
+          :class="
+            getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''
+          "
+        >
           <slot name="extraColumn" :item="dataRow"></slot>
           <td v-for="(type, propertyName) in dataStructure" :key="type">
             <span v-if="customColumns.includes(propertyName)">
@@ -24,7 +32,7 @@
               </slot>
             </span>
             <span v-else-if="type === 'array'">
-              <BadgeList :item-array="(dataRow[propertyName] as StringArray)" />
+              <BadgeList :item-array="dataRow[propertyName]" />
             </span>
             <span v-else-if="type === 'object'">
               <slot
@@ -92,8 +100,8 @@ export default defineComponent({
     },
     highlightedRowIndex: {
       type: Number,
-      default: -1
-    }
+      default: -1,
+    },
   },
   computed: {
     capitalizedHeaders() {
