@@ -89,57 +89,49 @@ describe("Projects", () => {
       },
     });
   });
-  test("clears user messages", async () => {
+  test("clears user messages", () => {
     wrapper.vm.successMessage = "test";
     wrapper.vm.errorMessage = "test";
     wrapper.vm.clearUserMessages();
-    await wrapper.vm.$nextTick();
     expect(wrapper.vm.successMessage).toBe("");
     expect(wrapper.vm.errorMessage).toBe("");
   });
 
-  test("clears project to edit", async () => {
+  test("clears project to edit", () => {
     wrapper.vm.projectToEdit = "test";
     wrapper.vm.clearProjectToEdit();
-    await wrapper.vm.$nextTick();
     expect(wrapper.vm.projectToEdit).toBe("");
   });
 
-  test("clears project to edit", async () => {
+  test("clears project to edit", () => {
     wrapper.vm.projectToEdit = "test";
     wrapper.vm.clearProjectToEdit();
-    await wrapper.vm.$nextTick();
     expect(wrapper.vm.projectToEdit).toBe("");
   });
 
-  test("sets project to edit", async () => {
+  test("sets project to edit", () => {
     wrapper.vm.projectToEdit = "";
     wrapper.vm.editProject({ name: "molgenis", users: ["tommy", "mariska"] });
-    await wrapper.vm.$nextTick();
     expect(wrapper.vm.projectToEdit).toBe("molgenis");
   });
 
-  test("retrieves index of project to edit", async () => {
+  test("retrieves index of project to edit", () => {
     wrapper.vm.projectToEdit = "molgenis";
-    const projects = wrapper.vm.projects;
     const index = wrapper.vm.getEditIndex();
-    await wrapper.vm.$nextTick();
     expect(index).toBe(3);
   });
 
-  test("should return old index if projectname is altered", async () => {
+  test("should return old index if projectname is altered", () => {
     wrapper.vm.projectToEditIndex = 2;
     wrapper.vm.projectToEdit = "molgenis_project";
     const index = wrapper.vm.getEditIndex();
-    await wrapper.vm.$nextTick();
     expect(index).toBe(2);
   });
 
-  test("returns -1 if name of project is empty (to be able to rename project)", async () => {
+  test("returns -1 if name of project is empty (to be able to rename project)", () => {
     wrapper.vm.projectToEditIndex = 3;
     wrapper.vm.projectToEdit = "";
     const index = wrapper.vm.getEditIndex();
-    await wrapper.vm.$nextTick();
     expect(index).toBe(-1);
   });
 
@@ -171,10 +163,9 @@ describe("Projects", () => {
     );
   });
 
-  test("filters and sorts projects alphabetically", async () => {
+  test("filters and sorts projects alphabetically", () => {
     wrapper.vm.searchString = "ro";
     const filteredAndSorted = wrapper.vm.getFilteredAndSortedProjects();
-    await wrapper.vm.$nextTick();
     expect(filteredAndSorted.length).toBe(3);
     expect(filteredAndSorted).toEqual([
       {
@@ -256,5 +247,21 @@ describe("Projects", () => {
     expect(deleteMock).toHaveBeenCalled();
     // happens in clearProjectToEdit at the end of saveEditedProject
     expect(wrapper.vm.projectToEdit).toBe("");
+  });
+
+  test("presents error message if project name is empty", () => {
+    wrapper.vm.projectToEdit = "molgenis";
+    wrapper.vm.projects[3] = {
+      name: "",
+      users: ["a.victor@umcg.nl"],
+    };
+    wrapper.vm.projectToEditIndex = 3;
+    wrapper.vm.saveEditedProject();
+    expect(wrapper.vm.errorMessage).toBe("Cannot create project with empty name.");
+  });
+  test("clears updated project index", () => {
+    wrapper.vm.updatedProjectIndex = 3;
+    wrapper.vm.clearUpdatedProjectIndex();
+    expect(wrapper.vm.updatedProjectIndex).toBe(-1);
   });
 });
