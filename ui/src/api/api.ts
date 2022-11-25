@@ -1,3 +1,4 @@
+import { ConnectionError } from "@/helpers/errors";
 import { Principal, Profile, Project, User, Auth } from "@/types/api";
 import { StringArray } from "@/types/types";
 import { APISettings } from "./config";
@@ -58,13 +59,12 @@ export async function delete_(url: string, item: string) {
 export async function handleResponse(response: Response) {
   if (!response.ok) {
     const json = await response.json();
-    let error = new Error();
+    let error = new ConnectionError("", response.status);
     if (json.message) {
       error.message = json.message;
     } else {
       error.message = response.statusText;
     }
-    error.cause = response.status;
     throw error;
   } else {
     return response;

@@ -28,8 +28,6 @@
 <script lang="ts">
 import { StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
-import RouterLink from "vue-router";
-import RouterView from "vue-router";
 
 export default defineComponent({
   name: "Tabs",

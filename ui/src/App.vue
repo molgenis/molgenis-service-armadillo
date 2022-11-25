@@ -6,7 +6,7 @@
         <div class="row mt-2">
           <div class="col">
             <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
-            <Login @loginEvent="reloadUser" v-else/>
+            <Login @loginEvent="reloadUser" v-else />
           </div>
         </div>
       </div>
@@ -22,8 +22,8 @@ import Users from "@/views/Users.vue";
 import Login from "@/views/Login.vue";
 import { onMounted, Ref, ref, defineComponent } from "vue";
 import { getPrincipal, logout } from "@/api/api";
-import { Principal } from "@/types/api";
 import { useRouter } from "vue-router";
+import { ConnectionError } from "@/helpers/errors";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -32,39 +32,37 @@ export default defineComponent({
     Projects,
     Tabs,
     Users,
-    Login
+    Login,
   },
   setup() {
-    const emptyPrincipal: Principal = {
-      authorities: [
-        {
-          authority: "",
-        },
-      ],
-      details: null,
-      authenticated: false,
-      principal: null,
-      credentials: null,
-      name: "",
-    };
-    const principal: Ref<Principal> = ref( emptyPrincipal as Principal);
+    const isAuthenticated: Ref<boolean> = ref(false);
+    const username: Ref<string> = ref("");
     const router = useRouter();
-    
+
     onMounted(() => {
-      loadPrincipal();
+      loadUser();
     });
-    const loadPrincipal = async () => {
-      principal.value = await getPrincipal().catch((error: Error) => {
-        if (error.cause === 401) {
-          router.push("/login");
-        }
-        return emptyPrincipal;
-      });
+    const loadUser = async () => {
+      await getPrincipal()
+        .then((principal) => {
+          isAuthenticated.value = principal.authenticated;
+          username.value =
+            principal.principal &&
+            principal.principal.attributes &&
+            principal.principal.attributes.email
+              ? principal.principal.attributes.email
+              : principal.name;
+        })
+        .catch((error: ConnectionError) => {
+          if (error.cause === 401) {
+            router.push("/login");
+          }
+        });
     };
     return {
-      emptyPrincipal,
-      principal,
-      loadPrincipal,
+      username,
+      isAuthenticated,
+      loadUser,
     };
   },
   data() {
@@ -74,48 +72,22 @@ export default defineComponent({
       tabIcons: ["clipboard2-data", "people-fill", "shield-shaded"],
     };
   },
-  computed: {
-    authenticated() {
-      return this.principal.authenticated;
-    },
-    isOauthUser() {
-      return (
-        this.principal.principal &&
-        this.principal.principal.attributes &&
-        this.principal.principal.attributes.email
-      );
-    },
-    username() {
-      // disabled ts here bc only way to fix error is by copy pasting code of isOauthUser (which is called)
-      return this.isOauthUser
-        ? // @ts-ignore
-          this.principal.principal.attributes.email
-        : this.principal.name;
-    },
-  },
-  watch: {
-    authenticated() {
-      if (!this.authenticated) {
-        this.$router.push("/login");
-      }
-    },
-  },
   methods: {
     logoutUser() {
       logout().then(() => {
+        this.username = "";
         this.reloadUser();
       });
     },
     reloadUser() {
-      this.loadPrincipal()
+      this.loadUser()
         .then(() => {
           if (!this.username) {
             this.$router.push("/login");
           }
         })
-        .catch((error: Error) => {
+        .catch((error: ConnectionError) => {
           if (error.cause === 401) {
-            this.principal = this.emptyPrincipal;
             this.$router.push("/login");
           }
         });
