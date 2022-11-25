@@ -153,11 +153,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProject, deleteObject, previewObject } from "@/api/api";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
-import { Project } from "@/types/api";
-import {
-  StringArray,
-  ObjectWithStringKeyAndStringArrayValue,
-} from "@/types/types";
+import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
@@ -234,18 +230,7 @@ export default defineComponent({
       previewParam,
     };
   },
-  data(): {
-    triggerFileUpload: boolean;
-    projectToEdit: string;
-    projectToEditIndex: number;
-    loading: boolean;
-    successMessage: string;
-    filePreview: Array<any>;
-    createNewFolder: boolean;
-    loading_preview: boolean;
-    newFolder: string;
-    projectContent: ObjectWithStringKeyAndStringArrayValue;
-  } {
+  data(): ProjectsExplorerData {
     return {
       triggerFileUpload: false,
       projectToEdit: "",
@@ -292,22 +277,26 @@ export default defineComponent({
   },
   methods: {
     setProjectContent() {
-      let content: ObjectWithStringKeyAndStringArrayValue = {};
+      let content: Record<string, string[]> = {};
       this.project.forEach((item) => {
-        const splittedItem = item.split("/");
-        if (splittedItem[0] == this.projectId) {
-          splittedItem.splice(0, 1);
+        /** scrub the project folder from the name */
+        const itemInProjectFolder = item.replace(`${this.projectId}/`, "");
+        if (itemInProjectFolder.length && itemInProjectFolder[0] === ".") {
+          return; /** if item starts with a . */
         }
 
-        if (!splittedItem[0].startsWith(".")) {
-          if (splittedItem[1] == "") {
-            content[splittedItem[0]] = [];
-          } else if (!splittedItem[1].startsWith(".")) {
-            if (splittedItem[0] in content) {
-              content[splittedItem[0]].push(splittedItem[1]);
-            } else {
-              content[splittedItem[0]] = [splittedItem[1]];
-            }
+        /** Check if it is in a subfolder */
+        if (itemInProjectFolder.includes("/")) {
+      
+          const splittedItem = itemInProjectFolder.split("/");
+          const folder = splittedItem[0];
+          const folderItem = splittedItem[1];
+
+          /** add to the content structure */
+          if (content[folder]) {
+            content[folder] = content[folder].concat(folderItem);
+          } else {
+            content[folder] = [folderItem];
           }
         }
       });
@@ -353,13 +342,6 @@ export default defineComponent({
     isNonTableType(item: string) {
       return !item.endsWith(".parquet");
     },
-    clearUserMessages() {
-      this.successMessage = "";
-      this.errorMessage = "";
-    },
-    clearProjectToEdit() {
-      this.projectToEdit = "";
-    },
     clickUploadFile() {
       this.triggerFileUpload = true;
     },
@@ -373,7 +355,7 @@ export default defineComponent({
       response
         .then(() => {
           this.selectedFile = "";
-          this.reloadProject( () => {
+          this.reloadProject(() => {
             if (this.projectFolders.length === 0) {
               this.project.push(folder + "/");
             }
@@ -385,9 +367,6 @@ export default defineComponent({
         .catch((error) => {
           this.errorMessage = error;
         });
-    },
-    editProject(project: Project) {
-      this.projectToEdit = project.name;
     },
     reloadProject(callback: Function | undefined = undefined) {
       this.loading = true;
@@ -402,9 +381,6 @@ export default defineComponent({
           this.loading = false;
           this.errorMessage = `Could not load project: ${error}.`;
         });
-    },
-    selectFolder(key: string) {
-      this.selectedFolder = key;
     },
     showErrorMessage(error: string) {
       this.errorMessage = error;
