@@ -23,7 +23,7 @@
       :allData="projects"
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
-      :dataStructure="(projectsDataStructure as TypeObject)"
+      :dataStructure="projectsDataStructure"
       :highlightedRowIndex="updatedProjectIndex"
     >
       <template #customType="customProps">
@@ -56,7 +56,7 @@
           :save="saveEditedProject"
           :cancel="clearProjectToEdit"
           :hideColumns="[]"
-          :dataStructure="(projectsDataStructure as TypeObject)"
+          :dataStructure="projectsDataStructure"
         />
       </template>
     </Table>
@@ -76,8 +76,8 @@ import { deleteProject, getProjects, putProject } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
-import { TypeObject } from "@/types/types";
-import { RouterLink, useRouter } from "vue-router";
+import { ProjectsData } from "@/types/types";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Projects",
@@ -114,7 +114,7 @@ export default defineComponent({
       loadProjects,
     };
   },
-  data() {
+  data(): ProjectsData {
     return {
       updatedProjectIndex: -1,
       projectsDataStructure: {
@@ -206,20 +206,18 @@ export default defineComponent({
       if (projectName === "") {
         this.errorMessage = "Cannot create project with empty name.";
       } else {
-        putProject(project)
-          .then(async () => {
-            this.successMessage = `[${project.name}] was successfully saved.`;
-            await this.reloadProjects();
-            if (callback) {
-              callback();
-            }
-            this.updatedProjectIndex = this.getFilteredAndSortedProjects().findIndex(
-              (p) => {
-                return p.name === projectName;
-              }
-            );
-            setTimeout(this.clearUpdatedProjectIndex, 1000);
-          });
+        putProject(project).then(async () => {
+          this.successMessage = `[${project.name}] was successfully saved.`;
+          await this.reloadProjects();
+          if (callback) {
+            callback();
+          }
+          this.updatedProjectIndex =
+            this.getFilteredAndSortedProjects().findIndex((p) => {
+              return p.name === projectName;
+            });
+          setTimeout(this.clearUpdatedProjectIndex, 1000);
+        });
       }
     },
     clearUpdatedProjectIndex() {

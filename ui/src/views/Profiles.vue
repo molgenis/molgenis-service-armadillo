@@ -15,10 +15,10 @@
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <Table
       v-else
-      :dataToShow="(profiles as ListOfObjectsWithStringKey)"
+      :dataToShow="profiles"
       :allData="profiles"
       :indexToEdit="profileToEditIndex"
-      :dataStructure="(profilesDataStructure as TypeObject)"
+      :dataStructure="profilesDataStructure"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add profile button) -->
@@ -74,7 +74,7 @@
           </div>
         </div>
         <div v-else>
-          <div v-for="(value, key) in objectProps.data">
+          <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
           </div>
         </div>
@@ -96,7 +96,7 @@
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
           :hideColumns="['container']"
-          :dataStructure="(profilesDataStructure as TypeObject)"
+          :dataStructure="profilesDataStructure"
         />
       </template>
     </Table>
@@ -119,7 +119,7 @@ import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
-import { ListOfObjectsWithStringKey, TypeObject } from "@/types/types";
+import { ProfilesData } from "@/types/types";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
@@ -155,7 +155,7 @@ export default defineComponent({
       loadProfiles,
     };
   },
-  data() {
+  data(): ProfilesData {
     return {
       profilesDataStructure: {
         name: "string",

@@ -1,3 +1,5 @@
+import { User } from "./api";
+
 export type StringObject = { [key: string]: string | Array<string> };
 
 export type ObjectWithStringKey = {
@@ -16,10 +18,19 @@ export type BootstrapType =
   | "light"
   | "dark";
 
+export type TypeString =
+  | "string"
+  | "number"
+  | "boolean"
+  | "array"
+  | "date"
+  | "object";
 export type StringArray = string[];
 
 // Maybe later expand with float/int/enum/character
-export type TypeObject = { [key: string]: "string" | "number" | "boolean" | "array" | "date" | "object" }
+export type TypeObject = {
+  [key: string]: TypeString;
+};
 
 export type ProjectsExplorerData = {
   triggerFileUpload: boolean;
@@ -32,4 +43,42 @@ export type ProjectsExplorerData = {
   loading_preview: boolean;
   newFolder: string;
   projectContent: Record<string, string[]>;
-}
+};
+
+export type ProjectsData = {
+  updatedProjectIndex: number;
+  projectsDataStructure: TypeObject;
+  projectToEdit: string;
+  projectToEditIndex: number;
+  loading: boolean;
+  successMessage: string;
+  searchString: string;
+};
+
+export type UsersData = {
+  updatedUserIndex: number;
+  userDataStructure: TypeObject;
+  editMode: {
+    addProjectToRow: boolean;
+    project: string;
+    userToEdit: string;
+    userToEditIndex: number;
+  };
+  addMode: {
+    addProjectToRow: boolean;
+    newUser: User;
+    project: string;
+  };
+  addRow: boolean;
+  loading: boolean;
+  successMessage: string;
+  searchString: string;
+};
+
+export type ProfilesData = {
+  profilesDataStructure: TypeObject;
+  loading: boolean;
+  successMessage: string;
+  profileToEditIndex: number;
+  profileToEdit: string;
+};

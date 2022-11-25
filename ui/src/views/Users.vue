@@ -99,7 +99,7 @@ import { deleteUser, getUsers, putUser } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
-import { StringArray, TypeObject } from "@/types/types";
+import { StringArray, UsersData } from "@/types/types";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
@@ -137,25 +137,7 @@ export default defineComponent({
       loadUsers,
     };
   },
-  data(): {
-    updatedUserIndex: number;
-    userDataStructure: TypeObject;
-    editMode: {
-      addProjectToRow: boolean;
-      project: string;
-      userToEdit: string;
-      userToEditIndex: number;
-    };
-    addMode: {
-      addProjectToRow: boolean;
-      newUser: User;
-      project: string;
-    };
-    addRow: boolean;
-    loading: boolean;
-    successMessage: string;
-    searchString: string;
-  } {
+  data(): UsersData {
     return {
       updatedUserIndex: -1,
       userDataStructure: {
@@ -191,11 +173,11 @@ export default defineComponent({
     };
   },
   computed: {
-    disabledButtons() {
+    disabledButtons(): boolean[] {
       return [this.addRow, this.addRow];
     },
     userToEdit: {
-      get() {
+      get(): string {
         return this.editMode.userToEdit;
       },
       set(newValue: string) {
