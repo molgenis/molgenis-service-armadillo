@@ -17,8 +17,6 @@
 <script lang="ts">
 import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
-import Projects from "@/views/Projects.vue";
-import Users from "@/views/Users.vue";
 import Login from "@/views/Login.vue";
 import { onMounted, Ref, ref, defineComponent } from "vue";
 import { getPrincipal, logout } from "@/api/api";
@@ -29,9 +27,7 @@ export default defineComponent({
   name: "ArmadilloPortal",
   components: {
     Navbar,
-    Projects,
     Tabs,
-    Users,
     Login,
   },
   setup() {
