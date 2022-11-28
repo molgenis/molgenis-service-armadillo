@@ -4,7 +4,7 @@
       <Navbar :username="username" @logout="logoutUser" />
       <div class="container">
         <div class="row mt-2">
-          <div class="col">x
+          <div class="col">
             <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
             <Login @loginEvent="reloadUser" v-else />
           </div>
