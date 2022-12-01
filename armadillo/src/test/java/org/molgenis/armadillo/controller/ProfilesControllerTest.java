@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -62,6 +63,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "localhost",
                 6311,
                 Set.of("dsBase"),
+                emptySet(),
                 emptyMap()));
     settings
         .getProfiles()
@@ -73,6 +75,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "localhost",
                 6312,
                 Set.of("dsBase", "dsOmics"),
+                emptySet(),
                 emptyMap()));
     return settings;
   }
@@ -105,7 +108,13 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   void profiles_PUT() throws Exception {
     ProfileConfig profileConfig =
         ProfileConfig.create(
-            "dummy", "dummy/armadillo:2.0.0", "localhost", 6312, Set.of("dsBase"), Map.of());
+            "dummy",
+            "dummy/armadillo:2.0.0",
+            "localhost",
+            6312,
+            Set.of("dsBase"),
+            emptySet(),
+            Map.of());
 
     mockMvc
         .perform(

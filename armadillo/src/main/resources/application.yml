@@ -12,6 +12,7 @@ armadillo:
       port: 6311
       whitelist:
         - dsBase
+      blacklistedFunctions: []
       options:
         datashield:
           # the seed can only be 9 digits

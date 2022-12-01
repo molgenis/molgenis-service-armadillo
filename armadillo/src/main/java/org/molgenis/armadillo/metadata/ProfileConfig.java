@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.metadata;
 
+import static java.util.Collections.emptySet;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,6 +36,9 @@ public abstract class ProfileConfig {
   @JsonProperty("whitelist")
   public abstract Set<String> getWhitelist();
 
+  @JsonProperty("blacklistedFunctions")
+  public abstract Set<String> getBlacklistedFunctions();
+
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
@@ -44,6 +49,7 @@ public abstract class ProfileConfig {
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("whitelist") Set<String> newWhitelist,
+      @JsonProperty("blacklistedFunctions") Set<String> newBlackListedFunctions,
       @JsonProperty("options") Map<String, String> newOptions) {
     return new AutoValue_ProfileConfig(
         newName,
@@ -51,6 +57,7 @@ public abstract class ProfileConfig {
         newHost != null ? newHost : "localhost",
         newPort,
         newWhitelist,
+        newBlackListedFunctions,
         newOptions != null ? newOptions : Map.of());
   }
 
@@ -62,6 +69,7 @@ public abstract class ProfileConfig {
         "localhost",
         6311,
         Set.of("dsBase"),
+        emptySet(),
         Map.of("datashield.seed", "342325352"));
   }
 

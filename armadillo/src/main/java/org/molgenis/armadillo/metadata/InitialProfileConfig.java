@@ -15,10 +15,11 @@ public class InitialProfileConfig {
   private String host;
   private int port;
   private Set<String> whitelist;
+  private Set<String> blacklistedFunctions;
   private Map<String, String> options;
 
   public ProfileConfig toProfileConfig() {
-    return ProfileConfig.create(name, image, host, port, whitelist, options);
+    return ProfileConfig.create(name, image, host, port, whitelist, blacklistedFunctions, options);
   }
 
   public void setName(String name) {
@@ -39,6 +40,10 @@ public class InitialProfileConfig {
 
   public void setWhitelist(Set<String> whitelist) {
     this.whitelist = whitelist;
+  }
+
+  public void setBlacklistedFunctions(Set<String> blacklistedFunctions) {
+    this.blacklistedFunctions = blacklistedFunctions;
   }
 
   public void setOptions(Map<String, String> options) {

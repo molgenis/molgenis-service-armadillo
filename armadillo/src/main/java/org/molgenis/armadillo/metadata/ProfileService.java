@@ -63,6 +63,7 @@ public class ProfileService {
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getWhitelist(),
+                profileConfig.getBlacklistedFunctions(),
                 profileConfig.getOptions()));
 
     flushProfileBeans(profileName);

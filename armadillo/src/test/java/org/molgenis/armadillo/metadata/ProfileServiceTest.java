@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,7 +24,7 @@ class ProfileServiceTest {
     var profilesMetadata = ProfilesMetadata.create();
     var defaultProfile =
         ProfileConfig.create(
-            "default", "test", "localhost", 1234, new HashSet<>(), new HashMap<>());
+            "default", "test", "localhost", 1234, new HashSet<>(), Set.of(), new HashMap<>());
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);

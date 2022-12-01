@@ -1,5 +1,6 @@
 package org.molgenis.armadillo;
 
+import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +39,8 @@ class DataShieldOptionsImplTest {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
     ProfileConfig profileConfig =
-        ProfileConfig.create("dummy", "dummy", "localhost", 6311, Set.of(), configOptions);
+        ProfileConfig.create(
+            "dummy", "dummy", "localhost", 6311, Set.of(), emptySet(), configOptions);
     options = new DataShieldOptionsImpl(profileConfig, packageService, rConnectionFactory);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
