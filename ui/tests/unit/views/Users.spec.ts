@@ -196,7 +196,7 @@ describe("Users", () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
-    expect(wrapper.vm.errorMessage).toBe(`Could not load users: ${error}`);
+    expect(wrapper.vm.errorMessage).toBe(`Could not load users: ${error}.`);
   });
 
   test("retrieves filtered and sorted users with searchterm", async () => {

@@ -126,7 +126,7 @@ export default defineComponent({
         if (error === "Unauthorized") {
           router.push("/login");
         } else {
-          errorMessage.value = error;
+          errorMessage.value = `Could not load users: ${error}.`;
         }
         return [];
       });
