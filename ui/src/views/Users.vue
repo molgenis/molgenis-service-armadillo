@@ -99,7 +99,7 @@ import { deleteUser, getUsers, putUser } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
-import { StringArray, UsersData } from "@/types/types";
+import { UsersData } from "@/types/types";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
@@ -213,17 +213,6 @@ export default defineComponent({
       this.toggleAddRow();
       this.reloadUsers();
     },
-    deleteProject(projects: StringArray, user: User) {
-      const updatedUser: User = user;
-      user.projects = projects;
-      // Don't save immediately while editing
-      if (
-        user.email !== this.userToEdit &&
-        user.email !== this.addMode.newUser.email
-      ) {
-        this.saveUser(updatedUser, undefined);
-      }
-    },
     editUser(user: User) {
       this.userToEdit = user.email;
       this.addRow = false;
@@ -244,6 +233,7 @@ export default defineComponent({
         this.loading = false;
       } catch (error) {
         this.errorMessage = `Could not load users: ${error}.`;
+        this.loading = false;
       }
     },
     getFilteredAndSortedUsers(): User[] {
@@ -292,11 +282,6 @@ export default defineComponent({
           this.clearNewUser();
         }
       });
-    },
-    saveProject(projects: StringArray, mode: "editMode" | "addMode") {
-      projects.push(this[mode].project);
-      this[mode].project = "";
-      this[mode].addProjectToRow = false;
     },
     saveUser(user: User, callback: Function | undefined) {
       this.clearUserMessages();
