@@ -33,7 +33,26 @@
       </template>
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
-        <th></th>
+        <th>
+          <button
+            type="button"
+            class="btn btn-sm me-1 btn-primary bg-primary"
+            @click="toggleAddRow"
+            :disabled="addRow || projectToEditIndex != -1"
+          >
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </th>
+      </template>
+      <template v-slot:extraRow v-if="addRow">
+        <!-- Extra row for adding a new user  -->
+        <InlineRowEdit
+          :row="newProject"
+          :save="saveNewProject"
+          :cancel="clearNewProject"
+          :hideColumns="[]"
+          :dataStructure="projectsDataStructure"
+        />
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
@@ -116,12 +135,20 @@ export default defineComponent({
   },
   data(): ProjectsData {
     return {
+      addRow: false,
+      newProject: {
+        name: "",
+        users: [],
+      },
       updatedProjectIndex: -1,
       projectsDataStructure: {
         name: "string",
         users: "array",
       },
-      projectToEdit: "",
+      projectToEdit: {
+        name: "",
+        users: [],
+      },
       projectToEditIndex: -1,
       loading: false,
       successMessage: "",
@@ -139,18 +166,19 @@ export default defineComponent({
       this.errorMessage = "";
     },
     clearProjectToEdit() {
-      this.projectToEdit = "";
+      this.projectToEdit = {name: "", users: []};
       this.reloadProjects();
     },
     editProject(project: Project) {
-      this.projectToEdit = project.name;
+      this.clearNewProject();
+      this.projectToEdit = project;
     },
     getEditIndex() {
       const index = this.projects.findIndex((project: Project) => {
-        return project.name === this.projectToEdit;
+        return project.name === this.projectToEdit.name;
       });
       // only change when project is cleared and when index available, otherwise it will return -1 when name is altered
-      if (this.projectToEdit === "" || index !== -1) {
+      if (this.projectToEdit.name === "" || index !== -1) {
         return index;
       } else return this.projectToEditIndex;
     },
@@ -171,7 +199,7 @@ export default defineComponent({
           return stringIncludesOtherString(project.name, this.searchString);
         });
       }
-      if (this.projectToEdit) {
+      if (this.projectToEdit.name != "") {
         return projects;
       } else {
         return sortAlphabetically(projects, "name") as Project[];
@@ -189,11 +217,12 @@ export default defineComponent({
         });
     },
     saveEditedProject() {
-      const project: Project = this.projects[this.projectToEditIndex];
-      this.saveProject(project, () => {
+      this.projectToEditIndex = this.getEditIndex();
+      const project = this.projects[this.projectToEditIndex];
+      this.saveProject(this.projectToEdit, () => {
         // Check if name was altered, then delete the old row
-        if (project.name !== this.projectToEdit) {
-          deleteProject(this.projectToEdit).then(() => {
+        if (project.name !== this.projectToEdit.name) {
+          deleteProject(this.projectToEdit.name).then(() => {
             this.reloadProjects();
           });
         }
@@ -203,25 +232,55 @@ export default defineComponent({
     saveProject(project: Project, callback: Function | undefined) {
       this.clearUserMessages();
       const projectName = project.name;
+      const projectNames = this.projects.map((existingProject) => {
+        return existingProject.name;
+      });
       if (projectName === "") {
         this.errorMessage = "Cannot create project with empty name.";
+      } else if (
+        projectName === this.newProject.name &&
+        projectNames.includes(projectName)
+      ) {
+        this.errorMessage = `Project with name [${projectName}] already exists.`;
       } else {
-        putProject(project).then(async () => {
-          this.successMessage = `[${project.name}] was successfully saved.`;
-          await this.reloadProjects();
-          if (callback) {
-            callback();
-          }
-          this.updatedProjectIndex =
-            this.getFilteredAndSortedProjects().findIndex((p) => {
-              return p.name === projectName;
-            });
-          setTimeout(this.clearUpdatedProjectIndex, 1000);
-        });
+
+        putProject(project)
+          .then(async () => {
+            this.successMessage = `[${projectName}] was successfully saved.`;
+            await this.reloadProjects();
+            if (callback) {
+              callback();
+            }
+            this.updatedProjectIndex =
+              this.getFilteredAndSortedProjects().findIndex((p) => {
+                return p.name === projectName;
+              });
+            setTimeout(this.clearUpdatedProjectIndex, 1000);
+          })
+          .catch((error) => {
+            this.errorMessage = `Could not save [${projectName}]: ${error}.`;
+          });
       }
     },
     clearUpdatedProjectIndex() {
       this.updatedProjectIndex = -1;
+    },
+    toggleAddRow() {
+      this.addRow = !this.addRow;
+      this.clearProjectToEdit();
+    },
+    saveNewProject() {
+      this.saveProject(this.newProject, () => {
+        if (this.successMessage) {
+          this.clearNewProject();
+        }
+      });
+    },
+    clearNewProject() {
+      this.newProject.name = "";
+      this.newProject.users = [];
+      this.addRow = false;
+      this.reloadProjects();
     },
   },
 });

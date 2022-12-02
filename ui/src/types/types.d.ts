@@ -1,4 +1,4 @@
-import { User } from "./api";
+import { Project, User } from "./api";
 
 export type StringObject = Record<string, string | Array<string>>;
 
@@ -44,9 +44,11 @@ export type ProjectsExplorerData = {
 };
 
 export type ProjectsData = {
+  addRow: boolean;
+  newProject: Project;
   updatedProjectIndex: number;
   projectsDataStructure: TypeObject;
-  projectToEdit: string;
+  projectToEdit: Project;
   projectToEditIndex: number;
   loading: boolean;
   successMessage: string;

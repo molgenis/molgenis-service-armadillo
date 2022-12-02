@@ -98,39 +98,33 @@ describe("Projects", () => {
   });
 
   test("clears project to edit", () => {
-    wrapper.vm.projectToEdit = "test";
+    wrapper.vm.projectToEdit = { name: "test", users: ["henk", "pietje"] };
     wrapper.vm.clearProjectToEdit();
-    expect(wrapper.vm.projectToEdit).toBe("");
-  });
-
-  test("clears project to edit", () => {
-    wrapper.vm.projectToEdit = "test";
-    wrapper.vm.clearProjectToEdit();
-    expect(wrapper.vm.projectToEdit).toBe("");
+    expect(wrapper.vm.projectToEdit).toEqual({ name: "", users: [] });
   });
 
   test("sets project to edit", () => {
-    wrapper.vm.projectToEdit = "";
+    wrapper.vm.projectToEdit = { name: "", users: [] };
     wrapper.vm.editProject({ name: "molgenis", users: ["tommy", "mariska"] });
-    expect(wrapper.vm.projectToEdit).toBe("molgenis");
+    expect(wrapper.vm.projectToEdit).toEqual({ name: "molgenis", users: ["tommy", "mariska"] });
   });
 
   test("retrieves index of project to edit", () => {
-    wrapper.vm.projectToEdit = "molgenis";
+    wrapper.vm.projectToEdit = { name: "molgenis", users: ["tommy", "mariska"] };
     const index = wrapper.vm.getEditIndex();
     expect(index).toBe(3);
   });
 
   test("should return old index if projectname is altered", () => {
     wrapper.vm.projectToEditIndex = 2;
-    wrapper.vm.projectToEdit = "molgenis_project";
+    wrapper.vm.projectToEdit =  { name: "molgenis_project", users: ["tommy", "mariska"] };
     const index = wrapper.vm.getEditIndex();
     expect(index).toBe(2);
   });
 
   test("returns -1 if name of project is empty (to be able to rename project)", () => {
     wrapper.vm.projectToEditIndex = 3;
-    wrapper.vm.projectToEdit = "";
+    wrapper.vm.projectToEdit = { name: "", users: [] };
     const index = wrapper.vm.getEditIndex();
     expect(index).toBe(-1);
   });
@@ -227,7 +221,10 @@ describe("Projects", () => {
       deleteMock();
       return Promise.resolve({});
     });
-    wrapper.vm.projectToEdit = "molgenis";
+    wrapper.vm.projectToEdit ={
+      name: "molgenis",
+      users: ["a.victor@umcg.nl"],
+    };;
     wrapper.vm.projects[3] = {
       name: "molgenisArmadillo",
       users: ["a.victor@umcg.nl"],
@@ -246,13 +243,16 @@ describe("Projects", () => {
     // called because we change the project name in removeProject
     expect(deleteMock).toHaveBeenCalled();
     // happens in clearProjectToEdit at the end of saveEditedProject
-    expect(wrapper.vm.projectToEdit).toBe("");
+    expect(wrapper.vm.projectToEdit).toEqual({"name": "", "users": []});
   });
 
   test("presents error message if project name is empty", () => {
-    wrapper.vm.projectToEdit = "molgenis";
-    wrapper.vm.projects[3] = {
+    wrapper.vm.projectToEdit = {
       name: "",
+      users: ["a.victor@umcg.nl"],
+    };;
+    wrapper.vm.projects[3] = {
+      name: "molgenis",
       users: ["a.victor@umcg.nl"],
     };
     wrapper.vm.projectToEditIndex = 3;
@@ -263,5 +263,33 @@ describe("Projects", () => {
     wrapper.vm.updatedProjectIndex = 3;
     wrapper.vm.clearUpdatedProjectIndex();
     expect(wrapper.vm.updatedProjectIndex).toBe(-1);
+  });
+
+  test("adds project", async () => {
+    const reloadMock = jest.fn();
+    const putMock = jest.fn();
+    const deleteMock = jest.fn();
+    api.getProjects.mockImplementation(() => {
+      reloadMock();
+      return Promise.resolve(testData);
+    });
+    api.putProject.mockImplementation(() => {
+      putMock();
+      return Promise.resolve({});
+    });
+    api.deleteProject.mockImplementation(() => {
+      deleteMock();
+      return Promise.resolve({});
+    });
+    wrapper.vm.addRow = true;
+    wrapper.vm.newProject = {
+      name: "testproject",
+      users: []
+    }
+    wrapper.vm.saveNewProject();
+    await wrapper.vm.$nextTick();
+    expect(putMock).toBeCalled();
+    expect(reloadMock).toBeCalled();
+    expect(deleteMock).not.toBeCalled();
   });
 });
