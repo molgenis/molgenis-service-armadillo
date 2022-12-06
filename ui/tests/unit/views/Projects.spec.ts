@@ -103,6 +103,11 @@ describe("Projects", () => {
     expect(wrapper.vm.projectToEdit).toEqual({ name: "", users: [] });
   });
 
+  test("retrieves project index", () => {
+    const projectIndex = wrapper.vm.getProjectIndex("project3");
+    expect(projectIndex).toBe(4);
+  });
+
   test("sets project to edit", () => {
     wrapper.vm.projectToEdit = { name: "", users: [] };
     wrapper.vm.editProject({ name: "molgenis", users: ["tommy", "mariska"] });
