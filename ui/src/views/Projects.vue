@@ -24,12 +24,12 @@
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
       :dataStructure="projectsDataStructure"
-      :highlightedRowIndex="updatedProjectIndex"
+      :highlightedRowIndex="projectToHighlightIndex"
     >
       <template #customType="customProps">
-        <router-link :to="`/projects-explorer/${customProps.data}`">{{
-          customProps.data
-        }}</router-link>
+        <router-link :to="`/projects-explorer/${customProps.data}`">
+          {{ customProps.data }}
+        </router-link>
       </template>
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
@@ -38,7 +38,7 @@
             type="button"
             class="btn btn-sm me-1 btn-primary bg-primary"
             @click="toggleAddRow"
-            :disabled="addRow || projectToEditIndex != -1"
+            :disabled="addRow"
           >
             <i class="bi bi-plus-lg"></i>
           </button>
@@ -71,6 +71,7 @@
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
+          :immutable="['name']"
           :row="rowProps.row"
           :save="saveEditedProject"
           :cancel="clearProjectToEdit"
@@ -140,7 +141,6 @@ export default defineComponent({
         name: "",
         users: [],
       },
-      updatedProjectIndex: -1,
       projectsDataStructure: {
         name: "string",
         users: "array",
@@ -149,16 +149,12 @@ export default defineComponent({
         name: "",
         users: [],
       },
+      projectToHighlightIndex: -1,
       projectToEditIndex: -1,
       loading: false,
       successMessage: "",
       searchString: "",
     };
-  },
-  watch: {
-    projectToEdit() {
-      this.projectToEditIndex = this.getEditIndex();
-    },
   },
   methods: {
     clearUserMessages() {
@@ -166,21 +162,24 @@ export default defineComponent({
       this.errorMessage = "";
     },
     clearProjectToEdit() {
-      this.projectToEdit = {name: "", users: []};
+      this.projectToEditIndex = -1;
+      setTimeout( () => {
+        this.projectToHighlightIndex = -1;
+      }, 1000);
+
+      this.projectToEdit = { name: "", users: [] };
       this.reloadProjects();
     },
     editProject(project: Project) {
       this.clearNewProject();
+      this.projectToEditIndex = this.getProjectIndex(project.name);
+      this.projectToHighlightIndex = this.getProjectIndex(project.name);
       this.projectToEdit = project;
     },
-    getEditIndex() {
-      const index = this.projects.findIndex((project: Project) => {
-        return project.name === this.projectToEdit.name;
+    getProjectIndex(projectName: string){
+      return this.projects.findIndex((someProject) => {
+        return someProject.name === projectName;
       });
-      // only change when project is cleared and when index available, otherwise it will return -1 when name is altered
-      if (this.projectToEdit.name === "" || index !== -1) {
-        return index;
-      } else return this.projectToEditIndex;
     },
     async reloadProjects() {
       this.loading = true;
@@ -199,11 +198,7 @@ export default defineComponent({
           return stringIncludesOtherString(project.name, this.searchString);
         });
       }
-      if (this.projectToEdit.name != "") {
-        return projects;
-      } else {
-        return sortAlphabetically(projects, "name") as Project[];
-      }
+      return sortAlphabetically(projects, "name") as Project[];
     },
     removeProject(project: Project) {
       this.clearUserMessages();
@@ -217,15 +212,7 @@ export default defineComponent({
         });
     },
     saveEditedProject() {
-      this.projectToEditIndex = this.getEditIndex();
-      const project = this.projects[this.projectToEditIndex];
       this.saveProject(this.projectToEdit, () => {
-        // Check if name was altered, then delete the old row
-        if (project.name !== this.projectToEdit.name) {
-          deleteProject(this.projectToEdit.name).then(() => {
-            this.reloadProjects();
-          });
-        }
         this.clearProjectToEdit();
       });
     },
@@ -243,7 +230,6 @@ export default defineComponent({
       ) {
         this.errorMessage = `Project with name [${projectName}] already exists.`;
       } else {
-
         putProject(project)
           .then(async () => {
             this.successMessage = `[${projectName}] was successfully saved.`;
@@ -251,19 +237,11 @@ export default defineComponent({
             if (callback) {
               callback();
             }
-            this.updatedProjectIndex =
-              this.getFilteredAndSortedProjects().findIndex((p) => {
-                return p.name === projectName;
-              });
-            setTimeout(this.clearUpdatedProjectIndex, 1000);
           })
           .catch((error) => {
             this.errorMessage = `Could not save [${projectName}]: ${error}.`;
           });
       }
-    },
-    clearUpdatedProjectIndex() {
-      this.updatedProjectIndex = -1;
     },
     toggleAddRow() {
       this.addRow = !this.addRow;

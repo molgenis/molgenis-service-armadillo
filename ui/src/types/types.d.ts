@@ -44,9 +44,9 @@ export type ProjectsExplorerData = {
 };
 
 export type ProjectsData = {
+  projectToHighlightIndex: number;
   addRow: boolean;
   newProject: Project;
-  updatedProjectIndex: number;
   projectsDataStructure: TypeObject;
   projectToEdit: Project;
   projectToEditIndex: number;

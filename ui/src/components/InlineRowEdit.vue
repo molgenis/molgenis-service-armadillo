@@ -11,6 +11,9 @@
       <div v-if="hideColumns.includes(column)">
         <!-- skipped column {{column}}-->
       </div>
+      <div v-else-if="immutable.includes(column)">
+        {{rowData[column]}}
+      </div>
       <div v-else-if="type === 'array'">
         <StringArrayInput v-model="rowData[column]" />
       </div>
@@ -67,6 +70,10 @@ export default defineComponent({
       required: true,
     },
     hideColumns: {
+      type: Array,
+      default: [],
+    },
+    immutable: {
       type: Array,
       default: [],
     },

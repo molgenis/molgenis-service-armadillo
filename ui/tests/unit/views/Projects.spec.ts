@@ -109,26 +109,6 @@ describe("Projects", () => {
     expect(wrapper.vm.projectToEdit).toEqual({ name: "molgenis", users: ["tommy", "mariska"] });
   });
 
-  test("retrieves index of project to edit", () => {
-    wrapper.vm.projectToEdit = { name: "molgenis", users: ["tommy", "mariska"] };
-    const index = wrapper.vm.getEditIndex();
-    expect(index).toBe(3);
-  });
-
-  test("should return old index if projectname is altered", () => {
-    wrapper.vm.projectToEditIndex = 2;
-    wrapper.vm.projectToEdit =  { name: "molgenis_project", users: ["tommy", "mariska"] };
-    const index = wrapper.vm.getEditIndex();
-    expect(index).toBe(2);
-  });
-
-  test("returns -1 if name of project is empty (to be able to rename project)", () => {
-    wrapper.vm.projectToEditIndex = 3;
-    wrapper.vm.projectToEdit = { name: "", users: [] };
-    const index = wrapper.vm.getEditIndex();
-    expect(index).toBe(-1);
-  });
-
   test("calls loadProjects and sets loading to false on success", async () => {
     api.getProjects.mockImplementation(() => {
       return Promise.resolve(testData);
@@ -208,7 +188,6 @@ describe("Projects", () => {
   test("edited project is saved", async () => {
     const reloadMock = jest.fn();
     const putMock = jest.fn();
-    const deleteMock = jest.fn();
     api.getProjects.mockImplementation(() => {
       reloadMock();
       return Promise.resolve(testData);
@@ -217,16 +196,12 @@ describe("Projects", () => {
       putMock();
       return Promise.resolve({});
     });
-    api.deleteProject.mockImplementation(() => {
-      deleteMock();
-      return Promise.resolve({});
-    });
     wrapper.vm.projectToEdit ={
       name: "molgenis",
-      users: ["a.victor@umcg.nl"],
+      users: ["a.victor@umcg.nl", "anotheruser@umcg.nl"],
     };;
     wrapper.vm.projects[3] = {
-      name: "molgenisArmadillo",
+      name: "molgenis",
       users: ["a.victor@umcg.nl"],
     };
     wrapper.vm.projectToEditIndex = 3;
@@ -240,8 +215,6 @@ describe("Projects", () => {
     expect(reloadMock.mock.calls.length).toBe(2);
     // called in saveProject
     expect(putMock).toHaveBeenCalled();
-    // called because we change the project name in removeProject
-    expect(deleteMock).toHaveBeenCalled();
     // happens in clearProjectToEdit at the end of saveEditedProject
     expect(wrapper.vm.projectToEdit).toEqual({"name": "", "users": []});
   });
@@ -258,11 +231,6 @@ describe("Projects", () => {
     wrapper.vm.projectToEditIndex = 3;
     wrapper.vm.saveEditedProject();
     expect(wrapper.vm.errorMessage).toBe("Cannot create project with empty name.");
-  });
-  test("clears updated project index", () => {
-    wrapper.vm.updatedProjectIndex = 3;
-    wrapper.vm.clearUpdatedProjectIndex();
-    expect(wrapper.vm.updatedProjectIndex).toBe(-1);
   });
 
   test("adds project", async () => {
