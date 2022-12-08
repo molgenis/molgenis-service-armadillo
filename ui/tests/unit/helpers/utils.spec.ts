@@ -7,6 +7,7 @@ import {
   isInt,
   isIntArray,
   transformTable,
+  isDuplicate,
 } from "@/helpers/utils";
 
 describe("utils", () => {
@@ -117,6 +118,19 @@ describe("utils", () => {
         col2: ["val2", "valb"],
         col3: ["val3", "valc"],
       });
+    });
+  });
+
+  describe("isDuplicate", () => {
+    const testData = ["val1", "val2", "val3", "val4", "val1"];
+    it("should return true if value duplicate", () => {
+      expect(isDuplicate("val1", testData)).toBe(true);
+    });
+    it("should return false if value not present", () => {
+      expect(isDuplicate("val0", testData)).toBe(false);
+    });
+    it("should return false if value present once", () => {
+      expect(isDuplicate("val2", testData)).toBe(false);
     });
   });
 });

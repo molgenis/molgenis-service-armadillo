@@ -70,3 +70,18 @@ export function transformTable(table: { [key: string]: string }[]) {
   });
   return transformed;
 }
+
+export function isDuplicate(key: string, list: StringArray){
+  let found = false;
+  let isDuplicate = false;
+  list.forEach((item)=>{
+    if(item === key){
+      if(!found) {
+        found = true;
+      } else {
+        isDuplicate = true;
+      }
+    }
+  });
+  return isDuplicate;
+}

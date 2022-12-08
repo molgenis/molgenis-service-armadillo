@@ -121,6 +121,7 @@ import ButtonGroup from "@/components/ButtonGroup.vue";
 import Badge from "@/components/Badge.vue";
 import { ProfilesData } from "@/types/types";
 import { useRouter } from "vue-router";
+import { isDuplicate } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Profiles",
@@ -134,7 +135,7 @@ export default defineComponent({
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
-    const errorMessage: Ref<string> = ref('');
+    const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     onMounted(() => {
       loadProfiles();
@@ -164,7 +165,7 @@ export default defineComponent({
         port: "string",
         whitelist: "array",
         options: "object",
-        container: "object"
+        container: "object",
       },
       loading: false,
       successMessage: "",
@@ -174,7 +175,7 @@ export default defineComponent({
   },
   computed: {
     firstFreePort(): number {
-      var port = 6311;
+      let port = 6311;
       while (this.profiles.find((profile) => profile.port === port)) {
         port++;
       }
@@ -193,11 +194,20 @@ export default defineComponent({
     saveEditedProfile() {
       this.clearUserMessages();
       const profile: Profile = this.profiles[this.profileToEditIndex];
+      const profileNames = this.profiles.map((profile) => {
+        return profile.name;
+      });
       if (
         this.profileToEdit === "default" &&
         profile.name != this.profileToEdit
       ) {
-        this.errorMessage = "Save failed: cannot rename 'default' package";
+        this.errorMessage = "Save failed: cannot rename 'default' package.";
+        return;
+      } else if (profile.name === "") {
+        this.errorMessage = "Cannot create profile with empty name.";
+        return;
+      } else if (isDuplicate(profile.name, profileNames)) {
+        this.errorMessage = `Profile with name [${profile.name}] already exists.`;
         return;
       }
       //add/update
@@ -247,6 +257,7 @@ export default defineComponent({
     },
     addNewProfile() {
       this.clearUserMessages();
+
       this.profiles.unshift({
         name: "",
         image: "molgenis/armadillo:latest",
