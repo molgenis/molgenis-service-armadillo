@@ -28,50 +28,43 @@
             class="btn btn-sm me-1 btn-primary bg-primary"
             @click="addNewProfile"
           >
-            <i class="bi bi-plus"></i>
+            <i class="bi bi-plus-lg"></i>
           </button>
         </th>
       </template>
       <template #objectType="objectProps">
         <div v-if="objectProps.data.status">
-          <div v-if="objectProps.data.status === 'RUNNING'">
-            <span class="badge bg-success">
-              {{ objectProps.data.status }}
-            </span>
-            <a
-              href=""
-              @click.prevent="stopProfile(objectProps.row.name)"
-              class="p-2"
-              >stop</a
-            >
-          </div>
-          <div v-else-if="objectProps.data.status === 'NOT_RUNNING'">
-            <span class="badge bg-warning text-dark">
-              {{ objectProps.data.status }}
-            </span>
-            <a
-              href=""
-              @click.prevent="startProfile(objectProps.row.name)"
-              class="p-2"
-              >start</a
-            >
-          </div>
-          <div v-else-if="objectProps.data.status === 'NOT_FOUND'">
-            <span class="badge bg-danger">
-              {{ objectProps.data.status }}
-            </span>
-            <a
-              href=""
-              @click.prevent="startProfile(objectProps.row.name)"
-              class="p-2"
-              >start</a
-            >
-          </div>
-          <div v-else>
-            <span class="badge bg-dark">
-              {{ objectProps.data.status }}
-            </span>
-          </div>
+          <span
+            class="badge"
+            :class="
+              statusMapping[objectProps.data.status] === 'ONLINE'
+                ? 'bg-success'
+                : statusMapping[objectProps.data.status] === 'OFFLINE'
+                ? 'bg-secondary'
+                : 'bg-danger'
+            "
+          >
+            {{ statusMapping[objectProps.data.status] }}
+          </span>
+          <button
+            v-if="statusMapping[objectProps.data.status] === 'ONLINE'"
+            href=""
+            @click.prevent="stopProfile(objectProps.row.name)"
+            class="btn btn-link pt-0 pb-0"
+          >
+            <i class="bi bi-stop-circle-fill"></i>
+            <br/>
+            Stop
+          </button>
+          <button
+            v-else-if="statusMapping[objectProps.data.status] === 'OFFLINE'"
+            @click.prevent="startProfile(objectProps.row.name)"
+            class="btn btn-link pt-0 pb-0"
+          >
+            <i class="bi bi-play-circle-fill"></i>
+            <br/>
+            Start
+          </button>
         </div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
@@ -171,6 +164,12 @@ export default defineComponent({
       successMessage: "",
       profileToEditIndex: -1,
       profileToEdit: "",
+      statusMapping: {
+        NOT_FOUND: "OFFLINE",
+        NOT_RUNNING: "OFFLINE",
+        RUNNING: "ONLINE",
+        DOCKER_OFFLINE: "ERROR",
+      },
     };
   },
   computed: {

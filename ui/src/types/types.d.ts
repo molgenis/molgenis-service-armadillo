@@ -81,4 +81,10 @@ export type ProfilesData = {
   successMessage: string;
   profileToEditIndex: number;
   profileToEdit: string;
+  statusMapping: {
+    "NOT_FOUND": "OFFLINE",
+    "NOT_RUNNING": "OFFLINE",
+    "RUNNING": "ONLINE",
+    "DOCKER_OFFLINE": "ERROR"
+  }
 };
