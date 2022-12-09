@@ -104,6 +104,18 @@ class DSEnvironmentConfigPropsCacheTest {
     assertEquals(0, environment.getMethods().size());
   }
 
+  @Test
+  void testPopulateBlacklistedMethod() {
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getFunctionBlacklist()).thenReturn(Set.of("dim"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
+    populateEnvironment(aggregateMethods, assignMethods);
+
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
+    assertEquals(0, environment.getMethods().size());
+  }
+
   private void populateEnvironment(
       ImmutableSet<String> aggregateMethods, ImmutableSet<String> assignMethods) {
     RConnection rConnection = mock(RConnection.class);
