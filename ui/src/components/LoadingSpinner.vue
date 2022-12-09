@@ -19,7 +19,7 @@ export default {
   props: {
     imageWidth: {
       type: String,
-      default: "20",
+      default: "70",
     },
   },
   computed: {
