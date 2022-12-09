@@ -30,51 +30,38 @@
         </th>
       </template>
       <template #objectType="objectProps">
-        <div v-if="objectProps.data.status">
-          <span
-            class="badge"
-            :class="
-              statusMapping[objectProps.data.status] === 'ONLINE'
-                ? 'bg-success'
-                : statusMapping[objectProps.data.status] === 'OFFLINE'
-                ? 'bg-secondary'
-                : 'bg-danger'
-            "
-          >
-            {{ statusMapping[objectProps.data.status] }}
-          </span>
-          <button
-            disabled="true"
-            class="btn btn-link pt-0 pb-0 mt-1"
-            v-if="objectProps.row.name === loadingProfile"
-          >
-            <LoadingSpinner
-              :imageWidth="30"
-            ></LoadingSpinner>
-            <span v-if="statusMapping[objectProps.data.status] === 'OFFLINE'">Starting</span>
-            <span v-else-if="statusMapping[objectProps.data.status] === 'ONLINE'">Stopping</span>
-          </button>
-          <button
-            v-else-if="statusMapping[objectProps.data.status] === 'ONLINE'"
-            href=""
-            @click.prevent="stopProfile(objectProps.row.name)"
-            :disabled="this.loading"
-            class="btn btn-link pt-0 pb-0"
-          >
-            <i class="bi bi-stop-circle-fill"></i>
-            <br />
-            Stop
-          </button>
-          <button
-            v-else-if="statusMapping[objectProps.data.status] === 'OFFLINE'"
-            @click.prevent="startProfile(objectProps.row.name)"
-            :disabled="this.loading"
-            class="btn btn-link pt-0 pb-0"
-          >
-            <i class="bi bi-play-circle-fill"></i>
-            <br />
-            Start
-          </button>
+        <div v-if="objectProps.data.status" class="row">
+          <div class="col-6">
+            <span
+              class="badge"
+              :class="`bg-${statusMapping[objectProps.data.status].color}`"
+            >
+              {{ statusMapping[objectProps.data.status].status }}
+            </span>
+          </div>
+          <div class="col-6">
+            <ProfileStatus
+              :disabled="true"
+              v-if="objectProps.row.name === loadingProfile"
+              :text="
+                statusMapping[objectProps.data.status].status === 'OFFLINE'
+                  ? 'Starting'
+                  : 'Stopping'
+              "
+              icon="spinner"
+            ></ProfileStatus>
+            <ProfileStatus
+              v-else
+              :disabled="loading"
+              :text="statusMapping[objectProps.data.status].text"
+              @click.prevent="
+                statusMapping[objectProps.data.status].text === 'ONLINE'
+                  ? stopProfile(objectProps.row.name)
+                  : startProfile(objectProps.row.name)
+              "
+              :icon="statusMapping[objectProps.data.status].icon"
+            ></ProfileStatus>
+          </div>
         </div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
@@ -121,6 +108,7 @@ import {
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import ProfileStatus from "@/components/ProfileStatus.vue";
 import Badge from "@/components/Badge.vue";
 import { ProfilesData } from "@/types/types";
 import { useRouter } from "vue-router";
@@ -135,6 +123,7 @@ export default defineComponent({
     LoadingSpinner,
     Table,
     ButtonGroup,
+    ProfileStatus,
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
@@ -176,10 +165,30 @@ export default defineComponent({
       profileToEditIndex: -1,
       profileToEdit: "",
       statusMapping: {
-        NOT_FOUND: "OFFLINE",
-        NOT_RUNNING: "OFFLINE",
-        RUNNING: "ONLINE",
-        DOCKER_OFFLINE: "ERROR",
+        NOT_FOUND: {
+          status: "OFFLINE",
+          text: "Start",
+          color: "secondary",
+          icon: "play-circle-fill",
+        },
+        NOT_RUNNING: {
+          status: "OFFLINE",
+          text: "Start",
+          color: "secondary",
+          icon: "play-circle-fill",
+        },
+        RUNNING: {
+          status: "ONLINE",
+          text: "Stop",
+          color: "success",
+          icon: "stop-circle-fill",
+        },
+        DOCKER_OFFLINE: {
+          status: "ERROR",
+          text: "Error",
+          color: "danger",
+          icon: "exclamation-circle-fill",
+        },
       },
     };
   },

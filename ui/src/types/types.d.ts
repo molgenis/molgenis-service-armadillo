@@ -75,6 +75,13 @@ export type UsersData = {
   searchString: string;
 };
 
+type statusMappingType = {
+  status: "ONLINE" | "OFFLINE" | "ERROR",
+  text: "Stop" | "Start" | "Error",
+  color: BootstrapType,
+  icon: string,
+}
+
 export type ProfilesData = {
   profilesDataStructure: TypeObject;
   loading: boolean;
@@ -83,9 +90,9 @@ export type ProfilesData = {
   profileToEditIndex: number;
   profileToEdit: string;
   statusMapping: {
-    "NOT_FOUND": "OFFLINE",
-    "NOT_RUNNING": "OFFLINE",
-    "RUNNING": "ONLINE",
-    "DOCKER_OFFLINE": "ERROR"
+    "NOT_FOUND": statusMappingType,
+    "NOT_RUNNING": statusMappingType,
+    "RUNNING": statusMappingType,
+    "DOCKER_OFFLINE": statusMappingType
   }
 };
