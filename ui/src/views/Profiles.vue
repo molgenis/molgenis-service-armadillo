@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Profiles</h2>
+    <h2 class="mt-3">Profiles</h2>
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->

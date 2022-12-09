@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h2 class="mt-3">Users</h2>
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
@@ -19,6 +20,7 @@
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
+      v-else
       :dataToShow="getFilteredAndSortedUsers()"
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
