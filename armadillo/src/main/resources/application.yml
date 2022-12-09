@@ -10,9 +10,9 @@ armadillo:
     - name: default
       image: datashield/armadillo-rserver
       port: 6311
-      whitelist:
+      package-whitelist:
         - dsBase
-      blacklistedFunctions: []
+      function-blacklist: []
       options:
         datashield:
           # the seed can only be 9 digits

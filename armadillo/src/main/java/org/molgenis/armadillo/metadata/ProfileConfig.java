@@ -33,11 +33,11 @@ public abstract class ProfileConfig {
   @Positive
   public abstract Integer getPort();
 
-  @JsonProperty("whitelist")
-  public abstract Set<String> getWhitelist();
+  @JsonProperty("packageWhitelist")
+  public abstract Set<String> getPackageWhitelist();
 
-  @JsonProperty("blacklistedFunctions")
-  public abstract Set<String> getBlacklistedFunctions();
+  @JsonProperty("functionBlacklist")
+  public abstract Set<String> getFunctionBlacklist();
 
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
@@ -48,16 +48,16 @@ public abstract class ProfileConfig {
       @JsonProperty("image") String newImage,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
-      @JsonProperty("whitelist") Set<String> newWhitelist,
-      @JsonProperty("blacklistedFunctions") Set<String> newBlackListedFunctions,
+      @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
+      @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
         newHost != null ? newHost : "localhost",
         newPort,
-        newWhitelist,
-        newBlackListedFunctions,
+        newPackageWhitelist,
+        newFunctionBlacklist,
         newOptions != null ? newOptions : Map.of());
   }
 

@@ -62,8 +62,8 @@ public class ProfileService {
                 profileConfig.getImage(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
-                profileConfig.getWhitelist(),
-                profileConfig.getBlacklistedFunctions(),
+                profileConfig.getPackageWhitelist(),
+                profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions()));
 
     flushProfileBeans(profileName);
@@ -71,7 +71,7 @@ public class ProfileService {
   }
 
   public void addToWhitelist(String profileName, String pack) {
-    getByName(profileName).getWhitelist().add(pack);
+    getByName(profileName).getPackageWhitelist().add(pack);
     flushProfileBeans(profileName);
     save();
   }

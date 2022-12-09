@@ -14,12 +14,13 @@ public class InitialProfileConfig {
   private String image;
   private String host;
   private int port;
-  private Set<String> whitelist;
-  private Set<String> blacklistedFunctions;
+  private Set<String> packageWhitelist;
+  private Set<String> functionBlacklist;
   private Map<String, String> options;
 
   public ProfileConfig toProfileConfig() {
-    return ProfileConfig.create(name, image, host, port, whitelist, blacklistedFunctions, options);
+    return ProfileConfig.create(
+        name, image, host, port, packageWhitelist, functionBlacklist, options);
   }
 
   public void setName(String name) {
@@ -38,12 +39,12 @@ public class InitialProfileConfig {
     this.port = port;
   }
 
-  public void setWhitelist(Set<String> whitelist) {
-    this.whitelist = whitelist;
+  public void setPackageWhitelist(Set<String> packageWhitelist) {
+    this.packageWhitelist = packageWhitelist;
   }
 
-  public void setBlacklistedFunctions(Set<String> blacklistedFunctions) {
-    this.blacklistedFunctions = blacklistedFunctions;
+  public void setFunctionBlacklist(Set<String> functionBlacklist) {
+    this.functionBlacklist = functionBlacklist;
   }
 
   public void setOptions(Map<String, String> options) {

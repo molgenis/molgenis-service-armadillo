@@ -34,6 +34,6 @@ class ProfileServiceTest {
     profileService.addToWhitelist("default", "dsOmics");
 
     verify(profileScope).removeAllProfileBeans("default");
-    assertTrue(profileService.getByName("default").getWhitelist().contains("dsOmics"));
+    assertTrue(profileService.getByName("default").getPackageWhitelist().contains("dsOmics"));
   }
 }
