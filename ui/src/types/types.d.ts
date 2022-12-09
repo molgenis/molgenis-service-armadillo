@@ -78,6 +78,7 @@ export type UsersData = {
 export type ProfilesData = {
   profilesDataStructure: TypeObject;
   loading: boolean;
+  loadingProfile: string;
   successMessage: string;
   profileToEditIndex: number;
   profileToEdit: string;

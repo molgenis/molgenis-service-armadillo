@@ -11,10 +11,7 @@
       </div>
     </div>
     <!-- Actual table -->
-    <!-- Loading spinner -->
-    <LoadingSpinner v-if="loading"></LoadingSpinner>
     <Table
-      v-else
       :dataToShow="profiles"
       :allData="profiles"
       :indexToEdit="profileToEditIndex"
@@ -47,22 +44,35 @@
             {{ statusMapping[objectProps.data.status] }}
           </span>
           <button
-            v-if="statusMapping[objectProps.data.status] === 'ONLINE'"
+            disabled="true"
+            class="btn btn-link pt-0 pb-0 mt-1"
+            v-if="objectProps.row.name === loadingProfile"
+          >
+            <LoadingSpinner
+              :imageWidth="30"
+            ></LoadingSpinner>
+            <span v-if="statusMapping[objectProps.data.status] === 'OFFLINE'">Starting</span>
+            <span v-else-if="statusMapping[objectProps.data.status] === 'ONLINE'">Stopping</span>
+          </button>
+          <button
+            v-else-if="statusMapping[objectProps.data.status] === 'ONLINE'"
             href=""
             @click.prevent="stopProfile(objectProps.row.name)"
+            :disabled="this.loading"
             class="btn btn-link pt-0 pb-0"
           >
             <i class="bi bi-stop-circle-fill"></i>
-            <br/>
+            <br />
             Stop
           </button>
           <button
             v-else-if="statusMapping[objectProps.data.status] === 'OFFLINE'"
             @click.prevent="startProfile(objectProps.row.name)"
+            :disabled="this.loading"
             class="btn btn-link pt-0 pb-0"
           >
             <i class="bi bi-play-circle-fill"></i>
-            <br/>
+            <br />
             Start
           </button>
         </div>
@@ -161,6 +171,7 @@ export default defineComponent({
         container: "object",
       },
       loading: false,
+      loadingProfile: "",
       successMessage: "",
       profileToEditIndex: -1,
       profileToEdit: "",
@@ -210,24 +221,25 @@ export default defineComponent({
         return;
       }
       //add/update
+      this.loadingProfile = profile.name;
       putProfile(profile)
         .then(() => {
           this.successMessage = `[${profile.name}] was successfully saved.`;
-          this.loadProfiles();
+          this.reloadProfiles();
           this.profileToEditIndex = -1;
         })
-        .catch(
-          (error) =>
-            (this.errorMessage = `Save failed: Could not save [${profile.name}]: ${error}.`)
-        );
+        .catch((error) => {
+          this.errorMessage = `Save failed: Could not save [${profile.name}]: ${error}.`;
+          this.clearLoading();
+        });
       //check if new name
       if (profile.name !== this.profileToEdit) {
         deleteProfile(this.profileToEdit)
-          .then(() => this.loadProfiles())
-          .catch(
-            (error) =>
-              (this.errorMessage = `Could not rename: delete previous profile [${profile.name}]: ${error}.`)
-          );
+          .then(() => this.reloadProfiles())
+          .catch((error) => {
+            this.errorMessage = `Could not rename: delete previous profile [${profile.name}]: ${error}.`;
+            this.clearLoading();
+          });
       }
     },
     removeProfile(profile: Profile) {
@@ -235,14 +247,19 @@ export default defineComponent({
       deleteProfile(profile.name)
         .then(() => {
           this.successMessage = `[${profile.name}] was successfully deleted.`;
-          this.loadProfiles();
+          this.reloadProfiles();
         })
         .catch((error) => {
           this.errorMessage = `Could not delete [${profile.name}]: ${error}.`;
+          this.clearLoading();
         });
     },
+    clearLoading() {
+      this.loading = false;
+      this.loadingProfile = "";
+    },
     clearProfileToEdit() {
-      this.loadProfiles();
+      this.reloadProfiles();
       this.profileToEditIndex = -1;
     },
     getEditIndex() {
@@ -275,30 +292,40 @@ export default defineComponent({
     startProfile(name: string) {
       this.clearUserMessages();
       this.loading = true;
+      this.loadingProfile = name;
       startProfile(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully started.`;
-          this.loadProfiles();
-          this.loading = false;
+          this.reloadProfiles();
         })
         .catch((error) => {
           this.errorMessage = `Could not start [${name}]: ${error}.`;
-          this.loading = false;
+          this.clearLoading();
         });
     },
     stopProfile(name: string) {
       this.clearUserMessages();
       this.loading = true;
+      this.loadingProfile = name;
       stopProfile(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully stopped.`;
-          this.loadProfiles();
-          this.loading = false;
+          this.reloadProfiles();
         })
         .catch((error) => {
           this.errorMessage = `Could not stop [${name}]: ${error}.`;
-          this.loading = false;
+          this.clearLoading();
         });
+    },
+    async reloadProfiles() {
+      this.loading = true;
+      try {
+        await this.loadProfiles();
+        this.clearLoading();
+      } catch (error) {
+        this.clearLoading();
+        this.errorMessage = `Could not load projects: ${error}.`;
+      }
     },
   },
 });
