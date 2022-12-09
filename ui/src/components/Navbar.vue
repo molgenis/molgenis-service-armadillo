@@ -3,7 +3,7 @@
     <div class="container-fluid">
       <a class="navbar-brand align-middle" href="#">
         <img
-          src="/armadillo-logov5a.png"
+          src="/armadillo-logo.png"
           alt="molgenis"
           width="35"
           class="d-inline-block me-2"
