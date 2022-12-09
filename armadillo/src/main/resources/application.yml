@@ -63,14 +63,14 @@ spring:
       password: admin
     oauth2:
       client:
+        # Uncomment the following section to enable OIDC login:
+        #        registration:
+        #            molgenis:
+        #               client-id: <your client id>
+        #               client-secret: <your client secret>
         provider:
           molgenis:
             issuer-uri: 'https://auth.molgenis.org'
-# Uncomment the following section to enable OIDC login:
-#        registration:
-#            molgenis:
-#               client-id: <your client id>
-#               client-secret: <your client secret>
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
