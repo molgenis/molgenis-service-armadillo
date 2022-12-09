@@ -2,12 +2,12 @@
   <div class="loading-spinner p-0 m-0">
     <img
       class="molgenis p-0 mx-auto d-block"
-      :style="styleObject"
+      :style="molgenisStyle"
       src="/molgenis-logo.png"
     />
     <img
       class="p-0 mx-auto d-block spinner-logo"
-      :width="this.imageWidth"
+      :style="armadilloStyle"
       src="/armadillo-logo-loading.png"
     />
   </div>
@@ -19,16 +19,21 @@ export default {
   props: {
     imageWidth: {
       type: String,
-      default: "70",
+      default: "20",
     },
   },
   computed: {
-    width(){
+    width() {
       return Number(this.imageWidth);
     },
-    styleObject() {
+    armadilloStyle() {
       return {
-        "width": `${this.width - this.width * 0.2}px`,
+        width: `${this.width + this.width / 5}px`,
+      };
+    },
+    molgenisStyle() {
+      return {
+        width: `${this.width - this.width * 0.2}px`,
         "margin-bottom": `-${this.width}px`,
       };
     },
@@ -42,7 +47,6 @@ export default {
 }
 .spinner-logo {
   opacity: 0.7;
-  transform-origin: 49% 58%;
   animation: rotation 2s infinite linear;
 }
 .rotate {
