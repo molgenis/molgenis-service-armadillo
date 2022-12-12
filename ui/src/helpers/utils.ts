@@ -1,4 +1,4 @@
-import { ListOfObjectsWithStringKey, StringArray } from "@/types/types";
+import { ListOfObjectsWithStringKey, ObjectWithStringKey, StringArray } from "@/types/types";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -71,12 +71,12 @@ export function transformTable(table: { [key: string]: string }[]) {
   return transformed;
 }
 
-export function isDuplicate(key: string, list: StringArray){
+export function isDuplicate(key: string, list: StringArray) {
   let found = false;
   let isDuplicate = false;
-  list.forEach((item)=>{
-    if(item === key){
-      if(!found) {
+  list.forEach((item) => {
+    if (item === key) {
+      if (!found) {
         found = true;
       } else {
         isDuplicate = true;
@@ -84,4 +84,29 @@ export function isDuplicate(key: string, list: StringArray){
     }
   });
   return isDuplicate;
+}
+
+export function sanitizeObject(objectToClean: ObjectWithStringKey): ObjectWithStringKey {
+  let sanitizedObject: ObjectWithStringKey = {};
+  Object.keys(objectToClean).forEach((key: string) => {
+    let sanitized: string | number | boolean | Object | Array<any>;
+    const sanitizedKey: string = key.trim();
+    const value = objectToClean[key];
+    if (Array.isArray(value)) {
+      sanitized = [];
+      value.forEach((item) => {
+        if (typeof item === 'string') {
+          (sanitized as Array<any>).push(item.trim());
+        } else {
+          (sanitized as Array<any>).push(item);
+        }
+      })
+      sanitizedObject[sanitizedKey] = sanitized;
+    } else if (typeof value === "string") {
+      sanitizedObject[sanitizedKey] = (value as string).trim();
+    } else {
+      sanitizedObject[sanitizedKey] = value;
+    }
+  });
+  return sanitizedObject;
 }

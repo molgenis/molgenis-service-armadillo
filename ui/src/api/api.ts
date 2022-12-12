@@ -1,6 +1,7 @@
 import { ConnectionError } from "@/helpers/errors";
+import { sanitizeObject } from "@/helpers/utils";
 import { Principal, Profile, Project, User, Auth } from "@/types/api";
-import { StringArray } from "@/types/types";
+import { ObjectWithStringKey, StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
 export async function get(url: string, auth: Auth | undefined = undefined) {
@@ -20,19 +21,17 @@ export async function get(url: string, auth: Auth | undefined = undefined) {
   }
 }
 
-export async function put(url: string, body: Object) {
-  // PUT request using fetch with async/await
+export async function put(url: string, body: ObjectWithStringKey) {
   const requestOptions = {
     method: "PUT",
     headers: APISettings.headers,
-    body: JSON.stringify(body),
+    body: JSON.stringify(sanitizeObject(body)),
   };
   const response = await fetch(url, requestOptions);
   return handleResponse(response);
 }
 
 export async function post(url: string) {
-  // PUT request using fetch with async/await
   const requestOptions = {
     method: "POST",
     headers: APISettings.headers,
@@ -42,7 +41,6 @@ export async function post(url: string) {
 }
 
 export async function postFormData(url: string, formData: FormData) {
-  // PUT request using fetch with async/await
   const requestOptions = {
     method: "POST",
     body: formData,
@@ -52,7 +50,7 @@ export async function postFormData(url: string, formData: FormData) {
 }
 
 export async function delete_(url: string, item: string) {
-  const response = await fetch(`${url}/${item}`, { method: "DELETE" });
+  const response = await fetch(`${url}/${item.trim()}`, { method: "DELETE" });
   return handleResponse(response);
 }
 

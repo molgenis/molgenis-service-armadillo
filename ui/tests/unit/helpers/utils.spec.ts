@@ -8,7 +8,9 @@ import {
   isIntArray,
   transformTable,
   isDuplicate,
+  sanitizeObject,
 } from "@/helpers/utils";
+import { StringObject } from "@/types/types";
 
 describe("utils", () => {
   describe("stringIncludesOtherString", () => {
@@ -131,6 +133,41 @@ describe("utils", () => {
     });
     it("should return false if value present once", () => {
       expect(isDuplicate("val2", testData)).toBe(false);
+    });
+  });
+
+  describe("sanitizeObject", () => {
+    const testData = {
+      "key1": "simple value",
+      "key2": " dirty value",
+      "key3": "another dirty value ",
+      "key4": "     a very dirty value      ",
+      " dirty key ": "clean value",
+      "another dirty key ": "another clean value",
+      "key5": ["i am clean", "i am clean as well", " i am dirty", "i am dirty too ", " i am very dirty "],
+      " dirty ": [" dirty", " very dirty ", "clean"],
+      "\tboolean": false,
+    };
+    const output: StringObject = sanitizeObject(testData) as StringObject;
+    it("should trim spaces at beginning and end of string values", () => {
+      expect(output["key1"]).toBe("simple value");
+      expect(output["key2"]).toBe("dirty value");
+      expect(output["key3"]).toBe("another dirty value");
+    });
+    it("should trim spaces at beginning and end of keys", () => {
+      expect(Object.keys(output)).toContain("dirty key");
+      expect(Object.keys(output)).toContain("another dirty key");
+      expect(Object.keys(output)).toContain("dirty");
+      expect(Object.keys(output)).not.toContain(" dirty key");
+      expect(Object.keys(output)).not.toContain("another dirty key ");
+      expect(Object.keys(output)).not.toContain(" dirty ");
+    });
+    it("should trim spaces at beginning and end of all strings in array values", () => {
+      expect(output["key5"]).toEqual(["i am clean", "i am clean as well", "i am dirty", "i am dirty too", "i am very dirty"]);
+      expect(output["dirty"]).toEqual(["dirty", "very dirty", "clean"]);
+    });
+    it("should not do anything to booleans", () => {
+      expect(output["boolean"]).toBe(false);
     });
   });
 });
