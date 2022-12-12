@@ -34,9 +34,9 @@
           ]"
         ></ButtonGroup>
         <div class="row mt-1 border border-1">
-          <!-- Loading spinner -->
-          <LoadingSpinner v-if="loading"></LoadingSpinner>
-          <div class="col-6">
+            <!-- Loading spinner -->
+          <LoadingSpinner v-if="loading" class="pt-3 mt-3" ></LoadingSpinner>
+          <div class="col-6" v-else>
             <div class="row">
               <div
                 class="col-12 fst-italic"
@@ -102,7 +102,6 @@
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <FileUpload
-     
                   :project="projectId"
                   :object="selectedFolder"
                   @upload_success="onUploadSuccess"
@@ -122,7 +121,7 @@
             ref="previewContainer"
           >
             <!-- Loading spinner -->
-            <LoadingSpinner v-if="loading_preview"></LoadingSpinner>
+            <LoadingSpinner v-if="loading_preview" class="pt-3 mt-3" ></LoadingSpinner>
             <div v-if="isNonTableType(selectedFile)">
               <div class="fst-italic">
                 No preview available for: {{ selectedFile }}
@@ -287,7 +286,6 @@ export default defineComponent({
 
         /** Check if it is in a subfolder */
         if (itemInProjectFolder.includes("/")) {
-      
           const splittedItem = itemInProjectFolder.split("/");
           const folder = splittedItem[0];
           const folderItem = splittedItem[1];
