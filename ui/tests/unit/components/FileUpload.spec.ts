@@ -13,6 +13,7 @@ describe("FileUpload", () => {
   let localImageInputValue = "some-image.gif";
   let wrapper: VueWrapper<any>;
   let mockFiles: {
+    name: string;
     size: number;
     blob: string;
     width: number;
@@ -49,6 +50,7 @@ describe("FileUpload", () => {
 
     mockFiles = [
       {
+        name: "testfile.txt",
         size: 12345,
         blob: "some-blob",
         width: 300,
@@ -61,15 +63,47 @@ describe("FileUpload", () => {
     wrapper.find("input.isThisUniqueEnough").trigger("change");
     // test if event emitted
     expect(wrapper.emitted()).toHaveProperty("upload_error");
-    expect(wrapper.emitted("upload_error")).toEqual([["Please select a file"]]);
+    expect(wrapper.emitted("upload_error")).toEqual([["Please select a file."]]);
   });
 
-  test("emits event on upload success", async () => {
+  test("clears files", () => {
+    wrapper.vm.file = mockFiles[0];
+    wrapper.vm.clearFile();
+    expect(wrapper.vm.file).toBe(undefined);
+  });
+
+  test("sets file when selected", async () => {
     api.uploadIntoProject.mockImplementation(() => {
       return Promise.resolve({});
     });
     localImageInputFilesGet.mockReturnValue(mockFiles);
     localImageInput.trigger("change");
+    await wrapper.vm.$nextTick();
+    //test if upload function called
+    expect(wrapper.vm.file).toEqual(mockFiles[0]);
+  });
+
+  test("emits event when file empty on event handle", async () => {
+    api.uploadIntoProject.mockImplementation(() => {
+      return Promise.resolve({});
+    });
+    localImageInputFilesGet.mockReturnValue([]);
+    localImageInput.trigger("change");
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    //test if upload function called
+    expect(wrapper.emitted()).toHaveProperty("upload_error");
+    expect(wrapper.emitted("upload_error")).toEqual([["Please select a file."]]);
+  });
+
+
+  test("emits event on upload success", async () => {
+    wrapper.vm.file = mockFiles[0];
+    api.uploadIntoProject.mockImplementation(() => {
+      return Promise.resolve({});
+    });
+    localImageInputFilesGet.mockReturnValue(mockFiles);
+    wrapper.vm.uploadFile();
     await wrapper.vm.$nextTick();
     //test if upload function called
     expect(api.uploadIntoProject).toHaveBeenCalled();
@@ -78,12 +112,13 @@ describe("FileUpload", () => {
   });
 
   test("emits event on upload fail", async () => {
+    wrapper.vm.file = mockFiles[0];
     const error = new Error("fail");
     api.uploadIntoProject.mockImplementation(() => {
       return Promise.reject(error);
     });
     localImageInputFilesGet.mockReturnValue(mockFiles);
-    localImageInput.trigger("change");
+    wrapper.vm.uploadFile();
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     //test if upload function called
@@ -91,5 +126,14 @@ describe("FileUpload", () => {
     // test if event emitted
     expect(wrapper.emitted()).toHaveProperty("upload_error");
     expect(wrapper.emitted("upload_error")).toEqual([[error]]);
+  });
+
+  test("emits event when no file selected", async () => {
+    wrapper.vm.uploadFile();
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    // test if event emitted
+    expect(wrapper.emitted()).toHaveProperty("upload_error");
+    expect(wrapper.emitted("upload_error")).toEqual([["No file selected."]]);
   });
 });

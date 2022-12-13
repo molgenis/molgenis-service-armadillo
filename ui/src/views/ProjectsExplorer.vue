@@ -11,14 +11,14 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <h1>
+        <h2 class="mt-3">
           <button type="button" class="btn btn-sm me-1 btn-primary bg-primary">
             <router-link to="/projects">
               <i class="bi bi-arrow-left text-light"></i>
             </router-link>
           </button>
           Project: {{ $route.params.projectId }}
-        </h1>
+        </h2>
         <ButtonGroup
           :buttonIcons="['folder-plus', 'file-earmark-plus', 'trash-fill']"
           :buttonColors="['primary', 'primary', 'danger']"
@@ -55,12 +55,12 @@
                   :selectionColor="selectedFile ? 'secondary' : 'primary'"
                 ></ListGroup>
                 <div
-                  class="input-group input-group-sm m-1"
+                  class="input-group input-group-sm m-1 p-1 pe-2"
                   v-if="createNewFolder"
                 >
                   <input
                     type="text"
-                    class="form-control"
+                    class="form-control folder-name"
                     placeholder="Folder name"
                     v-model="newFolder"
                   />
