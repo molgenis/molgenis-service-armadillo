@@ -103,6 +103,8 @@ public class WelcomeController {
             <br/><br/>
             <a href="/swagger-ui/index.html">Go to Swagger user interface</a><br/>
             Here you can test the API<br/>
+            <a href="/ui/index.html">Go to new user interface (beta)</a><br/>
+            Here you can test the API<br/>
             <br/>
             </div>
             </body>
