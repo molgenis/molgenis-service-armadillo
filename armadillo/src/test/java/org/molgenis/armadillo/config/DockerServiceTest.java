@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.config;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -146,6 +147,7 @@ class DockerServiceTest {
             "localhost",
             6312,
             Set.of("dsBase", "dsOmics"),
+            emptySet(),
             emptyMap());
     return List.of(profile1, profile2);
   }

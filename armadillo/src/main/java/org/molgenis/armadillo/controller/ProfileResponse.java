@@ -22,7 +22,9 @@ public abstract class ProfileResponse {
 
   public abstract Integer getPort();
 
-  public abstract Set<String> getWhitelist();
+  public abstract Set<String> getPackageWhitelist();
+
+  public abstract Set<String> getFunctionBlacklist();
 
   public abstract Map<String, String> getOptions();
 
@@ -36,7 +38,8 @@ public abstract class ProfileResponse {
         profileConfig.getImage(),
         profileConfig.getHost(),
         profileConfig.getPort(),
-        profileConfig.getWhitelist(),
+        profileConfig.getPackageWhitelist(),
+        profileConfig.getFunctionBlacklist(),
         profileConfig.getOptions(),
         containerInfo);
   }

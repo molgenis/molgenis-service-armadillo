@@ -47,7 +47,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   private void loadPackages(RConnection connection) {
-    packageService.loadPackages(connection, profileConfig.getWhitelist());
+    packageService.loadPackages(connection, profileConfig.getPackageWhitelist());
   }
 
   private void setDataShieldOptions(RConnection con) throws RserveException {

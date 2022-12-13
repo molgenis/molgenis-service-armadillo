@@ -42,7 +42,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testGetAggregateEnvironment() {
-    when(profileConfig.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
@@ -55,7 +55,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testGetAssignEnvironment() {
-    when(profileConfig.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
     DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
@@ -75,7 +75,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateIllegalMethodName() {
-    when(profileConfig.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     final var aggregateMethods = ImmutableSet.of("method=base::method=base::method");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
@@ -85,7 +85,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateDuplicateMethodName() {
-    when(profileConfig.getWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim", "dim=other::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
@@ -95,7 +95,19 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateMethodFromNonWhitelistedPackage() {
-    when(profileConfig.getWhitelist()).thenReturn(Set.of("otherPackage"));
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("otherPackage"));
+    final var aggregateMethods = ImmutableSet.of("dim=base::dim");
+    final ImmutableSet<String> assignMethods = ImmutableSet.of();
+    populateEnvironment(aggregateMethods, assignMethods);
+
+    DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
+    assertEquals(0, environment.getMethods().size());
+  }
+
+  @Test
+  void testPopulateBlacklistedMethod() {
+    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(profileConfig.getFunctionBlacklist()).thenReturn(Set.of("dim"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     populateEnvironment(aggregateMethods, assignMethods);

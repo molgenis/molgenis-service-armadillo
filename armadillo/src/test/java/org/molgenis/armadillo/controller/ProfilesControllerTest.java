@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,9 +35,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 class ProfilesControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_PROFILE =
-      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"],\"options\":{}}";
+      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";
   public static final String OMICS_PROFILE =
-      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"whitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
+      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
 
   @Autowired ProfileService profileService;
   @MockBean ArmadilloStorageService armadilloStorage;
@@ -62,6 +63,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "localhost",
                 6311,
                 Set.of("dsBase"),
+                emptySet(),
                 emptyMap()));
     settings
         .getProfiles()
@@ -73,6 +75,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "localhost",
                 6312,
                 Set.of("dsBase", "dsOmics"),
+                emptySet(),
                 emptyMap()));
     return settings;
   }
@@ -97,7 +100,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .andExpect(
             content()
                 .json(
-                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"whitelist\":[\"dsBase\"]}"));
+                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"]}"));
   }
 
   @Test
@@ -105,7 +108,13 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   void profiles_PUT() throws Exception {
     ProfileConfig profileConfig =
         ProfileConfig.create(
-            "dummy", "dummy/armadillo:2.0.0", "localhost", 6312, Set.of("dsBase"), Map.of());
+            "dummy",
+            "dummy/armadillo:2.0.0",
+            "localhost",
+            6312,
+            Set.of("dsBase"),
+            emptySet(),
+            Map.of());
 
     mockMvc
         .perform(

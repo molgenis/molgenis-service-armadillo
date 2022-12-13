@@ -10,8 +10,9 @@ armadillo:
     - name: default
       image: datashield/armadillo-rserver
       port: 6311
-      whitelist:
+      package-whitelist:
         - dsBase
+      function-blacklist: []
       options:
         datashield:
           # the seed can only be 9 digits
@@ -62,14 +63,14 @@ spring:
       password: admin
     oauth2:
       client:
-        provider:
-          molgenis:
-            issuer-uri: 'https://auth.molgenis.org'
 # Uncomment the following section to enable OIDC login:
 #        registration:
 #            molgenis:
 #               client-id: <your client id>
 #               client-secret: <your client secret>
+        provider:
+          molgenis:
+            issuer-uri: 'https://auth.molgenis.org'
       resourceserver:
         jwt:
           issuer-uri: 'https://auth.molgenis.org'
