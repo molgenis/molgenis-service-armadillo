@@ -1561,6 +1561,13 @@
   dependencies:
     "@vue/shared" "3.2.45"
 
+"@vue/reactivity@^3.2.38":
+  version "3.2.44"
+  resolved "https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.2.44.tgz"
+  integrity sha512-Fe0s52fTsPl+RSdvoqUZ3HRKlaVsKhIh1mea5EWOedFvZCjnymzlj3YC1wZMxi89qXRFSdEASVA/BWUGypk0Ig==
+  dependencies:
+    "@vue/shared" "3.2.44"
+
 "@vue/runtime-core@3.2.45":
   "integrity" "sha512-gzJiTA3f74cgARptqzYswmoQx0fIA+gGYBfokYVhF8YSXjWTUA2SngRzZRku2HbGbjzB6LBYSbKGIaK8IW+s0A=="
   "resolved" "https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.2.45.tgz"
