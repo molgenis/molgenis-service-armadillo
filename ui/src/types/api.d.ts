@@ -46,7 +46,7 @@ export type Profile = {
   image: string;
   host: string;
   port: number;
-  whitelist: StringArray;
+  packageWhitelist: StringArray;
   options: Object;
   container: {
     tags: StringArray;

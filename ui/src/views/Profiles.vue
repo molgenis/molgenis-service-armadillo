@@ -155,7 +155,7 @@ export default defineComponent({
         image: "string",
         host: "string",
         port: "string",
-        whitelist: "array",
+        packageWhitelist: "array",
         options: "object",
         container: "object",
       },
@@ -288,7 +288,7 @@ export default defineComponent({
         image: "molgenis/armadillo:latest",
         host: "localhost",
         port: this.firstFreePort,
-        whitelist: ["dsBase"],
+        packageWhitelist: ["dsBase"],
         options: {},
         container: { tags: [], status: "unknown" },
       });
