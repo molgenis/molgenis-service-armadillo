@@ -54,10 +54,12 @@ public class DSEnvironmentCache {
     packages.stream()
         .flatMap(rPackage -> toDsMethods(rPackage.aggregateMethods(), rPackage))
         .filter(dsMethod -> validateMethodIsUnique(dsMethod, aggregateEnvironment))
+        .filter(this::isMethodAllowed)
         .forEach(dsMethod -> addToEnvironment(dsMethod, aggregateEnvironment));
     packages.stream()
         .flatMap(rPackage -> toDsMethods(rPackage.assignMethods(), rPackage))
         .filter(dsMethod -> validateMethodIsUnique(dsMethod, assignEnvironment))
+        .filter(this::isMethodAllowed)
         .forEach(dsMethod -> addToEnvironment(dsMethod, assignEnvironment));
   }
 
@@ -109,7 +111,7 @@ public class DSEnvironmentCache {
   }
 
   private boolean isPackageWhitelisted(String rPackageName) {
-    if (!profileConfig.getWhitelist().contains(rPackageName)) {
+    if (!profileConfig.getPackageWhitelist().contains(rPackageName)) {
       LOGGER.warn(
           "Package '{}' is not whitelisted and will not be added to environment", rPackageName);
       return false;
@@ -126,6 +128,17 @@ public class DSEnvironmentCache {
     return true;
   }
 
+  private boolean isMethodAllowed(DefaultDSMethod dsMethod) {
+    if (profileConfig.getFunctionBlacklist().contains(dsMethod.getName())) {
+      LOGGER.warn(
+          "Method '{}' in package '{}' is blacklisted and will not be added to environment",
+          dsMethod.getName(),
+          dsMethod.getPackage());
+      return false;
+    }
+    return true;
+  }
+
   private void addToEnvironment(DefaultDSMethod dsMethod, DSEnvironment environment) {
     environment.addOrUpdate(dsMethod);
     LOGGER.info(
@@ -135,13 +148,9 @@ public class DSEnvironmentCache {
   }
 
   public DSEnvironment getEnvironment(DSMethodType dsMethodType) {
-    switch (dsMethodType) {
-      case AGGREGATE:
-        return aggregateEnvironment;
-      case ASSIGN:
-        return assignEnvironment;
-      default:
-        throw new IllegalStateException("Unknown DSMethodType");
-    }
+    return switch (dsMethodType) {
+      case AGGREGATE -> aggregateEnvironment;
+      case ASSIGN -> assignEnvironment;
+    };
   }
 }
