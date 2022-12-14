@@ -13,8 +13,9 @@ export async function get(url: string, auth: Auth | undefined = undefined) {
     method: "GET",
     headers: headers,
   });
+
   const outcome = handleResponse(response);
-  if (response.status === 204) {
+  if (response.status === 204 || response.status === 500) {
     return outcome;
   } else {
     return response.json();
@@ -55,13 +56,18 @@ export async function delete_(url: string, item: string) {
 }
 
 export async function handleResponse(response: Response) {
+  let error = new ConnectionError("", response.status);
   if (!response.ok) {
-    const json = await response.json();
-    let error = new ConnectionError("", response.status);
-    if (json.message) {
-      error.message = json.message;
-    } else {
+    if (response.status === 500) {
       error.message = response.statusText;
+    } else {
+      const json = await response.json();
+
+      if (json.message) {
+        error.message = json.message;
+      } else {
+        error.message = response.statusText;
+      }
     }
     throw error;
   } else {

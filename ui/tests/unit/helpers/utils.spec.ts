@@ -9,6 +9,7 @@ import {
   transformTable,
   isDuplicate,
   sanitizeObject,
+  isEmptyObject,
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -168,6 +169,16 @@ describe("utils", () => {
     });
     it("should not do anything to booleans", () => {
       expect(output["boolean"]).toBe(false);
+    });
+  });
+  describe("isEmptyObject", () => {
+    it("should return true if object is empty", () => {
+      const actual = isEmptyObject({});
+      expect(actual).toBe(true);
+    });
+    it("should return false if object is not empty", () => {
+      const actual = isEmptyObject({"key":"value"});
+      expect(actual).toBe(false);
     });
   });
 });

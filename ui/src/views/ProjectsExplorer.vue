@@ -34,8 +34,8 @@
           ]"
         ></ButtonGroup>
         <div class="row mt-1 border border-1">
-            <!-- Loading spinner -->
-          <LoadingSpinner v-if="loading" class="pt-3 mt-3" ></LoadingSpinner>
+          <!-- Loading spinner -->
+          <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
           <div class="col-6" v-else>
             <div class="row">
               <div
@@ -121,13 +121,16 @@
             ref="previewContainer"
           >
             <!-- Loading spinner -->
-            <LoadingSpinner v-if="loading_preview" class="pt-3 mt-3" ></LoadingSpinner>
+            <LoadingSpinner
+              v-if="loading_preview"
+              class="pt-3 mt-3"
+            ></LoadingSpinner>
             <div v-if="isNonTableType(selectedFile)">
               <div class="fst-italic">
                 No preview available for: {{ selectedFile }}
               </div>
             </div>
-            <div v-else-if="!loading_preview">
+            <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
                 <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
@@ -137,6 +140,11 @@
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
               ></SimpleTable>
+            </div>
+            <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
+              <div class="fst-italic">
+                Error loading: [{{ selectedFile }}]. No preview available.
+              </div>
             </div>
           </div>
         </div>
@@ -151,6 +159,7 @@ import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProject, deleteObject, previewObject } from "@/api/api";
+import { isEmptyObject } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
@@ -247,16 +256,17 @@ export default defineComponent({
     selectedFile() {
       if (this.selectedFile.endsWith(".parquet")) {
         this.loading_preview = true;
-        const response = previewObject(
+        previewObject(
           this.projectId,
           `${this.selectedFolder}%2F${this.selectedFile}`
-        );
-        response
+        )
           .then((data) => {
             this.filePreview = data;
             this.loading_preview = false;
           })
-          .catch(() => {
+          .catch((error) => {
+            this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+            this.filePreview = [{}];
             this.loading_preview = false;
           });
       }
@@ -275,6 +285,9 @@ export default defineComponent({
     },
   },
   methods: {
+    askIfPreviewIsEmpty() {
+      return isEmptyObject(this.filePreview[0]);
+    },
     setProjectContent() {
       let content: Record<string, string[]> = {};
       this.project.forEach((item) => {
