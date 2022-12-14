@@ -125,7 +125,9 @@ public class AccessService {
                 // add missing project, if applicable
                 settings
                     .getProjects()
-                    .putIfAbsent(projectName, ProjectDetails.create(projectName, new HashSet<>()));
+                    .putIfAbsent(
+                        projectName,
+                        ProjectDetails.create(projectName, new HashSet<>(), new HashSet<>()));
                 // add permission to that project
                 permissions.add(ProjectPermission.create(email, projectName));
               });
@@ -186,14 +188,16 @@ public class AccessService {
     if (!settings.getProjects().containsKey(projectName)) {
       throw new UnknownProjectException(projectName);
     }
+    var projectDetails = settings.getProjects().get(projectName);
 
     return ProjectDetails.create(
-        projectName,
+        projectDetails.getName(),
         // add permissions
         settings.getPermissions().stream()
             .filter(projectPermission -> projectPermission.getProject().equals(projectName))
             .map(ProjectPermission::getEmail)
-            .collect(Collectors.toSet()));
+            .collect(Collectors.toSet()),
+        projectDetails.getProfiles());
   }
 
   public void projectsUpsert(ProjectDetails projectDetails) {
@@ -222,7 +226,7 @@ public class AccessService {
 
     // clone projectDetails to strip permissions from value object and save
     // (permissions are saved separately)
-    projectDetails = ProjectDetails.create(projectName, emptySet());
+    projectDetails = ProjectDetails.create(projectName, emptySet(), projectDetails.getProfiles());
     settings.getProjects().put(projectName, projectDetails);
     settings = AccessMetadata.create(settings.getUsers(), settings.getProjects(), permissions);
     save();
@@ -252,7 +256,7 @@ public class AccessService {
     requireNonNull(project);
 
     settings.getUsers().putIfAbsent(email, UserDetails.create(email, null, null, null, null, null));
-    settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null));
+    settings.getProjects().putIfAbsent(project, ProjectDetails.create(project, null, emptySet()));
     settings.getPermissions().add(ProjectPermission.create(email, project));
 
     save();
@@ -315,7 +319,7 @@ public class AccessService {
 
     storage.listProjects().stream()
         .filter(project -> !settings.getProjects().containsKey(project))
-        .map(project -> ProjectDetails.create(project, emptySet()))
+        .map(project -> ProjectDetails.create(project, emptySet(), Set.of("default")))
         .forEach(this::projectsUpsert);
   }
 }

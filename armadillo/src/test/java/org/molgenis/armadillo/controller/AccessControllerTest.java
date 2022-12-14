@@ -66,7 +66,9 @@ class AccessControllerTest {
     settings.getUsers().put("bofke@email.com", UserDetails.create("bofke@email.com"));
     settings
         .getProjects()
-        .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
+        .put(
+            "bofkesProject",
+            ProjectDetails.create("bofkesProject", Set.of("bofke@email.com"), emptySet()));
     settings.getPermissions().add(ProjectPermission.create("bofke@email.com", "bofkesProject"));
     return settings;
   }
@@ -102,7 +104,7 @@ class AccessControllerTest {
             UserDetails.create("chefke@email.com", null, null, null, null, emptySet()));
     expected
         .getProjects()
-        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet(), emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
     verify(accessLoader).save(expected);
   }
@@ -166,7 +168,8 @@ class AccessControllerTest {
                 .content(
                     new Gson()
                         .toJson(
-                            ProjectDetails.create("chefkesProject", Set.of("chefke@email.com"))))
+                            ProjectDetails.create(
+                                "chefkesProject", Set.of("chefke@email.com"), emptySet())))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isNoContent());
@@ -175,7 +178,7 @@ class AccessControllerTest {
     expected.getUsers().put("chefke@email.com", UserDetails.create("chefke@email.com"));
     expected
         .getProjects()
-        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet(), emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
     verify(accessLoader).save(expected);
   }
@@ -230,7 +233,7 @@ class AccessControllerTest {
                 "chefke@email.com", "Chefke", "von Chefke", "Chefke & co", true, emptySet()));
     expected
         .getProjects()
-        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet()));
+        .put("chefkesProject", ProjectDetails.create("chefkesProject", emptySet(), emptySet()));
     expected.getPermissions().add(ProjectPermission.create("chefke@email.com", "chefkesProject"));
 
     when(accessLoader.save(expected)).thenReturn(expected);
@@ -269,7 +272,9 @@ class AccessControllerTest {
     var expected = AccessMetadata.create();
     expected
         .getProjects()
-        .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
+        .put(
+            "bofkesProject",
+            ProjectDetails.create("bofkesProject", Set.of("bofke@email.com"), emptySet()));
     verify(accessLoader).save(expected);
   }
 }

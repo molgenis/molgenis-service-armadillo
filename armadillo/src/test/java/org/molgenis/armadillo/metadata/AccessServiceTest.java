@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +30,8 @@ class AccessServiceTest {
 
   @Test
   void testBootstrapProjects() {
-    var project1 = ProjectDetails.create("project1", emptySet());
-    var project2 = ProjectDetails.create("project2", emptySet());
+    var project1 = ProjectDetails.create("project1", emptySet(), emptySet());
+    var project2 = ProjectDetails.create("project2", emptySet(), Set.of("default"));
     var metadata =
         AccessMetadata.create(
             new ConcurrentHashMap<>(),
