@@ -242,10 +242,12 @@ export default defineComponent({
       let users = this.users;
       if (this.searchString) {
         users = this.users.filter((user: User) => {
+          const firstName = user.firstName ? user.firstName : "";
+          const lastName = user.lastName ? user.firstName : "";
           return (
             stringIncludesOtherString(user.email, this.searchString) ||
-            stringIncludesOtherString(user.firstName, this.searchString) ||
-            stringIncludesOtherString(user.lastName, this.searchString)
+            stringIncludesOtherString(firstName, this.searchString) ||
+            stringIncludesOtherString(lastName, this.searchString)
           );
         });
       }
