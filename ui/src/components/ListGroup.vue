@@ -50,6 +50,9 @@ export default {
     return { selectedItem: this.preselectedItem };
   },
   watch: {
+    listContent: function() {
+      this.selectedItem = "";
+    },
     preselectedItem: function () {
       this.selectedItem = this.preselectedItem;
     },

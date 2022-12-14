@@ -40,7 +40,9 @@
             <div class="row">
               <div
                 class="col-12 fst-italic"
-                v-if="projectFolders.length === 0 && !createNewFolder"
+                v-if="
+                  projectFolders.length === 0 && !createNewFolder && !loading
+                "
               >
                 Create a folder to get started
               </div>
@@ -107,6 +109,7 @@
                   @upload_success="onUploadSuccess"
                   @upload_error="showErrorMessage"
                   uniqueClass="project-file-upload"
+                  :preselectedItem="selectedFile"
                   :triggerUpload="triggerFileUpload"
                   @upload_triggered="resetFileUpload"
                 ></FileUpload>
@@ -253,6 +256,9 @@ export default defineComponent({
     };
   },
   watch: {
+    selectedFolder() {
+      this.selectedFile = "";
+    },
     selectedFile() {
       if (this.selectedFile.endsWith(".parquet")) {
         this.loading_preview = true;
@@ -266,7 +272,7 @@ export default defineComponent({
           })
           .catch((error) => {
             this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-            this.filePreview = [{}];
+            this.clearFilePreview();
             this.loading_preview = false;
           });
       }
@@ -287,6 +293,9 @@ export default defineComponent({
   methods: {
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
+    },
+    clearFilePreview() {
+      this.filePreview = [{}];
     },
     setProjectContent() {
       let content: Record<string, string[]> = {};
