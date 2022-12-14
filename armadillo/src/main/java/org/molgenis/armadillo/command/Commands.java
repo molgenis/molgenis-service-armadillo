@@ -20,9 +20,10 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
+  CompletableFuture<Void> loadTable(
+      String symbol, String project, String table, List<String> variables);
 
-  CompletableFuture<Void> loadResource(String symbol, String resource);
+  CompletableFuture<Void> loadResource(String symbol, String project, String resource);
 
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 

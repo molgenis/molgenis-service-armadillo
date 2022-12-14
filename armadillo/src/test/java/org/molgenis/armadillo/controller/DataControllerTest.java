@@ -699,7 +699,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testLoadTable() throws Exception {
     when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", emptyList()))
+    when(commands.loadTable("D", "project", "folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -731,7 +731,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
+    when(commands.loadTable("D", "project", "folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -833,7 +833,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void testLoadResource() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
-    when(commands.loadResource("hpc_res", "gecko/2_1-core-1_1/hpc-resource-1"))
+    when(commands.loadResource("hpc_res", "gecko", "2_1-core-1_1/hpc-resource-1"))
         .thenReturn(completedFuture(null));
 
     mockMvc

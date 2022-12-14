@@ -20,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
@@ -47,7 +46,6 @@ class CommandsImplTest {
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
   @Mock ProfileService profileService;
-  @Mock AccessService accessService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -76,8 +74,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService,
-            accessService);
+            profileService);
   }
 
   @Test
@@ -156,7 +153,7 @@ class CommandsImplTest {
   void testLoadTable() throws Exception {
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
 
-    commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
+    commands.loadTable("D", "project", "folder/table", List.of("col1", "col2")).get();
 
     verify(rExecutorService)
         .loadTable(
@@ -199,7 +196,7 @@ class CommandsImplTest {
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
 
-    commands.loadResource("core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    commands.loadResource("core_nonrep", "gecko", "2_1-core-1_0/hpc-resource").get();
 
     verify(rExecutorService)
         .loadResource(

@@ -151,9 +151,17 @@ public class DataController {
             .flatMap(Arrays::stream)
             .map(String::trim)
             .toList();
+
+    int index = table.indexOf('/');
+    String project = table.substring(0, index);
+    String objectName = table.substring(index + 1);
+
     var result =
         auditEventPublisher.audit(
-            commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
+            commands.loadTable(symbol, project, objectName, variableList),
+            principal,
+            LOAD_TABLE,
+            data);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result
@@ -221,9 +229,14 @@ public class DataController {
       auditEventPublisher.audit(principal, LOAD_RESOURCE_FAILURE, data);
       return completedFuture(notFound().build());
     }
+
+    int index = resource.indexOf('/');
+    String project = resource.substring(0, index);
+    String objectName = resource.substring(index + 1);
+
     var result =
         auditEventPublisher.audit(
-            commands.loadResource(symbol, resource), principal, LOAD_RESOURCE, data);
+            commands.loadResource(symbol, project, objectName), principal, LOAD_RESOURCE, data);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result

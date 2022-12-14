@@ -5,7 +5,6 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import org.molgenis.armadillo.exceptions.ProfileNotAllowedException;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +15,6 @@ public class ProfileSecurity {
     this.accessService = accessService;
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public boolean canLoadToProfile(String project) {
     var profile = ActiveProfileNameAccessor.getActiveProfileName();
     var allowedProfiles = runAsSystem(() -> accessService.projectsByName(project).getProfiles());
