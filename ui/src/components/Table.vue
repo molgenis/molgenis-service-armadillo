@@ -16,6 +16,7 @@
       >
         <tr
           v-if="getIndex(dataRow) != indexToEdit"
+          class="align-middle"
           :class="
             getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''
           "
