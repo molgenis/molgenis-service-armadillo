@@ -16,6 +16,8 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.exceptions.ProfileNotAllowedException;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
@@ -44,6 +46,7 @@ class CommandsImpl implements Commands {
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
   private final ProfileService profileService;
+  private final AccessService accessService;
 
   private ArmadilloSession armadilloSession;
 
@@ -57,7 +60,8 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ProfileService profileService) {
+      ProfileService profileService,
+      AccessService accessService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
@@ -65,6 +69,7 @@ class CommandsImpl implements Commands {
     this.connectionFactory = connectionFactory;
     this.processService = processService;
     this.profileService = profileService;
+    this.accessService = accessService;
     this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
@@ -148,6 +153,9 @@ class CommandsImpl implements Commands {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
+
+    secureProfile(project);
+
     return schedule(
         new ArmadilloCommandImpl<>("Load table " + table, false) {
           @Override
@@ -164,11 +172,22 @@ class CommandsImpl implements Commands {
         });
   }
 
+  public void secureProfile(String project) {
+    var profile = ActiveProfileNameAccessor.getActiveProfileName();
+    var allowedProfiles = accessService.projectsByName(project).getProfiles();
+    if (!allowedProfiles.contains(profile)) {
+      throw new ProfileNotAllowedException(project, profile, allowedProfiles);
+    }
+  }
+
   @Override
   public CompletableFuture<Void> loadResource(String symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
+
+    secureProfile(project);
+
     return schedule(
         new ArmadilloCommandImpl<>("Load resource " + resource, false) {
           @Override
