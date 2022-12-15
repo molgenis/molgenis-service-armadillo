@@ -1,13 +1,13 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="username" @logout="logoutUser" :showLogin="$route.name != 'login'"/>
+      <Navbar :username="username" @logout="logoutUser" :showLogin="false"/>
       <div class="container">
         <div class="row mt-2">
-          <div class="col">
+          <div class="col" v-if="username">
             <Tabs v-if="username" :menu="tabs" :icons="tabIcons"/>
-            <Login @loginEvent="reloadUser" v-else/>
           </div>
+          <Login @loginEvent="reloadUser" v-else/>
         </div>
       </div>
     </div>

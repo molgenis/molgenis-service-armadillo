@@ -10,7 +10,7 @@
         />
         Armadillo portal
       </a>
-      <form class="d-flex mt-1" v-if="showLogin">
+      <form class="d-flex mt-1">
         <span class="navbar-text p-2" v-show="username"
         ><i class="bi bi-person-fill"></i> {{ username }}
         </span>
@@ -23,7 +23,7 @@
           >
             Log out
           </button>
-          <router-link to="/login" v-else>
+          <router-link to="/login" v-else-if="showLogin">
             <button type="button" class="btn btn-primary">Log in</button>
           </router-link>
         </span>
