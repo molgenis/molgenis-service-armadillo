@@ -75,6 +75,7 @@ class CommandsImpl implements Commands {
     return ActiveProfileNameAccessor.getActiveProfileName();
   }
 
+  @PreAuthorize("@profileSecurity.canSelectProfile(#profileName)")
   @Override
   public void selectProfile(String profileName) {
     runAsSystem(() -> profileService.getByName(profileName));

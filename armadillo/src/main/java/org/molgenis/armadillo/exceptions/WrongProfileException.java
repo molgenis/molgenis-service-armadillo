@@ -6,10 +6,10 @@ import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-public class ProfileNotAllowedException extends RuntimeException {
+@ResponseStatus(code = HttpStatus.FORBIDDEN)
+public class WrongProfileException extends RuntimeException {
 
-  public ProfileNotAllowedException(
+  public WrongProfileException(
       String projectName, String profileName, Set<String> allowedProfiles) {
     super(
         format(
