@@ -215,7 +215,8 @@ export default defineComponent({
           });
     },
     saveEditedProject() {
-      this.saveProject(this.projectToEdit, () => {
+      const project: Project = this.projects[this.projectToEditIndex];
+      this.saveProject(project, () => {
         this.clearProjectToEdit();
       });
     },
