@@ -29,19 +29,19 @@ aggregated results are sent back to the client.
 
 ## Share data
 
-Data stewards can use the [MolgenisArmadillo R client](https://molgenis.github.io/molgenis-r-armadillo) to manage their
-data on the Armadillo file server. Data is stored in a format that supports fast selections of the columns (variables)
+Data stewards can use the Armadillo web user interface
+or [MolgenisArmadillo R client](https://molgenis.github.io/molgenis-r-armadillo) to manage their data on the Armadillo
+file server. Data is stored in parquet format that supports fast selections of the columns (variables)
 you need for analysis. Data stewards can manage the uploaded data in the web browser. The data can be stored encrypted
-on the Armadillo file server.
+on the Armadillo file server. When using the web user interface you must first convert your data into parquet. (CSV
+uploads will be supported in the near future).
 
 ## Access data
 
-Everybody logs in via single sign on using a [central authentication server](https://fusionauth.io) that federates to
-all of the institutions. This allows people to use one set of credentials in a network of Armadillo servers.
+Everybody logs in via single sign on using an OIDC central authentication server such as KeyCloack or Fusion auth that
+federates to authentication systems of connected institutions, ideally using a federated AAI such as LifeScience AAI.
 
 # Getting started
-
-The Armadillo R packages are hosted on CRAN.
 
 To spin up your own server on a laptop, you can run `java -jar armadillo-3.x.x.jar`
 
@@ -56,6 +56,10 @@ Here you will find user interfaces for:
 * defining and managing datashield profiles
 
 You can also explore the API endpoints at `localhost:8080/swagger-ui/index.html`
+
+Finally, you can download the R client.
+
+Of course the next step would be to use a DataSHIELD client to connect to Armadillo for analysis.
 
 # Development
 
