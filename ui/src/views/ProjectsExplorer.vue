@@ -315,8 +315,11 @@ export default defineComponent({
           /** add to the content structure */
           if (content[folder]) {
             content[folder] = content[folder].concat(folderItem);
-          } else {
+          } else{
             content[folder] = [folderItem];
+            if (folderItem === ""){
+              content[folder] = [];
+            }
           }
         }
       });
