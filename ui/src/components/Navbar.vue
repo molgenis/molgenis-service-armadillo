@@ -3,23 +3,23 @@
     <div class="container-fluid">
       <a class="navbar-brand align-middle" href="#">
         <img
-          src="/armadillo-logo.png"
-          alt="molgenis"
-          width="35"
-          class="d-inline-block me-2"
+            src="/armadillo-logo.png"
+            alt="molgenis"
+            width="35"
+            class="d-inline-block me-2"
         />
         Armadillo portal
       </a>
-      <form class="d-flex mt-1">
+      <form class="d-flex mt-1" v-if="showLogin">
         <span class="navbar-text p-2" v-show="username"
-          ><i class="bi bi-person-fill"></i> {{ username }}
+        ><i class="bi bi-person-fill"></i> {{ username }}
         </span>
         <span>
           <button
-            type="button"
-            class="btn btn-primary"
-            @click="$emit('logout')"
-            v-if="username"
+              type="button"
+              class="btn btn-primary"
+              @click="$emit('logout')"
+              v-if="username"
           >
             Log out
           </button>
@@ -33,12 +33,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent} from "vue";
 
 export default defineComponent({
   name: "Navbar",
   props: {
     username: String,
+    showLogin: Boolean,
   },
   emits: ["logout"],
 });

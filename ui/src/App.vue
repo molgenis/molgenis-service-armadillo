@@ -1,12 +1,12 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="username" @logout="logoutUser" />
+      <Navbar :username="username" @logout="logoutUser" :showLogin="$route.name != 'login'"/>
       <div class="container">
         <div class="row mt-2">
           <div class="col">
-            <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
-            <Login @loginEvent="reloadUser" v-else />
+            <Tabs v-if="username" :menu="tabs" :icons="tabIcons"/>
+            <Login @loginEvent="reloadUser" v-else/>
           </div>
         </div>
       </div>
@@ -18,10 +18,10 @@
 import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
-import { onMounted, Ref, ref, defineComponent } from "vue";
-import { getPrincipal, logout } from "@/api/api";
-import { useRouter } from "vue-router";
-import { ConnectionError } from "@/helpers/errors";
+import {defineComponent, onMounted, ref, Ref} from "vue";
+import {getPrincipal, logout} from "@/api/api";
+import {useRouter} from "vue-router";
+import {ConnectionError} from "@/helpers/errors";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -40,20 +40,20 @@ export default defineComponent({
     });
     const loadUser = async () => {
       await getPrincipal()
-        .then((principal) => {
-          isAuthenticated.value = principal.authenticated;
-          username.value =
-            principal.principal &&
-            principal.principal.attributes &&
-            principal.principal.attributes.email
-              ? principal.principal.attributes.email
-              : principal.name;
-        })
-        .catch((error: ConnectionError) => {
-          if (error.cause === 401) {
-            router.push("/login");
-          }
-        });
+          .then((principal) => {
+            isAuthenticated.value = principal.authenticated;
+            username.value =
+                principal.principal &&
+                principal.principal.attributes &&
+                principal.principal.attributes.email
+                    ? principal.principal.attributes.email
+                    : principal.name;
+          })
+          .catch((error: ConnectionError) => {
+            if (error.cause === 401) {
+              router.push("/login");
+            }
+          });
     };
     return {
       username,
@@ -77,16 +77,16 @@ export default defineComponent({
     },
     reloadUser() {
       this.loadUser()
-        .then(() => {
-          if (!this.username) {
-            this.$router.push("/login");
-          }
-        })
-        .catch((error: ConnectionError) => {
-          if (error.cause === 401) {
-            this.$router.push("/login");
-          }
-        });
+          .then(() => {
+            if (!this.username) {
+              this.$router.push("/login");
+            }
+          })
+          .catch((error: ConnectionError) => {
+            if (error.cause === 401) {
+              this.$router.push("/login");
+            }
+          });
     },
   },
 });
