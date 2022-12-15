@@ -32,7 +32,11 @@ public class ParquetUtils {
         SimpleGroup group = (SimpleGroup) recordReader.read();
         Map<String, String> row = new LinkedHashMap<>();
         for (int fieldIndex = 0; fieldIndex < min(fieldSize, columnLimit); fieldIndex++) {
-          row.put(schema.getFieldName(fieldIndex), group.getValueToString(fieldIndex, 0));
+          try {
+            row.put(schema.getFieldName(fieldIndex), group.getValueToString(fieldIndex, 0));
+          } catch (Exception e) {
+            row.put(schema.getFieldName(fieldIndex), "???");
+          }
         }
         result.add(row);
       }
