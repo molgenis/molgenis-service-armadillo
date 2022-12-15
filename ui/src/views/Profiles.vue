@@ -237,7 +237,7 @@ export default defineComponent({
             this.clearLoading();
           });
       //check if new name
-      if (profile.name !== this.profileToEdit) {
+      if (this.profileToEdit && profile.name !== this.profileToEdit) {
         deleteProfile(this.profileToEdit)
             .then(() => this.reloadProfiles())
             .catch((error) => {
