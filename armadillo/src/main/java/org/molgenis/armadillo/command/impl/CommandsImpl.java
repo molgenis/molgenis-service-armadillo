@@ -2,6 +2,7 @@ package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.stream.Collectors.toList;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
@@ -31,6 +32,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
@@ -84,9 +86,11 @@ class CommandsImpl implements Commands {
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
+  @PostFilter("@profileSecurity.canSelectProfile(filterObject)")
   @Override
   public List<String> listProfiles() {
-    return profileService.getAll().stream().map(ProfileConfig::getName).toList();
+    return runAsSystem(
+        () -> profileService.getAll().stream().map(ProfileConfig::getName).collect(toList()));
   }
 
   @Override

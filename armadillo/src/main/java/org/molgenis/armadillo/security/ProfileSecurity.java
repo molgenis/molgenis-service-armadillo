@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.Collection;
-import org.molgenis.armadillo.exceptions.ForbiddenProfileException;
+import java.util.Set;
 import org.molgenis.armadillo.exceptions.WrongProfileException;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProjectDetails;
@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProfileSecurity {
+
+  private static final String ROLE_SU = "ROLE_SU";
+  private static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
   private final AccessService accessService;
 
@@ -32,31 +35,33 @@ public class ProfileSecurity {
   }
 
   public boolean canSelectProfile(String profile) {
-    var auth = SecurityContextHolder.getContext().getAuthentication();
-    var userRoles =
-        auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(toSet());
+    Set<String> userRoles = getUserRoles();
 
-    if (userRoles.contains("ROLE_SU")) {
+    if (userRoles.contains(ROLE_SU)) {
       return true;
     }
 
-    if (userRoles.contains("ROLE_ANONYMOUS")) {
+    if (userRoles.contains(ROLE_ANONYMOUS)) {
       return false;
     }
 
-    var allowedProfiles =
-        userRoles.stream()
-            .map(this::roleToProject)
-            .map(this::getProjectDetails)
-            .map(ProjectDetails::getProfiles)
-            .flatMap(Collection::stream)
-            .collect(toSet());
+    var allowedProfiles = getAllowedProfiles(userRoles);
+    return allowedProfiles.contains(profile);
+  }
 
-    if (!allowedProfiles.contains(profile)) {
-      throw new ForbiddenProfileException(profile, allowedProfiles);
-    }
+  private Set<String> getAllowedProfiles(Set<String> userRoles) {
+    return userRoles.stream()
+        .map(this::roleToProject)
+        .map(this::getProjectDetails)
+        .map(ProjectDetails::getProfiles)
+        .flatMap(Collection::stream)
+        .collect(toSet());
+  }
 
-    return true;
+  private static Set<String> getUserRoles() {
+    return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .collect(toSet());
   }
 
   private ProjectDetails getProjectDetails(String project) {
