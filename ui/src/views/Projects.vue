@@ -29,8 +29,9 @@
         :highlightedRowIndex="projectToHighlightIndex"
     >
       <template #customType="customProps">
+        {{ customProps.data }}
         <router-link :to="`/projects-explorer/${customProps.data}`">
-          {{ customProps.data }}
+          <button class="btn btn-link"><i class="bi bi-table"></i><i class="bi bi-pencil"></i></button>
         </router-link>
       </template>
       <template v-slot:extraHeader>

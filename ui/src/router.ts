@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from "vue-router";
+import {createRouter, createWebHashHistory} from "vue-router";
 import Projects from "@/views/Projects.vue";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
@@ -33,7 +33,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory("/ui/"),
+    history: createWebHashHistory("/ui/"),
     routes,
 });
 
