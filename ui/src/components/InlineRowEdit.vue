@@ -2,9 +2,10 @@
   <tr class="align-middle">
     <th scope="row">
       <ButtonGroup
-        :buttonIcons="buttonIcons"
-        :buttonColors="buttonTypes"
-        :clickCallbacks="[save, cancel]"
+          :buttonIcons="buttonIcons"
+          :buttonColors="buttonTypes"
+          :clickCallbacks="[save, cancel]"
+          :disabled="disabled"
       ></ButtonGroup>
     </th>
     <td v-for="(type, column) in dataStructure" :key="column">
@@ -12,28 +13,28 @@
         <!-- skipped column {{column}}-->
       </div>
       <div v-else-if="immutable.includes(column)">
-        {{rowData[column]}}
+        {{ rowData[column] }}
       </div>
       <div v-else-if="type === 'array'">
-        <StringArrayInput v-model="rowData[column]" />
+        <StringArrayInput v-model="rowData[column]"/>
       </div>
       <div v-else-if="type === 'object'">
-        <KeyValueInput v-model="rowData[column]" />
+        <KeyValueInput v-model="rowData[column]"/>
       </div>
       <div v-else-if="type === 'boolean'">
         <input
-          class="form-check-input"
-          type="checkbox"
-          v-model="rowData[column]"
+            class="form-check-input"
+            type="checkbox"
+            v-model="rowData[column]"
         />
       </div>
       <div class="input-group mb-3" v-else>
         <input
-          type="text"
-          class="form-control"
-          v-model="rowData[column]"
-          :placeholder="rowData[column]"
-          :aria-label="column"
+            type="text"
+            class="form-control"
+            v-model="rowData[column]"
+            :placeholder="rowData[column]"
+            :aria-label="column"
         />
       </div>
     </td>
@@ -41,11 +42,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import {defineComponent, PropType} from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
-import { StringArray, BootstrapType, TypeObject } from "@/types/types";
+import {BootstrapType, StringArray, TypeObject} from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
@@ -55,6 +56,9 @@ export default defineComponent({
     ButtonGroup,
   },
   props: {
+    disabled: {
+      type: Boolean
+    },
     save: {
       type: Function,
       required: true,
@@ -64,9 +68,7 @@ export default defineComponent({
       required: true,
     },
     row: {
-      type: Object as PropType<
-        Record<string, StringArray | Object | boolean | string>
-      >,
+      type: Object as PropType<Record<string, StringArray | Object | boolean | string>>,
       required: true,
     },
     hideColumns: {

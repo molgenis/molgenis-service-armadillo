@@ -1,13 +1,13 @@
 <template>
   <div class="btn-group" role="group">
     <button
-      type="button"
-      v-for="(icon, index) in buttonIcons"
-      :key="icon"
-      class="btn btn-sm"
-      :class="`btn-${getButtonColor(index)} bg-${buttonColors[index]}`"
-      :disabled="disabledButtons ? disabledButtons[index] : false"
-      @click="clickCallbacks[index](getCallbackArgument(index))"
+        type="button"
+        v-for="(icon, index) in buttonIcons"
+        :key="icon"
+        class="btn btn-sm"
+        :class="`btn-${getButtonColor(index)} bg-${buttonColors[index]}`"
+        :disabled="disabled || (disabledButtons ? disabledButtons[index] : false)"
+        @click="clickCallbacks[index](getCallbackArgument(index))"
     >
       <i :class="`bi bi-${icon}`"></i>
     </button>
@@ -15,12 +15,15 @@
 </template>
 
 <script lang="ts">
-import { BootstrapType, StringArray } from "@/types/types";
-import { defineComponent, PropType } from "vue";
+import {BootstrapType, StringArray} from "@/types/types";
+import {defineComponent, PropType} from "vue";
 
 export default defineComponent({
   name: "ButtonGroup",
   props: {
+    disabled: {
+      type: Boolean,
+    },
     buttonIcons: {
       type: Array as PropType<StringArray>,
       required: true,
@@ -34,11 +37,11 @@ export default defineComponent({
       required: false,
     },
     clickCallbacks: {
-      type: Array as PropType<Function[]>, 
+      type: Array as PropType<Function[]>,
       required: true
     },
     callbackArguments: {
-      type: Array, 
+      type: Array,
       required: false
     },
   },
@@ -46,8 +49,8 @@ export default defineComponent({
     getButtonColor(index: number): BootstrapType {
       // info button has dark icon, which is ugly with the light primary/success/danger
       return this.buttonColors[index] === "info"
-        ? "primary"
-        : this.buttonColors[index];
+          ? "primary"
+          : this.buttonColors[index];
     },
     getCallbackArgument(index: number) {
       // if callback functions don't need arguments, we don't want to specify them

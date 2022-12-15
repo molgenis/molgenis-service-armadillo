@@ -24,6 +24,7 @@
               type="button"
               class="btn btn-sm me-1 btn-primary bg-primary"
               @click="addNewProfile"
+              :disabled="profileToEdit !== '' || profileToEditIndex === 0"
           >
             <i class="bi bi-plus-lg"></i>
           </button>
@@ -77,6 +78,7 @@
               :buttonColors="['primary', 'danger']"
               :clickCallbacks="[editProfile, removeProfile]"
               :callbackArguments="[columnProps.item, columnProps.item]"
+              :disabled="profileToEdit !== ''  || profileToEditIndex === 0"
           ></ButtonGroup>
         </th>
       </template>
@@ -265,6 +267,7 @@ export default defineComponent({
     clearProfileToEdit() {
       this.reloadProfiles();
       this.profileToEditIndex = -1;
+      this.profileToEdit = "";
     },
     getEditIndex() {
       const index = this.profiles.findIndex((profile: Profile) => {
