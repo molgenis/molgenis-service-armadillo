@@ -5,3 +5,7 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 ## Recommended IDE Setup
 
 - [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+
+## Can't log in in Armadillo UI
+
+Remove the session data / cookies from the swagger or the armadillo server on port 80, then try again
