@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -27,8 +26,8 @@ public class WelcomeController {
     this.clientId = clientId;
   }
 
-  @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
-  @ResponseBody
+  // @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
+  // @ResponseBody
   public String indexHtml(Principal principal) {
     // default: only basic auth has config and not signed in
     String loginAndLogout =

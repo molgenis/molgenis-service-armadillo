@@ -16,7 +16,7 @@ export default defineConfig({
     },
     plugins: [vue()],
     //relative paths so you can serve anywhere
-    base: '/ui/',
+    base: '',
     server: {
         port: "8081",
         proxy: {

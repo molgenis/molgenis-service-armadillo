@@ -33,7 +33,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHashHistory("/ui/"),
+    history: createWebHashHistory(),
     routes,
 });
 
