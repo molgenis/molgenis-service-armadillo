@@ -1,0 +1,79 @@
+armadillo:
+  # set this to 'true' if you want to accept permissions from oidc provider
+  oidc-permission-enabled: false
+  # set this true if you want Armadillo to create/edit/delete profile docker images
+  docker-management-enabled: true
+  # uncomment this to configure a default admin user
+  # oidc-admin-user: user@yourdomain.org
+          # foo: bar
+
+  profiles:
+    - name: default
+      image: datashield/armadillo-rserver
+      port: 6311
+      package-whitelist:
+        - dsBase
+      function-blacklist: []
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: @SEED@
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+server:
+  forward-headers-strategy: framework
+  error:
+    include-binding-errors: always
+    include-message: always
+
+audit:
+  log:
+    path: @AUDITLOG@
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+    application:
+      name: armadillo
+  security:
+    user:
+      name: @ADMINUSER@
+      password: @ADMINPASS@
+      roles:
+        - SU
+
+  config:
+    activate:
+      on-profile: default  
+
+logging:
+  config: classpath:logback-file.xml
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
+  level:
+    org.molgenis: DEBUG
+    org:
+      springframework:
+        boot:
+          actuate:
+            audit:
+              listener:
+                AuditListener: INFO
+          web:
+            context: DEBUG
+
+storage:
+  root-dir: @DATADIR@
+
+# Uncomment the following block to enable MinIO storage (overrules local storage)
+# minio:
+#   url: http://minio
+#   port: 9000
+#   access-key: ASSDFXrJoymrOZ8rp
+#   secret-key: ASDFADkC87qmM99O
