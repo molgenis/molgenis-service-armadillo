@@ -56,6 +56,7 @@ export type ProjectsData = {
 };
 
 export type UsersData = {
+  recordToDelete: string;
   updatedUserIndex: number;
   userDataStructure: TypeObject;
   editMode: {

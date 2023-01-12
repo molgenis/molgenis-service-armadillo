@@ -5,36 +5,42 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <FeedbackMessage
-            :successMessage="successMessage"
-            :errorMessage="errorMessage"
+          :successMessage="successMessage"
+          :errorMessage="errorMessage"
         ></FeedbackMessage>
+        <ConfirmationDialog
+          v-if="recordToDelete != ''"
+          :record="recordToDelete"
+          @proceed="proceedDelete"
+          @cancel="clearRecordToDelete"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
       <div class="col-0 col-sm-9"></div>
       <div class="col-12 col-sm-3">
-        <SearchBar class="mt-1" v-model="searchString"/>
+        <SearchBar class="mt-1" v-model="searchString" />
       </div>
     </div>
     <!-- Loading spinner -->
     <LoadingSpinner v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
-        v-else
-        :dataToShow="getFilteredAndSortedUsers()"
-        :allData="users"
-        :indexToEdit="editMode.userToEditIndex"
-        :dataStructure="userDataStructure"
-        :highlightedRowIndex="updatedUserIndex"
+      v-else
+      :dataToShow="getFilteredAndSortedUsers()"
+      :allData="users"
+      :indexToEdit="editMode.userToEditIndex"
+      :dataStructure="userDataStructure"
+      :highlightedRowIndex="updatedUserIndex"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->
         <th>
           <button
-              type="button"
-              class="btn btn-sm me-1 btn-primary bg-primary"
-              :disabled="addRow || editMode.userToEdit !== ''"
-              @click="toggleAddRow"
+            type="button"
+            class="btn btn-sm me-1 btn-primary bg-primary"
+            :disabled="addRow || editMode.userToEdit !== ''"
+            @click="toggleAddRow"
           >
             <i class="bi bi-person-plus-fill"></i>
           </button>
@@ -43,22 +49,26 @@
       <template v-slot:extraRow v-if="addRow">
         <!-- Extra row for adding a new user  -->
         <InlineRowEdit
-            :row="addMode.newUser"
-            :save="saveNewUser"
-            :cancel="clearNewUser"
-            :hideColumns="[]"
-            :dataStructure="userDataStructure"
+          :row="addMode.newUser"
+          :save="saveNewUser"
+          :cancel="clearNewUser"
+          :hideColumns="[]"
+          :dataStructure="userDataStructure"
         />
       </template>
       <template #extraColumn="columnProps">
         <!-- Add buttons for editing/deleting users -->
         <th scope="row">
           <ButtonGroup
-              :buttonIcons="['pencil-fill', 'trash-fill']"
-              :buttonColors="['primary', 'danger']"
-              :clickCallbacks="[editUser, removeUser]"
-              :disabled="addRow || editMode.userToEdit != '' && editMode.userToEdit !== columnProps.email"
-              :callbackArguments="[columnProps.item, columnProps.item]"
+            :buttonIcons="['pencil-fill', 'trash-fill']"
+            :buttonColors="['primary', 'danger']"
+            :clickCallbacks="[editUser, removeUser]"
+            :disabled="
+              addRow ||
+              (editMode.userToEdit != '' &&
+                editMode.userToEdit !== columnProps.email)
+            "
+            :callbackArguments="[columnProps.item, columnProps.item]"
           ></ButtonGroup>
         </th>
       </template>
@@ -69,19 +79,19 @@
       <template #boolType="boolProps">
         <!-- Show booleans as checkboxes -->
         <input
-            class="form-check-input"
-            type="checkbox"
-            :checked="boolProps.data"
-            @change="updateAdmin(boolProps.row, boolProps.data)"
+          class="form-check-input"
+          type="checkbox"
+          :checked="boolProps.data"
+          @change="updateAdmin(boolProps.row, boolProps.data)"
         />
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
-            :row="rowProps.row"
-            :save="saveEditedUser"
-            :cancel="clearUserToEdit"
-            :hideColumns="[]"
-            :dataStructure="userDataStructure"
+          :row="rowProps.row"
+          :save="saveEditedUser"
+          :cancel="clearUserToEdit"
+          :hideColumns="[]"
+          :dataStructure="userDataStructure"
         />
       </template>
     </Table>
@@ -92,17 +102,18 @@
 import Badge from "@/components/Badge.vue";
 import BadgeList from "@/components/BadgeList.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import {deleteUser, getUsers, putUser} from "@/api/api";
-import {sortAlphabetically, stringIncludesOtherString} from "@/helpers/utils";
-import {defineComponent, onMounted, Ref, ref} from "vue";
-import {User, UserStringKey} from "@/types/api";
-import {UsersData} from "@/types/types";
-import {useRouter} from "vue-router";
+import { deleteUser, getUsers, putUser } from "@/api/api";
+import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { User, UserStringKey } from "@/types/api";
+import { UsersData } from "@/types/types";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Users",
@@ -110,6 +121,7 @@ export default defineComponent({
     Badge,
     BadgeList,
     ButtonGroup,
+    ConfirmationDialog,
     FeedbackMessage,
     InlineRowEdit,
     LoadingSpinner,
@@ -141,6 +153,7 @@ export default defineComponent({
   },
   data(): UsersData {
     return {
+      recordToDelete: "",
       updatedUserIndex: -1,
       userDataStructure: {
         email: "string",
@@ -245,9 +258,9 @@ export default defineComponent({
           const firstName = user.firstName ? user.firstName : "";
           const lastName = user.lastName ? user.firstName : "";
           return (
-              stringIncludesOtherString(user.email, this.searchString) ||
-              stringIncludesOtherString(firstName, this.searchString) ||
-              stringIncludesOtherString(lastName, this.searchString)
+            stringIncludesOtherString(user.email, this.searchString) ||
+            stringIncludesOtherString(firstName, this.searchString) ||
+            stringIncludesOtherString(lastName, this.searchString)
           );
         });
       }
@@ -257,16 +270,23 @@ export default defineComponent({
         return sortAlphabetically(users, "email") as User[];
       }
     },
+    clearRecordToDelete() {
+      this.recordToDelete = "";
+    },
+    proceedDelete(userEmail: string) {
+      this.clearRecordToDelete();
+      deleteUser(userEmail)
+        .then(() => {
+          this.successMessage = `[${userEmail}] was successfully deleted.`;
+          this.reloadUsers();
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not delete [${userEmail}]: ${error}.`;
+        });
+    },
     removeUser(user: User) {
       this.clearUserMessages();
-      deleteUser(user.email)
-          .then(() => {
-            this.successMessage = `[${user.email}] was successfully deleted.`;
-            this.reloadUsers();
-          })
-          .catch((error) => {
-            this.errorMessage = `Could not delete [${user.email}]: ${error}.`;
-          });
+      this.recordToDelete = user.email;
     },
     saveEditedUser() {
       const user: User = this.users[this.editMode.userToEditIndex];
@@ -295,29 +315,29 @@ export default defineComponent({
       if (user.email === "") {
         this.errorMessage = "Cannot create user with empty email address.";
       } else if (
-          user.email === this.addMode.newUser.email &&
-          emailList.includes(user.email)
+        user.email === this.addMode.newUser.email &&
+        emailList.includes(user.email)
       ) {
         this.errorMessage = `User with email address [${user.email}] already exists.`;
       } else {
         const userEmail = user.email;
         putUser(user)
-            .then(async () => {
-              this.successMessage = `[${user.email}] was successfully saved.`;
-              await this.reloadUsers();
-              if (callback) {
-                callback();
+          .then(async () => {
+            this.successMessage = `[${user.email}] was successfully saved.`;
+            await this.reloadUsers();
+            if (callback) {
+              callback();
+            }
+            this.updatedUserIndex = this.getFilteredAndSortedUsers().findIndex(
+              (u) => {
+                return u.email === userEmail;
               }
-              this.updatedUserIndex = this.getFilteredAndSortedUsers().findIndex(
-                  (u) => {
-                    return u.email === userEmail;
-                  }
-              );
-              setTimeout(this.clearUpdatedUserIndex, 1000);
-            })
-            .catch((error) => {
-              this.errorMessage = `Could not save [${user.email}]: ${error}.`;
-            });
+            );
+            setTimeout(this.clearUpdatedUserIndex, 1000);
+          })
+          .catch((error) => {
+            this.errorMessage = `Could not save [${user.email}]: ${error}.`;
+          });
       }
     },
     toggleAddRow() {
