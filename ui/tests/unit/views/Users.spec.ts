@@ -255,21 +255,14 @@ describe("Users", () => {
   });
 
   test("calls deleteUser", async () => {
-    const john = {
-      email: "j.doe@example.com",
-      firstName: "John",
-      lastName: "Doe",
-      institution: "example",
-      admin: false,
-      projects: ["project2"],
-    };
+    const john = "j.doe@example.com";
     const testFunction = jest.fn();
     api.deleteUser.mockImplementation((user: string) => {
       testFunction(user);
       return Promise.resolve();
     });
-    wrapper.vm.removeUser(john);
-    expect(testFunction).toHaveBeenCalledWith(john.email);
+    wrapper.vm.proceedDelete(john);
+    expect(testFunction).toHaveBeenCalledWith(john);
   });
 
   test("deletes user with edited email, saves edited user and reloads", async () => {
