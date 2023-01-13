@@ -31,6 +31,8 @@ export type StringArray = string[];
 // Maybe later expand with float/int/enum/character
 export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {
+  fileToDelete: string;
+  folderToDeleteFrom: string;
   triggerFileUpload: boolean;
   projectToEdit: string;
   projectToEditIndex: number;
