@@ -1,6 +1,6 @@
 <template>
   <Alert type="warning" class="mt-1" @clear="$emit('cancel')">
-    Are you sure you want to delete [{{ record }}]?
+    Are you sure you want to {{action}} {{recordType}} [{{ record }}]?
     <button
       type="button"
       class="btn btn-sm btn-success"
@@ -29,6 +29,8 @@ export default {
   emits: ["proceed", "cancel"],
   props: {
     record: String,
+    action: String,
+    recordType: String
   },
 };
 </script>

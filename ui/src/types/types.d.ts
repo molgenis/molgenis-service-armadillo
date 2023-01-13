@@ -44,6 +44,7 @@ export type ProjectsExplorerData = {
 };
 
 export type ProjectsData = {
+  recordToDelete: string;
   projectToHighlightIndex: number;
   addRow: boolean;
   newProject: Project;

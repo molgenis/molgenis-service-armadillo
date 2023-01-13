@@ -11,6 +11,8 @@
         <ConfirmationDialog
           v-if="recordToDelete != ''"
           :record="recordToDelete"
+          action="delete"
+          recordType="user"
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
