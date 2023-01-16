@@ -102,6 +102,7 @@ import {defineComponent, onMounted, Ref, ref} from "vue";
 import {Project} from "@/types/api";
 import {ProjectsData} from "@/types/types";
 import {useRouter} from "vue-router";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 export default defineComponent({
   name: "Projects",
@@ -124,11 +125,7 @@ export default defineComponent({
     });
     const loadProjects = async () => {
       projects.value = await getProjects().catch((error: string) => {
-        if (error === "Unauthorized") {
-          router.push("/login");
-        } else {
-          errorMessage.value = `Could not load projects: ${error}.`;
-        }
+        errorMessage.value = processErrorMessages(error, router);
         return [];
       });
     };
