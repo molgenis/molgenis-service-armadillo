@@ -3,6 +3,7 @@ import Projects from "@/views/Projects.vue";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
 import Profiles from "@/views/Profiles.vue";
+import Login from "@/views/Login.vue";
 
 const routes = [
     {
@@ -19,7 +20,11 @@ const routes = [
         name: "projects",
         component: Projects,
     },
-
+    {
+        path: "/login",
+        name: "login",
+        component: Login,
+    },
     {
         path: "/projects-explorer/:projectId/:folderId?/:fileId?",
         name: "projects-explorer",

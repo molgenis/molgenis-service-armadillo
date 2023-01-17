@@ -17,6 +17,8 @@ export async function get(url: string, auth: Auth | undefined = undefined) {
   const outcome = handleResponse(response);
   if (response.status === 204 || response.status === 500) {
     return outcome;
+  } else if (response.status === 403 || response.status === 401) {
+    return outcome;
   } else {
     return response.json();
   }
