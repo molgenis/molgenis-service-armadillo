@@ -108,6 +108,20 @@
             <version>3.2.14</version>
         </dependency>
         <dependency>
+            <!-- Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips-->
+            <!-- https://github.com/docker-java/docker-java/issues/1876 -->
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-common</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+        <dependency>
+            <!-- Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips-->
+            <!-- https://github.com/docker-java/docker-java/issues/1876 -->
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-native-common</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+        <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
         </dependency>
