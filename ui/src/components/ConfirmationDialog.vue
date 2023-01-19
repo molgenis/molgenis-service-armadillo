@@ -1,21 +1,27 @@
 <template>
-  <Alert type="warning" class="mt-1" @clear="$emit('cancel')">
-    Are you sure you want to {{action}} {{recordType}} [{{ record }}]?
-    <button
-      type="button"
-      class="btn btn-sm btn-success"
-      v-on:click="$emit('proceed', record)"
+  <div class="confirm-container" v-on:click="$emit('cancel')">
+    <Alert
+      type="warning"
+      class="confirm-dialog position-absolute top-50 start-50 translate-middle"
+      @clear="$emit('cancel')"
     >
-      Yes
-    </button>
-    <button
-      type="button"
-      class="btn btn-sm btn-danger"
-      v-on:click="$emit('cancel')"
-    >
-      No
-    </button>
-  </Alert>
+      Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]?
+      <button
+        type="button"
+        class="btn btn-sm btn-success"
+        v-on:click="$emit('proceed', record)"
+      >
+        Yes
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-danger"
+        v-on:click="$emit('cancel')"
+      >
+        No
+      </button>
+    </Alert>
+  </div>
 </template>
 
 <script lang="ts">
@@ -30,7 +36,27 @@ export default {
   props: {
     record: String,
     action: String,
-    recordType: String
+    recordType: String,
   },
 };
 </script>
+
+<style scoped>
+.confirm-dialog {
+  position: fixed;
+  z-index: 1100;
+  opacity: 1!important;
+  pointer-events: all;
+  display: block;
+}
+.confirm-container {
+  position: fixed;
+  top: 0em;
+  left: 0em;
+  background: rgba(0,0,0,0.5);
+  z-index: 1099;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+</style>
