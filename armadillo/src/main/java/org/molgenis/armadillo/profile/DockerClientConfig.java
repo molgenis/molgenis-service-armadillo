@@ -29,7 +29,7 @@ public class DockerClientConfig {
     } catch (ProcessingException e) {
       LOG.warn(
           "Docker management is enabled but Armadillo could not connect to it. Either "
-              + "Docker is offline or it is not configure correctly.");
+              + "Docker is offline or it is not configured correctly.");
     }
     return dockerClient;
   }
