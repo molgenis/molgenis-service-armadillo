@@ -7,6 +7,14 @@
           :successMessage="successMessage"
           :errorMessage="errorMessage"
         ></FeedbackMessage>
+        <ConfirmationDialog
+          v-if="fileToDelete != ''"
+          :record="`${folderToDeleteFrom}/${fileToDelete}`"
+          action="delete"
+          recordType="file"
+          @proceed="proceedDelete"
+          @cancel="clearRecordToDelete"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -158,6 +166,7 @@
 
 <script lang="ts">
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
@@ -175,6 +184,7 @@ export default defineComponent({
   emits: ["triggerUploadFile"],
   components: {
     ButtonGroup,
+    ConfirmationDialog,
     FeedbackMessage,
     ListGroup,
     LoadingSpinner,
@@ -240,6 +250,8 @@ export default defineComponent({
   },
   data(): ProjectsExplorerData {
     return {
+      fileToDelete: "",
+      folderToDeleteFrom: "",
       triggerFileUpload: false,
       projectToEdit: "",
       projectToEditIndex: -1,
@@ -312,9 +324,9 @@ export default defineComponent({
           /** add to the content structure */
           if (content[folder]) {
             content[folder] = content[folder].concat(folderItem);
-          } else{
+          } else {
             content[folder] = [folderItem];
-            if (folderItem === ""){
+            if (folderItem === "") {
               content[folder] = [];
             }
           }
@@ -366,8 +378,18 @@ export default defineComponent({
       this.triggerFileUpload = true;
     },
     deleteSelectedFile() {
-      const folder = this.selectedFolder;
-      const file = this.selectedFile;
+      this.fileToDelete = this.selectedFile;
+      this.folderToDeleteFrom = this.selectedFolder;
+    },
+    clearRecordToDelete() {
+      this.fileToDelete = "";
+      this.folderToDeleteFrom = "";
+    },
+    proceedDelete(fileAndFolder: string) {
+      this.clearRecordToDelete();
+      const splittedFileAndFolder = fileAndFolder.split('/');
+      const file = splittedFileAndFolder[0];
+      const folder = splittedFileAndFolder[1];
       const response = deleteObject(
         this.projectId,
         `${this.selectedFolder}%2F${this.selectedFile}`

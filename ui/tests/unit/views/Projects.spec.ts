@@ -166,28 +166,25 @@ describe("Projects", () => {
     api.deleteProject.mockImplementation(() => {
       return Promise.resolve({});
     });
-    wrapper.vm.removeProject({
-      name: "bro",
-      users: ["a.anamarija@univerza.si"],
-    });
+    wrapper.vm.recordToDelete = "bro";
+    wrapper.vm.proceedDelete("bro");
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.successMessage).toBe("[bro] was successfully deleted.");
+    expect(wrapper.vm.recordToDelete).toBe("");
   });
 
-  test("removes project fails", async () => {
+  test("remove project fails", async () => {
     const error = new Error("fail");
     api.deleteProject.mockImplementation(() => {
       return Promise.reject(error);
     });
-    wrapper.vm.removeProject({
-      name: "doesntexist",
-      users: [],
-    });
+    wrapper.vm.proceedDelete("doesntexist");
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.errorMessage).toBe(
       "Could not delete [doesntexist]: Error: fail."
     );
+    expect(wrapper.vm.recordToDelete).toBe("");
   });
 
   test("edited project is saved", async () => {
@@ -230,7 +227,7 @@ describe("Projects", () => {
       users: ["a.victor@umcg.nl"],
     };;
     wrapper.vm.projects[3] = {
-      name: "molgenis",
+      name: "",
       users: ["a.victor@umcg.nl"],
     };
     wrapper.vm.projectToEditIndex = 3;
