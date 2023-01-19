@@ -2,10 +2,10 @@
   <div>
     <div v-for="(value, key) in modelValue" :key="key">
       <Badge
-      >{{ key }} = {{ value }}
+        >{{ key }} = {{ value }}
         <button
-            class="cancel-badge text-light bg-secondary remove-badge"
-            @click="remove(key)"
+          class="cancel-badge text-light bg-secondary remove-badge"
+          @click="remove(key)"
         >
           <i class="bi bi-x"></i>
         </button>
@@ -18,28 +18,28 @@
     </div>
     <span v-else>
       <input
-          type="text"
-          id="key"
-          class="form-control-sm key-input"
-          placeholder="option"
-          v-model="newKey"
+        type="text"
+        id="key"
+        class="form-control-sm key-input"
+        placeholder="option"
+        v-model="newKey"
       />
       <input
-          type="text"
-          class="form-control-sm value-input"
-          v-model="newValue"
-          placeholder="value"
+        type="text"
+        class="form-control-sm value-input"
+        v-model="newValue"
+        placeholder="value"
       />
       <span class="btn-group">
         <button
-            class="btn btn-sm check-badge btn-success me-0 add-new-value"
-            @click="addNewValue"
+          class="btn btn-sm check-badge btn-success me-0 add-new-value"
+          @click="addNewValue"
         >
           <i class="bi bi-check"></i>
         </button>
         <button
-            class="btn btn-sm check-badge btn-danger cancel-new-value"
-            @click="cancelNewValue"
+          class="btn btn-sm check-badge btn-danger cancel-new-value"
+          @click="cancelNewValue"
         >
           <i class="bi bi-x"></i>
         </button>
@@ -59,13 +59,13 @@ button.check-badge {
 
 <script lang="ts">
 import Badge from "@/components/Badge.vue";
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "KeyValueInput",
-  components: {Badge},
+  components: { Badge },
   props: {
-    modelValue: {type: Object, required: true},
+    modelValue: { type: Object, required: true },
   },
   data() {
     return {

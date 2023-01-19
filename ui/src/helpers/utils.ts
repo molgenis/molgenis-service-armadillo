@@ -1,4 +1,8 @@
-import { ListOfObjectsWithStringKey, ObjectWithStringKey, StringArray } from "@/types/types";
+import {
+  ListOfObjectsWithStringKey,
+  ObjectWithStringKey,
+  StringArray,
+} from "@/types/types";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -86,7 +90,9 @@ export function isDuplicate(key: string, list: StringArray) {
   return isDuplicate;
 }
 
-export function sanitizeObject(objectToClean: ObjectWithStringKey): ObjectWithStringKey {
+export function sanitizeObject(
+  objectToClean: ObjectWithStringKey
+): ObjectWithStringKey {
   let sanitizedObject: ObjectWithStringKey = {};
   Object.keys(objectToClean).forEach((key: string) => {
     let sanitized: string | number | boolean | Object | Array<any>;
@@ -95,12 +101,12 @@ export function sanitizeObject(objectToClean: ObjectWithStringKey): ObjectWithSt
     if (Array.isArray(value)) {
       sanitized = [];
       value.forEach((item) => {
-        if (typeof item === 'string') {
+        if (typeof item === "string") {
           (sanitized as Array<any>).push(item.trim());
         } else {
           (sanitized as Array<any>).push(item);
         }
-      })
+      });
       sanitizedObject[sanitizedKey] = sanitized;
     } else if (typeof value === "string") {
       sanitizedObject[sanitizedKey] = (value as string).trim();

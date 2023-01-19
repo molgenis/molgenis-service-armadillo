@@ -16,7 +16,7 @@
       <!-- for each row-->
       <tr v-for="(row, index) in dataToPreview" :key="index">
         <!-- for each value in row -->
-        <td v-for="(value,key) in row" :key="key">
+        <td v-for="(value, key) in row" :key="key">
           {{ value }}
         </td>
         <!-- if index is 0 -->

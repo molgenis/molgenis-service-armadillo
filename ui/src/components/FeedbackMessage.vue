@@ -46,7 +46,7 @@ export default defineComponent({
       this.successMsg = newVal;
     },
     successMsg: function () {
-      setTimeout( () => {
+      setTimeout(() => {
         this.successMsg = "";
       }, 5000);
     },

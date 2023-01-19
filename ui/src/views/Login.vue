@@ -5,11 +5,11 @@
         <div class="card mx-auto mt-3" style="max-width: 30rem">
           <div class="card-body position-relative">
             <div class="d-flex align-items-center justify-content-center mb-3">
-              <img src="/armadillo-logo.png" alt="armadillo" width="100"/>
+              <img src="/armadillo-logo.png" alt="armadillo" width="100" />
             </div>
             <h5 class="card-title text-center">Welcome to Armadillo</h5>
             <hr />
-            <p class="ms-5">Login with: </p>
+            <p class="ms-5">Login with:</p>
             <div class="d-grid gap-2 ms-5 me-5">
               <button
                 class="btn btn-primary"

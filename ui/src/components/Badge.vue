@@ -6,6 +6,6 @@
 
 <script lang="ts">
 export default {
-    name: 'Badge'
-}
+  name: "Badge",
+};
 </script>

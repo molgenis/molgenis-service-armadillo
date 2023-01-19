@@ -387,7 +387,7 @@ export default defineComponent({
     },
     proceedDelete(fileAndFolder: string) {
       this.clearRecordToDelete();
-      const splittedFileAndFolder = fileAndFolder.split('/');
+      const splittedFileAndFolder = fileAndFolder.split("/");
       const file = splittedFileAndFolder[0];
       const folder = splittedFileAndFolder[1];
       const response = deleteObject(
