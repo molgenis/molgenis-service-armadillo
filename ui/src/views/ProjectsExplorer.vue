@@ -177,6 +177,7 @@ import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -230,11 +231,7 @@ export default defineComponent({
         idParam = route.params.projectId as string;
       }
       project.value = await getProject(idParam).catch((error: string) => {
-        if (error === "Unauthorized") {
-          router.push("/login");
-        } else {
-          errorMessage.value = error;
-        }
+        errorMessage.value = processErrorMessages(error, router);
         return [];
       });
       projectId.value = idParam;

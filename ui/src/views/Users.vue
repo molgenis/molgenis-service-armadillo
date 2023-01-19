@@ -116,6 +116,7 @@ import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
 import { UsersData } from "@/types/types";
 import { useRouter } from "vue-router";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 export default defineComponent({
   name: "Users",
@@ -139,11 +140,7 @@ export default defineComponent({
     });
     const loadUsers = async () => {
       users.value = await getUsers().catch((error: string) => {
-        if (error === "Unauthorized") {
-          router.push("/login");
-        } else {
-          errorMessage.value = `Could not load users: ${error}.`;
-        }
+        errorMessage.value = processErrorMessages(error, router);
         return [];
       });
     };
