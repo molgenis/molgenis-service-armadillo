@@ -24,14 +24,15 @@
     </div>
     <div v-if="file && file.name" class="selected-file row text-start ms-2">
       <div class="col">
-        <div class="text-muted fw-bold">
-          Selected file:
-        </div>
+        <div class="text-muted fw-bold">Selected file:</div>
         <span class="me-1">{{ getTruncatedFileName(file.name) }}</span>
         <button class="btn btn-link btn-sm" @click="clearFile">
           <i class="bi bi-x-circle"></i>
         </button>
-        <button class="btn btn-primary btn-sm float-end me-3" @click="uploadFile">
+        <button
+          class="btn btn-primary btn-sm float-end me-3"
+          @click="uploadFile"
+        >
           <i class="bi bi-upload"></i> Upload
         </button>
       </div>
@@ -91,7 +92,7 @@ export default defineComponent({
       }
     },
     getTruncatedFileName(filename: string) {
-      return filename.length > 16 ? truncate(filename, 14): filename;
+      return filename.length > 16 ? truncate(filename, 14) : filename;
     },
     getFileName() {
       return this.file && this.file.name ? this.file.name : "";
@@ -123,7 +124,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
 <style scoped>
 .upload-icon {

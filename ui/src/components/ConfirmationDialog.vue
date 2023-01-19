@@ -45,7 +45,7 @@ export default {
 .confirm-dialog {
   position: fixed;
   z-index: 1100;
-  opacity: 1!important;
+  opacity: 1 !important;
   pointer-events: all;
   display: block;
 }
@@ -53,7 +53,7 @@ export default {
   position: fixed;
   top: 0em;
   left: 0em;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1099;
   width: 100%;
   height: 100%;

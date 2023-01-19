@@ -1,4 +1,7 @@
-export function processErrorMessages(error: string, router: { push: (arg0: string) => Promise<any>; go: (arg0: number) => void; }) {
+export function processErrorMessages(
+  error: string,
+  router: { push: (arg0: string) => Promise<any>; go: (arg0: number) => void }
+) {
   if (
     error === "Unauthorized" ||
     error.toString() ===
