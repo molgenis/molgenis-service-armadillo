@@ -21,7 +21,7 @@ import Login from "@/views/Login.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
 import { getPrincipal, logout } from "@/api/api";
 import { useRouter } from "vue-router";
-import { ConnectionError } from "@/helpers/errors";
+import { ApiError } from "@/helpers/errors";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -49,7 +49,7 @@ export default defineComponent({
               ? principal.principal.attributes.email
               : principal.name;
         })
-        .catch((error: ConnectionError) => {
+        .catch((error: ApiError) => {
           if (error.cause === 401) {
             router.push("/login");
           }
@@ -82,7 +82,7 @@ export default defineComponent({
             this.$router.push("/login");
           }
         })
-        .catch((error: ConnectionError) => {
+        .catch((error: ApiError) => {
           if (error.cause === 401) {
             this.$router.push("/login");
           }

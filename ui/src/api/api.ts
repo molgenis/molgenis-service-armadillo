@@ -1,4 +1,4 @@
-import { ConnectionError } from "@/helpers/errors";
+import { ApiError } from "@/helpers/errors";
 import { sanitizeObject } from "@/helpers/utils";
 import { Principal, Profile, Project, User, Auth } from "@/types/api";
 import { ObjectWithStringKey, StringArray } from "@/types/types";
@@ -58,7 +58,7 @@ export async function delete_(url: string, item: string) {
 }
 
 export async function handleResponse(response: Response) {
-  let error = new ConnectionError("", response.status);
+  let error = new ApiError("", response.status);
   if (!response.ok) {
     if (response.status === 500) {
       error.message = response.statusText;

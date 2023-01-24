@@ -5,7 +5,7 @@ export function processErrorMessages(
   if (
     error === "Unauthorized" ||
     error.toString() ===
-      "ConnectionError: Full authentication is required to access this resource"
+      "Full authentication is required to access this resource"
   ) {
     router.push("/login").then(() => {
       router.go(0);
