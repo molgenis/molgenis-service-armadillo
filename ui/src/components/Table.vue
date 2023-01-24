@@ -18,7 +18,7 @@
           v-if="getIndex(dataRow) != indexToEdit"
           class="align-middle"
           :class="
-            getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''
+            getIndex(dataRow) == highlightedRow.rowNumber ? `table-${highlightedRow.color}` : ''
           "
         >
           <slot name="extraColumn" :item="dataRow"></slot>
@@ -64,6 +64,7 @@
 
 <script lang="ts">
 import {
+  HighlightedRow,
   ListOfObjectsWithStringKey,
   ObjectWithStringKey,
   StringArray,
@@ -102,6 +103,10 @@ export default defineComponent({
     highlightedRowIndex: {
       type: Number,
       default: -1,
+    },
+    highlightedRow: {
+      type: Object as PropType<HighlightedRow>,
+      default: {rowNumber: -1, color: undefined} ,
     },
   },
   computed: {

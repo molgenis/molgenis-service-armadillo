@@ -33,6 +33,10 @@
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
       :dataStructure="userDataStructure"
+      :highlightedRow="{
+        rowNumber: updatedUserIndex,
+        color: 'success',
+      }"
       :highlightedRowIndex="updatedUserIndex"
     >
       <template v-slot:extraHeader>
