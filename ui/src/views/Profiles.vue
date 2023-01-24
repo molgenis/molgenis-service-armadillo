@@ -56,7 +56,7 @@
               :disabled="loading"
               :text="statusMapping[objectProps.data.status].text"
               @click.prevent="
-                statusMapping[objectProps.data.status].text === 'ONLINE'
+                statusMapping[objectProps.data.status].status === 'ONLINE'
                   ? stopProfile(objectProps.row.name)
                   : startProfile(objectProps.row.name)
               "
