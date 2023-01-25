@@ -44,7 +44,7 @@
             :disabled="addRow || editMode.userToEdit !== ''"
             @click="toggleAddRow"
           >
-            <i class="bi bi-person-plus-fill"></i>
+            <i class="bi bi-plus-lg"></i>
           </button>
         </th>
       </template>
