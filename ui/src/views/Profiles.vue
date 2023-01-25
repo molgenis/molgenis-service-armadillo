@@ -137,7 +137,7 @@ export default defineComponent({
     });
     const loadProfiles = async () => {
       profiles.value = await getProfiles().catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, router);
+        errorMessage.value = processErrorMessages(error, "profiles", router);
         return [];
       });
     };
@@ -335,7 +335,7 @@ export default defineComponent({
         this.clearLoading();
       } catch (error) {
         this.clearLoading();
-        this.errorMessage = `Could not load projects: ${error}.`;
+        this.errorMessage = `Could not load profiles: ${error}.`;
       }
     },
   },

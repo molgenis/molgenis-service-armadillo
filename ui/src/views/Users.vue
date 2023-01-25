@@ -140,7 +140,7 @@ export default defineComponent({
     });
     const loadUsers = async () => {
       users.value = await getUsers().catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, router);
+        errorMessage.value = processErrorMessages(error, "users", router);
         return [];
       });
     };

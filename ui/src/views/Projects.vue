@@ -141,7 +141,7 @@ export default defineComponent({
     });
     const loadProjects = async () => {
       projects.value = await getProjects().catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, router);
+        errorMessage.value = processErrorMessages(error, "projects", router);
         return [];
       });
     };
