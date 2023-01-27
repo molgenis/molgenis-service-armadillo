@@ -109,6 +109,7 @@ import Badge from "@/components/Badge.vue";
 import {ProfilesData} from "@/types/types";
 import {useRouter} from "vue-router";
 import {isDuplicate} from "@/helpers/utils";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 export default defineComponent({
   name: "Profiles",
@@ -130,11 +131,7 @@ export default defineComponent({
     });
     const loadProfiles = async () => {
       profiles.value = await getProfiles().catch((error: string) => {
-        if (error === "Unauthorized") {
-          router.push("/login");
-        } else {
-          errorMessage.value = error;
-        }
+        errorMessage.value = processErrorMessages(error, router);
         return [];
       });
     };

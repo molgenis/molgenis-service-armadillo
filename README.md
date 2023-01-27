@@ -45,6 +45,11 @@ federates to authentication systems of connected institutions, ideally using a f
 
 To spin up your own server on a laptop, you can run `java -jar armadillo-3.x.x.jar`
 
+For armadillo 2.x you can follow instructions at
+
+* for testing we use docker compose at https://github.com/molgenis/molgenis-service-armadillo/tree/armadillo-service-2.2.3 
+* for production we are using Ansible at https://galaxy.ansible.com/molgenis/armadillo
+
 ## What to do next
 
 You can explore the User interface endpoints at `localhost:8080/ui`
