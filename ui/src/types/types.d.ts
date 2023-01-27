@@ -59,19 +59,19 @@ export type ProjectsData = {
 };
 
 export type UsersData = {
+  projectToAdd: string;
+  confirmedProject: string;
   recordToDelete: string;
   updatedUserIndex: number;
   userDataStructure: TypeObject;
   editMode: {
     addProjectToRow: boolean;
-    project: string;
     userToEdit: string;
     userToEditIndex: number;
   };
   addMode: {
     addProjectToRow: boolean;
     newUser: User;
-    project: string;
   };
   addRow: boolean;
   loading: boolean;

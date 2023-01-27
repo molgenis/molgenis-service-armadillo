@@ -16,6 +16,14 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="projectToAdd != ''"
+          :record="projectToAdd"
+          action="add new"
+          recordType="project"
+          @proceed="proceedProjectUpdate"
+          @cancel="clearProject"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -56,6 +64,8 @@
           :cancel="clearNewUser"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
+          :availableOptions="availableProjects"
+          @update-array-element="updateProjects"
         />
       </template>
       <template #extraColumn="columnProps">
@@ -94,6 +104,8 @@
           :cancel="clearUserToEdit"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
+          :availableOptions="availableProjects"
+          @update-array-element="updateProjects"
         />
       </template>
     </Table>
@@ -110,11 +122,11 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteUser, getUsers, putUser } from "@/api/api";
+import { deleteUser, getUsers, putUser, getProjects } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
-import { UsersData } from "@/types/types";
+import { StringArray, UsersData } from "@/types/types";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -153,6 +165,8 @@ export default defineComponent({
   data(): UsersData {
     return {
       recordToDelete: "",
+      projectToAdd: "",
+      confirmedProject: "",
       updatedUserIndex: -1,
       userDataStructure: {
         email: "string",
@@ -164,7 +178,6 @@ export default defineComponent({
       },
       editMode: {
         addProjectToRow: false,
-        project: "",
         userToEdit: "",
         userToEditIndex: -1,
       },
@@ -178,7 +191,6 @@ export default defineComponent({
           admin: false,
           projects: [],
         },
-        project: "",
       },
       addRow: false,
       loading: false,
@@ -187,6 +199,22 @@ export default defineComponent({
     };
   },
   computed: {
+    availableProjects() {
+      let availableProjects: StringArray = [];
+      getProjects()
+        .catch((error: string) => {
+          this.errorMessage = processErrorMessages(error, this.$router);
+          return [];
+        })
+        .then((projects) => {
+          projects.forEach((project) => {
+            if (project.users.indexOf(this.userToEdit) === -1) {
+              availableProjects.push(project.name);
+            }
+          });
+        });
+      return availableProjects;
+    },
     disabledButtons(): boolean[] {
       return [this.addRow, this.addRow];
     },
@@ -205,6 +233,29 @@ export default defineComponent({
     },
   },
   methods: {
+    updateProjects(event: Event) {
+      const project = event.toString();
+      if (this.availableProjects.indexOf(project) === -1) {
+        this.projectToAdd = project;
+      } else {
+        this.confirmedProject = project;
+        this.proceedProjectUpdate();
+      }
+    },
+    proceedProjectUpdate() {
+      if(this.confirmedProject === "") {
+        this.confirmedProject = this.projectToAdd;
+      }
+      if(this.editMode.userToEditIndex !== -1){
+        this.users[this.editMode.userToEditIndex].projects.push(this.confirmedProject);
+      } else {
+        this.addMode.newUser.projects.push(this.confirmedProject);
+      }
+    },
+    clearProject() {
+      this.projectToAdd = "";
+      this.confirmedProject = "";
+    },
     clearUpdatedUserIndex() {
       this.updatedUserIndex = -1;
     },
