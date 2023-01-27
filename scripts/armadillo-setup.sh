@@ -71,7 +71,7 @@ handle_args() {
     if [ ! "$ARMADILLO_CLEANUP" ]; then
       if [ ! "$ARMADILLO_DOMAIN" ] || [ ! "$ARMADILLO_ADMIN_PW" ]; then
         echo "Arguments --domain --admin-password must be provided"
-        echo "U need an host or domain to use Armadillo: Example: cohort.armadillo.organisation.com"
+        echo "You need a host or domain to use Armadillo. Example: cohort.armadillo.organisation.com"
         echo "Also for security reasons you must provide an secure admin password"
         parameters_help; 
         exit 1;
