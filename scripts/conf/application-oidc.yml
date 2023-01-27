@@ -5,7 +5,6 @@ armadillo:
   docker-management-enabled: true
   # uncomment this to configure a default admin user
   # oidc-admin-user: user@yourdomain.org
-          # foo: bar
 
   profiles:
     - name: default
