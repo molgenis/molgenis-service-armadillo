@@ -221,7 +221,7 @@ command_exists() {
 
 cleanup(){
   if [ "$ARMADILLO_CLEANUP" ]; then
-    echo "--cleanup variable defined! Are you sure. Potential data loss? Type y/N"
+    echo "--cleanup variable defined! Are you sure? Potential data loss! Type y/N"
     read -r -p "Type y/N" response
       if [ "$response" = "y" ]
         then
