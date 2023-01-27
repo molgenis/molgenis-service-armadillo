@@ -103,7 +103,7 @@ setup_environment() {
     chmod g+rw "$ARMADILLO_LOG_PATH"
     chmod g+rw "$ARMADILLO_DATADIR"
     usermod -aG docker "$ARMADILLO_SYS_USER"
-    echo "Environment is beeing setup correctly"     
+    echo "Environment is being set up correctly"     
 }
 
 setup_systemd() {
