@@ -135,7 +135,7 @@ def migrate_user(armadillo_client: Session, reg: dict, user: dict):
         "admin": is_admin,
         "projects": projects
     })
-    response = armadillo_client.put(armadillo_url + "/admin/users",
+    response = armadillo_client.put(armadillo_url + "/access/users",
                                     data=json_user)
     response.raise_for_status()
 

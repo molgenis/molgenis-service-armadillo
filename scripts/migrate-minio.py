@@ -90,7 +90,7 @@ def create_project(armadillo_client: Session, bucket: Bucket):
     project_json = json.dumps({
         "name": project_name
     })
-    armadillo_client.put(armadillo_url + "/admin/projects", data=project_json)
+    armadillo_client.put(armadillo_url + "/access/projects", data=project_json)
     print(f"> Created project {project_name}")
 
 
