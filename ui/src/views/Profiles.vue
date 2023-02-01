@@ -8,6 +8,14 @@
           :successMessage="successMessage"
           :errorMessage="errorMessage"
         ></FeedbackMessage>
+        <ConfirmationDialog
+          v-if="recordToDelete != ''"
+          :record="recordToDelete"
+          action="delete"
+          recordType="project"
+          @proceed="proceedDelete"
+          @cancel="clearRecordToDelete"
+        ></ConfirmationDialog>
       </div>
     </div>
     <!-- Actual table -->
@@ -96,6 +104,7 @@
 </template>
 
 <script lang="ts">
+import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { defineComponent, onMounted, Ref, ref } from "vue";
@@ -121,6 +130,7 @@ export default defineComponent({
   name: "Profiles",
   components: {
     Badge,
+    ConfirmationDialog,
     FeedbackMessage,
     InlineRowEdit,
     LoadingSpinner,
@@ -159,6 +169,7 @@ export default defineComponent({
         options: "object",
         container: "object",
       },
+      recordToDelete: "",
       loading: false,
       loadingProfile: "",
       successMessage: "",
@@ -207,6 +218,20 @@ export default defineComponent({
     },
   },
   methods: {
+    proceedDelete(profileName: string) {
+      this.clearRecordToDelete();
+      deleteProfile(profileName)
+        .then(() => {
+          this.successMessage = `[${profileName}] was successfully deleted.`;
+          this.reloadProfiles();
+        })
+        .catch((error) => {
+          this.errorMessage = `Could not delete [${profileName}]: ${error}.`;
+        });
+    },
+    clearRecordToDelete() {
+      this.recordToDelete = "";
+    },
     editProfile(profile: Profile) {
       this.profileToEdit = profile.name;
     },
@@ -253,15 +278,7 @@ export default defineComponent({
     },
     removeProfile(profile: Profile) {
       this.clearUserMessages();
-      deleteProfile(profile.name)
-        .then(() => {
-          this.successMessage = `[${profile.name}] was successfully deleted.`;
-          this.reloadProfiles();
-        })
-        .catch((error) => {
-          this.errorMessage = `Could not delete [${profile.name}]: ${error}.`;
-          this.clearLoading();
-        });
+      this.recordToDelete = profile.name;
     },
     clearLoading() {
       this.loading = false;
