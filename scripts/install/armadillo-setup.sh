@@ -51,6 +51,10 @@ handle_args() {
           OIDC_CLIENTSECRET=$2
           shift 2
           ;;
+          --admin-email)
+          ARMADILLO_OIDC_ADMIN_EMAIL=$2
+          shift 2
+          ;;
         --cleanup)
           ARMADILLO_CLEANUP=1
           shift          ;;
@@ -78,8 +82,8 @@ handle_args() {
       fi
     fi
     if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]; then
-        echo "OIDC Option called but mandatory config items are missing --oidc_url <issuer_url> --oidc_clientid <client_id> --oidc_clientsecret <secret> "
+      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]|| [! "$ARMADILLO_ADMIN_EMAIL"];; then
+        echo "OIDC Option called but mandatory config items are missing --admin-email user@oidc-mailadres.tld --oidc_url <issuer_url> --oidc_clientid <client_id> --oidc_clientsecret <secret> "
         exit 1;
       fi
     fi
@@ -136,19 +140,10 @@ echo "Armadillo Installed under systemd"
 }
 
 setup_armadillo_config() {
-  if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-    wget -q -O $ARMADILLO_CFG_PATH/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/conf/application-oidc.yml
-    sed -i -e 's|@ISSUERURL@|'"$OIDC_ISSUER_URL"'|g' $ARMADILLO_CFG_PATH/application.yml
-    sed -i -e 's/@CLIENTID@/'"$OIDC_CLIENTID"'/' $ARMADILLO_CFG_PATH/application.yml
-    sed -i -e 's/@CLIENTSECRET@/'"$OIDC_CLIENTSECRET"'/' $ARMADILLO_CFG_PATH/application.yml
-    sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
-    
-  else
-    wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/conf/application.yml
-  fi
-  
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-   if [ ! "$ADMINUSER" ]; then 
+  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
+  
+  if [ ! "$ADMINUSER" ]; then 
     ADMINUSER="admin"
   else
     ADMINUSER=$ARMADILLO_ADMIN
@@ -161,14 +156,17 @@ setup_armadillo_config() {
   sed -i -e 's/@SEED@/'"$SEED"'/' $ARMADILLO_CFG_PATH/application.yml
   sed -i -e 's|@AUDITLOG@|'"$ARMADILLO_AUDITLOG"'|' $ARMADILLO_CFG_PATH/application.yml
   
-  echo "Config downloaded"
 
-}
-setup_nginx_config() {
-  wget -q -O /etc/nginx/sites-enabled/armadillo.conf https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/conf/armadillo-nginx.conf
+  if [ "$ARMADILLO_OIDC_ENABLED" ]; then
+    sed -i -e 's|@ISSUERURL@|'"$OIDC_ISSUER_URL"'|g' $ARMADILLO_CFG_PATH/application.yml
+    sed -i -e 's/@CLIENTID@/'"$OIDC_CLIENTID"'/' $ARMADILLO_CFG_PATH/application.yml
+    sed -i -e 's/@CLIENTSECRET@/'"$OIDC_CLIENTSECRET"'/' $ARMADILLO_CFG_PATH/application.yml
+    sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
+    sed -i -e 's/# oidc-admin-user: @ADMIN_EMAIL@/oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'' $ARMADILLO_CFG_PATH/application.yml
+  fi
   
-  sed -i -e 's/@ARMADILLO_URL@/'"$ARMADILLO_DOMAIN"'/' /etc/nginx/sites-enabled/armadillo.conf
-  systemctl reload nginx
+  
+  
   echo "Config downloaded"
 
 }
@@ -177,7 +175,6 @@ download_armadillo() {
   
   if [ -z "$ARMADILLO_VERSION" ]; then
     LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
-    #ARMADILLO_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
     ARMADILLO_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
     
     if [[ "$ARMADILLO_VERSION" =~ 'armadillo-service-2' ]]; then
@@ -196,7 +193,7 @@ download_armadillo() {
 
 
 check_req() {
-  for COMMAND in "nginx" "java" "wget" "docker" "curl" "whoami"; do
+  for COMMAND in "java" "wget" "docker" "curl" "whoami"; do
     command_exists "${COMMAND}"
   done
 
@@ -233,8 +230,6 @@ cleanup(){
             rm -Rf /etc/systemd/system/armadillo.service
             systemctl daemon-reload
             rm -Rf $ARMADILLO_LOG_PATH
-            rm /etc/nginx/sites-enabled/armadillo.conf
-            systemctl reload nginx
             echo "Armadillo cleaned!"
         else
           echo "No cleanup .. please remove the --cleanup argument"
@@ -262,14 +257,15 @@ parameters_help() {
     echo
     echo '    --version armadillo_version   Specify witch version to install'
     echo '    --admin-user user             Specify the Basic-Auth admin user'
-    echo '    --admin-password pass         password for the admin user'
-    echo '    --datadir /storage/dir        If defined this would be the Location to store the data otherwise it would be /usr/share/armadillo/data'
-    echo '    --domain                      URL domain witch is used for accessing armadillo'
+    echo '    --admin-password pass         Password for the admin user'
+    echo '    --admin-email                 Email adres of the Admin User'
+    echo '    --datadir /storage/dir        If defined this would be the Location to store the data otherwise, it would be /usr/share/armadillo/data'
+    echo '    --domain                      URL domain which is used for accessing armadillo'
     echo ''
     echo '    --oidc                          For central authentication you can enable oidc'
     echo '      --oidc_url                    URL where the oidc server is listening on'
-    echo '      --oidc_clientid               client id of the oidc config'
-    echo '      --oidc_clientsecret           secret of the client'
+    echo '      --oidc_clientid               Client id of the oidc config'
+    echo '      --oidc_clientsecret           Secret of the client'
     
 
     
@@ -292,7 +288,6 @@ setup_environment
 download_armadillo
 setup_update
 setup_armadillo_config
-setup_nginx_config
 setup_systemd
 startup_armadillo
 
