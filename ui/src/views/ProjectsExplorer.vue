@@ -231,7 +231,7 @@ export default defineComponent({
         idParam = route.params.projectId as string;
       }
       project.value = await getProject(idParam).catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, router);
+        errorMessage.value = processErrorMessages(error, "project", router);
         return [];
       });
       projectId.value = idParam;

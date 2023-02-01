@@ -1,5 +1,6 @@
 export function processErrorMessages(
   error: string,
+  type: string,
   router: { push: (arg0: string) => Promise<any>; go: (arg0: number) => void }
 ) {
   if (
@@ -12,6 +13,6 @@ export function processErrorMessages(
     });
     return error;
   } else {
-    return `Could not load projects: ${error}.`;
+    return `Could not load ${type}: ${error}.`;
   }
 }
