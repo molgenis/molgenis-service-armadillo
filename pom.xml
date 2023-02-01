@@ -45,7 +45,7 @@
     </distributionManagement>
 
     <properties>
-        <revision>3.0.0-SNAPSHOT</revision>
+        <revision>3.0.1-SNAPSHOT</revision>
         <project.scm.id>github</project.scm.id>
 
         <java.version>17</java.version>
