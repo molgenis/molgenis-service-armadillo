@@ -164,6 +164,7 @@ export default defineComponent({
   },
   data(): UsersData {
     return {
+      availableProjects: [],
       recordToDelete: "",
       projectToAdd: "",
       confirmedProject: "",
@@ -179,6 +180,7 @@ export default defineComponent({
       editMode: {
         addProjectToRow: false,
         userToEdit: "",
+        projects: [],
         userToEditIndex: -1,
       },
       addMode: {
@@ -199,21 +201,13 @@ export default defineComponent({
     };
   },
   computed: {
-    availableProjects() {
-      let availableProjects: StringArray = [];
-      getProjects()
-        .catch((error: string) => {
-          this.errorMessage = processErrorMessages(error, this.$router);
-          return [];
-        })
-        .then((projects) => {
-          projects.forEach((project) => {
-            if (project.users.indexOf(this.userToEdit) === -1) {
-              availableProjects.push(project.name);
-            }
-          });
-        });
-      return availableProjects;
+    projectsOfUserToEdit: {
+      get(): string[] {
+        return this.editMode.projects;
+      },
+      set(projects) {
+        this.editMode.projects = projects;
+      },
     },
     disabledButtons(): boolean[] {
       return [this.addRow, this.addRow];
@@ -228,11 +222,35 @@ export default defineComponent({
     },
   },
   watch: {
+    projectsOfUserToEdit() {
+      this.updateAvailableProjects();
+    },
     userToEdit() {
       this.editMode.userToEditIndex = this.getEditIndex();
+      if (this.editMode.userToEditIndex !== -1) {
+        this.projectsOfUserToEdit =
+          this.users[this.editMode.userToEditIndex].projects;
+        console.log(this.projectsOfUserToEdit);
+      }
     },
   },
   methods: {
+    updateAvailableProjects() {
+      let availableProjects: StringArray = [];
+      getProjects()
+        .catch((error: string) => {
+          this.errorMessage = processErrorMessages(error, this.$router);
+          return [];
+        })
+        .then((projects) => {
+          projects.forEach((project) => {
+            if (this.editMode.projects.indexOf(project.name) === -1) {
+              availableProjects.push(project.name);
+            }
+          });
+        });
+      this.availableProjects = availableProjects;
+    },
     updateProjects(event: Event) {
       const project = event.toString();
       if (this.availableProjects.indexOf(project) === -1) {
@@ -243,11 +261,17 @@ export default defineComponent({
       }
     },
     proceedProjectUpdate() {
-      if(this.confirmedProject === "") {
+      if (this.confirmedProject === "") {
         this.confirmedProject = this.projectToAdd;
       }
-      if(this.editMode.userToEditIndex !== -1){
-        this.users[this.editMode.userToEditIndex].projects.push(this.confirmedProject);
+      if (this.editMode.userToEditIndex !== -1) {
+        this.users[this.editMode.userToEditIndex].projects.push(
+          this.confirmedProject
+        );
+        this.projectsOfUserToEdit =
+          this.users[this.editMode.userToEditIndex].projects;
+        // computed is not updated properly, we need data + watcher
+        this.updateAvailableProjects();
       } else {
         this.addMode.newUser.projects.push(this.confirmedProject);
       }

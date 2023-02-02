@@ -3,7 +3,7 @@
     <BadgeList
       :item-array="modelValue"
       :canEdit="true"
-      @update="$emit('update')"
+      
     />
     <div v-if="!showAdd">
       <button class="btn-add-value btn btn-link p-0" @click="showAdd = true">
@@ -71,8 +71,6 @@ export default defineComponent({
   },
   methods: {
     addNewValue() {
-      // const result = this.modelValue;
-      // result.push(this.newValue);
       this.$emit("update", this.newValue);
       this.showAdd = false;      
       this.newValue = "";

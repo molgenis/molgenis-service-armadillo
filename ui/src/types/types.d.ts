@@ -59,6 +59,7 @@ export type ProjectsData = {
 };
 
 export type UsersData = {
+  availableProjects: StringArray;
   projectToAdd: string;
   confirmedProject: string;
   recordToDelete: string;
@@ -67,6 +68,7 @@ export type UsersData = {
   editMode: {
     addProjectToRow: boolean;
     userToEdit: string;
+    projects: StringArray;
     userToEditIndex: number;
   };
   addMode: {
