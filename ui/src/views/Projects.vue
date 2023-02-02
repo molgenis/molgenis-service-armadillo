@@ -16,6 +16,14 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="userToAdd != ''"
+          :record="userToAdd"
+          action="add new"
+          recordType="user"
+          @proceed="proceedUserUpdate"
+          @cancel="clearUser"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -65,6 +73,8 @@
           :cancel="clearNewProject"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
+          :dropDowns="{'users': availableUsers}"
+          @update-array-element="updateUsers"
         />
       </template>
       <template #extraColumn="columnProps">
@@ -95,6 +105,8 @@
           :cancel="clearProjectToEdit"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
+          :dropDowns="{'users': availableUsers}"
+          @update-array-element="updateUsers"
         />
       </template>
     </Table>
@@ -111,11 +123,11 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteProject, getProjects, putProject } from "@/api/api";
+import { deleteProject, getProjects, getUsers, putProject } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
-import { ProjectsData } from "@/types/types";
+import { ProjectsData, StringArray } from "@/types/types";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -153,6 +165,9 @@ export default defineComponent({
   },
   data(): ProjectsData {
     return {
+      availableUsers: [],
+      userToAdd: "",
+      confirmedUser: "",
       recordToDelete: "",
       addRow: false,
       newProject: {
@@ -174,7 +189,80 @@ export default defineComponent({
       searchString: "",
     };
   },
+  computed: {
+    usersOfProjectToEdit: {
+      get(): string[] {
+        return this.projectToEdit.users;
+      },
+      set(users) {
+        this.projectToEdit.users = users;
+      },
+    },
+  },
+  watch: {
+    projectToEdit() {
+      if (this.projectToEditIndex !== -1) {
+        this.usersOfProjectToEdit =
+          this.projects[this.projectToEditIndex].users;
+        this.updateAvailableUsers();
+      }
+    },
+  },
   methods: {
+    updateAvailableUsers() {
+      let availableUsers: StringArray = [];
+      getUsers()
+        .catch((error: string) => {
+          this.errorMessage = processErrorMessages(error, this.$router);
+          return [];
+        })
+        .then((users) => {
+          users.forEach((user) => {
+            if (this.usersOfProjectToEdit.indexOf(user.email) === -1) {
+              availableUsers.push(user.email);
+            }
+          });
+        });
+      this.availableUsers = availableUsers;
+    },
+    updateUsers(event: Event) {
+      const user = event.toString();
+      if (
+        this.projectToEdit.name !== "" &&
+        this.usersOfProjectToEdit.indexOf(user) !== -1
+      ) {
+        this.errorMessage = `User: [${user}] already added to project: [${this.projectToEdit.name}]`;
+      } else if (this.newProject.users.indexOf(user) !== -1) {
+        this.errorMessage = `User: [${user}] already added to new project`;
+      } else if (this.availableUsers.indexOf(user) === -1) {
+        this.userToAdd = user;
+      } else {
+        this.confirmedUser = user;
+        this.proceedUserUpdate();
+      }
+    },
+    proceedUserUpdate() {
+      if (this.confirmedUser === "") {
+        this.confirmedUser = this.userToAdd;
+      }
+      if (this.projectToEditIndex !== -1) {
+        this.projects[this.projectToEditIndex].users.push(this.confirmedUser);
+        this.usersOfProjectToEdit =
+          this.projects[this.projectToEditIndex].users;
+        this.removeFromAvailableUsers(this.confirmedUser);
+      } else {
+        this.newProject.users.push(this.confirmedUser);
+        this.removeFromAvailableUsers(this.confirmedUser);
+      }
+    },
+    clearUser() {
+      this.userToAdd = "";
+      this.confirmedUser = "";
+    },
+    removeFromAvailableUsers(userName: string) {
+      const indexOfUser = this.availableUsers.indexOf(userName);
+      this.availableUsers.splice(indexOfUser, 1);
+    },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
@@ -271,6 +359,7 @@ export default defineComponent({
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
+      this.updateAvailableUsers();
       this.clearProjectToEdit();
     },
     saveNewProject() {

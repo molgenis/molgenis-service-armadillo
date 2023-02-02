@@ -46,6 +46,9 @@ export type ProjectsExplorerData = {
 };
 
 export type ProjectsData = {
+  availableUsers: StringArray;
+  userToAdd: string;
+  confirmedUser: string;
   recordToDelete: string;
   projectToHighlightIndex: number;
   addRow: boolean;
