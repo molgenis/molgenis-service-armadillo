@@ -241,7 +241,7 @@ export default defineComponent({
         })
         .then((projects) => {
           projects.forEach((project) => {
-            if (this.editMode.projects.indexOf(project.name) === -1) {
+            if (this.projectsOfUserToEdit.indexOf(project.name) === -1) {
               availableProjects.push(project.name);
             }
           });
@@ -250,14 +250,23 @@ export default defineComponent({
     },
     updateProjects(event: Event) {
       const project = event.toString();
-      if (this.projectsOfUserToEdit.indexOf(project) !== -1) {
+      if (
+        this.userToEdit !== "" &&
+        this.projectsOfUserToEdit.indexOf(project) !== -1
+      ) {
         this.errorMessage = `Project: [${project}] already added to user: [${this.userToEdit}]`;
+      } else if (this.addMode.newUser.projects.indexOf(project) !== -1) {
+        this.errorMessage = `Project: [${project}] already added to new user`;
       } else if (this.availableProjects.indexOf(project) === -1) {
         this.projectToAdd = project;
       } else {
         this.confirmedProject = project;
         this.proceedProjectUpdate();
       }
+    },
+    removeFromAvailableProjects(projectName: string) {
+      const indexOfProject = this.availableProjects.indexOf(projectName);
+      this.availableProjects.splice(indexOfProject, 1);
     },
     proceedProjectUpdate() {
       if (this.confirmedProject === "") {
@@ -269,10 +278,10 @@ export default defineComponent({
         );
         this.projectsOfUserToEdit =
           this.users[this.editMode.userToEditIndex].projects;
-        // computed is not updated properly, we need data + watcher
-        this.updateAvailableProjects();
+        this.removeFromAvailableProjects(this.confirmedProject);
       } else {
         this.addMode.newUser.projects.push(this.confirmedProject);
+        this.removeFromAvailableProjects(this.confirmedProject);
       }
     },
     clearProject() {
@@ -415,6 +424,7 @@ export default defineComponent({
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
+      this.updateAvailableProjects();
       this.clearUserToEdit();
     },
     updateAdmin(user: User, isAdmin: boolean) {
