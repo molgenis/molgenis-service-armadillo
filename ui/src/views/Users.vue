@@ -222,15 +222,12 @@ export default defineComponent({
     },
   },
   watch: {
-    projectsOfUserToEdit() {
-      this.updateAvailableProjects();
-    },
     userToEdit() {
       this.editMode.userToEditIndex = this.getEditIndex();
       if (this.editMode.userToEditIndex !== -1) {
         this.projectsOfUserToEdit =
           this.users[this.editMode.userToEditIndex].projects;
-        console.log(this.projectsOfUserToEdit);
+        this.updateAvailableProjects();
       }
     },
   },
@@ -253,7 +250,9 @@ export default defineComponent({
     },
     updateProjects(event: Event) {
       const project = event.toString();
-      if (this.availableProjects.indexOf(project) === -1) {
+      if (this.projectsOfUserToEdit.indexOf(project) !== -1) {
+        this.errorMessage = `Project: [${project}] already added to user: [${this.userToEdit}]`;
+      } else if (this.availableProjects.indexOf(project) === -1) {
         this.projectToAdd = project;
       } else {
         this.confirmedProject = project;
