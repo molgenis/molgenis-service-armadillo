@@ -17,10 +17,12 @@
       </div>
       <div v-else-if="type === 'array'">
         <DropdownArrayInput
+          v-if="Object.keys(dropDowns).includes(column)"
           v-model="rowData[column]"
-          :availableOptions="availableOptions"
+          :availableOptions="dropDowns[column]"
           @update="emitUpdate"
         />
+        <StringArrayInput v-else v-model="rowData[column]" />
       </div>
       <div v-else-if="type === 'object'">
         <KeyValueInput v-model="rowData[column]" />
@@ -48,14 +50,16 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import StringArrayInput from "@/components/StringArrayInput.vue";
 import DropdownArrayInput from "@/components/DropdownArrayInput.vue";
 import KeyValueInput from "@/components/KeyValueInput.vue";
 import { BootstrapType, StringArray, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
-   emits: ["update-array-element"],
+  emits: ["update-array-element"],
   components: {
+    StringArrayInput,
     KeyValueInput,
     DropdownArrayInput,
     ButtonGroup,
@@ -90,7 +94,10 @@ export default defineComponent({
       type: Object as PropType<TypeObject>,
       required: true,
     },
-    availableOptions: Array as PropType<StringArray>,
+    dropDowns: {
+      type: Object as PropType<Record<string, StringArray>>,
+      default: {},
+    },
   },
   methods: {
     emitUpdate(event: Event) {

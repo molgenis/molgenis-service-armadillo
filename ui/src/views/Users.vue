@@ -64,7 +64,7 @@
           :cancel="clearNewUser"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
-          :availableOptions="availableProjects"
+          :dropDowns="{'projects': availableProjects}"
           @update-array-element="updateProjects"
         />
       </template>
@@ -104,7 +104,7 @@
           :cancel="clearUserToEdit"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
-          :availableOptions="availableProjects"
+          :dropDowns="{'projects': availableProjects}"
           @update-array-element="updateProjects"
         />
       </template>
