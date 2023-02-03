@@ -45,6 +45,41 @@ describe("Users", () => {
   let wrapper: VueWrapper<any>;
 
   beforeEach(function () {
+    const projects = [
+      {
+        name: "environmental",
+        users: ["m.fiamma@ospedale.it"],
+      },
+      {
+        name: "project3",
+        users: ["stephen.chapman@glasgow.ac.uk", "a.anamarija@univerza.si"],
+      },
+      {
+        name: "snow1",
+        users: ["m.fiamma@ospedale.it"],
+      },
+      {
+        name: "molgenis",
+        users: ["a.victor@umcg.nl"],
+      },
+      {
+        name: "blood",
+        users: ["a.anamarija@univerza.si"],
+      },
+      {
+        name: "bro",
+        users: ["a.anamarija@univerza.si"],
+      },
+      {
+        name: "research",
+        users: [
+          "j.doe@example.com",
+          "l.knope@pawnee-uni.com",
+          "a.anamarija@univerza.si",
+          "a.ida@yliopisto.fi",
+        ],
+      },
+    ];
     testData = [
       {
         email: "j.doe@example.com",
@@ -77,6 +112,9 @@ describe("Users", () => {
     };
     api.getUsers.mockImplementationOnce(() => {
       return Promise.resolve(testData);
+    });
+    api.getProjects.mockImplementationOnce(() => {
+      return Promise.resolve(projects);
     });
 
     userToAdd = {
@@ -367,7 +405,9 @@ describe("Users", () => {
     await wrapper.vm.$nextTick();
     expect(saveMock).toBeCalledWith(userToAdd);
     expect(wrapper.vm.errorMessage).toBe("");
-    expect(wrapper.vm.successMessage).toBe("[h.t.gump@psr.com] was successfully saved.");
+    expect(wrapper.vm.successMessage).toBe(
+      "[h.t.gump@psr.com] was successfully saved."
+    );
     expect(getMock).toBeCalled();
     expect(callback).toBeCalled();
   });
@@ -375,14 +415,18 @@ describe("Users", () => {
   test("cannot create user with empty email", () => {
     userToAdd.email = "";
     wrapper.vm.saveUser(userToAdd, undefined);
-    expect(wrapper.vm.errorMessage).toBe("Cannot create user with empty email address.");
+    expect(wrapper.vm.errorMessage).toBe(
+      "Cannot create user with empty email address."
+    );
   });
 
   test("cannot add user with existing email", () => {
     userToAdd.email = "j.doe@example.com";
     wrapper.vm.addMode.newUser = userToAdd;
     wrapper.vm.saveUser(userToAdd, undefined);
-    expect(wrapper.vm.errorMessage).toBe("User with email address [j.doe@example.com] already exists.");
+    expect(wrapper.vm.errorMessage).toBe(
+      "User with email address [j.doe@example.com] already exists."
+    );
   });
 
   test("toggles addRow", () => {
@@ -392,7 +436,7 @@ describe("Users", () => {
   });
 
   test("updates admin setting", () => {
-    const adminToBe =  {
+    const adminToBe = {
       email: "j.doe@example.com",
       firstName: "John",
       lastName: "Doe",
@@ -409,5 +453,4 @@ describe("Users", () => {
     expect(saveMock).toBeCalledWith(adminToBe);
     expect(adminToBe.admin).toBe(true);
   });
-
 });

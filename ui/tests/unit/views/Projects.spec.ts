@@ -8,6 +8,15 @@ const api = _api as any;
 jest.mock("@/api/api");
 
 describe("Projects", () => {
+  const userData = [
+    { email: "stephen.chapman@glasgow.ac.uk", projects: ["project3"] },
+    { email: "a.anamarija@univerza.si", projects: ["project3", "blood", "bro", "research"] },
+    { email: "m.fiamma@ospedale.it", projects: ["snow1", "environmental"] },
+    { email: "a.victor@umcg.nl", projects: ["molgenis"] },
+    { email: "l.knope@pawnee-uni.com", projects: ["research"] },
+    { email: "j.doe@example.com", projects: ["research"] },
+    { email: "a.ida@yliopisto.fi", projects: ["research"] },
+  ];
   const testData = [
     {
       name: "environmental",
@@ -80,6 +89,9 @@ describe("Projects", () => {
     api.getProjects.mockImplementationOnce(() => {
       return Promise.resolve(testData);
     });
+    api.getUsers.mockImplementationOnce(() => {
+      return Promise.resolve(userData);
+    });
     wrapper = shallowMount(Projects, {
       global: {
         plugins: [router],
@@ -111,7 +123,10 @@ describe("Projects", () => {
   test("sets project to edit", () => {
     wrapper.vm.projectToEdit = { name: "", users: [] };
     wrapper.vm.editProject({ name: "molgenis", users: ["tommy", "mariska"] });
-    expect(wrapper.vm.projectToEdit).toEqual({ name: "molgenis", users: ["tommy", "mariska"] });
+    expect(wrapper.vm.projectToEdit).toEqual({
+      name: "molgenis",
+      users: ["tommy", "mariska"],
+    });
   });
 
   test("calls loadProjects and sets loading to false on success", async () => {
@@ -198,10 +213,10 @@ describe("Projects", () => {
       putMock();
       return Promise.resolve({});
     });
-    wrapper.vm.projectToEdit ={
+    wrapper.vm.projectToEdit = {
       name: "molgenis",
       users: ["a.victor@umcg.nl", "anotheruser@umcg.nl"],
-    };;
+    };
     wrapper.vm.projects[3] = {
       name: "molgenis",
       users: ["a.victor@umcg.nl"],
@@ -218,21 +233,23 @@ describe("Projects", () => {
     // called in saveProject
     expect(putMock).toHaveBeenCalled();
     // happens in clearProjectToEdit at the end of saveEditedProject
-    expect(wrapper.vm.projectToEdit).toEqual({"name": "", "users": []});
+    expect(wrapper.vm.projectToEdit).toEqual({ name: "", users: [] });
   });
 
   test("presents error message if project name is empty", () => {
     wrapper.vm.projectToEdit = {
       name: "",
       users: ["a.victor@umcg.nl"],
-    };;
+    };
     wrapper.vm.projects[3] = {
       name: "",
       users: ["a.victor@umcg.nl"],
     };
     wrapper.vm.projectToEditIndex = 3;
     wrapper.vm.saveEditedProject();
-    expect(wrapper.vm.errorMessage).toBe("Cannot create project with empty name.");
+    expect(wrapper.vm.errorMessage).toBe(
+      "Cannot create project with empty name."
+    );
   });
 
   test("adds project", async () => {
@@ -254,8 +271,8 @@ describe("Projects", () => {
     wrapper.vm.addRow = true;
     wrapper.vm.newProject = {
       name: "testproject",
-      users: []
-    }
+      users: [],
+    };
     wrapper.vm.saveNewProject();
     await wrapper.vm.$nextTick();
     expect(putMock).toBeCalled();
