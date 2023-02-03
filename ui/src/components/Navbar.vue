@@ -8,7 +8,7 @@
           width="35"
           class="d-inline-block me-2"
         />
-        Armadillo portal
+        Armadillo portal  <small class="text-muted">{{version}}</small>
       </a>
       <form class="d-flex mt-1">
         <span class="navbar-text p-2" v-show="username"
@@ -38,6 +38,7 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "Navbar",
   props: {
+    version: String,
     username: String,
     showLogin: Boolean,
   },
