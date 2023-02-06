@@ -139,13 +139,19 @@ describe("utils", () => {
 
   describe("sanitizeObject", () => {
     const testData = {
-      "key1": "simple value",
-      "key2": " dirty value",
-      "key3": "another dirty value ",
-      "key4": "     a very dirty value      ",
+      key1: "simple value",
+      key2: " dirty value",
+      key3: "another dirty value ",
+      key4: "     a very dirty value      ",
       " dirty key ": "clean value",
       "another dirty key ": "another clean value",
-      "key5": ["i am clean", "i am clean as well", " i am dirty", "i am dirty too ", " i am very dirty "],
+      key5: [
+        "i am clean",
+        "i am clean as well",
+        " i am dirty",
+        "i am dirty too ",
+        " i am very dirty ",
+      ],
       " dirty ": [" dirty", " very dirty ", "clean"],
       "\tboolean": false,
     };
@@ -164,7 +170,13 @@ describe("utils", () => {
       expect(Object.keys(output)).not.toContain(" dirty ");
     });
     it("should trim spaces at beginning and end of all strings in array values", () => {
-      expect(output["key5"]).toEqual(["i am clean", "i am clean as well", "i am dirty", "i am dirty too", "i am very dirty"]);
+      expect(output["key5"]).toEqual([
+        "i am clean",
+        "i am clean as well",
+        "i am dirty",
+        "i am dirty too",
+        "i am very dirty",
+      ]);
       expect(output["dirty"]).toEqual(["dirty", "very dirty", "clean"]);
     });
     it("should not do anything to booleans", () => {
@@ -177,7 +189,7 @@ describe("utils", () => {
       expect(actual).toBe(true);
     });
     it("should return false if object is not empty", () => {
-      const actual = isEmptyObject({"key":"value"});
+      const actual = isEmptyObject({ key: "value" });
       expect(actual).toBe(false);
     });
   });

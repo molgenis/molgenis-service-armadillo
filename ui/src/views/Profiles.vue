@@ -242,7 +242,8 @@ export default defineComponent({
         return profile.name;
       });
       if (
-        this.profileToEdit === "default" && profile.name != this.profileToEdit
+        this.profileToEdit === "default" &&
+        profile.name != this.profileToEdit
       ) {
         this.errorMessage = "Save failed: cannot rename 'default' package.";
         return;
