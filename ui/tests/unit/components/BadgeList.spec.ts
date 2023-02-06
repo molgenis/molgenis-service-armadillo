@@ -24,4 +24,3 @@ describe("BadgeList", () => {
     expect(wrapper.emitted("update")).toEqual([[["lifecycle", "molgenis"]]]);
   });
 });
-

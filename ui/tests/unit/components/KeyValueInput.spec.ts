@@ -51,8 +51,6 @@ describe("KeyValueInput", () => {
     removeButtons[0].trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted()).toHaveProperty("update");
-    expect(wrapper.emitted("update")).toEqual([
-      [{ val_b: "b", val_c: "c"}],
-    ]);
+    expect(wrapper.emitted("update")).toEqual([[{ val_b: "b", val_c: "c" }]]);
   });
 });

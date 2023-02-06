@@ -10,6 +10,6 @@ describe("SearchBar", () => {
     await input.setValue(searchValue);
 
     expect(input.element.value).toBe(searchValue);
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue');
+    expect(wrapper.emitted()).toHaveProperty("update:modelValue");
   });
 });

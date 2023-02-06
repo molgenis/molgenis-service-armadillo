@@ -18,9 +18,9 @@ describe("FeedbackMessage", () => {
     expect(wrapper.text()).toContain("Destructing world in 3...2...1");
   });
   test("clears success message after 5 seconds", () => {
-    wrapper.vm.successMsg = 'Something else';
-    setTimeout( () => {
-      expect(wrapper.vm.successMsg).toBe('');
+    wrapper.vm.successMsg = "Something else";
+    setTimeout(() => {
+      expect(wrapper.vm.successMsg).toBe("");
     }, 5500);
   });
 });

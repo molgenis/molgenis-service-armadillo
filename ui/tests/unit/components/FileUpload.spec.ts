@@ -63,7 +63,9 @@ describe("FileUpload", () => {
     wrapper.find("input.isThisUniqueEnough").trigger("change");
     // test if event emitted
     expect(wrapper.emitted()).toHaveProperty("upload_error");
-    expect(wrapper.emitted("upload_error")).toEqual([["Please select a file."]]);
+    expect(wrapper.emitted("upload_error")).toEqual([
+      ["Please select a file."],
+    ]);
   });
 
   test("clears files", () => {
@@ -93,9 +95,10 @@ describe("FileUpload", () => {
     await wrapper.vm.$nextTick();
     //test if upload function called
     expect(wrapper.emitted()).toHaveProperty("upload_error");
-    expect(wrapper.emitted("upload_error")).toEqual([["Please select a file."]]);
+    expect(wrapper.emitted("upload_error")).toEqual([
+      ["Please select a file."],
+    ]);
   });
-
 
   test("emits event on upload success", async () => {
     wrapper.vm.file = mockFiles[0];
