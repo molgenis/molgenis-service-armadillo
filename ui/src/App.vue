@@ -1,7 +1,12 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :version="version" :username="username" @logout="logoutUser" :showLogin="false" />
+      <Navbar
+        :version="version"
+        :username="username"
+        @logout="logoutUser"
+        :showLogin="false"
+      />
       <div class="container">
         <div class="row mt-2">
           <div class="col" v-if="username">
@@ -61,7 +66,7 @@ export default defineComponent({
 
     const loadVersion = async () => {
       version.value = await getVersion();
-    }
+    };
 
     return {
       username,
