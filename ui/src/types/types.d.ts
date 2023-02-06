@@ -88,7 +88,6 @@ type statusMappingType = {
 
 export type ProfilesData = {
   recordToDelete: string;
-  profilesDataStructure: TypeObject;
   loading: boolean;
   loadingProfile: string;
   successMessage: string;
