@@ -141,7 +141,7 @@ public class DockerService {
           throw new ImageStopFailedException(profileName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.warn("Failed to stop profile", e);
+        LOG.info("Failed to stop profile '{}' because it doesn't exist", profileName);
         // not a problem, its gone
       } catch (Exception e2) {
         throw new ImageStopFailedException(profileName, e);
@@ -181,7 +181,7 @@ public class DockerService {
     try {
       dockerClient.removeContainerCmd(profileName).exec();
     } catch (NotFoundException nfe) {
-      LOG.warn("Couldn't remove container", nfe);
+      LOG.info("Couldn't remove container '{}' because it doesn't exist", profileName);
       // not a problem, wanted to remove anyway
     } catch (DockerException e) {
       throw new ContainerRemoveFailedException(profileName, e);
