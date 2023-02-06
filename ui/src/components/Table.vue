@@ -18,7 +18,7 @@
           v-if="getIndex(dataRow) != indexToEdit"
           class="align-middle"
           :class="
-            getIndex(dataRow) == highlightedRowIndex ? 'table-success' : ''
+            getIndex(dataRow) == highlight.rowIndex ? `table-${highlight.color}` : ''
           "
         >
           <slot name="extraColumn" :item="dataRow"></slot>
@@ -64,12 +64,13 @@
 
 <script lang="ts">
 import {
+  Highlight,
   ListOfObjectsWithStringKey,
   ObjectWithStringKey,
   StringArray,
   TypeObject,
 } from "@/types/types";
-import { defineComponent, PropType } from "vue";
+import { defineComponent, Prop, PropType } from "vue";
 import { toCapitalizedWords } from "@/helpers/utils";
 import BadgeList from "@/components/BadgeList.vue";
 
@@ -99,10 +100,10 @@ export default defineComponent({
       type: Object as PropType<TypeObject>,
       required: true,
     },
-    highlightedRowIndex: {
-      type: Number,
-      default: -1,
-    },
+    highlight: {
+      type: Object as PropType<Highlight>,
+      default: {}
+    }
   },
   computed: {
     capitalizedHeaders() {

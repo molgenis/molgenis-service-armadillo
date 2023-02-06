@@ -45,6 +45,11 @@ export type ProjectsExplorerData = {
   projectContent: Record<string, string[]>;
 };
 
+export type Highlight = {
+  rowIndex: number,
+  highlightType: BootstrapType | undefined
+}
+
 export type ProjectsData = {
   recordToDelete: string;
   projectToHighlightIndex: number;
@@ -56,6 +61,7 @@ export type ProjectsData = {
   loading: boolean;
   successMessage: string;
   searchString: string;
+  highlightedRow: Highlight
 };
 
 export type UsersData = {

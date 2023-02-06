@@ -33,7 +33,7 @@
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
       :dataStructure="userDataStructure"
-      :highlightedRowIndex="updatedUserIndex"
+      :highlight="{rowIndex: updatedUserIndex, color: 'success'}"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add user button) -->

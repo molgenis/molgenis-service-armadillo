@@ -34,7 +34,7 @@
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
       :dataStructure="projectsDataStructure"
-      :highlightedRowIndex="projectToHighlightIndex"
+      :highlight="highlightedRow"
     >
       <template #customType="customProps">
         {{ customProps.data }}
@@ -172,6 +172,10 @@ export default defineComponent({
       loading: false,
       successMessage: "",
       searchString: "",
+      highlightedRow: {
+        rowIndex: -1,
+        highlightType: undefined
+      }
     };
   },
   methods: {
@@ -179,10 +183,17 @@ export default defineComponent({
       this.successMessage = "";
       this.errorMessage = "";
     },
+    clearHighlight(){
+      this.highlightedRow = {
+        rowIndex: -1,
+        highlightType: undefined
+      }
+    },
     clearProjectToEdit() {
       this.projectToEditIndex = -1;
       setTimeout(() => {
         this.projectToHighlightIndex = -1;
+        this.clearHighlight();
       }, 1000);
 
       this.projectToEdit = { name: "", users: [] };
@@ -190,8 +201,13 @@ export default defineComponent({
     },
     editProject(project: Project) {
       this.clearNewProject();
-      this.projectToEditIndex = this.getProjectIndex(project.name);
+      const rowIndex = this.getProjectIndex(project.name);
+      this.projectToEditIndex = rowIndex;
       this.projectToHighlightIndex = this.getProjectIndex(project.name);
+      this.highlightedRow = {
+        rowIndex: rowIndex,
+        highlightType: "success"
+      }
       this.projectToEdit = project;
     },
     getProjectIndex(projectName: string) {
