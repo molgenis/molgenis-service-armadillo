@@ -48,7 +48,6 @@ export type ProjectsExplorerData = {
 export type ProjectsData = {
   availableUsers: StringArray;
   userToAdd: string;
-  confirmedUser: string;
   recordToDelete: string;
   projectToHighlightIndex: number;
   addRow: boolean;
@@ -64,7 +63,6 @@ export type ProjectsData = {
 export type UsersData = {
   availableProjects: StringArray;
   projectToAdd: string;
-  confirmedProject: string;
   recordToDelete: string;
   updatedUserIndex: number;
   userDataStructure: TypeObject;

@@ -21,8 +21,6 @@
       <datalist id="datalistOptions">
         <option v-for="option in availableOptions" :value="option" :key="option"></option>
       </datalist>
-
-      <!-- <input type="text" class="array-element-input mt-1" v-model="newValue" /> -->
       <div class="btn-group mt-0" role="group">
         <button
           class="btn btn-sm check-badge btn-success me-0 add-new-value"
@@ -56,7 +54,7 @@ import { StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
-  name: "StringArrayInput",
+  name: "DropdownArrayInput",
   components: { BadgeList },
   props: {
     modelValue: { type: Array as PropType<StringArray>, required: true },

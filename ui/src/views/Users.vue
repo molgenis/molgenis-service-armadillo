@@ -21,7 +21,8 @@
           :record="projectToAdd"
           action="add new"
           recordType="project"
-          @proceed="proceedProjectUpdate"
+          extraInfo="Project will be added when user is saved"
+          @proceed="proceedProjectUpdate(projectToAdd)"
           @cancel="clearProject"
         ></ConfirmationDialog>
       </div>
@@ -64,7 +65,7 @@
           :cancel="clearNewUser"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
-          :dropDowns="{'projects': availableProjects}"
+          :dropDowns="{ projects: availableProjects }"
           @update-array-element="updateProjects"
         />
       </template>
@@ -104,7 +105,7 @@
           :cancel="clearUserToEdit"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
-          :dropDowns="{'projects': availableProjects}"
+          :dropDowns="{ projects: availableProjects }"
           @update-array-element="updateProjects"
         />
       </template>
@@ -167,7 +168,6 @@ export default defineComponent({
       availableProjects: [],
       recordToDelete: "",
       projectToAdd: "",
-      confirmedProject: "",
       updatedUserIndex: -1,
       userDataStructure: {
         email: "string",
@@ -201,6 +201,9 @@ export default defineComponent({
     };
   },
   computed: {
+    isEditingUser(): boolean {
+      return this.userToEdit !== "";
+    },
     projectsOfUserToEdit: {
       get(): string[] {
         return this.editMode.projects;
@@ -224,7 +227,7 @@ export default defineComponent({
   watch: {
     userToEdit() {
       this.editMode.userToEditIndex = this.getEditIndex();
-      if (this.editMode.userToEditIndex !== -1) {
+      if (this.isEditingUser) {
         this.projectsOfUserToEdit =
           this.users[this.editMode.userToEditIndex].projects;
         this.updateAvailableProjects();
@@ -232,6 +235,17 @@ export default defineComponent({
     },
   },
   methods: {
+    addingDuplicateUserToExistingProject(project: string) {
+      return (
+        this.isEditingUser && this.projectsOfUserToEdit.indexOf(project) !== -1
+      );
+    },
+    addingDuplicateUserToNewProject(project: string) {
+      return this.editMode.projects.indexOf(project) !== -1;
+    },
+    addingNonExistingUser(project: string) {
+      return this.availableProjects.indexOf(project) === -1;
+    },
     updateAvailableProjects() {
       let availableProjects: StringArray = [];
       getProjects()
@@ -250,43 +264,36 @@ export default defineComponent({
     },
     updateProjects(event: Event) {
       const project = event.toString();
-      if (
-        this.userToEdit !== "" &&
-        this.projectsOfUserToEdit.indexOf(project) !== -1
-      ) {
+      if (this.addingDuplicateUserToExistingProject(project)) {
         this.errorMessage = `Project: [${project}] already added to user: [${this.userToEdit}]`;
-      } else if (this.addMode.newUser.projects.indexOf(project) !== -1) {
+      } else if (this.addingDuplicateUserToNewProject(project)) {
         this.errorMessage = `Project: [${project}] already added to new user`;
-      } else if (this.availableProjects.indexOf(project) === -1) {
+      } else if (this.addingNonExistingUser(project)) {
+        // this will trigger confirmation dialog
         this.projectToAdd = project;
       } else {
-        this.confirmedProject = project;
-        this.proceedProjectUpdate();
+        this.proceedProjectUpdate(project);
       }
     },
     removeFromAvailableProjects(projectName: string) {
       const indexOfProject = this.availableProjects.indexOf(projectName);
       this.availableProjects.splice(indexOfProject, 1);
     },
-    proceedProjectUpdate() {
-      if (this.confirmedProject === "") {
-        this.confirmedProject = this.projectToAdd;
-      }
-      if (this.editMode.userToEditIndex !== -1) {
+    proceedProjectUpdate(confirmedProject: string) {
+      if (this.isEditingUser) {
         this.users[this.editMode.userToEditIndex].projects.push(
-          this.confirmedProject
+          confirmedProject
         );
         this.projectsOfUserToEdit =
           this.users[this.editMode.userToEditIndex].projects;
-        this.removeFromAvailableProjects(this.confirmedProject);
+        this.removeFromAvailableProjects(confirmedProject);
       } else {
-        this.addMode.newUser.projects.push(this.confirmedProject);
-        this.removeFromAvailableProjects(this.confirmedProject);
+        this.addMode.newUser.projects.push(confirmedProject);
+        this.removeFromAvailableProjects(confirmedProject);
       }
     },
     clearProject() {
       this.projectToAdd = "";
-      this.confirmedProject = "";
     },
     clearUpdatedUserIndex() {
       this.updatedUserIndex = -1;

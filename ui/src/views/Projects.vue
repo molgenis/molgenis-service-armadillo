@@ -21,7 +21,8 @@
           :record="userToAdd"
           action="add new"
           recordType="user"
-          @proceed="proceedUserUpdate"
+          extraInfo="User will be added when project is saved"
+          @proceed="proceedUserUpdate(userToAdd)"
           @cancel="clearUser"
         ></ConfirmationDialog>
       </div>
@@ -73,7 +74,7 @@
           :cancel="clearNewProject"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
-          :dropDowns="{'users': availableUsers}"
+          :dropDowns="{ users: availableUsers }"
           @update-array-element="updateUsers"
         />
       </template>
@@ -105,7 +106,7 @@
           :cancel="clearProjectToEdit"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
-          :dropDowns="{'users': availableUsers}"
+          :dropDowns="{ users: availableUsers }"
           @update-array-element="updateUsers"
         />
       </template>
@@ -167,7 +168,6 @@ export default defineComponent({
     return {
       availableUsers: [],
       userToAdd: "",
-      confirmedUser: "",
       recordToDelete: "",
       addRow: false,
       newProject: {
@@ -190,6 +190,9 @@ export default defineComponent({
     };
   },
   computed: {
+    isEditingProject(): boolean {
+      return this.projectToEditIndex !== -1;
+    },
     usersOfProjectToEdit: {
       get(): string[] {
         return this.projectToEdit.users;
@@ -201,7 +204,7 @@ export default defineComponent({
   },
   watch: {
     projectToEdit() {
-      if (this.projectToEditIndex !== -1) {
+      if (this.isEditingProject) {
         this.usersOfProjectToEdit =
           this.projects[this.projectToEditIndex].users;
         this.updateAvailableUsers();
@@ -209,6 +212,17 @@ export default defineComponent({
     },
   },
   methods: {
+    addingDuplicateUserToExistingProject(user: string) {
+      return (
+        this.isEditingProject && this.usersOfProjectToEdit.indexOf(user) !== -1
+      );
+    },
+    addingDuplicateUserToNewProject(user: string) {
+      return this.newProject.users.indexOf(user) !== -1;
+    },
+    addingNonExistingUser(user: string) {
+      return this.availableUsers.indexOf(user) === -1;
+    },
     updateAvailableUsers() {
       let availableUsers: StringArray = [];
       getUsers()
@@ -227,37 +241,30 @@ export default defineComponent({
     },
     updateUsers(event: Event) {
       const user = event.toString();
-      if (
-        this.projectToEdit.name !== "" &&
-        this.usersOfProjectToEdit.indexOf(user) !== -1
-      ) {
+      if (this.addingDuplicateUserToExistingProject(user)) {
         this.errorMessage = `User: [${user}] already added to project: [${this.projectToEdit.name}]`;
-      } else if (this.newProject.users.indexOf(user) !== -1) {
+      } else if (this.addingDuplicateUserToNewProject(user)) {
         this.errorMessage = `User: [${user}] already added to new project`;
-      } else if (this.availableUsers.indexOf(user) === -1) {
+      } else if (this.addingNonExistingUser(user)) {
+        // this will trigger confirmation dialog
         this.userToAdd = user;
       } else {
-        this.confirmedUser = user;
-        this.proceedUserUpdate();
+        this.proceedUserUpdate(user);
       }
     },
-    proceedUserUpdate() {
-      if (this.confirmedUser === "") {
-        this.confirmedUser = this.userToAdd;
-      }
-      if (this.projectToEditIndex !== -1) {
-        this.projects[this.projectToEditIndex].users.push(this.confirmedUser);
+    proceedUserUpdate(confirmedUser: string) {
+      if (this.isEditingProject) {
+        this.projects[this.projectToEditIndex].users.push(confirmedUser);
         this.usersOfProjectToEdit =
           this.projects[this.projectToEditIndex].users;
-        this.removeFromAvailableUsers(this.confirmedUser);
+        this.removeFromAvailableUsers(confirmedUser);
       } else {
-        this.newProject.users.push(this.confirmedUser);
-        this.removeFromAvailableUsers(this.confirmedUser);
+        this.newProject.users.push(confirmedUser);
+        this.removeFromAvailableUsers(confirmedUser);
       }
     },
     clearUser() {
       this.userToAdd = "";
-      this.confirmedUser = "";
     },
     removeFromAvailableUsers(userName: string) {
       const indexOfUser = this.availableUsers.indexOf(userName);
