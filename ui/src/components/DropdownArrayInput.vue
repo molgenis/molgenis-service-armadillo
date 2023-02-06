@@ -1,10 +1,6 @@
 <template>
   <div>
-    <BadgeList
-      :item-array="modelValue"
-      :canEdit="true"
-      
-    />
+    <BadgeList :item-array="modelValue" :canEdit="true" />
     <div v-if="!showAdd">
       <button class="btn-add-value btn btn-link p-0" @click="showAdd = true">
         <i class="bi bi-plus-circle text-primary"></i>
@@ -19,7 +15,11 @@
         v-model="newValue"
       />
       <datalist id="datalistOptions">
-        <option v-for="option in availableOptions" :value="option" :key="option"></option>
+        <option
+          v-for="option in availableOptions"
+          :value="option"
+          :key="option"
+        ></option>
       </datalist>
       <div class="btn-group mt-0" role="group">
         <button
@@ -70,7 +70,7 @@ export default defineComponent({
   methods: {
     addNewValue() {
       this.$emit("update", this.newValue);
-      this.showAdd = false;      
+      this.showAdd = false;
       this.newValue = "";
     },
     cancelNewValue() {

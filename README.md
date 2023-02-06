@@ -94,7 +94,7 @@ If you want to use MinIO as storage (including the test data), do the following:
 > added to the system metadata yet. To add it automatically, see [Application properties](#application-properties).
 > Or you can add it manually:
 > - Go to the Swagger UI (`http://localhost:8080/swagger-ui/index.html`)
-> - Go to the `PUT /admin/projects` endpoint
+> - Go to the `PUT /access/projects` endpoint
 > - Add the project `lifecycle`
 >
 > Now you're all set!

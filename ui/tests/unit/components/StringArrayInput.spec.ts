@@ -24,7 +24,9 @@ describe("StringArrayInput", () => {
     addButton.trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted()).toHaveProperty("update");
-    expect(wrapper.emitted("update")).toEqual([[["lifecycle", "molgenis", "hallo"]]]);
+    expect(wrapper.emitted("update")).toEqual([
+      [["lifecycle", "molgenis", "hallo"]],
+    ]);
   });
 
   test("can cancel adding value", async () => {

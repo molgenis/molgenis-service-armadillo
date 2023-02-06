@@ -1,7 +1,12 @@
 <template>
   <div class="row">
     <div class="col">
-      <Navbar :username="username" @logout="logoutUser" :showLogin="false" />
+      <Navbar
+        :version="version"
+        :username="username"
+        @logout="logoutUser"
+        :showLogin="false"
+      />
       <div class="container">
         <div class="row mt-2">
           <div class="col" v-if="username">
@@ -19,7 +24,7 @@ import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
-import { getPrincipal, logout } from "@/api/api";
+import { getPrincipal, getVersion, logout } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
 
@@ -33,11 +38,14 @@ export default defineComponent({
   setup() {
     const isAuthenticated: Ref<boolean> = ref(false);
     const username: Ref<string> = ref("");
+    const version: Ref<string> = ref("");
     const router = useRouter();
 
     onMounted(() => {
       loadUser();
+      loadVersion();
     });
+
     const loadUser = async () => {
       await getPrincipal()
         .then((principal) => {
@@ -55,10 +63,17 @@ export default defineComponent({
           }
         });
     };
+
+    const loadVersion = async () => {
+      version.value = await getVersion();
+    };
+
     return {
       username,
       isAuthenticated,
+      version,
       loadUser,
+      loadVersion,
     };
   },
   data() {
