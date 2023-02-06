@@ -167,6 +167,7 @@ describe("Users", () => {
   test("clears new user", () => {
     wrapper.vm.addRow = true;
     wrapper.vm.addMode.newUser = userToAdd;
+    wrapper.vm.userToEdit = "";
     wrapper.vm.clearNewUser();
     expect(wrapper.vm.addMode.newUser).toEqual({
       email: "",
@@ -452,5 +453,46 @@ describe("Users", () => {
     wrapper.vm.updateAdmin(adminToBe, false);
     expect(saveMock).toBeCalledWith(adminToBe);
     expect(adminToBe.admin).toBe(true);
+  });
+
+  describe("addingDuplicateProjectToExistingUser", () => {
+    test("returns true if duplicate project is added to existing user", () => {
+      wrapper.vm.projectsOfUserToEdit = ["project3"];
+      wrapper.vm.editMode.userToEdit = "user";
+      const observed = wrapper.vm.addingDuplicateProjectToExistingUser("project3");
+      expect(observed).toBe(true);
+    });
+    test("returns false if non duplicate user is added to existing project", () => {
+      wrapper.vm.projectsOfUserToEdit = ["project2"];
+      const observed =
+        wrapper.vm.addingDuplicateProjectToExistingUser("project3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("addingNonExistingProject", () => {
+    test("returns true if project not existing", () => {
+      wrapper.vm.availableProjects = ["project1", "project3"];
+      const observed = wrapper.vm.addingNonExistingProject("project2");
+      expect(observed).toBe(true);
+    });
+    test("returns false if project exists", () => {
+      wrapper.vm.availableProjects = ["project1", "project3"];
+      const observed = wrapper.vm.addingNonExistingProject("project3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("addingDuplicateProjectToNewUser", () => {
+    test("returns false if project not existing", () => {
+      wrapper.vm.addMode.newUser.projects = ["project1", "project3"];
+      const observed = wrapper.vm.addingDuplicateProjectToNewUser("project2");
+      expect(observed).toBe(false);
+    });
+    test("returns true if project exists", () => {
+      wrapper.vm.addMode.newUser.projects = ["project1", "project3"];
+      const observed = wrapper.vm.addingDuplicateProjectToNewUser("project3");
+      expect(observed).toBe(true);
+    });
   });
 });

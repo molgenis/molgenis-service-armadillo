@@ -10,7 +10,10 @@ jest.mock("@/api/api");
 describe("Projects", () => {
   const userData = [
     { email: "stephen.chapman@glasgow.ac.uk", projects: ["project3"] },
-    { email: "a.anamarija@univerza.si", projects: ["project3", "blood", "bro", "research"] },
+    {
+      email: "a.anamarija@univerza.si",
+      projects: ["project3", "blood", "bro", "research"],
+    },
     { email: "m.fiamma@ospedale.it", projects: ["snow1", "environmental"] },
     { email: "a.victor@umcg.nl", projects: ["molgenis"] },
     { email: "l.knope@pawnee-uni.com", projects: ["research"] },
@@ -278,5 +281,57 @@ describe("Projects", () => {
     expect(putMock).toBeCalled();
     expect(reloadMock).toBeCalled();
     expect(deleteMock).not.toBeCalled();
+  });
+
+  describe("isEditingProject", () => {
+    test("returns true if editing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      expect(wrapper.vm.isEditingProject).toBe(true);
+    });
+    test("returns false if not editing project", () => {
+      expect(wrapper.vm.isEditingProject).toBe(false);
+    });
+  });
+  describe("addingDuplicateUserToExistingProject", () => {
+    test("returns true if duplicate user is added to existing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      wrapper.vm.usersOfProjectToEdit = ["project3"];
+      const observed =
+        wrapper.vm.addingDuplicateUserToExistingProject("project3");
+      expect(observed).toBe(true);
+    });
+    test("returns false if non duplicate user is added to existing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      wrapper.vm.usersOfProjectToEdit = ["project2"];
+      const observed =
+        wrapper.vm.addingDuplicateUserToExistingProject("project3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("addingNonExistingUser", () => {
+    test("returns true if user not existing", () => {
+      wrapper.vm.availableUsers = ["user1", "user3"];
+      const observed = wrapper.vm.addingNonExistingUser("user2");
+      expect(observed).toBe(true);
+    });
+    test("returns false if user exists", () => {
+      wrapper.vm.availableUsers = ["user1", "user3"];
+      const observed = wrapper.vm.addingNonExistingUser("user3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("addingDuplicateUserToNewProject", () => {
+    test("returns false if user not existing", () => {
+      wrapper.vm.newProject.users = ["user1", "user3"];
+      const observed = wrapper.vm.addingDuplicateUserToNewProject("user2");
+      expect(observed).toBe(false);
+    });
+    test("returns true if user exists", () => {
+      wrapper.vm.newProject.users = ["user1", "user3"];
+      const observed = wrapper.vm.addingDuplicateUserToNewProject("user3");
+      expect(observed).toBe(true);
+    });
   });
 });
