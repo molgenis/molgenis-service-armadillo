@@ -447,7 +447,6 @@ describe("Users", () => {
 
   test("updates admin setting", () => {
     const adminToBe = {
-    const adminToBe = {
       email: "j.doe@example.com",
       firstName: "John",
       lastName: "Doe",
@@ -469,7 +468,8 @@ describe("Users", () => {
     test("returns true if duplicate project is added to existing user", () => {
       wrapper.vm.projectsOfUserToEdit = ["project3"];
       wrapper.vm.editMode.userToEdit = "user";
-      const observed = wrapper.vm.addingDuplicateProjectToExistingUser("project3");
+      const observed =
+        wrapper.vm.addingDuplicateProjectToExistingUser("project3");
       expect(observed).toBe(true);
     });
     test("returns false if non duplicate user is added to existing project", () => {

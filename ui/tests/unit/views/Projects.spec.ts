@@ -295,16 +295,14 @@ describe("Projects", () => {
   describe("addingDuplicateUserToExistingProject", () => {
     test("returns true if duplicate user is added to existing project", () => {
       wrapper.vm.projectToEditIndex = 1;
-      wrapper.vm.usersOfProjectToEdit = ["project3"];
-      const observed =
-        wrapper.vm.addingDuplicateUserToExistingProject("project3");
+      wrapper.vm.usersOfProjectToEdit = ["user3"];
+      const observed = wrapper.vm.addingDuplicateUserToExistingProject("user3");
       expect(observed).toBe(true);
     });
     test("returns false if non duplicate user is added to existing project", () => {
       wrapper.vm.projectToEditIndex = 1;
-      wrapper.vm.usersOfProjectToEdit = ["project2"];
-      const observed =
-        wrapper.vm.addingDuplicateUserToExistingProject("project3");
+      wrapper.vm.usersOfProjectToEdit = ["user2"];
+      const observed = wrapper.vm.addingDuplicateUserToExistingProject("user3");
       expect(observed).toBe(false);
     });
   });
