@@ -77,6 +77,11 @@ export async function handleResponse(response: Response) {
   }
 }
 
+export async function getVersion() {
+  let result = await get("/actuator/info");
+  return result.build.version;
+}
+
 export async function deleteUser(email: string) {
   return delete_("/access/users", email);
 }
