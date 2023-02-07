@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 ARMADILLO_SETUP_VER=1.0.1
@@ -82,7 +83,7 @@ handle_args() {
       fi
     fi
     if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]|| [! "$ARMADILLO_ADMIN_EMAIL"];; then
+      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]|| [! "$ARMADILLO_ADMIN_EMAIL"]; then
         echo "OIDC Option called but mandatory config items are missing --admin-email user@oidc-mailadres.tld --oidc_url <issuer_url> --oidc_clientid <client_id> --oidc_clientsecret <secret> "
         exit 1;
       fi
@@ -111,9 +112,7 @@ setup_environment() {
 }
 
 setup_systemd() {
-    # Set the systemd version. In future download from github? Example:
-    #curl -fsSL -o /etc/systemd/system/armadillo.service https://github.com/molgenis-service-armadillo/raw/branch/master/dist/etc/systemd/system/armadillo.service
-    cat  > /etc/systemd/system/armadillo.service << EOF
+  cat  > /etc/systemd/system/armadillo.service << EOF
 [Unit]
 Description=DataSHIELD Armadillo 3
 After=syslog.target
@@ -141,7 +140,8 @@ echo "Armadillo Installed under systemd"
 
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
+  #wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
+  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/DickPostma/molgenis-service-armadillo/installScript/scripts/install/conf/application.yml
   
   if [ ! "$ADMINUSER" ]; then 
     ADMINUSER="admin"
@@ -185,10 +185,18 @@ download_armadillo() {
   else
     DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
     
-  fi 
-  wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar "$DL_URL"
-  ln -s $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar $ARMADILLO_PATH/application/armadillo.jar
-  echo "$ARMADILLO_VERSION downloaded"
+  fi
+ 
+  if validate_url $DL_URL; then
+
+    wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar "$DL_URL"
+    ln -s $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar $ARMADILLO_PATH/application/armadillo.jar
+    echo "$ARMADILLO_VERSION downloaded"
+  
+  else 
+    echo "[ERROR] Error in downloading armadillo, please contact molgenis-support@umcg.nl with your error."
+    exit 1;
+  fi
 }
 
 
@@ -198,12 +206,29 @@ check_req() {
   done
 
   if [ "$(whoami)" != 'root' ]; then
-    echo 'Please run this script with root or sudo rights!'
+    echo '[ERROR] Please run this script with root or sudo rights!'
     exit 1;
   fi
 
 }
 
+setup_updatescript() {
+  # Download update script 
+  #DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/armadillo-check-update.sh
+  DL_URL=https://raw.githubusercontent.com/DickPostma/molgenis-service-armadillo/installScript/scripts/install/armadillo-check-update.sh
+    
+  if validate_url $DL_URL; then
+
+    wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
+    echo "Update script downloaded"
+    echo "1 0 * * 0 bash $ARMADILLO_PATH/application/armadillo-update.sh" >> /etc/cron.d/update-armadillo
+  
+  else
+    echo "[ ERROR ] update script not downloaded"
+  fi
+
+
+}
 
 
 command_exists() {
@@ -230,6 +255,7 @@ cleanup(){
             rm -Rf /etc/systemd/system/armadillo.service
             systemctl daemon-reload
             rm -Rf $ARMADILLO_LOG_PATH
+            rm /etc/cron.d/update-armadillo
             echo "Armadillo cleaned!"
         else
           echo "No cleanup .. please remove the --cleanup argument"
@@ -243,6 +269,14 @@ startup_armadillo() {
   systemctl start armadillo
   echo "Armadillo started"
 
+}
+
+validate_url(){
+  if [[ `wget -S --spider $1  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 #Parameters passed in help
@@ -286,7 +320,7 @@ check_req
 cleanup
 setup_environment
 download_armadillo
-setup_update
+setup_updatescript
 setup_armadillo_config
 setup_systemd
 startup_armadillo
