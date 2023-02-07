@@ -22,7 +22,11 @@
           "
         >
           <slot name="extraColumn" :item="dataRow"></slot>
-          <td v-for="(type, propertyName) in dataStructure" :key="type">
+          <td
+            v-for="(type, propertyName) in dataStructure"
+            :key="type"
+            class="table-column"
+          >
             <span v-if="customColumns.includes(propertyName)">
               <slot
                 name="customType"
@@ -120,3 +124,8 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss" scoped>
+.table-column {
+  max-width: 30vw;
+}
+</style>
