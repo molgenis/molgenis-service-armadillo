@@ -227,7 +227,11 @@ export default defineComponent({
       let availableUsers: StringArray = [];
       getUsers()
         .catch((error: string) => {
-          this.errorMessage = processErrorMessages(error, this.$router);
+          this.errorMessage = processErrorMessages(
+            error,
+            "available users",
+            this.$router
+          );
           return [];
         })
         .then((users) => {

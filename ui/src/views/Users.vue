@@ -250,7 +250,11 @@ export default defineComponent({
       let availableProjects: StringArray = [];
       getProjects()
         .catch((error: string) => {
-          this.errorMessage = processErrorMessages(error, this.$router);
+          this.errorMessage = processErrorMessages(
+            error,
+            "available projects",
+            this.$router
+          );
           return [];
         })
         .then((projects) => {
