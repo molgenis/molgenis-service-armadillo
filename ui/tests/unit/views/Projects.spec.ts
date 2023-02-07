@@ -292,43 +292,45 @@ describe("Projects", () => {
       expect(wrapper.vm.isEditingProject).toBe(false);
     });
   });
-  describe("addingDuplicateUserToExistingProject", () => {
+  describe("isAddingDuplicateUserToExistingProject", () => {
     test("returns true if duplicate user is added to existing project", () => {
       wrapper.vm.projectToEditIndex = 1;
       wrapper.vm.usersOfProjectToEdit = ["user3"];
-      const observed = wrapper.vm.addingDuplicateUserToExistingProject("user3");
+      const observed =
+        wrapper.vm.isAddingDuplicateUserToExistingProject("user3");
       expect(observed).toBe(true);
     });
     test("returns false if non duplicate user is added to existing project", () => {
       wrapper.vm.projectToEditIndex = 1;
       wrapper.vm.usersOfProjectToEdit = ["user2"];
-      const observed = wrapper.vm.addingDuplicateUserToExistingProject("user3");
+      const observed =
+        wrapper.vm.isAddingDuplicateUserToExistingProject("user3");
       expect(observed).toBe(false);
     });
   });
 
-  describe("addingNonExistingUser", () => {
+  describe("isAddingNonExistingUser", () => {
     test("returns true if user not existing", () => {
       wrapper.vm.availableUsers = ["user1", "user3"];
-      const observed = wrapper.vm.addingNonExistingUser("user2");
+      const observed = wrapper.vm.isAddingNonExistingUser("user2");
       expect(observed).toBe(true);
     });
     test("returns false if user exists", () => {
       wrapper.vm.availableUsers = ["user1", "user3"];
-      const observed = wrapper.vm.addingNonExistingUser("user3");
+      const observed = wrapper.vm.isAddingNonExistingUser("user3");
       expect(observed).toBe(false);
     });
   });
 
-  describe("addingDuplicateUserToNewProject", () => {
+  describe("isAddingDuplicateUserToNewProject", () => {
     test("returns false if user not existing", () => {
       wrapper.vm.newProject.users = ["user1", "user3"];
-      const observed = wrapper.vm.addingDuplicateUserToNewProject("user2");
+      const observed = wrapper.vm.isAddingDuplicateUserToNewProject("user2");
       expect(observed).toBe(false);
     });
     test("returns true if user exists", () => {
       wrapper.vm.newProject.users = ["user1", "user3"];
-      const observed = wrapper.vm.addingDuplicateUserToNewProject("user3");
+      const observed = wrapper.vm.isAddingDuplicateUserToNewProject("user3");
       expect(observed).toBe(true);
     });
   });

@@ -235,15 +235,15 @@ export default defineComponent({
     },
   },
   methods: {
-    addingDuplicateProjectToExistingUser(project: string) {
+    isAddingDuplicateProjectToExistingUser(project: string) {
       return (
         this.isEditingUser && this.projectsOfUserToEdit.indexOf(project) !== -1
       );
     },
-    addingDuplicateProjectToNewUser(project: string) {
+    isAddingDuplicateProjectToNewUser(project: string) {
       return this.addMode.newUser.projects.indexOf(project) !== -1;
     },
-    addingNonExistingProject(project: string) {
+    isAddingNonExistingProject(project: string) {
       return this.availableProjects.indexOf(project) === -1;
     },
     updateAvailableProjects() {
@@ -268,11 +268,11 @@ export default defineComponent({
     },
     updateProjects(event: Event) {
       const project = event.toString();
-      if (this.addingDuplicateProjectToExistingUser(project)) {
+      if (this.isAddingDuplicateProjectToExistingUser(project)) {
         this.errorMessage = `Project: [${project}] already added to user: [${this.userToEdit}]`;
-      } else if (this.addingDuplicateProjectToNewUser(project)) {
+      } else if (this.isAddingDuplicateProjectToNewUser(project)) {
         this.errorMessage = `Project: [${project}] already added to new user`;
-      } else if (this.addingNonExistingProject(project)) {
+      } else if (this.isAddingNonExistingProject(project)) {
         // this will trigger confirmation dialog
         this.projectToAdd = project;
       } else {
