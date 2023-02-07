@@ -8,6 +8,18 @@ const api = _api as any;
 jest.mock("@/api/api");
 
 describe("Projects", () => {
+  const userData = [
+    { email: "stephen.chapman@glasgow.ac.uk", projects: ["project3"] },
+    {
+      email: "a.anamarija@univerza.si",
+      projects: ["project3", "blood", "bro", "research"],
+    },
+    { email: "m.fiamma@ospedale.it", projects: ["snow1", "environmental"] },
+    { email: "a.victor@umcg.nl", projects: ["molgenis"] },
+    { email: "l.knope@pawnee-uni.com", projects: ["research"] },
+    { email: "j.doe@example.com", projects: ["research"] },
+    { email: "a.ida@yliopisto.fi", projects: ["research"] },
+  ];
   const testData = [
     {
       name: "environmental",
@@ -79,6 +91,9 @@ describe("Projects", () => {
     };
     api.getProjects.mockImplementationOnce(() => {
       return Promise.resolve(testData);
+    });
+    api.getUsers.mockImplementationOnce(() => {
+      return Promise.resolve(userData);
     });
     wrapper = shallowMount(Projects, {
       global: {
@@ -266,5 +281,57 @@ describe("Projects", () => {
     expect(putMock).toBeCalled();
     expect(reloadMock).toBeCalled();
     expect(deleteMock).not.toBeCalled();
+  });
+
+  describe("isEditingProject", () => {
+    test("returns true if editing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      expect(wrapper.vm.isEditingProject).toBe(true);
+    });
+    test("returns false if not editing project", () => {
+      expect(wrapper.vm.isEditingProject).toBe(false);
+    });
+  });
+  describe("isAddingDuplicateUserToExistingProject", () => {
+    test("returns true if duplicate user is added to existing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      wrapper.vm.usersOfProjectToEdit = ["user3"];
+      const observed =
+        wrapper.vm.isAddingDuplicateUserToExistingProject("user3");
+      expect(observed).toBe(true);
+    });
+    test("returns false if non duplicate user is added to existing project", () => {
+      wrapper.vm.projectToEditIndex = 1;
+      wrapper.vm.usersOfProjectToEdit = ["user2"];
+      const observed =
+        wrapper.vm.isAddingDuplicateUserToExistingProject("user3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("isAddingNonExistingUser", () => {
+    test("returns true if user not existing", () => {
+      wrapper.vm.availableUsers = ["user1", "user3"];
+      const observed = wrapper.vm.isAddingNonExistingUser("user2");
+      expect(observed).toBe(true);
+    });
+    test("returns false if user exists", () => {
+      wrapper.vm.availableUsers = ["user1", "user3"];
+      const observed = wrapper.vm.isAddingNonExistingUser("user3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("isAddingDuplicateUserToNewProject", () => {
+    test("returns false if user not existing", () => {
+      wrapper.vm.newProject.users = ["user1", "user3"];
+      const observed = wrapper.vm.isAddingDuplicateUserToNewProject("user2");
+      expect(observed).toBe(false);
+    });
+    test("returns true if user exists", () => {
+      wrapper.vm.newProject.users = ["user1", "user3"];
+      const observed = wrapper.vm.isAddingDuplicateUserToNewProject("user3");
+      expect(observed).toBe(true);
+    });
   });
 });

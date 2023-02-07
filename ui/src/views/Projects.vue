@@ -16,6 +16,15 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="userToAdd != ''"
+          :record="userToAdd"
+          action="add new"
+          recordType="user"
+          extraInfo="User will be added when project is saved"
+          @proceed="proceedUserUpdate(userToAdd)"
+          @cancel="clearUser"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -65,6 +74,8 @@
           :cancel="clearNewProject"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
+          :dropDowns="{ users: availableUsers }"
+          @update-array-element="updateUsers"
         />
       </template>
       <template #extraColumn="columnProps">
@@ -96,6 +107,8 @@
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
           :highlight="editHighlight"
+          :dropDowns="{ users: availableUsers }"
+          @update-array-element="updateUsers"
         />
       </template>
     </Table>
@@ -112,11 +125,11 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteProject, getProjects, putProject } from "@/api/api";
+import { deleteProject, getProjects, getUsers, putProject } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
-import { ProjectsData } from "@/types/types";
+import { ProjectsData, StringArray } from "@/types/types";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -154,6 +167,8 @@ export default defineComponent({
   },
   data(): ProjectsData {
     return {
+      availableUsers: [],
+      userToAdd: "",
       recordToDelete: "",
       addRow: false,
       newProject: {
@@ -179,8 +194,90 @@ export default defineComponent({
     editHighlight(): "info" | "" {
       return this.projectToEdit.name !== "" ? "info" : "";
     },
+    isEditingProject(): boolean {
+      return this.projectToEditIndex !== -1;
+    },
+    usersOfProjectToEdit: {
+      get(): string[] {
+        return this.projectToEdit.users;
+      },
+      set(users) {
+        this.projectToEdit.users = users;
+      },
+    },
+  },
+  watch: {
+    projectToEdit() {
+      if (this.isEditingProject) {
+        this.usersOfProjectToEdit =
+          this.projects[this.projectToEditIndex].users;
+        this.updateAvailableUsers();
+      }
+    },
   },
   methods: {
+    isAddingDuplicateUserToExistingProject(user: string) {
+      return (
+        this.isEditingProject && this.usersOfProjectToEdit.indexOf(user) !== -1
+      );
+    },
+    isAddingDuplicateUserToNewProject(user: string) {
+      return this.newProject.users.indexOf(user) !== -1;
+    },
+    isAddingNonExistingUser(user: string) {
+      return this.availableUsers.indexOf(user) === -1;
+    },
+    updateAvailableUsers() {
+      let availableUsers: StringArray = [];
+      getUsers()
+        .catch((error: string) => {
+          this.errorMessage = processErrorMessages(
+            error,
+            "available users",
+            this.$router
+          );
+          return [];
+        })
+        .then((users) => {
+          users.forEach((user) => {
+            if (this.usersOfProjectToEdit.indexOf(user.email) === -1) {
+              availableUsers.push(user.email);
+            }
+          });
+        });
+      this.availableUsers = availableUsers;
+    },
+    updateUsers(event: Event) {
+      const user = event.toString();
+      if (this.isAddingDuplicateUserToExistingProject(user)) {
+        this.errorMessage = `User: [${user}] already added to project: [${this.projectToEdit.name}]`;
+      } else if (this.isAddingDuplicateUserToNewProject(user)) {
+        this.errorMessage = `User: [${user}] already added to new project`;
+      } else if (this.isAddingNonExistingUser(user)) {
+        // this will trigger confirmation dialog
+        this.userToAdd = user;
+      } else {
+        this.proceedUserUpdate(user);
+      }
+    },
+    proceedUserUpdate(confirmedUser: string) {
+      if (this.isEditingProject) {
+        this.projects[this.projectToEditIndex].users.push(confirmedUser);
+        this.usersOfProjectToEdit =
+          this.projects[this.projectToEditIndex].users;
+        this.removeFromAvailableUsers(confirmedUser);
+      } else {
+        this.newProject.users.push(confirmedUser);
+        this.removeFromAvailableUsers(confirmedUser);
+      }
+    },
+    clearUser() {
+      this.userToAdd = "";
+    },
+    removeFromAvailableUsers(userName: string) {
+      const indexOfUser = this.availableUsers.indexOf(userName);
+      this.availableUsers.splice(indexOfUser, 1);
+    },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
@@ -277,6 +374,7 @@ export default defineComponent({
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
+      this.updateAvailableUsers();
       this.clearProjectToEdit();
     },
     saveNewProject() {

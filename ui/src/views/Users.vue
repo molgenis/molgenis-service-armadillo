@@ -16,6 +16,15 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="projectToAdd != ''"
+          :record="projectToAdd"
+          action="add new"
+          recordType="project"
+          extraInfo="Project will be added when user is saved"
+          @proceed="proceedProjectUpdate(projectToAdd)"
+          @cancel="clearProject"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -56,6 +65,8 @@
           :cancel="clearNewUser"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
+          :dropDowns="{ projects: availableProjects }"
+          @update-array-element="updateProjects"
         />
       </template>
       <template #extraColumn="columnProps">
@@ -95,6 +106,8 @@
           :hideColumns="[]"
           :dataStructure="userDataStructure"
           :highlight="editHighlight"
+          :dropDowns="{ projects: availableProjects }"
+          @update-array-element="updateProjects"
         />
       </template>
     </Table>
@@ -111,11 +124,11 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { deleteUser, getUsers, putUser } from "@/api/api";
+import { deleteUser, getUsers, putUser, getProjects } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { User, UserStringKey } from "@/types/api";
-import { UsersData } from "@/types/types";
+import { StringArray, UsersData } from "@/types/types";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -153,7 +166,9 @@ export default defineComponent({
   },
   data(): UsersData {
     return {
+      availableProjects: [],
       recordToDelete: "",
+      projectToAdd: "",
       updatedUserIndex: -1,
       userDataStructure: {
         email: "string",
@@ -165,8 +180,8 @@ export default defineComponent({
       },
       editMode: {
         addProjectToRow: false,
-        project: "",
         userToEdit: "",
+        projects: [],
         userToEditIndex: -1,
       },
       addMode: {
@@ -179,7 +194,6 @@ export default defineComponent({
           admin: false,
           projects: [],
         },
-        project: "",
       },
       addRow: false,
       loading: false,
@@ -190,6 +204,17 @@ export default defineComponent({
   computed: {
     editHighlight(): "info" | "" {
       return this.editMode.userToEdit !== "" ? "info" : "";
+    },
+    isEditingUser(): boolean {
+      return this.editMode.userToEdit !== "";
+    },
+    projectsOfUserToEdit: {
+      get(): string[] {
+        return this.editMode.projects;
+      },
+      set(projects) {
+        this.editMode.projects = projects;
+      },
     },
     disabledButtons(): boolean[] {
       return [this.addRow, this.addRow];
@@ -206,9 +231,78 @@ export default defineComponent({
   watch: {
     userToEdit() {
       this.editMode.userToEditIndex = this.getEditIndex();
+      if (this.isEditingUser) {
+        this.projectsOfUserToEdit =
+          this.users[this.editMode.userToEditIndex].projects;
+        this.updateAvailableProjects();
+      }
     },
   },
   methods: {
+    isAddingDuplicateProjectToExistingUser(project: string) {
+      return (
+        this.isEditingUser && this.projectsOfUserToEdit.indexOf(project) !== -1
+      );
+    },
+    isAddingDuplicateProjectToNewUser(project: string) {
+      return this.addMode.newUser.projects.indexOf(project) !== -1;
+    },
+    isAddingNonExistingProject(project: string) {
+      return this.availableProjects.indexOf(project) === -1;
+    },
+    updateAvailableProjects() {
+      let availableProjects: StringArray = [];
+      getProjects()
+        .catch((error: string) => {
+          this.errorMessage = processErrorMessages(
+            error,
+            "available projects",
+            this.$router
+          );
+          return [];
+        })
+        .then((projects) => {
+          projects.forEach((project) => {
+            if (this.projectsOfUserToEdit.indexOf(project.name) === -1) {
+              availableProjects.push(project.name);
+            }
+          });
+        });
+      this.availableProjects = availableProjects;
+    },
+    updateProjects(event: Event) {
+      const project = event.toString();
+      if (this.isAddingDuplicateProjectToExistingUser(project)) {
+        this.errorMessage = `Project: [${project}] already added to user: [${this.userToEdit}]`;
+      } else if (this.isAddingDuplicateProjectToNewUser(project)) {
+        this.errorMessage = `Project: [${project}] already added to new user`;
+      } else if (this.isAddingNonExistingProject(project)) {
+        // this will trigger confirmation dialog
+        this.projectToAdd = project;
+      } else {
+        this.proceedProjectUpdate(project);
+      }
+    },
+    removeFromAvailableProjects(projectName: string) {
+      const indexOfProject = this.availableProjects.indexOf(projectName);
+      this.availableProjects.splice(indexOfProject, 1);
+    },
+    proceedProjectUpdate(confirmedProject: string) {
+      if (this.isEditingUser) {
+        this.users[this.editMode.userToEditIndex].projects.push(
+          confirmedProject
+        );
+        this.projectsOfUserToEdit =
+          this.users[this.editMode.userToEditIndex].projects;
+        this.removeFromAvailableProjects(confirmedProject);
+      } else {
+        this.addMode.newUser.projects.push(confirmedProject);
+        this.removeFromAvailableProjects(confirmedProject);
+      }
+    },
+    clearProject() {
+      this.projectToAdd = "";
+    },
     clearUpdatedUserIndex() {
       this.updatedUserIndex = -1;
     },
@@ -345,6 +439,7 @@ export default defineComponent({
     },
     toggleAddRow() {
       this.addRow = !this.addRow;
+      this.updateAvailableProjects();
       this.clearUserToEdit();
     },
     updateAdmin(user: User, isAdmin: boolean) {

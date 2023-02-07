@@ -9,7 +9,7 @@
           :errorMessage="errorMessage"
         ></FeedbackMessage>
         <ConfirmationDialog
-          v-if="recordToDelete != ''"
+          v-if="recordToDelete !== ''"
           :record="recordToDelete"
           action="delete"
           recordType="project"
@@ -39,7 +39,10 @@
         </th>
       </template>
       <template #objectType="objectProps">
-        <div v-if="objectProps.data.status" class="row">
+        <div
+          v-if="objectProps.data && statusMapping[objectProps.data.status]"
+          class="row"
+        >
           <div class="col-6">
             <span
               class="badge"
@@ -122,7 +125,7 @@ import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ProfileStatus from "@/components/ProfileStatus.vue";
 import Badge from "@/components/Badge.vue";
-import { ProfilesData } from "@/types/types";
+import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
@@ -142,34 +145,31 @@ export default defineComponent({
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
     const errorMessage: Ref<string> = ref("");
+    const dockerManagementEnabled: Ref<boolean> = ref(false);
     const router = useRouter();
-    onMounted(() => {
-      loadProfiles();
+    onMounted(async () => {
+      await loadProfiles();
     });
     const loadProfiles = async () => {
-      profiles.value = await getProfiles().catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, "profiles", router);
-        return [];
-      });
+      profiles.value = await getProfiles()
+        .then((profiles) => {
+          dockerManagementEnabled.value = "container" in profiles[0];
+          return profiles;
+        })
+        .catch((error: string) => {
+          errorMessage.value = processErrorMessages(error, "profiles", router);
+          return [];
+        });
     };
     return {
       profiles,
       errorMessage,
       loadProfiles,
+      dockerManagementEnabled,
     };
   },
   data(): ProfilesData {
     return {
-      profilesDataStructure: {
-        name: "string",
-        image: "string",
-        host: "string",
-        port: "string",
-        packageWhitelist: "array",
-        functionBlacklist: "array",
-        options: "object",
-        container: "object",
-      },
       recordToDelete: "",
       loading: false,
       loadingProfile: "",
@@ -214,6 +214,23 @@ export default defineComponent({
         port++;
       }
       return port;
+    },
+    profilesDataStructure(): TypeObject {
+      let columns: TypeObject = {
+        name: "string",
+        image: "string",
+        host: "string",
+        port: "string",
+        packageWhitelist: "array",
+        functionBlacklist: "array",
+        options: "object",
+      };
+
+      if (this.dockerManagementEnabled) {
+        columns["container"] = "object";
+      }
+
+      return columns;
     },
   },
   watch: {

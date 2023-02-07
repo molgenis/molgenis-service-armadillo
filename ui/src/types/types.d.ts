@@ -46,6 +46,8 @@ export type ProjectsExplorerData = {
 };
 
 export type ProjectsData = {
+  availableUsers: StringArray;
+  userToAdd: string;
   recordToDelete: string;
   projectToHighlightIndex: number;
   addRow: boolean;
@@ -59,19 +61,20 @@ export type ProjectsData = {
 };
 
 export type UsersData = {
+  availableProjects: StringArray;
+  projectToAdd: string;
   recordToDelete: string;
   updatedUserIndex: number;
   userDataStructure: TypeObject;
   editMode: {
     addProjectToRow: boolean;
-    project: string;
     userToEdit: string;
+    projects: StringArray;
     userToEditIndex: number;
   };
   addMode: {
     addProjectToRow: boolean;
     newUser: User;
-    project: string;
   };
   addRow: boolean;
   loading: boolean;
@@ -88,7 +91,6 @@ type statusMappingType = {
 
 export type ProfilesData = {
   recordToDelete: string;
-  profilesDataStructure: TypeObject;
   loading: boolean;
   loadingProfile: string;
   successMessage: string;
