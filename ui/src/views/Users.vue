@@ -33,10 +33,6 @@
       :allData="users"
       :indexToEdit="editMode.userToEditIndex"
       :dataStructure="userDataStructure"
-      :highlightedRow="{
-        rowNumber: updatedUserIndex,
-        color: 'success',
-      }"
       :highlightedRowIndex="updatedUserIndex"
     >
       <template v-slot:extraHeader>
@@ -98,6 +94,7 @@
           :cancel="clearUserToEdit"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
+          :highlight="editHighlight"
         />
       </template>
     </Table>
@@ -191,6 +188,9 @@ export default defineComponent({
     };
   },
   computed: {
+    editHighlight(): "info" | "" {
+      return this.editMode.userToEdit !== "" ? "info" : "";
+    },
     disabledButtons(): boolean[] {
       return [this.addRow, this.addRow];
     },

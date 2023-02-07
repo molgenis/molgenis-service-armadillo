@@ -47,7 +47,6 @@ export type ProjectsExplorerData = {
 
 export type ProjectsData = {
   recordToDelete: string;
-  highlightColor: BootstrapType | undefined;
   projectToHighlightIndex: number;
   addRow: boolean;
   newProject: Project;
@@ -102,8 +101,3 @@ export type ProfilesData = {
     DOCKER_OFFLINE: statusMappingType;
   };
 };
-
-export type HighlightedRow = {
-  color: BootstrapType | undefined;
-  rowNumber: number;
-}

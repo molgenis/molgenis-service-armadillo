@@ -1,5 +1,8 @@
 <template>
-  <tr class="align-middle">
+  <tr
+    class="align-middle"
+    :class="highlight !== '' ? `table-${highlight}` : ''"
+  >
     <th scope="row">
       <ButtonGroup
         :buttonIcons="buttonIcons"
@@ -84,6 +87,10 @@ export default defineComponent({
     dataStructure: {
       type: Object as PropType<TypeObject>,
       required: true,
+    },
+    highlight: {
+      type: String,
+      default: "",
     },
   },
   data(): {

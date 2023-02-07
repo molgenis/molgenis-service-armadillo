@@ -34,10 +34,6 @@
       :indexToEdit="projectToEditIndex"
       :customColumns="['name']"
       :dataStructure="projectsDataStructure"
-      :highlightedRow="{
-        rowNumber: projectToHighlightIndex,
-        color: 'success',
-      }"
       :highlightedRowIndex="projectToHighlightIndex"
     >
       <template #customType="customProps">
@@ -99,6 +95,7 @@
           :cancel="clearProjectToEdit"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
+          :highlight="editHighlight"
         />
       </template>
     </Table>
@@ -119,7 +116,7 @@ import { deleteProject, getProjects, putProject } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { Project } from "@/types/api";
-import { HighlightedRow, ProjectsData } from "@/types/types";
+import { ProjectsData } from "@/types/types";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -172,7 +169,6 @@ export default defineComponent({
         users: [],
       },
       projectToHighlightIndex: -1,
-      highlightColor: undefined,
       projectToEditIndex: -1,
       loading: false,
       successMessage: "",
@@ -180,24 +176,8 @@ export default defineComponent({
     };
   },
   computed: {
-    highlightedRow: {
-      get(): HighlightedRow {
-        return {
-          rowNumber: this.projectToHighlightIndex,
-          color: this.highlightColor,
-        };
-      },
-      // setter
-      set(newValue: number) {
-        console.log('setting');
-        this.projectToHighlightIndex = newValue;
-        this.highlightColor = this.successMessage.includes(
-          this.projectToEdit.name
-        )
-          ? "success"
-          : "info";
-          console.log(this.projectToHighlightIndex, this.highlightColor);
-      },
+    editHighlight(): "info" | "" {
+      return this.projectToEdit.name !== "" ? "info" : "";
     },
   },
   methods: {
@@ -217,11 +197,10 @@ export default defineComponent({
     editProject(project: Project) {
       this.clearNewProject();
       this.projectToEditIndex = this.getProjectIndex(project.name);
-      this.highlightedRow = this.getProjectIndex(project.name);
-      // this.projectToHighlightIndex = this.getProjectIndex(project.name);
+      this.projectToHighlightIndex = this.getProjectIndex(project.name);
       this.projectToEdit = project;
     },
-    getProjectIndex(projectName: string) {
+    getProjectIndex(projectName: string): number {
       return this.projects.findIndex((someProject) => {
         return someProject.name === projectName;
       });

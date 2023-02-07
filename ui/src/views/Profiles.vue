@@ -97,6 +97,7 @@
           :cancel="clearProfileToEdit"
           :hideColumns="['container']"
           :dataStructure="profilesDataStructure"
+          :highlight="editHighlight"
         />
       </template>
     </Table>
@@ -204,6 +205,9 @@ export default defineComponent({
     };
   },
   computed: {
+    editHighlight(): "info" | "" {
+      return this.profileToEdit !== "" ? "info" : "";
+    },
     firstFreePort(): number {
       let port = 6311;
       while (this.profiles.find((profile) => profile.port === port)) {
