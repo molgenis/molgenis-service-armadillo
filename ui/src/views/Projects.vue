@@ -288,7 +288,6 @@ export default defineComponent({
       this.reloadProjects();
     },
     editProject(project: Project) {
-      this.clearNewProject();
       this.projectToEditIndex = this.getProjectIndex(project.name);
       this.projectToHighlightIndex = this.getProjectIndex(project.name);
       this.projectToEdit = project;
