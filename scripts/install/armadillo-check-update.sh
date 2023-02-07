@@ -3,7 +3,22 @@
 ARMADILLO_UPDATESCR_VERSION=0.0.1
 
 check_self_update() {
+  UPDATE_SCRIPT=$(curl -L -s https://raw.githubusercontent.com/DickPostma/molgenis-service-armadillo/installScript/scripts/install/armadillo-check-update.sh)
+  UPDATE_VERSION=$(echo "$UPDATE_SCRIPT" | sed -e 's/.*"ARMADILLO_UPDATESCR_VERSION"="\([^"]*\)".*/\1/')
+
+  echo $UPDATE_VERSION
+  exit
     
+  if validate_url $DL_URL; then
+    
+    wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
+    echo "Update script downloaded"
+    echo "1 0 * * 0 bash $ARMADILLO_PATH/application/armadillo-update.sh" >> /etc/cron.d/update-armadillo
+  
+  else
+    echo "[ ERROR ] update script not downloaded"
+  fi
+
    
 }
 
@@ -15,15 +30,10 @@ check_armadillo_update() {
   LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
   ARMADILLO_LATEST_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/' | sed -e s/.*armadillo-service-//)
 
-
-
-  echo $ARMADILLO_LATEST_VERSION vs $VERSION_USED
-  
-
-  if [[ "$ARMADILLO_LATEST_VERSION" =~ "2.2.3" ]]; then
+    if [[ "$ARMADILLO_LATEST_VERSION" =~ "2.2.3" ]]; then
   {
     
-    echo "Armadillo 2 version not supported on this system"
+    echo "Update of Armadillo 2 version is not supported on this system"
     exit
   }
   fi
@@ -40,7 +50,7 @@ check_armadillo_update() {
       systemctl stop armadillo
       wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_LATEST_VERSION".jar "$DL_URL"
       ln -s -f $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_LATEST_VERSION".jar $ARMADILLO_PATH/application/armadillo.jar
-      echo "$ARMADILLO_LATEST_VERSION updated"
+      echo "armadillo $ARMADILLO_LATEST_VERSION updated"
       systemctl start armadillo
 
     fi
@@ -52,7 +62,6 @@ check_armadillo_update() {
   }
   fi
 
-  #echo $VER
 
 }
 
