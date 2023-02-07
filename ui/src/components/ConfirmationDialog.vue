@@ -5,7 +5,12 @@
       class="confirm-dialog position-absolute top-50 start-50 translate-middle"
       @clear="$emit('cancel')"
     >
-      Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]?
+      <div>
+        Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]?
+      </div>
+      <div class="mb-1">
+        <small>{{ extraInfo }}</small>
+      </div>
       <button
         type="button"
         class="btn btn-sm btn-success"
@@ -37,6 +42,10 @@ export default {
     record: String,
     action: String,
     recordType: String,
+    extraInfo: {
+      type: String,
+      default: "",
+    },
   },
 };
 </script>

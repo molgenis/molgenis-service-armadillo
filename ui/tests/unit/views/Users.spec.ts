@@ -45,6 +45,41 @@ describe("Users", () => {
   let wrapper: VueWrapper<any>;
 
   beforeEach(function () {
+    const projects = [
+      {
+        name: "environmental",
+        users: ["m.fiamma@ospedale.it"],
+      },
+      {
+        name: "project3",
+        users: ["stephen.chapman@glasgow.ac.uk", "a.anamarija@univerza.si"],
+      },
+      {
+        name: "snow1",
+        users: ["m.fiamma@ospedale.it"],
+      },
+      {
+        name: "molgenis",
+        users: ["a.victor@umcg.nl"],
+      },
+      {
+        name: "blood",
+        users: ["a.anamarija@univerza.si"],
+      },
+      {
+        name: "bro",
+        users: ["a.anamarija@univerza.si"],
+      },
+      {
+        name: "research",
+        users: [
+          "j.doe@example.com",
+          "l.knope@pawnee-uni.com",
+          "a.anamarija@univerza.si",
+          "a.ida@yliopisto.fi",
+        ],
+      },
+    ];
     testData = [
       {
         email: "j.doe@example.com",
@@ -77,6 +112,9 @@ describe("Users", () => {
     };
     api.getUsers.mockImplementationOnce(() => {
       return Promise.resolve(testData);
+    });
+    api.getProjects.mockImplementationOnce(() => {
+      return Promise.resolve(projects);
     });
 
     userToAdd = {
@@ -129,6 +167,7 @@ describe("Users", () => {
   test("clears new user", () => {
     wrapper.vm.addRow = true;
     wrapper.vm.addMode.newUser = userToAdd;
+    wrapper.vm.userToEdit = "";
     wrapper.vm.clearNewUser();
     expect(wrapper.vm.addMode.newUser).toEqual({
       email: "",
@@ -370,6 +409,9 @@ describe("Users", () => {
     expect(wrapper.vm.successMessage).toBe(
       "[h.t.gump@psr.com] was successfully saved."
     );
+    expect(wrapper.vm.successMessage).toBe(
+      "[h.t.gump@psr.com] was successfully saved."
+    );
     expect(getMock).toBeCalled();
     expect(callback).toBeCalled();
   });
@@ -380,12 +422,18 @@ describe("Users", () => {
     expect(wrapper.vm.errorMessage).toBe(
       "Cannot create user with empty email address."
     );
+    expect(wrapper.vm.errorMessage).toBe(
+      "Cannot create user with empty email address."
+    );
   });
 
   test("cannot add user with existing email", () => {
     userToAdd.email = "j.doe@example.com";
     wrapper.vm.addMode.newUser = userToAdd;
     wrapper.vm.saveUser(userToAdd, undefined);
+    expect(wrapper.vm.errorMessage).toBe(
+      "User with email address [j.doe@example.com] already exists."
+    );
     expect(wrapper.vm.errorMessage).toBe(
       "User with email address [j.doe@example.com] already exists."
     );
@@ -414,5 +462,47 @@ describe("Users", () => {
     wrapper.vm.updateAdmin(adminToBe, false);
     expect(saveMock).toBeCalledWith(adminToBe);
     expect(adminToBe.admin).toBe(true);
+  });
+
+  describe("isAddingDuplicateProjectToExistingUser", () => {
+    test("returns true if duplicate project is added to existing user", () => {
+      wrapper.vm.projectsOfUserToEdit = ["project3"];
+      wrapper.vm.editMode.userToEdit = "user";
+      const observed =
+        wrapper.vm.isAddingDuplicateProjectToExistingUser("project3");
+      expect(observed).toBe(true);
+    });
+    test("returns false if non duplicate user is added to existing project", () => {
+      wrapper.vm.projectsOfUserToEdit = ["project2"];
+      const observed =
+        wrapper.vm.isAddingDuplicateProjectToExistingUser("project3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("isAddingNonExistingProject", () => {
+    test("returns true if project not existing", () => {
+      wrapper.vm.availableProjects = ["project1", "project3"];
+      const observed = wrapper.vm.isAddingNonExistingProject("project2");
+      expect(observed).toBe(true);
+    });
+    test("returns false if project exists", () => {
+      wrapper.vm.availableProjects = ["project1", "project3"];
+      const observed = wrapper.vm.isAddingNonExistingProject("project3");
+      expect(observed).toBe(false);
+    });
+  });
+
+  describe("isAddingDuplicateProjectToNewUser", () => {
+    test("returns false if project not existing", () => {
+      wrapper.vm.addMode.newUser.projects = ["project1", "project3"];
+      const observed = wrapper.vm.isAddingDuplicateProjectToNewUser("project2");
+      expect(observed).toBe(false);
+    });
+    test("returns true if project exists", () => {
+      wrapper.vm.addMode.newUser.projects = ["project1", "project3"];
+      const observed = wrapper.vm.isAddingDuplicateProjectToNewUser("project3");
+      expect(observed).toBe(true);
+    });
   });
 });
