@@ -26,7 +26,9 @@
     </div>
     <div v-if="file && file.name" class="selected-file row text-start ms-2">
       <div class="col">
-        <div class="text-muted fw-bold">{{ uploadFileText }}</div>
+        <div class="text-muted fw-bold">
+          {{ isUploadingFile ? "Uploading file: " : "Selected file: " }}
+        </div>
         <span class="me-1">{{ getTruncatedFileName(file.name) }}</span>
         <button
           v-if="!isUploadingFile"
@@ -135,11 +137,6 @@ export default defineComponent({
     },
     dragover(event: Event) {
       event.preventDefault();
-    },
-  },
-  computed: {
-    uploadFileText() {
-      return this.isUploadingFile ? "Uploading file: " : "Selected file: ";
     },
   },
 });
