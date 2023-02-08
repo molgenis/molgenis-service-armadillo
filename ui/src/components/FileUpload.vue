@@ -2,34 +2,41 @@
   <div class="file-upload-container text-primary">
     <div class="upload-background text-center row p-3 mx-auto">
       <div
+        v-if="!isUploadingFile"
         class="dropzone border border-5 col"
-        :class="{ 'bg-secondary text-white': activeFileUpload }"
+        :class="{ 'bg-light': isHoveringOverFileUpload }"
         @dragover="dragover"
-        @mouseenter="activeFileUpload = true"
-        @mouseleave="activeFileUpload = false"
+        @mouseenter="isHoveringOverFileUpload = true"
+        @mouseleave="isHoveringOverFileUpload = false"
       >
         <i class="bi bi-file-earmark-arrow-up-fill upload-icon"></i>
         <h4>Select a file to upload</h4>
         <span class="text-secondary">or drag and drop it here</span>
         <input
-          @dragover="activeFileUpload = true"
-          @dragend="activeFileUpload = false"
-          @dragleave="activeFileUpload = false"
+          @dragover="isHoveringOverFileUpload = true"
+          @dragend="isHoveringOverFileUpload = false"
+          @dragleave="isHoveringOverFileUpload = false"
           class="file-upload-field hidden-input"
           @change="handleFileUpload"
           :class="uniqueClass"
           type="file"
         />
       </div>
+      <LoadingSpinner v-else :image-width="60"></LoadingSpinner>
     </div>
     <div v-if="file && file.name" class="selected-file row text-start ms-2">
       <div class="col">
-        <div class="text-muted fw-bold">Selected file:</div>
+        <div class="text-muted fw-bold">{{ uploadFileText }}</div>
         <span class="me-1">{{ getTruncatedFileName(file.name) }}</span>
-        <button class="btn btn-link btn-sm" @click="clearFile">
+        <button
+          v-if="!isUploadingFile"
+          class="btn btn-link btn-sm"
+          @click="clearFile"
+        >
           <i class="bi bi-x-circle"></i>
         </button>
         <button
+          v-if="!isUploadingFile"
           class="btn btn-primary btn-sm float-end me-3"
           @click="uploadFile"
         >
@@ -41,6 +48,7 @@
 </template>
 
 <script lang="ts">
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { defineComponent } from "vue";
 import { truncate } from "@/helpers/utils";
 import { uploadIntoProject } from "@/api/api";
@@ -54,6 +62,9 @@ export default defineComponent({
     triggerUpload: { type: Boolean, default: false },
   },
   emits: ["upload_success", "upload_error", "upload_triggered"],
+  components: {
+    LoadingSpinner,
+  },
   watch: {
     triggerUpload: function () {
       if (this.triggerUpload) {
@@ -68,12 +79,14 @@ export default defineComponent({
   },
   data(): {
     uploadDone: boolean;
-    activeFileUpload: boolean;
+    isHoveringOverFileUpload: boolean;
+    isUploadingFile: boolean;
     file: undefined | File;
   } {
     return {
       uploadDone: false,
-      activeFileUpload: false,
+      isHoveringOverFileUpload: false,
+      isUploadingFile: false,
       file: undefined,
     };
   },
@@ -82,7 +95,6 @@ export default defineComponent({
       this.file = undefined;
     },
     handleFileUpload(event: Event) {
-      this.activeFileUpload = false;
       const eventTarget = event.target as HTMLInputElement;
       if (eventTarget && eventTarget.files && eventTarget.files.length > 0) {
         const file = eventTarget.files[0];
@@ -92,13 +104,14 @@ export default defineComponent({
       }
     },
     getTruncatedFileName(filename: string) {
-      return filename.length > 16 ? truncate(filename, 14) : filename;
+      return filename.length > 24 ? truncate(filename, 20) : filename;
     },
     getFileName() {
       return this.file && this.file.name ? this.file.name : "";
     },
     uploadFile() {
       if (this.file && this.file.name) {
+        this.isUploadingFile = true;
         const response = uploadIntoProject(
           this.file,
           this.object,
@@ -106,12 +119,14 @@ export default defineComponent({
         );
         response
           .then(() => {
+            this.isUploadingFile = false;
             this.$emit("upload_success", {
               object: this.object,
               filename: this.getFileName(),
             });
           })
           .catch((error: Error) => {
+            this.isUploadingFile = false;
             this.$emit("upload_error", error);
           });
       } else {
@@ -120,6 +135,11 @@ export default defineComponent({
     },
     dragover(event: Event) {
       event.preventDefault();
+    },
+  },
+  computed: {
+    uploadFileText() {
+      return this.isUploadingFile ? "Uploading file: " : "Selected file: ";
     },
   },
 });
