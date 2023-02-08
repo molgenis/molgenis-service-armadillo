@@ -16,6 +16,15 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="isRenamingProfile"
+          :record="profileToEdit"
+          action="rename"
+          recordType="profile"
+          extraInfo="Renaming a profile will cause the old profile to be deleted. All its running processes will be stopped."
+          @proceed="proceedEdit(profiles[profileToEditIndex])"
+          @cancel="isRenamingProfile = false"
+        ></ConfirmationDialog>
       </div>
     </div>
     <!-- Actual table -->
@@ -169,6 +178,7 @@ export default defineComponent({
   },
   data(): ProfilesData {
     return {
+      isRenamingProfile: false,
       recordToDelete: "",
       loading: false,
       loadingProfile: "",
@@ -270,7 +280,13 @@ export default defineComponent({
       } else if (isDuplicate(profile.name, profileNames)) {
         this.errorMessage = `Profile with name [${profile.name}] already exists.`;
         return;
+      } else if (profile.name != this.profileToEdit) {
+        this.isRenamingProfile = true;
+      } else {
+        this.proceedEdit(profile);
       }
+    },
+    proceedEdit(profile: Profile) {
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
