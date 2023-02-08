@@ -33,7 +33,6 @@ export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {
   fileToDelete: string;
   folderToDeleteFrom: string;
-  triggerFileUpload: boolean;
   projectToEdit: string;
   projectToEditIndex: number;
   loading: boolean;
