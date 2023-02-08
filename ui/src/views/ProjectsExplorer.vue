@@ -28,18 +28,13 @@
           Project: {{ $route.params.projectId }}
         </h2>
         <ButtonGroup
-          :buttonIcons="['folder-plus', 'file-earmark-plus', 'trash-fill']"
-          :buttonColors="['primary', 'primary', 'danger']"
+          :buttonIcons="['folder-plus', 'trash-fill']"
+          :buttonColors="['primary', 'danger']"
           :disabledButtons="[
             false,
-            selectedFolder === '',
             selectedFolder === '' || selectedFile === '',
           ]"
-          :clickCallbacks="[
-            setCreateNewFolder,
-            clickUploadFile,
-            deleteSelectedFile,
-          ]"
+          :clickCallbacks="[setCreateNewFolder, deleteSelectedFile]"
         ></ButtonGroup>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
@@ -118,7 +113,6 @@
                   @upload_error="showErrorMessage"
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
-                  :triggerUpload="triggerFileUpload"
                   @upload_triggered="resetFileUpload"
                 ></FileUpload>
               </div>
@@ -252,7 +246,6 @@ export default defineComponent({
     return {
       fileToDelete: "",
       folderToDeleteFrom: "",
-      triggerFileUpload: false,
       projectToEdit: "",
       projectToEditIndex: -1,
       loading: false,
@@ -355,9 +348,6 @@ export default defineComponent({
       this.createNewFolder = false;
       this.newFolder = "";
     },
-    resetFileUpload() {
-      this.triggerFileUpload = false;
-    },
     onUploadSuccess({
       object,
       filename,
@@ -373,9 +363,6 @@ export default defineComponent({
     },
     isNonTableType(item: string) {
       return !item.endsWith(".parquet");
-    },
-    clickUploadFile() {
-      this.triggerFileUpload = true;
     },
     deleteSelectedFile() {
       this.fileToDelete = this.selectedFile;
