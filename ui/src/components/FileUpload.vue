@@ -22,7 +22,7 @@
           type="file"
         />
       </div>
-      <LoadingSpinner v-else :image-width="60"></LoadingSpinner>
+      <LoadingSpinner v-else image-width="60"></LoadingSpinner>
     </div>
     <div v-if="file && file.name" class="selected-file row text-start ms-2">
       <div class="col">
