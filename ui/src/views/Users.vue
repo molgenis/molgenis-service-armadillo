@@ -100,6 +100,7 @@
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
+          :immutable="['email']"
           :row="rowProps.row"
           :save="saveEditedUser"
           :cancel="clearUserToEdit"
