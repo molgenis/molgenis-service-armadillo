@@ -21,7 +21,7 @@
           :record="profileToEdit"
           action="rename"
           recordType="profile"
-          extraInfo="Renaming profile will cause profile with the old name to be deleted. All its running processes will be stopped."
+          extraInfo="Renaming a profile will cause the old profile to be deleted. All its running processes will be stopped."
           @proceed="proceedEdit(profiles[profileToEditIndex])"
           @cancel="isRenamingProfile = false"
         ></ConfirmationDialog>
