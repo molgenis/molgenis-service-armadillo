@@ -105,7 +105,6 @@
           :cancel="clearUserToEdit"
           :hideColumns="[]"
           :dataStructure="userDataStructure"
-          :highlight="editHighlight"
           :dropDowns="{ projects: availableProjects }"
           @update-array-element="updateProjects"
         />
@@ -202,9 +201,6 @@ export default defineComponent({
     };
   },
   computed: {
-    editHighlight(): "info" | "" {
-      return this.editMode.userToEdit !== "" ? "info" : "";
-    },
     isEditingUser(): boolean {
       return this.editMode.userToEdit !== "";
     },

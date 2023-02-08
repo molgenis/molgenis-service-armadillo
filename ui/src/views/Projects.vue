@@ -106,7 +106,6 @@
           :cancel="clearProjectToEdit"
           :hideColumns="[]"
           :dataStructure="projectsDataStructure"
-          :highlight="editHighlight"
           :dropDowns="{ users: availableUsers }"
           @update-array-element="updateUsers"
         />
@@ -191,9 +190,6 @@ export default defineComponent({
     };
   },
   computed: {
-    editHighlight(): "info" | "" {
-      return this.projectToEdit.name !== "" ? "info" : "";
-    },
     isEditingProject(): boolean {
       return this.projectToEditIndex !== -1;
     },
@@ -297,7 +293,7 @@ export default defineComponent({
       this.projectToHighlightIndex = this.getProjectIndex(project.name);
       this.projectToEdit = project;
     },
-    getProjectIndex(projectName: string): number {
+    getProjectIndex(projectName: string) {
       return this.projects.findIndex((someProject) => {
         return someProject.name === projectName;
       });
