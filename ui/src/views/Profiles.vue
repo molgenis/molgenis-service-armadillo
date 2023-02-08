@@ -95,6 +95,7 @@
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
+          :immutable="['name']"
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
