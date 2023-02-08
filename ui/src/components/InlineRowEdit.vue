@@ -1,5 +1,5 @@
 <template>
-  <tr class="align-middle">
+  <tr class="align-middle table-info">
     <th scope="row">
       <ButtonGroup
         :buttonIcons="buttonIcons"
