@@ -45,7 +45,7 @@
     </distributionManagement>
 
     <properties>
-        <revision>3.0.0-rc2</revision>
+        <revision>3.0.0-rc4</revision>
         <project.scm.id>github</project.scm.id>
 
         <java.version>17</java.version>
