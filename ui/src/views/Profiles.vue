@@ -104,7 +104,7 @@
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
-          :immutable="['name']"
+          :immutable="addProfile ? [] : ['name']"
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
@@ -179,6 +179,7 @@ export default defineComponent({
   },
   data(): ProfilesData {
     return {
+      addProfile: false,
       isRenamingProfile: false,
       recordToDelete: "",
       loading: false,
@@ -288,6 +289,7 @@ export default defineComponent({
       }
     },
     proceedEdit(profile: Profile) {
+      this.addProfile = false;
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -322,6 +324,7 @@ export default defineComponent({
       this.reloadProfiles();
       this.profileToEditIndex = -1;
       this.profileToEdit = "";
+      this.addProfile = false;
     },
     getEditIndex() {
       const index = this.profiles.findIndex((profile: Profile) => {
@@ -333,6 +336,7 @@ export default defineComponent({
       } else return this.profileToEditIndex;
     },
     addNewProfile() {
+      this.addProfile = true;
       this.clearUserMessages();
 
       this.profiles.unshift({
