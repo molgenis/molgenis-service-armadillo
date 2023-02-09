@@ -89,7 +89,7 @@ type statusMappingType = {
 };
 
 export type ProfilesData = {
-  isRenamingProfile: boolean;
+  addProfile: boolean;
   recordToDelete: string;
   loading: boolean;
   loadingProfile: string;

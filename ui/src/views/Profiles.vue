@@ -16,15 +16,6 @@
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
-        <ConfirmationDialog
-          v-if="isRenamingProfile"
-          :record="profileToEdit"
-          action="rename"
-          recordType="profile"
-          extraInfo="Renaming a profile will cause the old profile to be deleted. All its running processes will be stopped."
-          @proceed="proceedEdit(profiles[profileToEditIndex])"
-          @cancel="isRenamingProfile = false"
-        ></ConfirmationDialog>
       </div>
     </div>
     <!-- Actual table -->
@@ -104,7 +95,7 @@
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
-          :immutable="['name']"
+          :immutable="addProfile ? [] : ['name']"
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
@@ -179,7 +170,7 @@ export default defineComponent({
   },
   data(): ProfilesData {
     return {
-      isRenamingProfile: false,
+      addProfile: false,
       recordToDelete: "",
       loading: false,
       loadingProfile: "",
@@ -281,13 +272,12 @@ export default defineComponent({
       } else if (isDuplicate(profile.name, profileNames)) {
         this.errorMessage = `Profile with name [${profile.name}] already exists.`;
         return;
-      } else if (profile.name != this.profileToEdit) {
-        this.isRenamingProfile = true;
       } else {
         this.proceedEdit(profile);
       }
     },
     proceedEdit(profile: Profile) {
+      this.addProfile = false;
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -322,6 +312,7 @@ export default defineComponent({
       this.reloadProfiles();
       this.profileToEditIndex = -1;
       this.profileToEdit = "";
+      this.addProfile = false;
     },
     getEditIndex() {
       const index = this.profiles.findIndex((profile: Profile) => {
@@ -333,6 +324,7 @@ export default defineComponent({
       } else return this.profileToEditIndex;
     },
     addNewProfile() {
+      this.addProfile = true;
       this.clearUserMessages();
 
       this.profiles.unshift({
