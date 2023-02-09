@@ -62,6 +62,9 @@ export async function handleResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 500) {
       error.message = response.statusText;
+    } else if (response.status === 403 || response.status === 401) {
+      error.message =
+        "You don't have correct permissions. Please contact the administrator";
     } else {
       const json = await response.json();
 
