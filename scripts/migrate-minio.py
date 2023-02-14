@@ -2,34 +2,28 @@
 Migration script for Armadillo 2.x -> 3.0
 
 This script copies the complete structure of a MinIO server to local file storage. Run
-this script on the server that will store the data. Projects are automatically created
-on Armadillo based on the buckets. Credentials are requested during execution of the
+this script on the server that will store the data. Projects will automatically be
+created when you start Armadillo. Credentials are requested during execution of the
 script.
 """
 
 import getopt
-import json
 import sys
 from getpass import getpass
 from pathlib import Path
 
-import requests
 from minio import Minio
 from minio.datatypes import Bucket
-from requests import Session
 
-help_string = "python migrate-minio.py --minio http://localhost:9000/ --target " \
-              "/target/directory --armadillo http://localhost:8080/"
+help_string = "python migrate-minio.py --minio http://localhost:9000/ --target /target/directory"
 minio_url = ""
-armadillo_url = ""
 
 
 def main(argv):
     global minio_url
-    global armadillo_url
 
     try:
-        opts, args = getopt.getopt(argv, "hm:t:a:", ["minio=", "target=", "armadillo="])
+        opts, args = getopt.getopt(argv, "hm:t:a:", ["minio=", "target="])
     except getopt.GetoptError:
         print(help_string)
         sys.exit(2)
@@ -43,10 +37,8 @@ def main(argv):
             minio_url = arg
         elif opt in ("-t", "--target"):
             target = arg
-        elif opt in ("-a", "--armadillo"):
-            armadillo_url = arg.rstrip("/")
 
-    if not minio_url or not target or not armadillo_url:
+    if not minio_url or not target:
         print("All arguments are required: ")
         print(help_string)
         sys.exit(2)
@@ -60,17 +52,16 @@ def main(argv):
 
 
 def download_all_buckets(target_dir: Path):
-    armadillo_client = create_armadillo_client()
     minio_client = create_minio_client()
 
     buckets = minio_client.list_buckets()
     for bucket in buckets:
         print(f"Downloading {bucket.name}...")
-        download_bucket(armadillo_client, minio_client, bucket, target_dir)
+        download_bucket(minio_client, bucket, target_dir)
         print()
 
 
-def download_bucket(armadillo_client: Session, minio_client: Minio, bucket: Bucket,
+def download_bucket(minio_client: Minio, bucket: Bucket,
                     target_dir: Path):
     bucket_dir = target_dir.joinpath(bucket.name)
     obj_count = download_objects(bucket.name, bucket_dir, minio_client)
@@ -80,21 +71,6 @@ def download_bucket(armadillo_client: Session, minio_client: Minio, bucket: Buck
         if not bucket_dir.exists():
             # just create an empty folder
             bucket_dir.mkdir()
-
-
-# noinspection DuplicatedCode
-def create_armadillo_client():
-    username = input("Armadillo username:")
-    password = getpass("Armadillo password:")
-
-    session = requests.Session()
-    session.auth = (username, password)
-    session.headers.update({'Content-Type': 'application/json'})
-
-    response = session.get(armadillo_url + "/my/principal")
-    response.raise_for_status()
-
-    return session
 
 
 def create_minio_client():
