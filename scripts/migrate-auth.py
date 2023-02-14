@@ -122,7 +122,7 @@ def migrate_application(app_id: str, app_name: str, users: list,
 def migrate_user(armadillo_client: Session, reg: dict, user: dict):
     print(f" - {user['email']}")
 
-    roles = reg["roles"]
+    roles = reg["roles"] if "roles" in reg else []
     is_admin = "SU" in roles
     researcher_roles = filter(lambda role: role.endswith("_RESEARCHER"), roles)
     projects = list(map(lambda role: role.rstrip("_RESEARCHER").lower(),
