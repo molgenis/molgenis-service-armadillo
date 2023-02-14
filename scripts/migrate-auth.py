@@ -109,6 +109,7 @@ def choose_application(app_names_by_id: dict) -> str:
 def migrate_application(app_id: str, app_name: str, users: list,
                         armadillo_client: Session):
     print(f"Migrating users from {app_name} to {armadillo_url}")
+    count = 0
     for user in users:
         regs = user["registrations"]
         for reg in regs:
@@ -116,6 +117,8 @@ def migrate_application(app_id: str, app_name: str, users: list,
                 continue
 
             migrate_user(armadillo_client, reg, user)
+            count += 1
+    print(f"Migrated {count} users")
     print()
 
 
@@ -169,10 +172,12 @@ def get_production_applications_with_users(client: FusionAuthClient,
 
 def get_active_registered_users(client: FusionAuthClient) -> list:
     response = client.search_users_by_query({
-          "search": {
-            "queryString": "*"
-          }
-        })
+        "search": {
+            "queryString": "*",
+            "startRow": 0,
+            "numberOfResults": 10000
+        }
+    })
     result = get_result_or_exit(response)
     users = result["users"]
     active_users = filter(lambda user: user["active"] is True, users)
