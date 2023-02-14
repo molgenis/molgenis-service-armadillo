@@ -81,18 +81,6 @@ def download_bucket(armadillo_client: Session, minio_client: Minio, bucket: Buck
             # just create an empty folder
             bucket_dir.mkdir()
 
-    if bucket.name.startswith("shared-"):
-        create_project(armadillo_client, bucket)
-
-
-def create_project(armadillo_client: Session, bucket: Bucket):
-    project_name = bucket.name.lstrip("shared-")
-    project_json = json.dumps({
-        "name": project_name
-    })
-    armadillo_client.put(armadillo_url + "/access/projects", data=project_json)
-    print(f"> Created project {project_name}")
-
 
 # noinspection DuplicatedCode
 def create_armadillo_client():
