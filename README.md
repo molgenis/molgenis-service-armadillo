@@ -131,3 +131,6 @@ spring:
 
 Now the lifecycle test project (including its data) will work out of the box, and you will be able to log in with your
 OIDC account immediately.
+
+### Release
+Here's the [release guide](doc/release-guide.md).
