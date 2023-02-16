@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -84,7 +85,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
-  private static final String ANONYMOUS = "ANONYMOUS";
+  static final String ANONYMOUS = "ANONYMOUS";
   public static final String MDC_SESSION_ID = "sessionID";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();
@@ -107,9 +108,19 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
-    var user = principal != null ? principal.getName() : ANONYMOUS;
+    var user = getUser(principal);
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
+  }
+
+  static String getUser(Principal principal) {
+    if (principal == null) {
+      return ANONYMOUS;
+    } else if (principal instanceof OAuth2AuthenticationToken token) {
+      return token.getPrincipal().getAttribute(EMAIL);
+    } else {
+      return principal.getName();
+    }
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
