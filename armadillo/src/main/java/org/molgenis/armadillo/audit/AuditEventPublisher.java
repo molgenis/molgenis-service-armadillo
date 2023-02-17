@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -113,13 +114,17 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
   }
 
-  static String getUser(Principal principal) {
+  static String getUser(Object principal) {
     if (principal == null) {
       return ANONYMOUS;
     } else if (principal instanceof OAuth2AuthenticationToken token) {
       return token.getPrincipal().getAttribute(EMAIL);
+    } else if (principal instanceof JwtAuthenticationToken token) {
+      return token.getTokenAttributes().get(EMAIL).toString();
+    } else if (principal instanceof Principal p) {
+      return p.getName();
     } else {
-      return principal.getName();
+      return principal.toString();
     }
   }
 
