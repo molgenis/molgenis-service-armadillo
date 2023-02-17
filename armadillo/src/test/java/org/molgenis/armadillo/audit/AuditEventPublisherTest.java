@@ -9,6 +9,7 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.getUser;
 
 import java.security.Principal;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -50,5 +51,13 @@ class AuditEventPublisherTest {
     when(principal.getAttributes().get("email")).thenReturn("bofke@molgenis.nl");
 
     assertEquals("bofke@molgenis.nl", getUser(principal));
+  }
+
+  @Test
+  void testLoginBasicAuthUser() {
+    var principal = mock(User.class);
+    when(principal.getUsername()).thenReturn("admin");
+
+    assertEquals("admin", getUser(principal));
   }
 }
