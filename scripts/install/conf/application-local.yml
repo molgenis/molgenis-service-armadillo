@@ -1,0 +1,46 @@
+armadillo:
+  # set this to 'true' if you want to accept permissions from oidc provider
+  oidc-permission-enabled: false
+  # set this true if you want Armadillo to create/edit/delete profile docker images
+  docker-management-enabled: true
+  # uncomment this to configure a default admin user
+  oidc-admin-user: email@oidc-mailadres.tld
+
+  profiles:
+    - name: default
+      image: datashield/armadillo-rserver
+      port: 6311
+      package-whitelist:
+        - dsBase
+      function-blacklist: []
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 367603848
+
+spring:
+  security:
+    user:
+      name: admin
+      password: admin
+      roles:
+        - SU
+
+    oauth2:
+      client:
+        provider:
+          molgenis:
+            issuer-uri: https://auth1.molgenis.net/realms/Armadillo
+        registration:
+          molgenis:
+            redirect-uri: 'localhost.localcomain/login/oauth2/code/molgenis'
+            client-id: localhost-clientid
+            client-secret: clientsecretid
+      resourceserver:
+        jwt:
+          issuer-uri: https://auth1.molgenis.net/realms/Armadillo
+        opaquetoken:
+          client-id: localhost-clientid
+
+storage:
+  root-dir: /tmp/data
