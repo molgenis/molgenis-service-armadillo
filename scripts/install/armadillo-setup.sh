@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 ARMADILLO_SETUP_VER=1.0.1
@@ -83,7 +82,7 @@ handle_args() {
       fi
     fi
     if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]|| [! "$ARMADILLO_ADMIN_EMAIL"]; then
+      if [ ! "$OIDC_CLIENTID" ] || [ ! "$OIDC_ISSUER_URL" ] || [ ! "$OIDC_CLIENTSECRET" ]; then
         echo "OIDC Option called but mandatory config items are missing --admin-email user@oidc-mailadres.tld --oidc_url <issuer_url> --oidc_clientid <client_id> --oidc_clientsecret <secret> "
         exit 1;
       fi
@@ -140,8 +139,8 @@ echo "Armadillo Installed under systemd"
 
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-  #wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
-  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/DickPostma/molgenis-service-armadillo/installScript/scripts/install/conf/application.yml
+  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
+  
   
   if [ ! "$ADMINUSER" ]; then 
     ADMINUSER="admin"
@@ -158,11 +157,16 @@ setup_armadillo_config() {
   
 
   if [ "$ARMADILLO_OIDC_ENABLED" ]; then
+  echo "hier 1"
     sed -i -e 's|@ISSUERURL@|'"$OIDC_ISSUER_URL"'|g' $ARMADILLO_CFG_PATH/application.yml
+    echo "hier 2"
     sed -i -e 's/@CLIENTID@/'"$OIDC_CLIENTID"'/' $ARMADILLO_CFG_PATH/application.yml
+    echo "hier 3"
     sed -i -e 's/@CLIENTSECRET@/'"$OIDC_CLIENTSECRET"'/' $ARMADILLO_CFG_PATH/application.yml
+    echo "hier 4"
     sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
-    sed -i -e 's/# oidc-admin-user: @ADMIN_EMAIL@/oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'' $ARMADILLO_CFG_PATH/application.yml
+    echo "hier 5"
+    sed -i -e 's|# oidc-admin-user: @ADMIN_EMAIL@|oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'|' $ARMADILLO_CFG_PATH/application.yml
   fi
   
   
@@ -214,8 +218,8 @@ check_req() {
 
 setup_updatescript() {
   # Download update script 
-  #DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/armadillo-check-update.sh
-  DL_URL=https://raw.githubusercontent.com/DickPostma/molgenis-service-armadillo/installScript/scripts/install/armadillo-check-update.sh
+  DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/armadillo-check-update.sh
+  
     
   if validate_url $DL_URL; then
 
@@ -282,8 +286,8 @@ validate_url(){
 #Parameters passed in help
 parameters_help() {
 
-    echo 'Usage: ./armadillo.sh PARAMS 
-       example ./armadillo --admin-user admin --admin-password welcome01 --domain armadillo.cohort.study.com'
+    echo 'Usage: bash armadillo-setup.sh PARAMS 
+       example bash armadillo-setup.sh --admin-user admin --admin-password welcome01 --domain armadillo.cohort.study.com'
     echo
     echo 'Install Script for Armadillo Service'
     echo
@@ -292,7 +296,6 @@ parameters_help() {
     echo '    --version armadillo_version   Specify witch version to install'
     echo '    --admin-user user             Specify the Basic-Auth admin user'
     echo '    --admin-password pass         Password for the admin user'
-    echo '    --admin-email                 Email adres of the Admin User'
     echo '    --datadir /storage/dir        If defined this would be the Location to store the data otherwise, it would be /usr/share/armadillo/data'
     echo '    --domain                      URL domain which is used for accessing armadillo'
     echo ''
@@ -300,6 +303,7 @@ parameters_help() {
     echo '      --oidc_url                    URL where the oidc server is listening on'
     echo '      --oidc_clientid               Client id of the oidc config'
     echo '      --oidc_clientsecret           Secret of the client'
+    echo '      --admin-email                 Email adres of the oidc Admin User'
     
 
     

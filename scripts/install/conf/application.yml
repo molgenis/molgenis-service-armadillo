@@ -55,7 +55,7 @@ spring:
             issuer-uri: @ISSUERURL@
         registration:
           molgenis:
-            redirect-uri: '@ARMADILLODOMAIN@/login/oauth2/code/molgenis'
+            redirect-uri: 'https://@ARMADILLODOMAIN@/login/oauth2/code/molgenis'
             client-id: @CLIENTID@
             client-secret: @CLIENTSECRET@
       resourceserver:
@@ -70,7 +70,7 @@ spring:
 logging:
   config: classpath:logback-file.xml
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"blank
+    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
   level:
     org.molgenis: DEBUG
     org:
