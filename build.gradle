@@ -6,6 +6,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'application'
     id 'com.google.cloud.tools.jib' version '3.3.1'
+    id "jacoco"
 }
 
 targetCompatibility = '17'
@@ -95,7 +96,8 @@ jar {
 }
 
 task jacocoMergedReport(type: JacocoReport) {
-    dependsOn = ['armadillo.test', 'r.test']
+    dependsOn project.getTasksByName("test", true)
+    dependsOn project.getTasksByName("jacocoTestReport", true)
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)

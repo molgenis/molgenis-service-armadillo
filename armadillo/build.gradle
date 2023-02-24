@@ -67,6 +67,7 @@ jacocoTestReport {
     reports {
         xml.enabled true
     }
+    dependsOn test
 }
 
 jar {
@@ -96,4 +97,5 @@ test {
 
         showStandardStreams = false
     }
+    finalizedBy jacocoTestReport
 }
