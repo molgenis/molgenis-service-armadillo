@@ -110,7 +110,7 @@ task jacocoMergedReport(type: JacocoReport) {
 }
 
 sonarqube {
-    dependsOn jacocoMergedReport
+    dependsOn project.getTasksByName("jacocoMergedReport", true)
     properties {
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
