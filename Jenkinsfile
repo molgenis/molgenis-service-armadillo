@@ -15,6 +15,15 @@ pipeline {
     }
     stages {
         stage('Prepare') {
+            when {
+                anyOf {
+                    allOf {
+                        changeRequest()
+                        branch 'PR-*'
+                    }
+                    branch 'master'
+               }
+            }
             steps {
                 script {
                     env.GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
@@ -40,7 +49,10 @@ pipeline {
         }
         stage('Steps [ PR ]') {
             when {
-                changeRequest()
+                allOf {
+                    changeRequest()
+                    branch 'PR-*'
+               }
             }
             environment {
                 // PR-1234-231
