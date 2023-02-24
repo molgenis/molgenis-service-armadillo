@@ -37,6 +37,17 @@ pipeline {
                         env.GITHUB_USER = sh(script: 'vault read -field=username secret/ops/token/github', returnStdout: true)
                     }
                 }
+                container("java") {
+                    sh 'apt update'
+                    sh 'apt -y install docker.io'
+                    sh "git config --global --add safe.directory '*'"
+                    sh 'git fetch --depth 100000'
+                    sh "git config user.email \"molgenis@gmail.com\""
+                    sh "git config user.name \"molgenis-jenkins\""
+                    sh 'git config url.https://.insteadOf git://'
+                    sh "mkdir -p ${DOCKER_CONFIG}"
+                    sh "echo '{\"auths\": {\"https://index.docker.io/v1/\": {\"auth\": \"${DOCKERHUB_AUTH}\"}, \"registry.hub.docker.com\": {\"auth\": \"${DOCKERHUB_AUTH}\"}}}' > ${DOCKER_CONFIG}/config.json"
+                }
                 dir("${JENKINS_AGENT_WORKDIR}/.m2") {
                     stash includes: 'settings.xml', name: 'maven-settings'
                 }
