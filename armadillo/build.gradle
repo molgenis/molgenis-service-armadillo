@@ -12,7 +12,7 @@ repositories {
         url = 'https://repo.maven.apache.org/maven2'
     }
     maven {
-        url = 'https://registry.molgenis.org/repository/maven-releases/'
+        url = 'https://obiba.jfrog.io/artifactory/libs-release-local/'
     }
 }
 
