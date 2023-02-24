@@ -2,6 +2,7 @@
 
 [![Build Status](https://jenkins.dev.molgenis.org/buildStatus/icon?job=molgenis%2Fmolgenis-service-armadillo%2Fmaster)](https://jenkins.dev.molgenis.org/job/molgenis/job/molgenis-service-armadillo/job/master/)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service)
+[![CircleCI](https://circleci.com/gh/molgenis/molgenis-service-armadillo.svg?style=shield)](https://circleci.com/gh/molgenis/molgenis-service-armadillo)
 
 # What is the Armadillo?
 
@@ -47,7 +48,8 @@ To spin up your own server on a laptop, you can run `java -jar armadillo-3.x.x.j
 
 For armadillo 2.x you can follow instructions at
 
-* for testing we use docker compose at https://github.com/molgenis/molgenis-service-armadillo/tree/armadillo-service-2.2.3 
+* for testing we use docker compose
+  at https://github.com/molgenis/molgenis-service-armadillo/tree/armadillo-service-2.2.3
 * for production we are using Ansible at https://galaxy.ansible.com/molgenis/armadillo
 
 ## What to do next
