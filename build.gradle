@@ -112,7 +112,7 @@ task jacocoMergedReport(type: JacocoReport) {
 sonarqube {
     properties {
         property 'sonar.projectName', 'armadillo-service'
-        property 'sonar.projectKey', 'molgenis_armadillo-service'
+        property 'sonar.projectKey', 'org.molgenis:armadillo-service'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
     }
 }
