@@ -68,7 +68,8 @@ pipeline {
                                 -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password"
                                 def props = readProperties file: 'build/ci.properties'
                                 env.TAG_NAME = props.tagName
-                    }
+                           }
+                        }
                     }
                     post {
                         always {
