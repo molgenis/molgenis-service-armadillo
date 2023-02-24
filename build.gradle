@@ -1,0 +1,116 @@
+plugins {
+    id "java"
+    id "org.sonarqube" version "3.5.0.2730"
+    id "de.gliderpilot.semantic-release" version "1.4.2"
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'application'
+    id 'com.google.cloud.tools.jib' version '3.3.1'
+}
+
+targetCompatibility = '17'
+sourceCompatibility = '17'
+
+allprojects {
+    group = 'org.molgenis'
+}
+
+repositories {
+    mavenCentral()
+}
+
+mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
+shadowJar {
+    archiveBaseName = 'armadillo'
+    mergeServiceFiles()
+}
+
+project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
+semanticRelease {
+    repo {
+        releaseAsset shadowJar
+        ghToken = project.ghToken
+    }
+}
+
+def imageName = 'docker.io/molgenis/armadillo'
+def tagName = project.version.toString()
+if (version.toString().endsWith('-SNAPSHOT')) {
+    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
+    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
+    tagName = "${project.version.toString()}-${ext.hash}"
+}
+// write a file to pickup in deployment to use specific tags in upgrade
+task ci(type: WriteProperties) {
+    outputFile file('build/ci.properties')
+    property 'tagName', tagName
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:17-jdk-focal'
+    }
+    to {
+        image = imageName
+        tags = [tagName.toString()]
+    }
+    container {
+        mainClass = mainClassName
+        ports = ['8080']
+    }
+}
+
+String getGitHash() {
+    // git hash
+    def command = Runtime.getRuntime().exec("git rev-parse --short HEAD")
+    def result = command.waitFor()
+    if (result != 0) {
+        throw new IOException("Command 'getGitHash()' exited with " + result)
+    }
+
+    String gitCommitHash = command.inputStream.text.trim()
+
+    return gitCommitHash
+}
+
+ext {
+    javaMainClass = "org.molgenis.armadillo.ArmadilloServiceApplication"
+}
+
+application {
+    mainClass.set(javaMainClass)
+}
+
+jar {
+    reproducibleFileOrder = true
+    manifest {
+        attributes(
+                'Specification-Version': project.version.toString(),
+                'Implementation-Version': getGitHash(),
+                'Created-By': "Gradle ${gradle.gradleVersion}",
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        )
+    }
+}
+
+task jacocoMergedReport(type: JacocoReport) {
+    dependsOn = ['armadillo.test', 'r.test']
+    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled false
+    }
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'MOLGENIS Armadillo'
+        property 'sonar.projectKey', 'armadillo-service'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
+    }
+}

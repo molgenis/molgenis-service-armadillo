@@ -1,0 +1,5 @@
+rootProject.name = 'armadillo-service'
+
+include ':armadillo'
+include ':r'
+include ':ui'
