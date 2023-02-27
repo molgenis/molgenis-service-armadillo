@@ -46,7 +46,7 @@ federates to authentication systems of connected institutions, ideally using a f
 ## Prerequisites
 
 Armadillo 3 can be installed on any flavor of linux OS or modern Unix-based Mac OS. 
-To run armadillo3 you need the following dependencies.
+To run armadillo 3 you need the following dependencies.
 
 * Java 17 JRE or JDK
 * Docker (for profiles)
@@ -62,7 +62,7 @@ java -jar armadillo-3.x.x.jar
 
 ## Systemd Service
 
-Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo3 as service please follow 
+Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo 3 as service please follow 
 this guide: https://github.com/molgenis/molgenis-service-armadillo/scripts/install/README.md
 
 ## armadillo 2
