@@ -1,9 +1,9 @@
 # Armadillo as a service installation
 
-This guide leads you step by step through the process of installing armadillo3 as a service and configuring the components.
+This guide leads you step by step through the process of installing armadillo 3 as a service and configuring the components.
 
 ## Requirements
-This script requires an systemd service based linux operating system. Armadillo3 is tested on the latest LTS release of Ubuntu. For questions on other linux release you can email molgenis-operations@umcg.nl
+This script requires an systemd service based linux operating system. Armadillo 3 is tested on the latest LTS release of Ubuntu. For questions on other linux release you can email molgenis-operations@umcg.nl
 > ## Server resources
 >
 > You need a server or virtual machine to deploy the Armadillo stack. The specifications of the resource are the following, depending on the participant size of the cohort you are running.
@@ -24,7 +24,7 @@ In case of using dsOmics this setup can be rather bigger. Please contact molgeni
 In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy. 
 
 ## Domain
-An domain or an hostname is required to run armadillo3. This domain should be used for installation, for example: cohort.armadillo.domain.org
+An domain or an hostname is required to run armadillo 3. This domain should be used for installation, for example: cohort.armadillo.domain.org
 
 ### Authentication
 Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo on the DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager(who gets access and who don't get access) within your armadillo installation. To registrate you will need to send a mail to `molgenis-support@umcg.nl` with the [chosen domains](#domain) and the e-mail adres of the Data Manager who is granted admin permissions in Armadillo. Also add to the mail that you want to register for the the DataSHIELD authentication server and if you belong to a project like Lifecycle, Athlete or Longitools. When the Armadillo is registrerd you will get an mail back with data that need to be inserted in step 2.
