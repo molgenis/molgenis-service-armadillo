@@ -187,7 +187,7 @@ download_armadillo() {
     fi
     DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
   else
-    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
+    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/$ARMADILLO_VERSION/$ARMADILLO_VERSION.jar
     
   fi
  

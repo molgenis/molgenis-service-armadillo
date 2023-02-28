@@ -33,7 +33,7 @@ Before we start with the deployment of Armadillo you will need to register your 
 ##### Step 1
 Download setup script
 ```bash
-wget https://github.com/molgenis/molgenis-service-armadillo/scripts/install/armadillo-setup.sh
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh
 ```
 ##### Step 2
 The installation script requires some arguments:
@@ -58,10 +58,10 @@ After installation armadillo is listening on port 8080.
 Test the setup on http://domain:8080 or on the localhost http://localhost:8080
 
 # ProxyPass  SSL / certificates
-Armadillo 3 is a standalone application wich is listening on port 8080. 
+Armadillo3 is a standalone application wich is listening on port 8080. 
 You can set up a front-end proxy if you'd like to proxypass to this port. This can be a simple HTTP server, something like Apache HTTPD or nginx, These can be useful for managing multiple URLs or sites through a single server machine, configuring HTTPS with SSL certificates without involving Armadillo. This is completely optional.
 
-We have an example for nginx: [Example](https://github.com/molgenis/molgenis-service-armadillo/scripts/install/conf/armadillo-nginx.conf)
+We have an example for nginx: [Example](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/armadillo-nginx.conf)
 
 
 ### Updates

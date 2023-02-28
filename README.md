@@ -51,7 +51,7 @@ To run armadillo 3 you need the following dependencies.
 * Java 17 JRE or JDK
 * Docker (for profiles)
 
-To spin up your own server on a laptop, you first need the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application-local.yml) and edit for your needs. Then you can run: 
+To spin up your own server on a laptop, you first need the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application-local.yml) and edit for your needs. Then you can run: 
 ```
 export SPRING_PROFILES_ACTIVE=default
 export SPRING_CONFIG_LOCATION=<location to>/application-local.yml
@@ -63,7 +63,7 @@ java -jar armadillo-3.x.x.jar
 ## Systemd Service
 
 Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo 3 as service please follow 
-this guide: https://github.com/molgenis/molgenis-service-armadillo/scripts/install/README.md
+this guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/README.md
 
 ## armadillo 2
 
