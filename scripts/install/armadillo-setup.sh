@@ -139,7 +139,7 @@ echo "Armadillo Installed under systemd"
 
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/conf/application.yml
+  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application.yml
   
   
   if [ ! "$ADMINUSER" ]; then 
@@ -187,7 +187,7 @@ download_armadillo() {
     fi
     DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
   else
-    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
+    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/$ARMADILLO_VERSION/$ARMADILLO_VERSION.jar
     
   fi
  
@@ -218,7 +218,7 @@ check_req() {
 
 setup_updatescript() {
   # Download update script 
-  DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/scripts/install/armadillo-check-update.sh
+  DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-check-update.sh
   
     
   if validate_url $DL_URL; then
