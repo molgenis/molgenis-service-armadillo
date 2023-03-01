@@ -135,14 +135,15 @@ public class AuthConfig {
 
         authorities.forEach(
             authority -> {
-              OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
-              Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
-
-              mappedAuthorities.addAll(
-                  runAsSystem(
-                      () ->
-                          accessService.getAuthoritiesForEmail(
-                              (String) userAttributes.get("email"), userAttributes)));
+              if (authority instanceof OAuth2UserAuthority) {
+                OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
+                final Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
+                mappedAuthorities.addAll(
+                    runAsSystem(
+                        () ->
+                            accessService.getAuthoritiesForEmail(
+                                (String) userAttributes.get("email"), userAttributes)));
+              }
             });
 
         return mappedAuthorities;
