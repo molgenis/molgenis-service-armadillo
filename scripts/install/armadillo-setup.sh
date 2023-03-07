@@ -157,15 +157,11 @@ setup_armadillo_config() {
   
 
   if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-  echo "hier 1"
+  
     sed -i -e 's|@ISSUERURL@|'"$OIDC_ISSUER_URL"'|g' $ARMADILLO_CFG_PATH/application.yml
-    echo "hier 2"
     sed -i -e 's/@CLIENTID@/'"$OIDC_CLIENTID"'/' $ARMADILLO_CFG_PATH/application.yml
-    echo "hier 3"
     sed -i -e 's/@CLIENTSECRET@/'"$OIDC_CLIENTSECRET"'/' $ARMADILLO_CFG_PATH/application.yml
-    echo "hier 4"
     sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
-    echo "hier 5"
     sed -i -e 's|# oidc-admin-user: @ADMIN_EMAIL@|oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'|' $ARMADILLO_CFG_PATH/application.yml
   fi
   
@@ -179,17 +175,16 @@ download_armadillo() {
   
   if [ -z "$ARMADILLO_VERSION" ]; then
     LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
-    ARMADILLO_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+    ARMADILLO_TAG=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+    ARMADILLO_VERSION=$(echo $ARMADILLO_TAG | sed -e 's/.*armadillo-service-//')
+
     
     if [[ "$ARMADILLO_VERSION" =~ 'armadillo-service-2' ]]; then
       echo "Armadillo version 2 not supported! Please use provide an armadillo 3 version with --version"
       exit 1;
     fi
-    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
-  else
-    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/$ARMADILLO_VERSION/$ARMADILLO_VERSION.jar
-    
   fi
+  DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
  
   if validate_url $DL_URL; then
 
