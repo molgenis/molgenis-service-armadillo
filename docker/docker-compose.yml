@@ -17,7 +17,7 @@ services:
     profiles: ['minio']
 
   console:
-    image: minio/console:v0.22.2
+    image: minio/console:v0.25.0
     ports:
       - 9090:9090
     environment:
