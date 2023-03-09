@@ -9,6 +9,7 @@ script.
 
 import getopt
 import sys
+from pprint import pprint
 from getpass import getpass
 from pathlib import Path
 
@@ -64,7 +65,11 @@ def download_all_buckets(target_dir: Path):
 def download_bucket(minio_client: Minio, bucket: Bucket,
                     target_dir: Path):
     bucket_dir = target_dir.joinpath(bucket.name)
-    obj_count = download_objects(bucket.name, bucket_dir, minio_client)
+    obj_count, skipped = download_objects(bucket.name, bucket_dir, minio_client)
+
+    if len(skipped) > 0:
+        print("The following rds files weren't copied and will have to be regenerated:")
+        pprint.pprint(skipped)
 
     if obj_count == 0:
         print("> No files found")
@@ -94,16 +99,20 @@ def create_minio_client():
 def download_objects(bucket_name: str, bucket_dir: Path, client: Minio) -> int:
     objects = client.list_objects(bucket_name, recursive=True)
     obj_count = 0
+    skipped = []
     for obj in objects:
         print("- " + obj.object_name)
         target_file = bucket_dir.joinpath(obj.object_name)
-        client.fget_object(
-            bucket_name,
-            obj.object_name,
-            file_path=str(target_file)
-        )
-        obj_count += 1
-    return obj_count
+        if target_file.endswith(".rds"):
+            skipped.append(target_file)
+        else:
+            client.fget_object(
+                bucket_name,
+                obj.object_name,
+                file_path=str(target_file)
+            )
+            obj_count += 1
+    return obj_count, skipped
 
 
 if __name__ == '__main__':
