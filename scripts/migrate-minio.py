@@ -103,8 +103,8 @@ def download_objects(bucket_name: str, bucket_dir: Path, client: Minio) -> int:
     for obj in objects:
         print("- " + obj.object_name)
         target_file = bucket_dir.joinpath(obj.object_name)
-        if target_file.endswith(".rds"):
-            skipped.append(target_file)
+        if str(target_file.endswith(".rds")):
+            skipped.append(str(target_file))
         else:
             client.fget_object(
                 bucket_name,
