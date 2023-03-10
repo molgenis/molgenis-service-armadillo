@@ -32,7 +32,7 @@ def main(argv):
     target = None
     for opt, arg in opts:
         if opt == "-h":
-            print(help_string)
+            print(help_string)x
             sys.exit()
         elif opt in ("-m", "--minio"):
             minio_url = arg
@@ -101,11 +101,11 @@ def download_objects(bucket_name: str, bucket_dir: Path, client: Minio) -> int:
     obj_count = 0
     skipped = []
     for obj in objects:
-        print("- " + obj.object_name)
         target_file = bucket_dir.joinpath(obj.object_name)
         if str(target_file).lower().endswith(".rds"):
             skipped.append(str(target_file))
         else:
+            print("- " + obj.object_name)
             client.fget_object(
                 bucket_name,
                 obj.object_name,
