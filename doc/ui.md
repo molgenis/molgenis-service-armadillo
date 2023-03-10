@@ -1,7 +1,9 @@
 # Armadillo User Interface
 Since Armadillo version 3, a lot has changed compared to its previous version. One of these changes is the addition of
 a user interface, or UI for short. This UI will be replacing the MinIO file storage and the permission management page,
-as well as adding several new features that will be extended upon. 
+as well as adding several new features that will be extended upon.
+
+## Headers
 
 ## Login
 ![](img/ui/login.png)
@@ -23,7 +25,8 @@ admin checkbox for that user:
 
 ## Projects
 Once you're logged in, you will be redirected to the projects page. In this page you can add and edit projects. You
-can add users to projects and navigate to the "project-editor"-view.
+can add users to projects and navigate to the "project-editor"-view. You can search through the projects using
+the search bar on the top right.
 
 ![](img/ui/projects.png)
 
@@ -51,3 +54,26 @@ name succesfully.
 
 Click on the checkmark <img src="img/ui/check.png"  width="25" height="25"> to save the edited row and the X 
 <img src="img/ui/cancel.png"  width="25" height="25"> to cancel. Be careful, if you do so, your changes will be lost. 
+
+### Add
+To add a new project, click on the + button <img src="img/ui/add.png"  width="25" height="25"> on top of the table. If 
+you click this button, on top of your table, an empty row will be opened in edit mode. 
+
+![](img/ui/add-project.png)
+
+Click on the checkmark <img src="img/ui/check.png"  width="25" height="25"> to save the edited row and the X
+<img src="img/ui/cancel.png"  width="25" height="25"> to cancel. Be careful, if you do so, your changes will be lost. 
+
+### Project editor
+If you click on the icon <img src="img/ui/view-project.png"  width="40" > next to the project name, you will be taken to
+what we call the project editor. In this screen you can upload and preview data in projects. To get back to your 
+projects page, press the back button <img src="img/ui/back-button.png"  width="25" height="25">. 
+
+![](img/ui/project-editor.png)
+
+If you click on a folder, it will open.
+![](img/ui/view-project-folder.png)
+
+Here you can upload files into that folder, or click on the tables to preview their contents.
+![](img/ui/preview-file.png)
+
