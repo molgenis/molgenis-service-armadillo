@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 class AuditEventPublisherTest {
@@ -42,6 +43,13 @@ class AuditEventPublisherTest {
     var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
     when(principal.getTokenAttributes().get("email")).thenReturn("tommy@molgenis.nl");
 
+    assertEquals("tommy@molgenis.nl", getUser(principal));
+  }
+
+  @Test
+  void testJwt() {
+    var principal = mock(Jwt.class, RETURNS_DEEP_STUBS);
+    when(principal.getClaims().get("email")).thenReturn("tommy@molgenis.nl");
     assertEquals("tommy@molgenis.nl", getUser(principal));
   }
 
