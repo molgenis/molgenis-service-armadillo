@@ -52,7 +52,7 @@
               <div class="col-6 p-0 m-0">
                 <ListGroup
                   ref="folderComponent"
-                  :listContent="projectFolders"
+                  :listContent="getSortedFolders()"
                   rowIcon="folder"
                   rowIconAlt="folder2-open"
                   :altIconCondition="showSelectedFolderIcon"
@@ -89,11 +89,7 @@
                 <ListGroup
                   v-show="selectedFolder !== ''"
                   ref="fileComponent"
-                  :listContent="
-                    projectContent[selectedFolder]
-                      ? projectContent[selectedFolder]
-                      : []
-                  "
+                  :listContent="getSortedFiles()"
                   rowIcon="table"
                   rowIconAlt="file-earmark"
                   :altIconCondition="isNonTableType"
@@ -165,7 +161,7 @@ import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProject, deleteObject, previewObject } from "@/api/api";
-import { isEmptyObject } from "@/helpers/utils";
+import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
@@ -298,6 +294,14 @@ export default defineComponent({
     },
     clearFilePreview() {
       this.filePreview = [{}];
+    },
+    getSortedFolders() {
+      return sortAlphabetically(this.projectFolders);
+    },
+    getSortedFiles() {
+      return this.projectContent[this.selectedFolder]
+        ? sortAlphabetically(this.projectContent[this.selectedFolder])
+        : [];
     },
     setProjectContent() {
       let content: Record<string, string[]> = {};
