@@ -1,7 +1,7 @@
 # Armadillo User Interface
 
 Since Armadillo version 3, a lot has changed compared to its previous version. One of these changes is the addition of
-an user interface, or UI for short. This UI will be replacing the MinIO file storage and the permission management page,
+a user interface, or UI for short. This UI will be replacing the MinIO file storage and the permission management page,
 as well as adding several new features that will be extended upon.
 
 ## Table of contents
@@ -34,10 +34,10 @@ following error:
 ![Error message in case you are not a superuser](img/ui/no-superuser.png)
 
 If you receive this error, contact someone in your institute that is already able to login without an error, or if you
-don't have anyone available, molgenis-support@umcg.nl.
+don't have anyone available, send an email to MOLGENIS Support (molgenis-support@umcg.nl).
 
-To grant a user superuser rights simply search for the correct user in the `Users` tab of the UI, and then checking the
-admin checkbox for that user:
+To grant a user superuser permissions simply search for that user in the `Users` tab of the UI, and tick off the
+_admin_ checkbox for that user:
 
 ![Grant user superuser rights](img/ui/admin.png)
 
@@ -52,7 +52,7 @@ the search bar on the top right.
 
 ### Editing projects <a name="edit-projects"></a>
 
-To edit your project, click on the edit button in front of the project you want to edit button: 
+To edit your project, click on the edit button in front of the project you want to edit: 
 <img src="img/ui/edit.png"  width="25" height="25">.
 
 The row will be opened in edit mode:
@@ -60,16 +60,16 @@ The row will be opened in edit mode:
 ![Edit a specific row on the projects page](img/ui/edit-project.png)
 
 The edit mode can be recognized by it's blue background color and you have the option to add new users to your project
-by clicking on the + button <img src="img/ui/plus.png"  width="15" height="15"> of the users column. Then you can either
+by clicking on the + button <img src="img/ui/plus.png"  width="15" height="15"> of the users column. Then, you can either
 select an existing user from the dropdown, or add the email address of a new user.
 
 ![Add an existing user to a project or enter the email address of the new user](img/ui/edit-projects-add-user.png)
 
-In case of adding a user in this screen, a warning will be shown to prevent users with typing errors from being added to
+In case of adding a user in this screen, a warning will be shown to prevent email addresses with typographical errors from being added to
 your system. To illustrate this, imagine you have the user `j.doe@example.com` in your users table. You want to give
-them permissions on to work in a project, but you mistype the email address as `j.die@example.com`. You will be shown a
-warning message asking you whether you really want to add a new user. You will probably think "that's weird, j.doe
-already exists, right?", then you will (hopefully) notice the incorrect email address. You will then probably cancel 
+them permissions for a certain project, but you mistakingly type the email address as `j.die@example.com`. A warning message will pop up
+asking you whether you really want to add a new user. You will probably think "that's weird, j.doe
+already exists, right?", hopefully this will help noticing the incorrect email address. You will probably cancel 
 adding the user and instead select the existing user, as you intended to. Keep in mind that, just as the warning message
 suggests, the user will only be added if you save the row you are editing in the projects.
 
@@ -84,7 +84,7 @@ Click on the checkmark <img src="img/ui/check.png"  width="25" height="25"> to s
 ### Adding projects <a name="add-projects"></a>
 
 To add a new project, click on the + button <img src="img/ui/add.png"  width="25" height="25"> on top of the table. If
-you click this button, on top of your table, an empty row will be opened in edit mode.
+you click this button, an empty row will be opened in edit mode.
 
 ![Add a new project to Armadillo](img/ui/add-project.png)
 
@@ -93,8 +93,8 @@ Click on the checkmark <img src="img/ui/check.png"  width="25" height="25"> to s
 
 ## Project explorer <a name="project-explorer"></a>
 
-If you click on the icon <img src="img/ui/view-project.png"  width="40" > next to the project name, you will be taken to
-the `project editor`. In this screen you can upload and preview data in projects. To get back to your `projects` page,
+If you click on the icon <img src="img/ui/view-project.png"  width="40" > next to the project name, you will be directed to
+the `project editor`. In this screen you can upload and preview data in projects. To go back to your `projects` page,
 press the back button <img src="img/ui/back-button.png"  width="25" height="25">.
 
 ![Armadillo project editor](img/ui/project-editor.png)
@@ -103,7 +103,7 @@ If you click on a folder, it will open.
 
 ![Armadillo project folder](img/ui/view-project-folder.png)
 
-Here you can upload files into that folder, or click on the tables (files) to preview their contents.
+Here you can upload files to that folder, or click on the tables (files) to preview their contents.
 
 ![Armadillo project file preview](img/ui/preview-file.png)
 
@@ -112,26 +112,26 @@ file.
 
 ![Armadillo upload a file](img/ui/upload-a-file.png)
 
-After selecting the file, click on upload to upload it. Depending on the size of the file it can take a second,
+After selecting the file, click on _upload_ to upload it. Depending on the size of the file it can take a second,
 generally it is a fast process.
 
 It is also possible to create new folders. To do so, click the "add folder" button 
-<img src="img/ui/add-folder-button.png"  width="30" height="30"> , just below the project name. An input dialog will be
+<img src="img/ui/add-folder-button.png"  width="30" height="30"> just below the project name. An input dialog will be
 presented:
 
 ![Armadillo add a folder](img/ui/add-folder.png)
 
-Fill in the name you like to use and click on the checkmark  button 
+Fill in the name you want to use and click on the checkmark button 
 <img src="img/ui/check.png"  width="25" height="25">. Please keep in mind that, just as the success message suggests,
 the folder will only be saved if you put data in it. Select the new folder to select files to upload.
 
 ### Resources <a name="resources"></a>
 
 In theory, all files can be uploaded into the projects. The only filetypes that allowed for a preview are `.parquet`
-files. Other files that can be uploaded, and are treated as resources. Resource filetypes usually are `.rda` files or
+files. Other files that can be uploaded are treated as _resources_. Resource filetypes usually are `.rda` files or
 `.Rdata` files.
 
-For researchers to be able to use these resources, first an `.rds` file must be generated. How to create these files, is
+To be able to use these resources as a researcher, first an `.rds` file must be generated. How to create these files, is
 described [here](https://molgenis.github.io/molgenis-r-armadillo/articles/create_resources.html).
 
 The URL of your resources is build up as follows:
@@ -140,7 +140,7 @@ The URL of your resources is build up as follows:
 {your url}/storage/projects/{project name}/objects/{name of the folder}%2F{the resource file}
 ```
 
-Here's an example, with some given parameters:
+Here's an example, with some example parameters:
 
 ```r
 url = "https://armadillo3.demo.molgenis.net"
@@ -157,17 +157,15 @@ https://armadillo3.demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66
 
 ## Users <a name="users"></a>
 
-The `Users` page works just as the `Projects` page. You can search users by entering (part of) the email address or name
+The `Users` page works just as the `Projects` page. You can search users by entering (part of) their email address or name
 of the user into the search box:
 
 ![Search for a user in the Users page](img/ui/admin.png)
 
 ### Editing users <a name="edit-users"></a>
 
-Users can just as projects, be edited, **except** for their email addresses. This is not only because we cannot ensure
-all projects are transferred as expected, but also when an email address of a user changes, possibly that user is not
-working for the same institution anymore and therefore is possibly not allowed to keep their previous project
-permissions.
+Users can be edited, **except** for their email addresses. A reason for this is that when a user's email address changes, that user is possibly not
+working for the same institution any longer and therefore might not be allowed to access the data anymore.
 
 ![Editing a user on the Users page](img/ui/edit-user.png)
 
@@ -176,23 +174,22 @@ In edit mode, the row will turn blue. Projects can be added by clicking on the +
 
 <img src="img/ui/add-project-to-user.png"  width="350">
 
-You can add a non-existing project by simply typing it and clicking the checkmark button 
+You can add a new project by simply typing it and clicking the checkmark button 
 <img src="img/ui/check.png"  width="25" height="25">. You will be prompted a warning message, asking you to confirm to
 add a new project, once the user is saved.
 
-Alternatively, you can select an existing project by typing to search through the presented list, or by scrolling to it
-and then selecting the desired project.
+Alternatively, you can select an existing project by using the search box or scrolling through the presented list, and selecting the desired project.
 
 ### Adding users <a name="add-users"></a>
 
 By clicking on the plus button <img src="img/ui/add.png"  width="25" height="25"> on top op the table, a new user can be
-added. The row with the new user will turn blue to show the user screen is in edit mode.
+added. The row with the new user will turn blue in edit mode.
 
 <img src="img/ui/add-user.png"  width="650">
 
-Users can be added before they have logged in previously. These users can be added to projects and thereby granting them
-permission to retrieve data uploaded into those projects upon their login. Although users have to be admin or superuser
-to be able to login to the UI. Researchers should not be set to be admin. 
+Users can be added before they have logged in previously. These users can be added to projects, this will grant them
+permission to use the data from those projects upon their first login. However, to be able to login to the UI, users have to be admin or superuser. 
+Researchers should not be set to be admin. 
 
 ## Profiles <a name="profiles"></a>
 
