@@ -9,7 +9,7 @@ script.
 
 import getopt
 import sys
-from pprint import pprint
+import pprint
 from getpass import getpass
 from pathlib import Path
 
