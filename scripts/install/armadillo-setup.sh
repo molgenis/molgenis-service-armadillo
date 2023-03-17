@@ -221,7 +221,7 @@ setup_updatescript() {
     wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
     echo "Update script downloaded"
     chmod +x $ARMADILLO_PATH/application/armadillo-update.sh
-    ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/
+    ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/check-update
       
   else
     echo "[ ERROR ] update script not downloaded"
