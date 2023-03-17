@@ -32,7 +32,7 @@ def main(argv):
     target = None
     for opt, arg in opts:
         if opt == "-h":
-            print(help_string)x
+            print(help_string)
             sys.exit()
         elif opt in ("-m", "--minio"):
             minio_url = arg
