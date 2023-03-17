@@ -21,14 +21,25 @@ export function capitalize(word: string): string {
 }
 
 export function sortAlphabetically(
-  listOfObjects: ListOfObjectsWithStringKey,
-  key: string
-): ListOfObjectsWithStringKey {
+  listOfObjects: ListOfObjectsWithStringKey | string[],
+  key?: string
+): ListOfObjectsWithStringKey | string[] {
   return listOfObjects.sort((object1, object2) => {
-    if (object1[key] < object2[key]) {
+    let obj1;
+    let obj2;
+
+    if (typeof object1 === "object" && key !== undefined) {
+      obj1 = (object1 as ObjectWithStringKey)[key];
+      obj2 = (object2 as ObjectWithStringKey)[key];
+    } else {
+      obj1 = object1;
+      obj2 = object2;
+    }
+
+    if (obj1 < obj2) {
       return -1;
     }
-    if (object1[key] > object2[key]) {
+    if (obj1 > obj2) {
       return 1;
     }
     return 0;
