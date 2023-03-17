@@ -41,7 +41,7 @@ The installation script requires some arguments:
 | ------------------------------------------- | ------------- |
 | admin-user                                  | Local armadillo admin user            |
 | admin-password                              | Secure password for the admin user    |
-| datadir                                     | The location where the data is stored. This directory should be have enough diskspace en could be backuped (standard &rarr; /usr/share/armadillo/data)|
+| datadir                                     | The location where the data is stored. This directory should be have enough diskspace en could be backuped (Default &rarr; /usr/share/armadillo/data)|
 | domain                                      | The URL where armadillo is listening on. For example: cohort.armadillo.domain.org  |
 |||
 |oidc                                       | Enable OIDC, see [authentication](#Authentication) |
@@ -50,7 +50,7 @@ The installation script requires some arguments:
 |oidc_secret | Given secret ID|
 
 ```bash
-bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain armadillo.cohort.study.com --oidc --oidc_url https://lifecycle-auth.molgenis.org --oidc_clientid xxxxx --oidc_secret xxxx'
+bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain armadillo.cohort.study.com --oidc --oidc_url https://lifecycle-auth.molgenis.org --oidc_clientid xxxxx --oidc_clientsecret xxxx'
 ```
 
 #### Step 3
