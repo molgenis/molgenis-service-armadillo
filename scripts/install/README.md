@@ -47,7 +47,7 @@ The installation script requires some arguments:
 |oidc                                       | Enable OIDC, see [authentication](#Authentication) |
 |oidc_url                                   | Given oidc URL |
 |oidc_clientid | Given client ID|
-|oidc_secret | Given secret ID|
+|oidc_clientsecret | Given secret ID|
 
 ```bash
 bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain armadillo.cohort.study.com --oidc --oidc_url https://lifecycle-auth.molgenis.org --oidc_clientid xxxxx --oidc_clientsecret xxxx'
