@@ -14,7 +14,7 @@ ARMADILLO_DATADIR=$ARMADILLO_PATH/data
 handle_args() {
     while :
     do
-        case "$1" in 
+        case "$1" in
         --version)
           ARMADILLO_VERSION=$2
           shift 2
@@ -70,14 +70,14 @@ handle_args() {
         *)
         break;
         esac
-        
+
     done
     if [ ! "$ARMADILLO_CLEANUP" ]; then
       if [ ! "$ARMADILLO_DOMAIN" ] || [ ! "$ARMADILLO_ADMIN_PW" ]; then
         echo "Arguments --domain --admin-password must be provided"
         echo "You need a host or domain to use Armadillo. Example: cohort.armadillo.organisation.com"
         echo "Also for security reasons you must provide a secure admin password"
-        parameters_help; 
+        parameters_help;
         exit 1;
       fi
     fi
