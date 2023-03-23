@@ -21,7 +21,7 @@ In case of using dsOmics this setup can be rather bigger. Please contact molgeni
 * Java 17 JRE or JDK
 * Docker
 
-In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy. 
+In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy.
 
 ## Domain
 An domain or an hostname is required to run armadillo 3. This domain should be used for installation, for example: cohort.armadillo.domain.org
@@ -41,24 +41,24 @@ The installation script requires some arguments:
 | ------------------------------------------- | ------------- |
 | admin-user                                  | Local armadillo admin user            |
 | admin-password                              | Secure password for the admin user    |
-| datadir                                     | The location where the data is stored. This directory should be have enough diskspace en could be backuped (standard &rarr; /usr/share/armadillo/data)|
+| datadir                                     | The location where the data is stored. This directory should be have enough diskspace en could be backuped (Default &rarr; /usr/share/armadillo/data)|
 | domain                                      | The URL where armadillo is listening on. For example: cohort.armadillo.domain.org  |
 |||
 |oidc                                       | Enable OIDC, see [authentication](#Authentication) |
 |oidc_url                                   | Given oidc URL |
 |oidc_clientid | Given client ID|
-|oidc_secret | Given secret ID|
+|oidc_clientsecret | Given secret ID|
 
 ```bash
-bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain armadillo.cohort.study.com --oidc --oidc_url https://lifecycle-auth.molgenis.org --oidc_clientid xxxxx --oidc_secret xxxx'
+bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain armadillo.cohort.study.com --oidc --oidc_url https://lifecycle-auth.molgenis.org --oidc_clientid xxxxx --oidc_clientsecret xxxx'
 ```
 
 #### Step 3
-After installation armadillo is listening on port 8080. 
+After installation armadillo is listening on port 8080.
 Test the setup on http://domain:8080 or on the localhost http://localhost:8080
 
 # ProxyPass  SSL / certificates
-Armadillo 3 is a standalone application wich is listening on port 8080. 
+Armadillo 3 is a standalone application wich is listening on port 8080.
 You can set up a front-end proxy if you'd like to proxypass to this port. This can be a simple HTTP server, something like Apache HTTPD or nginx, These can be useful for managing multiple URLs or sites through a single server machine, configuring HTTPS with SSL certificates without involving Armadillo. This is completely optional.
 
 We have an example for nginx: [Example](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/armadillo-nginx.conf)
