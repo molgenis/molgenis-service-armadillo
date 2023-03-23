@@ -14,7 +14,7 @@ ARMADILLO_DATADIR=$ARMADILLO_PATH/data
 handle_args() {
     while :
     do
-        case "$1" in
+        case "$1" in 
         --version)
           ARMADILLO_VERSION=$2
           shift 2
@@ -70,14 +70,14 @@ handle_args() {
         *)
         break;
         esac
-
+        
     done
     if [ ! "$ARMADILLO_CLEANUP" ]; then
       if [ ! "$ARMADILLO_DOMAIN" ] || [ ! "$ARMADILLO_ADMIN_PW" ]; then
         echo "Arguments --domain --admin-password must be provided"
         echo "You need a host or domain to use Armadillo. Example: cohort.armadillo.organisation.com"
         echo "Also for security reasons you must provide a secure admin password"
-        parameters_help;
+        parameters_help; 
         exit 1;
       fi
     fi
@@ -107,7 +107,7 @@ setup_environment() {
     chmod g+rw "$ARMADILLO_LOG_PATH"
     chmod g+rw "$ARMADILLO_DATADIR"
     usermod -aG docker "$ARMADILLO_SYS_USER"
-    echo "Environment is being set up correctly"
+    echo "Environment is being set up correctly"     
 }
 
 setup_systemd() {
@@ -140,9 +140,9 @@ echo "Armadillo Installed under systemd"
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
   wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application.yml
-
-
-  if [ ! "$ADMINUSER" ]; then
+  
+  
+  if [ ! "$ADMINUSER" ]; then 
     ADMINUSER="admin"
   else
     ADMINUSER=$ARMADILLO_ADMIN
@@ -154,45 +154,45 @@ setup_armadillo_config() {
   sed -i -e 's|@DATADIR@|'"$ARMADILLO_DATADIR"'|' $ARMADILLO_CFG_PATH/application.yml
   sed -i -e 's/@SEED@/'"$SEED"'/' $ARMADILLO_CFG_PATH/application.yml
   sed -i -e 's|@AUDITLOG@|'"$ARMADILLO_AUDITLOG"'|' $ARMADILLO_CFG_PATH/application.yml
-
+  
 
   if [ "$ARMADILLO_OIDC_ENABLED" ]; then
-
+  
     sed -i -e 's|@ISSUERURL@|'"$OIDC_ISSUER_URL"'|g' $ARMADILLO_CFG_PATH/application.yml
     sed -i -e 's/@CLIENTID@/'"$OIDC_CLIENTID"'/' $ARMADILLO_CFG_PATH/application.yml
     sed -i -e 's/@CLIENTSECRET@/'"$OIDC_CLIENTSECRET"'/' $ARMADILLO_CFG_PATH/application.yml
     sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
     sed -i -e 's|# oidc-admin-user: @ADMIN_EMAIL@|oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'|' $ARMADILLO_CFG_PATH/application.yml
   fi
-
-
-
+  
+  
+  
   echo "Config downloaded"
 
 }
 
 download_armadillo() {
-
+  
   if [ -z "$ARMADILLO_VERSION" ]; then
     LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
     ARMADILLO_TAG=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
     ARMADILLO_VERSION=$(echo $ARMADILLO_TAG | sed -e 's/.*armadillo-service-//')
 
-
+    
     if [[ "$ARMADILLO_VERSION" =~ 'armadillo-service-2' ]]; then
       echo "Armadillo version 2 not supported! Please use provide an armadillo 3 version with --version"
       exit 1;
     fi
   fi
   DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
-
+ 
   if validate_url $DL_URL; then
 
     wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar "$DL_URL"
     ln -s $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar $ARMADILLO_PATH/application/armadillo.jar
     echo "$ARMADILLO_VERSION downloaded"
-
-  else
+  
+  else 
     echo "[ERROR] Error in downloading armadillo, please contact molgenis-support@umcg.nl with your error."
     exit 1;
   fi
@@ -212,17 +212,17 @@ check_req() {
 }
 
 setup_updatescript() {
-  # Download update script
+  # Download update script 
   DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-check-update.sh
-
-
+  
+    
   if validate_url $DL_URL; then
 
     wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
     echo "Update script downloaded"
     chmod +x $ARMADILLO_PATH/application/armadillo-update.sh
     ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/check-update
-
+      
   else
     echo "[ ERROR ] update script not downloaded"
   fi
@@ -282,7 +282,7 @@ validate_url(){
 #Parameters passed in help
 parameters_help() {
 
-    echo 'Usage: bash armadillo-setup.sh PARAMS
+    echo 'Usage: bash armadillo-setup.sh PARAMS 
        example bash armadillo-setup.sh --admin-user admin --admin-password welcome01 --domain armadillo.cohort.study.com'
     echo
     echo 'Install Script for Armadillo Service'
@@ -300,9 +300,9 @@ parameters_help() {
     echo '      --oidc_clientid               Client id of the oidc config'
     echo '      --oidc_clientsecret           Secret of the client'
     echo '      --admin-email                 Email adres of the oidc Admin User'
+    
 
-
-
+    
 }
 
 
@@ -324,3 +324,4 @@ setup_updatescript
 setup_armadillo_config
 setup_systemd
 startup_armadillo
+

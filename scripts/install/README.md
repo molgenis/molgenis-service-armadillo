@@ -21,7 +21,7 @@ In case of using dsOmics this setup can be rather bigger. Please contact molgeni
 * Java 17 JRE or JDK
 * Docker
 
-In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy.
+In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy. 
 
 ## Domain
 An domain or an hostname is required to run armadillo 3. This domain should be used for installation, for example: cohort.armadillo.domain.org
@@ -54,11 +54,11 @@ bash armadillo-setup.sh --admin-user admin --admin-password xxxxxxxx --domain ar
 ```
 
 #### Step 3
-After installation armadillo is listening on port 8080.
+After installation armadillo is listening on port 8080. 
 Test the setup on http://domain:8080 or on the localhost http://localhost:8080
 
 # ProxyPass  SSL / certificates
-Armadillo 3 is a standalone application wich is listening on port 8080.
+Armadillo 3 is a standalone application wich is listening on port 8080. 
 You can set up a front-end proxy if you'd like to proxypass to this port. This can be a simple HTTP server, something like Apache HTTPD or nginx, These can be useful for managing multiple URLs or sites through a single server machine, configuring HTTPS with SSL certificates without involving Armadillo. This is completely optional.
 
 We have an example for nginx: [Example](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/armadillo-nginx.conf)
