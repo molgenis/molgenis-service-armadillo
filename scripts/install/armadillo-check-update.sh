@@ -15,19 +15,19 @@ check_armadillo_update() {
 
     if [[ "$ARMADILLO_LATEST_VERSION" =~ 2.2.3 ]]; then
   {
-    
+
     echo "Update of Armadillo 2 version is not supported on this system"
     exit
   }
   fi
-  
+
   if [ "$VERSION_USED" != "$ARMADILLO_LATEST_VERSION" ]; then
   {
-       
-        
+
+
     DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_LATEST_VERSION/armadillo-$ARMADILLO_LATEST_VERSION.jar
-          
-    
+
+
     if validate_url $DL_URL; then
       # Stop armadillo
       systemctl stop armadillo
@@ -37,7 +37,7 @@ check_armadillo_update() {
       systemctl start armadillo
 
     fi
-    
+
   }
   else
   {

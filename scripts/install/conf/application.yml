@@ -47,7 +47,7 @@ spring:
       password: @ADMINPASS@
       roles:
         - SU
-    
+
     oauth2:
       client:
         provider:
@@ -65,7 +65,7 @@ spring:
           client-id: @CLIENTID@
   config:
     activate:
-      on-profile: default 
+      on-profile: default
 
 logging:
   config: classpath:logback-file.xml
@@ -90,5 +90,5 @@ storage:
 # minio:
 #   url: http://minio
 #   port: 9000
-#   access-key: ACCESSKEY 
+#   access-key: ACCESSKEY
 #   secret-key: SECRETKEY
