@@ -62,7 +62,6 @@ java -jar armadillo-3.x.x.jar
 
 ## Systemd Service
 
-
 Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo 3 as service please follow
 this guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/README.md
 
