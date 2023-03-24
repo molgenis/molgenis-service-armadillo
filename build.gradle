@@ -52,7 +52,7 @@ jib {
         image = 'eclipse-temurin:17-jdk-focal'
     }
     to {
-        image = imageName + 'test'
+        image = imageName
         tags = [tagName.toString()]
     }
     container {
