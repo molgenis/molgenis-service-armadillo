@@ -34,7 +34,7 @@ semanticRelease {
     }
 }
 
-def imageName = 'docker.io/molgenis/armadillo'
+def imageName = 'docker.io/molgenis/molgenis-armadillo'
 def tagName = project.version.toString()
 if (version.toString().endsWith('-SNAPSHOT')) {
     ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
@@ -52,7 +52,7 @@ jib {
         image = 'eclipse-temurin:17-jdk-focal'
     }
     to {
-        image = imageName
+        image = imageName + 'test'
         tags = [tagName.toString()]
     }
     container {
