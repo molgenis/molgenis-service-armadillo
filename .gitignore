@@ -25,6 +25,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
+.swp
 
 ### IntelliJ IDEA ###
 .idea
@@ -45,6 +46,3 @@ build/
 /docker/logs/
 /docker/data/
 **/audit.log
-
-### LOCAL SETTINGS ###
-/armadillo/src/main/resources/application-local.yml
