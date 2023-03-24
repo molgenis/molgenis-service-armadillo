@@ -22,7 +22,7 @@ repositories {
 
 mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 shadowJar {
-    archiveBaseName = 'armadillo'
+    archiveBaseName = 'molgenis-armadillo'
     mergeServiceFiles()
 }
 
