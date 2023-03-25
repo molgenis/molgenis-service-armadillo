@@ -97,5 +97,5 @@ jobs:
           steps:
             - run:
                 name: release
-                command:
+                command: |
                   ./gradlew release -Dorg.ajoberstar.grgit.auth.password -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN}
