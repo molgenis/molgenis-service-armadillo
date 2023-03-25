@@ -59,7 +59,6 @@ task ci(type: WriteProperties) {
 }
 
 run {
-    environment 'SPRING_CONFIG_LOCATION', 'armadillo/src/main/resources/application.yml'
     environment 'SPRING_PROFILES_ACTIVE', 'development'
 }
 
