@@ -131,9 +131,9 @@ jib {
     }
 }
 
-//task installLocalGitHook(type: Copy) {
-//    from new File(rootProject.rootDir, 'pre-commit')
-//    into { new File(rootProject.rootDir, '.git/hooks') }
-//    fileMode 0775
-//}
-//build.dependsOn installLocalGitHook
+task installLocalGitHook(type: Copy) {
+    from new File(rootProject.rootDir, 'pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+    fileMode 0775
+}
+build.dependsOn installLocalGitHook

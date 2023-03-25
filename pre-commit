@@ -1,24 +1,17 @@
 #!/bin/sh
-# From gist at https://gist.github.com/chadmaughan/5889802
-# will be installed on every build
+# from https://medium.com/@mmessell/apply-spotless-formatting-with-git-pre-commit-hook-1c484ea68c34
 
-echo '[git hook] executing gradle spotlessCheck before commit'
+echo '[git hook] executing gradle spotlessApply and format before commit'
 
-# stash any unstaged changes
-git stash -q --keep-index
+# find the changes
+stagedFiles=$(git diff --staged --name-only)
 
 # run the spotlessCheck with the gradle wrapper
-<<<<<<< Updated upstream
-./gradlew spotlessCheck --daemon
-=======
-./gradlew :armadillo:spotlessCheck :r:spotlessCheck :ui:formatCheck --daemon
->>>>>>> Stashed changes
+./gradlew :armadillo:spotlessApply :r:spotlessApply :ui:format --daemon
 
-# store the last exit code in a variable
-RESULT=$?
-
-# unstash the unstashed changes
-git stash pop -q
-
-# return the './gradlew spotlessCheck' exit code
-exit $RESULT
+# add the reformatted files
+for file in $stagedFiles; do
+  if test -f "$file"; then
+    git add $file
+  fi
+done
