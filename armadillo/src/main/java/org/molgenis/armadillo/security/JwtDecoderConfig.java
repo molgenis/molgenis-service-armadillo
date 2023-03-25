@@ -1,8 +1,5 @@
 package org.molgenis.armadillo.security;
 
-import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
-
-import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
+
+import java.util.Collection;
+
+import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
 @ConditionalOnProperty(
     prefix = "spring.security.oauth2.resourceserver",

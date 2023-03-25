@@ -65,19 +65,19 @@ spring:
       password: admin
     oauth2:
       client:
-        # Uncomment the following section to enable OIDC login:
-        registration:
-          molgenis:
-            client-id: armadillo
-            client-secret: YwVkbgRJL82uRJKIgjhIYlgcG4GpK68H
-        provider:
-          molgenis:
-            issuer-uri: http://localhost:9000/realms/Armadillo
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:9000/realms/Armadillo
-        opaquetoken:
-          client-id: armadillo
+  # Uncomment the following section to enable OIDC login:
+  #        registration:
+  #          molgenis:
+  #            client-id: armadillo
+  #            client-secret: YwVkbgRJL82uRJKIgjhIYlgcG4GpK68H
+  #        provider:
+  #          molgenis:
+  #            issuer-uri: http://localhost:9000/realms/Armadillo
+  #      resourceserver:
+  #        jwt:
+  #          issuer-uri: http://localhost:9000/realms/Armadillo
+  #        opaquetoken:
+  #          client-id: armadillo
   config:
     activate:
       on-profile: development

@@ -1,4 +1,6 @@
 plugins {
+    id 'org.springframework.boot' version '2.7.9'
+    id 'io.spring.dependency-management' version '1.1.0'
     id "java"
     id "org.sonarqube" version "3.5.0.2730"
     id "de.gliderpilot.semantic-release" version "1.4.2"
@@ -17,9 +19,18 @@ allprojects {
 }
 
 repositories {
-    mavenCentral()
+    mavenLocal()
+    maven {
+        url = 'https://repo.maven.apache.org/maven2'
+    }
+    maven {
+        url = 'https://obiba.jfrog.io/artifactory/libs-release-local/'
+    }
 }
 
+dependencies {
+    implementation project(':armadillo')
+}
 mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 shadowJar {
     archiveBaseName = 'molgenis-armadillo'
@@ -45,6 +56,12 @@ if (version.toString().endsWith('-SNAPSHOT')) {
 task ci(type: WriteProperties) {
     outputFile file('build/ci.properties')
     property 'tagName', tagName
+}
+
+run {
+    environment 'SPRING_CONFIG_LOCATION', 'armadillo/src/main/resources/application.yml'
+    environment 'SPRING_PROFILES_ACTIVE', 'development'
+
 }
 
 jib {
@@ -74,6 +91,7 @@ String getGitHash() {
     return gitCommitHash
 }
 
+//point to the main class
 ext {
     javaMainClass = "org.molgenis.armadillo.ArmadilloServiceApplication"
 }
@@ -116,3 +134,11 @@ sonarqube {
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
     }
 }
+
+//task installLocalGitHook(type: Copy){
+//    from new File(rootProject.rootDir, 'scripts/pre-commit')
+//    into { new File(rootProject.rootDir, '.git/hooks')}
+//    fileMode 0775
+//}
+//
+//build.dependsOn installLocalGitHook
