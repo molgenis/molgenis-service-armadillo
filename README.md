@@ -105,13 +105,23 @@ Armadillo for analysis.
 
 # Development
 
-## We develop using gradle
+## Develop from commandline
 
 To build run following command in the github root:
+
 ```./gradlew build```
 
 To execute in 'dev' run following command in the github root:
+
 ```./gradlew run```
+
+To create the binary and run that
+
+```
+./gradlew shadowJar
+export SPRING_CONFIG_LOCATION=armadillo/src/main/resources/application.yml
+java -jar build/libs/molgenis-armadillo-[version].jar  
+```
 
 ## Setting up development tools
 
