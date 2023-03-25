@@ -36,20 +36,21 @@ task mybuild(type: YarnTask, dependsOn: format) {
     args = ['run', 'build']
 }
 
-build.dependsOn "mybuild"
-
-clean.doLast {
-    project.delete(files("dist"))
-    project.delete(files("build"))
-}
-
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
-task createJar(type: Zip) {
+task createJar(type: Zip, dependsOn: mybuild) {
     archiveBaseName = 'ui'
     archiveExtension = 'jar'
     destinationDirectory = file("${buildDir}/build/libs")
     from('dist')
     into('public')
+}
+
+//first mybuild, than createJar
+build.dependsOn "createJar"
+
+clean.doLast {
+    project.delete(files("dist"))
+    project.delete(files("build"))
 }
 
 configurations {

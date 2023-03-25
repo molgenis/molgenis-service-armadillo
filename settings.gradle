@@ -1,4 +1,4 @@
-rootProject.name = 'armadillo-service'
+rootProject.name = 'molgenis-armadillo'
 
 include ':armadillo'
 include ':r'

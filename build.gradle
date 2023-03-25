@@ -61,21 +61,6 @@ task ci(type: WriteProperties) {
 run {
     environment 'SPRING_CONFIG_LOCATION', 'armadillo/src/main/resources/application.yml'
     environment 'SPRING_PROFILES_ACTIVE', 'development'
-
-}
-
-jib {
-    from {
-        image = 'eclipse-temurin:17-jdk-focal'
-    }
-    to {
-        image = imageName
-        tags = [tagName.toString()]
-    }
-    container {
-        mainClass = mainClassName
-        ports = ['8080']
-    }
 }
 
 String getGitHash() {
@@ -85,9 +70,7 @@ String getGitHash() {
     if (result != 0) {
         throw new IOException("Command 'getGitHash()' exited with " + result)
     }
-
     String gitCommitHash = command.inputStream.text.trim()
-
     return gitCommitHash
 }
 
@@ -132,6 +115,20 @@ sonarqube {
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
+    }
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:17-jdk-focal'
+    }
+    to {
+        image = imageName
+        tags = [tagName.toString()]
+    }
+    container {
+        mainClass = mainClassName
+        ports = ['8080']
     }
 }
 
