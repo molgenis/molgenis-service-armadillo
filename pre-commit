@@ -11,7 +11,7 @@ git stash -q --keep-index
 <<<<<<< Updated upstream
 ./gradlew spotlessCheck --daemon
 =======
-./gradlew :armadillo:spotlessCheck --daemon
+./gradlew :armadillo:spotlessCheck :r:spotlessCheck :ui:formatCheck --daemon
 >>>>>>> Stashed changes
 
 # store the last exit code in a variable

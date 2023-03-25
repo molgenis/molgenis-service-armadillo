@@ -20,6 +20,13 @@ task format(type: YarnTask, dependsOn: yarn_install) {
     outputs.dir('src')
 }
 
+task formatCheck(type: YarnTask, dependsOn: yarn_install) {
+    args = ['run', 'format-check']
+    inputs.files(fileTree('src'))
+    outputs.dir('src')
+}
+
+
 task mybuild(type: YarnTask, dependsOn: format) {
     inputs.file('package.json')
     inputs.files(fileTree('src'))

@@ -1,7 +1,7 @@
 plugins {
     id "jacoco"
     id "java"
-    id "com.diffplug.spotless" version "6.15.0" apply false
+    id "com.diffplug.spotless" version "6.15.0"
     id 'org.springframework.boot'
     id 'io.spring.dependency-management'
 }
@@ -78,4 +78,9 @@ test {
     finalizedBy jacocoTestReport
 }
 
-
+spotless {
+    java {
+        googleJavaFormat('1.15.0')
+    }
+}
+compileJava.dependsOn 'spotlessApply'

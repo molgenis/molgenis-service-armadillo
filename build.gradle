@@ -9,7 +9,6 @@ plugins {
     id 'application'
     id 'com.google.cloud.tools.jib' version '3.3.1'
     id "jacoco"
-    id "com.diffplug.spotless" version "6.15.0" apply false
 }
 
 targetCompatibility = '17'
@@ -132,9 +131,9 @@ jib {
     }
 }
 
-task installLocalGitHook(type: Copy) {
-    from new File(rootProject.rootDir, 'pre-commit')
-    into { new File(rootProject.rootDir, '.git/hooks') }
-    fileMode 0775
-}
-build.dependsOn installLocalGitHook
+//task installLocalGitHook(type: Copy) {
+//    from new File(rootProject.rootDir, 'pre-commit')
+//    into { new File(rootProject.rootDir, '.git/hooks') }
+//    fileMode 0775
+//}
+//build.dependsOn installLocalGitHook
