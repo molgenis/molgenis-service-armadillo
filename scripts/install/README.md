@@ -31,7 +31,7 @@ Before we start with the deployment of Armadillo you will need to register your 
 
 
 ##### Step 1
-Download setup script <a id="raw-url" href="https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh">here</a> or via commandline:
+Download setup script [here](https://github.com//molgenis/molgenis-service-armadillo/blob/master/scripts/install/armadillo-setup.sh) or via commandline:
 ```bash
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh
 ```
