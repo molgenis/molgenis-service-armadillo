@@ -64,8 +64,7 @@ application {
 }
 
 //add version info to jar
-jar {
-    reproducibleFileOrder = true
+tasks.named("bootJar") {
     manifest {
         attributes(
                 'Specification-Version': project.version.toString(),
