@@ -82,8 +82,8 @@ docker {
     name imageName
     tags 'latest', tagName
     dockerfile file('Dockerfile')
-    files bootJar.archiveFile.get()
-    buildArgs(['JAR_FILE': "${bootJar.archiveFileName.get()}"])
+    files bootJar.archivePath
+    buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
 }
 
 String getGitHash() {
