@@ -69,12 +69,14 @@ Armadillo 3 docker images are available
 - release at https://hub.docker.com/r/molgenis/molgenis-armadillo
 - snapshot builds from pull requests at https://hub.docker.com/r/molgenis/molgenis-armadillo-snapshot
 
-For example, you can use docker as follows
+For example, you can use docker as follows on Linux/Mac
 
 ```
 mkdir data
+docker pull molgenis/molgenis-armadillo-snapshot
 docker run molgenis/molgenis-armadillo-snapshot \
--mount type=bind,source="$(pwd)"/data,target=/data
+-mount type=bind,source="$(pwd)"/data,target=/data \
+-v /var/run.docker.sock:/var/run/docker.sock 
 ```
 
 ## armadillo 2
