@@ -27,10 +27,40 @@ repositories {
     }
 }
 
+// configure artifact
+mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 dependencies {
     implementation project(':armadillo')
 }
+jar {
+    //we gonna use spring jar, below
+    enabled = false
+}
+bootJar {
+    mainClassName = mainClassName
+    manifest {
+        attributes(
+                'Specification-Version': project.version.toString(),
+                'Implementation-Version': getGitHash(),
+                'Created-By': "Gradle ${gradle.gradleVersion}",
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        )
+    }
+}
 
+//define run
+ext {
+    javaMainClass = "org.molgenis.armadillo.ArmadilloServiceApplication"
+}
+application {
+    mainClass.set(javaMainClass)
+}
+run {
+    environment 'SPRING_PROFILES_ACTIVE', 'development'
+}
+
+//define release
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
 semanticRelease {
     repo {
@@ -39,8 +69,13 @@ semanticRelease {
     }
 }
 
-run {
-    environment 'SPRING_PROFILES_ACTIVE', 'development'
+//define docker image
+def imageName = 'docker.io/molgenis/molgenis-armadillo'
+def tagName = project.version.toString()
+if (version.toString().endsWith('-SNAPSHOT')) {
+    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
+    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
+    tagName = "${project.version.toString()}-${ext.hash}"
 }
 
 String getGitHash() {
@@ -52,28 +87,6 @@ String getGitHash() {
     }
     String gitCommitHash = command.inputStream.text.trim()
     return gitCommitHash
-}
-
-//point to the main class
-ext {
-    javaMainClass = "org.molgenis.armadillo.ArmadilloServiceApplication"
-}
-
-application {
-    mainClass.set(javaMainClass)
-}
-
-//add version info to jar
-tasks.named("bootJar") {
-    manifest {
-        attributes(
-                'Specification-Version': project.version.toString(),
-                'Implementation-Version': getGitHash(),
-                'Created-By': "Gradle ${gradle.gradleVersion}",
-                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
-                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
-        )
-    }
 }
 
 //merge test reports
@@ -108,14 +121,6 @@ task installLocalGitHook(type: Copy) {
 }
 build.dependsOn installLocalGitHook
 
-//publish to docker
-def imageName = 'docker.io/molgenis/molgenis-armadillo'
-def tagName = project.version.toString()
-if (version.toString().endsWith('-SNAPSHOT')) {
-    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
-    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
-    tagName = "${project.version.toString()}-${ext.hash}"
-}
 jib {
     from {
         image = 'eclipse-temurin:17-jdk-focal'
@@ -124,14 +129,8 @@ jib {
         image = imageName
         tags = [tagName.toString()]
     }
-    containerizingMode 'packaged'
     container {
-        mainClass = 'org.molgenis.armadillo.ArmadilloServiceApplication'
+        mainClass = mainClassName
         ports = ['8080']
     }
-}
-
-jar {
-    //we gonna use spring jar
-    enabled = false
 }

@@ -51,7 +51,6 @@ the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-servic
 and edit for your needs. Then you can run:
 
 ```
-export SPRING_PROFILES_ACTIVE=default
 export SPRING_CONFIG_LOCATION=<location to>/application-local.yml
 
 java -jar armadillo-3.x.x.jar
