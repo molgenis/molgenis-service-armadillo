@@ -96,3 +96,8 @@ spotless {
     }
 }
 compileJava.dependsOn 'spotlessApply'
+
+jar {
+    //we gonna use spring jar
+    enabled = false
+}

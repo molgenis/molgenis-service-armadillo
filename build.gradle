@@ -129,3 +129,8 @@ jib {
         ports = ['8080']
     }
 }
+
+jar {
+    //we gonna use spring jar
+    enabled = false
+}
