@@ -124,6 +124,7 @@ jib {
         image = imageName
         tags = [tagName.toString()]
     }
+    containerizingMode 'packaged'
     container {
         mainClass = 'org.molgenis.armadillo.ArmadilloServiceApplication'
         ports = ['8080']
