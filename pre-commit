@@ -1,5 +1,6 @@
 #!/bin/sh
 # from https://medium.com/@mmessell/apply-spotless-formatting-with-git-pre-commit-hook-1c484ea68c34
+# this will be installed during gradle build into .git/hooks/pre-commit
 
 echo '[git hook] executing gradle spotlessApply and format before commit'
 
