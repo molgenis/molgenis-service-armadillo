@@ -122,7 +122,6 @@ task installLocalGitHook(type: Copy) {
 build.dependsOn installLocalGitHook
 
 jib {
-    useCurrentTimestamp true
     from {
         image = 'eclipse-temurin:17-jdk-focal'
     }
@@ -133,5 +132,6 @@ jib {
     container {
         mainClass = mainClassName
         ports = ['8080']
+        creationTime = Instant.now().toString()
     }
 }
