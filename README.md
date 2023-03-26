@@ -51,10 +51,16 @@ the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-servic
 and edit for your needs. Then you can run:
 
 ```
+export SPRING_PROFILES_ACTIVE=<your profile>
 export SPRING_CONFIG_LOCATION=<location to>/application-local.yml
+java -jar molgenis-armadillo-3.*.jar
+```
 
-java -jar armadillo-3.x.x.jar
+Or using development mode
 
+```
+export SPRING_PROFILES_ACTIVE=development
+java -jar molgenis-armadillo-3.*.jar
 ```
 
 ## Systemd Service
@@ -64,7 +70,7 @@ guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/script
 
 ## Docker images
 
-Armadillo 3 docker images are available
+For testing, Armadillo 3 docker images are also available as docker image. These run in 'development' profile.
 
 - release at https://hub.docker.com/r/molgenis/molgenis-armadillo
 - snapshot builds from pull requests at https://hub.docker.com/r/molgenis/molgenis-armadillo-snapshot
@@ -74,9 +80,8 @@ For example, you can use docker as follows on Linux/Mac
 ```
 mkdir data
 docker pull molgenis/molgenis-armadillo-snapshot
-docker run molgenis/molgenis-armadillo-snapshot \
--mount type=bind,source="$(pwd)"/data,target=/data \
--v /var/run.docker.sock:/var/run/docker.sock 
+docker run -p 8080:8080 molgenis/molgenis-armadillo-snapshot \
+-mount type=bind,source=data,target=/data 
 ```
 
 ## armadillo 2
