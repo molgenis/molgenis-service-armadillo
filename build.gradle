@@ -5,7 +5,6 @@ plugins {
     id "org.sonarqube" version "3.5.0.2730"
     id "de.gliderpilot.semantic-release" version "1.4.2"
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'application'
     id 'com.google.cloud.tools.jib' version '3.3.1'
     id "jacoco"
@@ -31,31 +30,12 @@ repositories {
 dependencies {
     implementation project(':armadillo')
 }
-mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
-shadowJar {
-    archiveBaseName = 'molgenis-armadillo'
-    mergeServiceFiles()
-}
 
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
 semanticRelease {
     repo {
-        releaseAsset shadowJar
         ghToken = project.ghToken
     }
-}
-
-def imageName = 'docker.io/molgenis/molgenis-armadillo'
-def tagName = project.version.toString()
-if (version.toString().endsWith('-SNAPSHOT')) {
-    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
-    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
-    tagName = "${project.version.toString()}-${ext.hash}"
-}
-// write a  file to pickup in deployment to use specific tags in upgrade
-task ci(type: WriteProperties) {
-    outputFile file('build/ci.properties')
-    property 'tagName', tagName
 }
 
 run {
@@ -82,6 +62,7 @@ application {
     mainClass.set(javaMainClass)
 }
 
+//add version info to jar
 jar {
     reproducibleFileOrder = true
     manifest {
@@ -95,6 +76,7 @@ jar {
     }
 }
 
+//merge test reports
 task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
@@ -109,6 +91,7 @@ task jacocoMergedReport(type: JacocoReport) {
     }
 }
 
+//push to sonarqube
 sonarqube {
     properties {
         property 'sonar.projectName', 'armadillo-service'
@@ -117,6 +100,22 @@ sonarqube {
     }
 }
 
+//install pre-commit hook
+task installLocalGitHook(type: Copy) {
+    from new File(rootProject.rootDir, 'pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+    fileMode 0775
+}
+build.dependsOn installLocalGitHook
+
+//publish to docker
+def imageName = 'docker.io/molgenis/molgenis-armadillo'
+def tagName = project.version.toString()
+if (version.toString().endsWith('-SNAPSHOT')) {
+    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
+    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
+    tagName = "${project.version.toString()}-${ext.hash}"
+}
 jib {
     from {
         image = 'eclipse-temurin:17-jdk-focal'
@@ -126,14 +125,7 @@ jib {
         tags = [tagName.toString()]
     }
     container {
-        mainClass = mainClassName
+        mainClass = 'org.molgenis.armadillo.ArmadilloServiceApplication'
         ports = ['8080']
     }
 }
-
-task installLocalGitHook(type: Copy) {
-    from new File(rootProject.rootDir, 'pre-commit')
-    into { new File(rootProject.rootDir, '.git/hooks') }
-    fileMode 0775
-}
-build.dependsOn installLocalGitHook
