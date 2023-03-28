@@ -72,6 +72,15 @@ jobs:
           command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
+          name: Setup git
+          command: |
+           git config --global --add safe.directory '*'
+           git fetch --depth 10000
+           git config user.email "molgenis@gmail.com"
+           git config user.name "molgenis-jenkins"
+           git config url.https://.insteadOf git://
+
+      - run:
           name: build, test, push docker
           command: |
             ./gradlew build test jacocoMergedReport sonarqube release dockerPush \
