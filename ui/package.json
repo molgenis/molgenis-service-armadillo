@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "format": "prettier src --write --config ./.prettierrc.js",
     "test": "jest"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "vue-router": "^4.0.13"
   },
   "devDependencies": {
+    "prettier": "2.8.4",
     "@babel/preset-env": "^7.19.3",
     "@babel/preset-typescript": "^7.18.6",
     "@types/jest": "^29.1.1",
