@@ -97,6 +97,5 @@ spotless {
         googleJavaFormat('1.15.0')
     }
 }
-compileJava.dependsOn 'spotlessApply'
 
 bootJar.enabled = false
