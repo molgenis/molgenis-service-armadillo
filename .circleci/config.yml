@@ -49,11 +49,15 @@ jobs:
 
       - run:
           name: set repo keys for docker packages
-          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor
+            -o /usr/share/keyrings/docker-archive-keyring.gpg
 
       - run:
           name: add repo for docker packages
-          command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+          command: echo "deb [arch=$(dpkg --print-architecture)
+            signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]
+            https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
       - run:
           name: update package manager again
@@ -85,3 +89,5 @@ jobs:
             ./gradlew build test jacocoMergedReport sonarqube release dockerPush \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password --stacktrace
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
