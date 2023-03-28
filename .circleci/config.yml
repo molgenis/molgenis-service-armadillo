@@ -74,9 +74,8 @@ jobs:
       - run:
           name: Setup git, todo, move to molgenisci user
           command: |
-           apt-get install git 
            git config --global --add safe.directory '*'
-           git fetch --depth 100000
+           git fetch --unshallow
            git config user.email "molgenis@gmail.com"
            git config user.name "molgenis-jenkins"
            git config url.https://.insteadOf git://
