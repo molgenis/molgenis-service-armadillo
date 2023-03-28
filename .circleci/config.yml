@@ -77,15 +77,6 @@ jobs:
           command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
-          name: Setup git, todo, move to molgenisci user
-          command: |
-            git config --global --add safe.directory '*'
-            git config user.email "m.a.swertz@rug.nl"
-            git config user.name "mswertz"
-            git config url.https://.insteadOf git://
-      # to switch to release add following
-      # ./gradlew release jib -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} --stacktrace
-      - run:
           name: build, test, push docker
           command: |
             ./gradlew build test jacocoMergedReport sonarqube dockerPush -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
@@ -95,6 +86,13 @@ jobs:
           condition:
             equal: [ master, << pipeline.git.branch >> ]
           steps:
+            - run:
+                name: Setup git, todo, move to molgenisci user
+                command: |
+                  git config --global --add safe.directory '*'
+                  git config user.email "molgenis@gmail.com"
+                  git config user.name "molgenis-jenkins"
+                  git config url.https://.insteadOf git://
             - run:
                 name: release
                 command: |
