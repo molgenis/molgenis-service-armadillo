@@ -20,7 +20,7 @@ task format(type: YarnTask, dependsOn: yarn_install) {
     outputs.dir('src')
 }
 
-task mybuild(type: YarnTask, dependsOn: format) {
+task mybuild(type: YarnTask) {
     inputs.file('package.json')
     inputs.files(fileTree('src'))
     inputs.files(fileTree('public'))
