@@ -27,6 +27,18 @@ repositories {
     }
 }
 
+//helper function to get the githash
+String getGitHash() {
+    // git hash
+    def command = Runtime.getRuntime().exec("git rev-parse --short HEAD")
+    def result = command.waitFor()
+    if (result != 0) {
+        throw new IOException("Command 'getGitHash()' exited with " + result)
+    }
+    String gitCommitHash = command.inputStream.text.trim()
+    return gitCommitHash
+}
+
 // configure artifact
 mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 dependencies {
@@ -50,11 +62,8 @@ bootJar {
 }
 
 //define run
-ext {
-    javaMainClass = "org.molgenis.armadillo.ArmadilloServiceApplication"
-}
 application {
-    mainClass.set(javaMainClass)
+    mainClass.set(mainClassName)
 }
 run {
     environment 'SPRING_PROFILES_ACTIVE', 'development'
@@ -85,17 +94,6 @@ docker {
     buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
 }
 dockerPrepare.dependsOn bootJar
-
-String getGitHash() {
-    // git hash
-    def command = Runtime.getRuntime().exec("git rev-parse --short HEAD")
-    def result = command.waitFor()
-    if (result != 0) {
-        throw new IOException("Command 'getGitHash()' exited with " + result)
-    }
-    String gitCommitHash = command.inputStream.text.trim()
-    return gitCommitHash
-}
 
 //merge test reports
 task jacocoMergedReport(type: JacocoReport) {
@@ -128,8 +126,8 @@ task installLocalGitHook(type: Copy) {
     fileMode 0775
 }
 
-jar {
-    enabled = false
-    destinationDir = tasks.bootJar.getDestinationDir()
-    archiveName = tasks.bootJar.getArchiveName()
-}
+//jar {
+//    enabled = false
+//    destinationDir = tasks.bootJar.getDestinationDir()
+//    archiveName = tasks.bootJar.getArchiveName()
+//}

@@ -10,7 +10,6 @@
         />
         Armadillo portal <small class="text-muted">{{ version }}</small>
       </a>
-      <a href="swagger-ui.html">api</a>
       <form class="d-flex mt-1">
         <span class="navbar-text p-2" v-show="username"
           ><i class="bi bi-person-fill"></i> {{ username }}

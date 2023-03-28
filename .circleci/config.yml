@@ -41,7 +41,7 @@ jobs:
 
       # run tests!
       - run:
-          name: update package manger
+          name: update package manager
           command: apt-get update
 
       - run:
@@ -88,7 +88,7 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew build jacocoMergedReport sonarqube dockerPush -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+            ./gradlew build test jacocoMergedReport sonarqube dockerPush -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
 
       # release, but only on master
       - when:

@@ -7,7 +7,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier src --write --config ./.prettierrc.js",
-    "format-check": "prettier src --check --config ./.prettierrc.js",
     "test": "jest"
   },
   "dependencies": {

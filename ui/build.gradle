@@ -20,13 +20,6 @@ task format(type: YarnTask, dependsOn: yarn_install) {
     outputs.dir('src')
 }
 
-task formatCheck(type: YarnTask, dependsOn: yarn_install) {
-    args = ['run', 'format-check']
-    inputs.files(fileTree('src'))
-    outputs.dir('src')
-}
-
-
 task mybuild(type: YarnTask, dependsOn: format) {
     inputs.file('package.json')
     inputs.files(fileTree('src'))
@@ -42,6 +35,11 @@ task mybuild(type: YarnTask, dependsOn: format) {
     outputs.cacheIf { false }
     args = ['run', 'build']
 }
+
+//task runTest(type: YarnTask, dependsOn: mybuild) {
+//    args = ['run', 'test']
+//}
+//test.dependsOn runTest
 
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
 task createJar(type: Zip, dependsOn: mybuild) {
@@ -60,12 +58,11 @@ clean.doLast {
     project.delete(files("build"))
 }
 
+/* expose as artifact that can be used as dependency by other modules*/
 configurations {
     appResources
 }
 configurations.default.extendsFrom(configurations.appResources)
-
-/* expose as artifact that can be used as dependency by other modules*/
 artifacts {
     appResources(createJar.getArchiveFile()) {
         builtBy createJar
