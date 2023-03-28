@@ -76,7 +76,7 @@ project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghTo
 semanticRelease {
     repo {
         releaseAsset bootJar
-        ghToken = project.ghToken
+        ghToken = project.ext.ghToken
     }
 }
 
