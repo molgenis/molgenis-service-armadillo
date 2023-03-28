@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2.1
+
 jobs:
   build:
     docker:
@@ -10,6 +11,7 @@ jobs:
       - image: gradle:jdk17-focal
 
     working_directory: ~/repo
+    resource_class: large
 
     environment:
       # Customize the JVM maximum heap limit
