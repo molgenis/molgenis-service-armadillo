@@ -10,6 +10,8 @@ plugins {
     id 'com.palantir.docker' version '0.34.0'
 }
 
+grgit.remote.list().each { println it }
+
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
