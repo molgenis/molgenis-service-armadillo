@@ -75,8 +75,8 @@ jobs:
           name: Setup git
           command: |
             git config --global --add safe.directory '*'
-            git config user.email "m.a.swertz@rug.nl"
-            git config user.name "mswertz"
+            git config user.email "molgenis@gmail.com"
+            git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
 
       - run:
