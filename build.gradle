@@ -1,0 +1,136 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.9'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id "java"
+    id "org.sonarqube" version "3.5.0.2730"
+    id "de.gliderpilot.semantic-release" version "1.4.2"
+    id 'maven-publish'
+    id 'application'
+    id "jacoco"
+    id 'com.palantir.docker' version '0.34.0'
+}
+
+grgit.remote.list().each { println it }
+
+targetCompatibility = '17'
+sourceCompatibility = '17'
+
+allprojects {
+    group = 'org.molgenis'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://repo.maven.apache.org/maven2'
+    }
+    maven {
+        url = 'https://obiba.jfrog.io/artifactory/libs-release-local/'
+    }
+}
+
+//helper function to get the githash
+String getGitHash() {
+    // git hash
+    def command = Runtime.getRuntime().exec("git rev-parse --short HEAD")
+    def result = command.waitFor()
+    if (result != 0) {
+        throw new IOException("Command 'getGitHash()' exited with " + result)
+    }
+    String gitCommitHash = command.inputStream.text.trim()
+    return gitCommitHash
+}
+
+// configure artifact
+mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
+dependencies {
+    implementation project(':armadillo')
+}
+jar {
+    //we gonna use spring jar, below
+    enabled = false
+}
+bootJar {
+    mainClassName = mainClassName
+    manifest {
+        attributes(
+                'Specification-Version': project.version.toString(),
+                'Implementation-Version': getGitHash(),
+                'Created-By': "Gradle ${gradle.gradleVersion}",
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        )
+    }
+}
+
+//define run
+application {
+    mainClass.set(mainClassName)
+}
+run {
+    environment 'SPRING_PROFILES_ACTIVE', 'development'
+}
+
+//define release
+project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
+semanticRelease {
+    repo {
+        releaseAsset bootJar
+        ghToken = project.ext.ghToken
+    }
+}
+
+//define docker image
+def imageName = 'docker.io/molgenis/molgenis-armadillo'
+def tagName = project.version.toString()
+if (version.toString().endsWith('-SNAPSHOT')) {
+    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
+    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
+    tagName = "${project.version.toString()}-${ext.hash}"
+}
+docker {
+    name imageName
+    tags 'latest', tagName
+    dockerfile file('Dockerfile')
+    files bootJar.archivePath
+    buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
+}
+dockerPrepare.dependsOn test
+
+//merge test reports
+task jacocoMergedReport(type: JacocoReport) {
+    dependsOn project.getTasksByName("test", true)
+    dependsOn project.getTasksByName("jacocoTestReport", true)
+    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled false
+    }
+}
+
+//push to sonarqube
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'armadillo-service'
+        property 'sonar.projectKey', 'org.molgenis:armadillo-service'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
+    }
+}
+
+//install pre-commit hook
+task installLocalGitHook(type: Copy) {
+    from new File(rootProject.rootDir, 'pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+    fileMode 0775
+}
+build.dependsOn installLocalGitHook
+
+//jar {
+//    enabled = false
+//    destinationDir = tasks.bootJar.getDestinationDir()
+//    archiveName = tasks.bootJar.getArchiveName()
+//}

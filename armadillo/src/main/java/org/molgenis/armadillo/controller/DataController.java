@@ -351,8 +351,11 @@ public class DataController {
   @PostMapping(value = "select-profile")
   @ResponseStatus(NO_CONTENT)
   public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
-    auditEventPublisher.audit(principal, SELECT_PROFILE, Map.of(SELECTED_PROFILE, profileName));
-    commands.selectProfile(profileName.trim());
+    auditEventPublisher.audit(
+        () -> commands.selectProfile(profileName.trim()),
+        principal,
+        SELECT_PROFILE,
+        Map.of(SELECTED_PROFILE, profileName));
   }
 
   @GetMapping(value = "profiles")

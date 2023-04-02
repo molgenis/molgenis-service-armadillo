@@ -3,6 +3,7 @@ package org.molgenis.armadillo.command.impl;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.RDS;
 
@@ -75,7 +76,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public void selectProfile(String profileName) {
-    profileService.getByName(profileName);
+    runAsSystem(() -> profileService.getByName(profileName));
     armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
@@ -83,7 +84,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return profileService.getAll().stream().map(ProfileConfig::getName).toList();
+    return runAsSystem(() -> profileService.getAll().stream().map(ProfileConfig::getName).toList());
   }
 
   @Override

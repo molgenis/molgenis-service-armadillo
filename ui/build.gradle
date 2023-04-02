@@ -1,0 +1,71 @@
+plugins {
+    id "base"
+    id "com.github.node-gradle.node" version "3.5.1"
+}
+
+def nodeSpec = {
+    version = '16.16.0'
+    yarnVersion = '1.22.19'
+    npmVersion = "8.17.0"
+    download = true
+}
+
+node {
+    with nodeSpec
+}
+
+task format(type: YarnTask, dependsOn: yarn_install) {
+    args = ['run', 'format']
+    inputs.files(fileTree('src'))
+    outputs.dir('src')
+}
+
+task mybuild(type: YarnTask, dependsOn: yarn_install) {
+    inputs.file('package.json')
+    inputs.files(fileTree('src'))
+    inputs.files(fileTree('public'))
+    inputs.file('vite.config.js')
+    inputs.file('tsconfig.json')
+    inputs.file('shims-vue.d.ts')
+    inputs.file('jest.config.js')
+    inputs.file('tsconfig.node.json')
+    inputs.file('index.html')
+    outputs.dir('dist')
+
+    outputs.cacheIf { false }
+    args = ['run', 'build']
+}
+
+//task runTest(type: YarnTask, dependsOn: mybuild) {
+//    args = ['run', 'test']
+//}
+//test.dependsOn runTest
+
+/* convert build files into one apps.jar that we can use as a dependency in the java part */
+task createJar(type: Zip, dependsOn: mybuild) {
+    archiveBaseName = 'ui'
+    archiveExtension = 'jar'
+    destinationDirectory = file("${buildDir}/build/libs")
+    from('dist')
+    into('public')
+}
+
+//first mybuild, than createJar
+build.dependsOn "createJar"
+
+clean.doLast {
+    project.delete(files("dist"))
+    project.delete(files("build"))
+}
+
+/* expose as artifact that can be used as dependency by other modules*/
+configurations {
+    appResources
+}
+configurations.default.extendsFrom(configurations.appResources)
+artifacts {
+    appResources(createJar.getArchiveFile()) {
+        builtBy createJar
+        type "jar"
+    }
+}

@@ -1,0 +1,5 @@
+rootProject.name = 'molgenis-armadillo'
+
+include ':armadillo'
+include ':r'
+include ':ui'

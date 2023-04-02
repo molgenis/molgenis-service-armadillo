@@ -1,5 +1,12 @@
 .DS_Store
 
+#gradle
+.gradle
+build/
+!gradle-wrapper.jar
+out
+dist
+
 ### STORAGE ###
 data/user-*
 data/system
