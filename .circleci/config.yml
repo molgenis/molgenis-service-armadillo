@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2.1
+
 jobs:
   build:
     docker:
@@ -10,6 +11,7 @@ jobs:
       - image: gradle:jdk17-focal
 
     working_directory: ~/repo
+    resource_class: large
 
     environment:
       # Customize the JVM maximum heap limit
@@ -72,13 +74,12 @@ jobs:
           command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
-          name: Setup git, todo, move to molgenisci user
+          name: Setup git
           command: |
-           git config --global --add safe.directory '*'
-           git fetch --unshallow
-           git config user.email "molgenis@gmail.com"
-           git config user.name "molgenis-jenkins"
-           git config url.https://.insteadOf git://
+            git config --global --add safe.directory '*'
+            git config user.email "molgenis@gmail.com"
+            git config user.name "molgenis-jenkins"
+            git config url.https://.insteadOf git://
 
       - run:
           name: build, test, push docker
