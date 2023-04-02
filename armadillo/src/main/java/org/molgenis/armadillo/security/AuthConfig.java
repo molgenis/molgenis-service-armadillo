@@ -30,9 +30,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -40,119 +37,111 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Import(UserDetailsServiceAutoConfiguration.class)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
+@Configuration
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
 // they are ordered, so jwt config is most dominant and oauth2Login least dominant
 // in 'test' profile they are not enabled
 public class AuthConfig {
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
+  private AccessService accessService;
 
-  @Configuration
-  @EnableWebSecurity
-  @Profile({"!test"})
+  public AuthConfig(AccessService accessService) {
+    this.accessService = accessService;
+  }
+
+  @Bean
   @Order(1)
-  // check against JWT and basic auth. You can also sign in using 'oauth2'
-  public static class SecurityConfig {
-    AccessService accessService;
+  protected SecurityFilterChain configurePublic(HttpSecurity http) throws Exception {
+    return http.securityMatcher(
+            "/",
+            "/index.html",
+            "/armadillo-logo.png",
+            "favicon.ico",
+            "/assets/**",
+            "/v3/**",
+            "/swagger-ui/**",
+            "/ui/**",
+            "/swagger-ui.html")
+        .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+        .build();
+  }
 
-    public SecurityConfig(AccessService accessService) {
-      this.accessService = accessService;
-    }
+  // oauth2login, if client is configured
+  @Bean
+  @Order(2)
+  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    // use this if not authenticated and having oauth config
+    return http.securityMatcher("/oauth2/**", "/login", "/login/**")
+        .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
+        .oauth2Login(
+            oauth2Login ->
+                oauth2Login
+                    .userInfoEndpoint(
+                        userInfoEndpoint ->
+                            userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+                    .defaultSuccessUrl("/", true))
+        .build();
+  }
 
-    @Bean
-    @Order(1)
-    protected SecurityFilterChain doPublic(HttpSecurity http) throws Exception {
-      return http.securityMatcher(
-              new AndRequestMatcher(
-                  // used in config(2)
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
-                  new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
-          .authorizeHttpRequests(
-              requests ->
-                  requests
-                      .requestMatchers(
-                          "/",
-                          "/index.html",
-                          "/armadillo-logo.png",
-                          "favicon.ico",
-                          "/assets/**",
-                          "/v3/**",
-                          "/swagger-ui/**",
-                          "/ui/**",
-                          "/swagger-ui.html",
-                          "/basic-login")
-                      .permitAll()
-                      .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
-                      .permitAll()
-                      .requestMatchers(toAnyEndpoint())
-                      .authenticated())
-          .csrf()
-          .disable()
-          .cors()
-          .and()
-          .httpBasic(
-              httpBasicConfigurer_ -> {
-                httpBasicConfigurer_.realmName("Armadillo");
-                httpBasicConfigurer_.authenticationEntryPoint(
-                    new NoPopupBasicAuthenticationEntryPoint());
-              })
-          .logout()
-          .logoutSuccessUrl("/")
-          .and()
-          .oauth2ResourceServer(
-              oauth2 ->
-                  oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())))
-          .build();
-    }
+  @Bean
+  @Profile({"!test"})
+  @Order(3)
+  protected SecurityFilterChain configureBasicAuthAndJWT(HttpSecurity http) throws Exception {
+    return http.authorizeHttpRequests(
+            requests ->
+                requests
+                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+                    .permitAll()
+                    .requestMatchers(toAnyEndpoint())
+                    .authenticated())
+        .csrf()
+        .disable()
+        .cors()
+        .and()
+        .httpBasic(
+            // Customizer.withDefaults())
+            httpBasicConfigurer -> {
+              httpBasicConfigurer.realmName("Armadillo");
+              httpBasicConfigurer.authenticationEntryPoint(
+                  new NoPopupBasicAuthenticationEntryPoint());
+            })
+        .logout()
+        .logoutSuccessUrl("/")
+        .and()
+        .oauth2ResourceServer(
+            oauth2 ->
+                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())))
+        .build();
+  }
 
-    @Bean
-    Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
-      JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-      jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-          new JwtRolesExtractor(accessService));
-      return jwtAuthenticationConverter;
-    }
+  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
+    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
+        new JwtRolesExtractor(accessService));
+    return jwtAuthenticationConverter;
+  }
 
-    // oauth2login, if client is configured
-    @Bean
-    @Order(2)
-    @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-    protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-      // use this if not authenticated and having oauth config
-      return http.authorizeHttpRequests(
-              requests ->
-                  requests.requestMatchers("/oauth2/**", "/login", "/login/**").authenticated())
-          .oauth2Login(
-              oauth2Login ->
-                  oauth2Login
-                      .userInfoEndpoint(
-                          userInfoEndpoint ->
-                              userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                      .defaultSuccessUrl("/", true))
-          .build();
-    }
+  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
+    return authorities -> {
+      Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
-    private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-      return authorities -> {
-        Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+      authorities.forEach(
+          authority -> {
+            if (authority instanceof OAuth2UserAuthority) {
+              OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
+              final Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
+              mappedAuthorities.addAll(
+                  runAsSystem(
+                      () ->
+                          accessService.getAuthoritiesForEmail(
+                              (String) userAttributes.get("email"), userAttributes)));
+            }
+          });
 
-        authorities.forEach(
-            authority -> {
-              if (authority instanceof OAuth2UserAuthority) {
-                OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
-                final Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
-                mappedAuthorities.addAll(
-                    runAsSystem(
-                        () ->
-                            accessService.getAuthoritiesForEmail(
-                                (String) userAttributes.get("email"), userAttributes)));
-              }
-            });
-
-        return mappedAuthorities;
-      };
-    }
+      return mappedAuthorities;
+    };
   }
 
   /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */

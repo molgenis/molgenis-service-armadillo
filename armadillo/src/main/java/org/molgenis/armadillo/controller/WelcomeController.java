@@ -121,8 +121,9 @@ public class WelcomeController {
   @GetMapping("/basic-login")
   @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
-  public RedirectView basicLogin() {
-    return new RedirectView("/");
+  public String basicLogin(Principal principal) {
+    System.out.println(principal.getName());
+    return "redirect:/";
   }
 
   @GetMapping("/basic-logout")

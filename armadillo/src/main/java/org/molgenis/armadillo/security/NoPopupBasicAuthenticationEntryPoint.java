@@ -3,11 +3,10 @@ package org.molgenis.armadillo.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
-public class NoPopupBasicAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class NoPopupBasicAuthenticationEntryPoint extends BasicAuthenticationEntryPoint {
 
   @Override
   public void commence(
@@ -15,6 +14,12 @@ public class NoPopupBasicAuthenticationEntryPoint implements AuthenticationEntry
       HttpServletResponse response,
       AuthenticationException authException)
       throws IOException {
-    response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+  }
+
+  @Override
+  public void afterPropertiesSet() {
+    setRealmName("Armadillo");
+    super.afterPropertiesSet();
   }
 }
