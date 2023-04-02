@@ -3,10 +3,10 @@ package org.molgenis.armadillo;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableMap;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;

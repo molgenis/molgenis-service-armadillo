@@ -1,8 +1,9 @@
 package org.molgenis.armadillo.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -14,6 +15,6 @@ public class NoPopupBasicAuthenticationEntryPoint implements AuthenticationEntry
       HttpServletResponse response,
       AuthenticationException authException)
       throws IOException {
-    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+    response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
   }
 }
