@@ -89,6 +89,7 @@ logging:
     org.molgenis: DEBUG
     org:
       springframework:
+        security: DEBUG
         boot:
           actuate:
             audit:

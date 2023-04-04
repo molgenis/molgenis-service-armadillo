@@ -35,7 +35,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Profile("!test")
 @Import(UserDetailsServiceAutoConfiguration.class)
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @EnableWebSecurity
 @Configuration
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
