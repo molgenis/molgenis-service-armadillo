@@ -182,3 +182,4 @@ spring:
 ```--spring.config.additional-location=file:armadillo/src/main/resources/application-local.yml```
 
 Now the lifecycle test project (including its data) will work out of the box, and you will be able to log in with your OIDC account immediately.
+
