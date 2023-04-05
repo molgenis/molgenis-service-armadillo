@@ -1,4 +1,4 @@
-* Armadillo guide
+* Menu
 
     * [Armadillo suite](/)
     

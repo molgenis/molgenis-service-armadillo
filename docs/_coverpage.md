@@ -1,4 +1,4 @@
-# Armadillo <small>3.0.2</small>
+# Armadillo <small>3</small>
 
 ![logo](img/armadillo-logo.png)
 
