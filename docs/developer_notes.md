@@ -9,7 +9,7 @@ npm i docsify-cli -g
 Then you can serve the dev in this directory using
 
 ```
-docsify serve
+docsify serve ./docs
 ```
 
 And view the result on
