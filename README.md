@@ -62,7 +62,7 @@ java -jar molgenis-armadillo-3.*.jar \
 ## To run in development mode
 
 Using development profile, we can test agains auth.molgenis.org that is preconfigured in /armadillo/src/main/resources/application.yaml.
-However, you then need client-id and secret.
+However, you then need client-id and secret
 
 ```
 java -jar molgenis-armadillo-3.*.jar \
@@ -70,6 +70,8 @@ java -jar molgenis-armadillo-3.*.jar \
 -Dspring.security.oauth2.client.registration.molgenis.client-id=xxx 
 -Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx 
 ```
+
+> note you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
 
 ## To run in production mode
 
