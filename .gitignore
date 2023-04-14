@@ -46,3 +46,6 @@ build/
 /docker/logs/
 /docker/data/
 **/audit.log
+
+application.yaml
+application.yml
