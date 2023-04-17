@@ -61,8 +61,8 @@ java -jar molgenis-armadillo-3.*.jar \
 
 ## To run in development mode
 
-Using development profile, we can test agains auth.molgenis.org that is preconfigured in /armadillo/src/main/resources/application.yaml.
-However, you then need client-id and secret
+Using development profile, we can test against auth.molgenis.org that is preconfigured in /armadillo/src/main/resources/application.yaml.
+However, you then need a client-id and a secret
 
 ```
 java -jar molgenis-armadillo-3.*.jar \
@@ -75,8 +75,8 @@ java -jar molgenis-armadillo-3.*.jar \
 
 ## To run in production mode
 
-When running in production mode you should create your own application.yml file in your working directory. 
-An example can be found below, copy into application.yaml file.
+When running in production mode you should create your own `application.yml` file in your working directory. 
+An example can be found below, copy into `application.yml` file.
 
 `
 armadillo:
@@ -119,7 +119,7 @@ guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/script
 
 ## Docker images
 
-For testing, Armadillo 3 docker images are also available as docker image. These run in ' basic' profile.
+For testing, Armadillo 3 docker images are also available as docker image. These run in 'basic' profile.
 
 - release at https://hub.docker.com/r/molgenis/molgenis-armadillo
 - snapshot builds from pull requests at https://hub.docker.com/r/molgenis/molgenis-armadillo-snapshot
