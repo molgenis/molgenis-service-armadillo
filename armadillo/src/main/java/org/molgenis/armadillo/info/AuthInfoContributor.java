@@ -19,6 +19,8 @@ public class AuthInfoContributor implements InfoContributor {
 
   @Override
   public void contribute(Builder builder) {
-    builder.withDetail("auth", Map.of("clientId", clientId, "issuerUri", issuerUri));
+    if (clientId != null && issuerUri != null) {
+      builder.withDetail("auth", Map.of("clientId", clientId, "issuerUri", issuerUri));
+    }
   }
 }

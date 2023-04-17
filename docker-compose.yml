@@ -6,7 +6,8 @@ services:
   armadillo:
     image: molgenis/molgenis-armadillo-snapshot:latest
     environment:
-      SPRING_PROFILES_ACTIVE: development
+      SPRING_PROFILES_ACTIVE: basic
+      # basic doesn't use OIDC
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
     #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
