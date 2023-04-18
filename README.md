@@ -55,8 +55,7 @@ However, for most minimal testing you can run uses only basic auth and with one 
 Note that the 'oauth2' sign in option then is not functional.
 
 `
-java -jar molgenis-armadillo-3.*.jar \
--Dspring.profiles.active=basic
+java -jar -Dspring.profiles.active=basic molgenis-armadillo-3.*.jar
 `
 
 ## To run in development mode
@@ -65,10 +64,11 @@ Using development profile, we can test against auth.molgenis.org that is preconf
 However, you then need a client-id and a secret
 
 ```
-java -jar molgenis-armadillo-3.*.jar \
--Dspring.profiles.active=development
--Dspring.security.oauth2.client.registration.molgenis.client-id=xxx 
--Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx 
+java -jar \
+-Dspring.profiles.active=development \
+-Dspring.security.oauth2.client.registration.molgenis.client-id=xxx \
+-Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx \
+molgenis-armadillo-3.*.jar
 ```
 
 > note you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
@@ -108,8 +108,7 @@ spring:
 And then you can run:
 
 `
-java -jar molgenis-armadillo-3.*.jar \
--Dspring.profiles.active=myprofile
+java -jar -Dspring.profiles.active=myprofile molgenis-armadillo-3.*.jar
 `
 
 ## Run as systemd Service
