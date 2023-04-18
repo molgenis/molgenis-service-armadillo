@@ -102,7 +102,8 @@ public class AuthConfig {
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
           .authorizeRequests()
-          .antMatchers("/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
+          .antMatchers(
+              "/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html", "/basic-login")
           .permitAll()
           .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
           .permitAll()
