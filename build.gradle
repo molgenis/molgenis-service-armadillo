@@ -78,7 +78,7 @@ run {
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
 semanticRelease {
     repo {
-        releaseAsset jar
+        releaseAsset bootJar
         ghToken = project.ext.ghToken
     }
 }
