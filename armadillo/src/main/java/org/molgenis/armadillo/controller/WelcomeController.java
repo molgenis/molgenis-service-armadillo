@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.validation.annotation.Validated;
@@ -120,7 +119,6 @@ public class WelcomeController {
 
   @GetMapping("/basic-login")
   @ResponseBody
-  @PreAuthorize("hasRole('ROLE_SU')")
   public RedirectView basicLogin() {
     return new RedirectView("/");
   }
