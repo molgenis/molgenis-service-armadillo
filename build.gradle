@@ -50,6 +50,9 @@ jar {
     //we gonna use spring jar, below
     enabled = false
 }
+springBoot {
+    buildInfo()
+}
 bootJar {
     mainClassName = mainClassName
     manifest {
