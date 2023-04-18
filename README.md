@@ -78,7 +78,7 @@ molgenis-armadillo-3.*.jar
 When running in production mode you should create your own `application.yml` file in your working directory. 
 An example can be found below, copy into `application.yml` file.
 
-`
+```
 armadillo:
   oidc-permission-enabled: false
   docker-management-enabled: true
@@ -102,7 +102,8 @@ spring:
           issuer-uri: 'https://auth.molgenis.org'
         opaquetoken:
           client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-`
+```
+
 > Note: If don't want to configure an oauth2 client for any reason, just remove the `oauth2` section.
 
 And then you can run:
