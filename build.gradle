@@ -81,6 +81,9 @@ semanticRelease {
         releaseAsset bootJar
         ghToken = project.ext.ghToken
     }
+    releaseBranches {
+        include 'rc/*'
+    }
 }
 //add ability to create release candidate for branches that start with 'rc/*'
 import org.ajoberstar.gradle.git.release.semver.*
