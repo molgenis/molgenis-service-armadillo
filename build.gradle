@@ -75,14 +75,17 @@ run {
 }
 
 //define release
-import org.ajoberstar.gradle.git.release.semver.*
-import org.ajoberstar.gradle.git.release.opinion.Strategies
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
 semanticRelease {
     repo {
         releaseAsset bootJar
         ghToken = project.ext.ghToken
     }
+}
+//add ability to create release candidate for branches that start with 'rc'
+import org.ajoberstar.gradle.git.release.semver.*
+import org.ajoberstar.gradle.git.release.opinion.Strategies
+release {
     // release candidate
     versionStrategy semanticRelease.releaseStrategy.copyWith(
             // the type is important, without type you would again replace the default strategy
