@@ -82,7 +82,7 @@ semanticRelease {
         ghToken = project.ext.ghToken
     }
     releaseBranches {
-        include 'rc/*'
+        include 'release-candidate'
     }
 }
 //add ability to create release candidate for branches that start with 'rc/*'
