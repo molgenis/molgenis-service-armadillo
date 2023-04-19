@@ -82,7 +82,7 @@ semanticRelease {
         ghToken = project.ext.ghToken
     }
 }
-//add ability to create release candidate for branches that start with 'rc/'
+//add ability to create release candidate for branches that start with 'rc/*'
 import org.ajoberstar.gradle.git.release.semver.*
 import org.ajoberstar.gradle.git.release.opinion.Strategies
 release {
