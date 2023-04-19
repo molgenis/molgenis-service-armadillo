@@ -176,7 +176,8 @@ download_armadillo() {
   if [ -z "$ARMADILLO_VERSION" ]; then
     LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
     ARMADILLO_TAG=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-    ARMADILLO_VERSION=$(echo $ARMADILLO_TAG | sed -e 's/.*armadillo-service-//')
+    ARMADILLO_VERSION=$(echo $ARMADILLO_TAG | sed -e 's/.*v//')
+
 
     
     if [[ "$ARMADILLO_VERSION" =~ 'armadillo-service-2' ]]; then
@@ -184,7 +185,9 @@ download_armadillo() {
       exit 1;
     fi
   fi
-  DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_VERSION/armadillo-$ARMADILLO_VERSION.jar
+
+  DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/v$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar
+
  
   if validate_url $DL_URL; then
 
@@ -221,7 +224,7 @@ setup_updatescript() {
     wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
     echo "Update script downloaded"
     chmod +x $ARMADILLO_PATH/application/armadillo-update.sh
-    ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/check-update
+    ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/check-armadillo-update
       
   else
     echo "[ ERROR ] update script not downloaded"
@@ -255,7 +258,7 @@ cleanup(){
             rm -Rf /etc/systemd/system/armadillo.service
             systemctl daemon-reload
             rm -Rf $ARMADILLO_LOG_PATH
-            rm /etc/cron.d/update-armadillo
+            rm -Rf /etc/cron.weekly/check-armadillo-update
             echo "Armadillo cleaned!"
         else
           echo "No cleanup .. please remove the --cleanup argument"
