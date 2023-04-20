@@ -21,6 +21,7 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api'
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.retry:spring-retry'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor
 
     //other
     implementation 'commons-io:commons-io:2.11.0'
@@ -30,7 +31,7 @@ dependencies {
     implementation 'com.google.auto.value:auto-value-annotations:1.10.1'
     implementation 'org.apache.commons:commons-text:1.10.0'
 
-    //test
+    //test spring
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
@@ -38,7 +39,6 @@ dependencies {
 
     //annotation
     annotationProcessor "com.google.auto.value:auto-value:1.10.1"
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.7.11"
 }
 
 jacocoTestReport {
