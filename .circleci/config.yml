@@ -73,4 +73,4 @@ jobs:
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
 
       - store_artifacts:
-        path: /build/libs
+          path: /build/libs
