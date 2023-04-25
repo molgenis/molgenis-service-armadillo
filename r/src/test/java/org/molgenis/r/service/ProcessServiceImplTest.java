@@ -2,14 +2,10 @@ package org.molgenis.r.service;
 
 import static java.lang.String.format;
 import static java.util.Map.entry;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.r.service.ProcessServiceImpl.COUNT_RSERVE_PROCESSES_COMMAND;
-import static org.molgenis.r.service.ProcessServiceImpl.GET_PID_COMMAND;
-import static org.molgenis.r.service.ProcessServiceImpl.GET_RSERVE_PROCESSES_COMMAND;
-import static org.molgenis.r.service.ProcessServiceImpl.TERMINATE_COMMAND;
+import static org.molgenis.r.service.ProcessServiceImpl.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,30 +15,29 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.r.REXPParser;
+import org.molgenis.r.RNamedList;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
+import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REXPString;
-import org.rosuda.REngine.RList;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class ProcessServiceImplTest {
-  @Mock private REXPParser rexpParser;
   @Mock private RExecutorService rExecutorService;
-  @Mock private REXPString rexp;
-  @Mock private RList list;
-  @Mock private RConnection rConnection;
+  @Mock private RServerResult rexp;
+  @Mock private RNamedList<RServerResult> list;
+  @Mock private RServerConnection rConnection;
 
   private ProcessService processService;
 
   @BeforeEach
   void before() {
-    processService = new ProcessServiceImpl(rexpParser, rExecutorService);
+    processService = new ProcessServiceImpl(rExecutorService);
   }
 
   @Test
@@ -54,24 +49,24 @@ class ProcessServiceImplTest {
   }
 
   @Test
-  void testTerminate() throws RserveException {
+  void testTerminate() throws RServerException {
     processService.terminateProcess(rConnection, 218);
 
     verify(rExecutorService).execute(format(TERMINATE_COMMAND, 218), rConnection);
   }
 
   @Test
-  void testCountRserveProcesses() throws REXPMismatchException, RserveException {
+  void testCountRserveProcesses() throws REXPMismatchException, RServerException {
     when(rExecutorService.execute(COUNT_RSERVE_PROCESSES_COMMAND, rConnection))
-        .thenReturn(new REXPList(new REXPInteger(3), "n"));
+        .thenReturn(new RserveResult(new REXPList(new REXPInteger(3), "n")));
     assertEquals(3, processService.countRserveProcesses(rConnection));
   }
 
   @Test
-  void testGetRserveProcesses() throws REXPMismatchException, RserveException {
+  void testGetRserveProcesses() {
     when(rExecutorService.execute(GET_RSERVE_PROCESSES_COMMAND, rConnection)).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(list);
-    when(rexpParser.parseTibble(list))
+    when(rexp.asNamedList()).thenReturn(list);
+    when(list.asRows())
         .thenReturn(
             List.of(
                 Map.ofEntries(
@@ -100,7 +95,6 @@ class ProcessServiceImplTest {
                     entry("created", 1597214127.64387),
                     entry("cmd", "SafeEjectGPUAgent"),
                     entry("ports", ""))));
-    when(rexpParser.parseDate(any())).thenCallRealMethod();
 
     assertEquals(
         List.of(

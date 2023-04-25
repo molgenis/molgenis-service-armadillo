@@ -10,9 +10,9 @@ import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,7 +46,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
 
   @PostConstruct
   public void init() {
-    RConnection connection = null;
+    RServerConnection connection = null;
     try {
       connection = rConnectionFactory.tryCreateConnection();
       Map<String, String> optionsMap =

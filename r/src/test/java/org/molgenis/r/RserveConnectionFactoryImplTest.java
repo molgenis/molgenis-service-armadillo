@@ -1,7 +1,6 @@
 package org.molgenis.r;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -12,33 +11,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.rosuda.REngine.Rserve.RConnection;
+import org.molgenis.r.rserve.RserveConnection;
+import org.molgenis.r.rserve.RserveConnectionFactoryImpl;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class RConnectionFactoryImplTest {
+class RserveConnectionFactoryImplTest {
 
   EnvironmentConfigProps rConfigProperties = new EnvironmentConfigProps();
-  @Mock RConnection rConnection;
+  @Mock RserveConnection rConnection;
 
-  private RConnectionFactoryImpl rConnectionFactory;
+  private RserveConnectionFactoryImpl rConnectionFactory;
 
   @BeforeEach
   void beforeEach() {
     rConfigProperties.setHost("host");
     rConfigProperties.setPort(123);
-    rConnectionFactory = spy(new RConnectionFactoryImpl(rConfigProperties));
-  }
-
-  @Test
-  void testGetNewConnection() throws RserveException {
-    doReturn(rConnection).when(rConnectionFactory).newConnection("host", 123);
-    assertEquals(rConnection, rConnectionFactory.tryCreateConnection());
+    rConnectionFactory = spy(new RserveConnectionFactoryImpl(rConfigProperties));
   }
 
   @Test
   void testGetNewConnectionCannotConnect() throws RserveException {
-    doThrow(new RserveException(rConnection, "Cannot connect"))
+    doThrow(new RserveException((rConnection).getConnection(), "Cannot connect"))
         .when(rConnectionFactory)
         .newConnection("host", 123);
 

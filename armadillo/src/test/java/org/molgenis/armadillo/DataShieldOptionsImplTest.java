@@ -13,9 +13,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {
@@ -30,7 +30,7 @@ class DataShieldOptionsImplTest {
 
   @Mock private PackageService packageService;
   @Mock private RConnectionFactory rConnectionFactory;
-  @Mock private RConnection rConnection;
+  @Mock private RServerConnection rConnection;
 
   DataShieldOptionsImpl options;
 

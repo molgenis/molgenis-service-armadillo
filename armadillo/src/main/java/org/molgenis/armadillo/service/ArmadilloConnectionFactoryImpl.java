@@ -8,10 +8,10 @@ import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,22 +35,22 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   @Override
-  public RConnection createConnection() {
+  public RServerConnection createConnection() {
     try {
-      RConnection connection = rConnectionFactory.tryCreateConnection();
+      RServerConnection connection = rConnectionFactory.tryCreateConnection();
       loadPackages(connection);
       setDataShieldOptions(connection);
       return connection;
-    } catch (RserveException cause) {
+    } catch (RServerException cause) {
       throw new ConnectionCreationFailedException(cause);
     }
   }
 
-  private void loadPackages(RConnection connection) {
+  private void loadPackages(RServerConnection connection) {
     packageService.loadPackages(connection, profileConfig.getPackageWhitelist());
   }
 
-  private void setDataShieldOptions(RConnection con) throws RserveException {
+  private void setDataShieldOptions(RServerConnection con) throws RServerException {
     for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
       con.eval(
           format(

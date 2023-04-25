@@ -10,12 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.molgenis.r.REXPParser;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.RPackage;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Component;
 public class PackageServiceImpl implements PackageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PackageServiceImpl.class);
-
-  private final REXPParser rexpParser;
 
   public static final String FIELD_PACKAGE = "Package";
   public static final String FIELD_LIB_PATH = "LibPath";
@@ -57,29 +54,25 @@ public class PackageServiceImpl implements PackageService {
           + "  dplyr::rowwise() %>%\n"
           + "  dplyr::do(to_df(read_datashield_inst(.)))\n";
 
-  public PackageServiceImpl(REXPParser rexpParser) {
-    this.rexpParser = rexpParser;
-  }
-
   @Override
-  public List<RPackage> getInstalledPackages(RConnection connection) {
+  public List<RPackage> getInstalledPackages(RServerConnection connection) {
     try {
-      var eval = connection.eval(COMMAND_INSTALLED_PACKAGES);
-      List<Map<String, Object>> rows = rexpParser.parseTibble(eval.asList());
+      RServerResult eval = connection.eval(COMMAND_INSTALLED_PACKAGES);
+      List<Map<String, Object>> rows = eval.asNamedList().asRows();
       return rows.stream().map(PackageServiceImpl::toPackage).collect(Collectors.toList());
-    } catch (RserveException | REXPMismatchException e) {
+    } catch (RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
-  public void loadPackages(RConnection connection, Set<String> pkgs) {
+  public void loadPackages(RServerConnection connection, Set<String> pkgs) {
     String packages = String.format("\"%s\"", String.join("\",\"", pkgs));
     try {
       LOGGER.trace("Loading packages [ {} ]", packages);
       connection.eval("base::lapply(c(" + packages + "), library, character.only = TRUE)");
       LOGGER.trace("Successfully loaded packages [ {} ]", packages);
-    } catch (RserveException e) {
+    } catch (RServerException e) {
       throw new RExecutionException("Error loading packages: " + packages);
     }
   }

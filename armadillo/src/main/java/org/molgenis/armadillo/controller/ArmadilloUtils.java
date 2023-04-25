@@ -8,8 +8,7 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
+import org.molgenis.r.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +24,15 @@ public class ArmadilloUtils {
     return format("try(base::serialize({%s}, NULL))", cmd);
   }
 
-  public static byte[] createRawResponse(REXP result) {
+  public static byte[] createRawResponse(RServerResult result) {
     try {
       byte[] rawResult = result.asBytes();
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("RAW result: \n{}", hexDump(rawResult));
       }
       return rawResult;
-    } catch (REXPMismatchException e) {
-      throw new IllegalStateException(
-          format("This was no 'RAW' result: [ %s ]", result.toDebugString()));
+    } catch (Exception e) {
+      throw new IllegalStateException(format("This was no 'RAW' result: [ %s ]", result));
     }
   }
 
