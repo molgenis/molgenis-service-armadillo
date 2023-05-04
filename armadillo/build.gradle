@@ -34,6 +34,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework:spring-aspects'
     implementation 'org.springframework.retry:spring-retry'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     //other
     implementation 'org.rosuda.REngine:REngine:2.1.0'
@@ -65,7 +66,6 @@ dependencies {
 
     //annotation processor
     annotationProcessor "com.google.auto.value:auto-value:1.10.1"
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.7.10"
 }
 
 jacocoTestReport {
