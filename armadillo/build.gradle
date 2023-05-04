@@ -22,7 +22,6 @@ dependencies {
     implementation project(':ui')
 
     //spring
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     implementation 'com.google.code.gson:gson'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -36,7 +35,7 @@ dependencies {
     implementation 'org.springframework:spring-aspects'
     implementation 'org.springframework.retry:spring-retry'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    
+
     //test spring
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
