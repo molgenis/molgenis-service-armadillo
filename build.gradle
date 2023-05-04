@@ -10,6 +10,8 @@ plugins {
     id 'com.palantir.docker' version '0.34.0'
 }
 
+grgit.remote.list().each { println it }
+
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
@@ -48,6 +50,9 @@ jar {
     //we gonna use spring jar, below
     enabled = false
 }
+springBoot {
+    buildInfo()
+}
 bootJar {
     mainClassName = mainClassName
     manifest {
@@ -74,7 +79,7 @@ project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghTo
 semanticRelease {
     repo {
         releaseAsset bootJar
-        ghToken = project.ghToken
+        ghToken = project.ext.ghToken
     }
 }
 
@@ -125,6 +130,7 @@ task installLocalGitHook(type: Copy) {
     into { new File(rootProject.rootDir, '.git/hooks') }
     fileMode 0775
 }
+build.dependsOn installLocalGitHook
 
 //jar {
 //    enabled = false

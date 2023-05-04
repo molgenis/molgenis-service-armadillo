@@ -2,6 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/molgenis/molgenis-service-armadillo.svg?style=shield)](https://circleci.com/gh/molgenis/molgenis-service-armadillo)
 [![Build Status](https://dev.azure.com/molgenis/molgenis-emx2/_apis/build/status/molgenis.molgenis-service-armadillo?branchName=master)](https://dev.azure.com/molgenis/molgenis-service-armadillo/_build/latest?definitionId=1&branchName=master)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=org.molgenis%3Aarmadillo-service)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service)
 
 # What is Armadillo?
@@ -46,31 +47,79 @@ Armadillo 3 can be installed on any flavor of linux OS or modern Unix-based Mac 
 * Java 17 JRE or JDK
 * Docker (for profiles)
 
-To spin up your own server on a laptop, you first need
-the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application-local.yml)
-and edit for your needs. Then you can run:
+
+## To run using basic auth (only for testing!)
+
+Armadillo assumes that you will use OIDC for user/password management, ideally linked to an identity provider such as [LS login](https://lifescience-ri.eu/ls-login/).
+However, for most minimal testing you can run uses only basic auth and with one account with username/password 'admin'/'admin'. 
+Note that the 'oauth2' sign in option then is not functional.
+
+`
+java -jar -Dspring.profiles.active=basic molgenis-armadillo-3.*.jar
+`
+
+## To run in development mode
+
+Using development profile, we can test against auth.molgenis.org that is preconfigured in /armadillo/src/main/resources/application.yaml.
+However, you then need a client-id and a secret
 
 ```
-export SPRING_PROFILES_ACTIVE=<your profile>
-export SPRING_CONFIG_LOCATION=<location to>/application-local.yml
-java -jar molgenis-armadillo-3.*.jar
+java -jar \
+-Dspring.profiles.active=development \
+-Dspring.security.oauth2.client.registration.molgenis.client-id=xxx \
+-Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx \
+molgenis-armadillo-3.*.jar
 ```
 
-Or using development mode
+> note you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
+
+## To run in production mode
+
+When running in production mode you should create your own `application.yml` file in your working directory. 
+An example can be found below, copy into `application.yml` file.
 
 ```
-export SPRING_PROFILES_ACTIVE=development
-java -jar molgenis-armadillo-3.*.jar
+armadillo:
+  oidc-permission-enabled: false
+  docker-management-enabled: true
+  oidc-admin-user: <your OIDC email>
+spring:
+  security:
+    user:
+      name: admin
+      password: <your admin password for basic auth default user>
+    oauth2:
+      client:
+        registration:
+            molgenis:
+                client-id: <your client id>
+                client-secret: <your client secret>
+        provider:
+          molgenis:
+            issuer-uri: 'https://auth.molgenis.org'
+      resourceserver:
+        jwt:
+          issuer-uri: 'https://auth.molgenis.org'
+        opaquetoken:
+          client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
 ```
 
-## Systemd Service
+> Note: If don't want to configure an oauth2 client for any reason, just remove the `oauth2` section.
+
+And then you can run:
+
+`
+java -jar -Dspring.profiles.active=myprofile molgenis-armadillo-3.*.jar
+`
+
+## Run as systemd Service
 
 Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo 3 as service please follow this
 guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/README.md
 
 ## Docker images
 
-For testing, Armadillo 3 docker images are also available as docker image. These run in 'development' profile.
+For testing, Armadillo 3 docker images are also available as docker image. These run in 'basic' profile.
 
 - release at https://hub.docker.com/r/molgenis/molgenis-armadillo
 - snapshot builds from pull requests at https://hub.docker.com/r/molgenis/molgenis-armadillo-snapshot
@@ -131,16 +180,6 @@ For local storage, you don't need to do anything. Data is automatically stored i
 in `application.yml` by changing the `storage.root-dir`
 setting.
 
-If you want to use MinIO as storage (including the test data), do the following:
-
-1. Start the container with `docker-compose --profile minio up`
-2. In your browser, go to `http://localhost:9090`
-3. Log in with _molgenis_ / _molgenis_
-4. Add a bucket `shared-lifecyle`
-5. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
-6. In `application.yml`, uncomment the `minio` section.
-7. Now Armadillo will automatically connect to MinIO at startup.
-
 > **_Note_**: When you run Armadillo locally for the first time, the `lifecycle` project has not been
 > added to the system metadata yet. To add it automatically, see [Application properties](#application-properties).
 > Or you can add it manually:
@@ -149,35 +188,3 @@ If you want to use MinIO as storage (including the test data), do the following:
 > - Add the project `lifecycle`
 >
 > Now you're all set!
-
-### Application properties
-
-You can configure the application in `application.yml`. During development however, it is more convenient to override these settings in a local .yml file that
-you do not commit to git. Here's how to set that up:
-
-- Next to `application.yml`, create a file `application-local.yml` (this file is ignored by git)
-- Give it the following content:
-
-```
-armadillo:
-  oidc-permission-enabled: false
-  docker-management-enabled: true
-  oidc-admin-user: <your OIDC email>
-
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          molgenis:
-            client-id: <OIDC client ID>
-            client-secret: <OIDC client secret>
-```
-
-> Note: If can't configure an oauth2 client for any reason, just remove the `spring` section.
-
-- Now, in the Run Configuration for the DatashieldServiceApplication, add the following program argument:
-
-```--spring.config.additional-location=file:armadillo/src/main/resources/application-local.yml```
-
-Now the lifecycle test project (including its data) will work out of the box, and you will be able to log in with your OIDC account immediately.

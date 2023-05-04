@@ -3,18 +3,14 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2.1
+
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: gradle:jdk17-focal
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
+      - image: eclipse-temurin:17-jdk-focal
 
     working_directory: ~/repo
+    resource_class: large
 
     environment:
       # Customize the JVM maximum heap limit
@@ -25,21 +21,6 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: ./gradlew dependencies
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      # run tests!
       - run:
           name: update package manager
           command: apt-get update
@@ -77,25 +58,16 @@ jobs:
           command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
-          name: Setup git, todo, move to molgenisci user
+          name: Setup git
           command: |
             git config --global --add safe.directory '*'
-            git config user.email "m.a.swertz@rug.nl"
-            git config user.name "mswertz"
+            git config user.email "molgenis@gmail.com"
+            git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
-      # to switch to release add following
-      # ./gradlew release jib -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} --stacktrace
+
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew build test jacocoMergedReport sonarqube dockerPush -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
-
-      # release, but only on master
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: release
-                command: |
-                  ./gradlew release -Dorg.ajoberstar.grgit.auth.password -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN}
+            ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
+            -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
+            -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password

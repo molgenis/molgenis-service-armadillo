@@ -11,9 +11,9 @@ check_armadillo_update() {
 
   VERSION_USED=$(curl -L -s -H 'Accept: application/json' -s http://localhost:8080/actuator/info | sed -e 's/.*"version":"\([^"]*\)".*/\1/')
   LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' -s $ARMADILLO_URL/releases/latest)
-  ARMADILLO_LATEST_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/' | sed -e s/.*armadillo-service-//)
+  ARMADILLO_LATEST_VERSION=$(echo "$LATEST_RELEASE" | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/' | sed -e s/.*v//)
 
-    if [[ "$ARMADILLO_LATEST_VERSION" =~ 2.2.3 ]]; then
+  if [[ "$ARMADILLO_LATEST_VERSION" =~ 2.2.3 ]]; then
   {
     
     echo "Update of Armadillo 2 version is not supported on this system"
@@ -24,11 +24,10 @@ check_armadillo_update() {
   if [ "$VERSION_USED" != "$ARMADILLO_LATEST_VERSION" ]; then
   {
        
-        
-    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/armadillo-service-$ARMADILLO_LATEST_VERSION/armadillo-$ARMADILLO_LATEST_VERSION.jar
           
+    DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/v$ARMADILLO_LATEST_VERSION/molgenis-armadillo-$ARMADILLO_LATEST_VERSION.jar
     
-    if validate_url $DL_URL; then
+    if validate_url "$DL_URL"; then
       # Stop armadillo
       systemctl stop armadillo
       wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_LATEST_VERSION".jar "$DL_URL"

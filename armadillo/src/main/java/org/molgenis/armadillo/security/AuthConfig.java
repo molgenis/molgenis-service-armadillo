@@ -36,7 +36,6 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-@Profile("!test")
 @Import(UserDetailsServiceAutoConfiguration.class)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
@@ -49,7 +48,41 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @Profile({"!test"})
+  @Profile("basic")
+  @Order(0)
+  public static class LocalConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      http.authorizeRequests()
+          .antMatchers(
+              "/",
+              "/info",
+              "/index.html",
+              "/basic-login",
+              "/armadillo-logo.png",
+              "favicon.ico",
+              "/assets/**",
+              "/v3/**",
+              "/swagger-ui/**",
+              "/ui/**",
+              "/swagger-ui.html")
+          .permitAll()
+          .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+          .permitAll()
+          .requestMatchers(toAnyEndpoint())
+          .authenticated()
+          .and()
+          .httpBasic()
+          .and()
+          .csrf()
+          .disable();
+    }
+  }
+
+  @Configuration
+  @EnableWebSecurity
+  @Profile({"!test", "!basic"})
+  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
@@ -68,7 +101,8 @@ public class AuthConfig {
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
                   new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
           .authorizeRequests()
-          .antMatchers("/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html")
+          .antMatchers(
+              "/", "/v3/**", "/swagger-ui/**", "/ui/**", "/swagger-ui.html", "/basic-login")
           .permitAll()
           .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
           .permitAll()
@@ -104,7 +138,7 @@ public class AuthConfig {
   @EnableWebSecurity
   @Order(2)
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  @Profile({"!test"})
+  @Profile({"!test", "!basic"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
     AccessService accessService;
@@ -152,7 +186,7 @@ public class AuthConfig {
   }
 
   /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
-  @Profile("development")
+  @Profile({"development", "basic"})
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
