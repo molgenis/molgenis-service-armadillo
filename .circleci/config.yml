@@ -7,7 +7,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: eclipse-temurin:17-jdk-focal
+      - image: cimg/openjdk:17.0.7
 
     working_directory: ~/repo
     resource_class: large
@@ -21,37 +21,37 @@ jobs:
     steps:
       - checkout
 
-      - run:
-          name: update package manager
-          command: apt-get update
-
-      - run:
-          name: add packages for docker cli install
-          command: apt-get -y install gnupg lsb-release curl
-
-      - run:
-          name: update packages again
-          command: apt-get update
-
-      - run:
-          name: set repo keys for docker packages
-          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-      - run:
-          name: add repo for docker packages
-          command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-      - run:
-          name: update package manager again
-          command: apt-get update
-
-      - run:
-          name: Install Docker client
-          command: apt-get -y install docker-ce docker-ce-cli containerd.io
-
-      - setup_remote_docker:
-          version: 19.03.13
-          docker_layer_caching: true
+#      - run:
+#          name: update package manager
+#          command: apt-get update
+#
+#      - run:
+#          name: add packages for docker cli install
+#          command: apt-get -y install gnupg lsb-release curl
+#
+#      - run:
+#          name: update packages again
+#          command: apt-get update
+#
+#      - run:
+#          name: set repo keys for docker packages
+#          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+#
+#      - run:
+#          name: add repo for docker packages
+#          command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+#
+#      - run:
+#          name: update package manager again
+#          command: apt-get update
+#
+#      - run:
+#          name: Install Docker client
+#          command: apt-get -y install docker-ce docker-ce-cli containerd.io
+#
+#      - setup_remote_docker:
+#          version: 19.03.13
+#          docker_layer_caching: true
 
       - run:
           name: Sign in to docker
@@ -71,6 +71,6 @@ jobs:
             ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
-          
+
       - store_artifacts:
           path: build/libs
