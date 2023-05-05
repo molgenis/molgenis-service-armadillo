@@ -12,8 +12,8 @@ plugins {
 
 grgit.remote.list().each { println it }
 
-//targetCompatibility = '19'
-//sourceCompatibility = '19'
+targetCompatibility = '17'
+sourceCompatibility = '17'
 
 allprojects {
     group = 'org.molgenis'
