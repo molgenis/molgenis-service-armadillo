@@ -26,8 +26,8 @@ jobs:
           command: apt-get update
 
       - run:
-          name: add packages for docker cli install
-          command: apt-get -y install gnupg lsb-release curl
+          name: add packages for docker cli install and git
+          command: apt-get -y install gnupg lsb-release curl git
 
       - run:
           name: update packages again
