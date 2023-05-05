@@ -6,17 +6,17 @@ version: 2.1
 
 jobs:
   build:
-    machine:
-      image: ubuntu-2204:2023.04.2
+    docker:
+      - image: eclipse-temurin:17-jdk-focal
 
     working_directory: ~/repo
     resource_class: large
 
-    environment:
+    #environment:
       # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-      TERM: dumb
+      # JVM_OPTS: -Xmx3200m
+      # GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+      # TERM: dumb
 
     steps:
       - checkout
@@ -26,8 +26,8 @@ jobs:
           command: apt-get update
 
       - run:
-          name: add packages for docker cli install and git
-          command: apt-get -y install gnupg lsb-release curl git
+          name: add packages for docker cli install
+          command: apt-get -y install gnupg lsb-release curl
 
       - run:
           name: update packages again
@@ -46,6 +46,18 @@ jobs:
           command: apt-get update
 
       - run:
+          name: Install Docker client
+          command: apt-get -y install docker-ce docker-ce-cli containerd.io
+
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
+
+      - run:
+          name: Sign in to docker
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+      - run:
           name: Setup git
           command: |
             git config --global --add safe.directory '*'
@@ -56,26 +68,6 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew assemble test jacocoMergedReport sonarqube release \
+            ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
-
-      - run:
-          name: Install Docker client
-          command: apt-get -y install docker-ce docker-ce-cli containerd.io
-
-#      - setup_remote_docker:
-#          version: 19.03.13
-#          docker_layer_caching: true
-
-      - run:
-          name: Sign in to docker
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
-
-      - run:
-          name: push docker
-          command: |
-            ./gradlew dockerPush
-
-      - store_artifacts:
-          path: build/libs
