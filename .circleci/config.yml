@@ -12,11 +12,11 @@ jobs:
     working_directory: ~/repo
     resource_class: large
 
-    #environment:
-      # Customize the JVM maximum heap limit
-      # JVM_OPTS: -Xmx3200m
-      # GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-      # TERM: dumb
+    environment:
+       # Customize the JVM maximum heap limit
+       JVM_OPTS: -Xmx3200m
+       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+       TERM: dumb
 
     steps:
       - checkout
@@ -68,9 +68,10 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            LOCALHOST=localhost ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
+            ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+          #set hostname because circleci overrides
 
       - store_artifacts:
           path: build/libs

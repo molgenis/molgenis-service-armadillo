@@ -121,8 +121,6 @@ public class AuthConfig {
           .and()
           .csrf()
           .disable()
-          .cors()
-          .and()
           .httpBasic()
           .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint())
           .realmName("Armadillo")
