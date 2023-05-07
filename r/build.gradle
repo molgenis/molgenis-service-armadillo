@@ -43,7 +43,7 @@ dependencies {
 
 jacocoTestReport {
     reports {
-        xml.enabled = true
+        xml.required = true
     }
     dependsOn test, spotlessApply
 }
