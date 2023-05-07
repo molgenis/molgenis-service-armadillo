@@ -69,7 +69,7 @@ dependencies {
 }
 
 jacocoTestReport {
-    dependsOn test
+    dependsOn test, spotlessJava
 }
 
 test {

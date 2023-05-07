@@ -104,6 +104,7 @@ dockerPrepare.dependsOn test
 task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
+    dependsOn bootStartScripts, startScripts
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
