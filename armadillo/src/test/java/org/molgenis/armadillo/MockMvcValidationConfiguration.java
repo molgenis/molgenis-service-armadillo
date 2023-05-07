@@ -1,9 +1,9 @@
 package org.molgenis.armadillo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * Dummy implementation to test spring error handling mechanism See
  * https://github.com/spring-projects/spring-boot/issues/5574#issuecomment-506282892
  */
-class MockMvcValidationConfiguration {
+public class MockMvcValidationConfiguration {
 
   private final BasicErrorController errorController;
 
@@ -21,7 +21,7 @@ class MockMvcValidationConfiguration {
   }
 
   // add any exceptions/validations/binding problems
-  @ExceptionHandler({ConstraintViolationException.class})
+  @ExceptionHandler({MethodArgumentNotValidException.class})
   public ResponseEntity defaultErrorHandler(HttpServletRequest request, Exception ex) {
     request.setAttribute("javax.servlet.error.request_uri", request.getPathInfo());
     request.setAttribute("javax.servlet.error.status_code", 400);

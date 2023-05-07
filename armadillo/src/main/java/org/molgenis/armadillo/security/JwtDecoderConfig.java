@@ -22,8 +22,8 @@ public class JwtDecoderConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
-  @Value("${spring.profiles.active}")
-  private String activeProfile;
+  @Value("${spring.profiles.active:default}")
+  private String activeProfile = "default";
 
   @Bean
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {

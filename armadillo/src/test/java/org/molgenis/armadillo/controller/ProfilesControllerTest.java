@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
@@ -29,9 +30,11 @@ import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 
 @WebMvcTest(ProfilesController.class)
+@Import({TestSecurityConfig.class})
 class ProfilesControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_PROFILE =

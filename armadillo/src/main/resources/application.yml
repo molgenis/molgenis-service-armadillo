@@ -58,6 +58,24 @@ audit:
 logging:
   config: classpath:logback-file.xml
 
+storage:
+  root-dir: data
+
+---
+# 'basic' profile is a configuration without oidc
+# you can only sign in using basicauth 'admin' 'admin'
+
+spring:
+  security:
+    user:
+      password: admin
+  config:
+    activate:
+      on-profile: basic
+
+storage:
+  root-dir: data
+
 ---
 spring:
   security:
