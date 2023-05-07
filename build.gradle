@@ -101,6 +101,10 @@ docker {
 dockerPrepare.dependsOn test
 
 //merge test reports
+jacoco {
+    toolVersion = "0.8.8"
+    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
 task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
