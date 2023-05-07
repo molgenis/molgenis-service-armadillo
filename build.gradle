@@ -7,7 +7,7 @@ plugins {
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.35.0'
+    id 'com.palantir.docker' version '0.34.0'
 }
 
 grgit.remote.list().each { println it }
@@ -95,28 +95,23 @@ docker {
     name imageName
     tags 'latest', tagName
     dockerfile file('Dockerfile')
-    files bootJar.archiveFileName
-    buildArgs(['JAR_FILE': "${bootJar.archiveFileName}"])
+    files bootJar.archivePath
+    buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
 }
 dockerPrepare.dependsOn test
 
 //merge test reports
-jacoco {
-    toolVersion = "0.8.8"
-    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
-}
 task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
-    dependsOn bootStartScripts, startScripts
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
-        xml.required = true
-        csv.required = false
-        html.required = false
+        xml.enabled true
+        csv.enabled false
+        html.enabled false
     }
 }
 
