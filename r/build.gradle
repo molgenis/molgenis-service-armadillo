@@ -42,7 +42,7 @@ dependencies {
 }
 
 jacocoTestReport {
-    dependsOn test
+    dependsOn test, spotlessApply
 }
 
 test {
