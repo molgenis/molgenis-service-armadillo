@@ -68,7 +68,7 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew assemble test jacocoMergedReport sonarqube release dockerPush \
+            gradle assemble test jacocoMergedReport sonarqube release dockerPush \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
           #set hostname because circleci overrides

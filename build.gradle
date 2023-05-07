@@ -7,7 +7,7 @@ plugins {
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.34.0'
+    id 'com.palantir.docker' version '0.35.0'
 }
 
 grgit.remote.list().each { println it }
@@ -95,8 +95,8 @@ docker {
     name imageName
     tags 'latest', tagName
     dockerfile file('Dockerfile')
-    files bootJar.archivePath
-    buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
+    files bootJar.archiveFileName
+    buildArgs(['JAR_FILE': "${bootJar.archiveFileName}"])
 }
 dockerPrepare.dependsOn test
 
@@ -108,11 +108,6 @@ task jacocoMergedReport(type: JacocoReport) {
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled false
-    }
 }
 
 //push to sonarqube
