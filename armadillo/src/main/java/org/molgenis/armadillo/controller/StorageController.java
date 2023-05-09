@@ -10,7 +10,6 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PREVIEW_OBJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
-import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -39,6 +38,10 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -267,12 +270,15 @@ public class StorageController {
     var fileName = objectParts[objectParts.length - 1];
 
     try {
-      var resource = new ByteArrayResource(inputStream.readAllBytes());
-      return ResponseEntity.ok()
-          .header(CONTENT_DISPOSITION, "attachment; filename=" + fileName)
-          .contentLength(resource.contentLength())
-          .contentType(APPLICATION_OCTET_STREAM)
-          .body(resource);
+      InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+      long length = inputStream.available();
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(fileName).build();
+      HttpHeaders httpHeaders = new HttpHeaders();
+      httpHeaders.setContentDisposition(contentDisposition);
+      httpHeaders.setContentLength(length);
+      httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+      return new ResponseEntity(inputStreamResource, httpHeaders, HttpStatus.OK);
     } catch (IOException e) {
       throw new FileProcessingException();
     }
