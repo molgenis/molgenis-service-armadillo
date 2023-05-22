@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.service;
 
-import org.rosuda.REngine.Rserve.RConnection;
+import org.molgenis.r.RServerConnection;
 
 public interface ArmadilloConnectionFactory {
-  RConnection createConnection();
+  RServerConnection createConnection();
 }

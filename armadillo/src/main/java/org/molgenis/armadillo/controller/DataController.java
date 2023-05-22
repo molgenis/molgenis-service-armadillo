@@ -34,9 +34,9 @@ import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
-import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -235,7 +235,7 @@ public class DataController {
   @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
   public List<String> getSymbols(Principal principal)
       throws ExecutionException, InterruptedException, REXPMismatchException {
-    CompletableFuture<REXP> result =
+    CompletableFuture<RServerResult> result =
         auditEventPublisher.audit(
             commands.evaluate("base::ls()"), principal, GET_ASSIGNED_SYMBOLS, Map.of());
     return asList(result.get().asStrings());
@@ -298,7 +298,7 @@ public class DataController {
     try {
       String rewrittenExpression =
           serializeExpression(expressionRewriter.rewriteAggregate(expression));
-      CompletableFuture<REXP> result =
+      CompletableFuture<RServerResult> result =
           auditEventPublisher.audit(
               commands.evaluate(rewrittenExpression), principal, EXECUTE, data);
       return async

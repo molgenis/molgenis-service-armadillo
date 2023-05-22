@@ -25,13 +25,13 @@ import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -47,11 +47,11 @@ class CommandsImplTest {
   @Mock ProcessService processService;
   @Mock ProfileService profileService;
   @Mock ArmadilloConnectionFactory connectionFactory;
-  @Mock RConnection rConnection;
+  @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
 
   @Mock InputStream inputStream;
-  @Mock REXP rexp;
+  @Mock RServerResult rexp;
   @Mock Principal principal;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -79,28 +79,28 @@ class CommandsImplTest {
 
   @Test
   void testSchedule() throws Exception {
-    ArmadilloCommandImpl<REXP> command =
+    ArmadilloCommandImpl<RServerResult> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected RServerResult doWithConnection(RServerConnection connection) {
             assertSame(rConnection, connection);
             return rexp;
           }
         };
-    CompletableFuture<REXP> result = commands.schedule(command);
+    CompletableFuture<RServerResult> result = commands.schedule(command);
     assertSame(rexp, result.get());
     assertEquals(Optional.of(command.asDto()), commands.getLastCommand());
     assertSame(result, commands.getLastExecution().get());
   }
 
   @Test
-  void testScheduleFailingCommand() throws RserveException {
+  void testScheduleFailingCommand() {
     IllegalStateException exception = new IllegalStateException("Error");
 
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected REXP doWithConnection(RServerConnection connection) {
             assertSame(rConnection, connection);
             throw exception;
           }
@@ -169,7 +169,7 @@ class CommandsImplTest {
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("Install package", false) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected REXP doWithConnection(RServerConnection connection) {
             verify(rExecutorService)
                 .installPackage(eq(rConnection), any(Resource.class), any(String.class));
             return null;

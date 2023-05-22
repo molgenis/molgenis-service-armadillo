@@ -1,8 +1,11 @@
-package org.molgenis.r;
+package org.molgenis.r.rserve;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -10,18 +13,18 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RConnectionFactoryImpl implements RConnectionFactory {
+public class RserveConnectionFactoryImpl implements RConnectionFactory {
 
-  private static final Logger logger = LoggerFactory.getLogger(RConnectionFactoryImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(RserveConnectionFactoryImpl.class);
 
   private final EnvironmentConfigProps environment;
 
-  public RConnectionFactoryImpl(EnvironmentConfigProps environment) {
+  public RserveConnectionFactoryImpl(EnvironmentConfigProps environment) {
     this.environment = requireNonNull(environment);
   }
 
   @Override
-  public RConnection tryCreateConnection() {
+  public RServerConnection tryCreateConnection() {
     if (logger.isDebugEnabled()) {
       logger.debug(
           format(
@@ -36,13 +39,14 @@ public class RConnectionFactoryImpl implements RConnectionFactory {
                 "Connected to instance: [ %s ] on [ %s ]",
                 environment.getHost(), environment.getPort()));
       }
-      return rConnection;
+      return new RserveConnection(rConnection);
     } catch (RserveException ex) {
       throw new ConnectionCreationFailedException(ex);
     }
   }
 
-  RConnection newConnection(String host, int port) throws RserveException {
+  @VisibleForTesting
+  public RConnection newConnection(String host, int port) throws RserveException {
     return new RConnection(host, port);
   }
 

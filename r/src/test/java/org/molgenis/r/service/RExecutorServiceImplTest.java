@@ -1,9 +1,6 @@
 package org.molgenis.r.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,16 +11,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
-import org.rosuda.REngine.REXP;
+import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPLogical;
-import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.Resource;
 import org.springframework.security.util.InMemoryResource;
 
@@ -31,8 +28,8 @@ import org.springframework.security.util.InMemoryResource;
 class RExecutorServiceImplTest {
 
   private RExecutorServiceImpl executorService;
-  @Mock private RConnection rConnection;
-  @Mock private REXP rexp;
+  @Mock private RServerConnection rConnection;
+  @Mock private RServerResult rexp;
   @Mock private RFileOutputStream rFileOutputStream;
   @Mock private RFileInputStream rFileInputStream;
 
@@ -42,16 +39,16 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void execute() throws RserveException {
+  void execute() throws RServerException {
     when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
 
-    REXP result = executorService.execute("mean(age)", rConnection);
+    RServerResult result = executorService.execute("mean(age)", rConnection);
 
     assertSame(rexp, result);
   }
 
   @Test
-  void executeFail() throws RserveException {
+  void executeFail() throws RServerException {
     when(rConnection.eval("try({mean(ages)})"))
         .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
 
@@ -64,11 +61,9 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void executeTryFails() throws RserveException, REXPMismatchException {
-    when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
-    when(rexp.inherits("try-error")).thenReturn(true);
-    when(rexp.asStrings())
-        .thenReturn(new String[] {"Error in try(mean(age)) : object 'age' not found\n"});
+  void executeTryFails() throws RServerException {
+    when(rConnection.eval("try({mean(age)})"))
+        .thenThrow(new RExecutionException("Error in try(mean(age)) : object 'age' not found"));
 
     RExecutionException thrown =
         assertThrows(
@@ -77,7 +72,7 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void executeFailResultIsNull() throws RserveException {
+  void executeFailResultIsNull() throws RServerException {
     when(rConnection.eval("try({mean(child_id)})")).thenReturn(null);
 
     RExecutionException rExecutionException =
@@ -89,7 +84,7 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadWorkspace() throws IOException, RserveException {
+  void testLoadWorkspace() throws IOException, RServerException {
     when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
@@ -100,15 +95,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadTableWithVariables() throws IOException, RserveException {
+  void testLoadTableWithVariables() throws IOException, RServerException {
     when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
             "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))})"))
-        .thenReturn(new REXPLogical(true));
+        .thenReturn(new RserveResult(new REXPLogical(true)));
     when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
-        .thenReturn(new REXPNull());
+        .thenReturn(new RserveResult(new REXPNull()));
 
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of("col1", "col2"));
@@ -120,15 +115,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadTableNoVariables() throws IOException, RserveException {
+  void testLoadTableNoVariables() throws IOException, RServerException {
     when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
             "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})"))
-        .thenReturn(new REXPLogical(true));
+        .thenReturn(new RserveResult(new REXPLogical(true)));
     when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
-        .thenReturn(new REXPNull());
+        .thenReturn(new RserveResult(new REXPNull()));
 
     executorService.loadTable(
         rConnection, resource, "project/folder/table.parquet", "D", List.of());
@@ -140,15 +135,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadResource() throws IOException, RserveException {
+  void testLoadResource() throws IOException, RServerException {
     when(rConnection.createFile("project_folder_resource.rds")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
             "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
-        .thenReturn(new REXPLogical(true));
+        .thenReturn(new RserveResult(new REXPLogical(true)));
     when(rConnection.eval("try({base::unlink('project_folder_resource.rds')})"))
-        .thenReturn(new REXPNull());
+        .thenReturn(new RserveResult(new REXPNull()));
 
     executorService.loadResource(rConnection, resource, "project/folder/resource.rds", "D");
 
@@ -159,8 +154,9 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testSaveWorkspace() throws IOException, RserveException {
-    when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
+  void testSaveWorkspace() throws IOException, RServerException {
+    when(rConnection.eval("try({base::save.image()})"))
+        .thenReturn(new RserveResult(new REXPNull()));
     when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
@@ -171,8 +167,9 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testSaveWorkspaceFails() throws RserveException, IOException {
-    when(rConnection.eval("try({base::save.image()})")).thenReturn(new REXPNull());
+  void testSaveWorkspaceFails() throws IOException, RServerException {
+    when(rConnection.eval("try({base::save.image()})"))
+        .thenReturn(new RserveResult(new REXPNull()));
     when(rConnection.openFile(".RData")).thenThrow(IOException.class);
 
     assertThrows(
@@ -212,14 +209,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testInstallPackage() throws IOException, RserveException {
+  void testInstallPackage() throws IOException, RServerException {
     when(rConnection.createFile("location__test_.tar.gz")).thenReturn(rFileOutputStream);
     when(rConnection.eval(
             "try({remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')})"))
-        .thenReturn(new REXPNull());
-    when(rConnection.eval("try({require('location/_test')})")).thenReturn(new REXPLogical(true));
+        .thenReturn(new RserveResult(new REXPNull()));
+    when(rConnection.eval("try({require('location/_test')})"))
+        .thenReturn(new RserveResult(new REXPLogical(true)));
     when(rConnection.eval("try({file.remove('location/_test_.tar.gz')})"))
-        .thenReturn(new REXPNull());
+        .thenReturn(new RserveResult(new REXPNull()));
 
     Resource resource = new InMemoryResource("Hello");
     String fileName = "location/_test_.tar.gz";
