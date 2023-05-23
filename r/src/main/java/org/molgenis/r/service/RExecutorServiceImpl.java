@@ -8,6 +8,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -22,6 +23,7 @@ import org.molgenis.r.exceptions.RExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -107,18 +109,53 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void loadResource(
-      RServerConnection connection, Resource resource, String filename, String symbol) {
+      RServerConnection connection, Resource resource, String filename, String symbol) {}
+
+  @Override
+  public void loadResource(
+      Principal principal,
+      RServerConnection connection,
+      Resource resource,
+      String filename,
+      String symbol) {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
+
+    // data.put("secret", token.getToken().getTokenValue());
     String rFileName = filename.replace("/", "_");
     try {
-      copyFile(resource, rFileName, connection);
+      if (principal instanceof JwtAuthenticationToken token) {
+        execute(
+            format(
+                """
+                        resourcer::newResource(
+                                name = "GSE66351_1",
+                                url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%sgse66351_1.rda",
+                                format = "ExpressionSet"
+                                secret = %s
+                        )""",
+                "%2F", token),
+            connection);
+      }
+      // copyFile(resource, rFileName, connection);
+      // WE CREATE A FILE THAT LOOKS LIKE A RESOURCE
+      // FIRST WE RUN IN R THE FOLLOWING
+      //      execute(    format(          """
+      //                  toFile(%s, newResource(
+      //                          name = "GSE66351_1",
+      //                          url =
+      // "http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda",
+      //                          format = "ExpressionSet"
+      //                          token =
+      //                  )))""",rFileName);
+      // execute(format("rds <- base::readRDS('%s')", rFileName), connection);
+      // copyFile(resource, rFileName, connection);
       execute(
           format(
               "is.null(base::assign('%s', value={resourcer::newResourceClient(base::readRDS('%s'))}))",
               symbol, rFileName),
           connection);
       execute(format("base::unlink('%s')", rFileName), connection);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new RExecutionException(e);
     }
   }

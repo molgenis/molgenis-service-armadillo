@@ -21,6 +21,7 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api'
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
 
     //other
     implementation 'commons-io:commons-io:2.11.0'

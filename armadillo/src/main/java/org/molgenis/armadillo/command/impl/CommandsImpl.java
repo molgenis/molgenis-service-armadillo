@@ -166,7 +166,7 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadResource(String symbol, String resource) {
+  public CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
@@ -176,7 +176,11 @@ class CommandsImpl implements Commands {
           protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadResource(project, objectName);
             rExecutorService.loadResource(
-                connection, new InputStreamResource(inputStream), resource + RDS, symbol);
+                principal,
+                connection,
+                new InputStreamResource(inputStream),
+                resource + RDS,
+                symbol);
             return null;
           }
         });
