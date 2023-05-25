@@ -120,46 +120,27 @@ public class RExecutorServiceImpl implements RExecutorService {
       String filename,
       String symbol) {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
-
-    // data.put("secret", token.getToken().getTokenValue());
-    // String rFileName = filename.replace("/", "_");
+    String rFileName = filename.replace("/", "_");
     try {
       if (principal instanceof JwtAuthenticationToken token) {
+        copyFile(resource, rFileName, connection);
+        execute(format("base::assign('rds',base::readRDS('%s'))", rFileName), connection);
+        execute(format("base::unlink('%s')", rFileName), connection);
         execute(
             format(
                 """
-                        is.null(base::assign('R', value={resourcer::newResource(
-                                name = "GSE66351_1",
-                                url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%sgse66351_1.rda",
-                                format = "ExpressionSet",
-                                secret = "%s"
-                        )}))""",
-                "%2F", ((Jwt) token.getToken()).getTokenValue()),
+                                  is.null(base::assign('R', value={resourcer::newResource(
+                                          name = rds$name,
+                                          url = rds$url,
+                                          format = rds$format,
+                                          secret = "%s"
+                                  )}))""",
+                ((Jwt) token.getToken()).getTokenValue()),
             connection);
       }
       execute(
           format("is.null(base::assign('%s', value={resourcer::newResourceClient(R)}))", symbol),
           connection);
-      // copyFile(resource, rFileName, connection);
-      // WE CREATE A FILE THAT LOOKS LIKE A RESOURCE
-      // FIRST WE RUN IN R THE FOLLOWING
-      //      execute(    format(          """
-      //                  toFile(%s, newResource(
-      //                          name = "GSE66351_1",
-      //                          url =
-      // "http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda",
-      //                          format = "ExpressionSet"
-      //                          token =
-      //                  )))""",rFileName);
-      // execute(format("rds <- base::readRDS('%s')", rFileName), connection);
-      // copyFile(resource, rFileName, connection);
-      //      execute(
-      //          format(
-      //              "is.null(base::assign('%s',
-      // value={resourcer::newResourceClient(base::readRDS('%s'))}))",
-      //              symbol, rFileName),
-      //          connection);
-      //      execute(format("base::unlink('%s')", rFileName), connection);
     } catch (Exception e) {
       throw new RExecutionException(e);
     }
