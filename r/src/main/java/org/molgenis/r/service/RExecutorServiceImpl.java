@@ -134,7 +134,7 @@ public class RExecutorServiceImpl implements RExecutorService {
                                 format = "ExpressionSet",
                                 secret = "%s"
                         )}))""",
-                symbol, "%2F", ((Jwt) token.getToken()).getTokenValue()),
+                "%2F", ((Jwt) token.getToken()).getTokenValue()),
             connection);
       }
       execute(
