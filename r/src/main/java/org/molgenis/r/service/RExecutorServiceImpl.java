@@ -23,6 +23,7 @@ import org.molgenis.r.exceptions.RExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -121,21 +122,24 @@ public class RExecutorServiceImpl implements RExecutorService {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
 
     // data.put("secret", token.getToken().getTokenValue());
-    String rFileName = filename.replace("/", "_");
+    // String rFileName = filename.replace("/", "_");
     try {
       if (principal instanceof JwtAuthenticationToken token) {
         execute(
             format(
                 """
-                        resourcer::newResource(
+                        is.null(base::assign('R', value={resourcer::newResource(
                                 name = "GSE66351_1",
                                 url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%sgse66351_1.rda",
-                                format = "ExpressionSet"
-                                secret = %s
-                        )""",
-                "%2F", token),
+                                format = "ExpressionSet",
+                                secret = "%s"
+                        )}))""",
+                symbol, "%2F", ((Jwt) token.getToken()).getTokenValue()),
             connection);
       }
+      execute(
+          format("is.null(base::assign('%s', value={resourcer::newResourceClient(R)}))", symbol),
+          connection);
       // copyFile(resource, rFileName, connection);
       // WE CREATE A FILE THAT LOOKS LIKE A RESOURCE
       // FIRST WE RUN IN R THE FOLLOWING
@@ -149,12 +153,13 @@ public class RExecutorServiceImpl implements RExecutorService {
       //                  )))""",rFileName);
       // execute(format("rds <- base::readRDS('%s')", rFileName), connection);
       // copyFile(resource, rFileName, connection);
-      execute(
-          format(
-              "is.null(base::assign('%s', value={resourcer::newResourceClient(base::readRDS('%s'))}))",
-              symbol, rFileName),
-          connection);
-      execute(format("base::unlink('%s')", rFileName), connection);
+      //      execute(
+      //          format(
+      //              "is.null(base::assign('%s',
+      // value={resourcer::newResourceClient(base::readRDS('%s'))}))",
+      //              symbol, rFileName),
+      //          connection);
+      //      execute(format("base::unlink('%s')", rFileName), connection);
     } catch (Exception e) {
       throw new RExecutionException(e);
     }
