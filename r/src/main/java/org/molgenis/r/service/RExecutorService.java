@@ -9,7 +9,11 @@ import org.molgenis.r.RServerResult;
 import org.springframework.core.io.Resource;
 
 public interface RExecutorService {
-  RServerResult execute(String cmd, RServerConnection connection);
+  default RServerResult execute(String cmd, RServerConnection connection) {
+    return execute(cmd, false, connection);
+  }
+
+  RServerResult execute(String cmd, boolean serialized, RServerConnection connection);
 
   void saveWorkspace(RServerConnection connection, Consumer<InputStream> inputStreamConsumer);
 

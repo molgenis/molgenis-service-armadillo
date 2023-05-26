@@ -1,10 +1,13 @@
 package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +18,7 @@ import org.molgenis.r.RServerException;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
+import org.molgenis.r.rserve.RserveException;
 import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPNull;
@@ -44,7 +48,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void execute() throws RServerException {
-    when(rConnection.eval("try({mean(age)})")).thenReturn(rexp);
+    when(rConnection.eval("mean(age)", false)).thenReturn(rexp);
 
     RServerResult result = executorService.execute("mean(age)", rConnection);
 
@@ -53,7 +57,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeFail() throws RServerException {
-    when(rConnection.eval("try({mean(ages)})"))
+    when(rConnection.eval("mean(ages)", false))
         .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));
 
     RExecutionException rExecutionException =
@@ -66,7 +70,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeTryFails() throws RServerException {
-    when(rConnection.eval("try({mean(age)})"))
+    when(rConnection.eval("mean(age)", false))
         .thenThrow(new RExecutionException("Error in try(mean(age)) : object 'age' not found"));
 
     RExecutionException thrown =
@@ -77,7 +81,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void executeFailResultIsNull() throws RServerException {
-    when(rConnection.eval("try({mean(child_id)})")).thenReturn(null);
+    when(rConnection.eval("mean(child_id)", false)).thenReturn(null);
 
     RExecutionException rExecutionException =
         assertThrows(
@@ -89,7 +93,7 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadWorkspace() throws IOException, RServerException {
-    when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
+    // when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     executorService.loadWorkspace(rConnection, resource, ".TibbleEnv");
@@ -100,13 +104,14 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadTableWithVariables() throws IOException, RServerException {
-    when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
+    // when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))})"))
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))",
+            false))
         .thenReturn(new RserveResult(new REXPLogical(true)));
-    when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
+    when(rConnection.eval("base::unlink('project_folder_table.parquet')", false))
         .thenReturn(new RserveResult(new REXPNull()));
 
     executorService.loadTable(
@@ -114,19 +119,21 @@ class RExecutorServiceImplTest {
 
     verify(rConnection)
         .eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))})");
-    verify(rConnection).eval("try({base::unlink('project_folder_table.parquet')})");
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))",
+            false);
+    verify(rConnection).eval("base::unlink('project_folder_table.parquet')", false);
   }
 
   @Test
   void testLoadTableNoVariables() throws IOException, RServerException {
-    when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
+    // when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})"))
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))",
+            false))
         .thenReturn(new RserveResult(new REXPLogical(true)));
-    when(rConnection.eval("try({base::unlink('project_folder_table.parquet')})"))
+    when(rConnection.eval("base::unlink('project_folder_table.parquet')", false))
         .thenReturn(new RserveResult(new REXPNull()));
 
     executorService.loadTable(
@@ -134,78 +141,83 @@ class RExecutorServiceImplTest {
 
     verify(rConnection)
         .eval(
-            "try({is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))})");
-    verify(rConnection).eval("try({base::unlink('project_folder_table.parquet')})");
+            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))",
+            false);
+    verify(rConnection).eval("base::unlink('project_folder_table.parquet')", false);
   }
 
   @Test
-  void testLoadResource() throws IOException, RServerException {
+  void testLoadResource() throws RServerException {
     var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
     var token = mock(Jwt.class);
     Resource resource = new InMemoryResource("Hello");
     when(token.getTokenValue()).thenReturn("token");
     when(principal.getToken()).thenReturn(token);
     lenient()
-        .doReturn(rFileOutputStream)
+        .doNothing()
         .when(rConnection)
-        .createFile("project_folder_resource.rds");
+        .writeFile(eq("project_folder_resource.rds"), any(InputStream.class));
     lenient()
         .doReturn(new RserveResult(new REXPLogical(true)))
         .when(rConnection)
-        .eval("try({is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))})");
+        .eval("is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))", false);
     lenient()
         .doReturn(new RserveResult(new REXPNull()))
         .when(rConnection)
-        .eval("try({base::unlink('project_folder_resource.rds')})");
+        .eval("base::unlink('project_folder_resource.rds')", false);
     lenient()
         .doReturn(new RserveResult(new REXPLogical(true)))
         .when(rConnection)
         .eval(
-            "try({is.null(base::assign('R', value={resourcer::newResource(\n"
+            "is.null(base::assign('R', value={resourcer::newResource(\n"
                 + "        name = rds$name,\n"
                 + "        url = rds$url,\n"
                 + "        format = rds$format,\n"
                 + "        secret = \"token\"\n"
-                + ")}))})");
+                + ")}))",
+            false);
     lenient()
         .doReturn(new RserveResult(new REXPLogical(true)))
         .when(rConnection)
-        .eval("try({is.null(base::assign('D', value={resourcer::newResourceClient(R)}))})");
+        .eval("is.null(base::assign('D', value={resourcer::newResourceClient(R)}))", false);
     executorService.loadResource(
         principal, rConnection, resource, "project/folder/resource.rds", "D");
     verify(rConnection)
-        .eval("try({is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))})");
-    verify(rConnection).eval("try({base::unlink('project_folder_resource.rds')})");
+        .eval("is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))", false);
+    verify(rConnection).eval("base::unlink('project_folder_resource.rds')", false);
     verify(rConnection)
         .eval(
-            "try({is.null(base::assign('R', value={resourcer::newResource(\n"
+            "is.null(base::assign('R', value={resourcer::newResource(\n"
                 + "        name = rds$name,\n"
                 + "        url = rds$url,\n"
                 + "        format = rds$format,\n"
                 + "        secret = \"token\"\n"
-                + ")}))})");
+                + ")}))",
+            false);
     verify(rConnection)
-        .eval("try({is.null(base::assign('D', value={resourcer::newResourceClient(R)}))})");
+        .eval("is.null(base::assign('D', value={resourcer::newResourceClient(R)}))", false);
   }
 
   @Test
   void testSaveWorkspace() throws IOException, RServerException {
-    when(rConnection.eval("try({base::save.image()})"))
+    when(rConnection.eval("base::save.image()", false))
         .thenReturn(new RserveResult(new REXPNull()));
-    when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
+    // when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
         rConnection, inputStream -> assertSame(rFileInputStream, inputStream));
 
-    verify(rConnection).eval("try({base::save.image()})");
-    verify(rConnection).openFile(".RData");
+    verify(rConnection).eval("base::save.image()", false);
+    // verify(rConnection).openFile(".RData");
   }
 
   @Test
   void testSaveWorkspaceFails() throws IOException, RServerException {
-    when(rConnection.eval("try({base::save.image()})"))
+    when(rConnection.eval("base::save.image()", false))
         .thenReturn(new RserveResult(new REXPNull()));
-    when(rConnection.openFile(".RData")).thenThrow(IOException.class);
+    doThrow(RserveException.class).when(rConnection).readFile(anyString(), any(Consumer.class));
+
+    // when(rConnection.openFile(".RData")).thenThrow(IOException.class);
 
     assertThrows(
         RExecutionException.class,
@@ -215,8 +227,8 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadWorkspaceFails() throws IOException {
-    when(rConnection.createFile(".RData")).thenThrow(IOException.class);
+  void testLoadWorkspaceFails() throws RServerException {
+    doThrow(RserveException.class).when(rConnection).writeFile(anyString(), any(InputStream.class));
     Resource resource = new InMemoryResource("Hello");
 
     assertThrows(
@@ -246,13 +258,14 @@ class RExecutorServiceImplTest {
 
   @Test
   void testInstallPackage() throws IOException, RServerException {
-    when(rConnection.createFile("location__test_.tar.gz")).thenReturn(rFileOutputStream);
+    // when(rConnection.createFile("location__test_.tar.gz")).thenReturn(rFileOutputStream);
     when(rConnection.eval(
-            "try({remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')})"))
+            "remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')",
+            false))
         .thenReturn(new RserveResult(new REXPNull()));
-    when(rConnection.eval("try({require('location/_test')})"))
+    when(rConnection.eval("require('location/_test')", false))
         .thenReturn(new RserveResult(new REXPLogical(true)));
-    when(rConnection.eval("try({file.remove('location/_test_.tar.gz')})"))
+    when(rConnection.eval("file.remove('location/_test_.tar.gz')", false))
         .thenReturn(new RserveResult(new REXPNull()));
 
     Resource resource = new InMemoryResource("Hello");
@@ -262,9 +275,10 @@ class RExecutorServiceImplTest {
 
     verify(rConnection)
         .eval(
-            "try({remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')})");
-    verify(rConnection).eval("try({require('location/_test')})");
-    verify(rConnection).eval("try({file.remove('location/_test_.tar.gz')})");
+            "remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')",
+            false);
+    verify(rConnection).eval("require('location/_test')", false);
+    verify(rConnection).eval("file.remove('location/_test_.tar.gz')", false);
   }
 
   @Test

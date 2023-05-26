@@ -6,7 +6,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
-import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -296,11 +295,10 @@ public class DataController {
           boolean async) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
-      String rewrittenExpression =
-          serializeExpression(expressionRewriter.rewriteAggregate(expression));
+      String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
       CompletableFuture<RServerResult> result =
           auditEventPublisher.audit(
-              commands.evaluate(rewrittenExpression), principal, EXECUTE, data);
+              commands.evaluate(rewrittenExpression, true), principal, EXECUTE, data);
       return async
           ? completedFuture(created(getLastCommandLocation()).body(null))
           : result

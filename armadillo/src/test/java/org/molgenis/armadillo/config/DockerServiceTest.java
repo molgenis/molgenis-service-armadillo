@@ -146,6 +146,8 @@ class DockerServiceTest {
             "datashield/armadillo-rserver-omics",
             "localhost",
             6312,
+            null,
+            null,
             Set.of("dsBase", "dsOmics"),
             emptySet(),
             emptyMap());

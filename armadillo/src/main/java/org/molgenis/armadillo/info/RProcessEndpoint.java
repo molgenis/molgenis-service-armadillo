@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerConnectionFactory;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.model.REnvironment;
-import org.molgenis.r.rserve.RserveConnectionFactoryImpl;
 import org.molgenis.r.service.ProcessService;
 import org.springframework.boot.actuate.endpoint.annotation.DeleteOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
@@ -55,7 +55,7 @@ public class RProcessEndpoint {
   }
 
   RServerConnection connect(EnvironmentConfigProps environment) {
-    return new RserveConnectionFactoryImpl(environment).tryCreateConnection();
+    return new RServerConnectionFactory(environment).tryCreateConnection();
   }
 
   @DeleteOperation

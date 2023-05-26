@@ -119,9 +119,9 @@ class CommandsImplTest {
 
   @Test
   void testEvaluate() throws Exception {
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(rExecutorService.execute("ls()", false, rConnection)).thenReturn(rexp);
 
-    assertSame(rexp, commands.evaluate("ls()").get());
+    assertSame(rexp, commands.evaluate("ls()", false).get());
   }
 
   @Test
@@ -226,7 +226,8 @@ class CommandsImplTest {
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
-        ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Set.of(), Map.of());
+        ProfileConfig.create(
+            "exposome", "dummy", "localhost", 6311, null, null, Set.of(), Set.of(), Map.of());
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
     verify(rConnection).close();

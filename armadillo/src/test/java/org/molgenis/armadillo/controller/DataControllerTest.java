@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
@@ -406,9 +405,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
-    String serializedExpression = serializeExpression(rewrittenExpression);
 
-    when(commands.evaluate(serializedExpression))
+    when(commands.evaluate(rewrittenExpression, true))
         .thenReturn(completedFuture(new RserveResult(new REXPRaw(new byte[0]))));
 
     mockMvc
@@ -438,7 +436,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testExecuteAsync() throws Exception {
     when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
-    when(commands.evaluate("try(base::serialize({dsBase::meanDS(D$age)}, NULL))"))
+    when(commands.evaluate("dsBase::meanDS(D$age)", true))
         .thenReturn(completedFuture(new RserveResult(new REXPDouble(36.6))));
 
     MvcResult result =

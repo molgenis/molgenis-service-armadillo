@@ -1,18 +1,12 @@
 package org.molgenis.r.service;
 
 import static java.lang.String.format;
-import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 
-import com.google.common.base.Stopwatch;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.Principal;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.apache.commons.io.IOUtils;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerException;
@@ -30,13 +24,12 @@ import org.springframework.stereotype.Component;
 public class RExecutorServiceImpl implements RExecutorService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
-  public static final int RFILE_BUFFER_SIZE = 65536;
 
   @Override
-  public RServerResult execute(String cmd, RServerConnection connection) {
+  public RServerResult execute(String cmd, boolean serialized, RServerConnection connection) {
     try {
       LOGGER.debug("Evaluate {}", cmd);
-      RServerResult result = connection.eval(format("try({%s})", cmd));
+      RServerResult result = connection.eval(cmd, serialized);
       if (result == null) {
         throw new RExecutionException("Eval returned null");
       }
@@ -53,10 +46,8 @@ public class RExecutorServiceImpl implements RExecutorService {
       LOGGER.debug("Save workspace");
       String command = "base::save.image()";
       execute(command, connection);
-      try (InputStream is = connection.openFile(".RData")) {
-        inputStreamConsumer.accept(is);
-      }
-    } catch (IOException e) {
+      connection.readFile(".RData", inputStreamConsumer);
+    } catch (RServerException e) {
       throw new RExecutionException(e);
     }
   }
@@ -102,7 +93,7 @@ public class RExecutorServiceImpl implements RExecutorService {
             connection);
       }
       execute(format("base::unlink('%s')", rFileName), connection);
-    } catch (IOException e) {
+    } catch (IOException | RServerException e) {
       throw new RExecutionException(e);
     }
   }
@@ -166,27 +157,16 @@ public class RExecutorServiceImpl implements RExecutorService {
       }
       execute(format("file.remove('%s')", filename), connection);
 
-    } catch (IOException e) {
+    } catch (IOException | RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   void copyFile(Resource resource, String dataFileName, RServerConnection connection)
-      throws IOException {
+      throws IOException, RServerException {
     LOGGER.info("Copying '{}' to R...", dataFileName);
-    Stopwatch sw = Stopwatch.createStarted();
-    try (InputStream is = resource.getInputStream();
-        OutputStream os = connection.createFile(dataFileName);
-        BufferedOutputStream bos = new BufferedOutputStream(os, RFILE_BUFFER_SIZE)) {
-      long size = IOUtils.copyLarge(is, bos);
-      if (LOGGER.isDebugEnabled()) {
-        var elapsed = sw.elapsed(TimeUnit.MICROSECONDS);
-        LOGGER.debug(
-            "Copied {} in {}ms [{} MB/s]",
-            byteCountToDisplaySize(size),
-            elapsed / 1000,
-            format("%.03f", size * 1.0 / elapsed));
-      }
+    try (InputStream is = resource.getInputStream()) {
+      connection.writeFile(dataFileName, is);
     }
   }
 

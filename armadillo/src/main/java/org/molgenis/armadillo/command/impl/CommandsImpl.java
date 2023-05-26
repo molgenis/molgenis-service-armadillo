@@ -108,11 +108,16 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<RServerResult> evaluate(String expression) {
+    return evaluate(expression, false);
+  }
+
+  @Override
+  public CompletableFuture<RServerResult> evaluate(String expression, boolean serialized) {
     return schedule(
         new ArmadilloCommandImpl<>(expression, true) {
           @Override
           protected RServerResult doWithConnection(RServerConnection connection) {
-            return rExecutorService.execute(expression, connection);
+            return rExecutorService.execute(expression, serialized, connection);
           }
         });
   }

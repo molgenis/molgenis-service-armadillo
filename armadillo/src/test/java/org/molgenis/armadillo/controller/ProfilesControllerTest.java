@@ -62,6 +62,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "datashield/armadillo-rserver:6.2.0",
                 "localhost",
                 6311,
+                null,
+                null,
                 Set.of("dsBase"),
                 emptySet(),
                 emptyMap()));
@@ -74,6 +76,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 "datashield/armadillo-rserver-omics",
                 "localhost",
                 6312,
+                null,
+                null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap()));
@@ -112,6 +116,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             "dummy/armadillo:2.0.0",
             "localhost",
             6312,
+            null,
+            null,
             Set.of("dsBase"),
             emptySet(),
             Map.of());

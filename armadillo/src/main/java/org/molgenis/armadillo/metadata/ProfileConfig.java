@@ -33,6 +33,14 @@ public abstract class ProfileConfig {
   @Positive
   public abstract Integer getPort();
 
+  @JsonProperty("username")
+  @Nullable // applies to rock only
+  public abstract String getUsername();
+
+  @JsonProperty("password")
+  @Nullable // applies to rock only
+  public abstract String getPassword();
+
   @JsonProperty("packageWhitelist")
   public abstract Set<String> getPackageWhitelist();
 
@@ -48,6 +56,8 @@ public abstract class ProfileConfig {
       @JsonProperty("image") String newImage,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
+      @JsonProperty("username") String newUsername,
+      @JsonProperty("password") String newPassword,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions) {
@@ -56,6 +66,8 @@ public abstract class ProfileConfig {
         newImage,
         newHost != null ? newHost : "localhost",
         newPort,
+        newUsername,
+        newPassword,
         newPackageWhitelist,
         newFunctionBlacklist,
         newOptions != null ? newOptions : Map.of());
@@ -68,6 +80,8 @@ public abstract class ProfileConfig {
         "datashield/armadillo-rserver",
         "localhost",
         6311,
+        null,
+        null,
         Set.of("dsBase"),
         emptySet(),
         Map.of("datashield.seed", "342325352"));
@@ -78,6 +92,8 @@ public abstract class ProfileConfig {
     props.setName(getName());
     props.setHost(getHost());
     props.setPort(getPort());
+    props.setUsername(getUsername());
+    props.setPassword(getPassword());
     return props;
   }
 }
