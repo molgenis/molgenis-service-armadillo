@@ -62,8 +62,6 @@ public class ProfileService {
                 profileConfig.getImage(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
-                profileConfig.getUsername(),
-                profileConfig.getPassword(),
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions()));

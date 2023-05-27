@@ -14,15 +14,13 @@ public class InitialProfileConfig {
   private String image;
   private String host;
   private int port;
-  private String username;
-  private String password;
   private Set<String> packageWhitelist;
   private Set<String> functionBlacklist;
   private Map<String, String> options;
 
   public ProfileConfig toProfileConfig() {
     return ProfileConfig.create(
-        name, image, host, port, username, password, packageWhitelist, functionBlacklist, options);
+        name, image, host, port, packageWhitelist, functionBlacklist, options);
   }
 
   public void setName(String name) {
@@ -39,14 +37,6 @@ public class InitialProfileConfig {
 
   public void setPort(int port) {
     this.port = port;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
   }
 
   public void setPackageWhitelist(Set<String> packageWhitelist) {

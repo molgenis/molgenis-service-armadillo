@@ -40,7 +40,7 @@ class DataShieldOptionsImplTest {
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
     ProfileConfig profileConfig =
         ProfileConfig.create(
-            "dummy", "dummy", "localhost", 6311, null, null, Set.of(), emptySet(), configOptions);
+            "dummy", "dummy", "localhost", 6311, Set.of(), emptySet(), configOptions);
     options = new DataShieldOptionsImpl(profileConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
