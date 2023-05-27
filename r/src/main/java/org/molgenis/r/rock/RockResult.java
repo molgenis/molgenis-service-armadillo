@@ -46,6 +46,10 @@ public class RockResult implements RServerResult {
     this.jsonResult = object.toString();
   }
 
+  public RockResult(List<RServerResult> results) {
+    this.listResult = results;
+  }
+
   public RockResult(Object nativeResult) {
     this.nativeResult = nativeResult;
   }
@@ -242,12 +246,30 @@ public class RockResult implements RServerResult {
 
   @Override
   public RNamedList<RServerResult> asNamedList() {
+    if (!isNamedList() && isList()) {
+      namedListResult = new RockNamedList(listResult);
+    }
     return namedListResult;
   }
 
   @Override
   public boolean[] isNA() {
-    return new boolean[0];
+    if (isList()) {
+      boolean[] rval = new boolean[listResult.size()];
+      for (int i = 0; i < listResult.size(); i++) {
+        rval[i] = listResult.get(i).isNA()[0];
+      }
+      return rval;
+    }
+    if (isNamedList()) {
+      boolean[] rval = new boolean[namedListResult.size()];
+      int i = 0;
+      for (RServerResult value : namedListResult.values()) {
+        rval[i++] = value.isNA()[0];
+      }
+      return rval;
+    }
+    return new boolean[] {isNull()};
   }
 
   @Override

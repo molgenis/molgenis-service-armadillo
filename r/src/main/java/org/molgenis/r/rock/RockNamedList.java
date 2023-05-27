@@ -27,6 +27,25 @@ public class RockNamedList implements RNamedList<RServerResult> {
     }
   }
 
+  public RockNamedList(List<RServerResult> results) {
+    // turn rows into columns
+    Map<String, List<RServerResult>> mapTmp = Maps.newLinkedHashMap();
+    for (RServerResult result : results) {
+      if (result.isNamedList()) {
+        RNamedList<RServerResult> namedResults = result.asNamedList();
+        for (String name : namedResults.getNames()) {
+          if (!mapTmp.containsKey(name)) {
+            mapTmp.put(name, Lists.newArrayList());
+          }
+          mapTmp.get(name).add(namedResults.get(name));
+        }
+      }
+    }
+    for (String name : mapTmp.keySet()) {
+      map.put(name, new RockResult(mapTmp.get(name)));
+    }
+  }
+
   @Override
   public List<String> getNames() {
     return Lists.newArrayList(map.keySet());

@@ -28,7 +28,10 @@ public class RockConnectionFactory implements RConnectionFactory {
               environment.getHost(), environment.getPort()));
     }
     RockApplication application =
-        new RockApplication("http://localhost:8085", "administrator", "password");
+        new RockApplication(
+            format("http://%s:%s", environment.getHost(), environment.getPort()),
+            "administrator",
+            "password");
     try {
       return new RockConnection(application);
     } catch (RServerException e) {
