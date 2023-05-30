@@ -1,8 +1,7 @@
 package org.molgenis.r.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,16 +21,21 @@ import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.springframework.core.io.Resource;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.util.InMemoryResource;
 
 @ExtendWith(MockitoExtension.class)
 class RExecutorServiceImplTest {
 
   private RExecutorServiceImpl executorService;
+
   @Mock private RServerConnection rConnection;
   @Mock private RServerResult rexp;
   @Mock private RFileOutputStream rFileOutputStream;
   @Mock private RFileInputStream rFileInputStream;
+
+  RExecutorServiceImplTest() {}
 
   @BeforeEach
   void before() {
@@ -136,21 +140,52 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadResource() throws IOException, RServerException {
-    when(rConnection.createFile("project_folder_resource.rds")).thenReturn(rFileOutputStream);
+    var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
+    var token = mock(Jwt.class);
     Resource resource = new InMemoryResource("Hello");
-
-    when(rConnection.eval(
-            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})"))
-        .thenReturn(new RserveResult(new REXPLogical(true)));
-    when(rConnection.eval("try({base::unlink('project_folder_resource.rds')})"))
-        .thenReturn(new RserveResult(new REXPNull()));
-
-    executorService.loadResource(rConnection, resource, "project/folder/resource.rds", "D");
-
+    when(token.getTokenValue()).thenReturn("token");
+    when(principal.getToken()).thenReturn(token);
+    lenient()
+        .doReturn(rFileOutputStream)
+        .when(rConnection)
+        .createFile("project_folder_resource.rds");
+    lenient()
+        .doReturn(new RserveResult(new REXPLogical(true)))
+        .when(rConnection)
+        .eval("try({is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))})");
+    lenient()
+        .doReturn(new RserveResult(new REXPNull()))
+        .when(rConnection)
+        .eval("try({base::unlink('project_folder_resource.rds')})");
+    lenient()
+        .doReturn(new RserveResult(new REXPLogical(true)))
+        .when(rConnection)
+        .eval(
+            "try({is.null(base::assign('R', value={resourcer::newResource(\n"
+                + "        name = rds$name,\n"
+                + "        url = rds$url,\n"
+                + "        format = rds$format,\n"
+                + "        secret = \"token\"\n"
+                + ")}))})");
+    lenient()
+        .doReturn(new RserveResult(new REXPLogical(true)))
+        .when(rConnection)
+        .eval("try({is.null(base::assign('D', value={resourcer::newResourceClient(R)}))})");
+    executorService.loadResource(
+        principal, rConnection, resource, "project/folder/resource.rds", "D");
+    verify(rConnection)
+        .eval("try({is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))})");
+    verify(rConnection).eval("try({base::unlink('project_folder_resource.rds')})");
     verify(rConnection)
         .eval(
-            "try({is.null(base::assign('D', value={resourcer::newResourceClient(base::readRDS('project_folder_resource.rds'))}))})");
-    verify(rConnection).eval("try({base::unlink('project_folder_resource.rds')})");
+            "try({is.null(base::assign('R', value={resourcer::newResource(\n"
+                + "        name = rds$name,\n"
+                + "        url = rds$url,\n"
+                + "        format = rds$format,\n"
+                + "        secret = \"token\"\n"
+                + ")}))})");
+    verify(rConnection)
+        .eval("try({is.null(base::assign('D', value={resourcer::newResourceClient(R)}))})");
   }
 
   @Test
@@ -189,17 +224,18 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  void testLoadResourceFails() throws IOException {
-    when(rConnection.createFile("hpc-resource-1.rds")).thenThrow(IOException.class);
+  void testLoadResourceFails() {
     Resource resource = new InMemoryResource("Hello");
-
+    var testPrincipal = mock(JwtAuthenticationToken.class);
     assertThrows(
         RExecutionException.class,
-        () -> executorService.loadResource(rConnection, resource, "hpc-resource-1.rds", "D"));
+        () ->
+            executorService.loadResource(
+                testPrincipal, rConnection, resource, "hpc-resource-1.rds", "D"));
   }
 
   @Test
-  void testInstallPackageFails() throws IOException {
+  void testInstallPackageFails() {
     Resource resource = new InMemoryResource("Hello");
     String fileName = "test.txt";
 

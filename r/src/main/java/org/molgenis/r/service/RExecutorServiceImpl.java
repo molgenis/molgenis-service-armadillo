@@ -23,7 +23,6 @@ import org.molgenis.r.exceptions.RExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -110,10 +109,6 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void loadResource(
-      RServerConnection connection, Resource resource, String filename, String symbol) {}
-
-  @Override
-  public void loadResource(
       Principal principal,
       RServerConnection connection,
       Resource resource,
@@ -123,8 +118,9 @@ public class RExecutorServiceImpl implements RExecutorService {
     String rFileName = filename.replace("/", "_");
     try {
       if (principal instanceof JwtAuthenticationToken token) {
+        String tokenValue = token.getToken().getTokenValue();
         copyFile(resource, rFileName, connection);
-        execute(format("base::assign('rds',base::readRDS('%s'))", rFileName), connection);
+        execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
         execute(format("base::unlink('%s')", rFileName), connection);
         execute(
             format(
@@ -135,7 +131,7 @@ public class RExecutorServiceImpl implements RExecutorService {
                                           format = rds$format,
                                           secret = "%s"
                                   )}))""",
-                ((Jwt) token.getToken()).getTokenValue()),
+                tokenValue),
             connection);
       }
       execute(

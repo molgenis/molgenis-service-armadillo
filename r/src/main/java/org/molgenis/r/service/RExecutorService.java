@@ -23,9 +23,6 @@ public interface RExecutorService {
       List<String> variables);
 
   void loadResource(
-      RServerConnection connection, Resource resource, String filename, String symbol);
-
-  void loadResource(
       Principal principal,
       RServerConnection connection,
       Resource resource,

@@ -200,6 +200,7 @@ class CommandsImplTest {
 
     verify(rExecutorService)
         .loadResource(
+            eq(principal),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
