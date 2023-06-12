@@ -10,7 +10,6 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,7 +33,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Import(UserDetailsServiceAutoConfiguration.class)
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity
 @EnableWebSecurity
 @Configuration
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
@@ -50,47 +49,26 @@ public class AuthConfig {
   }
 
   @Bean
-  @Order(1)
-  protected SecurityFilterChain configurePublic(HttpSecurity http) throws Exception {
-    return http.securityMatcher(
-            "/",
-            "/index.html",
-            "/armadillo-logo.png",
-            "favicon.ico",
-            "/assets/**",
-            "/v3/**",
-            "/swagger-ui/**",
-            "/ui/**",
-            "/swagger-ui.html")
-        .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
-        .build();
-  }
-
-  // oauth2login, if client is configured
-  @Bean
-  @Order(2)
-  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-    // use this if not authenticated and having oauth config
-    return http.securityMatcher("/oauth2/**", "/login", "/login/**")
-        .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
-        .oauth2Login(
-            oauth2Login ->
-                oauth2Login
-                    .userInfoEndpoint(
-                        userInfoEndpoint ->
-                            userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                    .defaultSuccessUrl("/", true))
-        .build();
-  }
-
-  @Bean
-  @Profile({"!test"})
   @Order(3)
-  protected SecurityFilterChain configureBasicAuthAndJWT(HttpSecurity http) throws Exception {
+  @Profile({"basic"})
+  protected SecurityFilterChain oidc(HttpSecurity http) throws Exception {
     return http.authorizeHttpRequests(
             requests ->
                 requests
+                    .requestMatchers(
+                        "/",
+                        "/info",
+                        "/index.html",
+                        "/basic-login",
+                        "/my/**",
+                        "/armadillo-logo.png",
+                        "favicon.ico",
+                        "/assets/**",
+                        "/v3/**",
+                        "/swagger-ui/**",
+                        "/ui/**",
+                        "/swagger-ui.html")
+                    .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()
                     .requestMatchers(toAnyEndpoint())
@@ -99,21 +77,164 @@ public class AuthConfig {
         .disable()
         .cors()
         .and()
-        .httpBasic(
-            // Customizer.withDefaults())
-            httpBasicConfigurer -> {
-              httpBasicConfigurer.realmName("Armadillo");
-              httpBasicConfigurer.authenticationEntryPoint(
-                  new NoPopupBasicAuthenticationEntryPoint());
-            })
-        .logout()
-        .logoutSuccessUrl("/")
+        .httpBasic()
         .and()
-        .oauth2ResourceServer(
-            oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())))
+        //          .oauth2Login(
+        //              oauth2Login ->
+        //                  oauth2Login
+        //                      .userInfoEndpoint(
+        //                          userInfoEndpoint ->
+        //
+        // userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+        //                      .defaultSuccessUrl("/", true))
         .build();
   }
+
+  // oauth2login, if client is configured
+  //  @Bean
+  //  @Order(0)
+  //  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
+  //  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  //    // use this if not authenticated and having oauth config
+  //    return http.securityMatcher("/oauth2/**", "/login", "/login/**")
+  //            .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
+  //            .oauth2Login(
+  //                    oauth2Login ->
+  //                            oauth2Login
+  //                                    .userInfoEndpoint(
+  //                                            userInfoEndpoint ->
+  //
+  // userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+  //                                    .defaultSuccessUrl("/", true))
+  //            .build();
+  //  }
+  //
+  //  @Bean
+  //  @Order(1)
+  //  protected SecurityFilterChain configurePublic(HttpSecurity http) throws Exception {
+  //    return http.securityMatcher(
+  //                    "/",
+  //                    "/info",
+  //                    "/actuator/**",
+  //                    "/index.html",
+  //                    "/basic-login",
+  //                    "/armadillo-logo.png",
+  //                    "favicon.ico",
+  //                    "/assets/**",
+  //                    "/v3/**",
+  //                    "/swagger-ui/**",
+  //                    "/ui/**",
+  //                    "/my/**",
+  //                    "/swagger-ui.html")
+  //            .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+  //            .build();
+  //  }
+  //
+  //  @Bean
+  //  @Order(2)
+  //  protected SecurityFilterChain configurePublicEndpoints(HttpSecurity http) throws Exception {
+  //    return http.securityMatcher(
+  //                    EndpointRequest.to(
+  //                            InfoEndpoint.class, HealthEndpoint.class,
+  // CurrentUserController.class))
+  //            .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+  //            .build();
+  //  }
+  //
+  //  @Bean
+  //  @Order(1)
+  //  protected SecurityFilterChain basic(HttpSecurity http) throws Exception {
+  //    return http.authorizeHttpRequests(
+  //            requests ->
+  //                requests
+  //                    .anyRequest()
+  //                    .authenticated())
+  //        .csrf()
+  //        .disable()
+  //        .cors()
+  //        .and()
+  //        .httpBasic(withDefaults())
+  ////            .oauth2ResourceServer(
+  ////                    oauth2 ->
+  ////                            oauth2.jwt(jwt ->
+  // jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())))
+  //        .build();
+  //  }
+  //  @Bean
+  //  @Order(3)
+  //  @Profile({"!basic"})
+  //  protected SecurityFilterChain oidc(HttpSecurity http) throws Exception {
+  //    return http.authorizeHttpRequests(
+  //            requests ->
+  //                requests
+  //                    .requestMatchers(
+  //                        "/",
+  //                        "/info",
+  //                        "/index.html",
+  //                        "/basic-login",
+  //                        "/armadillo-logo.png",
+  //                        "favicon.ico",
+  //                        "/assets/**",
+  //                        "/v3/**",
+  //                        "/swagger-ui/**",
+  //                        "/ui/**",
+  //                        "/swagger-ui.html")
+  //                    .permitAll()
+  //                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class,
+  // HealthEndpoint.class))
+  //                    .permitAll()
+  //                    .anyRequest()
+  //                    .authenticated())
+  //        .csrf()
+  //        .disable()
+  //        .cors()
+  //        .and()
+  //        .httpBasic(withDefaults())
+  //        .oauth2Login(
+  //            oauth2Login ->
+  //                oauth2Login
+  //                    .userInfoEndpoint(
+  //                        userInfoEndpoint ->
+  //
+  // userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+  //                    .defaultSuccessUrl("/", true))
+  //
+  //        .build();
+  //  }
+
+  //
+  //  @Bean
+  //  @Profile({"!test"})
+  //  @Order(3)
+  //  protected SecurityFilterChain configureBasicAuthAndJWT(HttpSecurity http) throws Exception {
+  //    return http.authorizeHttpRequests(
+  //            requests ->
+  //                requests
+  //                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class,
+  // HealthEndpoint.class))
+  //                    .permitAll()
+  //                    .requestMatchers(toAnyEndpoint())
+  //                    .authenticated())
+  //        .csrf()
+  //        .disable()
+  //        .cors()
+  //        .and()
+  //        .httpBasic(
+  //            // Customizer.withDefaults())
+  //            httpBasicConfigurer -> {
+  //              httpBasicConfigurer.realmName("Armadillo");
+  //              httpBasicConfigurer.authenticationEntryPoint(
+  //                  new NoPopupBasicAuthenticationEntryPoint());
+  //            })
+  //        .logout()
+  //        .logoutSuccessUrl("/")
+  //        .and()
+  //        .oauth2ResourceServer(
+  //            oauth2 ->
+  //                oauth2.jwt(jwt ->
+  // jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())))
+  //        .build();
+  //  }
 
   Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();

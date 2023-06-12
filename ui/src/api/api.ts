@@ -165,7 +165,7 @@ export async function logout() {
 }
 
 export async function authenticate(auth: Auth) {
-  const response = await fetch("/principal", {
+  const response = await fetch("/basic-login", {
     method: "GET",
     headers: {
       Authorization: `Basic ${btoa(auth.user + ":" + auth.pwd)}`,
