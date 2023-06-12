@@ -21,6 +21,10 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api'
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-oauth2-client'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
 
     //other
     implementation 'commons-io:commons-io:2.11.0'
@@ -35,6 +39,7 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'org.springframework.security:spring-security-core'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     //annotation
     annotationProcessor "com.google.auto.value:auto-value:1.10.1"

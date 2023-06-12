@@ -1,6 +1,7 @@
 package org.molgenis.r.service;
 
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
 import java.util.function.Consumer;
 import org.molgenis.r.RServerConnection;
@@ -22,7 +23,11 @@ public interface RExecutorService {
       List<String> variables);
 
   void loadResource(
-      RServerConnection connection, Resource resource, String filename, String symbol);
+      Principal principal,
+      RServerConnection connection,
+      Resource resource,
+      String filename,
+      String symbol);
 
   void installPackage(RServerConnection connection, Resource packageResource, String name);
 }

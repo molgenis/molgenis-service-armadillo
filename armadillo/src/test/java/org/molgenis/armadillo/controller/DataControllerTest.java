@@ -835,7 +835,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void testLoadResource() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
-    when(commands.loadResource("hpc_res", "gecko/2_1-core-1_1/hpc-resource-1"))
+    when(commands.loadResource(
+            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-resource-1")))
         .thenReturn(completedFuture(null));
 
     mockMvc

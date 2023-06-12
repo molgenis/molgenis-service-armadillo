@@ -223,7 +223,7 @@ public class DataController {
     }
     var result =
         auditEventPublisher.audit(
-            commands.loadResource(symbol, resource), principal, LOAD_RESOURCE, data);
+            commands.loadResource(principal, symbol, resource), principal, LOAD_RESOURCE, data);
     return async
         ? completedFuture(created(getLastCommandLocation()).body(null))
         : result

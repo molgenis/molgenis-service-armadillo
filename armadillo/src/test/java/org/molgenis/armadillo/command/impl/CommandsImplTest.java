@@ -196,10 +196,11 @@ class CommandsImplTest {
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
 
-    commands.loadResource("core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
 
     verify(rExecutorService)
         .loadResource(
+            eq(principal),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
