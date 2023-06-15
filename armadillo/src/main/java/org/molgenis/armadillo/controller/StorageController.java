@@ -43,6 +43,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -240,6 +241,7 @@ public class StorageController {
   }
 
   @Operation(summary = "Download an object")
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object downloaded successfully"),
@@ -264,6 +266,7 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   private ResponseEntity<ByteArrayResource> getObject(String project, String object) {
     var inputStream = storage.loadObject(project, object);
     var objectParts = object.split("/");

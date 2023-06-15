@@ -87,7 +87,7 @@ public class ArmadilloStorageService {
     storageService.delete(SHARED_PREFIX + project, object);
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadObject(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.load(SHARED_PREFIX + project, object);
