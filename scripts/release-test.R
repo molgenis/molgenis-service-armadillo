@@ -40,7 +40,7 @@ library(resourcer)
 
 # set when admin password given + question answered with y
 update_auto = ""
-run_spinner <- TRUE
+do_run_spinner <- TRUE
 
 exit_test <- function(msg){
   cond = structure(list(message=msg), class=c("exit", "condition"))
@@ -83,7 +83,7 @@ put_to_api <- function(endpoint, key, auth_type, body_args){
 
 spin_till_done <- function(spinner){
     # run_spinner is a boolean set on top of this script, it is set to false when loading is done and spinner can stop
-    if (run_spinner) {
+    if (do_run_spinner) {
         Sys.sleep(0.1)
     } else {
         spinner$finish()
@@ -106,8 +106,8 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
   ansi_with_hidden_cursor(run_spinner(spinner))
   # Response will come when ready
   response <- value(api_call)
-  # Set run_spinner to false, causing the spinner to stop running, see spin_till_done method
-  run_spinner <- FALSE
+  # Set do_run_spinner to false, causing the spinner to stop running, see spin_till_done method
+  do_run_spinner <- FALSE
   if(response$status_code != 204) {
     cli_alert_warning(sprintf("Could not upload [%s] to project [%s]", name, project))
   }
