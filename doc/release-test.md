@@ -9,11 +9,11 @@
   - httr
   - jsonlite
   - future
-  - MolgenisArmadillo
+  - MolgenisArmadillo (2.0.0 >)
   - DSI
   - dsBaseClient
-  - DSMolgenisArmadillo
-  - resourcer
+  - DSMolgenisArmadillo (2.0.0 >)
+  - resourcer (1.4.0 >)
   
 *For full testing*
 - Admin password by hand
