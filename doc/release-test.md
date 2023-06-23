@@ -30,3 +30,6 @@ asked by script.
 2. `cd` to the `scripts` folder of this repository
 3. To run tests, type: `Rscript release-test.R`
 4. Follow the directions in the script
+
+If the script fails somewhere during the process, make sure you give your OIDC account back their admin permissions and 
+throw away the projects: cohort1, cohort2 and omics.

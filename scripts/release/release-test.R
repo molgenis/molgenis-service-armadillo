@@ -110,6 +110,7 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
   do_run_spinner <- FALSE
   if(response$status_code != 204) {
     cli_alert_warning(sprintf("Could not upload [%s] to project [%s]", name, project))
+    exit_test(content(response)$message)
   }
   return(response)
 }
@@ -251,7 +252,7 @@ if(service_location == "") {
       create_dir_if_not_exists("core")
       create_dir_if_not_exists("outcome")
 
-      test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/blob/master/data/shared-lifecycle/%s/%srep.parquet"
+      test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
       download.file(sprintf(test_files_url_template, "core", "non"), paste0(dest, "core/nonrep.parquet"))
       download.file(sprintf(test_files_url_template, "core", "yearly"), paste0(dest, "core/yearlyrep.parquet"))
       download.file(sprintf(test_files_url_template, "core", "monthly"), paste0(dest, "core/monthlyrep.parquet"))
@@ -285,7 +286,7 @@ if (rda_available == "y"){
   download_dir <- add_slash_if_not_added(download_dir)
   if(dir.exists(download_dir)){
     cli_alert_info(sprintf("Downloading %s into %s", test_resource, download_dir))
-    download.file("https://github.com/isglobal-brge/brge_data_large/blob/master/data/gse66351_1.rda", paste0(download_dir, test_resource))
+    download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", paste0(download_dir, test_resource))
     rda_dir = paste0(download_dir, test_resource)
   }
 }
@@ -346,10 +347,18 @@ cli_alert_info("Checking if project 'cohort1' exists")
 check_cohort_exists("cohort1")
 
 cli_alert_info("Reading parquet files for core variables")
+cli_alert_info("core/nonrep")
 nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
+cli_alert_success("core/nonrep read")
+cli_alert_info("core/yearlyrep")
 yearlyrep <- arrow::read_parquet(paste0(dest, "core/yearlyrep.parquet"))
+cli_alert_success("core/yearlyrep read")
+cli_alert_info("core/monthlyrep")
 monthlyrep <- arrow::read_parquet(paste0(dest, "core/monthlyrep.parquet"))
+cli_alert_success("core/monthlyrep read")
+cli_alert_info("core/trimesterrep")
 trimesterrep <- arrow::read_parquet(paste0(dest, "core/trimesterrep.parquet"))
+cli_alert_success("core/trimesterrep read")
 
 cli_alert_info("Uploading core test tables")
 armadillo.upload_table("cohort1", "2_1-core-1_0", nonrep)
