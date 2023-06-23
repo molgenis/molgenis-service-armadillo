@@ -1,6 +1,4 @@
 cat("
-
-
   __  __  ____  _      _____ ______ _   _ _____  _____                                     _ _ _ _
  |  \\/  |/ __ \\| |    / ____|  ____| \\ | |_   _|/ ____|     /\\                            | (_) | |
  | \\  / | |  | | |   | |  __| |__  |  \\| | | | | (___      /  \\   _ __ _ __ ___   __ _  __| |_| | | ___
@@ -14,8 +12,6 @@ cat("
  |  _  // _ \\ |/ _ \\/ _` / __|/ _ \\ | __/ _ \\/ __| __|
  | | \\ \\  __/ |  __/ (_| \\__ \\  __/ | ||  __/\\__ \\ |_
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
-
-
 ")
 # for logging nicely and showing loading spinner
 library(cli)
@@ -112,7 +108,6 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
     cli_alert_warning(sprintf("Could not upload [%s] to project [%s]", name, project))
     exit_test(content(response)$message)
   }
-  return(response)
 }
 
 # get request to armadillo api without authentication
@@ -214,6 +209,21 @@ check_cohort_exists <- function(cohort){
   }
 }
 
+download_test_files <- function(urls, dest){
+  n_files <- length(urls)
+  cli_progress_bar("Downloading testfiles", total = n_files)
+  for (i in 1:n_files) {
+    url <- urls[i]
+    splitted <- strsplit(url, "/")[[1]]
+    folder <- splitted[length(splitted) - 1]
+    filename <- splitted[length(splitted)]
+    cli_alert_info(paste0("Downloading ", filename))
+    download.file(url, paste0(dest, folder, "/", filename), quiet=TRUE)
+    cli_progress_update()
+  }
+  cli_progress_done()
+}
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
 show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer"))
@@ -251,14 +261,18 @@ if(service_location == "") {
       dest <- add_slash_if_not_added(dest)
       create_dir_if_not_exists("core")
       create_dir_if_not_exists("outcome")
-
       test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
-      download.file(sprintf(test_files_url_template, "core", "non"), paste0(dest, "core/nonrep.parquet"))
-      download.file(sprintf(test_files_url_template, "core", "yearly"), paste0(dest, "core/yearlyrep.parquet"))
-      download.file(sprintf(test_files_url_template, "core", "monthly"), paste0(dest, "core/monthlyrep.parquet"))
-      download.file(sprintf(test_files_url_template, "core", "trimester"), paste0(dest, "core/trimesterrep.parquet"))
-      download.file(sprintf(test_files_url_template, "outcome", "non"), paste0(dest, "outcome/nonrep.parquet"))
-      download.file(sprintf(test_files_url_template, "outcome", "yearly"), paste0(dest, "outcome/yearlyrep.parquet"))
+      download_test_files(
+        c(
+        sprintf(test_files_url_template, "core", "non"),
+        sprintf(test_files_url_template, "core", "yearly"),
+        sprintf(test_files_url_template, "core", "monthly"),
+        sprintf(test_files_url_template, "core", "trimester"),
+        sprintf(test_files_url_template, "outcome", "non"),
+        sprintf(test_files_url_template, "outcome", "yearly")
+        ),
+        dest
+      )
     } else {
       exit_test(sprintf("Release test halted: Directory [%s] doesn't exist", dest))
     }
@@ -424,7 +438,7 @@ resGSE1 <- resourcer::newResource(
 cli_alert_info("Uploading RDS file")
 armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
 
-cat("\nNow you're going to test as researcher")
+cli_alert_info("\nNow you're going to test as researcher")
 if(admin_pwd != ""){
   cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
   update_auto <- readLines("stdin", n=1)
