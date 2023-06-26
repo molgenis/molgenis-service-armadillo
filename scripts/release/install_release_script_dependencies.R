@@ -24,7 +24,7 @@ library(cli)
 cli_alert_success("package [cli] installed")
 cli_alert_info("Installing other packages")
 
-packages <- c("getPass", "arrow", "jsonlite", "future", "MolgenisArmadillo", "DSI", "devtools", "resourcer", "DSMolgenisArmadillo")
+packages <- c("getPass", "arrow", "jsonlite", "future", "MolgenisArmadillo", "DSI", "devtools", "resourcer", "DSMolgenisArmadillo", "RCurl")
 
 install_requirements_from_cran <- function(packages) {
   n_requirements <- length(packages)
