@@ -27,6 +27,8 @@ library(httr)
 library(jsonlite)
 # to post resource file async to server to be able to show spinner while loading
 library(future)
+# to test if url exists
+library(RCurl)
 # armadillo/datashield libraries needed for testing
 library(MolgenisArmadillo)
 library(DSI)
@@ -39,6 +41,7 @@ update_auto = ""
 do_run_spinner <- TRUE
 
 exit_test <- function(msg){
+  cli_alert_danger(msg)
   cond = structure(list(message=msg), class=c("exit", "condition"))
   signalCondition(cond)
 }
@@ -72,7 +75,7 @@ get_auth_header <- function(type, key){
 put_to_api <- function(endpoint, key, auth_type, body_args){
   auth_header <- get_auth_header(auth_type, key)
   body <- jsonlite::toJSON(body_args, auto_unbox=TRUE)
-  response <- PUT(paste0(url, endpoint), body=body, encode="json",
+  response <- PUT(paste0(armadillo_url, endpoint), body=body, encode="json",
                   config = c(httr::content_type_json(), httr::add_headers(auth_header)))
   return(response)
 }
@@ -96,7 +99,8 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
   plan(multisession)
   spinner <- make_spinner()
   # Do async call
-  api_call <- future(POST(paste0(url, sprintf("storage/projects/%s/objects", project)), body=list(file = file, object=paste0(folder,"/", name)),
+  api_call <- future(POST(paste0(armadillo_url, sprintf("storage/projects/%s/objects", project)),
+    body=list(file = file, object=paste0(folder,"/", name)),
                     config = c(httr::add_headers(auth_header))))
   # Run spinner while waiting for response
   ansi_with_hidden_cursor(run_spinner(spinner))
@@ -112,16 +116,21 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
 
 # get request to armadillo api without authentication
 get_from_api <- function(endpoint) {
-  response <- GET(paste0(url, endpoint))
+  cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
+  response <- GET(paste0(armadillo_url, endpoint))
   return(content(response))
 }
 
 # get request to armadillo api with an authheader
 get_from_api_with_header <- function(endpoint, key, auth_type){
   auth_header <- get_auth_header(auth_type, key)
-  response <- GET(paste0(url, endpoint), config = c(httr::add_headers(auth_header)))
-  if(response$status_code != 200) {
-    cli_alert_warning(sprintf("Cannot retrieve data from endpoint [%s]", endpoint))
+  response <- GET(paste0(armadillo_url, endpoint), config = c(httr::add_headers(auth_header)))
+  if(response$status_code == 403){
+    msg <- sprintf("Permission denied. Is user [%s] admin?", user)
+    exit_test(msg)
+  } else if(response$status_code != 200) {
+    cli_alert_danger(sprintf("Cannot retrieve data from endpoint [%s]", endpoint))
+    exit_test(content(response)$message)
   }
   return(content(response))
 }
@@ -158,7 +167,7 @@ create_dir_if_not_exists <- function(directory){
 }
 
 add_slash_if_not_added <- function(path){
-  if (substr(dest, nchar(path), nchar(path)) != "/"){
+  if (substr(path, nchar(path), nchar(path)) != "/"){
     return(paste0(path, "/"))
   } else {
     return(path)
@@ -168,26 +177,28 @@ add_slash_if_not_added <- function(path){
 # theres a bit of noise added in DataSHIELD answers, causing calculations to not always be exactly the same, but close
 # here we check if they're equal enough
 almost_equal <- function(val1, val2) {
-  return(all.equal(val1, val2, tolerance= .Machine$double.eps ^ 0.3))
+  return(all.equal(val1, val2, tolerance= .Machine$double.eps ^ 0.03))
 }
 
 # compare values in two lists
 compare_list_values <- function(list1, list2) {
   vals_to_print <- cli_ul()
-  equal <- T
+  equal <- TRUE
   for (i in 1:length(list1)) {
-    val1 = list1[i]
-    val2 = list2[i]
-    if(almost_equal(val1, val2)){
+    val1 <- list1[i]
+    val2 <- list2[i]
+    if(almost_equal(val1, val2) == TRUE){
       cli_li(sprintf("%s ~= %s", val1, val2))
     } else {
-      equal <- F
+      equal <- FALSE
       cli_li(sprintf("%s != %s", val1, val2))
     }
   }
   cli_end(vals_to_print)
-  if(!equal){
-    cli_alert_danger("Not equal!")
+  if(equal){
+    cli_alert_success("Values equal")
+  } else {
+    cli_alert_danger("Values not equal")
   }
 }
 
@@ -204,7 +215,6 @@ check_cohort_exists <- function(cohort){
   if(cohort %in% armadillo.list_projects()){
     cli_alert_success(paste0(cohort, " exists"))
   } else {
-    cli_alert_danger(paste0(cohort, "doesn't exist"))
     exit_test(paste0(cohort, " doesn't exist!"))
   }
 }
@@ -213,12 +223,12 @@ download_test_files <- function(urls, dest){
   n_files <- length(urls)
   cli_progress_bar("Downloading testfiles", total = n_files)
   for (i in 1:n_files) {
-    url <- urls[i]
-    splitted <- strsplit(url, "/")[[1]]
+    download_url <- urls[i]
+    splitted <- strsplit(download_url, "/")[[1]]
     folder <- splitted[length(splitted) - 1]
     filename <- splitted[length(splitted)]
     cli_alert_info(paste0("Downloading ", filename))
-    download.file(url, paste0(dest, folder, "/", filename), quiet=TRUE)
+    download.file(download_url, paste0(dest, folder, "/", filename), quiet=TRUE)
     cli_progress_update()
   }
   cli_progress_done()
@@ -232,10 +242,19 @@ cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
 
 cat("\nEnter URL of testserver (for default https://armadillo-demo.molgenis.net/, press enter): ")
-url <- readLines("stdin", n=1)
+armadillo_url <- readLines("stdin", n=1)
 
-if(url == ""){
-  url = "https://armadillo-demo.molgenis.net/"
+if(armadillo_url == ""){
+  armadillo_url = "https://armadillo-demo.molgenis.net/"
+}
+
+armadillo_url <- add_slash_if_not_added(armadillo_url)
+
+if(url.exists(armadillo_url)) {
+  cli_alert_success(sprintf("URL [%s] exists", armadillo_url))
+} else {
+  msg <- sprintf("URL [%s] doesn't exist", armadillo_url)
+  exit_test(msg)
 }
 
 cat("Location of molgenis-service-armadillo on your PC (for default ~/git/, press enter, if not available press x): ")
@@ -274,16 +293,19 @@ if(service_location == "") {
         dest
       )
     } else {
-      exit_test(sprintf("Release test halted: Directory [%s] doesn't exist", dest))
+      msg <- sprintf("Release test halted: Directory [%s] doesn't exist", dest)
+      exit_test(msg)
     }
   } else {
-    exit_test("Release test halted: No test files available")
+    msg <- "Release test halted: No test files available"
+    exit_test(msg)
   }
 } else {
   service_location <- add_slash_if_not_added(service_location)
   dest <- paste0(service_location, "/molgenis-service-armadillo/data/shared-lifecycle/")
   if (!dir.exists(dest)) {
-    exit_test(sprintf("Release test halted: Directory [%s] doesn't exist", service_location))
+    msg <- sprintf("Release test halted: Directory [%s] doesn't exist", service_location)
+    exit_test(msg)
   }
 }
 
@@ -305,8 +327,9 @@ if (rda_available == "y"){
   }
 }
 
-if (rda_dir == "" || !dir.exists(rda_dir)) {
-  exit_test(sprintf("Directory [%s] doesn't exist", rda_dir))
+cli_alert_info("Checking if rda dir exists")
+if (rda_dir == "" || !file.exists(rda_dir)) {
+  exit_test(sprintf("File [%s] doesn't exist", rda_dir))
 }
 
 app_info <- get_from_api("actuator/info")
@@ -324,7 +347,7 @@ if (profile == "") {
 }
 
 cli_alert_info("Checking if profile is prepared for all tests")
-token <- armadillo.get_token(url)
+token <- armadillo.get_token(armadillo_url)
 profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, "bearer")
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
@@ -350,11 +373,11 @@ cat(sprintf("
         .' ,   ||||||     `/(  e \\                Directory for test files: %s
   -===~__-'\\__X_`````\\_____/~`-._ `.              Profile: %s
               ~~        ~~       `~-'
-", version, url, user, admin_pwd != "", dest, profile))
+", version, armadillo_url, user, admin_pwd != "", dest, profile))
 
 cli_h2("Table upload")
-cli_alert_info(sprintf("Login to %s", url))
-armadillo.login(url)
+cli_alert_info(sprintf("Login to %s", armadillo_url))
+armadillo.login(armadillo_url)
 cli_alert_info("Creating project cohort1")
 armadillo.create_project("cohort1")
 cli_alert_info("Checking if project 'cohort1' exists")
@@ -426,13 +449,20 @@ cli_h2("Resource upload")
 cli_alert_info("Creating project omics")
 armadillo.create_project("omics")
 rda_file_body <- upload_file(rda_dir)
-cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, "omics"))
+cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, "omics"))
 post_resource_to_api("omics", token, "bearer", rda_file_body, "ewas", "gse66351_1.rda")
 
 cli_alert_info("Creating resource")
+
+
+rds_url <- armadillo_url
+if(armadillo_url == "http://localhost:8080/") {
+    rds_url <- "http://host.docker.internal:8080/"
+}
+
 resGSE1 <- resourcer::newResource(
   name = "GSE66351_1",
-  url = "https://armadillo-demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66351_1.rda",
+  url = paste0(rds_url, "storage/projects/omics/objects/ewas%2Fgse66351_1.rda"),
   format = "ExpressionSet"
 )
 cli_alert_info("Uploading RDS file")
@@ -457,12 +487,12 @@ if(update_auto != "y"){
 
 cli_h2("Using tables as regular user")
 cli_alert_info("Retrieving token")
-token <- armadillo.get_token(url)
+token <- armadillo.get_token(armadillo_url)
 cli_alert_info("Creating new builder")
 builder <- DSI::newDSLoginBuilder()
 cli_alert_info("Append information to builder")
 builder$append(server = "armadillo",
-               url = url,
+               url = armadillo_url,
                profile="xenon",
                token = token,
                table = "cohort1/2_1-core-1_0/nonrep",
@@ -481,7 +511,7 @@ con <- dsConnect(
   drv = armadillo(),
   name = "armadillo",
   token = token,
-  url = url,
+  url = armadillo_url,
   profile = profile,
 )
 cli_alert_info("Verifying mean function works on core_nonrep$country")
@@ -523,7 +553,7 @@ cli_alert_info("Testing whether we can retrieve resources properly")
 builder <- DSI::newDSLoginBuilder()
 builder$append(
   server = "testserver",
-  url = url,
+  url = armadillo_url,
   token = token,
   driver = "ArmadilloDriver",
   profile = profile,
@@ -532,13 +562,29 @@ builder$append(
 login_data <- builder$build()
 conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
 cli_alert_info("Testing if we see the resource")
-datashield.resources(conns = conns)
+if(datashield.resources(conns = conns)$testserver == "omics/ewas/GSE66351_1"){
+  cli_alert_success("Success")
+} else {
+  cli_alert_danger("Failure")
+}
 cli_alert_info("Testing if we can assign resource")
 datashield.assign.resource(conns, resource="omics/ewas/GSE66351_1", symbol="eSet_0y_EUR")
-cli_alert_info("Setting class")
-ds.class('eSet_0y_EUR', datasources = conns)
+cli_alert_info("Getting RObject class of resource")
+resource_class <- ds.class('eSet_0y_EUR', datasources = conns)
+expected <- c("RDataFileResourceClient","FileResourceClient","ResourceClient","R6" )
+if(length(setdiff(resource_class$testserver, expected)) == 0){
+  cli_alert_success("Success")
+} else {
+  cli_alert_danger("Failure")
+}
 cli_alert_info("Testing if we can assign expression")
-datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
+tryCatch(
+  {
+    datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
+  }, error = function(e) {
+    cli_alert_danger(datashield.errors())
+  }
+)
 
 cli_h2("Default profile")
 cli_alert_info("Verify if default profile works without specifying profile")
@@ -546,8 +592,13 @@ con <- dsConnect(
   drv = armadillo(),
   name = "armadillo",
   token = token,
-  url = url
+  url = armadillo_url
 )
+if (con@token == token) {
+  cli_alert_success("Succesfully connected")
+} else {
+  cli_alert_danger("Connection failed")
+}
 
 cli_alert_info("Verify if default profile works when specifying profile")
 con <- dsConnect(
@@ -555,8 +606,14 @@ con <- dsConnect(
   name = "armadillo",
   token = token,
   profile = "default",
-  url = url
+  url = armadillo_url
 )
+
+if (con@token == token) {
+  cli_alert_success("Succesfully connected")
+} else {
+  cli_alert_danger("Connection failed")
+}
 
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
@@ -584,7 +641,7 @@ wait_for_input()
 if(admin_pwd != ""){
   cli_h2("Basic authentication")
   cli_alert_info("Logging in as admin user")
-  armadillo.login_basic(url, "admin", admin_pwd)
+  armadillo.login_basic(armadillo_url, "admin", admin_pwd)
   cli_alert_info("Creating project 'cohort2'")
   armadillo.create_project("cohort2")
   nonrep <- arrow::read_parquet("~/git/molgenis-service-armadillo/data/shared-lifecycle/core/nonrep.parquet")
@@ -596,7 +653,6 @@ if(admin_pwd != ""){
   if(table %in% armadillo.list_tables("cohort2")){
     cli_alert_success(paste0(table, " exists"))
   } else {
-    cli_alert_danger(paste0(table, " doesn't exist"))
     exit_test(paste0(table, " doesn't exist"))
   }
   cli_alert_info("Deleting 'cohort2'")
