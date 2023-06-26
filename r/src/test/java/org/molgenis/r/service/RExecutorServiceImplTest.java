@@ -93,7 +93,6 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadWorkspace() throws IOException, RServerException {
-    // when(rConnection.createFile(".RData")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     executorService.loadWorkspace(rConnection, resource, ".TibbleEnv");
@@ -104,7 +103,6 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadTableWithVariables() throws IOException, RServerException {
-    // when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
@@ -126,7 +124,6 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadTableNoVariables() throws IOException, RServerException {
-    // when(rConnection.createFile("project_folder_table.parquet")).thenReturn(rFileOutputStream);
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
@@ -202,13 +199,11 @@ class RExecutorServiceImplTest {
   void testSaveWorkspace() throws IOException, RServerException {
     when(rConnection.eval("base::save.image()", false))
         .thenReturn(new RserveResult(new REXPNull()));
-    // when(rConnection.openFile(".RData")).thenReturn(rFileInputStream);
 
     executorService.saveWorkspace(
         rConnection, inputStream -> assertSame(rFileInputStream, inputStream));
 
     verify(rConnection).eval("base::save.image()", false);
-    // verify(rConnection).openFile(".RData");
   }
 
   @Test
@@ -216,8 +211,6 @@ class RExecutorServiceImplTest {
     when(rConnection.eval("base::save.image()", false))
         .thenReturn(new RserveResult(new REXPNull()));
     doThrow(RserveException.class).when(rConnection).readFile(anyString(), any(Consumer.class));
-
-    // when(rConnection.openFile(".RData")).thenThrow(IOException.class);
 
     assertThrows(
         RExecutionException.class,
@@ -258,7 +251,6 @@ class RExecutorServiceImplTest {
 
   @Test
   void testInstallPackage() throws IOException, RServerException {
-    // when(rConnection.createFile("location__test_.tar.gz")).thenReturn(rFileOutputStream);
     when(rConnection.eval(
             "remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')",
             false))
