@@ -18,7 +18,12 @@ public class RServerConnectionFactory implements RConnectionFactory {
   @Override
   public RServerConnection tryCreateConnection() {
     try {
-      return new RockConnectionFactory(environment).tryCreateConnection();
+      if (environment.getName().contains("rock")) {
+        return new RockConnectionFactory(environment).tryCreateConnection();
+      } else {
+        return new RserveConnectionFactory(environment).tryCreateConnection();
+      }
+
     } catch (Exception e) {
       logger.info("Not a Rock server [{}], trying Rserve...", e.getMessage(), e);
       return new RserveConnectionFactory(environment).tryCreateConnection();

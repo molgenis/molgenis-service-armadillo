@@ -108,7 +108,7 @@ public class DockerService {
     }
 
     // TODO: have full port mapping in config or a by R server type?
-    int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
+    int imageExposed = profileConfig.getName().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
