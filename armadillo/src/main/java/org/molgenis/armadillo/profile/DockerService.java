@@ -80,7 +80,7 @@ public class DockerService {
 
     try {
       InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
-      var tags = getImageTags(containerInfo.getImageId());
+      var tags = getImageTags(containerInfo.getName());
       return ContainerInfo.create(tags, ProfileStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
