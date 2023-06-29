@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RConnectionVendorFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
@@ -13,13 +13,13 @@ import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RserveConnectionFactoryImpl implements RConnectionFactory {
+public class RserveConnectionFactory implements RConnectionVendorFactory {
 
-  private static final Logger logger = LoggerFactory.getLogger(RserveConnectionFactoryImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(RserveConnectionFactory.class);
 
   private final EnvironmentConfigProps environment;
 
-  public RserveConnectionFactoryImpl(EnvironmentConfigProps environment) {
+  public RserveConnectionFactory(EnvironmentConfigProps environment) {
     this.environment = requireNonNull(environment);
   }
 

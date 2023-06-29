@@ -50,9 +50,9 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
     packageService.loadPackages(connection, profileConfig.getPackageWhitelist());
   }
 
-  private void setDataShieldOptions(RServerConnection con) throws RServerException {
-    for (Entry<String, String> option : dataShieldOptions.getValue().entrySet()) {
-      con.eval(
+  private void setDataShieldOptions(RServerConnection connection) throws RServerException {
+    for (Entry<String, String> option : dataShieldOptions.getValue(connection).entrySet()) {
+      connection.eval(
           format(
               "base::options(%s = %s)",
               option.getKey(), Formatter.quoteIfAlphaNumeric(option.getValue())));

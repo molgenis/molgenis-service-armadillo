@@ -18,6 +18,8 @@ public interface Commands {
 
   CompletableFuture<RServerResult> evaluate(String expression);
 
+  CompletableFuture<RServerResult> evaluate(String expression, boolean serialized);
+
   CompletableFuture<Void> assign(String symbol, String expression);
 
   CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);

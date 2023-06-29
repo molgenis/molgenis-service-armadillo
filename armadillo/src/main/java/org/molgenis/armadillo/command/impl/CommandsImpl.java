@@ -66,7 +66,6 @@ class CommandsImpl implements Commands {
     this.connectionFactory = connectionFactory;
     this.processService = processService;
     this.profileService = profileService;
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
@@ -77,7 +76,7 @@ class CommandsImpl implements Commands {
   @Override
   public void selectProfile(String profileName) {
     runAsSystem(() -> profileService.getByName(profileName));
-    armadilloSession.sessionCleanup();
+    if (armadilloSession != null) armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
@@ -98,7 +97,10 @@ class CommandsImpl implements Commands {
   }
 
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
-    final ArmadilloSession session = armadilloSession;
+    final ArmadilloSession session =
+        armadilloSession == null
+            ? new ArmadilloSession(connectionFactory, processService)
+            : armadilloSession;
     lastCommand = command;
     CompletableFuture<T> result =
         supplyAsync(() -> session.execute(command::evaluate), taskExecutor);
@@ -108,11 +110,16 @@ class CommandsImpl implements Commands {
 
   @Override
   public CompletableFuture<RServerResult> evaluate(String expression) {
+    return evaluate(expression, false);
+  }
+
+  @Override
+  public CompletableFuture<RServerResult> evaluate(String expression, boolean serialized) {
     return schedule(
         new ArmadilloCommandImpl<>(expression, true) {
           @Override
           protected RServerResult doWithConnection(RServerConnection connection) {
-            return rExecutorService.execute(expression, connection);
+            return rExecutorService.execute(expression, serialized, connection);
           }
         });
   }
@@ -225,6 +232,6 @@ class CommandsImpl implements Commands {
 
   @PreDestroy
   public void preDestroy() {
-    armadilloSession.sessionCleanup();
+    if (armadilloSession != null) armadilloSession.sessionCleanup();
   }
 }

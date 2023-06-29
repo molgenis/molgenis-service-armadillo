@@ -64,8 +64,6 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(processService.getPid(rConnection)).thenReturn(218);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -79,6 +77,8 @@ class CommandsImplTest {
 
   @Test
   void testSchedule() throws Exception {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     ArmadilloCommandImpl<RServerResult> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
@@ -95,6 +95,8 @@ class CommandsImplTest {
 
   @Test
   void testScheduleFailingCommand() {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     IllegalStateException exception = new IllegalStateException("Error");
 
     ArmadilloCommandImpl<REXP> command =
@@ -112,6 +114,8 @@ class CommandsImplTest {
 
   @Test
   void testAssign() throws Exception {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     commands.assign("D", "E").get();
 
     verify(rExecutorService).execute("is.null(base::assign('D', value={E}))", rConnection);
@@ -119,13 +123,17 @@ class CommandsImplTest {
 
   @Test
   void testEvaluate() throws Exception {
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+    when(rExecutorService.execute("ls()", false, rConnection)).thenReturn(rexp);
 
-    assertSame(rexp, commands.evaluate("ls()").get());
+    assertSame(rexp, commands.evaluate("ls()", false).get());
   }
 
   @Test
   void testSaveWorkspace() throws Exception {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     doAnswer(
             invocation -> {
               invocation.getArgument(1, Consumer.class).accept(inputStream);
@@ -142,6 +150,8 @@ class CommandsImplTest {
   @Test
   void testLoadWorkspace() throws Exception {
     when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
     commands.loadWorkspace(principal, "core").get();
 
@@ -152,6 +162,8 @@ class CommandsImplTest {
   @Test
   void testLoadTable() throws Exception {
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
     commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
 
@@ -180,6 +192,8 @@ class CommandsImplTest {
   @Test
   void testGetPackages() throws Exception {
     List<RPackage> result = Collections.emptyList();
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
     assertSame(result, commands.getPackages().get());
   }
@@ -187,14 +201,14 @@ class CommandsImplTest {
   @Test
   void testCleanup() {
     commands.preDestroy();
-
-    verify(rConnection).close();
   }
 
   @Test
   void testLoadResource() throws Exception {
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
     commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
 
@@ -229,7 +243,6 @@ class CommandsImplTest {
         ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Set.of(), Map.of());
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
-    verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
   }

@@ -12,22 +12,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.molgenis.r.rserve.RserveConnection;
-import org.molgenis.r.rserve.RserveConnectionFactoryImpl;
+import org.molgenis.r.rserve.RserveConnectionFactory;
 import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
-class RserveConnectionFactoryImplTest {
+class RserveConnectionFactoryTest {
 
   EnvironmentConfigProps rConfigProperties = new EnvironmentConfigProps();
   @Mock RserveConnection rConnection;
 
-  private RserveConnectionFactoryImpl rConnectionFactory;
+  private RserveConnectionFactory rConnectionFactory;
 
   @BeforeEach
   void beforeEach() {
     rConfigProperties.setHost("host");
     rConfigProperties.setPort(123);
-    rConnectionFactory = spy(new RserveConnectionFactoryImpl(rConfigProperties));
+    rConnectionFactory = spy(new RserveConnectionFactory(rConfigProperties));
   }
 
   @Test

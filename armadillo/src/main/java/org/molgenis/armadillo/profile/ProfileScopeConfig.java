@@ -8,7 +8,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.rserve.RserveConnectionFactoryImpl;
+import org.molgenis.r.RServerConnectionFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +31,7 @@ public class ProfileScopeConfig {
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
   public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
-    return new RserveConnectionFactoryImpl(profileConfig.toEnvironmentConfigProps());
+    return new RServerConnectionFactory(profileConfig.toEnvironmentConfigProps());
   }
 
   @Bean
