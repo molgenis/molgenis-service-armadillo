@@ -252,6 +252,13 @@ armadillo_url <- add_slash_if_not_added(armadillo_url)
 
 if(url.exists(armadillo_url)) {
   cli_alert_success(sprintf("URL [%s] exists", armadillo_url))
+  if (!startsWith(armadillo_url, "http")) {
+    if (startsWith(armadillo_url, "localhost")) {
+        armadillo_url <- paste0("http://", armadillo_url)
+    } else {
+        armadillo_url <- paste0("https://", armadillo_url)
+    }
+  }
 } else {
   msg <- sprintf("URL [%s] doesn't exist", armadillo_url)
   exit_test(msg)
