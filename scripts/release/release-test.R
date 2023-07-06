@@ -29,6 +29,8 @@ library(jsonlite)
 library(future)
 # to test if url exists
 library(RCurl)
+# to generate random project names
+library(stringi)
 # armadillo/datashield libraries needed for testing
 library(MolgenisArmadillo)
 library(DSI)
@@ -99,7 +101,7 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
   plan(multisession)
   spinner <- make_spinner()
   # Do async call
-  api_call <- future(POST(paste0(armadillo_url, sprintf("storage/projects/%s/objects", project)),
+  api_call <- future(POST(sprintf("%sstorage/projects/%s/objects", armadillo_url, project),
     body=list(file = file, object=paste0(folder,"/", name)),
                     config = c(httr::add_headers(auth_header))))
   # Run spinner while waiting for response
@@ -136,8 +138,8 @@ get_from_api_with_header <- function(endpoint, key, auth_type){
 }
 
 # add/edit user using armadillo api
-set_user <- function(user, admin_pwd, isAdmin){
-  args <- list(email = user, admin = isAdmin, projects= list("cohort1", "omics"))
+set_user <- function(user, admin_pwd, isAdmin, project1, omics_project){
+  args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project))
   response <- put_to_api("access/users", admin_pwd, "basic", args)
   if(response$status_code != 204) {
     cli_alert_warning("Altering OIDC user failed, please do this manually")
@@ -232,6 +234,15 @@ download_test_files <- function(urls, dest){
     cli_progress_update()
   }
   cli_progress_done()
+}
+
+generate_random_project_name <- function(current_projects) {
+  random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
+  if (!random_project %in% current_projects) {
+    return(random_project)
+  } else {
+    generate_random_project_name(current_projects)
+  }
 }
 
 # here we start the script chronologically
@@ -385,10 +396,13 @@ cat(sprintf("
 cli_h2("Table upload")
 cli_alert_info(sprintf("Login to %s", armadillo_url))
 armadillo.login(armadillo_url)
-cli_alert_info("Creating project cohort1")
-armadillo.create_project("cohort1")
-cli_alert_info("Checking if project 'cohort1' exists")
-check_cohort_exists("cohort1")
+available_projects <- armadillo.list_projects()
+project1 <- generate_random_project_name(available_projects)
+available_projects <- c(available_projects, project1)
+cli_alert_info(sprintf("Creating project [%s]", project1))
+armadillo.create_project(project1)
+cli_alert_info(sprintf("Checking if project [%s] exists", project1))
+check_cohort_exists(project1)
 
 cli_alert_info("Reading parquet files for core variables")
 cli_alert_info("core/nonrep")
@@ -405,10 +419,10 @@ trimesterrep <- arrow::read_parquet(paste0(dest, "core/trimesterrep.parquet"))
 cli_alert_success("core/trimesterrep read")
 
 cli_alert_info("Uploading core test tables")
-armadillo.upload_table("cohort1", "2_1-core-1_0", nonrep)
-armadillo.upload_table("cohort1", "2_1-core-1_0", yearlyrep)
-armadillo.upload_table("cohort1", "2_1-core-1_0", monthlyrep)
-armadillo.upload_table("cohort1", "2_1-core-1_0", trimesterrep)
+armadillo.upload_table(project1, "2_1-core-1_0", nonrep)
+armadillo.upload_table(project1, "2_1-core-1_0", yearlyrep)
+armadillo.upload_table(project1, "2_1-core-1_0", monthlyrep)
+armadillo.upload_table(project1, "2_1-core-1_0", trimesterrep)
 cli_alert_success("Uploaded files into core")
 
 rm(nonrep, yearlyrep, monthlyrep, trimesterrep)
@@ -418,12 +432,12 @@ nonrep <- arrow::read_parquet(paste0(dest, "outcome/nonrep.parquet"))
 yearlyrep <- arrow::read_parquet(paste0(dest, "outcome/yearlyrep.parquet"))
 
 cli_alert_info("Uploading outcome test tables")
-armadillo.upload_table("cohort1", "1_1-outcome-1_0", nonrep)
-armadillo.upload_table("cohort1", "1_1-outcome-1_0", yearlyrep)
+armadillo.upload_table(project1, "1_1-outcome-1_0", nonrep)
+armadillo.upload_table(project1, "1_1-outcome-1_0", yearlyrep)
 cli_alert_success("Uploaded files into outcome")
 
 cli_alert_info("Checking if colnames of trimesterrep available")
-trimesterrep <- armadillo.load_table("cohort1", "2_1-core-1_0", "trimesterrep")
+trimesterrep <- armadillo.load_table(project1, "2_1-core-1_0", "trimesterrep")
 cols <- c("row_id","child_id","age_trimester","smk_t","alc_t")
 if (identical(colnames(trimesterrep), cols)){
   cli_alert_success("Colnames correct")
@@ -434,7 +448,7 @@ if (identical(colnames(trimesterrep), cols)){
 
 cli_h2("Manual test UI")
 cat("\nNow open your testserver in the browser")
-cat("\n\nVerify 'cohort1' is available")
+cat(sprintf("\n\nVerify [%s] is available", project1))
 wait_for_input()
 cat("\nClick on the icon next to the name to go to the project explorer")
 wait_for_input()
@@ -453,11 +467,13 @@ if(success != "y"){
 }
 
 cli_h2("Resource upload")
-cli_alert_info("Creating project omics")
-armadillo.create_project("omics")
+omics_project <- generate_random_project_name(available_projects)
+available_projects <- c(available_projects, omics_project)
+cli_alert_info(sprintf("Creating project [%s]", omics_project))
+armadillo.create_project(omics_project)
 rda_file_body <- upload_file(rda_dir)
-cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, "omics"))
-post_resource_to_api("omics", token, "bearer", rda_file_body, "ewas", "gse66351_1.rda")
+cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
+post_resource_to_api(omics_project, token, "bearer", rda_file_body, "ewas", "gse66351_1.rda")
 
 cli_alert_info("Creating resource")
 
@@ -469,24 +485,24 @@ if(armadillo_url == "http://localhost:8080/") {
 
 resGSE1 <- resourcer::newResource(
   name = "GSE66351_1",
-  url = paste0(rds_url, "storage/projects/omics/objects/ewas%2Fgse66351_1.rda"),
+  url = sprintf("%sstorage/projects/%s/objects/ewas%sgse66351_1.rda", rds_url, omics_project,"%2F"),
   format = "ExpressionSet"
 )
 cli_alert_info("Uploading RDS file")
-armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
+armadillo.upload_resource(project = omics_project, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
 
 cli_alert_info("\nNow you're going to test as researcher")
 if(admin_pwd != ""){
   cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
   update_auto <- readLines("stdin", n=1)
   if(update_auto == "y"){
-    set_user(user, admin_pwd, F)
+    set_user(user, admin_pwd, F, project1, omics_project)
   }
 }
 
 if(update_auto != "y"){
   cat("\nGo to the Users tab")
-  cat("\nAdd 'cohort1' and 'omics' to the project column for your account")
+  cat(sprintf("\nAdd [%s]' and [%s] to the project column for your account", project1, omics_project))
   cat("\nRevoke your admin permisions\n")
   cli_alert_warning("Make sure you either have the basic auth admin password or someone available to give you back your permissions")
   wait_for_input()
@@ -502,15 +518,15 @@ builder$append(server = "armadillo",
                url = armadillo_url,
                profile="xenon",
                token = token,
-               table = "cohort1/2_1-core-1_0/nonrep",
+               table = sprintf("%s/2_1-core-1_0/nonrep", project1),
                driver = "ArmadilloDriver")
 cli_alert_info("Building")
 logindata <- builder$build()
 
-cli_alert_info(paste0("Login with profile [", profile, "] and table: [cohort1/2_1-core-1_0/nonrep]"))
+cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
 conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
 cli_alert_info("Assigning table core_nonrep")
-datashield.assign.table(conns, "core_nonrep", "cohort1/2_1-core-1_0/nonrep")
+datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", project1))
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 cli_alert_info("Verifying connecting to profile possible")
@@ -564,18 +580,19 @@ builder$append(
   token = token,
   driver = "ArmadilloDriver",
   profile = profile,
-  resource = "omics/ewas/GSE66351_1"
+  resource = sprintf("%s/ewas/GSE66351_1", omics_project)
 )
 login_data <- builder$build()
 conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
 cli_alert_info("Testing if we see the resource")
-if(datashield.resources(conns = conns)$testserver == "omics/ewas/GSE66351_1"){
+resource_path <- sprintf("%s/ewas/GSE66351_1", omics_project)
+if(datashield.resources(conns = conns)$testserver == resource_path){
   cli_alert_success("Success")
 } else {
   cli_alert_danger("Failure")
 }
 cli_alert_info("Testing if we can assign resource")
-datashield.assign.resource(conns, resource="omics/ewas/GSE66351_1", symbol="eSet_0y_EUR")
+datashield.assign.resource(conns, resource =resource_path, symbol="eSet_0y_EUR")
 cli_alert_info("Getting RObject class of resource")
 resource_class <- ds.class('eSet_0y_EUR', datasources = conns)
 expected <- c("RDataFileResourceClient","FileResourceClient","ResourceClient","R6" )
@@ -625,45 +642,47 @@ if (con@token == token) {
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
 if(update_auto == "y"){
-  set_user(user, admin_pwd, T)
+  set_user(user, admin_pwd, T, project1, omics_project)
 } else{
   cat("Make your account admin again")
   wait_for_input()
 }
-armadillo.delete_table("cohort1", "2_1-core-1_0", "nonrep")
-armadillo.delete_table("cohort1", "2_1-core-1_0", "yearlyrep")
-armadillo.delete_table("cohort1", "2_1-core-1_0", "trimesterrep")
-armadillo.delete_table("cohort1", "2_1-core-1_0", "monthlyrep")
-armadillo.delete_table("cohort1", "1_1-outcome-1_0", "nonrep")
-armadillo.delete_table("cohort1", "1_1-outcome-1_0", "yearlyrep")
-cat("\nVerify in UI all data from cohort1 is gone.")
+armadillo.delete_table(project1, "2_1-core-1_0", "nonrep")
+armadillo.delete_table(project1, "2_1-core-1_0", "yearlyrep")
+armadillo.delete_table(project1, "2_1-core-1_0", "trimesterrep")
+armadillo.delete_table(project1, "2_1-core-1_0", "monthlyrep")
+armadillo.delete_table(project1, "1_1-outcome-1_0", "nonrep")
+armadillo.delete_table(project1, "1_1-outcome-1_0", "yearlyrep")
+cat(sprintf("\nVerify in UI all data from [%s] is gone.", project1))
 wait_for_input()
-armadillo.delete_project("cohort1")
-cat("\nVerify in UI project cohort1 is gone")
+armadillo.delete_project(project1)
+cat(sprintf("\nVerify in UI project [%s] is gone", project1))
 wait_for_input()
-armadillo.delete_project("omics")
-cat("\nVerify in UI project omics is gone")
+armadillo.delete_project(omics_project)
+cat(sprintf("\nVerify in UI project [%s] is gone", omics_project))
 wait_for_input()
 
-if(admin_pwd != ""){
+project2 <- generate_random_project_name(available_projects)
+available_projects <- c(available_projects, project2)
+if(admin_pwd != "") {
   cli_h2("Basic authentication")
   cli_alert_info("Logging in as admin user")
   armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-  cli_alert_info("Creating project 'cohort2'")
-  armadillo.create_project("cohort2")
+  cli_alert_info(sprintf("Creating project [%s]", project2))
+  armadillo.create_project(project2)
   nonrep <- arrow::read_parquet("~/git/molgenis-service-armadillo/data/shared-lifecycle/core/nonrep.parquet")
-  cli_alert_info("Uploading file to 'cohort2'")
-  armadillo.upload_table("cohort2", "2_1-core-1_0", nonrep)
+  cli_alert_info(sprintf("Uploading file to [%s]", project2))
+  armadillo.upload_table(project2, "2_1-core-1_0", nonrep)
   rm(nonrep)
-  check_cohort_exists("cohort2")
-  table <- "cohort2/2_1-core-1_0/nonrep"
-  if(table %in% armadillo.list_tables("cohort2")){
+  check_cohort_exists(project2)
+  table <- sprintf("%s/2_1-core-1_0/nonrep", project2)
+  if(table %in% armadillo.list_tables(project2)){
     cli_alert_success(paste0(table, " exists"))
   } else {
     exit_test(paste0(table, " doesn't exist"))
   }
-  cli_alert_info("Deleting 'cohort2'")
-  armadillo.delete_project("cohort2")
+  cli_alert_info(sprintf("Deleting [%s]", project2))
+  armadillo.delete_project(project2)
 } else {
   cli_alert_warning("Testing basic authentication skipped, admin password not available")
 }
