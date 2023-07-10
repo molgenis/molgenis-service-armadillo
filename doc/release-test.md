@@ -22,8 +22,14 @@
 - OIDC user with admin/superuser permissions on testserver  
 - Someone with admin permissions available to take and regrant admin permissions to OIDC (super)user
 
-With minimal prerequisites met, tests for basic auth will be skipped and permissions will have to be set by hand when
-asked by script.
+With these minimal prerequisites met, tests for basic auth will be skipped and permissions will have to be set by hand 
+when asked by script.
+
+OR
+- A basic admin password
+
+With these minimal prerequisites, the script will then skip the resources testing (is not possible with basic auth) and
+testing as regular user
 
 ## Running the tests
 1. Open your commandline
