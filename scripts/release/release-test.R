@@ -741,7 +741,7 @@ if(admin_pwd != "") {
   armadillo.login_basic(armadillo_url, "admin", admin_pwd)
   cli_alert_info(sprintf("Creating project [%s]", project2))
   armadillo.create_project(project2)
-  nonrep <- arrow::read_parquet("~/git/molgenis-service-armadillo/data/shared-lifecycle/core/nonrep.parquet")
+  nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
   cli_alert_info(sprintf("Uploading file to [%s]", project2))
   armadillo.upload_table(project2, "2_1-core-1_0", nonrep)
   rm(nonrep)

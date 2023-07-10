@@ -33,7 +33,7 @@ testing as regular user
 
 ## Running the tests
 1. Open your commandline
-2. `cd` to the `scripts` folder of this repository
+2. `cd` to the `scripts/release` folder of this repository
 3. To run tests, type: `Rscript release-test.R`
 4. Follow the directions in the script
 
