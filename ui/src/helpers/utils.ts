@@ -21,7 +21,7 @@ export function capitalize(word: string): string {
 }
 
 export function sortAlphabetically(
-  listOfObjects: ListOfObjectsWithStringKey | string[],
+  listOfObjects: ListOfObjectsWithStringKey | StringArray,
   key?: string
 ): ListOfObjectsWithStringKey | string[] {
   return listOfObjects.sort((object1, object2) => {
