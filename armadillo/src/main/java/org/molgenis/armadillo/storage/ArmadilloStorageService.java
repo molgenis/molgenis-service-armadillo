@@ -6,7 +6,10 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -227,6 +230,11 @@ public class ArmadilloStorageService {
     if (!pattern.matcher(projectName).matches()) {
       throw new InvalidProjectNameException(projectName);
     }
+  }
+
+  public long getFileSizeIfObjectExists(String bucketName, String objectName) throws IOException {
+    Path filePath = storageService.getPathIfObjectExists(bucketName, objectName);
+    return Files.size(filePath);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
