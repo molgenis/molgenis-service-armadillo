@@ -1,15 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PREVIEW_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -203,10 +194,10 @@ public class StorageController {
     return objectExists ? noContent().build() : notFound().build();
   }
 
-  @Operation(summary = "Retrieve first 10 rows of the data?")
+  @Operation(summary = "Retrieve first 10 rows of the data")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Preview succes"),
+        @ApiResponse(responseCode = "200", description = "Preview success"),
         @ApiResponse(responseCode = "404", description = "Object does not exist"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
@@ -219,6 +210,23 @@ public class StorageController {
         () -> storage.getPreview(project, object),
         principal,
         PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  @Operation(summary = "Get information of a file")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Retrieval successful"),
+        @ApiResponse(responseCode = "404", description = "Object does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(path = "/projects/{project}/objects/{object}/info", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Map<String, String> getObjectInfo(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> storage.getInfo(project, object),
+        principal,
+        GET_OBJECT_INFO,
         Map.of(PROJECT, project, OBJECT, object));
   }
 

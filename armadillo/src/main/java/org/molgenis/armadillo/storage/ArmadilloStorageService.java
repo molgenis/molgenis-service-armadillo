@@ -234,4 +234,10 @@ public class ArmadilloStorageService {
     throwIfUnknown(project, object);
     return storageService.preview(SHARED_PREFIX + project, object, 10, 10);
   }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public Map<String, String> getInfo(String project, String object) {
+    throwIfUnknown(project, object);
+    return storageService.getInfo(SHARED_PREFIX + project, object);
+  }
 }

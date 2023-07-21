@@ -140,4 +140,24 @@ class LocalStorageServiceTest {
         IllegalPathException.class,
         () -> localStorageService.getObjectPathSafely("test", "../../malicious.parquet"));
   }
+
+  @Test
+  void testGetFileSizeInUnitBytes() {
+    assertEquals("10 bytes", localStorageService.getFileSizeInUnit(10));
+  }
+
+  @Test
+  void testGetFileSizeInUnitKb() {
+    assertEquals("10 KB", localStorageService.getFileSizeInUnit(10240));
+  }
+
+  @Test
+  void testGetFileSizeInUnitMb() {
+    assertEquals("10 MB", localStorageService.getFileSizeInUnit(10485760));
+  }
+
+  @Test
+  void testGetFileSizeInUnitGb() {
+    assertEquals("10 GB", localStorageService.getFileSizeInUnit(10737418240L));
+  }
 }

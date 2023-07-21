@@ -20,6 +20,8 @@ public interface StorageService {
 
   InputStream load(String bucketName, String objectName);
 
+  Map<String, String> getInfo(String bucketName, String objectName);
+
   List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit);
 

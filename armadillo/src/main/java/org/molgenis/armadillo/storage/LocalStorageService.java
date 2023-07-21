@@ -154,6 +154,46 @@ public class LocalStorageService implements StorageService {
     }
   }
 
+  String getFileSizeInUnit(long fileSize) {
+    int sizeOfUnit = 1024;
+    String[] units = new String[] {"bytes", "KB", "MB", "GB"};
+    for (String unit : units) {
+      if (fileSize > sizeOfUnit) {
+        fileSize = fileSize / sizeOfUnit;
+      } else {
+        return fileSize + " " + unit;
+      }
+    }
+    return fileSize + " " + units[units.length - 1];
+  }
+
+  @Override
+  public Map<String, String> getInfo(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      String objectPathString = objectPath.toString().toLowerCase();
+      Map<String, String> information = new HashMap<>();
+      information.put("name", objectName);
+      long fileSize = Files.size(objectPath);
+      String fileSizeWithUnit = getFileSizeInUnit(fileSize);
+      information.put("size", fileSizeWithUnit);
+
+      if (objectPathString.endsWith(".parquet")) {
+        information.put("type", "table");
+      } else if (objectPathString.endsWith(".rds")) {
+        information.put("type", "R Data Serialization");
+      } else if (objectPathString.endsWith(".rda") || objectPathString.endsWith(".rdata")) {
+        information.put("type", "R data file (resource)");
+      }
+      return information;
+    } catch (IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
   @Override
   public List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit) {
@@ -162,6 +202,7 @@ public class LocalStorageService implements StorageService {
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      ParquetUtils.retrieveDimensions(objectPath);
       return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
     } catch (Exception e) {
       throw new StorageException(e);

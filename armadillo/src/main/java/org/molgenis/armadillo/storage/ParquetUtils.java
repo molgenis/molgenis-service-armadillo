@@ -2,12 +2,10 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.Math.min;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.example.data.simple.convert.GroupRecordConverter;
@@ -42,5 +40,20 @@ public class ParquetUtils {
       }
     }
     return result;
+  }
+
+  public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {
+    LocalInputFile file = new LocalInputFile(path);
+    try (ParquetFileReader reader = ParquetFileReader.open(file)) {
+      MessageType schema = reader.getFooter().getFileMetaData().getSchema();
+      int numberOfColumns = schema.getFields().size();
+      long numberOfRows = reader.getRecordCount();
+      Map<String, String> dimensions = new HashMap();
+      dimensions.put("rows", Long.toString(numberOfRows));
+      dimensions.put("columns", Integer.toString(numberOfColumns));
+      return dimensions;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
