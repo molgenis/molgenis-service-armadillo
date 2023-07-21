@@ -28,7 +28,6 @@ import javax.validation.constraints.NotEmpty;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -265,7 +264,7 @@ public class StorageController {
   @GetMapping(
       value = "/projects/{project}/objects/{object}",
       produces = {APPLICATION_OCTET_STREAM_VALUE})
-  public @ResponseBody ResponseEntity<ByteArrayResource> downloadObject(
+  public @ResponseBody ResponseEntity<InputStreamResource> downloadObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> getObject(project, object),
@@ -275,19 +274,21 @@ public class StorageController {
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
-  private ResponseEntity<ByteArrayResource> getObject(String project, String object) {
+  private ResponseEntity<InputStreamResource> getObject(String project, String object) {
     var inputStream = storage.loadObject(project, object);
     var objectParts = object.split("/");
     var fileName = objectParts[objectParts.length - 1];
 
     try {
       InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
-      long length = inputStream.available();
       ContentDisposition contentDisposition =
           ContentDisposition.attachment().filename(fileName).build();
+      var fileSize =
+          storage.getFileSizeIfObjectExists(
+              ArmadilloStorageService.SHARED_PREFIX + project, object);
       HttpHeaders httpHeaders = new HttpHeaders();
       httpHeaders.setContentDisposition(contentDisposition);
-      httpHeaders.setContentLength(length);
+      httpHeaders.setContentLength(fileSize);
       httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
       return new ResponseEntity(inputStreamResource, httpHeaders, HttpStatus.OK);
     } catch (IOException e) {

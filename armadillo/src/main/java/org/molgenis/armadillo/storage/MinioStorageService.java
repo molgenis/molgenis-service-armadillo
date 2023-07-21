@@ -22,6 +22,7 @@ import io.minio.errors.XmlParserException;
 import io.minio.messages.Bucket;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -235,5 +236,10 @@ class MinioStorageService implements StorageService {
         | XmlParserException e) {
       throw new StorageException(e);
     }
+  }
+
+  @Override
+  public Path getPathIfObjectExists(String bucketName, String objectName) {
+    return null;
   }
 }

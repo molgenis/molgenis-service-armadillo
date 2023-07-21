@@ -209,7 +209,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  private Path getPathIfObjectExists(String bucketName, String objectName) {
+  public Path getPathIfObjectExists(String bucketName, String objectName) {
     Path bucketPath = Paths.get(rootDir, bucketName);
     if (!Files.exists(bucketPath)) {
       throw new StorageException(format("Bucket '%s' doesn't exist", bucketName));
