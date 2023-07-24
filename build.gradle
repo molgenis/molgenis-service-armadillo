@@ -102,7 +102,7 @@ dockerPrepare.dependsOn test
 
 //merge test reports
 task jacocoMergedReport(type: JacocoReport) {
-    dependsOn subprojects.test
+    dependsOn = subprojects.test
     dependsOn project.getTasksByName("jacocoTestReport", true)
     dependsOn project.getTasksByName("bootStartScripts", true)
     dependsOn project.getTasksByName("startScripts", true)
