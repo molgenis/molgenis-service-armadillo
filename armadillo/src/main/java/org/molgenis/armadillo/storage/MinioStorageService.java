@@ -207,7 +207,7 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
-  public Map<String, String> getInfo(String bucketName, String objectName) {
+  public FileInfo getInfo(String bucketName, String objectName) {
     return null;
   }
 

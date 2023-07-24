@@ -168,24 +168,25 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public Map<String, String> getInfo(String bucketName, String objectName) {
+  public FileInfo getInfo(String bucketName, String objectName) {
     try {
       Objects.requireNonNull(bucketName);
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
       String objectPathString = objectPath.toString().toLowerCase();
-      Map<String, String> information = new HashMap<>();
-      information.put("name", objectName);
       long fileSize = Files.size(objectPath);
       String fileSizeWithUnit = getFileSizeInUnit(fileSize);
-      information.put("size", fileSizeWithUnit);
       if (objectPathString.endsWith(".parquet")) {
         Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
-        information.put("columns", tableDimensions.get("columns"));
-        information.put("rows", tableDimensions.get("rows"));
+        return new FileInfo(
+            objectName,
+            fileSizeWithUnit,
+            tableDimensions.get("rows"),
+            tableDimensions.get("columns"));
+      } else {
+        return FileInfo.of(objectName, fileSizeWithUnit);
       }
-      return information;
     } catch (IOException e) {
       throw new StorageException(e);
     }

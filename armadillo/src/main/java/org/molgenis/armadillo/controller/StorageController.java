@@ -28,6 +28,7 @@ import javax.validation.constraints.NotEmpty;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -220,7 +221,7 @@ public class StorageController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @GetMapping(path = "/projects/{project}/objects/{object}/info", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Map<String, String> getObjectInfo(
+  public @ResponseBody FileInfo getObjectInfo(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> storage.getInfo(project, object),
