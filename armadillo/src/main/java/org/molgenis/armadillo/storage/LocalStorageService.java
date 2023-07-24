@@ -180,13 +180,10 @@ public class LocalStorageService implements StorageService {
       long fileSize = Files.size(objectPath);
       String fileSizeWithUnit = getFileSizeInUnit(fileSize);
       information.put("size", fileSizeWithUnit);
-
       if (objectPathString.endsWith(".parquet")) {
-        information.put("type", "table");
-      } else if (objectPathString.endsWith(".rds")) {
-        information.put("type", "R Data Serialization");
-      } else if (objectPathString.endsWith(".rda") || objectPathString.endsWith(".rdata")) {
-        information.put("type", "R data file (resource)");
+        Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
+        information.put("columns", tableDimensions.get("columns"));
+        information.put("rows", tableDimensions.get("rows"));
       }
       return information;
     } catch (IOException e) {
@@ -202,7 +199,6 @@ public class LocalStorageService implements StorageService {
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
-      ParquetUtils.retrieveDimensions(objectPath);
       return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
     } catch (Exception e) {
       throw new StorageException(e);
