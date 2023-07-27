@@ -109,7 +109,6 @@
                   @upload_error="showErrorMessage"
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
-                  @upload_triggered="resetFileUpload"
                 ></FileUpload>
               </div>
             </div>
@@ -200,23 +199,29 @@ export default defineComponent({
     );
     onMounted(() => {
       loadProject(undefined);
-      if (route.params.folderId)
+      if (route.params.folderId) {
         selectedFolder.value = route.params.folderId as string;
+      }
       watch(
-        () => folderComponent.value.selectedItem,
+        () => folderComponent.value?.selectedItem,
         (newVal) => {
-          selectedFolder.value = newVal;
+          if (newVal != undefined) {
+            selectedFolder.value = newVal;
+          }
         }
       );
       watch(
-        () => fileComponent.value.selectedItem,
+        () => fileComponent.value?.selectedItem,
         (newVal) => {
-          selectedFile.value = newVal;
+          if (newVal) {
+            selectedFile.value = newVal;
+          } else {
+            selectedFile.value = "";
+          }
         }
       );
     });
     const loadProject = async (idParam: string | undefined) => {
-      const route = useRoute();
       if (idParam === undefined) {
         idParam = route.params.projectId as string;
       }
@@ -227,6 +232,8 @@ export default defineComponent({
       projectId.value = idParam;
     };
     return {
+      route,
+      router,
       project,
       projectId,
       loadProject,
@@ -284,8 +291,8 @@ export default defineComponent({
       const previewContainer: Element = this.$refs.previewContainer as Element;
       return previewContainer.clientWidth;
     },
-    projectFolders() {
-      return Object.keys(this.projectContent);
+    projectFolders(): StringArray {
+      return Object.keys(this.projectContent) as StringArray;
     },
   },
   methods: {
@@ -295,16 +302,18 @@ export default defineComponent({
     clearFilePreview() {
       this.filePreview = [{}];
     },
-    getSortedFolders() {
-      return sortAlphabetically(this.projectFolders);
+    getSortedFolders(): StringArray {
+      return sortAlphabetically(this.projectFolders) as StringArray;
     },
     getSortedFiles() {
       return this.projectContent[this.selectedFolder]
-        ? sortAlphabetically(this.projectContent[this.selectedFolder])
+        ? (sortAlphabetically(
+            this.projectContent[this.selectedFolder]
+          ) as StringArray)
         : [];
     },
     setProjectContent() {
-      let content: Record<string, string[]> = {};
+      let content: Record<string, StringArray> = {};
       this.project.forEach((item) => {
         /** scrub the project folder from the name */
         const itemInProjectFolder = item.replace(`${this.projectId}/`, "");
@@ -379,8 +388,8 @@ export default defineComponent({
     proceedDelete(fileAndFolder: string) {
       this.clearRecordToDelete();
       const splittedFileAndFolder = fileAndFolder.split("/");
-      const file = splittedFileAndFolder[0];
-      const folder = splittedFileAndFolder[1];
+      const file = splittedFileAndFolder[1];
+      const folder = splittedFileAndFolder[0];
       const response = deleteObject(
         this.projectId,
         `${this.selectedFolder}%2F${this.selectedFile}`

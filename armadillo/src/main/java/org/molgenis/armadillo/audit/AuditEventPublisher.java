@@ -68,6 +68,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String MOVE_OBJECT = "MOVE_OBJECT";
   public static final String GET_OBJECT = "GET_OBJECT";
   public static final String PREVIEW_OBJECT = "PREVIEW_OBJECT";
+  public static final String GET_OBJECT_INFO = "GET_OBJECT_INFO";
   public static final String DELETE_OBJECT = "DELETE_OBJECT";
   public static final String DOWNLOAD_OBJECT = "DOWNLOAD_OBJECT";
   public static final String LIST_USERS = "LIST_USERS";

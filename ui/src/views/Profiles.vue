@@ -329,7 +329,7 @@ export default defineComponent({
 
       this.profiles.unshift({
         name: "",
-        image: "molgenis/armadillo:latest",
+        image: "datashield/armadillo-rserver",
         host: "localhost",
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],

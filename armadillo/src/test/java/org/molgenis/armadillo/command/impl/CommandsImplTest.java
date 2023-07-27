@@ -25,13 +25,13 @@ import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -47,11 +47,11 @@ class CommandsImplTest {
   @Mock ProcessService processService;
   @Mock ProfileService profileService;
   @Mock ArmadilloConnectionFactory connectionFactory;
-  @Mock RConnection rConnection;
+  @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
 
   @Mock InputStream inputStream;
-  @Mock REXP rexp;
+  @Mock RServerResult rexp;
   @Mock Principal principal;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -64,8 +64,6 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(processService.getPid(rConnection)).thenReturn(218);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -79,28 +77,32 @@ class CommandsImplTest {
 
   @Test
   void testSchedule() throws Exception {
-    ArmadilloCommandImpl<REXP> command =
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+    ArmadilloCommandImpl<RServerResult> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected RServerResult doWithConnection(RServerConnection connection) {
             assertSame(rConnection, connection);
             return rexp;
           }
         };
-    CompletableFuture<REXP> result = commands.schedule(command);
+    CompletableFuture<RServerResult> result = commands.schedule(command);
     assertSame(rexp, result.get());
     assertEquals(Optional.of(command.asDto()), commands.getLastCommand());
     assertSame(result, commands.getLastExecution().get());
   }
 
   @Test
-  void testScheduleFailingCommand() throws RserveException {
+  void testScheduleFailingCommand() {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     IllegalStateException exception = new IllegalStateException("Error");
 
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("expression", true) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected REXP doWithConnection(RServerConnection connection) {
             assertSame(rConnection, connection);
             throw exception;
           }
@@ -112,6 +114,8 @@ class CommandsImplTest {
 
   @Test
   void testAssign() throws Exception {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     commands.assign("D", "E").get();
 
     verify(rExecutorService).execute("is.null(base::assign('D', value={E}))", rConnection);
@@ -119,13 +123,17 @@ class CommandsImplTest {
 
   @Test
   void testEvaluate() throws Exception {
-    when(rExecutorService.execute("ls()", rConnection)).thenReturn(rexp);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+    when(rExecutorService.execute("ls()", false, rConnection)).thenReturn(rexp);
 
-    assertSame(rexp, commands.evaluate("ls()").get());
+    assertSame(rexp, commands.evaluate("ls()", false).get());
   }
 
   @Test
   void testSaveWorkspace() throws Exception {
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     doAnswer(
             invocation -> {
               invocation.getArgument(1, Consumer.class).accept(inputStream);
@@ -142,6 +150,8 @@ class CommandsImplTest {
   @Test
   void testLoadWorkspace() throws Exception {
     when(armadilloStorage.loadWorkspace(principal, "core")).thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
     commands.loadWorkspace(principal, "core").get();
 
@@ -152,6 +162,8 @@ class CommandsImplTest {
   @Test
   void testLoadTable() throws Exception {
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
     commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
 
@@ -169,7 +181,7 @@ class CommandsImplTest {
     ArmadilloCommandImpl<REXP> command =
         new ArmadilloCommandImpl<>("Install package", false) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
+          protected REXP doWithConnection(RServerConnection connection) {
             verify(rExecutorService)
                 .installPackage(eq(rConnection), any(Resource.class), any(String.class));
             return null;
@@ -180,6 +192,8 @@ class CommandsImplTest {
   @Test
   void testGetPackages() throws Exception {
     List<RPackage> result = Collections.emptyList();
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
     when(packageService.getInstalledPackages(rConnection)).thenReturn(result);
     assertSame(result, commands.getPackages().get());
   }
@@ -187,19 +201,20 @@ class CommandsImplTest {
   @Test
   void testCleanup() {
     commands.preDestroy();
-
-    verify(rConnection).close();
   }
 
   @Test
   void testLoadResource() throws Exception {
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
 
-    commands.loadResource("core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
 
     verify(rExecutorService)
         .loadResource(
+            eq(principal),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
@@ -228,7 +243,6 @@ class CommandsImplTest {
         ProfileConfig.create("exposome", "dummy", "localhost", 6311, Set.of(), Set.of(), Map.of());
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
-    verify(rConnection).close();
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
   }

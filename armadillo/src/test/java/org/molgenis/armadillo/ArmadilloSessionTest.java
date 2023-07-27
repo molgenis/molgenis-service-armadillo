@@ -14,18 +14,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.service.ProcessService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPNull;
-import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloSessionTest {
 
   private ArmadilloSession armadilloSession;
-  @Mock private RConnection rConnection;
-  @Mock private Function<RConnection, REXP> rConnectionConsumer;
+  @Mock private RServerConnection rConnection;
+  @Mock private Function<RServerConnection, REXP> rConnectionConsumer;
   @Mock private ArmadilloConnectionFactory connectionFactory;
   @Mock private ProcessService processService;
 

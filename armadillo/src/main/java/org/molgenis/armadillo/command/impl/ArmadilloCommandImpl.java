@@ -15,8 +15,8 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO.Builder;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.exceptions.RExecutionException;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.MDC;
 
 public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
@@ -119,7 +119,7 @@ public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
     return IN_PROGRESS;
   }
 
-  public T evaluate(RConnection connection) {
+  public T evaluate(RServerConnection connection) {
     start();
     try {
       return doWithConnection(connection);
@@ -130,7 +130,7 @@ public abstract class ArmadilloCommandImpl<T> implements ArmadilloCommand<T> {
     }
   }
 
-  protected abstract T doWithConnection(RConnection connection);
+  protected abstract T doWithConnection(RServerConnection connection);
 
   @Override
   public synchronized ArmadilloCommandDTO asDto() {

@@ -5,11 +5,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.r.RConnectionFactoryImpl;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerConnectionFactory;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.model.REnvironment;
 import org.molgenis.r.service.ProcessService;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.boot.actuate.endpoint.annotation.DeleteOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
@@ -39,14 +39,14 @@ public class RProcessEndpoint {
         .collect(Collectors.toList());
   }
 
-  <T> T doWithConnection(String environmentName, Function<RConnection, T> action) {
+  <T> T doWithConnection(String environmentName, Function<RServerConnection, T> action) {
     var environment =
         profileService.getAll().stream()
             .filter(it -> environmentName.equals(it.getName()))
             .map(ProfileConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow();
-    RConnection connection = connect(environment);
+    RServerConnection connection = connect(environment);
     try {
       return action.apply(connection);
     } finally {
@@ -54,8 +54,8 @@ public class RProcessEndpoint {
     }
   }
 
-  RConnection connect(EnvironmentConfigProps environment) {
-    return new RConnectionFactoryImpl(environment).tryCreateConnection();
+  RServerConnection connect(EnvironmentConfigProps environment) {
+    return new RServerConnectionFactory(environment).tryCreateConnection();
   }
 
   @DeleteOperation

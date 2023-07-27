@@ -1,87 +1,72 @@
 package org.molgenis.r.service;
 
 import static java.lang.String.format;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 
-import com.google.common.base.Stopwatch;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.apache.commons.io.IOUtils;
 import org.molgenis.r.Formatter;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.FailedRPackageInstallException;
 import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPLogical;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RFileInputStream;
-import org.rosuda.REngine.Rserve.RFileOutputStream;
-import org.rosuda.REngine.Rserve.RserveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RExecutorServiceImpl implements RExecutorService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
-  public static final int RFILE_BUFFER_SIZE = 65536;
 
   @Override
-  public REXP execute(String cmd, RConnection connection) {
+  public RServerResult execute(String cmd, boolean serialized, RServerConnection connection) {
     try {
       LOGGER.debug("Evaluate {}", cmd);
-      REXP result = connection.eval(format("try({%s})", cmd));
+      RServerResult result = connection.eval(cmd, serialized);
       if (result == null) {
         throw new RExecutionException("Eval returned null");
       }
-      if (result.inherits("try-error")) {
-        throw new RExecutionException(
-            stream(result.asStrings()).map(String::trim).collect(joining("; ")));
-      }
       return result;
-    } catch (RserveException | REXPMismatchException e) {
+    } catch (RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
-  public void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer) {
+  public void saveWorkspace(
+      RServerConnection connection, Consumer<InputStream> inputStreamConsumer) {
     try {
       LOGGER.debug("Save workspace");
       String command = "base::save.image()";
       execute(command, connection);
-      try (RFileInputStream is = connection.openFile(".RData")) {
-        inputStreamConsumer.accept(is);
-      }
-    } catch (IOException e) {
+      connection.readFile(".RData", inputStreamConsumer);
+    } catch (RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
-  public void loadWorkspace(RConnection connection, Resource resource, String environment) {
+  public void loadWorkspace(RServerConnection connection, Resource resource, String environment) {
     LOGGER.debug("Load workspace into {}", environment);
     try {
       copyFile(resource, ".RData", connection);
       connection.eval(format("base::load(file='.RData', envir=%s)", environment));
       connection.eval("base::unlink('.RData')");
-    } catch (IOException | RserveException e) {
+    } catch (IOException | RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
   public void loadTable(
-      RConnection connection,
+      RServerConnection connection,
       Resource resource,
       String filename,
       String symbol,
@@ -108,31 +93,49 @@ public class RExecutorServiceImpl implements RExecutorService {
             connection);
       }
       execute(format("base::unlink('%s')", rFileName), connection);
-    } catch (IOException e) {
+    } catch (IOException | RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
   public void loadResource(
-      RConnection connection, Resource resource, String filename, String symbol) {
+      Principal principal,
+      RServerConnection connection,
+      Resource resource,
+      String filename,
+      String symbol) {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
     String rFileName = filename.replace("/", "_");
     try {
-      copyFile(resource, rFileName, connection);
+      if (principal instanceof JwtAuthenticationToken token) {
+        String tokenValue = token.getToken().getTokenValue();
+        copyFile(resource, rFileName, connection);
+        execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
+        execute(format("base::unlink('%s')", rFileName), connection);
+        execute(
+            format(
+                """
+                                  is.null(base::assign('R', value={resourcer::newResource(
+                                          name = rds$name,
+                                          url = rds$url,
+                                          format = rds$format,
+                                          secret = "%s"
+                                  )}))""",
+                tokenValue),
+            connection);
+      }
       execute(
-          format(
-              "is.null(base::assign('%s', value={resourcer::newResourceClient(base::readRDS('%s'))}))",
-              symbol, rFileName),
+          format("is.null(base::assign('%s', value={resourcer::newResourceClient(R)}))", symbol),
           connection);
-      execute(format("base::unlink('%s')", rFileName), connection);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
-  public void installPackage(RConnection connection, Resource packageResource, String filename) {
+  public void installPackage(
+      RServerConnection connection, Resource packageResource, String filename) {
     // https://stackoverflow.com/questions/30989027/how-to-install-a-package-from-a-download-zip-file
 
     if (!filename.endsWith(".tar.gz")) {
@@ -148,35 +151,22 @@ public class RExecutorServiceImpl implements RExecutorService {
       execute(
           format("remotes::install_local('%s', dependencies = TRUE, upgrade = 'never')", rFilename),
           connection);
-      var result = execute(format("require('%s')", packageName), connection);
-      if (result.isLogical()) {
-        REXPLogical logical = (REXPLogical) result;
-        if (logical.asInteger() == 0) {
-          throw new FailedRPackageInstallException(packageName);
-        }
+      RServerResult result = execute(format("require('%s')", packageName), connection);
+      if (!result.asLogical()) {
+        throw new FailedRPackageInstallException(packageName);
       }
       execute(format("file.remove('%s')", filename), connection);
 
-    } catch (IOException | REXPMismatchException e) {
+    } catch (IOException | RServerException e) {
       throw new RExecutionException(e);
     }
   }
 
-  void copyFile(Resource resource, String dataFileName, RConnection connection) throws IOException {
+  void copyFile(Resource resource, String dataFileName, RServerConnection connection)
+      throws IOException, RServerException {
     LOGGER.info("Copying '{}' to R...", dataFileName);
-    Stopwatch sw = Stopwatch.createStarted();
-    try (InputStream is = resource.getInputStream();
-        RFileOutputStream os = connection.createFile(dataFileName);
-        BufferedOutputStream bos = new BufferedOutputStream(os, RFILE_BUFFER_SIZE)) {
-      long size = IOUtils.copyLarge(is, bos);
-      if (LOGGER.isDebugEnabled()) {
-        var elapsed = sw.elapsed(TimeUnit.MICROSECONDS);
-        LOGGER.debug(
-            "Copied {} in {}ms [{} MB/s]",
-            byteCountToDisplaySize(size),
-            elapsed / 1000,
-            format("%.03f", size * 1.0 / elapsed));
-      }
+    try (InputStream is = resource.getInputStream()) {
+      connection.writeFile(dataFileName, is);
     }
   }
 

@@ -1,9 +1,9 @@
 package org.molgenis.armadillo.exceptions;
 
-import org.rosuda.REngine.Rserve.RserveException;
+import org.molgenis.r.RServerException;
 
 public class ArmadilloSessionException extends RuntimeException {
-  public ArmadilloSessionException(String message, RserveException err) {
+  public ArmadilloSessionException(String message, RServerException err) {
     super(message, err);
   }
 }
