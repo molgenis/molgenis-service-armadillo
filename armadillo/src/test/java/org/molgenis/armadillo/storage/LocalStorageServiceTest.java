@@ -172,14 +172,10 @@ class LocalStorageServiceTest {
   void testGetPathIfObjectExists() {
     String bucket = "my-bucket";
     String object = "my-object.txt";
-    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
     MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
     Path bucketPathMock = mock(Path.class);
     Path objectPathMock = mock(Path.class);
-    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
-        .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
         .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
@@ -211,14 +207,10 @@ class LocalStorageServiceTest {
   @Test
   void testGetPathIfObjectExistsThrowsErrorWhenNoObject() {
     String bucket = "my-bucket";
-    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
     MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
     Path bucketPathMock = mock(Path.class);
     Path objectPathMock = mock(Path.class);
-    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, null)).thenReturn(objectPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, null).toAbsolutePath())
-        .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket, null).toAbsolutePath().normalize())
         .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
@@ -237,17 +229,20 @@ class LocalStorageServiceTest {
 
   @Test
   void testGetInfoForTable() throws IOException {
-    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
     MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
     MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
     String bucket = "my-bucket";
     String object = "my-object.parquet";
     Path bucketPathMock = mock(Path.class);
     Path objectPathMock = mock(Path.class);
-    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
-        .thenReturn(objectPathMock);
+    HashMap<String, String> objectDimensions =
+        new HashMap<>() {
+          {
+            put("rows", "232000");
+            put("columns", "120");
+          }
+        };
     when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
         .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
@@ -260,14 +255,7 @@ class LocalStorageServiceTest {
     when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
     when(objectPathMock.toString()).thenReturn(bucket + " " + object);
     when(Files.size(objectPathMock)).thenReturn(10485760L);
-    when(ParquetUtils.retrieveDimensions(objectPathMock))
-        .thenReturn(
-            new HashMap<>() {
-              {
-                put("rows", "232000");
-                put("columns", "120");
-              }
-            });
+    when(ParquetUtils.retrieveDimensions(objectPathMock)).thenReturn(objectDimensions);
     FileInfo expected = new FileInfo(object, "10 MB", "232000", "120");
     assertEquals(expected, localStorageService.getInfo(bucket, object));
     mockedPaths.close();
@@ -277,17 +265,13 @@ class LocalStorageServiceTest {
 
   @Test
   void testGetInfoForNonTable() throws IOException {
-    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
     MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
     MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
     String bucket = "my-bucket";
     String object = "my-object.rda";
     Path bucketPathMock = mock(Path.class);
     Path objectPathMock = mock(Path.class);
-    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
-        .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
         .thenReturn(objectPathMock);
     when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
