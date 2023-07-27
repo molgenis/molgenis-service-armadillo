@@ -25,7 +25,7 @@ public class LocalStorageService implements StorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
-  private final String rootDir;
+  final String rootDir;
 
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);

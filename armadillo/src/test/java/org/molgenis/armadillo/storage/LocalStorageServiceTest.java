@@ -6,17 +6,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
@@ -159,5 +165,72 @@ class LocalStorageServiceTest {
   @Test
   void testGetFileSizeInUnitGb() {
     assertEquals("10 GB", localStorageService.getFileSizeInUnit(10737418240L));
+  }
+
+  @Test
+  void testGetPathIfObjectExists() {
+    String bucket = "my-bucket";
+    String object = "my-object.txt";
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    Path bucketPathMock = mock(Path.class);
+    Path objectPathMock = mock(Path.class);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
+        .thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
+        .thenReturn(bucketPathMock);
+    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
+    assertEquals(objectPathMock, localStorageService.getPathIfObjectExists(bucket, object));
+    mockedPaths.close();
+    mockedFiles.close();
+  }
+
+  @Test
+  void testGetPathIfObjectExistsThrowsErrorWhenNoBucket() {
+    String object = "my-object.txt";
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    Path bucketPathMock = mock(Path.class);
+    when(Files.exists(bucketPathMock)).thenReturn(Boolean.FALSE);
+    assertThrows(
+        StorageException.class, () -> localStorageService.getPathIfObjectExists(null, object));
+    mockedPaths.close();
+    mockedFiles.close();
+  }
+
+  @Test
+  void testGetPathIfObjectExistsThrowsErrorWhenNoObject() {
+    String bucket = "my-bucket";
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    Path bucketPathMock = mock(Path.class);
+    Path objectPathMock = mock(Path.class);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, null)).thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, null).toAbsolutePath())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, null).toAbsolutePath().normalize())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
+        .thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
+        .thenReturn(bucketPathMock);
+    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(objectPathMock)).thenReturn(Boolean.FALSE);
+    assertThrows(
+        StorageException.class, () -> localStorageService.getPathIfObjectExists(bucket, null));
+    mockedPaths.close();
+    mockedFiles.close();
   }
 }
