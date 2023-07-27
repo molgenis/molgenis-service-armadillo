@@ -118,13 +118,6 @@ logging:
 storage:
   root-dir: data
 
-# Uncomment the following block to enable MinIO storage (overrules local storage)
-#minio:
-#  url: http://localhost
-#  port: 9000
-#  access-key: molgenis
-#  secret-key: molgenis
-
 ---
 spring:
   config:

@@ -85,10 +85,3 @@ logging:
 
 storage:
   root-dir: @DATADIR@
-
-# Uncomment the following block to enable MinIO storage (overrules local storage)
-# minio:
-#   url: http://minio
-#   port: 9000
-#   access-key: ACCESSKEY 
-#   secret-key: SECRETKEY
