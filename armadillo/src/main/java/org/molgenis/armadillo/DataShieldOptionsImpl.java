@@ -9,10 +9,9 @@ import java.util.Map;
 import java.util.Objects;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
-import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,22 +32,13 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
   private volatile ImmutableMap<String, String> options;
 
-  private final RConnectionFactory rConnectionFactory;
-
-  public DataShieldOptionsImpl(
-      ProfileConfig profileConfig,
-      PackageService packageService,
-      RConnectionFactory rConnectionFactory) {
+  public DataShieldOptionsImpl(ProfileConfig profileConfig, PackageService packageService) {
     this.profileConfig = requireNonNull(profileConfig);
     this.packageService = requireNonNull(packageService);
-    this.rConnectionFactory = requireNonNull(rConnectionFactory);
   }
 
-  @PostConstruct
-  public void init() {
-    RConnection connection = null;
-    try {
-      connection = rConnectionFactory.tryCreateConnection();
+  private void init(RServerConnection connection) {
+    if (options == null) {
       Map<String, String> optionsMap =
           packageService.getInstalledPackages(connection).stream()
               .map(RPackage::options)
@@ -56,15 +46,12 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .collect(HashMap::new, Map::putAll, Map::putAll);
       optionsMap.putAll(profileConfig.getOptions());
       options = ImmutableMap.copyOf(optionsMap);
-    } finally {
-      if (connection != null) {
-        connection.close();
-      }
     }
   }
 
   @Override
-  public ImmutableMap<String, String> getValue() {
+  public ImmutableMap<String, String> getValue(RServerConnection connection) {
+    init(connection);
     return ImmutableMap.copyOf(options);
   }
 }

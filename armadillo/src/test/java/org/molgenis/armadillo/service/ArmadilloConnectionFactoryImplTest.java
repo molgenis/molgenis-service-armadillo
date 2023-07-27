@@ -13,11 +13,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
+import org.molgenis.r.rserve.RserveResult;
 import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.REXPNull;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloConnectionFactoryImplTest {
@@ -25,7 +26,7 @@ class ArmadilloConnectionFactoryImplTest {
   @Mock DataShieldOptions dataShieldOptions;
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock RConnection rConnection;
+  @Mock RServerConnection rConnection;
   @Mock ProfileConfig profileConfig;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
@@ -39,19 +40,22 @@ class ArmadilloConnectionFactoryImplTest {
   }
 
   @Test
-  void testGetNewConnection() throws RserveException {
+  void testGetNewConnection() throws RServerException {
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
-    when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("a", "80.0"));
-    when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new REXPNull());
+    when(dataShieldOptions.getValue(rConnectionFactory.tryCreateConnection()))
+        .thenReturn(ImmutableMap.of("a", "80.0"));
+    when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new RserveResult(new REXPNull()));
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());
   }
 
   @Test
-  void testGetNewConnectionWithStringOption() throws RserveException {
+  void testGetNewConnectionWithStringOption() throws RServerException {
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
-    when(dataShieldOptions.getValue()).thenReturn(ImmutableMap.of("b", "permissive"));
-    when(rConnection.eval("base::options(b = \"permissive\")")).thenReturn(new REXPNull());
+    when(dataShieldOptions.getValue(rConnectionFactory.tryCreateConnection()))
+        .thenReturn(ImmutableMap.of("b", "permissive"));
+    when(rConnection.eval("base::options(b = \"permissive\")"))
+        .thenReturn(new RserveResult(new REXPNull()));
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());
   }

@@ -6,7 +6,10 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +90,7 @@ public class ArmadilloStorageService {
     storageService.delete(SHARED_PREFIX + project, object);
   }
 
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadObject(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.load(SHARED_PREFIX + project, object);
@@ -229,9 +232,20 @@ public class ArmadilloStorageService {
     }
   }
 
+  public long getFileSizeIfObjectExists(String bucketName, String objectName) throws IOException {
+    Path filePath = storageService.getPathIfObjectExists(bucketName, objectName);
+    return Files.size(filePath);
+  }
+
   @PreAuthorize("hasRole('ROLE_SU')")
   public List<Map<String, String>> getPreview(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.preview(SHARED_PREFIX + project, object, 10, 10);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public FileInfo getInfo(String project, String object) {
+    throwIfUnknown(project, object);
+    return storageService.getInfo(SHARED_PREFIX + project, object);
   }
 }

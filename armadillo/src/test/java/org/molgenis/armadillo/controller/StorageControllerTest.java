@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -390,7 +392,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   void downloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
+    Path mockPath = mock(Path.class);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
+    when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
 
     mockMvc
         .perform(get("/storage/projects/lifecycle/objects/test.parquet").session(session))
@@ -421,6 +425,28 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             instant,
             "user",
             PREVIEW_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
+  }
+
+  @Test
+  void getObjectInfo() throws Exception {
+    when(storage.getInfo("lifecycle", "test.parquet"))
+        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30"));
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet/info").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content()
+                .json(
+                    "{\"name\": \"test.parquet\", \"size\": \"5 MB\", \"rows\": \"20000\", \"columns\": \"30\"}"));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            GET_OBJECT_INFO,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
   }
 

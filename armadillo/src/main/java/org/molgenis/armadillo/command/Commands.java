@@ -4,8 +4,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
-import org.rosuda.REngine.REXP;
 import org.springframework.core.io.Resource;
 
 public interface Commands {
@@ -16,13 +16,15 @@ public interface Commands {
 
   void selectProfile(String profileName);
 
-  CompletableFuture<REXP> evaluate(String expression);
+  CompletableFuture<RServerResult> evaluate(String expression);
+
+  CompletableFuture<RServerResult> evaluate(String expression, boolean serialized);
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
   CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
-  CompletableFuture<Void> loadResource(String symbol, String resource);
+  CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource);
 
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 
@@ -32,7 +34,7 @@ public interface Commands {
 
   CompletableFuture<List<RPackage>> getPackages();
 
-  Optional<CompletableFuture<REXP>> getLastExecution();
+  Optional<CompletableFuture<RServerResult>> getLastExecution();
 
   Optional<ArmadilloCommandDTO> getLastCommand();
 

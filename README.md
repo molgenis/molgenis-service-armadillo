@@ -188,3 +188,52 @@ setting.
 > - Add the project `lifecycle`
 >
 > Now you're all set!
+
+## Working with resources in development mode
+When developing locally, docker has trouble connecting to localhost. This problem becomes clear when working with
+resources. Luckily there's a quick fix for the problem. Instead of defining a resource as for example 
+`http://localhost:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda`, rewrite it to: 
+`http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda`. Here's some example R code
+for uploading resources:
+```R
+## Uploading resources
+library(MolgenisArmadillo)
+library(resourcer)
+
+token <- armadillo.get_token("http://localhost:8080/")
+
+resGSE1 <- resourcer::newResource(
+  name = "GSE66351_1",
+  secret = token,
+  url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda",
+  format = "ExpressionSet"
+)
+
+armadillo.login("http://localhost:8080/")
+armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
+```
+And for using them:
+```R
+library(DSMolgenisArmadillo)
+library(dsBaseClient)
+
+token <- armadillo.get_token("http://localhost:8080/")
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(
+  server = "local",
+  url = "http://localhost:8080/",
+  token = token,
+  driver = "ArmadilloDriver",
+  profile = "uniform",
+  resource = "omics/ewas/GSE66351_1"
+)
+
+login_data <- builder$build()
+conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
+
+datashield.resources(conns = conns)
+datashield.assign.resource(conns, resource="omics/ewas/GSE66351_1", symbol="eSet_0y_EUR")
+ds.class('eSet_0y_EUR', datasources = conns)
+datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
+```

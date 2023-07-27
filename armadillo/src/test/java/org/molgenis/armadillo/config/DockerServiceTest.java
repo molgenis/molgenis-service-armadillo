@@ -49,14 +49,16 @@ class DockerServiceTest {
   @Test
   void testGetProfileStatus() {
     String imageId = "1234";
+    String name = "default";
     var tags = List.of("2.0.0", "latest");
     var containerState = mock(ContainerState.class);
     when(containerState.getRunning()).thenReturn(true);
     var inspectContainerResponse = mock(InspectContainerResponse.class);
-    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectContainerResponse);
-    when(inspectContainerResponse.getImageId()).thenReturn(imageId);
+    when(dockerClient.inspectContainerCmd(name).exec()).thenReturn(inspectContainerResponse);
+    when(dockerClient.inspectImageCmd(name).exec().getRepoTags()).thenReturn(tags);
+    when(inspectContainerResponse.getName()).thenReturn(name);
     when(inspectContainerResponse.getState()).thenReturn(containerState);
-    when(dockerClient.inspectImageCmd(imageId).exec().getRepoTags()).thenReturn(tags);
+
     var expected = ContainerInfo.create(tags, RUNNING);
 
     var containerInfo = dockerService.getProfileStatus("default");

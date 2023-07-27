@@ -1,6 +1,7 @@
 package org.molgenis.r;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Map;
@@ -10,32 +11,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPDouble;
-import org.rosuda.REngine.REXPGenericVector;
-import org.rosuda.REngine.REXPInteger;
-import org.rosuda.REngine.REXPLogical;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REXPString;
-import org.rosuda.REngine.RList;
+import org.molgenis.r.rserve.RserveNamedList;
+import org.rosuda.REngine.*;
 
-class REXPParserTest {
-
-  private REXPParser rexpParser = new REXPParser();
+class RserveNamedListTest {
 
   private REXPString rownames = new REXPString(new String[] {"base", "desc"});
   REXPString colnames = new REXPString(new String[] {"Package", "Version"});
   RList dimnames = new RList(new REXP[] {rownames, colnames});
 
   @Test
-  void parseTibbleTransposesTheDataStructure() throws REXPMismatchException {
+  void parseTibbleTransposesTheDataStructure() throws RServerException {
     RList rList =
         new RList(
             List.of(
                 new REXPString(new String[] {"id1", "id2"}),
                 new REXPString(new String[] {"label1", "label2"})),
             new String[] {"id", "label"});
-    var parsed = rexpParser.parseTibble(rList);
+    var parsed = new RserveNamedList(rList).asRows();
 
     assertEquals(
         List.of(Map.of("id", "id1", "label", "label1"), Map.of("id", "id2", "label", "label2")),
@@ -43,37 +36,37 @@ class REXPParserTest {
   }
 
   @Test
-  void parseTibbleSkipsNAValues() throws REXPMismatchException {
+  void parseTibbleSkipsNAValues() {
     RList rList =
         new RList(
             List.of(
                 new REXPString(new String[] {"id1", "id2"}),
                 new REXPLogical(new byte[] {REXPLogical.NA, REXPLogical.FALSE})),
             new String[] {"id", "valid"});
-    var parsed = rexpParser.parseTibble(rList);
+    var parsed = new RserveNamedList(rList).asRows();
 
     assertEquals(List.of(Map.of("id", "id1"), Map.of("id", "id2", "valid", false)), parsed);
   }
 
   @Test
-  void parseTibbleSkipsNullValues() throws REXPMismatchException {
+  void parseTibbleSkipsNullValues() {
     RList rList =
         new RList(
             List.of(
                 new REXPString(new String[] {"id1", "id2"}),
                 new REXPString(new String[] {null, "label2"})),
             new String[] {"id", "label"});
-    var parsed = rexpParser.parseTibble(rList);
+    var parsed = new RserveNamedList(rList).asRows();
 
     assertEquals(List.of(Map.of("id", "id1"), Map.of("id", "id2", "label", "label2")), parsed);
   }
 
   @ParameterizedTest
   @MethodSource("logicalsProvider")
-  void getValueAtIndexParsesLogicals(byte logical, Optional<Boolean> expected)
-      throws REXPMismatchException {
-    var parsed = rexpParser.getValueAtIndex(new REXPLogical(logical), 0);
-    assertEquals(expected, parsed);
+  void getValueAtIndexParsesLogicals(byte value, Optional<Boolean> expected) {
+    RList rList = new RList(List.of(new REXPLogical(new byte[] {value})), new String[] {"id"});
+    var parsed = new RserveNamedList(rList).asRows();
+    assertEquals(expected.orElse(null), parsed.get(0).get("id"));
   }
 
   static Stream<Arguments> logicalsProvider() {
@@ -85,10 +78,10 @@ class REXPParserTest {
 
   @ParameterizedTest
   @MethodSource("doublesProvider")
-  void getValueAtIndexParsesDoubles(Double value, Optional<Double> expected)
-      throws REXPMismatchException {
-    var parsed = rexpParser.getValueAtIndex(new REXPDouble(value), 0);
-    assertEquals(expected, parsed);
+  void getValueAtIndexParsesDoubles(Double value, Optional<Double> expected) {
+    RList rList = new RList(List.of(new REXPDouble(new double[] {value})), new String[] {"id"});
+    var parsed = new RserveNamedList(rList).asRows();
+    assertEquals(expected.orElse(null), parsed.get(0).get("id"));
   }
 
   static Stream<Arguments> doublesProvider() {
@@ -98,10 +91,10 @@ class REXPParserTest {
 
   @ParameterizedTest
   @MethodSource("intsProvider")
-  void getValueAtIndexParsesIntegers(int value, Optional<Integer> expected)
-      throws REXPMismatchException {
-    var parsed = rexpParser.getValueAtIndex(new REXPInteger(value), 0);
-    assertEquals(expected, parsed);
+  void getValueAtIndexParsesIntegers(int value, Optional<Integer> expected) {
+    RList rList = new RList(List.of(new REXPInteger(new int[] {value})), new String[] {"id"});
+    var parsed = new RserveNamedList(rList).asRows();
+    assertEquals(expected.orElse(null), parsed.get(0).get("id"));
   }
 
   static Stream<Arguments> intsProvider() {
@@ -112,7 +105,8 @@ class REXPParserTest {
   @Test
   void getValueAtIndexSkipsTheUnknown() throws REXPMismatchException {
     var vector = new REXPGenericVector(dimnames);
-    var parsed = rexpParser.getValueAtIndex(vector, 0);
-    assertEquals(Optional.empty(), parsed);
+    RList rList = new RList(List.of(vector), new String[] {"id"});
+    var parsed = new RserveNamedList(rList).asRows();
+    assertNull(parsed.get(0).get("id"));
   }
 }

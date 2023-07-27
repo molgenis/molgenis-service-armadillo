@@ -2,17 +2,17 @@ package org.molgenis.r.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.molgenis.r.REXPParser;
+import org.molgenis.r.RNamedList;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -50,46 +50,37 @@ public class ProcessServiceImpl implements ProcessService {
           + "  dplyr::count()";
   static final String GET_PID_COMMAND = "ps::ps_pid(ps::ps_handle())";
   static final String TERMINATE_COMMAND = "ps::ps_terminate(ps::ps_handle(%dL))";
-  private final REXPParser rexpParser;
   private final RExecutorService rExecutorService;
 
-  public ProcessServiceImpl(REXPParser rexpParser, RExecutorService rExecutorService) {
-    this.rexpParser = rexpParser;
+  public ProcessServiceImpl(RExecutorService rExecutorService) {
     this.rExecutorService = rExecutorService;
   }
 
   @Override
-  public int countRserveProcesses(RConnection connection) {
+  public int countRserveProcesses(RServerConnection connection) {
     try {
-      return ((REXP)
+      return ((RServerResult)
               rExecutorService.execute(COUNT_RSERVE_PROCESSES_COMMAND, connection).asList().get(0))
           .asInteger();
-    } catch (REXPMismatchException | ClassCastException e) {
+    } catch (ClassCastException e) {
       throw new RExecutionException(e);
     }
   }
 
   @Override
-  public List<RProcess> getRserveProcesses(RConnection connection) {
-    try {
-      var result = rExecutorService.execute(GET_RSERVE_PROCESSES_COMMAND, connection).asList();
-      return rexpParser.parseTibble(result).stream().map(this::toRProcess).collect(toList());
-    } catch (REXPMismatchException e) {
-      throw new RExecutionException(e);
-    }
+  public List<RProcess> getRserveProcesses(RServerConnection connection) {
+    RNamedList<RServerResult> result =
+        rExecutorService.execute(GET_RSERVE_PROCESSES_COMMAND, connection).asNamedList();
+    return result.asRows().stream().map(this::toRProcess).collect(toList());
   }
 
   @Override
-  public int getPid(RConnection connection) {
-    try {
-      return rExecutorService.execute(GET_PID_COMMAND, connection).asInteger();
-    } catch (REXPMismatchException e) {
-      throw new RExecutionException(e);
-    }
+  public int getPid(RServerConnection connection) {
+    return rExecutorService.execute(GET_PID_COMMAND, connection).asInteger();
   }
 
   @Override
-  public void terminateProcess(RConnection connection, int pid) {
+  public void terminateProcess(RServerConnection connection, int pid) {
     LOGGER.info("Terminating R Process with pid {}", pid);
     rExecutorService.execute(String.format(TERMINATE_COMMAND, pid), connection);
   }
@@ -106,7 +97,7 @@ public class ProcessServiceImpl implements ProcessService {
         .map(Status::valueOf)
         .ifPresent(builder::setStatus);
     Optional.ofNullable((Double) values.get("created"))
-        .flatMap(rexpParser::parseDate)
+        .flatMap(this::parseDate)
         .ifPresent(builder::setCreated);
     Optional.ofNullable((String) values.get("ports"))
         .filter(it -> !it.isEmpty())
@@ -118,5 +109,9 @@ public class ProcessServiceImpl implements ProcessService {
     Optional.ofNullable((Double) values.get("rss")).ifPresent(builder::setRss);
     Optional.ofNullable((Double) values.get("vms")).ifPresent(builder::setVms);
     return builder.build();
+  }
+
+  private Optional<Instant> parseDate(Double date) {
+    return Optional.ofNullable(date).map(it -> Math.round(it * 1000)).map(Instant::ofEpochMilli);
   }
 }

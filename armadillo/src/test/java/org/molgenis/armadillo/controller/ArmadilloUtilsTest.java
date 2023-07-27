@@ -9,14 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
+import org.molgenis.r.RServerResult;
+import org.molgenis.r.exceptions.RExecutionException;
+import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPRaw;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloUtilsTest {
 
-  @Mock REXP rexp;
+  @Mock RServerResult rexp;
 
   @Test
   void testSerializeCommand() {
@@ -29,13 +30,13 @@ class ArmadilloUtilsTest {
   void testCreateRawResponse() {
     byte[] bytes = {0x01, 0x02, 0x03};
     REXPRaw rexpDouble = new REXPRaw(bytes);
-    byte[] actual = createRawResponse(rexpDouble);
+    byte[] actual = createRawResponse(new RserveResult(rexpDouble));
     assertArrayEquals(bytes, actual);
   }
 
   @Test
-  void testCreateRawResponseMisbehavingREXP() throws REXPMismatchException {
-    doThrow(new REXPMismatchException(rexp, "blah")).when(rexp).asBytes();
+  void testCreateRawResponseMisbehavingREXP() {
+    doThrow(new RExecutionException("blah")).when(rexp).asBytes();
     assertThrows(IllegalStateException.class, () -> createRawResponse(rexp));
   }
 

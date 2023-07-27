@@ -21,14 +21,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
-import org.rosuda.REngine.Rserve.RConnection;
+import org.molgenis.r.RServerConnection;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloCommandImplTest {
 
   @Mock private Clock clock;
-  @Mock RConnection connection;
-  private ArmadilloCommandImpl<RConnection> command;
+  @Mock RServerConnection connection;
+  private ArmadilloCommandImpl<RServerConnection> command;
   private final Instant createDate = now();
 
   @BeforeEach
@@ -38,7 +38,7 @@ class ArmadilloCommandImplTest {
         new ArmadilloCommandImpl<>("expression", true, clock) {
 
           @Override
-          protected RConnection doWithConnection(RConnection connection) {
+          protected RServerConnection doWithConnection(RServerConnection connection) {
             return connection;
           }
         };

@@ -22,12 +22,12 @@ import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.molgenis.r.service.ProcessService;
 import org.molgenis.r.service.RExecutorService;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
@@ -66,7 +66,6 @@ class CommandsImpl implements Commands {
     this.connectionFactory = connectionFactory;
     this.processService = processService;
     this.profileService = profileService;
-    this.armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
@@ -77,7 +76,7 @@ class CommandsImpl implements Commands {
   @Override
   public void selectProfile(String profileName) {
     runAsSystem(() -> profileService.getByName(profileName));
-    armadilloSession.sessionCleanup();
+    if (armadilloSession != null) armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
@@ -98,7 +97,10 @@ class CommandsImpl implements Commands {
   }
 
   synchronized <T> CompletableFuture<T> schedule(ArmadilloCommandImpl<T> command) {
-    final ArmadilloSession session = armadilloSession;
+    final ArmadilloSession session =
+        armadilloSession == null
+            ? new ArmadilloSession(connectionFactory, processService)
+            : armadilloSession;
     lastCommand = command;
     CompletableFuture<T> result =
         supplyAsync(() -> session.execute(command::evaluate), taskExecutor);
@@ -107,12 +109,17 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<REXP> evaluate(String expression) {
+  public CompletableFuture<RServerResult> evaluate(String expression) {
+    return evaluate(expression, false);
+  }
+
+  @Override
+  public CompletableFuture<RServerResult> evaluate(String expression, boolean serialized) {
     return schedule(
         new ArmadilloCommandImpl<>(expression, true) {
           @Override
-          protected REXP doWithConnection(RConnection connection) {
-            return rExecutorService.execute(expression, connection);
+          protected RServerResult doWithConnection(RServerConnection connection) {
+            return rExecutorService.execute(expression, serialized, connection);
           }
         });
   }
@@ -123,7 +130,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>(statement, false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             rExecutorService.execute(statement, connection);
             return null;
           }
@@ -135,7 +142,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>("Load user workspace " + id, false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadWorkspace(principal, id);
             rExecutorService.loadWorkspace(
                 connection, new InputStreamResource(inputStream), GLOBAL_ENV);
@@ -152,7 +159,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>("Load table " + table, false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadTable(project, objectName);
             rExecutorService.loadTable(
                 connection,
@@ -166,17 +173,21 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadResource(String symbol, String resource) {
+  public CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
     return schedule(
         new ArmadilloCommandImpl<>("Load resource " + resource, false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadResource(project, objectName);
             rExecutorService.loadResource(
-                connection, new InputStreamResource(inputStream), resource + RDS, symbol);
+                principal,
+                connection,
+                new InputStreamResource(inputStream),
+                resource + RDS,
+                symbol);
             return null;
           }
         });
@@ -187,7 +198,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>("Save user workspace" + id, false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             rExecutorService.saveWorkspace(
                 connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
             return null;
@@ -201,7 +212,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>("Install package", false) {
           @Override
-          protected Void doWithConnection(RConnection connection) {
+          protected Void doWithConnection(RServerConnection connection) {
             rExecutorService.installPackage(connection, resource, name);
             return null;
           }
@@ -213,7 +224,7 @@ class CommandsImpl implements Commands {
     return schedule(
         new ArmadilloCommandImpl<>("getInstalledPackages", true) {
           @Override
-          protected List<RPackage> doWithConnection(RConnection connection) {
+          protected List<RPackage> doWithConnection(RServerConnection connection) {
             return packageService.getInstalledPackages(connection);
           }
         });
@@ -221,6 +232,6 @@ class CommandsImpl implements Commands {
 
   @PreDestroy
   public void preDestroy() {
-    armadilloSession.sessionCleanup();
+    if (armadilloSession != null) armadilloSession.sessionCleanup();
   }
 }

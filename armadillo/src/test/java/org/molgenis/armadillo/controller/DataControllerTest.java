@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.controller.ArmadilloUtils.serializeExpression;
 import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
@@ -39,12 +38,13 @@ import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
+import org.molgenis.r.rserve.RserveResult;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.obiba.datashield.r.expr.v2.ParseException;
-import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -81,7 +81,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @MockBean DockerClient dockerClient;
   @MockBean private ArmadilloStorageService armadilloStorage;
   @MockBean private DSEnvironmentCache environments;
-  @Mock private REXP rexp;
+  @Mock private RServerResult rexp;
   @Mock private DSEnvironment assignEnvironment;
 
   @Test
@@ -296,7 +296,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testGetLastResult() throws Exception {
     byte[] bytes = {0x0, 0x1, 0x2};
-    when(commands.getLastExecution()).thenReturn(Optional.of(completedFuture(new REXPRaw(bytes))));
+    when(commands.getLastExecution())
+        .thenReturn(Optional.of(completedFuture(new RserveResult(new REXPRaw(bytes)))));
 
     MvcResult result =
         mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
@@ -413,10 +414,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     String expression = "meanDS(D$age)";
     String rewrittenExpression = "dsBase::meanDS(D$age)";
     when(expressionRewriter.rewriteAggregate(expression)).thenReturn(rewrittenExpression);
-    String serializedExpression = serializeExpression(rewrittenExpression);
 
-    when(commands.evaluate(serializedExpression))
-        .thenReturn(completedFuture(new REXPRaw(new byte[0])));
+    when(commands.evaluate(rewrittenExpression, true))
+        .thenReturn(completedFuture(new RserveResult(new REXPRaw(new byte[0]))));
 
     mockMvc
         .perform(
@@ -445,8 +445,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testExecuteAsync() throws Exception {
     when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
-    when(commands.evaluate("try(base::serialize({dsBase::meanDS(D$age)}, NULL))"))
-        .thenReturn(completedFuture(new REXPDouble(36.6)));
+    when(commands.evaluate("dsBase::meanDS(D$age)", true))
+        .thenReturn(completedFuture(new RserveResult(new REXPDouble(36.6))));
 
     MvcResult result =
         mockMvc
@@ -842,7 +842,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void testLoadResource() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
-    when(commands.loadResource("hpc_res", "gecko/2_1-core-1_1/hpc-resource-1"))
+    when(commands.loadResource(
+            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-resource-1")))
         .thenReturn(completedFuture(null));
 
     mockMvc

@@ -12,13 +12,13 @@ import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.DefaultDSMethod;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -64,7 +64,7 @@ public class DSEnvironmentCache {
   }
 
   private List<RPackage> getPackages() {
-    RConnection connection = null;
+    RServerConnection connection = null;
     try {
       connection = rConnectionFactory.tryCreateConnection();
       return packageService.getInstalledPackages(connection);
