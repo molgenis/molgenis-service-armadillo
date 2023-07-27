@@ -53,7 +53,7 @@ bash armadillo-setup.sh \
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
 
-### As docker compose (UNTESTED!!!)
+### As docker compose
 For testing without having to install anything we regularly use docker-compose:
 
 #### 1. Create a [docker-compose.yml](https://docs.docker.com/compose/) file like this one:
