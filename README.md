@@ -61,11 +61,15 @@ For testing without having to install anything we regularly use docker-compose:
 version: "3.4"
 services:
   armadillo:
-    image: molgenis/molgenis-armadillo:3.1.0
+    image: molgenis/molgenis-armadillo-snapshot:latest
     environment:
       SPRING_PROFILES_ACTIVE: basic
+      LOGGING_CONFIG: 'classpath:logback-file.xml'
+      AUDIT_LOG_PATH: '/app/logs/audit.log'
+    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
+    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
     ports:
-      - "8880:8080"
+      - 8080:8080
     volumes:
       - ${PWD}/logs/:/app/logs
       - ${PWD}/data/:/data
