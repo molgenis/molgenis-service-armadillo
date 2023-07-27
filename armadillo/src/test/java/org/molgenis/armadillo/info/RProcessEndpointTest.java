@@ -11,9 +11,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.service.ProcessService;
-import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {
@@ -22,7 +22,7 @@ class RProcessEndpointTest {
   @Mock private EnvironmentConfigProps environment2;
   @Mock private ProcessService processService;
   @Mock private ProfileService profileService;
-  @Mock private RConnection connection;
+  @Mock private RServerConnection connection;
 
   @Test
   void testDoWithConnection() {
@@ -31,7 +31,7 @@ class RProcessEndpointTest {
           EnvironmentConfigProps selectedEnvironment = null;
 
           @Override
-          RConnection connect(EnvironmentConfigProps environment) {
+          RServerConnection connect(EnvironmentConfigProps environment) {
             selectedEnvironment = environment;
             return connection;
           }

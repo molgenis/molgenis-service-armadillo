@@ -1,27 +1,37 @@
 package org.molgenis.r.service;
 
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
 import java.util.function.Consumer;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerResult;
 import org.springframework.core.io.Resource;
 
 public interface RExecutorService {
-  REXP execute(String cmd, RConnection connection);
+  default RServerResult execute(String cmd, RServerConnection connection) {
+    return execute(cmd, false, connection);
+  }
 
-  void saveWorkspace(RConnection connection, Consumer<InputStream> inputStreamConsumer);
+  RServerResult execute(String cmd, boolean serialized, RServerConnection connection);
 
-  void loadWorkspace(RConnection connection, Resource resource, String environment);
+  void saveWorkspace(RServerConnection connection, Consumer<InputStream> inputStreamConsumer);
+
+  void loadWorkspace(RServerConnection connection, Resource resource, String environment);
 
   void loadTable(
-      RConnection connection,
+      RServerConnection connection,
       Resource resource,
       String filename,
       String symbol,
       List<String> variables);
 
-  void loadResource(RConnection connection, Resource resource, String filename, String symbol);
+  void loadResource(
+      Principal principal,
+      RServerConnection connection,
+      Resource resource,
+      String filename,
+      String symbol);
 
-  void installPackage(RConnection connection, Resource packageResource, String name);
+  void installPackage(RServerConnection connection, Resource packageResource, String name);
 }

@@ -1,16 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.COPY_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DOWNLOAD_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_OBJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MOVE_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PREVIEW_OBJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPLOAD_OBJECT;
-import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -38,8 +28,13 @@ import javax.validation.constraints.NotEmpty;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.springframework.core.io.ByteArrayResource;
+import org.molgenis.armadillo.storage.FileInfo;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -199,10 +194,10 @@ public class StorageController {
     return objectExists ? noContent().build() : notFound().build();
   }
 
-  @Operation(summary = "Retrieve first 10 rows of the data?")
+  @Operation(summary = "Retrieve first 10 rows of the data")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Preview succes"),
+        @ApiResponse(responseCode = "200", description = "Preview success"),
         @ApiResponse(responseCode = "404", description = "Object does not exist"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
@@ -215,6 +210,23 @@ public class StorageController {
         () -> storage.getPreview(project, object),
         principal,
         PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  @Operation(summary = "Get information of a file")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Retrieval successful"),
+        @ApiResponse(responseCode = "404", description = "Object does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(path = "/projects/{project}/objects/{object}/info", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody FileInfo getObjectInfo(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> storage.getInfo(project, object),
+        principal,
+        GET_OBJECT_INFO,
         Map.of(PROJECT, project, OBJECT, object));
   }
 
@@ -237,6 +249,7 @@ public class StorageController {
   }
 
   @Operation(summary = "Download an object")
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object downloaded successfully"),
@@ -252,7 +265,7 @@ public class StorageController {
   @GetMapping(
       value = "/projects/{project}/objects/{object}",
       produces = {APPLICATION_OCTET_STREAM_VALUE})
-  public @ResponseBody ResponseEntity<ByteArrayResource> downloadObject(
+  public @ResponseBody ResponseEntity<InputStreamResource> downloadObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> getObject(project, object),
@@ -261,18 +274,24 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
-  private ResponseEntity<ByteArrayResource> getObject(String project, String object) {
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  private ResponseEntity<InputStreamResource> getObject(String project, String object) {
     var inputStream = storage.loadObject(project, object);
     var objectParts = object.split("/");
     var fileName = objectParts[objectParts.length - 1];
 
     try {
-      var resource = new ByteArrayResource(inputStream.readAllBytes());
-      return ResponseEntity.ok()
-          .header(CONTENT_DISPOSITION, "attachment; filename=" + fileName)
-          .contentLength(resource.contentLength())
-          .contentType(APPLICATION_OCTET_STREAM)
-          .body(resource);
+      InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(fileName).build();
+      var fileSize =
+          storage.getFileSizeIfObjectExists(
+              ArmadilloStorageService.SHARED_PREFIX + project, object);
+      HttpHeaders httpHeaders = new HttpHeaders();
+      httpHeaders.setContentDisposition(contentDisposition);
+      httpHeaders.setContentLength(fileSize);
+      httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+      return new ResponseEntity(inputStreamResource, httpHeaders, HttpStatus.OK);
     } catch (IOException e) {
       throw new FileProcessingException();
     }

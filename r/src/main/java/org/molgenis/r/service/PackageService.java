@@ -2,12 +2,12 @@ package org.molgenis.r.service;
 
 import java.util.List;
 import java.util.Set;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
-import org.rosuda.REngine.Rserve.RConnection;
 
 public interface PackageService {
 
-  List<RPackage> getInstalledPackages(RConnection connection);
+  List<RPackage> getInstalledPackages(RServerConnection connection);
 
-  void loadPackages(RConnection connection, Set<String> pkg);
+  void loadPackages(RServerConnection connection, Set<String> pkg);
 }

@@ -25,7 +25,7 @@ public class LocalStorageService implements StorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
-  private final String rootDir;
+  final String rootDir;
 
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);
@@ -154,6 +154,44 @@ public class LocalStorageService implements StorageService {
     }
   }
 
+  String getFileSizeInUnit(long fileSize) {
+    int sizeOfUnit = 1024;
+    String[] units = new String[] {"bytes", "KB", "MB", "GB"};
+    for (String unit : units) {
+      if (fileSize > sizeOfUnit) {
+        fileSize = fileSize / sizeOfUnit;
+      } else {
+        return fileSize + " " + unit;
+      }
+    }
+    return fileSize + " " + units[units.length - 1];
+  }
+
+  @Override
+  public FileInfo getInfo(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      String objectPathString = objectPath.toString().toLowerCase();
+      long fileSize = Files.size(objectPath);
+      String fileSizeWithUnit = getFileSizeInUnit(fileSize);
+      if (objectPathString.endsWith(".parquet")) {
+        Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
+        return new FileInfo(
+            objectName,
+            fileSizeWithUnit,
+            tableDimensions.get("rows"),
+            tableDimensions.get("columns"));
+      } else {
+        return FileInfo.of(objectName, fileSizeWithUnit);
+      }
+    } catch (IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
   @Override
   public List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit) {
@@ -168,7 +206,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  private Path getPathIfObjectExists(String bucketName, String objectName) {
+  public Path getPathIfObjectExists(String bucketName, String objectName) {
     Path bucketPath = Paths.get(rootDir, bucketName);
     if (!Files.exists(bucketPath)) {
       throw new StorageException(format("Bucket '%s' doesn't exist", bucketName));

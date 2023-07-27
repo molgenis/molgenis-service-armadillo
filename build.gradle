@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.7.11'
+    id 'org.springframework.boot' version '2.7.14'
     id 'io.spring.dependency-management' version '1.1.0'
     id "java"
     id "org.sonarqube" version "3.5.0.2730"
@@ -78,7 +78,7 @@ run {
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
 semanticRelease {
     repo {
-        releaseAsset bootJar
+        releaseAsset bootJar.archivePath
         ghToken = project.ext.ghToken
     }
 }
@@ -98,12 +98,16 @@ docker {
     files bootJar.archivePath
     buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
 }
-dockerPrepare.dependsOn test
+dockerPrepare.dependsOn bootJar
 
 //merge test reports
 task jacocoMergedReport(type: JacocoReport) {
-    dependsOn project.getTasksByName("test", true)
+    dependsOn project.getTasksByName(":armadillo:test", true)
+    dependsOn project.getTasksByName(":r:test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
+    dependsOn project.getTasksByName("jacocoTestReport", true)
+    dependsOn project.getTasksByName("bootStartScripts", true)
+    dependsOn project.getTasksByName("startScripts", true)
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)

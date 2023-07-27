@@ -13,13 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.r.REXPParser;
+import org.molgenis.r.RNamedList;
+import org.molgenis.r.RServerConnection;
+import org.molgenis.r.RServerException;
+import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REXPString;
-import org.rosuda.REngine.RList;
-import org.rosuda.REngine.Rserve.RConnection;
-import org.rosuda.REngine.Rserve.RserveException;
 
 @ExtendWith(MockitoExtension.class)
 class PackageServiceImplTest {
@@ -39,23 +38,22 @@ class PackageServiceImplTest {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  @Mock private REXPParser rexpParser;
-  @Mock private REXPString rexp;
-  @Mock private RList rlist;
-  @Mock private RConnection rConnection;
+  @Mock private RServerResult rexp;
+  @Mock private RNamedList<RServerResult> rlist;
+  @Mock private RServerConnection rConnection;
 
   private PackageService packageService;
 
   @BeforeEach
   void before() {
-    packageService = new PackageServiceImpl(rexpParser);
+    packageService = new PackageServiceImpl();
   }
 
   @Test
-  void testGetInstalledPackages() throws REXPMismatchException, RserveException {
+  void testGetInstalledPackages() throws RServerException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(rlist);
-    when(rexpParser.parseTibble(rlist))
+    when(rexp.asNamedList()).thenReturn(rlist);
+    when(rlist.asRows())
         .thenReturn(
             List.of(
                 Map.of(
@@ -80,10 +78,10 @@ class PackageServiceImplTest {
   }
 
   @Test
-  void testParseSimpleOptions() throws REXPMismatchException, RserveException {
+  void testParseSimpleOptions() throws REXPMismatchException, RServerException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(rlist);
-    when(rexpParser.parseTibble(rlist))
+    when(rexp.asNamedList()).thenReturn(rlist);
+    when(rlist.asRows())
         .thenReturn(
             List.of(
                 Map.of(
@@ -103,10 +101,10 @@ class PackageServiceImplTest {
   }
 
   @Test
-  void testParseSkipsEmptyStrings() throws REXPMismatchException, RserveException {
+  void testParseSkipsEmptyStrings() throws RServerException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(rlist);
-    when(rexpParser.parseTibble(rlist))
+    when(rexp.asNamedList()).thenReturn(rlist);
+    when(rlist.asRows())
         .thenReturn(
             List.of(
                 Map.of(
@@ -130,10 +128,10 @@ class PackageServiceImplTest {
   }
 
   @Test
-  void testParseAssignMethods() throws REXPMismatchException, RserveException {
+  void testParseAssignMethods() throws RServerException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(rlist);
-    when(rexpParser.parseTibble(rlist))
+    when(rexp.asNamedList()).thenReturn(rlist);
+    when(rlist.asRows())
         .thenReturn(
             List.of(
                 Map.of(
@@ -153,10 +151,10 @@ class PackageServiceImplTest {
   }
 
   @Test
-  void testParseAggregateMethods() throws REXPMismatchException, RserveException {
+  void testParseAggregateMethods() throws RServerException {
     when(rConnection.eval(anyString())).thenReturn(rexp);
-    when(rexp.asList()).thenReturn(rlist);
-    when(rexpParser.parseTibble(rlist))
+    when(rexp.asNamedList()).thenReturn(rlist);
+    when(rlist.asRows())
         .thenReturn(
             List.of(
                 Map.of(
@@ -176,7 +174,7 @@ class PackageServiceImplTest {
   }
 
   @Test
-  void testLoadPackages() throws RserveException {
+  void testLoadPackages() throws RServerException {
     Set<String> packages = ImmutableSet.of("dsBase", "dsExposome");
     String command =
         "base::lapply(c("

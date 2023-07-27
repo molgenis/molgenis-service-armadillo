@@ -80,7 +80,7 @@ public class DockerService {
 
     try {
       InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
-      var tags = getImageTags(containerInfo.getImageId());
+      var tags = getImageTags(containerInfo.getName());
       return ContainerInfo.create(tags, ProfileStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
@@ -104,10 +104,12 @@ public class DockerService {
 
   private void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
-      throw new MissingImageException(profileConfig.getName());
+      throw new MissingImageException(profileConfig.getImage());
     }
 
-    ExposedPort exposed = ExposedPort.tcp(6311);
+    // TODO: have full port mapping in config or a by R server type?
+    int imageExposed = profileConfig.getName().contains("rock") ? 8085 : 6311;
+    ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {

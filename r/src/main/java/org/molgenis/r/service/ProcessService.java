@@ -1,16 +1,16 @@
 package org.molgenis.r.service;
 
 import java.util.List;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RProcess;
-import org.rosuda.REngine.Rserve.RConnection;
 
 public interface ProcessService {
 
-  int countRserveProcesses(RConnection connection);
+  int countRserveProcesses(RServerConnection connection);
 
-  List<RProcess> getRserveProcesses(RConnection connection);
+  List<RProcess> getRserveProcesses(RServerConnection connection);
 
-  int getPid(RConnection connection);
+  int getPid(RServerConnection connection);
 
   /**
    * Terminate a process with given pid on the R server.
@@ -18,5 +18,5 @@ public interface ProcessService {
    * @param connection unrelated connection, used to terminate the process
    * @param pid pid of the process to kill
    */
-  void terminateProcess(RConnection connection, int pid);
+  void terminateProcess(RServerConnection connection, int pid);
 }

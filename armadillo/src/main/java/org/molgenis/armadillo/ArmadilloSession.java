@@ -4,8 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.function.Function;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.service.ProcessService;
-import org.rosuda.REngine.Rserve.RConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,7 @@ public class ArmadilloSession {
 
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final RConnection connection;
+  private final RServerConnection connection;
   final int pid;
   private boolean busy = false;
 
@@ -28,7 +28,7 @@ public class ArmadilloSession {
     logger.debug("Created new connection with pid {}.", pid);
   }
 
-  public synchronized <T> T execute(Function<RConnection, T> consumer) {
+  public synchronized <T> T execute(Function<RServerConnection, T> consumer) {
     busy = true;
     try {
       return consumer.apply(connection);

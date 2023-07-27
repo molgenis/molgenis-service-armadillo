@@ -19,13 +19,13 @@ import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.r.RConnectionFactory;
+import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.impl.DefaultDSMethod;
-import org.rosuda.REngine.Rserve.RConnection;
 
 @ExtendWith(MockitoExtension.class)
 class DSEnvironmentConfigPropsCacheTest {
@@ -118,7 +118,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   private void populateEnvironment(
       ImmutableSet<String> aggregateMethods, ImmutableSet<String> assignMethods) {
-    RConnection rConnection = mock(RConnection.class);
+    RServerConnection rConnection = mock(RServerConnection.class);
     when(rConnectionFactory.tryCreateConnection()).thenReturn(rConnection);
 
     RPackage pack =
