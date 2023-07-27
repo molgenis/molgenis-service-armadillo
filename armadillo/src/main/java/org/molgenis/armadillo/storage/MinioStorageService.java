@@ -207,6 +207,11 @@ class MinioStorageService implements StorageService {
   }
 
   @Override
+  public FileInfo getInfo(String bucketName, String objectName) {
+    return null;
+  }
+
+  @Override
   public List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit) {
     throw new UnsupportedOperationException();

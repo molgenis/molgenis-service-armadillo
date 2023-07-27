@@ -27,6 +27,7 @@ import org.molgenis.armadillo.exceptions.DuplicateObjectException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -421,6 +422,28 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             instant,
             "user",
             PREVIEW_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
+  }
+
+  @Test
+  void getObjectInfo() throws Exception {
+    when(storage.getInfo("lifecycle", "test.parquet"))
+        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30"));
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet/info").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content()
+                .json(
+                    "{\"name\": \"test.parquet\", \"size\": \"5 MB\", \"rows\": \"20000\", \"columns\": \"30\"}"));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            GET_OBJECT_INFO,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
   }
 
