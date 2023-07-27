@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -232,5 +233,77 @@ class LocalStorageServiceTest {
         StorageException.class, () -> localStorageService.getPathIfObjectExists(bucket, null));
     mockedPaths.close();
     mockedFiles.close();
+  }
+
+  @Test
+  void testGetInfoForTable() throws IOException {
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    String bucket = "my-bucket";
+    String object = "my-object.parquet";
+    Path bucketPathMock = mock(Path.class);
+    Path objectPathMock = mock(Path.class);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
+        .thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
+        .thenReturn(bucketPathMock);
+    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
+    when(objectPathMock.toString()).thenReturn(bucket + " " + object);
+    when(Files.size(objectPathMock)).thenReturn(10485760L);
+    when(ParquetUtils.retrieveDimensions(objectPathMock))
+        .thenReturn(
+            new HashMap<>() {
+              {
+                put("rows", "232000");
+                put("columns", "120");
+              }
+            });
+    FileInfo expected = new FileInfo(object, "10 MB", "232000", "120");
+    assertEquals(expected, localStorageService.getInfo(bucket, object));
+    mockedPaths.close();
+    mockedFiles.close();
+    mockedParquetUtils.close();
+  }
+
+  @Test
+  void testGetInfoForNonTable() throws IOException {
+    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class);
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    String bucket = "my-bucket";
+    String object = "my-object.rda";
+    Path bucketPathMock = mock(Path.class);
+    Path objectPathMock = mock(Path.class);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object)).thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket, object).toAbsolutePath().normalize())
+        .thenReturn(objectPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
+        .thenReturn(bucketPathMock);
+    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
+        .thenReturn(bucketPathMock);
+    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
+    when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
+    when(objectPathMock.toString()).thenReturn(bucket + " " + object);
+    when(Files.size(objectPathMock)).thenReturn(10737418240L);
+    FileInfo expected = new FileInfo(object, "10 GB", null, null);
+    assertEquals(expected, localStorageService.getInfo(bucket, object));
+    mockedPaths.close();
+    mockedFiles.close();
+    mockedParquetUtils.close();
   }
 }
