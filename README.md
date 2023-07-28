@@ -14,14 +14,12 @@ service provides the following features:
 * **grant users access permission**. We use a central OIDC service like KeyCloak or FusionAuth in combination with a trused identity provider like
   Life Sciences AAI to authenticate users.
 * **configure DataSHIELD analysis profiles**. [DataSHIELD analysis profiles](https://www.datashield.org/help/standard-profiles-and-plaforms) are
-  Docker images that contain a pre-packaged collection of [DataSHIELD analysis packages](https://www.datashield.org/help/community-packages).
+  Docker images that contain a collection of multiple [DataSHIELD analysis packages](https://www.datashield.org/help/community-packages).
 
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/doc/img/overview-datashield.png)
 
 # How to install?
-Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests).
-
-Below instructions how to run Armadillo as a service on Ubuntu, as a Docker container or as java jar file.
+Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo as a service on Ubuntu, as a Docker container or as java jar file.
 Note that for production you should add a https proxy for essential security:
 
 ### As service on Ubuntu
