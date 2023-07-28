@@ -112,15 +112,6 @@ Note: you can also use these -D options also in IntelliJ for development, which 
 ### Setup HTTPS proxy
 To secure your Armadillo we recommend use of a HTTPS reverse proxy. We use nginx, see an example configuration [here](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/conf/armadillo-nginx.conf).
 
-### Using docker compose to start profiles
-Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
-Then inside of Armadillo you only need to configure the images.
-
-Examples docker-compose.yaml
-```
-todo
-```
-
 # How to use Armadillo
 
 Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
@@ -152,6 +143,16 @@ loaded into an R session on the Armadillo server specifically created for the re
 There the analysis is performed and aggregated results are sent back to the client.
 
 # Frequently asked questions
+
+
+### Can I use docker compose to start profiles
+Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
+Then inside of Armadillo you only need to configure the images.
+
+Examples docker-compose.yaml
+```
+todo
+```
 
 ### Import data from Armadillo 2
 To export data from and Armadillo 2 server take the following steps:
