@@ -45,7 +45,7 @@ bash armadillo-setup.sh \
     --oidc \
     --oidc_url https://lifecycle-auth.molgenis.org \
     --oidc_clientid clientid \
-    --oidc_clientsecret secret 
+    --oidc_clientsecret secret \
     --cleanup 
 ```
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
