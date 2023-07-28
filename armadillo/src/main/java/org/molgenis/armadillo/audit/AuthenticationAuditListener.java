@@ -3,7 +3,7 @@ package org.molgenis.armadillo.audit;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.getUser;
 
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
+import javax.validation.constraints.NotNull;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.security.AbstractAuthenticationAuditListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;

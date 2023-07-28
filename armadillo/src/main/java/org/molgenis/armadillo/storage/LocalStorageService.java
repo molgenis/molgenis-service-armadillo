@@ -13,12 +13,10 @@ import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnMissingBean(MinioStorageService.class)
 public class LocalStorageService implements StorageService {
 
   static final String ROOT_DIR_PROPERTY = "storage.root-dir";
