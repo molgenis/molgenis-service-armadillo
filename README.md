@@ -147,11 +147,32 @@ There the analysis is performed and aggregated results are sent back to the clie
 
 ### Can I use docker compose to start profiles
 Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
-Then inside of Armadillo you only need to configure the images.
-
-Examples docker-compose.yaml
+Then inside of Armadillo you only need to configure the images. For example:
 ```
-todo
+version: "3.4"
+services:
+  armadillo:
+    image: molgenis/molgenis-armadillo-snapshot:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: basic
+      LOGGING_CONFIG: 'classpath:logback-file.xml'
+      AUDIT_LOG_PATH: '/app/logs/audit.log'
+    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
+    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+    ports:
+      - 8080:8080
+    volumes:
+      - ${PWD}/logs/:/app/logs
+      - ${PWD}/data/:/data
+  rserver:
+    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
+    image: datashield/armadillo-rserver:6.2.0
+    environment:
+      DEBUG: "FALSE"
+    ports:
+      # host port: container port
+      - 6311:6311
+
 ```
 
 ### Import data from Armadillo 2
