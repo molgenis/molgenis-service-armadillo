@@ -144,8 +144,7 @@ There the analysis is performed and aggregated results are sent back to the clie
 
 # Frequently asked questions
 
-
-### Can I use docker compose to start profiles
+### Can I use docker compose to start profiles?
 Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
 Then inside of Armadillo you only need to configure the images. For example:
 ```
@@ -175,7 +174,7 @@ services:
 
 ```
 
-### Import data from Armadillo 2
+### How to import data from Armadillo 2?
 To export data from and Armadillo 2 server take the following steps:
 
 #### 1. Install helper software
@@ -233,13 +232,13 @@ wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/maste
 python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080 
 ```
 
-## How to run previous armadillo 2
+### How to run previous armadillo 2?
 
 For armadillo 2.x you can follow instructions at
 * for testing we use docker compose at https://github.com/molgenis/molgenis-service-armadillo/tree/armadillo-service-2.2.3
 * for production we are using Ansible at https://galaxy.ansible.com/molgenis/armadillo`
 
-## How to run Armadillo as developer
+### How to run Armadillo as developer?
 
 We develop Armadillo using IntelliJ.
 
