@@ -39,7 +39,7 @@ dependencies {
     //test spring
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation "junit:junit"
 
     //other
