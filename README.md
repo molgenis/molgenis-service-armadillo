@@ -5,7 +5,7 @@
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=org.molgenis%3Aarmadillo-service)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service)
 
-# What is Armadillo?
+# Overview
 
 Use MOLGENIS/Armadillo to make data available for privacy protecting federated analysis using [DataSHIELD](https://datashield.org) protocol. Armadillo
 service provides the following features:
@@ -18,7 +18,7 @@ service provides the following features:
 
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/doc/img/overview-datashield.png)
 
-# How to install?
+# Armadillo installation
 Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo as a service on Ubuntu, as a Docker container or as java jar file.
 Note that for production you should add a https proxy for essential security:
 
@@ -112,7 +112,7 @@ Note: you can also use these -D options also in IntelliJ for development, which 
 ### Setup HTTPS proxy
 To secure your Armadillo we recommend use of a HTTPS reverse proxy. We use nginx, see an example configuration [here](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/conf/armadillo-nginx.conf).
 
-# How to use Armadillo
+# Using Armadillo
 
 Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
 
