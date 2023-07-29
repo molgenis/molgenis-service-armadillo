@@ -5,7 +5,8 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import jakarta.ws.rs.ProcessingException;
 import java.time.Duration;
 import org.slf4j.Logger;
@@ -24,8 +25,8 @@ public class DockerClientConfig {
   DockerClient getDockerClient() {
     DefaultDockerClientConfig config =
         DefaultDockerClientConfig.createDefaultConfigBuilder().build();
-    ApacheDockerHttpClient httpClient =
-        new ApacheDockerHttpClient.Builder()
+    DockerHttpClient httpClient =
+        new ZerodepDockerHttpClient.Builder()
             .dockerHost(config.getDockerHost())
             .sslConfig(config.getSSLConfig())
             .maxConnections(100)

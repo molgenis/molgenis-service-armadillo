@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.security;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
-import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -49,9 +49,8 @@ public class AuthConfig {
   }
 
   @Bean
-  @Order(3)
-  @Profile({"basic"})
-  protected SecurityFilterChain oidc(HttpSecurity http) throws Exception {
+  @Order(1)
+  protected SecurityFilterChain basic(HttpSecurity http) throws Exception {
     return http.authorizeHttpRequests(
             requests ->
                 requests
@@ -59,6 +58,7 @@ public class AuthConfig {
                         "/",
                         "/info",
                         "/index.html",
+                        "/logout",
                         "/basic-login",
                         "/my/**",
                         "/armadillo-logo.png",
@@ -71,14 +71,13 @@ public class AuthConfig {
                     .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()
-                    .requestMatchers(toAnyEndpoint())
+                    .anyRequest()
                     .authenticated())
         .csrf()
         .disable()
-        .cors()
-        .and()
-        .httpBasic()
-        .and()
+        .httpBasic(withDefaults())
+        .securityContext((securityContext) -> securityContext.requireExplicitSave(false))
+
         //          .oauth2Login(
         //              oauth2Login ->
         //                  oauth2Login
