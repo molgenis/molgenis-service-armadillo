@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -36,9 +35,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -63,73 +59,58 @@ public class AuthConfig {
   @Bean
   @Order(1)
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
-    http.securityMatcher(
-            new AndRequestMatcher(
-                // used in config(2)
-                new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2")),
-                new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
-                new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
-                new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
-        .authorizeHttpRequests(
-            requests ->
-                requests
-                    .requestMatchers(
-                        "/",
-                        "/info",
-                        "/index.html",
-                        "/logout",
-                        "/basic-login",
-                        "/my/**",
-                        "/armadillo-logo.png",
-                        "favicon.ico",
-                        "/assets/**",
-                        "/v3/**",
-                        "/swagger-ui/**",
-                        "/ui/**",
-                        "/swagger-ui.html")
-                    .permitAll()
-                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(Customizer.withDefaults())
-        .httpBasic(
-            httpBasicConfigurer ->
-                httpBasicConfigurer
-                    .withObjectPostProcessor(
-                        new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                          // save of basic auth in the session because oauth2 make it stateless
-                          // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
-                          @Override
-                          public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                            filter.setSecurityContextRepository(
-                                new HttpSessionSecurityContextRepository());
-                            return filter;
-                          }
-                        })
-                    .realmName("Armadillo")
-                    .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+    http.authorizeHttpRequests(
+        requests ->
+            requests
+                .requestMatchers(
+                    "/",
+                    "/info",
+                    "/index.html",
+                    "/logout",
+                    "/basic-login",
+                    "/my/**",
+                    "/armadillo-logo.png",
+                    "favicon.ico",
+                    "/assets/**",
+                    "/v3/**",
+                    "/swagger-ui/**",
+                    "/ui/**",
+                    "/swagger-ui.html")
+                .permitAll()
+                .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+                .permitAll()
+                .anyRequest()
+                .authenticated());
+    http.csrf(AbstractHttpConfigurer::disable);
+    http.cors(Customizer.withDefaults());
+    http.httpBasic(
+        httpBasicConfigurer ->
+            httpBasicConfigurer
+                .withObjectPostProcessor(
+                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                      // save of basic auth in the session because oauth2 make it stateless
+                      // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
+                      @Override
+                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                        filter.setSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository());
+                        return filter;
+                      }
+                    })
+                .realmName("Armadillo")
+                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
     if (oidcClientId != null) {
+      http.oauth2Login(
+          oauth2Login ->
+              oauth2Login
+                  .userInfoEndpoint(
+                      userInfoEndpoint ->
+                          userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+                  .defaultSuccessUrl("/", true));
       http.oauth2ResourceServer(
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
-    return http.build();
-  }
-
-  @Bean
-  @Order(2)
-  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  protected SecurityFilterChain oath2(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
-        .oauth2Login(
-            oauth2Login ->
-                oauth2Login
-                    .userInfoEndpoint(
-                        userInfoEndpoint ->
-                            userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                    .defaultSuccessUrl("/", true));
     return http.build();
   }
 

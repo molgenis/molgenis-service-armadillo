@@ -34,8 +34,6 @@ spring:
   security:
     user:
       name: admin
-      roles:
-        - SU
 
 management:
   endpoints:
