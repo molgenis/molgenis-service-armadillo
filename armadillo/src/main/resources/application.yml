@@ -1,6 +1,4 @@
 armadillo:
-  # set this to 'true' if you want to accept permissions from oidc provider
-  oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
   # uncomment this to configure a default admin user
@@ -63,12 +61,17 @@ storage:
 
 ---
 spring:
+  config:
+    activate:
+      on-profile: development
+  oidc-permission-enabled: true
   security:
     user:
       password: admin
     oauth2:
       client:
-        # Uncomment the following section to enable OIDC login:
+        # Uncomment the following section to enable OIDC login via application yaml
+        # however we prefer to do this via commandline/envrionment variables
         #        registration:
         #            molgenis:
         #               client-id: <your client id>
@@ -81,10 +84,6 @@ spring:
           issuer-uri: 'https://auth.molgenis.org'
         opaquetoken:
           client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-  config:
-    activate:
-      on-profile: development
-
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
@@ -100,6 +99,5 @@ logging:
                 AuditListener: INFO
           web:
             context: DEBUG
-
 storage:
   root-dir: data

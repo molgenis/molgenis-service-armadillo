@@ -100,5 +100,4 @@ spotless {
     }
 }
 build.dependsOn spotlessApply
-
 bootJar.enabled = false

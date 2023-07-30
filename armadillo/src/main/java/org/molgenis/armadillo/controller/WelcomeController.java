@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -117,12 +119,14 @@ public class WelcomeController {
     return new RedirectView("/");
   }
 
+  private SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
+
   @GetMapping("/basic-login")
   @ResponseBody
-  public String basicLogin(Principal principal) {
-    System.out.println(principal.getName());
-
-    return "redirect:/";
+  public RedirectView basicLogin(Principal principal) {
+    System.out.println("Basic login as: " + principal.getName());
+    return new RedirectView("/");
   }
 
   @GetMapping("/basic-logout")
