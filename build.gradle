@@ -3,21 +3,30 @@ plugins {
     id "io.spring.dependency-management" version "1.1.2"
     id "java"
     id "org.sonarqube" version "3.5.0.2730"
-    //id "de.gliderpilot.semantic-release" version "1.4.2"
     id 'maven-publish'
     id 'application'
     id "jacoco"
     id 'com.palantir.docker' version '0.34.0'
 }
 
-//grgit.remote.list().each { println it }
-
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
 allprojects {
     group = 'org.molgenis'
+
+    if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
+            //temporarily also compare to 'v' because we are remove this prefix
+            rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
+        version = rootProject.nyxState.releaseScope.previousVersion + "-SNAPSHOT"
+    }
+    else {
+        version = rootProject.version.replace("SNAPSHOT.1","SNAPSHOT")
+    }
+    version = version.replace("v","")
 }
+println "Corrected version checking for optional snapshot: " + rootProject.version
+nyxPublish.dependsOn assemble
 
 repositories {
     mavenLocal()
@@ -76,12 +85,6 @@ run {
 
 //define release
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
-//semanticRelease {
-//    repo {
-//        releaseAsset bootJar.archivePath
-//        ghToken = project.ext.ghToken
-//    }
-//}
 
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'
