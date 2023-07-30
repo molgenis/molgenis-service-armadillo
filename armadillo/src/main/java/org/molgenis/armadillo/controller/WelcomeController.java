@@ -125,7 +125,6 @@ public class WelcomeController {
   @GetMapping("/basic-login")
   @ResponseBody
   public RedirectView basicLogin(Principal principal) {
-    System.out.println("Basic login as: " + principal.getName());
     return new RedirectView("/");
   }
 
