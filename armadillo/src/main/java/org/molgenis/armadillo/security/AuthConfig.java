@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -59,7 +63,14 @@ public class AuthConfig {
   @Bean
   @Order(1)
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
+    http.securityMatcher(
+            new AndRequestMatcher(
+                // used in config(2)
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2")),
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**")),
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/login")),
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/login/**"))))
+        .authorizeHttpRequests(
             requests ->
                 requests
                     .requestMatchers(
@@ -100,17 +111,25 @@ public class AuthConfig {
                     .realmName("Armadillo")
                     .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
     if (oidcClientId != null) {
-      http.oauth2Login(
-              oauth2Login ->
-                  oauth2Login
-                      .userInfoEndpoint(
-                          userInfoEndpoint ->
-                              userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                      .defaultSuccessUrl("/", true))
-          .oauth2ResourceServer(
-              oauth2 ->
-                  oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
+      http.oauth2ResourceServer(
+          oauth2 ->
+              oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
+  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
+  protected SecurityFilterChain oath2(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
+        .oauth2Login(
+            oauth2Login ->
+                oauth2Login
+                    .userInfoEndpoint(
+                        userInfoEndpoint ->
+                            userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
+                    .defaultSuccessUrl("/", true));
     return http.build();
   }
 
