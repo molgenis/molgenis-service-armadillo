@@ -89,8 +89,7 @@ public class AuthConfig {
                   httpBasicConfigurer
                       .withObjectPostProcessor(
                           new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                            // explicit save of basic auth in the session because oauth2 make it
-                            // stateless
+                            // save of basic auth in the session because oauth2 make it stateless
                             // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
                             @Override
                             public <O extends BasicAuthenticationFilter> O postProcess(O filter) {

@@ -64,7 +64,6 @@ spring:
   config:
     activate:
       on-profile: development
-  oidc-permission-enabled: true
   security:
     user:
       password: admin
