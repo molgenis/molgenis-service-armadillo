@@ -35,7 +35,7 @@ public class ProfileScopeConfig {
   }
 
   @Bean
-  public BeanFactoryPostProcessor beanFactoryPostProcessor(ProfileScope profileScope) {
+  public static BeanFactoryPostProcessor beanFactoryPostProcessor(ProfileScope profileScope) {
     return beanFactory -> beanFactory.registerScope("profile", profileScope);
   }
 }
