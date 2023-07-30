@@ -98,5 +98,3 @@ logging:
                 AuditListener: INFO
           web:
             context: DEBUG
-storage:
-  root-dir: data

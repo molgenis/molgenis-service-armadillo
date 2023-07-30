@@ -23,6 +23,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -46,7 +47,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class AuthConfig {
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
-  private AccessService accessService;
+  private final AccessService accessService;
 
   public AuthConfig(AccessService accessService) {
     this.accessService = accessService;
@@ -58,49 +59,46 @@ public class AuthConfig {
   @Bean
   @Order(1)
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
-    http =
-        http.authorizeHttpRequests(
-                requests ->
-                    requests
-                        .requestMatchers(
-                            "/",
-                            "/info",
-                            "/index.html",
-                            "/logout",
-                            "/basic-login",
-                            "/my/**",
-                            "/armadillo-logo.png",
-                            "favicon.ico",
-                            "/assets/**",
-                            "/v3/**",
-                            "/swagger-ui/**",
-                            "/ui/**",
-                            "/swagger-ui.html")
-                        .permitAll()
-                        .requestMatchers(
-                            EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .httpBasic(
-                httpBasicConfigurer -> {
-                  httpBasicConfigurer
-                      .withObjectPostProcessor(
-                          new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                            // save of basic auth in the session because oauth2 make it stateless
-                            // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
-                            @Override
-                            public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                              filter.setSecurityContextRepository(
-                                  new HttpSessionSecurityContextRepository());
-                              return filter;
-                            }
-                          })
-                      .realmName("Armadillo")
-                      .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint());
-                });
+    http.authorizeHttpRequests(
+            requests ->
+                requests
+                    .requestMatchers(
+                        "/",
+                        "/info",
+                        "/index.html",
+                        "/logout",
+                        "/basic-login",
+                        "/my/**",
+                        "/armadillo-logo.png",
+                        "favicon.ico",
+                        "/assets/**",
+                        "/v3/**",
+                        "/swagger-ui/**",
+                        "/ui/**",
+                        "/swagger-ui.html")
+                    .permitAll()
+                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(Customizer.withDefaults())
+        .httpBasic(
+            httpBasicConfigurer ->
+                httpBasicConfigurer
+                    .withObjectPostProcessor(
+                        new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                          // save of basic auth in the session because oauth2 make it stateless
+                          // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
+                          @Override
+                          public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                            filter.setSecurityContextRepository(
+                                new HttpSessionSecurityContextRepository());
+                            return filter;
+                          }
+                        })
+                    .realmName("Armadillo")
+                    .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
     if (oidcClientId != null) {
       http.oauth2Login(
               oauth2Login ->
@@ -129,9 +127,8 @@ public class AuthConfig {
 
       authorities.forEach(
           authority -> {
-            if (authority instanceof OAuth2UserAuthority) {
-              OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority) authority;
-              final Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
+            if (authority instanceof OAuth2UserAuthority oAuth2UserAuthority) {
+              final Map<String, Object> userAttributes = oAuth2UserAuthority.getAttributes();
               mappedAuthorities.addAll(
                   runAsSystem(
                       () ->

@@ -28,14 +28,14 @@ nyx {
             options {
                 AUTHENTICATION_TOKEN = "{{#environmentVariable}}GITHUB_TOKEN{{/environmentVariable}}"
                 REPOSITORY_OWNER = "molgenis"
-                REPOSITORY_NAME = "molgenis-emx2"
+                REPOSITORY_NAME = "molgenis-service-armadillo"
             }
         }
     }
     releaseAssets {
         jar {
-            path = "build/libs/molgenis-emx2-{{#replace from=\"v\"}}{{version}}{{/replace}}-all.jar"
-            fileName = "molgenis-emx2-{{#replace from=\"v\"}}{{version}}{{/replace}}-all.jar"
+            path = "build/libs/molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
+            fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             type = "application/java-archive"
         }
     }
