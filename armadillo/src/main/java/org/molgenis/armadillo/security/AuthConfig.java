@@ -2,19 +2,15 @@ package org.molgenis.armadillo.security;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
@@ -27,9 +23,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -41,7 +42,6 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-@Import(UserDetailsServiceAutoConfiguration.class)
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -173,5 +173,25 @@ public class AuthConfig {
     DefaultHttpFirewall firewall = new DefaultHttpFirewall();
     firewall.setAllowUrlEncodedSlash(true);
     return firewall;
+  }
+
+  // we do this by hand because auto configure is disabled when oauth2 is enabled
+  @Value("${spring.security.user.name}")
+  private String userName;
+
+  @Value("${spring.security.user.password}")
+  private String userPassword;
+
+  @Bean
+  public UserDetailsService userDetailsService() {
+    Objects.requireNonNull(userName, "spring.security.user.name is null");
+    Objects.requireNonNull(userPassword, "spring.security.user.password is null");
+    PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    return new InMemoryUserDetailsManager(
+        User.builder()
+            .username(userName)
+            .password(encoder.encode(userPassword))
+            .roles("SU")
+            .build());
   }
 }
