@@ -110,4 +110,3 @@ logging:
               listener:
                 AuditListener: INFO
           web:
-            context: DEBUG

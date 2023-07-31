@@ -7,7 +7,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: eclipse-temurin:17-jdk-focal
+      - image: eclipse-temurin:17-jdk-jammy
 
     working_directory: ~/repo
     resource_class: large
@@ -68,9 +68,9 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew assemble test jacocoMergedReport sonar \
+            ./gradlew test jacocoMergedReport sonar \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io \
             -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
-            
+
       - store_artifacts:
           path: build/libs

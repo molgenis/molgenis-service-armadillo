@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.storage;
 
-import io.minio.messages.Item;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -23,9 +22,5 @@ public record ObjectMetadata(String name, ZonedDateTime lastModified, long size)
     var instant = Instant.ofEpochMilli(file.lastModified());
     return new ObjectMetadata(
         name, ZonedDateTime.ofInstant(instant, ZoneId.systemDefault()), file.length());
-  }
-
-  public static ObjectMetadata of(Item item) {
-    return new ObjectMetadata(item.objectName(), item.lastModified(), item.size());
   }
 }
