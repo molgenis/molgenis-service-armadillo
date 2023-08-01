@@ -356,7 +356,7 @@ app_info <- get_from_api("actuator/info")
 version <- unlist(app_info$build$version)
 
 cat("\nAvailable profiles: \n")
-profiles <- get_from_api("profiles")
+profiles <- get_from_api_with_header("profiles", admin_pwd, "basic")
 print_list(unlist(profiles$available))
 
 cat("Which profile do you want to test on? (press enter to continue using xenon) ")
