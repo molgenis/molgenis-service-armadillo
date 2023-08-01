@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.Nullable;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 
 @AutoValue

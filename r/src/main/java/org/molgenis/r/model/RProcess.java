@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.List;
-import javax.annotation.Nullable;
 
 @AutoValue
 @JsonSerialize(as = RProcess.class)

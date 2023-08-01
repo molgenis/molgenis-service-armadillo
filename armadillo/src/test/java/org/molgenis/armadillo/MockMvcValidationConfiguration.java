@@ -23,8 +23,8 @@ public class MockMvcValidationConfiguration {
   // add any exceptions/validations/binding problems
   @ExceptionHandler({MethodArgumentNotValidException.class})
   public ResponseEntity defaultErrorHandler(HttpServletRequest request, Exception ex) {
-    request.setAttribute("javax.servlet.error.request_uri", request.getPathInfo());
-    request.setAttribute("javax.servlet.error.status_code", 400);
+    request.setAttribute("jakarta.servlet.error.request_uri", request.getPathInfo());
+    request.setAttribute("jakarta.servlet.error.status_code", 400);
     return errorController.error(request);
   }
 }
