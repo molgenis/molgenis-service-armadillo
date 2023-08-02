@@ -42,6 +42,23 @@ library(resourcer)
 update_auto = ""
 do_run_spinner <- TRUE
 
+# set the browser to user default
+get_browser <- function(url) {
+  .Call("rs_browseURL", url)
+}
+options(browser=get_browser)
+
+# default profile settings in case a profile is missing
+profile_defaults = data.frame(
+  name = c("xenon", "rock"),
+  container = c("datashield/armadillo-rserver_caravan-xenon:1.0.0", "datashield/rock-base:latest"),
+  port = c("", 8085),
+  # Multiple packages can be concattenated using ,, then using stri_split_fixed() to break them up again
+  # Not adding dsBase since that is always(?) required
+  whitelist = c("resourcer", ""),
+  blacklist = c("", "")
+)
+
 exit_test <- function(msg){
   cli_alert_danger(msg)
   cond = structure(list(message=msg), class=c("exit", "condition"))
@@ -246,6 +263,79 @@ generate_random_project_name <- function(current_projects) {
   }
 }
 
+generate_random_project_seed <- function(current_project_seeds) {
+  random_seed <- round(runif(1, min = 100000000, max=999999999))
+  if (!random_seed %in% current_project_seeds) {
+    return(random_seed)
+  } else {
+    generate_random_project_seed(current_project_seeds)
+  }
+}
+
+generate_project_port <- function(current_project_ports) {
+  starting_port <- 6312
+  while (starting_port %in% current_project_ports) {
+    starting_port = starting_port + 1
+  }
+  return(starting_port)
+}
+
+obtain_existing_profile_information <- function(key, auth_type) {
+  responses <- get_from_api_with_header('ds-profiles', key, auth_type)
+  response_df <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c("name", "container", "port", "seed", "online"))))
+  for (response in responses) {
+    response_df[nrow(response_df) + 1,] = c(response$name, response$image, response$port, response$options$datashield.seed, response$container$status)
+  }
+  return(response_df)
+}
+
+start_profile <- function(profile_name, key, auth_type) {
+  auth_header <- get_auth_header(auth_type, key)
+  cli_inform(sprintf('Attempting to start profile: %s', profile_name))
+  spinner <- make_spinner()
+  response <- POST(
+    sprintf("%sds-profiles/%s/start", armadillo_url, profile_name),
+    config = c(httr::add_headers(auth_header))
+    )
+  do_run_spinner <- FALSE
+  return(response)
+}
+
+return_list_without_empty <- function(to_empty_list) {
+  return(to_empty_list[to_empty_list != ''])
+}
+
+create_profile <- function(profile_name, key, auth_type) {
+  if (profile_name %in% profile_defaults$name) {
+    profile_default <- profile_defaults[profile_defaults$name == profile_name,]
+    current_profiles <- obtain_existing_profile_information(key, auth_type)
+    new_profile_seed <- generate_random_project_seed(current_profiles$seed)
+    whitelist <- as.list(stri_split_fixed(paste("dsBase", profile_default$whitelist, sep = ","), ",")[[1]])
+    blacklist <- as.list(stri_split_fixed(profile_default$blacklist, ",")[[1]])
+    port <- profile_default$port
+    if (port == "") {
+      port <- generate_project_port(current_profiles$port)
+    }
+    args <- list(
+      name = profile_name, 
+      image = profile_default$container, 
+      host = armadillo_url, 
+      port = port, 
+      packageWhitelist = return_list_without_empty(whitelist),
+      functionBlacklist = return_list_without_empty(blacklist),
+      options = list(datashield.seed = new_profile_seed)
+    )
+    response <- put_to_api('ds-profiles', key, auth_type, body_args = args)
+    if (response$status_code == 200) {
+      start_profile(profile_name, key, auth_type)
+    } else {
+      exit_test(sprintf("Unable to create profile: %s , errored %s", profile_name, response$status_code))
+    }
+  } else {
+    exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
+  }
+}
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
 show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer"))
@@ -368,11 +458,14 @@ if (profile == "") {
 admin_mode <- admin_pwd != "" && user == ""
 cli_alert_info("Checking if profile is prepared for all tests")
 if(admin_mode){
-    profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), admin_pwd, "basic")
+  pwd <- admin_pwd
+  auth_type <- "basic"
 } else {
-    token <- armadillo.get_token(armadillo_url)
-    profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, "bearer")
+  pwd <- armadillo.get_token(armadillo_url)
+  auth_type <- "bearer"
 }
+
+profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), pwd, auth_type)
 
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
