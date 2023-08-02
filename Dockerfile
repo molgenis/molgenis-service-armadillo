@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:17.0.8_7-jdk-focal
 ENV SPRING_PROFILES_ACTIVE development
 VOLUME /data
 ARG JAR_FILE
