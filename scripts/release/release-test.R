@@ -42,12 +42,6 @@ library(resourcer)
 update_auto = ""
 do_run_spinner <- TRUE
 
-# set the browser to user default
-get_browser <- function(url) {
-  .Call("rs_browseURL", url)
-}
-options(browser=get_browser)
-
 # default profile settings in case a profile is missing
 profile_defaults = data.frame(
   name = c("xenon", "rock"),
@@ -291,13 +285,16 @@ obtain_existing_profile_information <- function(key, auth_type) {
 
 start_profile <- function(profile_name, key, auth_type) {
   auth_header <- get_auth_header(auth_type, key)
-  cli_inform(sprintf('Attempting to start profile: %s', profile_name))
-  spinner <- make_spinner()
+  cli_alert_info(sprintf('Attempting to start profile: %s', profile_name))
   response <- POST(
     sprintf("%sds-profiles/%s/start", armadillo_url, profile_name),
     config = c(httr::add_headers(auth_header))
     )
-  do_run_spinner <- FALSE
+  if (!response$status_code == 204) {
+    exit_test(sprintf("Unable to start profile %s, error code: %s", profile_name, response$status_code))
+  } else {
+    cli_alert_success(sprintf("Successfully started profile: %s", profile_name))
+  }
   return(response)
 }
 
@@ -307,6 +304,7 @@ return_list_without_empty <- function(to_empty_list) {
 
 create_profile <- function(profile_name, key, auth_type) {
   if (profile_name %in% profile_defaults$name) {
+    cli_alert_info(sprintf("Creating profile: %s", profile_name))
     profile_default <- profile_defaults[profile_defaults$name == profile_name,]
     current_profiles <- obtain_existing_profile_information(key, auth_type)
     new_profile_seed <- generate_random_project_seed(current_profiles$seed)
@@ -319,7 +317,7 @@ create_profile <- function(profile_name, key, auth_type) {
     args <- list(
       name = profile_name, 
       image = profile_default$container, 
-      host = armadillo_url, 
+      host = "localhost", 
       port = port, 
       packageWhitelist = return_list_without_empty(whitelist),
       functionBlacklist = return_list_without_empty(blacklist),
@@ -327,6 +325,7 @@ create_profile <- function(profile_name, key, auth_type) {
     )
     response <- put_to_api('ds-profiles', key, auth_type, body_args = args)
     if (response$status_code == 200) {
+      cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
       start_profile(profile_name, key, auth_type)
     } else {
       exit_test(sprintf("Unable to create profile: %s , errored %s", profile_name, response$status_code))
@@ -334,6 +333,22 @@ create_profile <- function(profile_name, key, auth_type) {
   } else {
     exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
   }
+}
+
+start_profile_if_not_running <- function(profile_name, key, auth_type) {
+  response <- get_from_api_with_header(paste0('ds-profiles/', profile_name), key, auth_type)
+  if (!response$container$status == "RUNNING") {
+    cli_alert_info(sprintf("Detected profile %s not running", profile_name))
+    start_profile(profile_name, key, auth_type)
+  }
+}
+
+create_profile_if_not_available <- function(profile_name, available_profiles, key, auth_type) {
+  if (!profile_name %in% available_profiles) {
+    cli_alert_info(sprintf("Unable to locate profile %s, attempting to create.", profile_name))
+    create_profile(profile_name, key, auth_type)
+  }
+  start_profile_if_not_running(profile_name, key, auth_type)
 }
 
 # here we start the script chronologically
@@ -449,7 +464,7 @@ cat("\nAvailable profiles: \n")
 profiles <- get_from_api("profiles")
 print_list(unlist(profiles$available))
 
-cat("Which profile do you want to test on? (press enter to continue using xenon) ")
+cat("Which profile do you want to test on? (press enter to continue using xenon) (if xenon is not available, it will be created)")
 profile <- readLines("stdin", n=1)
 if (profile == "") {
   profile <- "xenon"
@@ -458,14 +473,15 @@ if (profile == "") {
 admin_mode <- admin_pwd != "" && user == ""
 cli_alert_info("Checking if profile is prepared for all tests")
 if(admin_mode){
-  pwd <- admin_pwd
-  auth_type <- "basic"
+  create_profile_if_not_available(profile, profiles$available, admin_pwd, "basic")
+  profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), admin_pwd, "basic")
+  start_profile_if_not_running("default", admin_pwd, "basic")
 } else {
-  pwd <- armadillo.get_token(armadillo_url)
-  auth_type <- "bearer"
+  token <- armadillo.get_token(armadillo_url)
+  create_profile_if_not_available(profile, profiles$available, token, "bearer")
+  profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, "bearer")
+  start_profile_if_not_running("default", token, "bearer")
 }
-
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), pwd, auth_type)
 
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
