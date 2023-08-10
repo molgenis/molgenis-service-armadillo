@@ -160,7 +160,11 @@ import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { getProject, deleteObject, previewObject } from "@/api/api";
-import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
+import {
+  isEmptyObject,
+  sortAlphabetically,
+  shortenFilename,
+} from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";

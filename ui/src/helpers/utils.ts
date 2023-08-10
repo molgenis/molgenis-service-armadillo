@@ -46,6 +46,15 @@ export function sortAlphabetically(
   });
 }
 
+export function shortenFilename(Filename: string): string {
+  if (Filename.length > 8) {
+    const index = Filename.indexOf(".");
+    return truncate(Filename, index) + Filename.substring(index);
+  } else {
+    return Filename;
+  }
+}
+
 export function getEventValue(event: Event): string {
   const target = event.target as HTMLInputElement;
   return target.value;
