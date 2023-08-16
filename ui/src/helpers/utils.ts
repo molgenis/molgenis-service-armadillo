@@ -46,12 +46,17 @@ export function sortAlphabetically(
   });
 }
 
-export function shortenFilename(Filename: string): string {
-  if (Filename.length > 8) {
-    const index = Filename.indexOf(".");
-    return truncate(Filename, index) + Filename.substring(index);
+export function shortenFileName(FileName: string): string {
+  var max_length = 10;
+  var extension_index = FileName.indexOf(".");
+  if (FileName.substring(0, extension_index).length > max_length) {
+    return (
+      FileName.substring(0, max_length) +
+      ".." +
+      FileName.substring(extension_index, FileName.length)
+    );
   } else {
-    return Filename;
+    return FileName;
   }
 }
 

@@ -14,7 +14,7 @@
           v-if="altIconCondition(key) && rowIconAlt"
           :class="`bi bi-${rowIconAlt}`"
         ></i>
-        <i v-else :class="`bi bi-${rowIcon}`"></i> {{ key }}
+        <i v-else :class="`bi bi-${rowIcon}`"></i> {{ shortenIfFileName(key) }}
         <i class="bi bi-chevron-right float-end" v-if="key == selectedItem"></i>
       </a>
     </li>
@@ -29,6 +29,7 @@
 
 <script lang="ts">
 import { BootstrapType, StringArray } from "@/types/types";
+import { shortenFileName } from "@/helpers/utils";
 import { PropType } from "vue";
 
 export default {
@@ -57,12 +58,28 @@ export default {
       this.selectedItem = this.preselectedItem;
     },
   },
+  computed: {
+    shortenIfFileNameComputed: function (key: string) {
+      if (this.rowIcon == "table") {
+        return shortenFileName(key);
+      } else {
+        return key;
+      }
+    },
+  },
   methods: {
     toggleSelectedItem(newItem: string) {
       if (this.selectedItem !== newItem) {
         this.selectedItem = newItem;
       } else {
         this.selectedItem = "";
+      }
+    },
+    shortenIfFileName(FileName: string): string {
+      if (this.rowIcon == "table") {
+        return shortenFilename(FileName);
+      } else {
+        return FileName;
       }
     },
   },
