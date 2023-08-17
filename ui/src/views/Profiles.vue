@@ -154,6 +154,11 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
+          for (var profile in profiles) {
+            profiles[profile]["datashieldSeed"] =
+              profiles[profile].options["datashield.seed"];
+          }
+          console.log(profiles);
           return profiles;
         })
         .catch((error: string) => {
@@ -221,6 +226,7 @@ export default defineComponent({
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
+        datashieldSeed: "string",
         options: "object",
       };
 
@@ -334,6 +340,7 @@ export default defineComponent({
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
+        datashieldSeed: 0,
         options: {},
         container: { tags: [], status: "unknown" },
       });
