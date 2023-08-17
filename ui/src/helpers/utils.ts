@@ -47,12 +47,12 @@ export function sortAlphabetically(
 }
 
 export function shortenFileName(FileName: string): string {
-  var max_length = 10;
-  var extension_index = FileName.indexOf(".");
+  const max_length = 14;
+  const extension_index = FileName.indexOf(".");
+  // Check if the filename, before extension, exceeds the "max_length"
   if (FileName.substring(0, extension_index).length > max_length) {
     return (
-      FileName.substring(0, max_length) +
-      ".." +
+      truncate(FileName, max_length) +
       FileName.substring(extension_index, FileName.length)
     );
   } else {
@@ -66,7 +66,7 @@ export function getEventValue(event: Event): string {
 }
 
 export function truncate(stringToCut: string, maxLength: number) {
-  return stringToCut.substring(0, maxLength) + "..";
+  return stringToCut.substring(0, maxLength) + "{..}";
 }
 
 export function isInt(itemToCheck: number) {

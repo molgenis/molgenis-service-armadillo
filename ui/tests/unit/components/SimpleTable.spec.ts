@@ -93,13 +93,13 @@ describe("SimpleTable", () => {
 
   test("headers are truncated when over 5 + 2 characters", () => {
     expect(wrapper.vm.tableHeader).toEqual([
-      "firstN..",
+      "firstN{..}",
       "lastName",
       "height",
       "weight",
-      "favour..",
+      "favour{..}",
       "fears",
-      "isSupe..",
+      "isSupe{..}",
     ]);
   });
 

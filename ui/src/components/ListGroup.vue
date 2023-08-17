@@ -14,7 +14,8 @@
           v-if="altIconCondition(key) && rowIconAlt"
           :class="`bi bi-${rowIconAlt}`"
         ></i>
-        <i v-else :class="`bi bi-${rowIcon}`"></i> {{ shortenIfFileName(key) }}
+        <i v-else :class="`bi bi-${rowIcon}`"></i>
+        {{ handleListGroupItemDisplayKey(key) }}
         <i class="bi bi-chevron-right float-end" v-if="key == selectedItem"></i>
       </a>
     </li>
@@ -58,15 +59,6 @@ export default {
       this.selectedItem = this.preselectedItem;
     },
   },
-  computed: {
-    shortenIfFileNameComputed: function (key: string) {
-      if (this.rowIcon == "table") {
-        return shortenFileName(key);
-      } else {
-        return key;
-      }
-    },
-  },
   methods: {
     toggleSelectedItem(newItem: string) {
       if (this.selectedItem !== newItem) {
@@ -75,11 +67,12 @@ export default {
         this.selectedItem = "";
       }
     },
-    shortenIfFileName(FileName: string): string {
+    handleListGroupItemDisplayKey(key: string): string {
+      // Check if file
       if (this.rowIcon == "table") {
-        return shortenFilename(FileName);
+        return shortenFileName(key);
       } else {
-        return FileName;
+        return key;
       }
     },
   },
