@@ -48,8 +48,10 @@ export type Profile = {
   port: number;
   packageWhitelist: StringArray;
   functionBlacklist: StringArray;
-  datashieldSeed: number;
-  options: Object;
+  datashieldSeed?: string;
+  options: {
+    "datashield.seed"?: string;
+  };
   container: {
     tags: StringArray;
     status: string;

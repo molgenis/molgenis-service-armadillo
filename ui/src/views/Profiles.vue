@@ -77,7 +77,9 @@
         </div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
-            {{ key }} = {{ value }}
+            <span v-if="key != 'datashield.seed'">
+              {{ key }} = {{ value }}
+            </span>
           </div>
         </div>
       </template>
@@ -99,7 +101,7 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="['container']"
+          :hideColumns="['container', 'datashieldSeed']"
           :dataStructure="profilesDataStructure"
         />
       </template>
@@ -154,11 +156,10 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
-          for (var profile in profiles) {
-            profiles[profile]["datashieldSeed"] =
-              profiles[profile].options["datashield.seed"];
+          for (var profile_index in profiles) {
+            profiles[profile_index]["datashieldSeed"] =
+              profiles[profile_index].options["datashield.seed"];
           }
-          console.log(profiles);
           return profiles;
         })
         .catch((error: string) => {
@@ -217,6 +218,17 @@ export default defineComponent({
         port++;
       }
       return port;
+    },
+    firstFreeSeed(): number {
+      let seed = 100000000;
+      while (
+        this.profiles.find(
+          (profile) => profile.options["datashield.seed"] == seed
+        )
+      ) {
+        seed++;
+      }
+      return seed;
     },
     profilesDataStructure(): TypeObject {
       let columns: TypeObject = {
@@ -340,8 +352,9 @@ export default defineComponent({
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
-        datashieldSeed: 0,
-        options: {},
+        options: {
+          "datashield.seed": this.firstFreeSeed,
+        },
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
