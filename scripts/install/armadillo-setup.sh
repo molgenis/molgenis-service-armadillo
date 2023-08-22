@@ -188,6 +188,9 @@ download_armadillo() {
 
   DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/v$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar
 
+  # for 3.3.0 use: DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/V$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar
+
+
  
   if validate_url $DL_URL; then
 

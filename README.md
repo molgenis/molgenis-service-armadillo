@@ -187,7 +187,6 @@ pip install simple_term_menu
 ```
 
 #### 2. Backup Armadillo 2 settings
-
 ```
 mkdir armadillo2-backup 
 rsync -avr /usr/share/armadillo armadillo2-backup 
@@ -196,8 +195,12 @@ cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml
 N.B.change /usr/share to path matching your local config.
 
 ##### 3. Export data from Armadillo 2
+Do the following step in a separate screen (use the `screen` command to create it).
+Navigate to the armadillo folder:
+```
+cd /usr/share/armadillo
+```
 This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
-
 ```
 mkdir data
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
@@ -205,6 +208,11 @@ python3 migrate-minio.py  --minio http://localhost:9000 --target data
 ```
 
 N.B.: when aiming running armadillo as a service this folder should be /usr/share/armadillo/data
+
+You can find the user/password in the application.yml of the old armadillo. They're called minio access key and  minio 
+secret key. 
+
+This might take a couple of minutes. You can detach the screen using `ctrl+a d` and reattach it using `screen -r`. 
 
 #### 4. Stop all docker images for Armadillo 2
 List all docker images
@@ -214,23 +222,55 @@ Stop and remove all Armadillo 2 related images, e.g.
 ```
 docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
 ```
+Check with `docker ps -a` if there are still containers running, if so remove these in the same way as the others. 
 
-#### 5. Remove old minio data
-```rm -Rf /var/lib/minio/ ```
+#### 5. Install armadillo
+```
+apt update
+apt install openjdk-19-jre-headless
+apt install docker.io
+```
+The docker.io step might fail because docker is already installed, that's fine. 
+
+N.B. Note that these commands are for ubuntu,
+on other linux systems, the `apt` command needs to be replaced with another one.
+
+Get armadillo:
+```
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
+bash armadillo-setup.sh \
+    --admin-user admin \
+    --admin-password xxxxx 
+    --domain my.server.com \
+    --oidc \
+    --oidc_url https://lifecycle-auth.molgenis.org \
+    --oidc_clientid clientid \
+    --oidc_clientsecret secret \
+```
+Don't forget to set a proper admin password (use a generator), domain, clientid and clientsecret. The client id and
+secret can be found on the lifecycle auth server in the configuration for your server. If you don't have permissions to
+receive this, you can ask the support team to get it for you.
 
 #### 6. Run Armadillo 3 using exported data
 Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:
 ```
 chown armadillo:armadillo -R data 
+chown armadillo:armadillo data
 ```
+Check if armadillo is running by going to the URL of your server in the browser and attempt to login. 
 
 #### 7. Optionally, acquire a permission set from MOLGENIS team
-If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
-They will use:
+If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load 
+pre-existing permissions. They will use:
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-auth.py 
 python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080 
 ```
+Now check if all users and data are properly migrated. 
+
+#### 8. Remove old minio data
+```rm -Rf /var/lib/minio/ ```
+
 
 ### How to run previous armadillo 2?
 
