@@ -8,6 +8,7 @@ this TSV can be used to set users to their appropriate cohorts.
 
 import os
 import argparse
+import warnings
 from pathlib import Path
 from getpass import getpass
 
@@ -39,6 +40,8 @@ class FusionClientParser:
         self.data_object = {}
 
     def parse(self):
+        users = self.client.get_users()
+        cohorts = self.client.get_cohorts()
         # TODO: get all cohorts
         # TODO: maybe loop through all cohorts and get users per cohort?
         return self.data_object
@@ -58,9 +61,15 @@ class FusionClient:
             }
         })
         result = self._get_result_or_exit(response)
-        users = result["users"]
+        users = pd.DataFrame(result["users"])
         # TODO: ask Mariska if we only want active and registered users
-        return list(users)
+        return users
+
+    def get_cohorts(self):
+        response = self.client.retrieve_applications()
+        result = self._get_result_or_exit(response)
+        applications = pd.DataFrame(result["applications"])
+        return applications
 
     @staticmethod
     def _get_result_or_exit(response):
@@ -83,7 +92,12 @@ class CommandLineParser:
 
     @staticmethod
     def _parse_url(url_argument):
-        return url_argument.rstrip("/")
+        if url_argument.endswith("/"):
+            url_argument = url_argument.rstrip("/")
+        if not url_argument.startswith("http"):
+            warnings.warn("CLI supplied argument did not contain scheme, adding https://")
+            url_argument = "https://" + url_argument
+        return url_argument
 
     @staticmethod
     def _parse_output(output_argument):
