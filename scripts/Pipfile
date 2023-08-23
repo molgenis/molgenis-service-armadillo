@@ -8,6 +8,7 @@ minio = "*"
 fusionauth-client = "*"
 requests = "*"
 simple-term-menu = "*"
+pandas = "*"
 
 [dev-packages]
 
