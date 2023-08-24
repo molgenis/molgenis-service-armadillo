@@ -70,7 +70,7 @@ class FusionClientParser:
     def __init__(self, fusion_url):
         self.client = FusionClient(fusion_url)
         self.cohort_dict = {}
-        self.users_not_parsed = []  # TODO: add counter to _parse_users
+        self.users_not_parsed = []
         self.columns_of_interest = ['active', 'email', 'firstName', 'fullName', 'lastName']
 
     def parse(self):
