@@ -9,6 +9,7 @@ fusionauth-client = "*"
 requests = "*"
 simple-term-menu = "*"
 pandas = "*"
+numpy = "*"
 
 [dev-packages]
 
