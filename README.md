@@ -178,6 +178,7 @@ services:
 To export data from and Armadillo 2 server take the following steps:
 
 #### 1. Install helper software
+Login to your server as root, using ssh. 
 ```
 apt update 
 apt install pip 
@@ -185,6 +186,7 @@ pip install minio
 pip install fusionauth-client 
 pip install simple_term_menu 
 ```
+If you get a purple message asking to update, press space and return.
 
 #### 2. Backup Armadillo 2 settings
 ```
@@ -195,7 +197,14 @@ cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml
 N.B.change /usr/share to path matching your local config.
 
 ##### 3. Export data from Armadillo 2
-Do the following step in a separate screen (use the `screen` command to create it).
+Look up the user/password in the application.yml of the old armadillo. They're called minio access key and  minio
+secret key.
+```
+cat /root/armadillo2-backup/application-armadillo2.yml
+```
+
+Do the following step in a separate screen (use the `screen` command to create it and press enter or space when a 
+message shows up).
 Navigate to the armadillo folder:
 ```
 cd /usr/share/armadillo
@@ -207,11 +216,6 @@ wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/maste
 python3 migrate-minio.py  --minio http://localhost:9000 --target data  
 ```
 
-N.B.: when aiming running armadillo as a service this folder should be /usr/share/armadillo/data
-
-You can find the user/password in the application.yml of the old armadillo. They're called minio access key and  minio 
-secret key. 
-
 This might take a couple of minutes. You can detach the screen using `ctrl+a d` and reattach it using `screen -r`. 
 
 #### 4. Stop all docker images for Armadillo 2
@@ -222,7 +226,7 @@ Stop and remove all Armadillo 2 related images, e.g.
 ```
 docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
 ```
-Check with `docker ps -a` if there are still containers running, if so remove these in the same way as the others. 
+Check with `docker ps -a` if there are still containers running, if so remove these (except for the MinIO) in the same way as the others. 
 
 #### 5. Install armadillo
 ```
