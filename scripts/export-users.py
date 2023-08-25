@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 User export script to aid in migration
 
