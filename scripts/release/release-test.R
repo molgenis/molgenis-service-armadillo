@@ -41,6 +41,7 @@ library(resourcer)
 # set when admin password given + question answered with y
 update_auto = ""
 do_run_spinner <- TRUE
+ADMIN_MODE <- FALSE
 
 # default profile settings in case a profile is missing
 profile_defaults = data.frame(
@@ -301,7 +302,6 @@ start_profile <- function(profile_name, key, auth_type) {
   } else {
     cli_alert_success(sprintf("Successfully started profile: %s", profile_name))
   }
-  return(response)
 }
 
 return_list_without_empty <- function(to_empty_list) {
@@ -355,6 +355,80 @@ create_profile_if_not_available <- function(profile_name, available_profiles, ke
     create_profile(profile_name, key, auth_type)
   }
   start_profile_if_not_running(profile_name, key, auth_type)
+}
+
+create_dsi_builder <- function(server = "armadillo", url, profile, password="", token="", table, resource="") {
+  cli_alert_info("Creating new datashield login builder")
+  builder <- DSI::newDSLoginBuilder()
+  if (ADMIN_MODE) {
+    cli_alert_info("Appending information as admin")
+    builder$append(
+      server = server,
+      url = url,
+      profile = profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      user = "admin",
+      password = password,
+      resource = resource
+    )
+  } else {
+    cli_alert_info("Appending information using token")
+    builder$append(
+      server = server,
+      url = url,
+      profile = profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      token = token,
+      resource = resource
+    )
+  }
+  cli_alert_info("Appending information to login builder")
+  return(builder$build())
+}
+
+create_ds_connection <- function(password = "", token = "", profile, url) {
+  cli_alert_info("Creating new datashield connection")
+  if (ADMIN_MODE) {
+    cli_alert_info("Creating connection as admin")
+    con <- dsConnect(
+      drv = armadillo(),
+      name = "armadillo",
+      user = "admin",
+      password = password,
+      url = url,
+      profile = profile
+    )
+  } else {
+    cli_alert_info("Creating connection using token")
+    con <- dsConnect(
+      drv = armadillo(),
+      name = "armadillo",
+      token = token,
+      url = url,
+      profile = profile
+    )
+  }
+  return(con)
+}
+
+verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_total) {
+  if(! round(ds_mean[1], 5) == expected_mean){
+    cli_alert_danger(paste0(ds_mean[1], "!=", expected_mean))
+    exit_test("EstimatedMean incorrect!")
+  } else if(ds_mean[2] != 0) {
+    cli_alert_danger(paste0(ds_mean[2], "!=", 0))
+    exit_test("Nmissing incorrect!")
+  } else if(ds_mean[3] != expected_valid_and_total) {
+    cli_alert_danger(paste0(ds_mean[3], "!=", expected_valid_and_total))
+    exit_test("Nvalid incorrect!")
+  } else if(ds_mean[4] != expected_valid_and_total) {
+    cli_alert_danger(paste0(ds_mean[4], "!=", expected_valid_and_total))
+    exit_test("Ntotal incorrect!")
+  } else {
+    cli_alert_success("Mean values correct")
+  }
 }
 
 # here we start the script chronologically
@@ -470,25 +544,27 @@ cat("\nAvailable profiles: \n")
 profiles <- get_from_api("profiles")
 print_list(unlist(profiles$available))
 
-cat("Which profile do you want to test on? (press enter to continue using xenon) (if xenon is not available, it will be created) ")
+cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
 profile <- readLines("stdin", n=1)
 if (profile == "") {
   profile <- "xenon"
 }
 
-admin_mode <- admin_pwd != "" && user == ""
+ADMIN_MODE <- admin_pwd != "" && user == ""
 cli_alert_info("Checking if profile is prepared for all tests")
-if(admin_mode){
-  token <- admin_pwd
+if(ADMIN_MODE){
+  api_token <- admin_pwd
+  token <- ""
   auth_type <- "basic"
 } else {
-  token <- armadillo.get_token(armadillo_url)
+  api_token <- armadillo.get_token(armadillo_url)
+  token <- api_token
   auth_type <- "bearer"
 }
 
-create_profile_if_not_available(profile, profiles$available, token, auth_type)
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
-start_profile_if_not_running("default", token, auth_type)
+create_profile_if_not_available(profile, profiles$available, api_token, auth_type)
+profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), api_token, auth_type)
+start_profile_if_not_running("default", api_token, auth_type)
 
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
@@ -514,11 +590,11 @@ cat(sprintf("
         .' ,   ||||||     `/(  e \\                Directory for test files: %s
   -===~__-'\\__X_`````\\_____/~`-._ `.              Profile: %s
               ~~        ~~       `~-'             Admin-only mode: %s
-", version, armadillo_url, user, admin_pwd != "", dest, profile, admin_mode))
+", version, armadillo_url, user, admin_pwd != "", dest, profile, ADMIN_MODE))
 
 cli_h2("Table upload")
 cli_alert_info(sprintf("Login to %s", armadillo_url))
-if(admin_mode) {
+if(ADMIN_MODE) {
     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
 } else {
     armadillo.login(armadillo_url)
@@ -620,7 +696,7 @@ cli_alert_info("Uploading RDS file")
 armadillo.upload_resource(project = omics_project, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
 
 cli_alert_info("\nNow you're going to test as researcher")
-if(!admin_mode){
+if(!ADMIN_MODE){
   cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
   update_auto <- readLines("stdin", n=1)
   if(update_auto == "y"){
@@ -637,29 +713,14 @@ if(!admin_mode){
 
 cli_h2("Using tables as researcher")
 cli_alert_info("Creating new builder")
-builder <- DSI::newDSLoginBuilder()
-cli_alert_info("Append information to builder")
-if (admin_mode) {
-        builder$append(server = "armadillo",
-                       url = armadillo_url,
-                       profile=profile,
-                       user= "admin",
-                       password = admin_pwd,
-                       table = sprintf("%s/2_1-core-1_0/nonrep", project1),
-                       driver = "ArmadilloDriver")
-} else {
-    cli_alert_info("Using tables as regular user")
-    cli_alert_info("Retrieving token")
-    token <- armadillo.get_token(armadillo_url)
-    builder$append(server = "armadillo",
-               url = armadillo_url,
-               profile=profile,
-               token = token,
-               table = sprintf("%s/2_1-core-1_0/nonrep", project1),
-               driver = "ArmadilloDriver")
-}
 cli_alert_info("Building")
-logindata <- builder$build()
+logindata <- create_dsi_builder(
+  url = armadillo_url,
+  profile = profile,
+  password = admin_pwd,
+  token = token,
+  table = sprintf("%s/2_1-core-1_0/nonrep", project1)
+  )
 
 cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
 conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
@@ -668,41 +729,11 @@ datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", 
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 cli_alert_info("Verifying connecting to profile possible")
-if (admin_mode) {
-    con <- dsConnect(
-              drv = armadillo(),
-              name = "armadillo",
-              user= "admin",
-              password = admin_pwd,
-              url = armadillo_url,
-              profile = profile,
-            )
-} else {
-    con <- dsConnect(
-      drv = armadillo(),
-      name = "armadillo",
-      token = token,
-      url = armadillo_url,
-      profile = profile,
-    )
-}
+con <- create_ds_connection(password=admin_pwd, url=armadillo_url, profile=profile)
 cli_alert_info("Verifying mean function works on core_nonrep$country")
 ds_mean <- ds.mean("core_nonrep$coh_country", datasources = conns)$Mean
 cli_alert_info("Verifying values")
-if(! ds_mean[1] == 431.105) {
-  cli_alert_danger(paste0(ds_mean[1], "!=", 431.105))
-  exit_test("EstimatedMean incorrect!")
-} else if (ds_mean[2] != 0) {
-  cli_alert_danger(paste0(ds_mean[2], "!=", 0))
-  exit_test("Nmissing incorrect!")
-} else if (ds_mean[3] != 1000) {
-  cli_alert_danger(paste0(ds_mean[3], "!=", 1000))
-  exit_test("Nvalid incorrect!")
-} else if (ds_mean[4] != 1000) {
-  cli_alert_danger(paste0(ds_mean[4], "!=", 1000))
-  exit_test("Ntotal incorrect!")
-}
-cli_alert_success("Mean values correct")
+verify_ds_obtained_mean(ds_mean, 431.105, 1000)
 cli_alert_info("Verifying can create histogram")
 hist <- ds.histogram(x = "core_nonrep$coh_country", datasources = conns)
 cli_alert_info("Verifying values in histogram")
@@ -720,24 +751,13 @@ compare_list_values(hist$density, density)
 cli_alert_info("Validating histogram mids")
 compare_list_values(hist$mids, mids)
 
-if (admin_mode) {
+if (ADMIN_MODE) {
    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
 } else if (!"resourcer" %in% profile_info$packageWhitelist) {
   cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
 } else {
     cli_h2("Using resources as regular user")
-    builder <- DSI::newDSLoginBuilder()
-    cli_alert_info("Testing whether we can retrieve resources properly")
-    builder$append(
-      server = "testserver",
-      url = armadillo_url,
-      token = token,
-      driver = "ArmadilloDriver",
-      profile = profile,
-      resource = sprintf("%s/ewas/GSE66351_1", omics_project)
-    )
-
-    login_data <- builder$build()
+    login_data <- create_dsi_builder(server = "testserver", url = armadillo_url, token = token, profile = profile, resource = sprintf("%s/ewas/GSE66351_1", omics_project))
     conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
     cli_alert_info("Testing if we see the resource")
     resource_path <- sprintf("%s/ewas/GSE66351_1", omics_project)
@@ -767,62 +787,21 @@ if (admin_mode) {
 cli_h2("Default profile")
 cli_alert_info("Verify if default profile works without specifying profile")
 name <- "armadillo"
-if(admin_mode) {
-    con <- dsConnect(
-      drv = armadillo(),
-      name = name,
-      user = "admin",
-      password = admin_pwd,
-      url = armadillo_url
-    )
-    if (con@name == name) {
-      cli_alert_success("Succesfully connected")
-    } else {
-      cli_alert_danger("Connection failed")
-    }
-
-    cli_alert_info("Verify if default profile works when specifying profile")
-    con <- dsConnect(
-      drv = armadillo(),
-      name = name,
-      user = "admin",
-      password = admin_pwd,
-      profile = "default",
-      url = armadillo_url
-    )
-
-    if (con@name == name) {
-      cli_alert_success("Succesfully connected")
-    } else {
-      cli_alert_danger("Connection failed")
-    }
+con <- create_ds_connection(name = name, password = admin_pwd, url = armadillo_url)
+if (con@name == name) {
+  cli_alert_success("Succesfully connected")
 } else {
-    con <- dsConnect(
-      drv = armadillo(),
-      name = name,
-      token = token,
-      url = armadillo_url
-    )
-    if (con@name == name) {
-      cli_alert_success("Succesfully connected")
-    } else {
-      cli_alert_danger("Connection failed")
-    }
+  cli_alert_danger("Connection failed")
+}
 
-    cli_alert_info("Verify if default profile works when specifying profile")
-    con <- dsConnect(
-      drv = armadillo(),
-      name = name,
-      token = token,
-      profile = "default",
-      url = armadillo_url
-    )
+cli_alert_info("Verify if default profile works when specifying profile")
 
-    if (con@name == name) {
-      cli_alert_success("Succesfully connected")
-    } else {
-      cli_alert_danger("Connection failed")
-    }
+
+con <- create_ds_connection(name = name, password = admin_pwd, url = armadillo_url, profile = "default")
+if (con@name == name) {
+  cli_alert_success("Succesfully connected")
+} else {
+  cli_alert_danger("Connection failed")
 }
 
 cli_h2("Removing data as admin")
@@ -875,7 +854,7 @@ if(admin_pwd != "") {
 
 cli_h3("Testing Rock profile")
 cli_alert_info(sprintf("Loging to %s (please note, this is a double login)", armadillo_url))
-if(admin_mode) {
+if(ADMIN_MODE) {
   armadillo.login_basic(armadillo_url, "admin", token)
 } else {
   armadillo.login(armadillo_url)
@@ -900,32 +879,7 @@ rm(trimesterrep)
 cli_alert_success("Uploaded trimesterrep")
 
 cli_alert_info("Creating new builder")
-builder <- DSI::newDSLoginBuilder()
-cli_alert_info("Appending information to builder")
-if (admin_mode) {
-  cli_alert_info("Appending as admin")
-  builder$append(
-    server = "armadillo",
-    url = armadillo_url,
-    profile = profile,
-    user = "admin",
-    password = admin_pwd,
-    table = sprintf("%s/core/trimesterrep", project3),
-    driver = "ArmadilloDriver"
-  )
-} else {
-  cli_alert_info("Appending as user")
-  builder$append(
-    server = "armadillo",
-    url = armadillo_url,
-    profile = profile,
-    token = token,
-    table = sprintf("%s/core/trimesterrep", project3),
-    driver = "ArmadilloDriver"
-  )
-}
-cli_alert_info("Building")
-logindata <- builder$build()
+logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/core/trimesterrep", project3))
 
 cli_alert_info(sprintf("Login with profile rock and table: [%s/core/trimesterrep]", project3))
 conns <- datashield.login(logins = logindata, symbol = "core_trimesterrep", variables = c("smk_t"), assign = TRUE)
@@ -934,24 +888,8 @@ datashield.assign.table(conns, "core_trimesterrep", sprintf("%s/core/trimesterre
 
 datashield.assign.expr(conns, "x", expr=quote(core_trimesterrep$smk_t))
 
-if(admin_mode){
-  con <- dsConnect(
-    drv = armadillo(),
-    name = "armadillo",
-    user = "admin",
-    password = admin_pwd,
-    url = armadillo_url,
-    profile="rock"
-    )
-} else {
-  con <- dsConnect(
-    drv = armadillo(),
-    name = "armadillo",
-    token = token,
-    url = armadillo_url,
-    profile="rock"
-    )
-}
+con <- create_ds_connection(password = admin_pwd, token = token, profile = profile, url = armadillo_url)
+
 if (con@name == "armadillo"){
   cli_alert_success("Succesfully connected")
 } else {
@@ -960,25 +898,7 @@ if (con@name == "armadillo"){
 
 ds_mean <- ds.mean("core_trimesterrep$smk_t", datasources = conns)$Mean
 
-expected_mean <- 61.05933
-expected_valid_and_total <- 3000
-
-# Round is required since DataShield provides endless 3 in calculating the mean
-if(! round(ds_mean[1], 5) == expected_mean){
-  cli_alert_danger(paste0(ds_mean[1], "!=", expected_mean))
-  exit_test("EstimatedMean incorrect!")
-} else if(ds_mean[2] != 0) {
-  cli_alert_danger(paste0(ds_mean[2], "!=", 0))
-  exit_test("Nmissing incorrect!")
-} else if(ds_mean[3] != expected_valid_and_total) {
-  cli_alert_danger(paste0(ds_mean[3], "!=", expected_valid_and_total))
-  exit_test("Nvalid incorrect!")
-} else if(ds_mean[4] != expected_valid_and_total) {
-  cli_alert_danger(paste0(ds_mean[4], "!=", expected_valid_and_total))
-  exit_test("Ntotal incorrect!")
-} else {
-  cli_alert_success("Mean values correct for profile rock")
-}
+verify_ds_obtained_mean(ds_mean, 61.059, 3000)
 
 armadillo.delete_table(project3, "core", "trimesterrep")
 armadillo.delete_project(project3)
