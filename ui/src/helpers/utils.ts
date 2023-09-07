@@ -52,7 +52,7 @@ export function shortenFileName(FileName: string): string {
   // Check if the filename, before extension, exceeds the "max_length"
   if (FileName.substring(0, extension_index).length > max_length) {
     return (
-      truncate(FileName, max_length) +
+      truncate(FileName, max_length, "{..}") +
       FileName.substring(extension_index, FileName.length)
     );
   } else {
@@ -65,8 +65,12 @@ export function getEventValue(event: Event): string {
   return target.value;
 }
 
-export function truncate(stringToCut: string, maxLength: number) {
-  return stringToCut.substring(0, maxLength) + "{..}";
+export function truncate(
+  stringToCut: string,
+  maxLength: number,
+  truncationIndicator: string = ".."
+) {
+  return stringToCut.substring(0, maxLength) + truncationIndicator;
 }
 
 export function isInt(itemToCheck: number) {
