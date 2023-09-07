@@ -357,7 +357,7 @@ create_profile_if_not_available <- function(profile_name, available_profiles, ke
   start_profile_if_not_running(profile_name, key, auth_type)
 }
 
-create_dsi_builder <- function(server = "armadillo", url, profile, password="", token="", table, resource="") {
+create_dsi_builder <- function(server = "armadillo", url, profile, password = "", token = "", table = "", resource = "") {
   cli_alert_info("Creating new datashield login builder")
   builder <- DSI::newDSLoginBuilder()
   if (ADMIN_MODE) {
@@ -388,7 +388,7 @@ create_dsi_builder <- function(server = "armadillo", url, profile, password="", 
   return(builder$build())
 }
 
-create_ds_connection <- function(password = "", token = "", profile, url) {
+create_ds_connection <- function(password = "", token = "", profile = "", url) {
   cli_alert_info("Creating new datashield connection")
   if (ADMIN_MODE) {
     cli_alert_info("Creating connection as admin")
@@ -414,7 +414,7 @@ create_ds_connection <- function(password = "", token = "", profile, url) {
 }
 
 verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_total) {
-  if(! round(ds_mean[1], 5) == expected_mean){
+  if(! round(ds_mean[1], 3) == expected_mean){
     cli_alert_danger(paste0(ds_mean[1], "!=", expected_mean))
     exit_test("EstimatedMean incorrect!")
   } else if(ds_mean[2] != 0) {
@@ -729,10 +729,10 @@ datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", 
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 cli_alert_info("Verifying connecting to profile possible")
-con <- create_ds_connection(password=admin_pwd, url=armadillo_url, profile=profile)
+con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
 cli_alert_info("Verifying mean function works on core_nonrep$country")
 ds_mean <- ds.mean("core_nonrep$coh_country", datasources = conns)$Mean
-cli_alert_info("Verifying values")
+cli_alert_info("Verifying mean values")
 verify_ds_obtained_mean(ds_mean, 431.105, 1000)
 cli_alert_info("Verifying can create histogram")
 hist <- ds.histogram(x = "core_nonrep$coh_country", datasources = conns)
@@ -786,9 +786,8 @@ if (ADMIN_MODE) {
 
 cli_h2("Default profile")
 cli_alert_info("Verify if default profile works without specifying profile")
-name <- "armadillo"
-con <- create_ds_connection(name = name, password = admin_pwd, url = armadillo_url)
-if (con@name == name) {
+con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url)
+if (con@name == "armadillo") {
   cli_alert_success("Succesfully connected")
 } else {
   cli_alert_danger("Connection failed")
@@ -797,8 +796,8 @@ if (con@name == name) {
 cli_alert_info("Verify if default profile works when specifying profile")
 
 
-con <- create_ds_connection(name = name, password = admin_pwd, url = armadillo_url, profile = "default")
-if (con@name == name) {
+con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = "default")
+if (con@name == "armadillo") {
   cli_alert_success("Succesfully connected")
 } else {
   cli_alert_danger("Connection failed")
@@ -898,6 +897,7 @@ if (con@name == "armadillo"){
 
 ds_mean <- ds.mean("core_trimesterrep$smk_t", datasources = conns)$Mean
 
+cli_alert_info("Testing Rock profile mean values")
 verify_ds_obtained_mean(ds_mean, 61.059, 3000)
 
 armadillo.delete_table(project3, "core", "trimesterrep")
