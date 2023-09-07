@@ -92,11 +92,11 @@ describe("utils", () => {
   describe("truncate", () => {
     it("should truncate value longer than maxLength", () => {
       const actual = truncate("averylongstring", 3);
-      expect(actual).toBe("ave{..}");
+      expect(actual).toBe("ave..");
     });
     it("should not truncate value shorter than maxLength", () => {
       const actual = truncate("string", 10);
-      expect(actual).toBe("string{..}");
+      expect(actual).toBe("string..");
     });
   });
 
