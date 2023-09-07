@@ -77,9 +77,7 @@
         </div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
-            <span v-if="key != 'datashield.seed'">
-              {{ key }} = {{ value }}
-            </span>
+            {{ key }} = {{ value }}
           </div>
         </div>
       </template>
@@ -101,7 +99,7 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="['container', 'datashieldSeed']"
+          :hideColumns="['container']"
           :dataStructure="profilesDataStructure"
         />
       </template>
@@ -157,8 +155,11 @@ export default defineComponent({
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
           for (var profile_index in profiles) {
-            profiles[profile_index]["datashieldSeed"] =
+            // Extract options.datashield.seed into proper column
+            profiles[profile_index].datashieldSeed =
               profiles[profile_index].options["datashield.seed"];
+            // Delete required or else shows when creating or editing profiles
+            delete profiles[profile_index].options["datashield.seed"];
           }
           return profiles;
         })
@@ -219,16 +220,12 @@ export default defineComponent({
       }
       return port;
     },
-    firstFreeSeed(): number {
+    firstFreeSeed(): string {
       let seed = 100000000;
-      while (
-        this.profiles.find(
-          (profile) => profile.options["datashield.seed"] == seed
-        )
-      ) {
+      while (this.profiles.find((profile) => profile.datashieldSeed == seed)) {
         seed++;
       }
-      return seed;
+      return String(seed);
     },
     profilesDataStructure(): TypeObject {
       let columns: TypeObject = {
@@ -296,6 +293,7 @@ export default defineComponent({
     },
     proceedEdit(profile: Profile) {
       this.addProfile = false;
+      profile.options["datashield.seed"] = profile.datashieldSeed;
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -352,9 +350,8 @@ export default defineComponent({
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
-        options: {
-          "datashield.seed": this.firstFreeSeed,
-        },
+        datashieldSeed: this.firstFreeSeed,
+        options: {},
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
