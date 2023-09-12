@@ -1,0 +1,8 @@
+spring:
+  mvc:
+    async:
+      request-timeout: 36000000
+  servlet:
+    multipart:
+      max-file-size: 13000MB
+      max-request-size: 13000MB

@@ -1,0 +1,24 @@
+spring:
+  # seem not to work
+  profiles:
+    active: development
+  security:
+    user:
+      name: administrator
+      password: admin
+      roles:
+        - SU
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
+  level:
+    org.molgenis: DEBUG
+    org:
+      springframework:
+        boot:
+          actuate:
+            audit:
+              listener:
+                AuditListener: INFO
+          web:
