@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jwt.*;
 
-// in case of test there are no oidc then we will have dummy JWT
+// in case oauth2 settings are missing a dummy JWT decoder exists because it is never used.
 @Configuration
 @ConditionalOnProperty(
     name = "spring.security.oauth2.resourceserver.opaquetoken.client-id",

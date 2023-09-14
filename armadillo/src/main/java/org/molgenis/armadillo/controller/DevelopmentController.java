@@ -25,7 +25,6 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.metadata.ProfileService;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
-@Profile({"test"})
 @PreAuthorize("hasRole('ROLE_SU')")
 public class DevelopmentController {
 

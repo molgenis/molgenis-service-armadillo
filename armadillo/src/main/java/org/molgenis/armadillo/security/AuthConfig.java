@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -84,7 +83,6 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @Profile({"!test"})
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
@@ -141,7 +139,6 @@ public class AuthConfig {
   @EnableWebSecurity
   @Order(2)
   @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
     AccessService accessService;
@@ -188,7 +185,6 @@ public class AuthConfig {
     }
   }
 
-  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;

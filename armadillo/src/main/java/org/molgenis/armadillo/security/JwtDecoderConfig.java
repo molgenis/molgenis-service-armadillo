@@ -5,6 +5,7 @@ import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,9 @@ import org.springframework.security.oauth2.jwt.*;
 public class JwtDecoderConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
+
+  @Value("${spring.profiles.active:default}")
+  private String activeProfile;
 
   @Bean
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
@@ -37,12 +41,16 @@ public class JwtDecoderConfig {
       jwtDecoder.setJwtValidator(jwtValidator);
       return jwtDecoder;
     } catch (Exception e) {
-      // allow offline development
-      LOG.error("Couldn't configure JWT decoder", e);
-      return token -> {
-        throw new UnsupportedOperationException(
-            "JWT configuration failed, please check the logs. Probably the auth server is offline?");
-      };
+      if ("offline".equals(activeProfile)) {
+        // allow offline development
+        LOG.error("Couldn't configure JWT decoder", e);
+        return token -> {
+          throw new UnsupportedOperationException(
+              "JWT configuration failed, please check the logs. Probably the auth server is offline?");
+        };
+      } else {
+        throw e;
+      }
     }
   }
 }
