@@ -1,8 +1,11 @@
 spring:
+  # seem not to work
+  profiles:
+    active: development
   security:
     user:
       name: admin
-      password: admin
+      password: @ADMINPASS@
       roles:
         - SU
 
