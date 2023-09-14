@@ -82,8 +82,10 @@ you can  also use your own, see FAQ below.
 You can run from source code as follows:
 1. Install Java and Docker
 2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
-3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings
+3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings (will be .gitignored)
 4. Compile and execute the code using ```./gradlew run```
+
+Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
 
 # Using Armadillo
 

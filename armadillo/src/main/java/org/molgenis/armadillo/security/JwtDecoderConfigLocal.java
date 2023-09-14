@@ -8,8 +8,9 @@ import org.springframework.security.oauth2.jwt.*;
 // in case of test there are no oidc then we will have dummy JWT
 @Configuration
 @ConditionalOnProperty(
-    value = "spring.security.oauth2.client.registration.molgenis.client-id",
-    matchIfMissing = true)
+    name = "spring.security.oauth2.resourceserver.opaquetoken.client-id",
+    matchIfMissing = true,
+    havingValue = "value_that_never_appears")
 public class JwtDecoderConfigLocal {
 
   @Bean
