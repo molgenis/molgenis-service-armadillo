@@ -17,12 +17,12 @@ services:
     volumes:
       - ${PWD}/logs/:/app/logs
       - ${PWD}/data/:/data
+      - /var/run/docker.sock:/var/run/docker.sock
 
-  rserver:
-    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:6.2.0
-    environment:
-      DEBUG: "FALSE"
-    ports:
-      # host port: container port
-      - 6311:6311
+#  rserver:
+#    image: datashield/armadillo-rserver:6.2.0
+#    environment:
+#      DEBUG: "FALSE"
+#    ports:
+#      # host port: container port
+#      - 6311:6311
