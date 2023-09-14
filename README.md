@@ -32,7 +32,7 @@ Software developers often run Armadillo as java jar file:
 4. Go to http://localhost:8080 to see your Armadillo running.
 
 Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change 
-by providing and editing [application.yaml](application.template.yaml) file
+by providing and editing [application.yaml](application.template.yml) file
 in your working directory and then run command above again.
 
 ### Run Armadillo via docker compose
@@ -126,31 +126,32 @@ We use intellij to develop
 
 We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
 
-# Installing DataSHIELD packages into Docker profiles
-As package developer will want to push your new packages into a DataSHIELD profile:
+# Developing DataSHIELD packages in Armadillo
+As package developer will want to push your new packages into a DataSHIELD profile
 
-* see what profile are available and has been selected
+* You can start Armadillo with defaults as described above; then use admin/admin as authentication
+* to see what profile are available and has been selected:
 ```
 curl -u admin:admin http://localhost:8080/profiles
 ```
-* change selected profile 'my-profile'
+* to change selected profile 'my-profile':
 ```
 curl -X POST http://localhost:8080/select-profile \
   -H 'Content-Type: application/json' \
   -d 'default'
 ```
-* install-packages in DataSHIELD current using admin user:
+* to install-packages in DataSHIELD current using admin user:
 ```
 curl -u admin:admin -v \
 -H 'Content-Type: multipart/form-data' \
 -F "file=@dsBase_6.3.0.tar.gz" \
 -X POST http://localhost:8080/install-package
 ```
-* update whitelist of your current profile
+* to update whitelist of your current profile:
 ```
 curl -u admin:admin -X POST http://localhost:8080/whitelist/dsBase
 ```
-* get whitelist of current profile
+* to get whitelist of current profile:
 ```
 curl -u admin:admin http://localhost:8080/whitelist
 ```
