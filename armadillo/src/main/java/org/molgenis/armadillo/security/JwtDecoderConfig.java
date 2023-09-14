@@ -14,9 +14,7 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
 
-@ConditionalOnProperty(
-    prefix = "spring.security.oauth2.resourceserver",
-    value = {"jwt.issuer-uri", "opaquetoken.client-id"})
+@ConditionalOnProperty("armadillo.oidc-permission-enabled")
 @Configuration
 public class JwtDecoderConfig {
 
@@ -41,16 +39,12 @@ public class JwtDecoderConfig {
       jwtDecoder.setJwtValidator(jwtValidator);
       return jwtDecoder;
     } catch (Exception e) {
-      if ("development".equals(activeProfile)) {
-        // allow offline development
-        LOG.error("Couldn't configure JWT decoder", e);
-        return token -> {
-          throw new UnsupportedOperationException(
-              "JWT configuration failed, please check the logs. Probably the auth server is offline?");
-        };
-      } else {
-        throw e;
-      }
+      // allow offline development
+      LOG.error("Couldn't configure JWT decoder", e);
+      return token -> {
+        throw new UnsupportedOperationException(
+            "JWT configuration failed, please check the logs. Probably the auth server is offline?");
+      };
     }
   }
 }

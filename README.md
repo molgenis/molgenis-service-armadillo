@@ -90,17 +90,17 @@ Finally, as developer we regularly test using the released java jar file. This a
 #### 1. Download jar file from a release [release](https://github.com/molgenis/molgenis-service-armadillo/releases), e.g.
 E.g. https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/molgenis-armadillo-3.3.0.jar
 
-#### 2. Start using java
+#### 2. Define configuration using application.yaml
+
+Download and optionally edit example [example](https://github.com/molgenis/molgenis-service-armadillo/application.template.yaml),)
+Minimally we recommend you to change the 'password' line.
+Most users will also need to edit the 'oidc'/oauth2 items.
+
+#### 3. Define configuration using application.yaml
+
+Then you can run as follows
 ```
-java -Dspring.profiles.active=basic -Dspring.security.user.password=admin -jar molgenis-armadillo-3.3.0.jar
-```
-Optionally, you can include also a complete OIDC configuration
-```
-java \
--Dspring.security.oauth2.client.registration.molgenis.client-id=yyy \
--Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx \
--Dspring.security.user.password=admin \
--jar molgenis-armadillo-3.3.0.jar
+java -jar molgenis-armadillo-3.3.0.jar
 ```
 
 #### 3. Go to http://localhost:8080
@@ -153,7 +153,6 @@ services:
   armadillo:
     image: molgenis/molgenis-armadillo-snapshot:latest
     environment:
-      SPRING_PROFILES_ACTIVE: basic
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
     #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'

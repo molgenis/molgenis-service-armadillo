@@ -48,7 +48,7 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @Profile("basic")
+  @ConditionalOnProperty("!{armadillo.oidc-permission-enabled}")
   @Order(0)
   public static class LocalConfig extends WebSecurityConfigurerAdapter {
     @Override
@@ -81,8 +81,8 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @Profile({"!test", "!basic"})
-  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
+  @Profile({"!test"})
+  @ConditionalOnProperty("armadillo.oidc-permission-enabled")
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
@@ -137,8 +137,8 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @ConditionalOnProperty("spring.security.oauth2.client.registration.molgenis.client-id")
-  @Profile({"!test", "!basic"})
+  @ConditionalOnProperty("armadillo.oidc-permission-enabled")
+  @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {
     AccessService accessService;
@@ -186,7 +186,6 @@ public class AuthConfig {
   }
 
   /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
-  @Profile({"development", "basic"})
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;

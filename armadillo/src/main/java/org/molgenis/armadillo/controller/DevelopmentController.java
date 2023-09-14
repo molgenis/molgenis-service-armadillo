@@ -36,13 +36,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "developer", description = "API only available in development mode")
+@Tag(name = "developer", description = "API only available for admin users or in profile=test")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
-@Profile({"development", "test"})
+@Profile({"test"})
+@PreAuthorize("hasRole('ROLE_SU')")
 public class DevelopmentController {
 
   private final Commands commands;

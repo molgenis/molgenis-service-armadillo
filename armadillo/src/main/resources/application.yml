@@ -1,11 +1,17 @@
+# todo: document oidc-permission-enabled, docker-management-enabled max-filesize, logging.level.molgenis.org=DEBUG
+# todo: add example appplication.yaml to documentation with all these options
+
 armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
+  # this will determine if 'basic' or 'oidc' jwt bean is loaded and how UI works
+  # required the oidc config to be set
   oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
   # uncomment this to configure a default admin user
   # oidc-admin-user: user@yourdomain.org
 
+  # default content when installing armadillo first time
   profiles:
     - name: default
       image: datashield/armadillo-rserver
@@ -26,14 +32,11 @@ springdoc:
     csrf:
       enabled: true
 
-
 spring:
-  main:
-    allow-bean-definition-overriding: true
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   application:
     name: armadillo
   security:
@@ -63,3 +66,16 @@ logging:
 
 storage:
   root-dir: data
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
+  level:
+    org.molgenis: INFO
+    org:
+      springframework:
+        boot:
+          actuate:
+            audit:
+              listener:
+                AuditListener: INFO
