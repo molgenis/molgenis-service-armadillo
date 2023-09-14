@@ -104,7 +104,7 @@ public class DevelopmentController {
   @Operation(summary = "Get whitelist")
   @GetMapping("whitelist")
   @ResponseBody
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public Set<String> getWhitelist() {
     return profiles.getByName(getActiveProfileName()).getPackageWhitelist();
   }
