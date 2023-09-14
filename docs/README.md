@@ -1,1 +1,1 @@
-See main README.md
+See /README.md
