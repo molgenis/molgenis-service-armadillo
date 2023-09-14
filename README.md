@@ -19,9 +19,8 @@ service provides the following features:
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/docs/img/overview-datashield.png)
 
 # Armadillo installation
-Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how 
-to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
-Note that for production you should add a https proxy for essential security:
+Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
+Note that for production you should add a https proxy for essential security. And you might need to enable 'Docker socket' on your docker service.
 
 ### Run Armadillo using java commandline
 Software developers often run Armadillo as java jar file: 
@@ -44,8 +43,7 @@ For testing without having to installing Java you can run using docker
 3. Execute ```docker-compose up```
 4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
 
-The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. 
-Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables 
+The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables 
 (see commented code in docker-compose file).
 
 ### Run Armadillo as service on Ubuntu
@@ -117,11 +115,65 @@ A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-d
 loaded into an R session on the Armadillo server specifically created for the researcher. Analysis requests are sent to the R session on each Armadillo server.
 There the analysis is performed and aggregated results are sent back to the client.
 
+# Developing Armadillo
+
+We use gradle to build:
+* run using ```./gradlew run```
+* run tests using ```./gradlew test```
+
+We use intellij to develop
+* To run or debug, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
+* To run using oidc, create [application.yml](application.template.yml) in root of your project
+
+We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
+
+# Developing DataSHIELD packages
+As package developer will want to push your new packages into a DataSHIELD profile:
+
+* see what profile are available and has been selected
+```
+curl -u admin:admin http://localhost:8080/profiles
+```
+* change selected profile 'my-profile'
+```
+curl -X POST http://localhost:8080/select-profile \
+  -H 'Content-Type: application/json' \
+  -d 'default'
+```
+* install-packages in DataSHIELD current using admin user:
+```
+curl -u admin:admin -v \
+-H 'Content-Type: multipart/form-data' \
+-F "file=@dsBase_6.3.0.tar.gz" \
+-X POST http://localhost:8080/install-package
+```
+* update whitelist of your current profile
+```
+curl -u admin:admin -X POST http://localhost:8080/whitelist/dsBase
+```
+* get whitelist of current profile
+```
+curl -u admin:admin http://localhost:8080/whitelist
+```
+
 # Frequently asked questions
+
+### Docker gives a 'java.socket' error
+You might need to enable Docker socket. On Docker desktop you can find that under 'settings' and 'advanced'.
 
 ### Can I use docker compose to start profiles?
 Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
 See commented section in docker-compose.yml file.
+
+### Can I pass environment or commandline variables instead of application.yml?
+
+Yes, it is standard spring. 
+
+### Can I run Armadillo with oauth2 config offline?
+Yes, you can run in 'offline' profile
+```
+./gradlew run -Dspring.profiles.active=offline
+```
 
 ### How to import data from Armadillo 2?
 To export data from and Armadillo 2 server take the following steps:

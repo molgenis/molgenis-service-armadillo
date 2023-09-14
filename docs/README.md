@@ -5,142 +5,262 @@
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=org.molgenis%3Aarmadillo-service)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service)
 
-# What is Armadillo?
+# Overview
 
-The Armadillo data portal can be used by data stewards to share datasets on a server. Researchers can then analyse these datasets and datasets shared on other
-servers using the DataSHIELD analysis tools. Researchers will only be able to access aggregate information and cannot see individual rows.
+Use MOLGENIS/Armadillo to make data available for privacy protecting federated analysis using [DataSHIELD](https://datashield.org) protocol. Armadillo
+service provides the following features:
+* **manage data projects**. Projects can either hold tabular data in the efficient 'parquet' format or any other file use DataSHIELD
+  'resources' framework.
+* **grant users access permission**. We use a central OIDC service like KeyCloak or FusionAuth in combination with a trused identity provider like
+  Life Sciences AAI to authenticate users.
+* **configure DataSHIELD analysis profiles**. [DataSHIELD analysis profiles](https://www.datashield.org/help/standard-profiles-and-plaforms) are
+  Docker images that contain a collection of multiple [DataSHIELD analysis packages](https://www.datashield.org/help/community-packages).
 
-## Analyse data
+![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/docs/img/overview-datashield.png)
 
-The Armadillo uses the [DataSHIELD](https://datashield.org) platform to facilitate analysis. It contains a variety of statistical packages applicable to
-different research areas. There are DataSHIELD packages for [standard statistical analysis](https://github.com/datashield/dsBaseClient)
+# Armadillo installation
+Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
+Note that for production you should add a https proxy for essential security. And you might need to enable 'Docker socket' on your docker service.
+
+### Run Armadillo using java commandline
+Software developers often run Armadillo as java jar file:
+
+1. Install Java and Docker (for the DataSHIELD profiles)
+2. Download Armadillo jar file from [releases](https://github.com/molgenis/molgenis-service-armadillo/releases), for example:
+   [molgenis-armadillo-3.3.0.jar](https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/)
+3. Run armadillo using ```java -jar molgenis-armadillo-3.3.0.jar```
+4. Go to http://localhost:8080 to see your Armadillo running.
+
+Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change
+by providing and editing [application.yaml](https://github.com/molgenis/molgenis-service-armadillo/application.yaml) file
+in your working directory and then run command above again.
+
+### Run Armadillo via docker compose
+For testing without having to installing Java you can run using docker
+
+1. Install docker-compose
+2. Download this [docker-compose.yml](https://docs.docker.com/compose/).
+3. Execute ```docker-compose up```
+4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
+
+The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables
+(see commented code in docker-compose file).
+
+### Run Armadillo as service on Ubuntu
+We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on
+CentOS (using yum instead of apt).
+
+#### 1. Install necessary software
+```
+apt update
+apt install openjdk-19-jre-headless
+apt install docker.io 
+```
+Note: you might need 'sudo'
+
+#### 2. Run installation script
+This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases):
+```
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
+bash armadillo-setup.sh \
+    --admin-user admin \
+    --admin-password xxxxx 
+    --domain my.server.com \
+    --oidc \
+    --oidc_url https://lifecycle-auth.molgenis.org \
+    --oidc_clientid clientid \
+    --oidc_clientsecret secret \
+    --cleanup 
+```
+Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
+you can  also use your own, see FAQ below.
+
+## Running Armadillo from source code
+
+You can run from source code as follows:
+1. Install Java and Docker
+2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
+3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings (will be .gitignored)
+4. Compile and execute the code using ```./gradlew run```
+
+Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
+
+# Using Armadillo
+
+Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
+
+### Create data access projects
+Data stewards can use the Armadillo web user interface or [MolgenisArmadillo R client](https://molgenis.github.io/molgenis-r-armadillo)
+to create 'projects' and upload their data into those. Data tables need to be in parquet format that supports fast selections of the columns
+(variables) you need for analysis. Other files can be configured as 'resources'.
+
+### Manage user access
+Data stewards can use the permission screen to give email adresses access to the data. Everybody signs in via single sign on using an OIDC central
+authentication server such as KeyCloack or Fusion auth that federates to authentication systems of
+connected institutions, ideally using a federated AAI such as LifeScience AAI.
+
+### Configure DataSHIELD profiles
+To analyse data, users must choose a datashield profile. Armadillo owners can use the web user interface to configure new profiles. Assuming you
+installed docker you can also start/stop these images. Alternatively you can use docker-compose for that.
+
+There are DataSHIELD packages for [standard statistical analysis](https://github.com/datashield/dsBaseClient)
 , [exposome studies](https://github.com/isglobal-brge/dsExposomeClient)
 , [survival studies](https://github.com/neelsoumya/dsSurvivalClient)
 , [microbiome studies](https://github.com/StuartWheater/dsMicrobiomeClient)
 and [analysis tools for studies that are using large genetic datasets](https://github.com/isglobal-brge/dsomicsclient)
 . These packages can all be installed in the Armadillo suite.
 
-How does it work? A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-datashield) to one or multiple Armadillo servers. The data is
+### End users can use Armadillo as any other DataSHIELD server
+A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-datashield) to one or multiple Armadillo servers. The data is
 loaded into an R session on the Armadillo server specifically created for the researcher. Analysis requests are sent to the R session on each Armadillo server.
 There the analysis is performed and aggregated results are sent back to the client.
 
-![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/doc/img/overview-datashield.png)
+# Developing Armadillo
 
-## Share data
+We use gradle to build:
+* run using ```./gradlew run```
+* run tests using ```./gradlew test```
 
-Data stewards can use the Armadillo web user interface or [MolgenisArmadillo R client](https://molgenis.github.io/molgenis-r-armadillo)
-to manage their data on the Armadillo file server. Data is stored in parquet format that supports fast selections of the columns (variables)
-you need for analysis. Data stewards can manage the uploaded data in the web browser. The data can be stored encrypted on the Armadillo file server. When using
-the web user interface you must first convert your data into parquet. (CSV uploads will be supported in the near future).
+We use intellij to develop
+* To run or debug, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
+* To run using oidc, create [application.yml](application.template.yml) in root of your project
 
-## Access data
+We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/
 
-Everybody logs in via single sign on using an OIDC central authentication server such as KeyCloack or Fusion auth that federates to authentication systems of
-connected institutions, ideally using a federated AAI such as LifeScience AAI.
+# Developing DataSHIELD packages
+As package developer will want to push your new packages into a DataSHIELD profile:
 
-# Getting started
+* see what profile are available and has been selected
+```
+curl -u admin:admin http://localhost:8080/profiles
+```
+* change selected profile 'my-profile'
+```
+curl -X POST http://localhost:8080/select-profile \
+  -H 'Content-Type: application/json' \
+  -d 'default'
+```
+* install-packages in DataSHIELD current using admin user:
+```
+curl -u admin:admin -v \
+-H 'Content-Type: multipart/form-data' \
+-F "file=@dsBase_6.3.0.tar.gz" \
+-X POST http://localhost:8080/install-package
+```
+* update whitelist of your current profile
+```
+curl -u admin:admin -X POST http://localhost:8080/whitelist/dsBase
+```
+* get whitelist of current profile
+```
+curl -u admin:admin http://localhost:8080/whitelist
+```
 
-## Prerequisites
+# Frequently asked questions
 
-Armadillo 3 can be installed on any flavor of linux OS or modern Unix-based Mac OS. To run armadillo 3 you need the following dependencies.
+### Docker gives a 'java.socket' error
+You might need to enable Docker socket. On Docker desktop you can find that under 'settings' and 'advanced'.
 
-* Java 17 JRE or JDK
-* Docker (for profiles)
+### Can I use docker compose to start profiles?
+Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
+See commented section in docker-compose.yml file.
 
-To spin up your own server on a laptop, you first need
-the [application.yml](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application-local.yml)
-and edit for your needs. Then you can run:
+### Can I pass environment or commandline variables instead of application.yml?
+
+Yes, it is standard spring.
+
+### Can I run Armadillo with oauth2 config offline?
+Yes, you can run in 'offline' profile
+```
+./gradlew run -Dspring.profiles.active=offline
+```
+
+### How to import data from Armadillo 2?
+To export data from and Armadillo 2 server take the following steps:
+
+#### 1. Install helper software
+```
+apt update 
+apt install pip 
+pip install minio 
+pip install fusionauth-client 
+pip install simple_term_menu 
+```
+
+#### 2. Backup Armadillo 2 settings
 
 ```
-export SPRING_PROFILES_ACTIVE=<your profile>
-export SPRING_CONFIG_LOCATION=<location to>/application-local.yml
-java -jar molgenis-armadillo-3.*.jar
+mkdir armadillo2-backup 
+rsync -avr /usr/share/armadillo armadillo2-backup 
+cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml 
 ```
+N.B.change /usr/share to path matching your local config.
 
-Or using development mode
-
-```
-export SPRING_PROFILES_ACTIVE=development
-java -jar molgenis-armadillo-3.*.jar
-```
-
-## Systemd Service
-
-Armadillo 3 is tested on latest Ubuntu-LTS based servers. To run armadillo 3 as service please follow this
-guide: https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/README.md
-
-## Docker images
-
-For testing, Armadillo 3 docker images are also available as docker image. These run in 'development' profile.
-
-- release at https://hub.docker.com/r/molgenis/molgenis-armadillo
-- snapshot builds from pull requests at https://hub.docker.com/r/molgenis/molgenis-armadillo-snapshot
-
-For example, you can use docker as follows on Linux/Mac
+##### 3. Export data from Armadillo 2
+This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
 
 ```
 mkdir data
-docker pull molgenis/molgenis-armadillo-snapshot
-docker run -p 8080:8080 molgenis/molgenis-armadillo-snapshot \
--mount type=bind,source=data,target=/data 
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
+python3 migrate-minio.py  --minio http://localhost:9000 --target data  
 ```
 
-## armadillo 2
+N.B.: when aiming running armadillo as a service this folder should be /usr/share/armadillo/data
+
+#### 4. Stop all docker images for Armadillo 2
+List all docker images
+```docker ps -a```
+
+Stop and remove all Armadillo 2 related images, e.g.
+```
+docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
+```
+
+#### 5. Remove old minio data
+```rm -Rf /var/lib/minio/ ```
+
+#### 6. Run Armadillo 3 using exported data
+Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:
+```
+chown armadillo:armadillo -R data 
+```
+
+#### 7. Optionally, acquire a permission set from MOLGENIS team
+If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
+They will use:
+```
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-auth.py 
+python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080 
+```
+
+### How to run previous armadillo 2?
 
 For armadillo 2.x you can follow instructions at
-
 * for testing we use docker compose at https://github.com/molgenis/molgenis-service-armadillo/tree/armadillo-service-2.2.3
-* for production we are using Ansible at https://galaxy.ansible.com/molgenis/armadillo
+* for production we are using Ansible at https://galaxy.ansible.com/molgenis/armadillo`
 
-## What to do next
+### How to run Armadillo as developer?
 
-You can explore the User interface endpoints at `localhost:8080/ui`
+We develop Armadillo using IntelliJ.
 
-Here you will find user interfaces for:
-
-* defining projects and their data
-* defining users and their project authorizations
-* defining and managing datashield profiles
-
-You can also explore the API endpoints at `localhost:8080/swagger-ui/index.html`
-
-Finally, you can download the R client.
-
-Of course the next step would be to use a DataSHIELD client to connect to Armadillo for analysis.
-
-# Development
-
-## Develop from commandline
-
+#### To build Armadillo
 To build run following command in the github root:
-
 ```./gradlew build```
 
 To execute in 'dev' run following command in the github root:
-
 ```./gradlew run```
 
-## Setting up development tools
+#### Setting up development tools
 
 This repository uses `pre-commit` to manage commit hooks. An installation guide can be found
 [here](https://pre-commit.com/index.html#1-install-pre-commit). To install the hooks, run `pre-commit install` once in the root folder of this repository. Now
 your code will be automatically formatted whenever you commit.
 
-### Storage
+#### How to change data directory
 
-For local storage, you don't need to do anything. Data is automatically stored in the `data/` folder in this repository. You can choose another location
+Data is automatically stored in the `data` folder in this repository. You can choose another location
 in `application.yml` by changing the `storage.root-dir`
 setting.
-
-If you want to use MinIO as storage (including the test data), do the following:
-
-1. Start the container with `docker-compose --profile minio up`
-2. In your browser, go to `http://localhost:9090`
-3. Log in with _molgenis_ / _molgenis_
-4. Add a bucket `shared-lifecyle`
-5. Copy the folders in `data/shared-lifecycle` in this repository to the bucket
-6. In `application.yml`, uncomment the `minio` section.
-7. Now Armadillo will automatically connect to MinIO at startup.
 
 > **_Note_**: When you run Armadillo locally for the first time, the `lifecycle` project has not been
 > added to the system metadata yet. To add it automatically, see [Application properties](#application-properties).
@@ -151,35 +271,51 @@ If you want to use MinIO as storage (including the test data), do the following:
 >
 > Now you're all set!
 
-### Application properties
+#### Working with resources in development mode
+When developing locally, docker has trouble connecting to localhost. This problem becomes clear when working with
+resources. Luckily there's a quick fix for the problem. Instead of defining a resource as for example
+`http://localhost:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda`, rewrite it to:
+`http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda`. Here's some example R code
+for uploading resources:
+```R
+## Uploading resources
+library(MolgenisArmadillo)
+library(resourcer)
 
-You can configure the application in `application.yml`. During development however, it is more convenient to override these settings in a local .yml file that
-you do not commit to git. Here's how to set that up:
+token <- armadillo.get_token("http://localhost:8080/")
 
-- Next to `application.yml`, create a file `application-local.yml` (this file is ignored by git)
-- Give it the following content:
+resGSE1 <- resourcer::newResource(
+  name = "GSE66351_1",
+  secret = token,
+  url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda",
+  format = "ExpressionSet"
+)
 
+armadillo.login("http://localhost:8080/")
+armadillo.upload_resource(project="omics", folder="ewas", resource = resGSE1, name = "GSE66351_1")
 ```
-armadillo:
-  oidc-permission-enabled: false
-  docker-management-enabled: true
-  oidc-admin-user: <your OIDC email>
+And for using them:
+```R
+library(DSMolgenisArmadillo)
+library(dsBaseClient)
 
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          molgenis:
-            client-id: <OIDC client ID>
-            client-secret: <OIDC client secret>
+token <- armadillo.get_token("http://localhost:8080/")
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(
+  server = "local",
+  url = "http://localhost:8080/",
+  token = token,
+  driver = "ArmadilloDriver",
+  profile = "uniform",
+  resource = "omics/ewas/GSE66351_1"
+)
+
+login_data <- builder$build()
+conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
+
+datashield.resources(conns = conns)
+datashield.assign.resource(conns, resource="omics/ewas/GSE66351_1", symbol="eSet_0y_EUR")
+ds.class('eSet_0y_EUR', datasources = conns)
+datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
 ```
-
-> Note: If can't configure an oauth2 client for any reason, just remove the `spring` section.
-
-- Now, in the Run Configuration for the DatashieldServiceApplication, add the following program argument:
-
-```--spring.config.additional-location=file:armadillo/src/main/resources/application-local.yml```
-
-Now the lifecycle test project (including its data) will work out of the box, and you will be able to log in with your OIDC account immediately.
-
