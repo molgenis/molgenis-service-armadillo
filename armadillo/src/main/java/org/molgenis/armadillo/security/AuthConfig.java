@@ -82,7 +82,7 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Profile({"!test"})
-  @ConditionalOnProperty("armadillo.oidc-permission-enabled")
+  @ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
@@ -137,7 +137,7 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @ConditionalOnProperty("armadillo.oidc-permission-enabled")
+  @ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
   @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {

@@ -14,7 +14,7 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
 
-@ConditionalOnProperty("armadillo.oidc-permission-enabled")
+@ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
 @Configuration
 public class JwtDecoderConfig {
 

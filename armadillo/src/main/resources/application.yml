@@ -58,13 +58,11 @@ audit:
   log:
     path: logs/audit.log
 
-logging:
-  config: classpath:logback-file.xml
-
 storage:
   root-dir: data
 
 logging:
+  config: classpath:logback-file.xml
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
   level:
