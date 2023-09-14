@@ -32,14 +32,14 @@ Software developers often run Armadillo as java jar file:
 4. Go to http://localhost:8080 to see your Armadillo running.
 
 Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change 
-by providing and editing [application.yaml](https://github.com/molgenis/molgenis-service-armadillo/application.yaml) file
+by providing and editing [application.yaml](application.template.yaml) file
 in your working directory and then run command above again.
 
 ### Run Armadillo via docker compose
-For testing without having to installing Java you can run using docker
+For testing without having to installing Java you can run using docker:
 
-1. Install docker-compose
-2. Download this [docker-compose.yml](https://docs.docker.com/compose/).
+1. Install [docker-compose](https://docs.docker.com/compose/install/)
+2. Download this [docker-compose.yml](docker-compose.yml).
 3. Execute ```docker-compose up```
 4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
 
@@ -75,7 +75,7 @@ bash armadillo-setup.sh \
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
 
-## Running Armadillo from source code
+### Running Armadillo from source code
 
 You can run from source code as follows:
 1. Install Java and Docker
@@ -86,7 +86,6 @@ You can run from source code as follows:
 Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
 
 # Using Armadillo
-
 Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
 
 ### Create data access projects
@@ -122,12 +121,12 @@ We use gradle to build:
 * run tests using ```./gradlew test```
 
 We use intellij to develop
-* To run or debug, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
-* To run using oidc, create [application.yml](application.template.yml) in root of your project
+* To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
+* To run using oidc, create a copy of [application.yml](application.template.yml) in root of your project
 
 We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
 
-# Developing DataSHIELD packages
+# Installing DataSHIELD packages into Docker profiles
 As package developer will want to push your new packages into a DataSHIELD profile:
 
 * see what profile are available and has been selected
