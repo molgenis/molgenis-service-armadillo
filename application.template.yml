@@ -1,17 +1,17 @@
 armadillo:
-  # set this true if you want Armadillo to create/edit/delete profile docker images via the user interface
+  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
   docker-management-enabled: true
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
 
+# required settings:
 spring:
-  # required to check this!
   security:
     user:
       # please change this admin password!
       password: admin
-    ## uncomment oidc settings below to enable oidc
+    ## uncomment oauth2 settings below to enable oidcgit
 #    oauth2:
 #      client:
 #        provider:
@@ -27,7 +27,7 @@ spring:
 #        opaquetoken:
 #          client-id: '...'
 
-# optional settings (review spring handbook to find more)
+# optional settings (review spring handbook to find more):
   servlet:
     multipart:
       ## change this if your files are bigger
