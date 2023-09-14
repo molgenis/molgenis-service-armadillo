@@ -7,7 +7,9 @@ import org.springframework.security.oauth2.jwt.*;
 
 // in case of test there are no oidc then we will have dummy JWT
 @Configuration
-@ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "false")
+@ConditionalOnProperty(
+    value = "spring.security.oauth2.client.registration.molgenis.client-id",
+    matchIfMissing = true)
 public class JwtDecoderConfigLocal {
 
   @Bean

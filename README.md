@@ -20,7 +20,7 @@ service provides the following features:
 
 # Armadillo installation
 Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how 
-to run Armadillo directly from Java, as a Docker container or as a service on Ubuntu.
+to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
 Note that for production you should add a https proxy for essential security:
 
 ### Run Armadillo using java commandline
@@ -76,6 +76,14 @@ bash armadillo-setup.sh \
 ```
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
+
+## Running Armadillo from source code
+
+You can run from source code as follows:
+1. Install Java and Docker
+2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
+3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings
+4. Compile and execute the code using ```./gradlew run```
 
 # Using Armadillo
 

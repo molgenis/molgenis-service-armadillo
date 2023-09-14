@@ -30,7 +30,7 @@ public class AccessService {
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
 
-  @Value("${armadillo.oidc-permission-enabled}")
+  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:true}")
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;

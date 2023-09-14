@@ -46,3 +46,6 @@ build/
 /docker/logs/
 /docker/data/
 **/audit.log
+
+# during development you can safely create an application.yml
+application.yml

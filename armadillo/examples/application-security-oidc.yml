@@ -1,5 +1,4 @@
 armadillo:
-  oidc-permission-enabled: true
 spring:
   security:
     oauth2:

@@ -48,7 +48,9 @@ public class AuthConfig {
 
   @Configuration
   @EnableWebSecurity
-  @ConditionalOnProperty("!{armadillo.oidc-permission-enabled}")
+  @ConditionalOnProperty(
+      value = "spring.security.oauth2.client.registration.molgenis.client-id",
+      matchIfMissing = true)
   @Order(0)
   public static class LocalConfig extends WebSecurityConfigurerAdapter {
     @Override
@@ -82,7 +84,7 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Profile({"!test"})
-  @ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
+  @ConditionalOnProperty(value = "spring.security.oauth2.client.registration.molgenis.client-id")
   @Order(1)
   // check against JWT and basic auth. You can also sign in using 'oauth2'
   public static class JwtConfig extends WebSecurityConfigurerAdapter {
@@ -137,7 +139,7 @@ public class AuthConfig {
   @Configuration
   @EnableWebSecurity
   @Order(2)
-  @ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
+  @ConditionalOnProperty(value = "spring.security.oauth2.client.registration.molgenis.client-id")
   @Profile({"!test"})
   // otherwise we gonna offer sign in
   public static class Oauth2LoginConfig extends WebSecurityConfigurerAdapter {

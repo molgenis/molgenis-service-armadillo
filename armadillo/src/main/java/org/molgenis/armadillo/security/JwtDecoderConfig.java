@@ -14,8 +14,8 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
 
-@ConditionalOnProperty(value = "armadillo.oidc-permission-enabled", havingValue = "true")
 @Configuration
+@ConditionalOnProperty(value = "spring.security.oauth2.client.registration.molgenis.client-id")
 public class JwtDecoderConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);

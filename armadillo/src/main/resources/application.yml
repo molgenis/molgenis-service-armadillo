@@ -1,8 +1,4 @@
 armadillo:
-  # set this to 'true' if you want to accept permissions from oidc provider
-  # this will determine if 'basic' or 'oidc' jwt bean is loaded and how UI works
-  # required the oidc config to be set
-  oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
   # uncomment this to configure a default admin user
