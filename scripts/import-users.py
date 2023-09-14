@@ -1,4 +1,5 @@
 import os
+import re
 import base64
 import argparse
 import warnings
@@ -13,12 +14,25 @@ def main():
     server, data_directory = CommandLineParser().parse()
     api = API(server)
     cohorts = ProjectDataParser().parse(data_directory)
-    processor = ProjectProcessor(api)
-    processor.parse(cohorts)
+    ProjectProcessor(api).parse(cohorts)
 
 
 class ProjectDataParser:
     def parse(self, directory):
+        """
+        Method to parse all TSVs in a user supplied directory, assuming all those TSVs are export
+        TSVs from the export script. Returns a dictionary with a (parsed and sanitized) cohort name
+        as key and it's user data as value.
+
+        Args:
+            directory:
+                Absolute path to the directory containing the user cohort export TSVs.
+
+        Returns:
+            dict:
+                Returns a dictionary containing (key) cohort name, parsed to adhere to AWS
+                bucket standards and (value) cohort user data.
+        """
         return_dict = {}
         files = os.listdir(directory)
         for file in files:
@@ -26,21 +40,45 @@ class ProjectDataParser:
                 continue
             full_path = os.path.join(directory, file)
             project_name = self._parse_filename(file)
-            if project_name == "uncategorized users":
-                return_dict["NaN"] = self._load_tsv(full_path)
-            else:
-                return_dict[project_name] = self._load_tsv(full_path)
+            return_dict[project_name] = self._load_tsv(full_path)
         return return_dict
 
     @staticmethod
     def _parse_filename(filename):
-        filename = filename.replace("_or_", "_/_")
-        filename = filename.replace("_", " ")
-        filename = filename.replace()
-        return filename
+        """
+        Function to parse the filename to the project name.
+
+        Args:
+            filename:
+                The string of the filename of the TSV.
+        Returns:
+            string:
+                Returns a string that is AWS bucket naming compliant.
+        """
+        # First, break off file extension
+        filename = filename.replace(".tsv.gz", "")
+        filename = filename.replace(".tsv", "")
+        # Then create an intermediate with only valid characters
+        name = "".join(
+            [c for c in filename.replace("-", "") if c.isalnum() or c == "_"]
+        )
+        # Then clean up starting spaces
+        name = re.sub(r"^_*", "", name)
+        name = re.sub(r"_+", "-", name)
+        return name.lower()
 
     @staticmethod
     def _load_tsv(path):
+        """
+        Method to load in the pandas TSV, even if the TSV is just headers or not even headers.
+        Args:
+            path:
+                Absolute path to the (gzipped) TSV file.
+        Returns:
+            dataframe:
+                Returns a pandas.DataFrame containing the columns of a loaded in pandas TSV or
+                empty dataframe containing the correct columns.
+        """
         try:
             data = pd.read_csv(
                 path,
@@ -55,7 +93,6 @@ class ProjectDataParser:
                 }
             ).fillna("")
         except pd.errors.EmptyDataError:
-            warnings.warn(f"Obtaining {path} resulted in empty dataframe!")
             data = pd.DataFrame(
                 columns=["active", "email", "firstName", "fullName", "lastName", "roles"]
             )
@@ -66,25 +103,80 @@ class ProjectProcessor:
     def __init__(self, api):
         self.api = api
         self.su = []
+        self.current_su = self._obtain_current_su(api)
 
     def parse(self, cohort_data):
+        """
+        Bread and butter of the script. This function parses the cohort data dictionary into the
+        API, creating new projects and users alike. Also sets users admin rights accordingly,
+        as they were according to the export TSVs.
+
+        Args:
+            cohort_data:
+                Dictionary containing (key) the cohort name and (value) its user data as a pandas
+                dataframe.
+        """
         for cohort_name, cohort_users in cohort_data.items():
-            if cohort_name == "NaN":
+            # Skip users that are not categorized into a cohort
+            if cohort_name == "uncategorized-users":
                 continue
             self._obtain_su(cohort_users)
             self._put_project(name=cohort_name, users=cohort_users['email'].values.tolist())
-        self._process_uncategorized_users(cohort_data['NaN'])
+        self._process_uncategorized_users(cohort_data['uncategorized-users'])
         self._add_admin_rights()
 
-    def _put_user(self, email, firstName, lastName):
+    @staticmethod
+    def _obtain_current_su(api):
+        """
+        Method to obtain the already present superusers / admins from the target URL, to make sure
+        that current admins do not lose their privilege.
+
+        Args:
+            api:
+                Initiated class of the API present in this file.
+        Returns:
+            list:
+                Returns a list containing the email address of all users currently marked as admin
+                in the target armadillo URL.
+        """
+        su_users = []
+        users = api.get_users()
+        for user in users:
+            if user["admin"]:
+                su_users.append(user['email'])
+        return su_users
+
+    def _put_user(self, email, admin, firstname="", lastname=""):
+        """
+        Method primarily designed to update a given user their email.
+
+        Args:
+            email:
+                String of the users email address.
+            admin:
+                Boolean whenever the user should become an admin or not.
+            firstname:
+                [Optional] String of the user's first name.
+            lastname:
+                [Optional] String of the user's last name.
+        """
         self.api.put_user({
               "email": email,
-              "firstName": firstName,
-              "lastName": lastName,
-              "admin": False,
+              "firstName": firstname,
+              "lastName": lastname,
+              "admin": admin
         })
 
     def _put_project(self, name, users):
+        """
+        Method to call the put command
+        Args:
+            name:
+            users:
+
+        Returns:
+
+        """
         self.api.put_project({"name": name, "users": users})
 
     def _obtain_su(self, project_data):
@@ -101,14 +193,15 @@ class ProjectProcessor:
         uncategorized_users.apply(
             lambda x: self._put_user(
                 email=x['email'],
-                firstName=x['firstName'],
-                lastName=x['lastName']
-            )
+                admin=x['email'] in self.current_su,
+                firstname=x['firstName'],
+                lastname=x['lastName']
+            ), axis=1
         )
 
     def _add_admin_rights(self):
         for user in self.su:
-            self.api.put_user({"email": user, "admin": True})
+            self._put_user(email=user, admin=True)
 
 
 class API:
@@ -118,22 +211,69 @@ class API:
 
     @staticmethod
     def _create_authorazation_header():
+        """
+        Method to create the authentication header and content-type header, based on whenever the
+        user supplies a Token (from a user that is admin ofcourse) or basic auth.
+
+        Returns:
+            json:
+                JSON containing the 'Content-Type': 'application/json' and the 'Authorization'
+                based on user input.
+        """
         token = getpass("Armadillo 3 token:")
         if token == "":
             warnings.warn("Token not supplied, requiring basic auth password!")
             password = getpass("Basic auth password:")
-            auth_header = "Basic " + base64.b64encode(("admin:" + password).encode('ascii')).decode("UTF-8")
+            auth_header = "Basic " + base64.b64encode(("admin:" + password).encode('UTF-8')).decode("UTF-8")
         else:
             auth_header = "Bearer " + token
         return {"Content-Type": "application/json", "Authorization": auth_header}
 
     def put_user(self, data):
+        """
+        Requests function to execute the curl 'PUT' command to access/users.
+
+        Args:
+            data:
+                JSON of the user that needs to be added or updated.
+                See swagger UI for format.
+                (URL: <url of armadillo>/swagger-ui/index.html)
+        Raises:
+            HTTPError:
+                HTTPError is raised when HTTP error codes 400+ are obtained as a response.
+        """
         response = requests.put(self.target + "access/users", json=data, headers=self.header)
         response.raise_for_status()
 
     def put_project(self, project):
+        """
+        Requests function to execute the curl 'PUT' command to access/projects.
+
+        Args:
+            project:
+                JSON of the project that needs to be added or updated (very likely added).
+                See swagger UI for format.
+                (URL: <url of armadillo>/swagger-ui/index.html)
+        Raises:
+            HTTPError:
+                HTTPError is raised when HTTP error codes 400+ are obtained as a response.
+        """
         response = requests.put(self.target + "access/projects", json=project, headers=self.header)
         response.raise_for_status()
+
+    def get_users(self):
+        """
+        Requests function to execute the curl 'GET' command to obtain all users from target.
+
+        Returns:
+            json:
+                Returns a json containing the users response.
+                See swagger UI for format.
+                (URL: <url of armadillo>/swagger-ui/index.html)
+        """
+        response = requests.get(self.target + "access/users", headers=self.header)
+        response.raise_for_status()
+        return response.json()
 
 
 class CommandLineParser:
@@ -141,11 +281,28 @@ class CommandLineParser:
         self.parser = CommandLineInterface()
 
     def parse(self):
+        """
+        Parser function of CommandLineParser. Will obtain the CLA, checks their validity and
+        mutates them to be compliant in the rest of the code.
+
+        Returns:
+            tuple:
+                Returns a tuple containing [0] the server url and [1] the absolute path to the TSV
+                directory.
+        """
         server = self._parse_server()
         directory = self._parse_data_directory()
         return server, directory
 
     def _parse_server(self):
+        """
+        Function to parse the user CLA supplied target server. Adds http:// if missing and a / at
+        the end if missing.
+
+        Returns:
+            url:
+                Fully API compliant url including scheme and a slash at the end.
+        """
         server_argument = self.parser.get_argument("server")
         if not server_argument.startswith("http"):
             warnings.warn("CLI supplied argument did not contain scheme, adding https://")
@@ -155,7 +312,18 @@ class CommandLineParser:
         return server_argument
 
     def _parse_data_directory(self):
-        directory = Path(self.parser.get_argument("user_data"))
+        """
+        Function to check if TSVs are present in the user supplied directory
+        Returns:
+            path:
+                Returns the absolute path of the user supplied command line argument if (gzipped)
+                TSVs are present.
+        Raises:
+            IOError:
+                IOError is raised when the user supplied CLA is not a directory or does not contain
+                any TSVs.
+        """
+        directory = Path(self.parser.get_argument("user_data")).absolute()
         if not os.path.isdir(directory):
             raise IOError("Given user data argument is not a directory")
         contains_tsv = False
@@ -198,8 +366,8 @@ class CommandLineInterface:
             "--user-data",
             type=str,
             required=True,
-            help="The folder in which all export TSV's are located for each cohort as they are obtained from "
-                 "export-users.py."
+            help="The folder in which all export TSV's are located for "
+                 "each cohort as they are obtained from export-users.py."
         )
         return parser
 
