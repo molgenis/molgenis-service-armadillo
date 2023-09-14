@@ -54,18 +54,16 @@ you can  also use your own, see FAQ below.
 ### As docker compose
 For testing without having to install anything we regularly use docker-compose:
 
-#### 1. Create a [docker-compose.yml](https://docs.docker.com/compose/) file like this one:
+#### 1. Create a docker-compose file like [this](https://docs.docker.com/compose/) one:
 ```
 version: "3.4"
 services:
   armadillo:
     image: molgenis/molgenis-armadillo-snapshot:latest
     environment:
-      SPRING_PROFILES_ACTIVE: basic
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
+      SPRING_SECURITY_USER_PASSWORD: 'admin'
     ports:
       - 8080:8080
     volumes:
@@ -75,6 +73,8 @@ services:
 ```
 Note that we made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles.
 Alternatively you can include the datashield profiles into this docker compose also.
+
+Note that you can override all application.yaml settings (see run Java) to also setup authentication service and other settings.
 
 #### 2. Run the docker-compose as follows
 ```
@@ -90,24 +90,22 @@ Finally, as developer we regularly test using the released java jar file. This a
 #### 1. Download jar file from a release [release](https://github.com/molgenis/molgenis-service-armadillo/releases), e.g.
 E.g. https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/molgenis-armadillo-3.3.0.jar
 
-#### 2. Define configuration using application.yaml
-
-Download and optionally edit example [example](https://github.com/molgenis/molgenis-service-armadillo/application.template.yaml),)
-Minimally we recommend you to change the 'password' line.
-Most users will also need to edit the 'oidc'/oauth2 items.
-
-#### 3. Define configuration using application.yaml
-
-Then you can run as follows
+#### 2. Start Armadillo via java commandline
+Run as follows
 ```
 java -jar molgenis-armadillo-3.3.0.jar
 ```
 
-#### 3. Go to http://localhost:8080
-You can sign in using 'basic-auth' with user 'admin' and password set above.
-If you didn't set admin password then notice 'Using generated security password: ....' to find your 'admin' password.
+Default Armadillo will start with 'admin' user with password 'admin', and without 'oidc' for connecting more users. 
+You can change this by downloading and editing an [application.yaml](https://github.com/molgenis/molgenis-service-armadillo/application.yaml) file
+in your working directory and then run command above again.
 
-Note: you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
+#### 3. Access Armadillo user interface to setup data access projects
+Go to http://localhost:8080 to see your Armadillo running.
+
+You can sign in using 'basic-auth' with user 'admin' and password set above (default: 'admin').
+
+Typically we would recommend that your Armadillo is run behind a firewall, consult your system administrator on how to.
 
 ### Setup HTTPS proxy
 To secure your Armadillo we recommend use of a HTTPS reverse proxy. We use nginx, see an example configuration [here](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/conf/armadillo-nginx.conf).

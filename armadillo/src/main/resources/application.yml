@@ -1,6 +1,3 @@
-# todo: document oidc-permission-enabled, docker-management-enabled max-filesize, logging.level.molgenis.org=DEBUG
-# todo: add example appplication.yaml to documentation with all these options
-
 armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   # this will determine if 'basic' or 'oidc' jwt bean is loaded and how UI works
@@ -11,7 +8,6 @@ armadillo:
   # uncomment this to configure a default admin user
   # oidc-admin-user: user@yourdomain.org
 
-  # default content when installing armadillo first time
   profiles:
     - name: default
       image: datashield/armadillo-rserver
@@ -42,6 +38,7 @@ spring:
   security:
     user:
       name: admin
+      password: admin
       roles:
         - SU
 
