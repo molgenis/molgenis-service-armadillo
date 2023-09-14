@@ -26,7 +26,10 @@ springdoc:
     csrf:
       enabled: true
 
+
 spring:
+  main:
+    allow-bean-definition-overriding: true
   servlet:
     multipart:
       max-file-size: 100MB
