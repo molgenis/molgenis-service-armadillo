@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import re
 import base64
@@ -179,9 +181,20 @@ class ProjectProcessor:
         """
         self.api.put_project({"name": name, "users": users})
 
-    def _obtain_su(self, project_data):
-        su = project_data.loc[
-                project_data[project_data['roles'].isin(("SU", "ADMIN", "admin"))].index,
+    def _obtain_su(self, cohort_users):
+        """
+        Method to obtain all marked superusers / admins from a cohort and store them, to at the end of parsing re-add
+        admin rights to the users that used to have it. According to the roles "ADMIN", "admin" and "SU", the user will
+        be marked to become admin in armadillo 3. The reason it adds to an init variable instead of return the list is
+        because of the uncategorized users, which have to be processed separately, but still added to the admin list
+        to make sure they don't lose or not obtain their admin rights.
+
+        Args:
+            cohort_users:
+                Pandas.dataframe object of the users of the cohort_data. Can be empty.
+        """
+        su = cohort_users.loc[
+                cohort_users[cohort_users['roles'].isin(("SU", "ADMIN", "admin"))].index,
                 "email"
             ]
         for user in su:
@@ -189,6 +202,14 @@ class ProjectProcessor:
                 self.su.append(user)
 
     def _process_uncategorized_users(self, uncategorized_users):
+        """
+        Method to add the "uncategorized_users.tsv" users that are registered, but are not assigned to any cohort
+        to the armadillo 3 server.
+
+        Args:
+            uncategorized_users:
+                Pandas.dataframe object of the users of key "uncategorized-users" of the cohort_data dictionary.
+        """
         self._obtain_su(uncategorized_users)
         uncategorized_users.apply(
             lambda x: self._put_user(
@@ -200,6 +221,10 @@ class ProjectProcessor:
         )
 
     def _add_admin_rights(self):
+        """
+        Method to be used last after all users and cohorts have been added, to give back admin rights to the users
+        that used to have it.
+        """
         for user in self.su:
             self._put_user(email=user, admin=True)
 
