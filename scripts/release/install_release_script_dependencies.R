@@ -19,10 +19,11 @@ cat("
 
 ")
 cat("Installing dependencies for release test\n")
-install.packages("cli", repos = "http://cran.us.r-project.org")
+if(!"cli" %in% installed.packages()) {
+  install.packages("cli", repos = "http://cran.us.r-project.org")
+}
 library(cli)
-cli_alert_success("package [cli] installed")
-cli_alert_info("Installing other packages")
+cli_alert_info("Installing packages")
 
 packages <- c("getPass", "arrow", "jsonlite", "future", "MolgenisArmadillo", "DSI", "devtools", "resourcer", "DSMolgenisArmadillo", "RCurl")
 
@@ -31,8 +32,12 @@ install_requirements_from_cran <- function(packages) {
   cli_progress_bar("Installing packages", total = n_requirements)
   for (i in 1:n_requirements) {
     pkg <- packages[i]
-    cli_alert_info(paste0("Installing ", pkg))
-    install.packages(pkg, repos = "http://cran.us.r-project.org", quiet=TRUE)
+    if (pkg %in% installed.packages()){
+      cli_alert_info(sprintf("Package [%s] already installed, skipping.", pkg))
+    } else{ 
+      cli_alert_info(paste0("Installing ", pkg))
+      install.packages(pkg, repos = "http://cran.us.r-project.org", quiet=TRUE)
+    }
     cli_progress_update()
   }
   cli_progress_done()
