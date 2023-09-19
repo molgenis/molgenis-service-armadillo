@@ -10,6 +10,7 @@ import {
   isDuplicate,
   sanitizeObject,
   isEmptyObject,
+  shortenFileName,
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -67,6 +68,25 @@ describe("utils", () => {
       ];
       expect(actual).toMatchObject(sorted);
     });
+  });
+
+  describe("shortenFileName", () => {
+    it("should shorten string longer than maximum allowed", () => {
+      const actual = shortenFileName("averylongstringthatisoverthemaximumallowed.parquet")
+      expect(actual).toBe("averylongstrin{..}.parquet")
+    });
+    it("should not shorten string if shorter than maximum allowed", () => {
+      const actual = shortenFileName("somefile.parquet")
+      expect(actual).toBe("somefile.parquet")
+    });
+    it("should not shorten string if no extension is supplied", () => {
+      const actual = shortenFileName("averlongstringthatisovermaximumbutnoextension")
+      expect(actual).toBe("averlongstringthatisovermaximumbutnoextension")
+    });
+    it("should function even if the extension is gzipped tsv", () => {
+      const actual = shortenFileName("averylongstringthatisoverthemaximumallowed.tsv.gz")
+      expect(actual).toBe("averylongstrin{..}.tsv.gz")
+    })
   });
 
   describe("truncate", () => {

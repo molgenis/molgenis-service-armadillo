@@ -19,14 +19,38 @@ service provides the following features:
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/docs/img/overview-datashield.png)
 
 # Armadillo installation
-Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo as a service on Ubuntu, as a Docker container or as java jar file.
-Note that for production you should add a https proxy for essential security:
+Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
+Note that for production you should add a https proxy for essential security. And you might need to enable 'Docker socket' on your docker service.
 
-### As service on Ubuntu
+### Run Armadillo using java commandline
+Software developers often run Armadillo as java jar file: 
+
+1. Install Java and Docker (for the DataSHIELD profiles)
+2. Download Armadillo jar file from [releases](https://github.com/molgenis/molgenis-service-armadillo/releases), for example:
+[molgenis-armadillo-3.3.0.jar](https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/)
+3. Run armadillo using ```java -jar molgenis-armadillo-3.3.0.jar```
+4. Go to http://localhost:8080 to see your Armadillo running.
+
+Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change 
+by providing and editing [application.yaml](application.template.yml) file
+in your working directory and then run command above again.
+
+### Run Armadillo via docker compose
+For testing without having to installing Java you can run using docker:
+
+1. Install [docker-compose](https://docs.docker.com/compose/install/)
+2. Download this [docker-compose.yml](docker-compose.yml).
+3. Execute ```docker-compose up```
+4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
+
+The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables 
+(see commented code in docker-compose file).
+
+### Run Armadillo as service on Ubuntu
 We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on
 CentOS (using yum instead of apt).
 
-#### 1. install necessary software
+#### 1. Install necessary software
 ```
 apt update
 apt install openjdk-19-jre-headless
@@ -34,7 +58,7 @@ apt install docker.io
 ```
 Note: you might need 'sudo'
 
-#### 2.run installation script
+#### 2. Run installation script
 This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases):
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
@@ -51,69 +75,17 @@ bash armadillo-setup.sh \
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
 
-### As docker compose
-For testing without having to install anything we regularly use docker-compose:
+### Running Armadillo from source code
 
-#### 1. Create a [docker-compose.yml](https://docs.docker.com/compose/) file like this one:
-```
-version: "3.4"
-services:
-  armadillo:
-    image: molgenis/molgenis-armadillo-snapshot:latest
-    environment:
-      SPRING_PROFILES_ACTIVE: basic
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-    ports:
-      - 8080:8080
-    volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-```
-Note that we made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles.
-Alternatively you can include the datashield profiles into this docker compose also.
+You can run from source code as follows:
+1. Install Java and Docker
+2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
+3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings (will be .gitignored)
+4. Compile and execute the code using ```./gradlew run```
 
-#### 2. Run the docker-compose as follows
-```
-docker-compose up
-```
-Note: command must run in same directory as file above
-
-Once it reports 'Started' you can visit Armadillo at [http://localhost:8080](http://localhost:8080)
-
-### As java commandline
-Finally, as developer we regularly test using the released java jar file. This also requires Java and Docker:
-
-#### 1. Download jar file from a release [release](https://github.com/molgenis/molgenis-service-armadillo/releases), e.g.
-E.g. https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/molgenis-armadillo-3.3.0.jar
-
-#### 2. Start using java
-```
-java -Dspring.profiles.active=basic -Dspring.security.user.password=admin -jar molgenis-armadillo-3.3.0.jar
-```
-Optionally, you can include also a complete OIDC configuration
-```
-java \
--Dspring.security.oauth2.client.registration.molgenis.client-id=yyy \
--Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx \
--Dspring.security.user.password=admin \
--jar molgenis-armadillo-3.3.0.jar
-```
-
-#### 3. Go to http://localhost:8080
-You can sign in using 'basic-auth' with user 'admin' and password set above.
-If you didn't set admin password then notice 'Using generated security password: ....' to find your 'admin' password.
-
-Note: you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
-
-### Setup HTTPS proxy
-To secure your Armadillo we recommend use of a HTTPS reverse proxy. We use nginx, see an example configuration [here](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/conf/armadillo-nginx.conf).
+Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
 
 # Using Armadillo
-
 Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
 
 ### Create data access projects
@@ -142,36 +114,65 @@ A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-d
 loaded into an R session on the Armadillo server specifically created for the researcher. Analysis requests are sent to the R session on each Armadillo server.
 There the analysis is performed and aggregated results are sent back to the client.
 
+# Developing Armadillo
+
+We use gradle to build:
+* run using ```./gradlew run```
+* run tests using ```./gradlew test```
+
+We use intellij to develop
+* To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
+* To run using oidc, create a copy of [application.yml](application.template.yml) in root of your project
+
+We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
+
+# Developing DataSHIELD packages in Armadillo
+As package developer will want to push your new packages into a DataSHIELD profile
+
+* You can start Armadillo with defaults as described above; then use admin/admin as authentication
+* to see what profile are available and has been selected:
+```
+curl -u admin:admin http://localhost:8080/profiles
+```
+* to change selected profile 'my-profile':
+```
+curl -X POST http://localhost:8080/select-profile \
+  -H 'Content-Type: application/json' \
+  -d 'default'
+```
+* to install-packages in DataSHIELD current using admin user:
+```
+curl -u admin:admin -v \
+-H 'Content-Type: multipart/form-data' \
+-F "file=@dsBase_6.3.0.tar.gz" \
+-X POST http://localhost:8080/install-package
+```
+* to update whitelist of your current profile:
+```
+curl -u admin:admin -X POST http://localhost:8080/whitelist/dsBase
+```
+* to get whitelist of current profile:
+```
+curl -u admin:admin http://localhost:8080/whitelist
+```
+
 # Frequently asked questions
+
+### Docker gives a 'java.socket' error
+You might need to enable Docker socket. On Docker desktop you can find that under 'settings' and 'advanced'.
 
 ### Can I use docker compose to start profiles?
 Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
-Then inside of Armadillo you only need to configure the images. For example:
-```
-version: "3.4"
-services:
-  armadillo:
-    image: molgenis/molgenis-armadillo-snapshot:latest
-    environment:
-      SPRING_PROFILES_ACTIVE: basic
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-    ports:
-      - 8080:8080
-    volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/data
-  rserver:
-    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:6.2.0
-    environment:
-      DEBUG: "FALSE"
-    ports:
-      # host port: container port
-      - 6311:6311
+See commented section in docker-compose.yml file.
 
+### Can I pass environment or commandline variables instead of application.yml?
+
+Yes, it is standard spring. 
+
+### Can I run Armadillo with oauth2 config offline?
+Yes, you can run in 'offline' profile
+```
+./gradlew run -Dspring.profiles.active=offline
 ```
 
 ### How to import data from Armadillo 2?
