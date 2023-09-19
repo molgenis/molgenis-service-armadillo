@@ -438,8 +438,14 @@ show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmad
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
 
-cat("\nEnter URL of testserver (for default https://armadillo-demo.molgenis.net/, press enter): ")
-armadillo_url <- readLines("stdin", n=1)
+readRenviron("dev.env")
+armadillo_url = Sys.getenv("ARMADILLO_URL")
+if(armadillo_url == ""){
+  cat("\nEnter URL of testserver (for default https://armadillo-demo.molgenis.net/, press enter): ")
+  armadillo_url <- readLines("stdin", n=1)
+} else {
+    cat("ARMADILLO_URL from '.env' file\n")
+}
 
 if(armadillo_url == ""){
   armadillo_url = "https://armadillo-demo.molgenis.net/"
@@ -461,15 +467,31 @@ if(url.exists(armadillo_url)) {
   exit_test(msg)
 }
 
-cat("Location of molgenis-service-armadillo on your PC (for default ~/git/, press enter, if not available press x): ")
-service_location <- readLines("stdin", n=1)
+service_location = Sys.getenv("GIT_CHECKOUT_DIR")
+if(service_location == ""){
+  cat("Location of molgenis-service-armadillo on your PC (for default ~/git/, press enter, if not available press x): ")
+  service_location <- readLines("stdin", n=1)
+} else {
+   cat("GIT_CHECKOUT_DIR from '.env' file\n")
+}
+
 dest <- ""
 
-cat("Enter password for admin user (basic auth)\n")
-admin_pwd<- getPass::getPass()
+admin_pwd = Sys.getenv("ADMIN_PASSWORD")
+if(service_location == ""){
+  cat("Enter password for admin user (basic auth)\n")
+  admin_pwd<- getPass::getPass()
+} else {
+  cat("ADMIN_PASSWORD from '.env' file\n")
+}
 
-cat("Enter your OIDC username (email): ")
-user <- readLines("stdin", n=1)
+user = Sys.getenv("OIDC_EMAIL")
+if(user == ""){
+  cat("Enter your OIDC username (email): ")
+  user <- readLines("stdin", n=1)
+} else {
+   cat("OIDC_EMAIL from '.env' file\n")
+}
 
 if(service_location == "") {
   dest = "~/git/molgenis-service-armadillo/data/shared-lifecycle/"
