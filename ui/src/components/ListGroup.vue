@@ -14,7 +14,8 @@
           v-if="altIconCondition(key) && rowIconAlt"
           :class="`bi bi-${rowIconAlt}`"
         ></i>
-        <i v-else :class="`bi bi-${rowIcon}`"></i> {{ key }}
+        <i v-else :class="`bi bi-${rowIcon}`"></i>
+        {{ handleListGroupItemDisplayKey(key) }}
         <i class="bi bi-chevron-right float-end" v-if="key == selectedItem"></i>
       </a>
     </li>
@@ -29,6 +30,7 @@
 
 <script lang="ts">
 import { BootstrapType, StringArray } from "@/types/types";
+import { shortenFileName } from "@/helpers/utils";
 import { PropType } from "vue";
 
 export default {
@@ -63,6 +65,14 @@ export default {
         this.selectedItem = newItem;
       } else {
         this.selectedItem = "";
+      }
+    },
+    handleListGroupItemDisplayKey(key: string): string {
+      // Check if file
+      if (this.rowIcon == "table") {
+        return shortenFileName(key);
+      } else {
+        return key;
       }
     },
   },
