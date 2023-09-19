@@ -154,6 +154,13 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
+          for (var profile_index in profiles) {
+            // Extract options.datashield.seed into proper column
+            profiles[profile_index].datashieldSeed =
+              profiles[profile_index].options["datashield.seed"];
+            // Delete required or else shows when creating or editing profiles
+            delete profiles[profile_index].options["datashield.seed"];
+          }
           return profiles;
         })
         .catch((error: string) => {
@@ -213,6 +220,13 @@ export default defineComponent({
       }
       return port;
     },
+    firstFreeSeed(): string {
+      let seed = 100000000;
+      while (this.profiles.find((profile) => profile.datashieldSeed == seed)) {
+        seed++;
+      }
+      return String(seed);
+    },
     profilesDataStructure(): TypeObject {
       let columns: TypeObject = {
         name: "string",
@@ -221,6 +235,7 @@ export default defineComponent({
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
+        datashieldSeed: "string",
         options: "object",
       };
 
@@ -278,6 +293,7 @@ export default defineComponent({
     },
     proceedEdit(profile: Profile) {
       this.addProfile = false;
+      profile.options["datashield.seed"] = profile.datashieldSeed;
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -334,6 +350,7 @@ export default defineComponent({
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
+        datashieldSeed: this.firstFreeSeed,
         options: {},
         container: { tags: [], status: "unknown" },
       });
