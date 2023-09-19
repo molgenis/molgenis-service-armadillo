@@ -42,4 +42,3 @@ logging:
   level:
     ## change to DEBUG to have more details, typically when developing
     org.molgenis: INFO
-
