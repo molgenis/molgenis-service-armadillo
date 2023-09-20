@@ -3,7 +3,7 @@
 """
 User export script to aid in migration
 
-This script gets users and their assigned cohorts from Fusion Auth to Armadillo.
+This script gets users and their assigned cohorts from Fusion Auth and exports those cohorts with their users to TSV.
 It will group each user by cohort and will export it as TSV to a given export location, so that upon
 request this TSV can be used to set users to their appropriate cohorts.
 """
@@ -84,6 +84,7 @@ class FusionClientParser:
         self._process_cohorts(self.client.get_cohorts())
         self._parse_users(self.client.get_users())
         self._warn_empty_cohorts()
+        self._warn_unparsed_users()
         return self.cohort_dict
 
     def _warn_empty_cohorts(self):
@@ -133,16 +134,16 @@ class FusionClientParser:
         Nothing happens if a user cannot be mapped to an already known Application.
         """
         self._parse_unregistered_users(users)
-        user_mail = False
         for user in users['id'].values:
             current_user = users.loc[users[users['id'] == user].index, :]
             user_mail = current_user.iloc[0, :]['email']
             user_registrations = list(current_user['registrations'].values[0])
+            user_registration_known = False
             for registration in user_registrations:
                 identifier = registration['applicationId']
                 if identifier in self.cohort_dict.keys():
-                    # Setting user_name to false, so that it doesn't get added to unparsed users
-                    user_mail = False
+                    # Setting user to a known registration, so that it doesn't get added to unparsed users
+                    user_registration_known = True
                     if "roles" not in registration.keys():
                         roles = np.nan
                     else:
@@ -152,8 +153,8 @@ class FusionClientParser:
                         current_user['email'].values[0],
                         roles
                     )
-        if user_mail:
-            self.users_not_parsed.append(user_mail)
+            if not user_registration_known:
+                self.users_not_parsed.append(user_mail)
 
     @staticmethod
     def _process_roles(roles):
