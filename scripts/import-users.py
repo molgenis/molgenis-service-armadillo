@@ -63,9 +63,10 @@ class ProjectDataParser:
         # Then create an intermediate with only valid characters
         name = "".join(
             [c for c in filename.replace("-", "") if c.isalnum() or c == "_"]
-        )
-        # Then clean up starting spaces
+        ).strip()
+        # Then clean up starting underscores
         name = re.sub(r"^_*", "", name)
+        # Replacing one or more underscores with -
         name = re.sub(r"_+", "-", name)
         return name.lower()
 
@@ -104,8 +105,8 @@ class ProjectDataParser:
 class ProjectProcessor:
     def __init__(self, api):
         self.api = api
-        self.su = []
-        self.current_su = self._obtain_current_su(api)
+        self.superusers = []
+        self.current_superusers = self._obtain_current_superusers(api)
 
     def parse(self, cohort_data):
         """
@@ -128,7 +129,7 @@ class ProjectProcessor:
         self._add_admin_rights()
 
     @staticmethod
-    def _obtain_current_su(api):
+    def _obtain_current_superusers(api):
         """
         Method to obtain the already present superusers / admins from the target URL, to make sure
         that current admins do not lose their privilege.
@@ -141,12 +142,12 @@ class ProjectProcessor:
                 Returns a list containing the email address of all users currently marked as admin
                 in the target armadillo URL.
         """
-        su_users = []
+        super_users = []
         users = api.get_users()
         for user in users:
             if user["admin"]:
-                su_users.append(user['email'])
-        return su_users
+                super_users.append(user['email'])
+        return super_users
 
     def _put_user(self, email, admin, firstname="", lastname=""):
         """
@@ -198,8 +199,8 @@ class ProjectProcessor:
                 "email"
             ]
         for user in su:
-            if user not in self.su:
-                self.su.append(user)
+            if user not in self.superusers:
+                self.superusers.append(user)
 
     def _process_uncategorized_users(self, uncategorized_users):
         """
@@ -214,7 +215,7 @@ class ProjectProcessor:
         uncategorized_users.apply(
             lambda x: self._put_user(
                 email=x['email'],
-                admin=x['email'] in self.current_su,
+                admin=x['email'] in self.current_superusers,
                 firstname=x['firstName'],
                 lastname=x['lastName']
             ), axis=1
@@ -225,7 +226,7 @@ class ProjectProcessor:
         Method to be used last after all users and cohorts have been added, to give back admin rights to the users
         that used to have it.
         """
-        for user in self.su:
+        for user in self.superusers:
             self._put_user(email=user, admin=True)
 
 
