@@ -47,6 +47,14 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    nRows: {
+      type: Number,
+      required: true,
+    },
+    nCols: {
+      type: Number,
+      required: true,
+    },
   },
   computed: {
     maxNumberCharacters() {
