@@ -292,29 +292,19 @@ export default defineComponent({
             this.clearFilePreview();
             this.loading_preview = false;
           });
-        getFileDetails(
-          this.projectId,
-          `${this.selectedFolder}%2F${this.selectedFile}`
-        )
-          .then((data) => {
-            this.dataSizeRows = data["rows"];
-            this.dataSizeColumns = data["columns"];
-          })
-          .catch((error) => {
-            this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-          });
-      } else {
-        getFileDetails(
-          this.projectId,
-          `${this.selectedFolder}%2F${this.selectedFile}`
-        )
-          .then((data) => {
-            this.fileSize = data["size"];
-          })
-          .catch((error) => {
-            this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-          });
       }
+      getFileDetails(
+        this.projectId,
+        `${this.selectedFolder}%2F${this.selectedFile}`
+      )
+        .then((data) => {
+          this.fileSize = data["size"];
+          this.dataSizeRows = data["rows"];
+          this.dataSizeColumns = data["columns"];
+        })
+        .catch((error) => {
+          this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+        });
     },
     project() {
       this.setProjectContent();
