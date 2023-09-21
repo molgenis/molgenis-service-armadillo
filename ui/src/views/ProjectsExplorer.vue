@@ -135,7 +135,7 @@
                 Preview:
                 <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
-                  `${dataSizeColumns}x${dataSizeRows}`
+                  `${dataSizeRows}x${dataSizeColumns}`
                 }})
               </div>
               <SimpleTable
