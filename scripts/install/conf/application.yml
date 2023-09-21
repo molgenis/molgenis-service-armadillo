@@ -1,8 +1,7 @@
 armadillo:
-  # set this to 'true' if you want to accept permissions from oidc provider
-  oidc-permission-enabled: false
-  # set this true if you want Armadillo to create/edit/delete profile docker images
+  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
   docker-management-enabled: true
+
   # uncomment this to configure a default admin user
   # oidc-admin-user: @ADMIN_EMAIL@
 
@@ -12,35 +11,23 @@ armadillo:
       port: 6311
       package-whitelist:
         - dsBase
-      function-blacklist: []
+      function-blacklist: [ ]
       options:
         datashield:
           # the seed can only be 9 digits
           seed: @SEED@
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-
-server:
-  forward-headers-strategy: framework
-  error:
-    include-binding-errors: always
-    include-message: always
 
 audit:
   log:
     path: @LOGPATH@/audit.log
 
 spring:
+  # optional settings (review spring handbook to find more):
   servlet:
     multipart:
-      max-file-size: 500MB
-      max-request-size: 500MB
-    application:
-      name: armadillo
+      ## change this if your files are bigger
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   security:
     user:
       name: @ADMINUSER@
@@ -63,25 +50,6 @@ spring:
           issuer-uri: @ISSUERURL@
         opaquetoken:
           client-id: @CLIENTID@
-  config:
-    activate:
-      on-profile: default 
-
-logging:
-  config: classpath:logback-file.xml
-  pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
-  level:
-    org.molgenis: DEBUG
-    org:
-      springframework:
-        boot:
-          actuate:
-            audit:
-              listener:
-                AuditListener: INFO
-          web:
-            context: DEBUG
 
 storage:
   root-dir: @DATADIR@

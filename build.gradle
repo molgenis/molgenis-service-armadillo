@@ -70,9 +70,6 @@ bootJar {
 application {
     mainClass.set(mainClassName)
 }
-run {
-    environment 'SPRING_PROFILES_ACTIVE', 'development'
-}
 
 //define release
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
