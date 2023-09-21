@@ -31,7 +31,6 @@ spring:
       max-request-size: 1000MB
   application:
     name: armadillo
-  security:
     user:
       name: admin
       password: admin
