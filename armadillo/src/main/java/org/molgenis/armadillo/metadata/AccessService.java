@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.metadata;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
@@ -28,6 +29,10 @@ public class AccessService {
   private AccessMetadata settings;
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
+
+  @Value("#{new Boolean('${spring.security.oauth2.client.registration.molgenis.client-id:false}')}")
+  private boolean oidcPermissionsEnabled;
+
   private final String adminUser;
 
   public AccessService(
@@ -52,6 +57,18 @@ public class AccessService {
   public Collection<GrantedAuthority> getAuthoritiesForEmail(
       String email, Map<String, Object> claims) {
     List<GrantedAuthority> result = new ArrayList<>();
+
+    // optionally, we will extract roles from claims
+    // in this case you can define roles centrally
+    if (oidcPermissionsEnabled) {
+      result.addAll(
+          ((Collection<?>) claims.getOrDefault("roles", emptyList()))
+              .stream()
+                  .map(Object::toString)
+                  .map(role -> "ROLE_" + role.toUpperCase())
+                  .map(SimpleGrantedAuthority::new)
+                  .toList());
+    }
 
     // claims from local permissions store
     result.addAll(

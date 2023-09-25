@@ -23,7 +23,7 @@ public class JwtDecoderConfig {
   private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
   @Value("${spring.profiles.active:default}")
-  private String activeProfile = "default";
+  private String activeProfile;
 
   @Bean
   public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
@@ -41,7 +41,7 @@ public class JwtDecoderConfig {
       jwtDecoder.setJwtValidator(jwtValidator);
       return jwtDecoder;
     } catch (Exception e) {
-      if ("development".equals(activeProfile)) {
+      if ("offline".equals(activeProfile)) {
         // allow offline development
         LOG.error("Couldn't configure JWT decoder", e);
         return token -> {

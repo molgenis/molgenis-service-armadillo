@@ -127,18 +127,22 @@
             ></LoadingSpinner>
             <div v-if="isNonTableType(selectedFile)">
               <div class="fst-italic">
-                No preview available for: {{ selectedFile }}
+                No preview available for: {{ selectedFile }} ({{ fileSize }})
               </div>
             </div>
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
                 <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
-                {{ `${selectedFile.replace(".parquet", "")}` }}
+                {{ `${selectedFile.replace(".parquet", "")}` }} ({{
+                  `${dataSizeRows}x${dataSizeColumns}`
+                }})
               </div>
               <SimpleTable
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
+                :n-rows="dataSizeRows"
+                :n-cols="dataSizeColumns"
               ></SimpleTable>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
@@ -159,7 +163,12 @@ import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { getProject, deleteObject, previewObject } from "@/api/api";
+import {
+  getProject,
+  deleteObject,
+  previewObject,
+  getFileDetails,
+} from "@/api/api";
 import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
@@ -255,6 +264,9 @@ export default defineComponent({
       loading_preview: false,
       successMessage: "",
       filePreview: [{}],
+      fileSize: "",
+      dataSizeRows: 0,
+      dataSizeColumns: 0,
       createNewFolder: false,
       newFolder: "",
       projectContent: {},
@@ -281,6 +293,18 @@ export default defineComponent({
             this.loading_preview = false;
           });
       }
+      getFileDetails(
+        this.projectId,
+        `${this.selectedFolder}%2F${this.selectedFile}`
+      )
+        .then((data) => {
+          this.fileSize = data["size"];
+          this.dataSizeRows = data["rows"];
+          this.dataSizeColumns = data["columns"];
+        })
+        .catch((error) => {
+          this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+        });
     },
     project() {
       this.setProjectContent();

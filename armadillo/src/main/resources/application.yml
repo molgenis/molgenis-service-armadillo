@@ -1,4 +1,6 @@
 armadillo:
+  # set this to 'true' if you want to accept permissions from oidc provider
+  oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
   # uncomment this to configure a default admin user
@@ -31,13 +33,16 @@ springdoc:
 spring:
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   application:
     name: armadillo
   security:
     user:
       name: admin
+      password: admin
+      roles:
+        - SU
 
 management:
   endpoints:
@@ -55,48 +60,19 @@ audit:
   log:
     path: logs/audit.log
 
-logging:
-  config: classpath:logback-file.xml
-
 storage:
   root-dir: data
 
----
-spring:
-  config:
-    activate:
-      on-profile: development
-  security:
-    user:
-      password: admin
-    oauth2:
-      client:
-        # Uncomment the following section to enable OIDC login via application yaml
-        # however we prefer to do this via commandline/envrionment variables
-        #        registration:
-        #            molgenis:
-        #               client-id: <your client id>
-        #               client-secret: <your client secret>
-        provider:
-          molgenis:
-            issuer-uri: 'https://auth.molgenis.org'
-      resourceserver:
-        jwt:
-          issuer-uri: 'https://auth.molgenis.org'
-        opaquetoken:
-          client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
 logging:
+  config: classpath:logback-file.xml
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
   level:
-    org.molgenis: DEBUG
+    org.molgenis: INFO
     org:
       springframework:
-        security: DEBUG
         boot:
           actuate:
             audit:
               listener:
                 AuditListener: INFO
-          web:
-            context: DEBUG

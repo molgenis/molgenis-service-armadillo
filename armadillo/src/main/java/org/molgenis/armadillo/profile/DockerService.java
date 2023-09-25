@@ -148,6 +148,8 @@ public class DockerService {
       } catch (Exception e2) {
         throw new ImageStopFailedException(profileName, e);
       }
+    } catch (Exception e) {
+      throw new ImageStopFailedException(profileName, e);
     }
   }
 
