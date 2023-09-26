@@ -177,7 +177,7 @@ services:
 ### How to import data from Armadillo 2?
 To export data from and Armadillo 2 server take the following steps:
 
-### 1. Check if there's enough space left on the server
+#### 1. Check if there's enough space left on the server
 ```
 du -h
 ```
