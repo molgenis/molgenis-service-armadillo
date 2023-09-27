@@ -64,7 +64,7 @@ dependencies {
     testImplementation 'com.c4-soft.springaddons:spring-security-oauth2-test-webmvc-addons:4.5.1'
 
     //annotation processor
-    annotationProcessor "com.google.auto.value:auto-value:1.10.1"
+    annotationProcessor "com.google.auto.value:auto-value:1.10.4"
 }
 
 jacocoTestReport {
