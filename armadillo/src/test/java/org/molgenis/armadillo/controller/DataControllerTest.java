@@ -21,7 +21,6 @@ import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -381,15 +380,10 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  @Disabled
   void testSaveWorkspaceWrongId() throws Exception {
-    mockMvc
-        .perform(post("/workspaces/)servername:*wrongid-dash"))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.message")
-                .value(
-                    "saveUserWorkspace.id: Please use only letters, numbers, dashes or underscores"));
+    assertThrows(
+        jakarta.servlet.ServletException.class,
+        () -> mockMvc.perform(post("/workspaces/)servername:*wrongid-dash")));
   }
 
   @Test

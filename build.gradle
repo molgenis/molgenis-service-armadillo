@@ -86,12 +86,6 @@ application {
 
 //define release
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
-//semanticRelease {
-//    repo {
-//        releaseAsset bootJar.archivePath
-//        ghToken = project.ext.ghToken
-//    }
-//}
 
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'

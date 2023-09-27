@@ -9,15 +9,18 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.github.dockerjava.api.DockerClient;
 import org.junit.jupiter.api.Test;
+import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(CurrentUserController.class)
+@Import({TestSecurityConfig.class})
 class CurrentUserControllerTest extends ArmadilloControllerTestBase {
 
   @MockBean DockerClient dockerClient;
