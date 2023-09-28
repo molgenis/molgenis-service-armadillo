@@ -3,7 +3,6 @@ plugins {
     id "io.spring.dependency-management" version "1.1.3"
     id "java"
     id "org.sonarqube" version "3.5.0.2730"
-    //id "de.gliderpilot.semantic-release" version "1.4.2"
     id 'maven-publish'
     id 'application'
     id "jacoco"
@@ -31,6 +30,14 @@ allprojects {
 println "Corrected version checking for optional snapshot: " + rootProject.version
 nyxPublish.dependsOn assemble
 
+println "Git version: " + gitHash
+
+// FIXME: We should check if name-ref contains tag or not.
+// > Git name-ref: tags/v3.4.1
+// > Git name-ref: renovate/major-spring-boot
+// When no 'tags' append hash to SNAPSHOT
+// When 'tags' remove 'SNAPSHOT'.
+println "Git name-ref: " + getGitNameRef()
 
 repositories {
     mavenLocal()
@@ -49,6 +56,17 @@ String getGitHash() {
     def result = command.waitFor()
     if (result != 0) {
         throw new IOException("Command 'getGitHash()' exited with " + result)
+    }
+    String gitCommitHash = command.inputStream.text.trim()
+    return gitCommitHash
+}
+
+String getGitNameRef() {
+
+    def command = Runtime.getRuntime().exec("git name-rev --name-only HEAD")
+    def result = command.waitFor()
+    if (result != 0) {
+        throw new IOException("Command 'getGitNameRef()' exited with " + result)
     }
     String gitCommitHash = command.inputStream.text.trim()
     return gitCommitHash
@@ -77,6 +95,7 @@ bootJar {
                 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
         )
     }
+
 }
 
 //define run
@@ -139,9 +158,3 @@ task installLocalGitHook(type: Copy) {
     fileMode 0775
 }
 build.dependsOn installLocalGitHook
-
-//jar {
-//    enabled = false
-//    destinationDir = tasks.bootJar.getDestinationDir()
-//    archiveName = tasks.bootJar.getArchiveName()
-//}
