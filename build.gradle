@@ -9,16 +9,12 @@ plugins {
     id 'com.palantir.docker' version '0.34.0'
 }
 
-//grgit.remote.list().each { println it }
-
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
-println "=" * 40
 allprojects {
     group = 'org.molgenis'
-    println "NYX prev: " + rootProject.nyxState.releaseScope.previousVersion
-    println "Project: " + project.version
+
     if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
             //temporarily also compare to 'v' because we are remove this prefix
             rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
@@ -29,27 +25,22 @@ allprojects {
     }
     version = version.replace("v","")
 }
+
+if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
+    def x = getGitNameRef().replace("tags/", "")
+    println "HEAD is on tag so removing SNAPSHOT: " + x
+    version = version.replace("-SNAPSHOT", "")
+}
+else {
+    version = version + "-" + gitHash
+}
+
 println "Corrected version checking for optional snapshot: " + rootProject.version
 nyxPublish.dependsOn assemble
 
-if(getGitNameRef().contains('tags/')) {
-    if (!getGitNameRef().contains('~')) {
-        def x = getGitNameRef().replace('tags/', '')
-        println "HEAD is on tag so remove SNAPSHOT: " + x
-        version = version.replace("-SNAPSHOT", "")
-    }
-    else {
-        version = version + gitHash
-    }
-}
-println "Git version: " + gitHash
-
-// FIXME: We should check if name-ref contains tag or not.
-// > Git name-ref: tags/v3.4.1
-// > Git name-ref: renovate/major-spring-boot
-// When no 'tags' append hash to SNAPSHOT
-// When 'tags' remove 'SNAPSHOT'.
-println "Git name-ref: " + getGitNameRef()
+println "Project version : " + version
+println "Git version     : " + gitHash
+println "Git name-ref    : " + getGitNameRef()
 
 repositories {
     mavenLocal()
