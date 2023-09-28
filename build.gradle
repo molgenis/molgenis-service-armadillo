@@ -14,9 +14,11 @@ plugins {
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
+println "=" * 40
 allprojects {
     group = 'org.molgenis'
-
+    println "NYX prev: " + rootProject.nyxState.releaseScope.previousVersion
+    println "Project: " + project.version
     if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
             //temporarily also compare to 'v' because we are remove this prefix
             rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
@@ -30,6 +32,16 @@ allprojects {
 println "Corrected version checking for optional snapshot: " + rootProject.version
 nyxPublish.dependsOn assemble
 
+if(getGitNameRef().contains('tags/')) {
+    if (!getGitNameRef().contains('~')) {
+        def x = getGitNameRef().replace('tags/', '')
+        println "HEAD is on tag so remove SNAPSHOT: " + x
+        version = version.replace("-SNAPSHOT", "")
+    }
+    else {
+        version = version + gitHash
+    }
+}
 println "Git version: " + gitHash
 
 // FIXME: We should check if name-ref contains tag or not.
