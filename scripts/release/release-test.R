@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 cat("
   __  __  ____  _      _____ ______ _   _ _____  _____                                     _ _ _ _
  |  \\/  |/ __ \\| |    / ____|  ____| \\ | |_   _|/ ____|     /\\                            | (_) | |
@@ -58,6 +59,7 @@ exit_test <- function(msg){
   cli_alert_danger(msg)
   cond = structure(list(message=msg), class=c("exit", "condition"))
   signalCondition(cond)
+  stop(cond)
 }
 
 create_bearer_header <- function(token){
@@ -494,6 +496,9 @@ if(user == ""){
 }
 
 if(service_location == "") {
+  # FIXME: as we are in same git repo path could be relative to this path?
+  # ../../data/shared-lifecycle/
+  # guess we have to download/copy to a tmp directory before uploading to armadillo.
   dest = "~/git/molgenis-service-armadillo/data/shared-lifecycle/"
 } else if (service_location == "x") {
   cat("Do you want to download the files? (y/n) ")
@@ -535,22 +540,30 @@ if(service_location == "") {
   }
 }
 
-cat("Do you have testfile [gse66351_1.rda] downloaded? (y/n) ")
-rda_available = readLines("stdin", n=1)
-rda_dir = ""
-test_resource = "gse66351_1.rda"
-if (rda_available == "y"){
-  cat(sprintf("Specify path to %s (including filename): ", test_resource))
-  rda_dir = readLines("stdin", n=1)
-} else {
-  cat("Where do you want to download it: ")
-  download_dir = readLines("stdin", n=1)
-  download_dir <- add_slash_if_not_added(download_dir)
-  if(dir.exists(download_dir)){
-    cli_alert_info(sprintf("Downloading %s into %s", test_resource, download_dir))
-    download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", paste0(download_dir, test_resource))
-    rda_dir = paste0(download_dir, test_resource)
+rda_dir = user = Sys.getenv("RDA_TEST_DIR")
+if(rda_dir == ""){
+  # FIXME: Similar to above
+  # - we can define a directory for downloading files
+  # - if file 'gse66351_1.rda' does not exists there download it
+  cat("Do you have testfile [gse66351_1.rda] downloaded? (y/n) ")
+  rda_available = readLines("stdin", n=1)
+  rda_dir = ""
+  test_resource = "gse66351_1.rda"
+  if (rda_available == "y"){
+    cat(sprintf("Specify path to %s (including filename): ", test_resource))
+    rda_dir = readLines("stdin", n=1)
+  } else {
+    cat("Where do you want to download it: ")
+    download_dir = readLines("stdin", n=1)
+    download_dir <- add_slash_if_not_added(download_dir)
+    if(dir.exists(download_dir)){
+      cli_alert_info(sprintf("Downloading %s into %s", test_resource, download_dir))
+      download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", paste0(download_dir, test_resource))
+      rda_dir = paste0(download_dir, test_resource)
+    }
   }
+} else {
+   cat("RDA_TEST_DIR from '.env' file\n")
 }
 
 cli_alert_info("Checking if rda dir exists")
@@ -566,8 +579,14 @@ cat("\nAvailable profiles: \n")
 profiles <- get_from_api("profiles")
 print_list(unlist(profiles$available))
 
-cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
-profile <- readLines("stdin", n=1)
+profile = Sys.getenv("PROFILE")
+if(profile == ""){
+  cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
+  profile <- readLines("stdin", n=1)
+} else {
+  cat("PROFILE from '.env' file\n")
+}
+
 if (profile == "") {
   profile <- "xenon"
 }
