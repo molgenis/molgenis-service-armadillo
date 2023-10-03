@@ -37,6 +37,8 @@ import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -62,6 +64,8 @@ public class DataController {
   private final AuditEventPublisher auditEventPublisher;
   private final ExpressionRewriter expressionRewriter;
   private final DSEnvironmentCache dsEnvironmentCache;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataController.class);
 
   public DataController(
       Commands commands,
@@ -317,13 +321,20 @@ public class DataController {
   @Operation(summary = "Get last command")
   @GetMapping(value = "/lastcommand", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ArmadilloCommandDTO> getLastCommand() {
-    return ResponseEntity.of(commands.getLastCommand());
+    Optional<ArmadilloCommandDTO> x = commands.getLastCommand();
+    // FIXME: remove?
+    LOGGER.trace("XXXX");
+    LOGGER.debug(String.valueOf(x));
+    return ResponseEntity.of(x);
   }
 
   @Operation(summary = "Get last result")
   @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(OK)
   public CompletableFuture<ResponseEntity<byte[]>> lastResult() {
+    // FIXME: remove?
+    LOGGER.trace("YYYY");
+    LOGGER.trace(String.valueOf(commands.getLastExecution()));
     return commands
         .getLastExecution()
         .map(

@@ -28,13 +28,16 @@ public class RExecutorServiceImpl implements RExecutorService {
   @Override
   public RServerResult execute(String cmd, boolean serialized, RServerConnection connection) {
     try {
-      LOGGER.debug("Evaluate {}", cmd);
+      // FIXME: remove?
+      LOGGER.trace("Evaluate {}", cmd);
       RServerResult result = connection.eval(cmd, serialized);
       if (result == null) {
         throw new RExecutionException("Eval returned null");
       }
       return result;
     } catch (RServerException e) {
+      // FIXME: remove?
+      LOGGER.warn("RServerException", e);
       throw new RExecutionException(e);
     }
   }
