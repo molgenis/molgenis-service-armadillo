@@ -14,20 +14,12 @@ public class MDCInterceptor implements WebRequestInterceptor {
   @Override
   public void preHandle(WebRequest webRequest) throws Exception {
     MDC.put("sessionID", webRequest.getSessionId());
-    // FIXME: remove
-    LOGGER.trace(
-        "preHandle: "
-            + webRequest.getUserPrincipal()
-            + " :: "
-            + webRequest.getSessionId()
-            + " :: "
-            + webRequest.getRemoteUser());
+    LOGGER.trace("preHandle");
   }
 
   @Override
   public void postHandle(WebRequest webRequest, ModelMap modelMap) throws Exception {
-    // FIXME: remove
-    LOGGER.trace("postHandle", webRequest);
+    LOGGER.trace("postHandle");
   }
 
   @Override
