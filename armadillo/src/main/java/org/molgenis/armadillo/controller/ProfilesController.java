@@ -146,7 +146,7 @@ public class ProfilesController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(OK)
+  @ResponseStatus(NO_CONTENT)
   public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
     auditor.audit(
         () -> profiles.upsert(profileConfig),
