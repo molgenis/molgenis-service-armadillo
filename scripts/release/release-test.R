@@ -36,7 +36,12 @@ library(stringi)
 library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
+
+# FIXME: waiting for PR https://github.com/molgenis/molgenis-r-datashield/pull/62
+#        needed for https://github.com/molgenis/molgenis-service-armadillo/pull/277
+#devtools::install("/Users/clemens/Documents/GitHub/molgenis-r-datashield/")
 library(DSMolgenisArmadillo)
+
 library(resourcer)
 
 # set when admin password given + question answered with y
@@ -135,6 +140,7 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
 get_from_api <- function(endpoint) {
   cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
   response <- GET(paste0(armadillo_url, endpoint))
+  cat(paste0('get_from_api', ' for ', endpoint, " results ", response$status_code))
   return(content(response))
 }
 
@@ -440,9 +446,14 @@ show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmad
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
 
-readRenviron("dev.env")
+cat("Trying to read config from '.env'")
+readRenviron(".env")
+
+# FIXME: The code below (empty test and else) are not DRY. Make it a bool function
 armadillo_url = Sys.getenv("ARMADILLO_URL")
 if(armadillo_url == ""){
+  cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
+
   cat("\nEnter URL of testserver (for default https://armadillo-demo.molgenis.net/, press enter): ")
   armadillo_url <- readLines("stdin", n=1)
 } else {
@@ -469,6 +480,7 @@ if(url.exists(armadillo_url)) {
   exit_test(msg)
 }
 
+# FIXME: Rename to DOWNLOAD_PATH? See below fetching them from ../../data/....
 service_location = Sys.getenv("GIT_CHECKOUT_DIR")
 if(service_location == ""){
   cat("Location of molgenis-service-armadillo on your PC (for default ~/git/, press enter, if not available press x): ")
@@ -480,7 +492,7 @@ if(service_location == ""){
 dest <- ""
 
 admin_pwd = Sys.getenv("ADMIN_PASSWORD")
-if(service_location == ""){
+if(admin_pwd == ""){
   cat("Enter password for admin user (basic auth)\n")
   admin_pwd<- getPass::getPass()
 } else {
@@ -499,6 +511,8 @@ if(service_location == "") {
   # FIXME: as we are in same git repo path could be relative to this path?
   # ../../data/shared-lifecycle/
   # guess we have to download/copy to a tmp directory before uploading to armadillo.
+  # Test for data dir
+  # Copy fikes
   dest = "~/git/molgenis-service-armadillo/data/shared-lifecycle/"
 } else if (service_location == "x") {
   cat("Do you want to download the files? (y/n) ")
@@ -540,7 +554,7 @@ if(service_location == "") {
   }
 }
 
-rda_dir = user = Sys.getenv("RDA_TEST_DIR")
+rda_dir = Sys.getenv("RDA_TEST_PATH")
 if(rda_dir == ""){
   # FIXME: Similar to above
   # - we can define a directory for downloading files
@@ -571,12 +585,25 @@ if (rda_dir == "" || !file.exists(rda_dir)) {
   exit_test(sprintf("File [%s] doesn't exist", rda_dir))
 }
 
+# FIXME: Should this be secured?
 app_info <- get_from_api("actuator/info")
 
 version <- unlist(app_info$build$version)
 
+ADMIN_MODE <- admin_pwd != "" && user == ""
+if(ADMIN_MODE){
+  api_token <- admin_pwd
+  token <- ""
+  auth_type <- "basic"
+} else {
+  api_token <- armadillo.get_token(armadillo_url)
+  token <- api_token
+  auth_type <- "bearer"
+}
+
 cat("\nAvailable profiles: \n")
 profiles <- get_from_api("profiles")
+profiles <- get_from_api_with_header("profiles", api_token, auth_type)
 print_list(unlist(profiles$available))
 
 profile = Sys.getenv("PROFILE")
@@ -591,17 +618,7 @@ if (profile == "") {
   profile <- "xenon"
 }
 
-ADMIN_MODE <- admin_pwd != "" && user == ""
 cli_alert_info("Checking if profile is prepared for all tests")
-if(ADMIN_MODE){
-  api_token <- admin_pwd
-  token <- ""
-  auth_type <- "basic"
-} else {
-  api_token <- armadillo.get_token(armadillo_url)
-  token <- api_token
-  auth_type <- "bearer"
-}
 
 create_profile_if_not_available(profile, profiles$available, api_token, auth_type)
 profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), api_token, auth_type)
