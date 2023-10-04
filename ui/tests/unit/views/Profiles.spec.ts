@@ -50,28 +50,51 @@ describe("Profiles", () => {
             push: jest.fn(),
         };
 
-        testData = [
-            {
-                name: "default",
-                image: "datashield/armadillo-rserver",
-                host: "localhost",
-                port: 6311,
-                packageWhitelist: [
-                    "dsBase"
-                ],
-                functionBlacklist: [],
-                datashieldSeed: "100000000",
-                options: {
-                    "datashield.seed": "100000000"
-                },
-                container: {
-                    tags:  [
-                        "datashield/armadillo-rserver:2.0.0",
-                        "datashield/armadillo-rserver:latest"
-                      ],
-                    status: "NOT_RUNNING"
-                }
+        let default_profile_not_running = {
+            name: "default",
+            image: "datashield/armadillo-rserver",
+            host: "localhost",
+            port: 6311,
+            packageWhitelist: [
+                "dsBase"
+            ],
+            functionBlacklist: [],
+            datashieldSeed: "100000000",
+            options: {
+                "datashield.seed": "100000000"
             },
+            container: {
+                tags:  [
+                    "datashield/armadillo-rserver:2.0.0",
+                    "datashield/armadillo-rserver:latest"
+                  ],
+                status: "NOT_RUNNING"
+            }
+        }
+
+        let default_profile_running = {
+            name: "default",
+            image: "datashield/armadillo-rserver",
+            host: "localhost",
+            port: 6311,
+            packageWhitelist: [
+                "dsBase"
+            ],
+            functionBlacklist: [],
+            datashieldSeed: "100000000",
+            options: {
+                "datashield.seed": "100000000"
+            },
+            container: {
+                tags:  [
+                    "datashield/armadillo-rserver:2.0.0",
+                    "datashield/armadillo-rserver:latest"
+                  ],
+                status: "RUNNING"
+            }
+        }
+
+        testData = [default_profile_not_running].concat([
             {
                 name: "profile1",
                 image: "source/some_profile1",
@@ -90,10 +113,16 @@ describe("Profiles", () => {
                     status: "NOT_RUNNING"
                 }
             }
-        ]
+        ]);
 
         api.getProfiles.mockImplementationOnce(() => {
             return Promise.resolve(testData);
+        });
+        api.startProfile.mockImplementationOnce(() => {
+            return Promise.resolve(default_profile_running);
+        });
+        api.stopProfile.mockImplementationOnce(() => {
+            return Promise.resolve(default_profile_not_running);
         });
 
         profileToAdd = {
@@ -187,6 +216,17 @@ describe("Profiles", () => {
         expect(testFunction).toHaveBeenCalled();
     });
 
+    test("returns error when loading profiles fails", async () => {
+        const error = new Error("fail");
+        api.getProfiles.mockImplementation(() => {
+            return Promise.reject(error);
+        });
+        wrapper.vm.reloadProfiles();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.errorMessage).toBe(`Could not load profiles: ${error}.`);
+    });
+
     test("fail to rename default profile", () => {
         wrapper.vm.profiles.unshift(profileToAdd);
         wrapper.vm.profileToEditIndex = 0;
@@ -199,5 +239,23 @@ describe("Profiles", () => {
         wrapper.vm.addNewProfile();
         wrapper.vm.saveEditedProfile();
         expect(wrapper.vm.errorMessage).toBe("Cannot create profile with empty name.");
+    });
+
+    test("starting default profile", () => {
+        wrapper.vm.startProfile("default");
+        wrapper.vm.profileToEdit = "default";
+        expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].name).toBe("default");
+        expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("RUNNING");
+    });
+
+    test("stopping default profile", () => {
+        wrapper.vm.startProfile("default");
+        wrapper.vm.profileToEdit = "default";
+        wrapper.vm.$nextTick();
+        wrapper.vm.$nextTick();
+        expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].name).toBe("default");
+        expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("RUNNING");
+        wrapper.vm.stopProfile("default");
+        expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("NOT_RUNNING");
     });
 });
