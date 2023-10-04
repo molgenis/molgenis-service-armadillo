@@ -5,11 +5,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,7 +42,11 @@ public class CurrentUserController {
 
   @Operation(summary = "Get raw information from the current user")
   @GetMapping("principal")
-  public AbstractAuthenticationToken currentUserGetPrincipal(Principal principal) {
+  public AbstractAuthenticationToken currentUserGetPrincipal(
+      Principal principal, final HttpServletResponse response) throws IOException {
+    if (principal == null) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+    }
     return (AbstractAuthenticationToken) principal;
   }
 

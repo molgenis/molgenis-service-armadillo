@@ -338,7 +338,7 @@ create_profile <- function(profile_name, key, auth_type) {
       options = list(datashield.seed = new_profile_seed)
     )
     response <- put_to_api('ds-profiles', key, auth_type, body_args = args)
-    if (response$status_code == 200) {
+    if (response$status_code == 204) {
       cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
       start_profile(profile_name, key, auth_type)
     } else {

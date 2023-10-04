@@ -2,5 +2,5 @@
   "extends": [
     "config:base"
   ],
-   "branchConcurrentLimit": 3
+   "branchConcurrentLimit": 5
 }

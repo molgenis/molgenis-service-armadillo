@@ -38,6 +38,9 @@ export type ProjectsExplorerData = {
   loading: boolean;
   successMessage: string;
   filePreview: Array<any>;
+  fileSize: string;
+  dataSizeRows: number;
+  dataSizeColumns: number;
   createNewFolder: boolean;
   loading_preview: boolean;
   newFolder: string;

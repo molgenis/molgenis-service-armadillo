@@ -9,7 +9,8 @@
         <th scope="col" v-for="key in tableHeader" :key="key">
           {{ key }}
         </th>
-        <th scope="col">...</th>
+        <!-- Not required if there are not at least 11 columns -->
+        <th v-if="nCols > 10" scope="col">...</th>
       </tr>
     </thead>
     <tbody class="table-group-divider">
@@ -19,13 +20,16 @@
         <td v-for="(value, key) in row" :key="key">
           {{ value }}
         </td>
-        <!-- if index is 0 -->
-        <!-- <td rowspan="10" v-if="index === 0" class="fst-italic">+ 102</td> -->
-        <td rowspan="10" v-if="index === 0" class="fst-italic">+ more</td>
+        <!-- Will display the "+ x more" if 11 or more columns are present, else hides the column entirely -->
+        <td rowspan="10" v-if="index === 0 && nCols > 10" class="fst-italic">
+          {{ `+ ${nCols - 10} more` }}
+        </td>
       </tr>
       <tr class="text-end fst-italic">
-        <!-- <td colspan="11">1470 more rows</td> -->
-        <td colspan="11">+ more rows</td>
+        <!-- Same goes for rows, only display when there are at least 11 or more rows -->
+        <td colspan="11" v-if="nRows > 10">
+          {{ `+ ${nRows - 10} more rows` }}
+        </td>
       </tr>
     </tbody>
   </table>
@@ -44,6 +48,14 @@ export default defineComponent({
       required: true,
     },
     maxWidth: {
+      type: Number,
+      required: true,
+    },
+    nRows: {
+      type: Number,
+      required: true,
+    },
+    nCols: {
       type: Number,
       required: true,
     },

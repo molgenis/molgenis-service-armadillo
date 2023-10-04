@@ -6,10 +6,10 @@ services:
   armadillo:
     image: molgenis/molgenis-armadillo-snapshot:latest
     environment:
-      SPRING_PROFILES_ACTIVE: basic
-      # basic doesn't use OIDC
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
+      SPRING_SECURITY_USER_PASSWORD: 'admin'
+    #  TODO add all settings we generally use
     #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
     #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
     ports:
@@ -17,12 +17,12 @@ services:
     volumes:
       - ${PWD}/logs/:/app/logs
       - ${PWD}/data/:/data
+      - /var/run/docker.sock:/var/run/docker.sock
 
-  rserver:
-    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:6.2.0
-    environment:
-      DEBUG: "FALSE"
-    ports:
-      # host port: container port
-      - 6311:6311
+#  rserver:
+#    image: datashield/armadillo-rserver:6.2.0
+#    environment:
+#      DEBUG: "FALSE"
+#    ports:
+#      # host port: container port
+#      - 6311:6311
