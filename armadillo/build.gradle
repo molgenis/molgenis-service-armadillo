@@ -52,7 +52,7 @@ dependencies {
     implementation 'com.github.docker-java:docker-java:3.2.14'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.2'
     implementation 'org.apache.parquet:parquet-hadoop:1.12.3'
-    implementation 'org.apache.hadoop:hadoop-client:3.3.5'
+    implementation 'org.apache.hadoop:hadoop-client:3.3.6'
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
     //Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips
@@ -64,7 +64,7 @@ dependencies {
     testImplementation 'com.c4-soft.springaddons:spring-security-oauth2-test-webmvc-addons:4.5.1'
 
     //annotation processor
-    annotationProcessor "com.google.auto.value:auto-value:1.10.1"
+    annotationProcessor "com.google.auto.value:auto-value:1.10.4"
 }
 
 jacocoTestReport {

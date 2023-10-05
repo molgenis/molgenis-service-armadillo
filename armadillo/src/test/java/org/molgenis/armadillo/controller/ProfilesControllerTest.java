@@ -122,7 +122,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 .content(new Gson().toJson(profileConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
     expected.getProfiles().put("dummy", profileConfig);

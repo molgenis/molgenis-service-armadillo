@@ -173,3 +173,7 @@ export async function authenticate(auth: Auth) {
   });
   return handleResponse(response);
 }
+
+export async function getFileDetails(project: string, object: string) {
+  return get(`/storage/projects/${project}/objects/${object}/info`);
+}

@@ -2,9 +2,8 @@ package org.molgenis.armadillo.controller;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.INSTALL_PACKAGES_FAILURE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.MESSAGE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
 import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -20,29 +19,27 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
+import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "developer", description = "API only available in development mode")
+@Tag(name = "developer", description = "API only available for admin users or in profile=test")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
 @Validated
-@Profile({"development", "test"})
+@PreAuthorize("hasRole('ROLE_SU')")
 public class DevelopmentController {
 
   private final Commands commands;
@@ -102,6 +99,42 @@ public class DevelopmentController {
           .exceptionally(
               t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
     }
+  }
+
+  @Operation(summary = "Get whitelist")
+  @GetMapping("whitelist")
+  @ResponseBody
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  public Set<String> getWhitelist() {
+    return profiles.getByName(getActiveProfileName()).getPackageWhitelist();
+  }
+
+  @Operation(
+      summary = "Add package to whitelist",
+      description =
+          "Adds a package to the runtime whitelist. The whitelist is reset when the application "
+              + "restarts. Admin use only.")
+  @PostMapping("whitelist/{pkg}")
+  @ResponseStatus(NO_CONTENT)
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void addToWhitelist(@PathVariable String pkg, Principal principal) {
+    ProfileConfig currentConfig = profiles.getByName(getActiveProfileName());
+    Set<String> whitelist = currentConfig.getPackageWhitelist();
+    whitelist.add(pkg);
+    ProfileConfig profileConfig =
+        ProfileConfig.create(
+            currentConfig.getName(),
+            currentConfig.getImage(),
+            currentConfig.getHost(),
+            currentConfig.getPort(),
+            whitelist,
+            currentConfig.getFunctionBlacklist(),
+            currentConfig.getOptions());
+    auditEventPublisher.audit(
+        () -> profiles.upsert(profileConfig),
+        principal,
+        UPSERT_PROFILE,
+        Map.of(PROFILE, profileConfig));
   }
 
   protected String getPackageNameFromFilename(String filename) {
