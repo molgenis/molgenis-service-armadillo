@@ -592,6 +592,7 @@ print_list(unlist(profiles$available))
 
 profile = Sys.getenv("PROFILE")
 if(profile == ""){
+  cli_alert_warning("Profile not set, defaulting to xenon.")
   profile <- "xenon"
 } else {
   cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
