@@ -540,16 +540,6 @@ app_info <- get_from_api("actuator/info")
 
 version <- unlist(app_info$build$version)
 
-cat("\nAvailable profiles: \n")
-profiles <- get_from_api_with_header("profiles", admin_pwd, "basic")
-print_list(unlist(profiles$available))
-
-cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
-profile <- readLines("stdin", n=1)
-if (profile == "") {
-  profile <- "xenon"
-}
-
 ADMIN_MODE <- admin_pwd != "" && user == ""
 cli_alert_info("Checking if profile is prepared for all tests")
 if(ADMIN_MODE){
@@ -560,6 +550,16 @@ if(ADMIN_MODE){
   api_token <- armadillo.get_token(armadillo_url)
   token <- api_token
   auth_type <- "bearer"
+}
+
+cat("\nAvailable profiles: \n")
+profiles <- get_from_api_with_header("profiles", api_token, auth_type)
+print_list(unlist(profiles$available))
+
+cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
+profile <- readLines("stdin", n=1)
+if (profile == "") {
+  profile <- "xenon"
 }
 
 create_profile_if_not_available(profile, profiles$available, api_token, auth_type)
@@ -852,7 +852,7 @@ if(admin_pwd != "") {
 }
 
 cli_h3("Testing Rock profile")
-cli_alert_info(sprintf("Loging to %s (please note, this is a double login)", armadillo_url))
+cli_alert_info(sprintf("Logging to %s (please note, this is a double login)", armadillo_url))
 if(ADMIN_MODE) {
   armadillo.login_basic(armadillo_url, "admin", token)
 } else {
