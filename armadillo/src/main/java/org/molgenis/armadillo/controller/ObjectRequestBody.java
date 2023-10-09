@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 public record ObjectRequestBody(@NotNull @NotEmpty String name) {}

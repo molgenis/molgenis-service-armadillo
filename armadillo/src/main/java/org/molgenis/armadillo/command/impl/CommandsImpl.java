@@ -7,12 +7,12 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.RDS;
 
+import jakarta.annotation.PreDestroy;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import javax.annotation.PreDestroy;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;

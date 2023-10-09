@@ -1,4 +1,6 @@
 armadillo:
+  # set this to 'true' if you want to accept permissions from oidc provider
+  oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
   # uncomment this to configure a default admin user
@@ -19,7 +21,11 @@ armadillo:
 
 springdoc:
   swagger-ui:
+    path: /swagger-ui.html
     enabled: true
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
     operationsSorter: alpha
     csrf:
       enabled: true

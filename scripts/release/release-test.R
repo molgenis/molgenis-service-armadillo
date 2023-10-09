@@ -890,7 +890,7 @@ if(admin_pwd != "") {
 }
 
 cli_h3("Testing Rock profile")
-cli_alert_info(sprintf("Loging to %s", armadillo_url))
+cli_alert_info(sprintf("Login to %s", armadillo_url))
 if(ADMIN_MODE) {
   armadillo.login_basic(armadillo_url, "admin", token)
 } else {

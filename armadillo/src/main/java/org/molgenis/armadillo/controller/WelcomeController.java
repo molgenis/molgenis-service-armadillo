@@ -1,12 +1,13 @@
 package org.molgenis.armadillo.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -118,10 +119,12 @@ public class WelcomeController {
     return new RedirectView("/");
   }
 
+  private SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
+
   @GetMapping("/basic-login")
   @ResponseBody
-  @PreAuthorize("hasRole('ROLE_SU')")
-  public RedirectView basicLogin() {
+  public RedirectView basicLogin(Principal principal) {
     return new RedirectView("/");
   }
 
