@@ -11,9 +11,11 @@ jest.mock("@/api/api");
 
 describe("Profiles", () => {
     let testData: Profile[];
+    let singleTestData: Profile[];
 
     let profileToAdd: Profile;
-    let profileToEdit: Profile;
+    let default_profile_running: Profile;
+    let default_profile_not_running: Profile;
 
     const mock_routes = [
         {
@@ -50,7 +52,7 @@ describe("Profiles", () => {
             push: jest.fn(),
         };
 
-        let default_profile_not_running = {
+        default_profile_not_running = {
             name: "default",
             image: "datashield/armadillo-rserver",
             host: "localhost",
@@ -72,29 +74,10 @@ describe("Profiles", () => {
             }
         }
 
-        let default_profile_running = {
-            name: "default",
-            image: "datashield/armadillo-rserver",
-            host: "localhost",
-            port: 6311,
-            packageWhitelist: [
-                "dsBase"
-            ],
-            functionBlacklist: [],
-            datashieldSeed: "100000000",
-            options: {
-                "datashield.seed": "100000000"
-            },
-            container: {
-                tags:  [
-                    "datashield/armadillo-rserver:2.0.0",
-                    "datashield/armadillo-rserver:latest"
-                  ],
-                status: "RUNNING"
-            }
-        }
+        default_profile_running = JSON.parse(JSON.stringify(default_profile_not_running))
+        default_profile_running.container.status = "RUNNING"
 
-        testData = [default_profile_not_running].concat([
+        singleTestData = [
             {
                 name: "profile1",
                 image: "source/some_profile1",
@@ -113,16 +96,12 @@ describe("Profiles", () => {
                     status: "NOT_RUNNING"
                 }
             }
-        ]);
+        ];
+
+        testData = [default_profile_not_running].concat(singleTestData);
 
         api.getProfiles.mockImplementationOnce(() => {
             return Promise.resolve(testData);
-        });
-        api.startProfile.mockImplementationOnce(() => {
-            return Promise.resolve(default_profile_running);
-        });
-        api.stopProfile.mockImplementationOnce(() => {
-            return Promise.resolve(default_profile_not_running);
         });
 
         profileToAdd = {
@@ -241,21 +220,56 @@ describe("Profiles", () => {
         expect(wrapper.vm.errorMessage).toBe("Cannot create profile with empty name.");
     });
 
-    test("starting default profile", () => {
+    test("starting default profile", async () => {
+        api.startProfile.mockImplementationOnce(() => {
+            return Promise.resolve(default_profile_running)
+        });
+        api.getProfiles.mockImplementation(() => {
+            return Promise.resolve([default_profile_running].concat(singleTestData))
+        });
         wrapper.vm.startProfile("default");
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.successMessage).toBe("[default] was successfully started.");
+        expect(wrapper.vm.errorMessage).toBe("");
         wrapper.vm.profileToEdit = "default";
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].name).toBe("default");
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("RUNNING");
     });
 
-    test("stopping default profile", () => {
+    test("stopping default profile", async () => {
+        api.startProfile.mockImplementationOnce(() => {
+            return Promise.resolve(default_profile_running)
+        })
+        api.stopProfile.mockImplementationOnce(() => {
+            return Promise.resolve(default_profile_not_running)
+        });
+        api.getProfiles.mockImplementation(() => {
+            return Promise.resolve([default_profile_running].concat(singleTestData))
+        });
         wrapper.vm.startProfile("default");
+        await wrapper.vm.$nextTick()
+        expect(wrapper.vm.successMessage).toBe("[default] was successfully started.");
+        expect(wrapper.vm.errorMessage).toBe("");
         wrapper.vm.profileToEdit = "default";
-        wrapper.vm.$nextTick();
-        wrapper.vm.$nextTick();
+        wrapper.vm.reloadProfiles();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].name).toBe("default");
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("RUNNING");
+        api.getProfiles.mockImplementation(() => {
+            return Promise.resolve([default_profile_not_running].concat(singleTestData))
+        });
         wrapper.vm.stopProfile("default");
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.successMessage).toBe("[default] was successfully stopped.");
+        expect(wrapper.vm.errorMessage).toBe("");
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("NOT_RUNNING");
     });
 });
