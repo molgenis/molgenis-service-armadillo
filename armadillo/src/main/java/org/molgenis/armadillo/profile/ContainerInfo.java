@@ -3,8 +3,8 @@ package org.molgenis.armadillo.profile;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 
 @AutoValue

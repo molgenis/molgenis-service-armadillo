@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.profile.ContainerInfo;
 

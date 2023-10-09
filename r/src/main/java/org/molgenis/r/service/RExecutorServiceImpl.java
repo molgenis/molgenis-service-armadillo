@@ -35,6 +35,7 @@ public class RExecutorServiceImpl implements RExecutorService {
       }
       return result;
     } catch (RServerException e) {
+      LOGGER.warn("RServerException", e);
       throw new RExecutionException(e);
     }
   }

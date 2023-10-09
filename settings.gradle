@@ -1,5 +1,55 @@
-rootProject.name = 'molgenis-armadillo'
+plugins {
+    id "com.mooltiverse.oss.nyx" version "2.4.4-hotfix219.3"
+}
 
+//nyx is our release plugin
+nyx {
+    verbosity = "INFO"
+    preset = "simple"
+    releasePrefix = "v"
+    releaseTypes {
+        items {
+            mainline {
+                matchBranches = "master"
+                publish = "true"
+                description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
+                publicationServices = ["github"]
+            }
+            internal {
+                collapseVersions = true
+                collapsedVersionQualifier = 'SNAPSHOT'
+                identifiers {}
+            }
+        }
+    }
+    services {
+        github {
+            type = "GITHUB"
+            options {
+                AUTHENTICATION_TOKEN = "{{#environmentVariable}}GITHUB_TOKEN{{/environmentVariable}}"
+                REPOSITORY_OWNER = "molgenis"
+                REPOSITORY_NAME = "molgenis-service-armadillo"
+            }
+        }
+    }
+    releaseAssets {
+        jar {
+            path = "build/libs/molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
+            fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
+            type = "application/java-archive"
+        }
+    }
+    changelog {
+        path = "CHANGELOG.md"
+        template = "changelog-notes.tpl"
+        sections = [
+                'Added' : '^feat$',
+                'Fixed' : '^fix$',
+        ]
+    }
+}
+
+rootProject.name = 'molgenis-armadillo'
 include ':armadillo'
 include ':r'
 include ':ui'
