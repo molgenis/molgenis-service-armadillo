@@ -18,6 +18,8 @@ public abstract class ProfileResponse {
   @Nullable // only required when docker enabled
   public abstract String getImage();
 
+  public abstract boolean getIsRock();
+
   public abstract String getHost();
 
   public abstract Integer getPort();
@@ -36,6 +38,7 @@ public abstract class ProfileResponse {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
         profileConfig.getImage(),
+        profileConfig.getIsRock(),
         profileConfig.getHost(),
         profileConfig.getPort(),
         profileConfig.getPackageWhitelist(),
