@@ -10,10 +10,7 @@
     </thead>
     <tbody>
       <slot name="extraRow"></slot>
-      <template
-        v-for="(dataRow, dataRowIndex) in dataToShow"
-        :key="dataRowIndex"
-      >
+      <template v-for="(dataRow, _) in dataToShow" :key="dataRowIndex">
         <tr
           v-if="getIndex(dataRow) != indexToEdit"
           class="align-middle"
