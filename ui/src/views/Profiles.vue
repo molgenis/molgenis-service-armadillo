@@ -231,6 +231,7 @@ export default defineComponent({
       let columns: TypeObject = {
         name: "string",
         image: "string",
+        isRock: "boolean",
         host: "string",
         port: "string",
         packageWhitelist: "array",
@@ -347,6 +348,7 @@ export default defineComponent({
         name: "",
         image: "datashield/armadillo-rserver",
         host: "localhost",
+        isRock: true,
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],

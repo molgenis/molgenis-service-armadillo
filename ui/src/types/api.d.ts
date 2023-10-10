@@ -44,6 +44,7 @@ export type Principal = {
 export type Profile = {
   name: string;
   image: string;
+  isRock: boolean;
   host: string;
   port: number;
   packageWhitelist: StringArray;
