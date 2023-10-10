@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 cat("
   __  __  ____  _      _____ ______ _   _ _____  _____                                     _ _ _ _
  |  \\/  |/ __ \\| |    / ____|  ____| \\ | |_   _|/ ____|     /\\                            | (_) | |
@@ -35,7 +36,12 @@ library(stringi)
 library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
+
+# FIXME: waiting for PR https://github.com/molgenis/molgenis-r-datashield/pull/62
+#        needed for https://github.com/molgenis/molgenis-service-armadillo/pull/277
+#devtools::install("/Users/clemens/Documents/GitHub/molgenis-r-datashield/")
 library(DSMolgenisArmadillo)
+
 library(resourcer)
 
 # set when admin password given + question answered with y
@@ -58,6 +64,7 @@ exit_test <- function(msg){
   cli_alert_danger(msg)
   cond = structure(list(message=msg), class=c("exit", "condition"))
   signalCondition(cond)
+  stop(cond)
 }
 
 create_bearer_header <- function(token){
@@ -133,6 +140,7 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name){
 get_from_api <- function(endpoint) {
   cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
   response <- GET(paste0(armadillo_url, endpoint))
+  cat(paste0('get_from_api', ' for ', endpoint, " results ", response$status_code, "\n"))
   return(content(response))
 }
 
@@ -182,8 +190,16 @@ create_dir_if_not_exists <- function(directory){
 }
 
 add_slash_if_not_added <- function(path){
-  if (substr(path, nchar(path), nchar(path)) != "/"){
+  if(!endsWith(path, "/")){
     return(paste0(path, "/"))
+  } else {
+    return(path)
+  }
+}
+
+remove_slash_if_added <- function(path){
+  if(endsWith(path, "/")){
+    return(gsub("/$", "", path))
   } else {
     return(path)
   }
@@ -438,11 +454,18 @@ show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmad
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
 
-cat("\nEnter URL of testserver (for default https://armadillo-demo.molgenis.net/, press enter): ")
-armadillo_url <- readLines("stdin", n=1)
+cli_alert_info("Trying to read config from '.env'")
+readRenviron(".env")
 
+armadillo_url = Sys.getenv("ARMADILLO_URL")
 if(armadillo_url == ""){
-  armadillo_url = "https://armadillo-demo.molgenis.net/"
+  cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
+  
+  cli_alert_warning("Defaulting to https://armadillo-demo.molgenis.net/")
+
+  armadillo_url <- "https://armadillo-demo.molgenis.net/"
+} else {
+    cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
 }
 
 armadillo_url <- add_slash_if_not_added(armadillo_url)
@@ -461,74 +484,84 @@ if(url.exists(armadillo_url)) {
   exit_test(msg)
 }
 
-cat("Location of molgenis-service-armadillo on your PC (for default ~/git/, press enter, if not available press x): ")
-service_location <- readLines("stdin", n=1)
-dest <- ""
-
-cat("Enter password for admin user (basic auth)\n")
-admin_pwd<- getPass::getPass()
-
-cat("Enter your OIDC username (email): ")
-user <- readLines("stdin", n=1)
-
-if(service_location == "") {
-  dest = "~/git/molgenis-service-armadillo/data/shared-lifecycle/"
-} else if (service_location == "x") {
-  cat("Do you want to download the files? (y/n) ")
-  download <- readLines("stdin", n=1)
-  if (download == "y") {
-    cat("Where do you want to download the files? ")
-    dest <- readLines("stdin", n=1)
-    if (dir.exists(dest)) {
-      cli_alert_info(paste0("Downloading test files into: ", dest))
-      dest <- add_slash_if_not_added(dest)
-      create_dir_if_not_exists("core")
-      create_dir_if_not_exists("outcome")
-      test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
-      download_test_files(
-        c(
-        sprintf(test_files_url_template, "core", "non"),
-        sprintf(test_files_url_template, "core", "yearly"),
-        sprintf(test_files_url_template, "core", "monthly"),
-        sprintf(test_files_url_template, "core", "trimester"),
-        sprintf(test_files_url_template, "outcome", "non"),
-        sprintf(test_files_url_template, "outcome", "yearly")
-        ),
-        dest
-      )
-    } else {
-      msg <- sprintf("Release test halted: Directory [%s] doesn't exist", dest)
-      exit_test(msg)
-    }
-  } else {
-    msg <- "Release test halted: No test files available"
-    exit_test(msg)
-  }
+service_location = remove_slash_if_added(Sys.getenv("GIT_CLONE_PATH"))
+if(service_location == ""){
+  cli_alert_warning("Git clone path not set, attempting to set git clone root through normalized path")
+  cli_alert_warning("This is assuming you run `Rscript release-test.R` in the same directory as the release-test.R script!")
+  
+  service_location <- dirname(dirname(normalizePath(".")))
 } else {
-  service_location <- add_slash_if_not_added(service_location)
-  dest <- paste0(service_location, "/molgenis-service-armadillo/data/shared-lifecycle/")
-  if (!dir.exists(dest)) {
-    msg <- sprintf("Release test halted: Directory [%s] doesn't exist", service_location)
-    exit_test(msg)
-  }
+   cli_alert_info(paste0("GIT_CHECKOUT_DIR from '.env' file: ", service_location))
 }
 
-cat("Do you have testfile [gse66351_1.rda] downloaded? (y/n) ")
-rda_available = readLines("stdin", n=1)
-rda_dir = ""
-test_resource = "gse66351_1.rda"
-if (rda_available == "y"){
-  cat(sprintf("Specify path to %s (including filename): ", test_resource))
-  rda_dir = readLines("stdin", n=1)
-} else {
-  cat("Where do you want to download it: ")
-  download_dir = readLines("stdin", n=1)
-  download_dir <- add_slash_if_not_added(download_dir)
-  if(dir.exists(download_dir)){
-    cli_alert_info(sprintf("Downloading %s into %s", test_resource, download_dir))
-    download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", paste0(download_dir, test_resource))
-    rda_dir = paste0(download_dir, test_resource)
+if(!dir.exists(file.path(service_location, "armadillo"))){
+  exit_test("Service location is not in armadillo clone root.")
+}
+
+test_file_path <- remove_slash_if_added(Sys.getenv("TEST_FILE_PATH"))
+if(test_file_path == ""){
+  cli_alert_warning("Test file path not set, checking for 'testing' folder in data directory")
+  testing_path = file.path(service_location, "data", "testing")
+  if(!dir.exists(testing_path)){
+    cli_alert_info(paste0("Testing directory: ", testing_path, " not found, creating."))
+    dir.create(testing_path)
   }
+  test_file_path <- testing_path
+} else {
+  cli_alert_info(paste0("TEST_FILE_PATH from '.env file: ", test_file_path))
+  test_file_path <- test_file_path
+}
+
+admin_pwd = Sys.getenv("ADMIN_PASSWORD")
+if(admin_pwd == ""){
+  cli_alert_danger("Admin password not set in .env file, disabling admin mode.")
+} else {
+  cli_alert_info("ADMIN_PASSWORD from '.env' file")
+}
+
+user = Sys.getenv("OIDC_EMAIL")
+
+if(user == "" && admin_pwd == ""){
+  exit_test("User and admin password are both not set!")
+}
+
+if(user == ""){
+  cli_alert_danger("User not set in .env config!")
+  cli_alert_info("Enabling admin mode")
+  ADMIN_MODE <- TRUE
+} else {
+  ADMIN_MODE <- FALSE
+  cli_alert_info(paste0("USER from '.env. file: ", user))
+}
+
+default_parquet_path = file.path(service_location, "data", "shared-lifecycle")
+
+if(!dir.exists(default_parquet_path)){
+  dest <- add_slash_if_not_added(test_file_path)
+  cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", dest))
+  create_dir_if_not_exists("core")
+  create_dir_if_not_exists("outcome")
+  test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
+  download_test_files(
+    c(
+      sprintf(test_files_url_template, "core", "non"),
+      sprintf(test_files_url_template, "core", "yearly"),
+      sprintf(test_files_url_template, "core", "monthly"),
+      sprintf(test_files_url_template, "core", "trimester"),
+      sprintf(test_files_url_template, "outcome", "non"),
+      sprintf(test_files_url_template, "outcome", "yearly")
+    ),
+    dest
+  )
+} else {
+  dest <- add_slash_if_not_added(default_parquet_path)
+}
+
+rda_dir <- file.path(test_file_path, "gse66351_1.rda")
+
+if(!file.exists(rda_dir)){
+  cli_alert_warning("Unable to locate gse66351_1.rda in testing directory, downloading.")
+  download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", rda_dir)
 }
 
 cli_alert_info("Checking if rda dir exists")
@@ -540,31 +573,36 @@ app_info <- get_from_api("actuator/info")
 
 version <- unlist(app_info$build$version)
 
-ADMIN_MODE <- admin_pwd != "" && user == ""
-cli_alert_info("Checking if profile is prepared for all tests")
 if(ADMIN_MODE){
-  api_token <- admin_pwd
-  token <- ""
+  token <- admin_pwd
   auth_type <- "basic"
 } else {
-  api_token <- armadillo.get_token(armadillo_url)
-  token <- api_token
+  cli_alert_info("Obtaining TOKEN from '.env.")
+  token <- Sys.getenv("TOKEN")
+  if(token == ""){
+    cli_alert_warning("TOKEN not set, obtaining from armadillo.")
+    token <- armadillo.get_token(armadillo_url)
+  }
   auth_type <- "bearer"
 }
 
 cat("\nAvailable profiles: \n")
-profiles <- get_from_api_with_header("profiles", api_token, auth_type)
+profiles <- get_from_api_with_header("profiles", token, auth_type)
 print_list(unlist(profiles$available))
 
-cat("Which profile do you want to test on? (press enter to continue using xenon; xenon will be created if unavailable) ")
-profile <- readLines("stdin", n=1)
-if (profile == "") {
+profile = Sys.getenv("PROFILE")
+if(profile == ""){
+  cli_alert_warning("Profile not set, defaulting to xenon.")
   profile <- "xenon"
+} else {
+  cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
 }
 
-create_profile_if_not_available(profile, profiles$available, api_token, auth_type)
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), api_token, auth_type)
-start_profile_if_not_running("default", api_token, auth_type)
+cli_alert_info("Checking if profile is prepared for all tests")
+
+create_profile_if_not_available(profile, profiles$available, token, auth_type)
+profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
+start_profile_if_not_running("default", token, auth_type)
 
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
@@ -852,12 +890,11 @@ if(admin_pwd != "") {
 }
 
 cli_h3("Testing Rock profile")
-cli_alert_info(sprintf("Logging to %s (please note, this is a double login)", armadillo_url))
+cli_alert_info(sprintf("Login to %s", armadillo_url))
 if(ADMIN_MODE) {
   armadillo.login_basic(armadillo_url, "admin", token)
 } else {
   armadillo.login(armadillo_url)
-  token <- armadillo.get_token(armadillo_url)
 }
 profile <- "rock"
 create_profile_if_not_available(profile, profiles$available, token, auth_type)
