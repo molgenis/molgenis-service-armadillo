@@ -3,9 +3,8 @@ package org.molgenis.armadillo.controller;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 
 @AutoValue
 @JsonSerialize(as = ProfilesResponse.class)
@@ -15,7 +14,6 @@ public abstract class ProfilesResponse {
 
   @JsonProperty("current")
   @Nullable
-  @CheckForNull
   public abstract String current();
 
   public static ProfilesResponse create(List<String> available, String current) {

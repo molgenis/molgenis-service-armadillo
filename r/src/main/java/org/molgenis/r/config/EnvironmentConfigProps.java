@@ -1,7 +1,7 @@
 package org.molgenis.r.config;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 
 public class EnvironmentConfigProps {
   @NotEmpty private String name;

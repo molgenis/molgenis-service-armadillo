@@ -4,8 +4,11 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
-import javax.ws.rs.ProcessingException;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.transport.DockerHttpClient;
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
+import jakarta.ws.rs.ProcessingException;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,10 +23,18 @@ public class DockerClientConfig {
 
   @Bean
   DockerClient getDockerClient() {
-    var dockerClient =
-        DockerClientBuilder.getInstance(
-                DefaultDockerClientConfig.createDefaultConfigBuilder().build())
+    DefaultDockerClientConfig config =
+        DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+    DockerHttpClient httpClient =
+        new ZerodepDockerHttpClient.Builder()
+            .dockerHost(config.getDockerHost())
+            .sslConfig(config.getSSLConfig())
+            .maxConnections(100)
+            .connectionTimeout(Duration.ofSeconds(30))
+            .responseTimeout(Duration.ofSeconds(45))
             .build();
+    DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
+
     try {
       dockerClient.infoCmd().exec();
     } catch (ProcessingException e) {

@@ -78,10 +78,8 @@ public class RockConnection implements RServerConnection {
       ResponseEntity<String> response =
           restTemplate.postForEntity(builder.toUriString(), requestEntity, String.class);
       if (!response.getStatusCode().is2xxSuccessful()) {
-        logger.error(
-            "File upload to {} failed: {}", serverUrl, response.getStatusCode().getReasonPhrase());
-        throw new RockServerException(
-            "File upload failed: " + response.getStatusCode().getReasonPhrase());
+        logger.error("File upload to {} failed: {}", serverUrl, response.getStatusCode());
+        throw new RockServerException("File upload failed: " + response.getStatusCode());
       }
     } catch (RestClientException e) {
       throw new RockServerException("File upload failed", e);
@@ -108,11 +106,8 @@ public class RockConnection implements RServerConnection {
               response -> {
                 if (!response.getStatusCode().is2xxSuccessful()) {
                   logger.error(
-                      "File download from {} failed: {}",
-                      serverUrl,
-                      response.getStatusCode().getReasonPhrase());
-                  throw new RuntimeException(
-                      "File download failed: " + response.getStatusCode().getReasonPhrase());
+                      "File download from {} failed: {}", serverUrl, response.getStatusCode());
+                  throw new RuntimeException("File download failed: " + response.getStatusText());
                 } else {
                   inputStreamConsumer.accept(response.getBody());
                 }

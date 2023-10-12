@@ -19,12 +19,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
-import javax.validation.Valid;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
@@ -146,7 +146,7 @@ public class ProfilesController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(OK)
+  @ResponseStatus(NO_CONTENT)
   public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
     auditor.audit(
         () -> profiles.upsert(profileConfig),

@@ -4,9 +4,9 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableSet;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
