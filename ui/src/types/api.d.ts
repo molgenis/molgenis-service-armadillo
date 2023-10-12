@@ -50,7 +50,7 @@ export type Profile = {
   functionBlacklist: StringArray;
   datashieldSeed: string;
   options: {
-    "datashield.seed": string;
+    "datashield.seed"?: string;
   };
   container: {
     tags: StringArray;

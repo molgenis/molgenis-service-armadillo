@@ -370,7 +370,7 @@ export default defineComponent({
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
         datashieldSeed: this.firstFreeSeed,
-        options: { "datashield.seed": "" },
+        options: {},
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
