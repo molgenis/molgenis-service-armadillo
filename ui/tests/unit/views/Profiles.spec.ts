@@ -103,6 +103,9 @@ describe("Profiles", () => {
         api.getProfiles.mockImplementationOnce(() => {
             return Promise.resolve(testData);
         });
+        api.putProfile.mockImplementationOnce((profileJson: Profile) => {
+            return Promise.resolve(profileJson)
+        });
 
         profileToAdd = {
             name: "profile2",
