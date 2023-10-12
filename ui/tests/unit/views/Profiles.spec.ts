@@ -79,8 +79,8 @@ describe("Profiles", () => {
 
         singleTestData = [
             {
-                name: "profile1",
-                image: "source/some_profile1",
+                name: "profile-one",
+                image: "source/some_profile-one",
                 host: "localhost",
                 port: 6312,
                 packageWhitelist: [
@@ -92,7 +92,7 @@ describe("Profiles", () => {
                     "datashield.seed": "100000001"
                 },
                 container: {
-                    tags: ["source/some_profile1"],
+                    tags: ["source/some_profile-two"],
                     status: "NOT_RUNNING"
                 }
             }
@@ -108,8 +108,8 @@ describe("Profiles", () => {
         });
 
         profileToAdd = {
-            name: "profile2",
-            image: "other_source/profile2",
+            name: "profile-two",
+            image: "other_source/profile-two",
             host: "localhost",
             port: 6313,
             packageWhitelist: [
@@ -121,7 +121,7 @@ describe("Profiles", () => {
                 "datashield.seed": "100000002"
             },
             container: {
-                tags: ["other_source/profile2"],
+                tags: ["other_source/profile-two"],
                 status: "NOT_FOUND"
             }
         }
@@ -176,7 +176,7 @@ describe("Profiles", () => {
     });
 
     test("retrieve index of profile to edit", () => {
-        wrapper.vm.profileToEdit = "profile1";
+        wrapper.vm.profileToEdit = "profile-one";
         const index = wrapper.vm.getEditIndex();
         expect(index).toBe(1);
     });
@@ -284,5 +284,15 @@ describe("Profiles", () => {
         await wrapper.vm.$nextTick();
         await wrapper.vm.$nextTick();
         expect(wrapper.vm.profiles[wrapper.vm.getEditIndex()].container.status).toBe("NOT_RUNNING");
+    });
+
+    test("creating a profile", async () => {
+        wrapper.vm.addNewProfile();
+        wrapper.vm.profiles[0] = profileToAdd;
+        wrapper.vm.saveEditedProfile();
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.successMessage).toBe("[profile-two] was successfully saved.");
+        expect(wrapper.vm.errorMessage).toBe("");
+        expect(wrapper.vm.profiles.includes(profileToAdd)).toBe(true);
     });
 });
