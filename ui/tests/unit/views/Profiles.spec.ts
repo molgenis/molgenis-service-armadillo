@@ -214,6 +214,16 @@ describe("Profiles", () => {
         expect(wrapper.vm.errorMessage).toBe("Save failed: cannot rename 'default' package.");
     });
 
+    test("fail to use same port for profile", () => {
+        wrapper.vm.profiles.unshift(profileToAdd);
+        let p = {... profileToAdd};
+        p.port = 6313;
+        wrapper.vm.profiles.unshift(p);
+        wrapper.vm.profileToEditIndex = 0;
+        wrapper.vm.saveEditedProfile();
+        expect(wrapper.vm.errorMessage).toBe("Save failed: port number [6313] already used.");
+    });
+
     test("fail to save a unnamed profile", () => {
         wrapper.vm.addNewProfile();
         wrapper.vm.saveEditedProfile();
