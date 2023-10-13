@@ -12,8 +12,10 @@ import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -125,5 +127,15 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
         new DevelopmentController(commands, auditEventPublisher, profileService);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testWhiteList() {
+    DevelopmentController controller =
+        new DevelopmentController(commands, auditEventPublisher, profileService);
+
+    Set<String> whiteList = controller.getWhitelist();
+    assertEquals(Collections.emptySet(), whiteList);
   }
 }
