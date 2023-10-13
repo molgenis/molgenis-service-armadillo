@@ -19,6 +19,7 @@ public class RServerConnectionFactory implements RConnectionFactory {
 
   int doHead(String uri) {
     URL url;
+    int responseCode = -3;
     try {
       url = new URL(uri);
       HttpURLConnection connection;
@@ -26,20 +27,21 @@ public class RServerConnectionFactory implements RConnectionFactory {
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("HEAD");
         connection.getContentLength();
-        // -1 for rserve
-        // 200 for rock
+        // -1 for rserve : `curl --http0.9 --head http://localhost:6311`
+        // 200 for rock: `curl --head http://localhost:6311`
         return connection.getResponseCode();
       } catch (ConnectException e) {
-        // down
+        // server down
         return -99;
       } catch (SocketException e) {
         // Server not ready
+        logger.info("Server not ready on " + url, e);
         return -2;
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.warn("Unexpected response on " + url, e);
       }
     } catch (MalformedURLException e) {
-      e.printStackTrace();
+      logger.warn("Unexpected url", e);
     }
     return -3;
   }
