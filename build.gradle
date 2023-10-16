@@ -28,8 +28,8 @@ allprojects {
 
 if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
     def x = getGitNameRef().replace("tags/", "")
-    println "HEAD is on tag so removing SNAPSHOT: " + x
-    version = version.replace("-SNAPSHOT", "")
+    println "HEAD is on tag so replacing SNAPSHOT: " + x
+    version = version.replace("-SNAPSHOT", "-") + x
 }
 else {
     version = version + "-" + gitHash
