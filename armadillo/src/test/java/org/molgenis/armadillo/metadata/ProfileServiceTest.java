@@ -24,7 +24,14 @@ class ProfileServiceTest {
     var profilesMetadata = ProfilesMetadata.create();
     var defaultProfile =
         ProfileConfig.create(
-            "default", "test", "localhost", 1234, new HashSet<>(), Set.of(), new HashMap<>());
+            "default",
+            "test",
+            false,
+            "localhost",
+            1234,
+            new HashSet<>(),
+            Set.of(),
+            new HashMap<>());
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
