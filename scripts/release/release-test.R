@@ -52,8 +52,8 @@ ADMIN_MODE <- FALSE
 # default profile settings in case a profile is missing
 profile_defaults = data.frame(
   name = c("xenon", "rock"),
-  container = c("datashield/armadillo-rserver_caravan-xenon:1.0.0", "datashield/rock-base:latest"),
-  port = c("", 8085),
+  container = c("datashield/rock-base:latest", "datashield/rock-base:latest"),
+  port = c("", ""),
   # Multiple packages can be concattenated using ,, then using stri_split_fixed() to break them up again
   # Not adding dsBase since that is always(?) required
   whitelist = c("resourcer", ""),
