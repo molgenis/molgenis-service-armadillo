@@ -173,6 +173,9 @@ wait_for_input <- function(){
     cat("\nPress any key to continue")
     continue <- readLines("stdin", n=1)
   }
+  else {
+    cat("\n\n")
+  }
 }
 
 # log version info of loaded libraries
