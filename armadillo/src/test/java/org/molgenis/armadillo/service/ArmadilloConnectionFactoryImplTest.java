@@ -16,7 +16,7 @@ import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerException;
 import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.molgenis.r.rserve.RserveResult;
+import org.molgenis.r.rock.RockResult;
 import org.molgenis.r.service.PackageService;
 import org.rosuda.REngine.REXPNull;
 
@@ -44,7 +44,7 @@ class ArmadilloConnectionFactoryImplTest {
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
     when(dataShieldOptions.getValue(rConnectionFactory.tryCreateConnection()))
         .thenReturn(ImmutableMap.of("a", "80.0"));
-    when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new RserveResult(new REXPNull()));
+    when(rConnection.eval("base::options(a = 80.0)")).thenReturn(new RockResult(new REXPNull()));
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());
   }
@@ -55,7 +55,7 @@ class ArmadilloConnectionFactoryImplTest {
     when(dataShieldOptions.getValue(rConnectionFactory.tryCreateConnection()))
         .thenReturn(ImmutableMap.of("b", "permissive"));
     when(rConnection.eval("base::options(b = \"permissive\")"))
-        .thenReturn(new RserveResult(new REXPNull()));
+        .thenReturn(new RockResult(new REXPNull()));
 
     assertEquals(rConnection, armadilloConnectionFactory.createConnection());
   }
