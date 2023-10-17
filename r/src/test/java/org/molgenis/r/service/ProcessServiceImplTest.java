@@ -21,7 +21,7 @@ import org.molgenis.r.RServerException;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
-import org.molgenis.r.rserve.RserveResult;
+import org.molgenis.r.rock.RockResult;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPMismatchException;
@@ -58,7 +58,7 @@ class ProcessServiceImplTest {
   @Test
   void testCountRserveProcesses() throws REXPMismatchException, RServerException {
     when(rExecutorService.execute(COUNT_RSERVE_PROCESSES_COMMAND, rConnection))
-        .thenReturn(new RserveResult(new REXPList(new REXPInteger(3), "n")));
+        .thenReturn(new RockResult(new REXPList(new REXPInteger(3), "n")));
     assertEquals(3, processService.countRserveProcesses(rConnection));
   }
 
