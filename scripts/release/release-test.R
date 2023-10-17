@@ -169,8 +169,10 @@ set_user <- function(user, admin_pwd, isAdmin, project1, omics_project){
 }
 
 wait_for_input <- function(){
-  cat("\nPress any key to continue")
-  continue <- readLines("stdin", n=1)
+  if (interactive) {
+    cat("\nPress any key to continue")
+    continue <- readLines("stdin", n=1)
+  }
 }
 
 # log version info of loaded libraries
@@ -468,6 +470,11 @@ if(armadillo_url == ""){
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
 }
 
+interactive = TRUE
+if (Sys.getenv("INTERACTIVE") == 'N') {
+  interactive = FALSE
+}
+
 armadillo_url <- add_slash_if_not_added(armadillo_url)
 
 if(url.exists(armadillo_url)) {
@@ -700,11 +707,13 @@ wait_for_input()
 cat("\nVerify outcome contains nonrep and yearlyrep")
 wait_for_input()
 
-cat("\nWere the manual tests successful? (y/n) ")
-success <- readLines("stdin", n=1)
-if(success != "y"){
-  cli_alert_danger("Manual tests failed: problem in UI")
-  exit_test("Some values incorrect in UI projects view")
+if (interactive) {
+  cat("\nWere the manual tests successful? (y/n) ")
+  success <- readLines("stdin", n=1)
+  if(success != "y"){
+    cli_alert_danger("Manual tests failed: problem in UI")
+    exit_test("Some values incorrect in UI projects view")
+  }
 }
 
 cli_h2("Resource upload")
