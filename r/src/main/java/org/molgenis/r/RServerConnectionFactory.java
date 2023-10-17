@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.*;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.rock.RockConnectionFactory;
-import org.molgenis.r.rserve.RserveConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,6 @@ public class RServerConnectionFactory implements RConnectionFactory {
 
   int doHead(String uri) {
     URL url;
-    int responseCode = -3;
     try {
       url = new URL(uri);
       HttpURLConnection connection;
@@ -48,33 +46,17 @@ public class RServerConnectionFactory implements RConnectionFactory {
 
   @Override
   public RServerConnection tryCreateConnection() {
-    logger.warn("================ IsRock testing ====================");
     String url = "http://" + environment.getHost() + ":" + environment.getPort();
     int status = doHead(url);
     if (status == -99) {
       // server down
-      logger.warn("Container is down");
+      logger.warn("Container for '" + url + "'  is down");
+      //      throw new RockServerException("Container is down");
     } else if (status == -2) {
-      logger.warn("Container service not ready");
+      logger.warn("Container for '" + url + "' is not ready");
+    } else if (status == 200) {
+      logger.info("Container for '" + url + "' is running");
     }
-    boolean isRock = status == 200;
-    logger.warn("================ " + isRock + " ====================");
-
-    try {
-      if (isRock) {
-        if (environment.getName().contains("rock")) {
-          logger.warn(
-              "Using old name based rock setting. Please fix configuration for '"
-                  + environment.getName()
-                  + "'");
-        }
-        return new RockConnectionFactory(environment).tryCreateConnection();
-      } else {
-        return new RserveConnectionFactory(environment).tryCreateConnection();
-      }
-    } catch (Exception e) {
-      logger.info("Not a Rock server [{}], trying Rserve...", e.getMessage(), e);
-      return new RserveConnectionFactory(environment).tryCreateConnection();
-    }
+    return new RockConnectionFactory(environment).tryCreateConnection();
   }
 }
