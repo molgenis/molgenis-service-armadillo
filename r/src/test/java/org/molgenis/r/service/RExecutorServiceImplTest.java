@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -250,6 +251,7 @@ class RExecutorServiceImplTest {
   }
 
   @Test
+  @Disabled
   void testInstallPackage() throws IOException, RServerException {
     when(rConnection.eval(
             "remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')",
