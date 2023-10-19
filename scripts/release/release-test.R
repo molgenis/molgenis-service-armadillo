@@ -833,6 +833,7 @@ if (ADMIN_MODE) {
         cli_alert_danger(datashield.errors())
     })
 }
+dsDisconnect(con)
 
 cli_h2("Default profile")
 cli_alert_info("Verify if default profile works without specifying profile")
@@ -842,9 +843,9 @@ if (con@name == "armadillo") {
 } else {
   cli_alert_danger("Connection failed")
 }
+dsDisconnect(con)
 
 cli_alert_info("Verify if default profile works when specifying profile")
-
 
 con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = "default")
 if (con@name == "armadillo") {
@@ -936,6 +937,8 @@ datashield.assign.table(conns, "core_trimesterrep", sprintf("%s/core/trimesterre
 
 datashield.assign.expr(conns, "x", expr=quote(core_trimesterrep$smk_t))
 
+dsDisconnect(con)
+
 con <- create_ds_connection(password = admin_pwd, token = token, profile = profile, url = armadillo_url)
 
 if (con@name == "armadillo"){
@@ -956,3 +959,5 @@ wait_for_input()
 
 cli_alert_info("Testing done")
 cli_alert_info("Please test rest of UI manually, if impacted this release")
+
+dsDisconnect(con)
