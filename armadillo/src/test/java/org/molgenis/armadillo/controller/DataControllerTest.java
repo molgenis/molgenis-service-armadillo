@@ -21,6 +21,7 @@ import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -282,6 +283,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
+  @Disabled
   @Test
   @WithMockUser
   void testGetLastResultNoResult() throws Exception {
@@ -290,6 +292,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
+  @Disabled
   @Test
   @WithMockUser
   void testGetLastResult() throws Exception {

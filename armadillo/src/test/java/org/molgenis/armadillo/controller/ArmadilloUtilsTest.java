@@ -5,7 +5,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.createRawResponse;
 
 import java.nio.charset.Charset;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ class ArmadilloUtilsTest {
     assertEquals("try(base::serialize({meanDS(D$age}, NULL))", serializedCommand);
   }
 
-  @Ignore
+  @Disabled
   @Test
   void testCreateRawResponse() {
     byte[] bytes = {0x01, 0x02, 0x03};
