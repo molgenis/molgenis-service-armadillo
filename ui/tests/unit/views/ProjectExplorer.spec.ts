@@ -164,17 +164,83 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.isNonTableType("some-file")).toBe(true);
     });
 
-    // For some reason, this test does not like to work properly (something to do with a watcher causing an undefined error)
-    // test("setting and clearing file to delete", () => {
-    //     expect(wrapper.vm.fileToDelete).toBe("");
-    //     expect(wrapper.vm.folderToDeleteFrom).toBe("");
-    //     wrapper.vm.selectedFile = "file1.parquet";
-    //     wrapper.vm.selectedFolder = "folder-d-four";
-    //     wrapper.vm.deleteSelectedFile();
-    //     expect(wrapper.vm.fileToDelete).toBe("file1.parquet");
-    //     expect(wrapper.vm.folderToDeleteFrom).toBe("folder-d-four");
-    //     wrapper.vm.clearRecordToDelete();
-    //     expect(wrapper.vm.fileToDelete).toBe("");
-    //     expect(wrapper.vm.folderToDeleteFrom).toBe("");
-    // });
+    test("setting and clearing file to delete", () => {
+        expect(wrapper.vm.fileToDelete).toBe("");
+        expect(wrapper.vm.folderToDeleteFrom).toBe("");
+        // Important: selectedFolder before selectedFile, since watcher for selectedFolder resets selectedFile to ""
+        wrapper.vm.selectedFolder = "folder-d-four";
+        wrapper.vm.selectedFile = "file1.parquet";
+        wrapper.vm.deleteSelectedFile();
+        expect(wrapper.vm.fileToDelete).toBe("file1.parquet");
+        expect(wrapper.vm.folderToDeleteFrom).toBe("folder-d-four");
+        wrapper.vm.clearRecordToDelete();
+        expect(wrapper.vm.fileToDelete).toBe("");
+        expect(wrapper.vm.folderToDeleteFrom).toBe("");
+    });
+
+    test("successfully proceed deleting file", async () => {
+        api.deleteObject.mockImplementation(() => {
+            return Promise.resolve({})
+        });
+        wrapper.vm.selectedFolder = "folder-d-four";
+        wrapper.vm.selectedFile = "file2.parquet";
+        await wrapper.vm.proceedDelete("folder-d-four/file2.parquet");
+        expect(wrapper.vm.selectedFile).toBe("");
+        expect(wrapper.vm.successMessage).toBe("Successfully deleted file [file2.parquet] from directory [folder-d-four] of project: [some-project]");
+    });
+
+    test("error proceed deleting file", async () => {
+        const error = new Error("fail");
+        api.deleteObject.mockImplementation(() => {
+            return Promise.reject(error)
+        });
+        wrapper.vm.selectedFolder = "doesnt-exist";
+        wrapper.vm.selectedFile = "doesnot.exists";
+        await wrapper.vm.proceedDelete("doesnt-exist/doesnot.exists");
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.errorMessage).toBe(error);
+    });
+
+    test("successfully reloads project", async () => {
+        let new_data = [
+            "some-project/other-folder/one-some.file",
+            "some-project/other-folder/one-some.file"
+        ];
+        expect(wrapper.vm.getSortedFolders()).toEqual(["folder-a-one", "folder-b-two", "folder-c-three", "folder-d-four"]);
+        api.getProject.mockImplementation(() => {
+            return Promise.resolve(new_data)
+        });
+        await wrapper.vm.reloadProject();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        expect(wrapper.vm.getSortedFolders()).toEqual(["other-folder"]);
+    });
+
+    test("error reloading project", async () => {
+        const error = new Error("fail");
+        api.getProject.mockImplementation(() => {
+            return Promise.reject(error)
+        });
+        await wrapper.vm.reloadProject();
+        expect(wrapper.vm.errorMessage).toBe("Could not load project: Error: fail.");
+    });
+
+    test("reloads project with call to callback", async () => {
+        const someFunction = jest.fn();
+        await wrapper.vm.reloadProject(someFunction);
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        expect(someFunction).toBeCalled();
+    });
+
+    test("show error message with string", () => {
+        wrapper.vm.showErrorMessage("some very random error");
+        expect(wrapper.vm.errorMessage).toBe("some very random error");
+    });
+
+    test("show error message with Error", () => {
+        const error = new Error("fail");
+        wrapper.vm.showErrorMessage(error);
+        expect(wrapper.vm.errorMessage).toBe(error);
+    });
 });
