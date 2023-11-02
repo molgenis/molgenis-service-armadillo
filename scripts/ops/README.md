@@ -32,3 +32,7 @@ zsh -c "source conf/armadillo.acc.env ; ./armadilloctl.zsh"
 ### Test script (WIP)
 
 You can test `armadilloctl.zsh` using `test_armadilloctl.zsh`.
+
+```zsh
+zsh -c "source dev.env ; ./test_armadilloctl.zsh" || echo FAILED
+```
