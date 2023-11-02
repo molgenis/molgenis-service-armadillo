@@ -28,3 +28,7 @@ zsh -c "source conf/armadillo.acc.env ; ./armadilloctl.zsh"
 - `./armadillo.zsh autoStart`
 - `./armadillo.zsh stop default`
 - `./armadillo.zsh startAll`
+
+### Test script (WIP)
+
+You can test `armadilloctl.zsh` using `test_armadilloctl.zsh`.
