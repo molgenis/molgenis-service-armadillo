@@ -285,6 +285,15 @@ export default defineComponent({
       const profileNames = this.profiles.map((profile) => {
         return profile.name;
       });
+
+      const portAlreadyUsed = this.profiles.some((prof) => {
+        return prof !== profile && prof.port == profile.port;
+      });
+      if (portAlreadyUsed) {
+        this.errorMessage = `Save failed: port number [${profile.port}] already used.`;
+        return;
+      }
+
       if (
         this.profileToEdit === "default" &&
         profile.name != this.profileToEdit
@@ -361,7 +370,7 @@ export default defineComponent({
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
         datashieldSeed: this.firstFreeSeed,
-        options: { "datashield.seed": "" },
+        options: {},
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
