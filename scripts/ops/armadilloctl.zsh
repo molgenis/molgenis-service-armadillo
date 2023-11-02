@@ -2,56 +2,67 @@
 
 CURL_OPTS=--silent
 
-# curl -X 'GET' \
-#   'http://localhost:8080/ds-profiles' \
-#   -H 'accept: application/json' \
-#   -H 'Authorization: Basic YWRtaW46YWRtaW4='
+WARN="\033[33m"
+ERR="\033[31m"
+B="\033[0m"
+
+function warning() {
+  echo -e "WARNING: ${WARN}${1}${B}"
+}
+
+function error() {
+  echo -e "ERROR: ${ERR}${1}${B}"
+  exit 1
+}
+
+function is_armadillo_running() {
+  cmd="${ARMADILLO_URL}"
+  curl $CURL_OPTS --request "GET" "${cmd}" > /dev/null || (error "Armadillo not running."; exit 1)
+}
 
 function get_profiles() {
-  profile_names=$(curl $CURL_OPTS --user $CREDENTIALS --request 'GET' --header 'accept: application/json' $ARMADILLO_URL/ds-profiles | jq -r '.[] | "\(.name)"')
+  cmd="$ARMADILLO_URL/ds-profiles"
+  profile_names=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '.[] | "\(.name)"')
 }
 
 function status {
     if [ -z "$1" ]; then
-        echo "status needs profile name."
-        return 1
+        error "$0 needs profile name. Or try ${0}All"
     fi
     name=$1
 
-    stats=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request 'GET' --header 'accept: application/json' "${ARMADILLO_URL}/ds-profiles/{$name}" | jq -r '"\(.name) = \(.container.status)"')
+    cmd="${ARMADILLO_URL}/ds-profiles/{$name}"
+    stats=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '"\(.name) = \(.container.status)"')
     echo $stats
 }
 
 function start {
     if [ -z "$1" ]; then
-        echo "start needs profile name."
-        return 1
+        error "$0 needs profile name. Or try ${0}All"
     fi
 
-    profile=$1
+    profile="$1"
     cmd="$ARMADILLO_URL/ds-profiles/$profile/start"
     echo "Starting '$profile' on $cmd"
 
-    curl --user $CREDENTIALS --request 'POST' $cmd --data ''
+    curl $CURL_OPTS --user $CREDENTIALS --request "POST" "$cmd" --data ""
 }
 
 function stop {
     if [ -z "$1" ]; then
-        echo "stop needs profile name."
-        return 1
+        error "$0 needs profile name. Or try ${0}All"
     fi
 
-    profile=$1
+    profile="$1"
     cmd="$ARMADILLO_URL/ds-profiles/$profile/stop"
     echo "Stopping '$profile' on $cmd"
 
-    curl --user $CREDENTIALS --request 'POST' $cmd --data ''
+    curl $CURL_OPTS --user $CREDENTIALS --request "POST" $cmd --data ""
 }
 
 function restart {
     if [ -z "$1" ]; then
-        echo "restart needs profile name."
-        return 1
+        error "$0 needs profile name. Or try ${0}All"
     fi
 
     profile=$1
@@ -120,7 +131,7 @@ function check_dependencies() {
 }
 
 function var_found() {
-  echo "Variable $1 found"
+  echo "Variable $1 found ..."
 }
 
 function var_empty() {
@@ -144,7 +155,7 @@ function all_set() {
 
   CREDENTIALS="${ARMADILLO_ADMIN_USER}:${ARMADILLO_ADMIN_PASSWORD}"
 
-  echo "Armadillo settings:"
+  echo "\nArmadillo settings:"
   echo "  URL                : ${ARMADILLO_URL}"
   echo "  ADMIN_USER         : ${ARMADILLO_ADMIN_USER}"
   echo "  PROFILES_AUTOSTART : ${ARMADILLO_PROFILES_AUTOSTART}"
@@ -152,22 +163,14 @@ function all_set() {
 
 check_dependencies || exit
 
-# FIXME: loads from local files
-if [[ -f ".env" ]]
-then
-  echo "Sourcing .env"
-  source ".env"
-else
-  echo "Sourcing dev.env"
-  source "dev.env"
-fi
+all_set || exit
 
-all_set
+is_armadillo_running || exit
 
 get_profiles
 
 if [[ "$1" =~ ^(status|start|stop|restart|statusAll|startAll|stopAll|restartAll|autoStart)$ ]]; then
     "$@"
 else
-    echo "Please provide one of the following argument: status | start | stop | restart | statusAll | startAll | stopAll | restartAll | autoStart"
+  echo "\nPlease provide one of the following argument: status | start | stop | restart | statusAll | startAll | stopAll | restartAll | autoStart"
 fi
