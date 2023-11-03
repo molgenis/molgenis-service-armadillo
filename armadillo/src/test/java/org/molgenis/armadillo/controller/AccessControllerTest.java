@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.AccessLoader;
 import org.molgenis.armadillo.metadata.AccessMetadata;
@@ -41,7 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(AccessController.class)
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
-@Import({AuditEventPublisher.class})
+@Import({AuditEventPublisher.class, TestSecurityConfig.class})
 class AccessControllerTest {
 
   public static final String EXAMPLE_SETTINGS =

@@ -19,14 +19,38 @@ service provides the following features:
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/docs/img/overview-datashield.png)
 
 # Armadillo installation
-Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo as a service on Ubuntu, as a Docker container or as java jar file.
-Note that for production you should add a https proxy for essential security:
+Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
+Note that for production you should add a https proxy for essential security. And you might need to enable 'Docker socket' on your docker service.
 
-### As service on Ubuntu
+### Run Armadillo using java commandline
+Software developers often run Armadillo as java jar file: 
+
+1. Install Java and Docker (for the DataSHIELD profiles)
+2. Download Armadillo jar file from [releases](https://github.com/molgenis/molgenis-service-armadillo/releases), for example:
+[molgenis-armadillo-3.3.0.jar](https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/)
+3. Run armadillo using ```java -jar molgenis-armadillo-3.3.0.jar```
+4. Go to http://localhost:8080 to see your Armadillo running.
+
+Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change 
+by providing and editing [application.yaml](application.template.yml) file
+in your working directory and then run command above again.
+
+### Run Armadillo via docker compose
+For testing without having to installing Java you can run using docker:
+
+1. Install [docker-compose](https://docs.docker.com/compose/install/)
+2. Download this [docker-compose.yml](docker-compose.yml).
+3. Execute ```docker-compose up```
+4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
+
+The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables 
+(see commented code in docker-compose file).
+
+### Run Armadillo as service on Ubuntu
 We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on
 CentOS (using yum instead of apt).
 
-#### 1. install necessary software
+#### 1. Install necessary software
 ```
 apt update
 apt install openjdk-19-jre-headless
@@ -34,7 +58,7 @@ apt install docker.io
 ```
 Note: you might need 'sudo'
 
-#### 2.run installation script
+#### 2. Run installation script
 This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases):
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
@@ -51,69 +75,17 @@ bash armadillo-setup.sh \
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
 
-### As docker compose
-For testing without having to install anything we regularly use docker-compose:
+### Running Armadillo from source code
 
-#### 1. Create a [docker-compose.yml](https://docs.docker.com/compose/) file like this one:
-```
-version: "3.4"
-services:
-  armadillo:
-    image: molgenis/molgenis-armadillo-snapshot:latest
-    environment:
-      SPRING_PROFILES_ACTIVE: basic
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-    ports:
-      - 8080:8080
-    volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-```
-Note that we made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles.
-Alternatively you can include the datashield profiles into this docker compose also.
+You can run from source code as follows:
+1. Install Java and Docker
+2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
+3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings (will be .gitignored)
+4. Compile and execute the code using ```./gradlew run```
 
-#### 2. Run the docker-compose as follows
-```
-docker-compose up
-```
-Note: command must run in same directory as file above
-
-Once it reports 'Started' you can visit Armadillo at [http://localhost:8080](http://localhost:8080)
-
-### As java commandline
-Finally, as developer we regularly test using the released java jar file. This also requires Java and Docker:
-
-#### 1. Download jar file from a release [release](https://github.com/molgenis/molgenis-service-armadillo/releases), e.g.
-E.g. https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/molgenis-armadillo-3.3.0.jar
-
-#### 2. Start using java
-```
-java -Dspring.profiles.active=basic -Dspring.security.user.password=admin -jar molgenis-armadillo-3.3.0.jar
-```
-Optionally, you can include also a complete OIDC configuration
-```
-java \
--Dspring.security.oauth2.client.registration.molgenis.client-id=yyy \
--Dspring.security.oauth2.client.registration.molgenis.client-secret=xxx \
--Dspring.security.user.password=admin \
--jar molgenis-armadillo-3.3.0.jar
-```
-
-#### 3. Go to http://localhost:8080
-You can sign in using 'basic-auth' with user 'admin' and password set above.
-If you didn't set admin password then notice 'Using generated security password: ....' to find your 'admin' password.
-
-Note: you can also use these -D options also in IntelliJ for development, which is better practice then editing the file that might be accidentally committed
-
-### Setup HTTPS proxy
-To secure your Armadillo we recommend use of a HTTPS reverse proxy. We use nginx, see an example configuration [here](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/install/conf/armadillo-nginx.conf).
+Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
 
 # Using Armadillo
-
 Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
 
 ### Create data access projects
@@ -142,52 +114,81 @@ A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-d
 loaded into an R session on the Armadillo server specifically created for the researcher. Analysis requests are sent to the R session on each Armadillo server.
 There the analysis is performed and aggregated results are sent back to the client.
 
+# Developing Armadillo
+
+We use gradle to build:
+* run using ```./gradlew run```
+* run tests using ```./gradlew test```
+
+We use intellij to develop
+* To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
+* To run using oidc, create a copy of [application.yml](application.template.yml) in root of your project
+
+We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
+
+# Developing DataSHIELD packages in Armadillo
+As package developer will want to push your new packages into a DataSHIELD profile
+
+* You can start Armadillo with defaults as described above; then use admin/admin as authentication
+* to see what profile are available and has been selected:
+```
+curl -u admin:admin http://localhost:8080/profiles
+```
+* to change selected profile 'my-profile':
+```
+curl -X POST http://localhost:8080/select-profile \
+  -H 'Content-Type: application/json' \
+  -d 'default'
+```
+* to install-packages in DataSHIELD current using admin user:
+```
+curl -u admin:admin -v \
+-H 'Content-Type: multipart/form-data' \
+-F "file=@dsBase_6.3.0.tar.gz" \
+-X POST http://localhost:8080/install-package
+```
+* to update whitelist of your current profile:
+```
+curl -u admin:admin -X POST http://localhost:8080/whitelist/dsBase
+```
+* to get whitelist of current profile:
+```
+curl -u admin:admin http://localhost:8080/whitelist
+```
+
 # Frequently asked questions
+
+### Docker gives a 'java.socket' error
+You might need to enable Docker socket. On Docker desktop you can find that under 'settings' and 'advanced'.
 
 ### Can I use docker compose to start profiles?
 Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose.
-Then inside of Armadillo you only need to configure the images. For example:
-```
-version: "3.4"
-services:
-  armadillo:
-    image: molgenis/molgenis-armadillo-snapshot:latest
-    environment:
-      SPRING_PROFILES_ACTIVE: basic
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: 'https://auth.molgenis.org'
-    #  SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENT_ID: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-    ports:
-      - 8080:8080
-    volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/data
-  rserver:
-    # to build your own rserver image please check: https://github.com/datashield/docker-armadillo-rserver-base
-    image: datashield/armadillo-rserver:6.2.0
-    environment:
-      DEBUG: "FALSE"
-    ports:
-      # host port: container port
-      - 6311:6311
+See commented section in docker-compose.yml file.
 
+### Can I pass environment or commandline variables instead of application.yml?
+
+Yes, it is standard spring. 
+
+### Can I run Armadillo with oauth2 config offline?
+Yes, you can run in 'offline' profile
+```
+./gradlew run -Dspring.profiles.active=offline
 ```
 
 ### How to import data from Armadillo 2?
 To export data from and Armadillo 2 server take the following steps:
 
-#### 1. Install helper software
+#### 1. Check if there's enough space left on the server
 ```
-apt update 
-apt install pip 
-pip install minio 
-pip install fusionauth-client 
-pip install simple_term_menu 
+du -h
 ```
+Compare to:
+```
+du -h /var/lib/minio
+```
+Available space should be at least twice the size of the MinIO folder. 
 
 #### 2. Backup Armadillo 2 settings
-
 ```
 mkdir armadillo2-backup 
 rsync -avr /usr/share/armadillo armadillo2-backup 
@@ -195,42 +196,160 @@ cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml
 ```
 N.B.change /usr/share to path matching your local config.
 
-##### 3. Export data from Armadillo 2
-This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
-
+#### 3. Install helper software
+Login to your server as root, using ssh. 
 ```
-mkdir data
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
-python3 migrate-minio.py  --minio http://localhost:9000 --target data  
+apt update 
+apt install pip 
+pip install minio 
+pip install fusionauth-client 
+pip install simple_term_menu 
 ```
+If you get a purple message asking to update, accept and install everything.
+Restart of server is recommended after this.
 
-N.B.: when aiming running armadillo as a service this folder should be /usr/share/armadillo/data
+N.B. Note that the commands in this manual are for Ubuntu, on other linux systems, 
+the `apt` command needs to be replaced with another one.
 
 #### 4. Stop all docker images for Armadillo 2
 List all docker images
 ```docker ps -a```
 
-Stop and remove all Armadillo 2 related images, e.g.
+Stop and remove all Armadillo 2 related images (except for MinIO), e.g.
 ```
 docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
 ```
+Check with `docker ps -a` if there are still containers running, if so remove these (except for the MinIO) in the same way as the others.
 
-#### 5. Remove old minio data
-```rm -Rf /var/lib/minio/ ```
+#### 5. Install armadillo
+```
+apt update
+apt install openjdk-19-jre-headless
+apt install docker.io
+```
+The docker.io step might fail because containerd already exists, if that's the case, remove containerd and try again:
+```
+apt remove containerd
+apt install docker.io
+```
 
-#### 6. Run Armadillo 3 using exported data
+Get armadillo:
+```
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
+bash armadillo-setup.sh \
+    --admin-user admin \
+    --admin-password xxxxx 
+    --domain my.server.com \
+    --oidc \
+    --oidc_url https://lifecycle-auth.molgenis.org \
+    --oidc_clientid clientid \
+    --oidc_clientsecret secret \
+    --cleanup \
+```
+Don't forget to set a proper admin password (use a generator), domain, clientid and clientsecret. The client id and
+secret can be found on the lifecycle auth server in the configuration for your server. If you don't have permissions to
+receive this, you can ask the support team to get it for you.
+
+Open armadillo in the browser and try to login using basicauth to check if the server is running properly. If it's not
+running at all, try:
+```
+systemctl start armadillo
+```
+
+#### 6. Export data from Armadillo 2 into armadillo 3
+Look up the user/password in the application.yml of the old armadillo. They're called MinIO access key and  minio
+secret key.
+```
+cat /root/armadillo2-backup/application-armadillo2.yml
+```
+Do the following step in a separate screen. On ubuntu use:
+```
+screen
+```
+Navigate to the armadillo folder:
+```
+cd /usr/share/armadillo
+```
+This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
+```
+mkdir data
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
+python3 migrate-minio.py  --minio http://localhost:9000 --target /usr/share/armadillo/data  
+```
+
+This might take a couple of minutes. You can detach the screen using `ctrl+a` followed by `d` and reattach it using 
+`screen -r`. 
+
+#### 7. Run Armadillo 3 using exported data
 Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:
 ```
 chown armadillo:armadillo -R data 
 ```
+Check if armadillo is running by going to the URL of your server in the browser, login and navigate to the projects tab.
 
-#### 7. Optionally, acquire a permission set from MOLGENIS team
-If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
-They will use:
+#### 8. Optionally, acquire a permission set from MOLGENIS team
+If you previously run central authorisation server with MOLGENIS team, they can provide you with procedure to load 
+pre-existing permissions. They will use:
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-auth.py 
-python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080 
+python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo https://thearmadillourl.net
 ```
+Now check if all users and data are properly migrated. 
+
+#### 9. Cleanup ngnix config
+
+Change `/etc/ngninx/sites-available/armadillo.conf` to:
+```
+server {
+  listen 80;
+  server_name urlofyourserver.org
+  include /etc/nginx/global.d/*.conf;
+  location / {
+  proxy_pass http://localhost:8080;
+  client_max_body_size 0;
+  proxy_read_timeout 600s;
+  proxy_redirect http://localhost:8080/ $scheme://$host/;
+  proxy_set_header Host $host;
+  proxy_http_version 1.1;
+  }
+}
+```
+Note that the `https://` is missing in the server_name part.
+
+Remove the console and storage file from: `/etc/ngninx/sites-enabled/`. 
+
+```
+system restart ngninx
+```
+
+#### 10. Fix application.yml
+Make sure the following is added:
+```
+server:
+forward-headers-strategy: framework
+```
+
+#### 11. Fix URLs in the lifecycle FusionAuth
+Add the following to the config of your server:
+`https://yourserver.com/login/oauth2/code/molgenis`
+
+#### 12. Set up profiles
+Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
+
+Name: `xenon`  
+Image: `datashield/armadillo-rserver_caravan-xenon:latest`  
+Package whitelist: `dsBase`, `resourcer`, `dsMediation`, `dsMTLBase`, `dsSurvival`, `dsExposome`
+
+Assign a random 9-number seed and create and start the container.
+
+#### 13. Remove old MinIO data
+First remove the MinIO docker container. First check the name of the container using `docker ps -a`, then:
+```
+docker rm containername -f
+```
+After that remove the data:
+```rm -Rf /var/lib/minio/ ```
+
 
 ### How to run previous armadillo 2?
 
@@ -318,3 +437,12 @@ datashield.assign.resource(conns, resource="omics/ewas/GSE66351_1", symbol="eSet
 ds.class('eSet_0y_EUR', datasources = conns)
 datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
 ```
+
+### Profile xenon with resourcer whitelisted returns a host.docker.internal error
+When developing locally, it might be possible to come across the container error: `Could not resolve host: host.docker.internal`, 
+especially when developing on a non-supported operating system when resourcer is whitelisted (such as xenon). 
+Sadly, the only way around this error is to edit the JAVA source code of Armadillo to include starting with an extra host.
+To enable this feature, you must edit the private method `installImage` of [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/profile/DockerService.java) `CreateContainerCmd cmd` from `.withHostConfig(new HostConfig().withPortBindings(portBindings))` to `.withHostConfig(new HostConfig().withPortBindings(portBindings).withExtraHosts("host.docker.internal:host-gateway"))`.
+
+Please note that in order for this change to work, you must use Intellij to run Armadillo or compile the new source code.
+Also, if you already have a xenon container build and running, stop and remove that container.

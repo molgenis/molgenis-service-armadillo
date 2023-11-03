@@ -14,22 +14,29 @@ import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
-public class TestSecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+@EnableMethodSecurity
+public class TestSecurityConfig {
+  public TestSecurityConfig() {}
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.authorizeRequests().anyRequest().authenticated().and().httpBasic().and().csrf().disable();
+  @Bean
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    return http.authorizeHttpRequests(request -> request.anyRequest().authenticated())
+        .httpBasic(Customizer.withDefaults())
+        .csrf(csrf -> csrf.disable())
+        .build();
   }
 
   @Bean

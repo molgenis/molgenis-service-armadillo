@@ -21,7 +21,11 @@ armadillo:
 
 springdoc:
   swagger-ui:
+    path: /swagger-ui.html
     enabled: true
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
     operationsSorter: alpha
     csrf:
       enabled: true
@@ -29,13 +33,14 @@ springdoc:
 spring:
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   application:
     name: armadillo
   security:
     user:
       name: admin
+      password: admin
       roles:
         - SU
 
@@ -55,53 +60,15 @@ audit:
   log:
     path: logs/audit.log
 
-logging:
-  config: classpath:logback-file.xml
-
 storage:
   root-dir: data
 
----
-# 'basic' profile is a configuration without oidc
-# you can only sign in using basicauth 'admin' 'admin'
-
-spring:
-  security:
-    user:
-      password: admin
-  config:
-    activate:
-      on-profile: basic
-
----
-spring:
-  security:
-    user:
-      password: admin
-    oauth2:
-      client:
-        # Uncomment the following section to enable OIDC login:
-        #        registration:
-        #            molgenis:
-        #               client-id: <your client id>
-        #               client-secret: <your client secret>
-        provider:
-          molgenis:
-            issuer-uri: 'https://auth.molgenis.org'
-      resourceserver:
-        jwt:
-          issuer-uri: 'https://auth.molgenis.org'
-        opaquetoken:
-          client-id: 'b396233b-cdb2-449e-ac5c-a0d28b38f791'
-  config:
-    activate:
-      on-profile: development
-
 logging:
+  config: classpath:logback-file.xml
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n"
   level:
-    org.molgenis: DEBUG
+    org.molgenis: INFO
     org:
       springframework:
         boot:
@@ -109,4 +76,3 @@ logging:
             audit:
               listener:
                 AuditListener: INFO
-          web:

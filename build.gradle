@@ -1,23 +1,46 @@
 plugins {
-    id 'org.springframework.boot' version '2.7.14'
-    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.springframework.boot' version '3.1.2'
+    id "io.spring.dependency-management" version "1.1.3"
     id "java"
     id "org.sonarqube" version "3.5.0.2730"
-    id "de.gliderpilot.semantic-release" version "1.4.2"
     id 'maven-publish'
     id 'application'
     id "jacoco"
     id 'com.palantir.docker' version '0.34.0'
 }
 
-grgit.remote.list().each { println it }
-
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
 allprojects {
     group = 'org.molgenis'
+
+    if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
+            //temporarily also compare to 'v' because we are remove this prefix
+            rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
+        version = rootProject.nyxState.releaseScope.previousVersion + "-SNAPSHOT"
+    }
+    else {
+        version = rootProject.version.replace("SNAPSHOT.1","SNAPSHOT")
+    }
+    version = version.replace("v","")
 }
+
+if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
+    def x = getGitNameRef().replace("tags/", "")
+    println "HEAD is on tag so removing SNAPSHOT: " + x
+    version = version.replace("-SNAPSHOT", "")
+}
+else {
+    version = version + "-" + gitHash
+}
+
+println "Corrected version checking for optional snapshot: " + rootProject.version
+nyxPublish.dependsOn assemble
+
+println "Project version : " + version
+println "Git version     : " + gitHash
+println "Git name-ref    : " + getGitNameRef()
 
 repositories {
     mavenLocal()
@@ -36,6 +59,17 @@ String getGitHash() {
     def result = command.waitFor()
     if (result != 0) {
         throw new IOException("Command 'getGitHash()' exited with " + result)
+    }
+    String gitCommitHash = command.inputStream.text.trim()
+    return gitCommitHash
+}
+
+String getGitNameRef() {
+
+    def command = Runtime.getRuntime().exec("git name-rev --name-only HEAD")
+    def result = command.waitFor()
+    if (result != 0) {
+        throw new IOException("Command 'getGitNameRef()' exited with " + result)
     }
     String gitCommitHash = command.inputStream.text.trim()
     return gitCommitHash
@@ -64,24 +98,16 @@ bootJar {
                 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
         )
     }
+
 }
 
 //define run
 application {
     mainClass.set(mainClassName)
 }
-run {
-    environment 'SPRING_PROFILES_ACTIVE', 'development'
-}
 
 //define release
 project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GITHUB_TOKEN') ?: null
-semanticRelease {
-    repo {
-        releaseAsset bootJar.archivePath
-        ghToken = project.ext.ghToken
-    }
-}
 
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'
@@ -135,9 +161,3 @@ task installLocalGitHook(type: Copy) {
     fileMode 0775
 }
 build.dependsOn installLocalGitHook
-
-//jar {
-//    enabled = false
-//    destinationDir = tasks.bootJar.getDestinationDir()
-//    archiveName = tasks.bootJar.getArchiveName()
-//}

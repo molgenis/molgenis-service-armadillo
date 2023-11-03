@@ -2,5 +2,13 @@
   "extends": [
     "config:base"
   ],
-   "branchConcurrentLimit": 3
+  "branchConcurrentLimit": 3,
+  "packageRules": [
+    {
+      "groupName": "docker-java",
+      "matchPackagePrefixes": [
+        "com.github.docker-java"
+      ]
+    }
+  ]
 }

@@ -40,15 +40,19 @@
       </template>
       <template #objectType="objectProps">
         <div
-          v-if="objectProps.data && statusMapping[objectProps.data.status]"
+          v-if="objectProps.data && statusMapping[objectProps.data.status as keyof typeof statusMapping]"
           class="row"
         >
           <div class="col-6">
             <span
               class="badge"
-              :class="`bg-${statusMapping[objectProps.data.status].color}`"
+              :class="`bg-${statusMapping[objectProps.data.status as keyof typeof statusMapping].color}`"
             >
-              {{ statusMapping[objectProps.data.status].status }}
+              {{
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].status
+              }}
             </span>
           </div>
           <div class="col-6">
@@ -56,7 +60,7 @@
               :disabled="true"
               v-if="objectProps.row.name === loadingProfile"
               :text="
-                statusMapping[objectProps.data.status].status === 'OFFLINE'
+                statusMapping[objectProps.data.status as keyof typeof statusMapping].status === 'OFFLINE'
                   ? 'Starting'
                   : 'Stopping'
               "
@@ -65,13 +69,15 @@
             <ProfileStatus
               v-else
               :disabled="loading"
-              :text="statusMapping[objectProps.data.status].text"
+              :text="statusMapping[objectProps.data.status as keyof typeof statusMapping].text"
               @click.prevent="
-                statusMapping[objectProps.data.status].status === 'ONLINE'
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].status === 'ONLINE'
                   ? stopProfile(objectProps.row.name)
                   : startProfile(objectProps.row.name)
               "
-              :icon="statusMapping[objectProps.data.status].icon"
+              :icon="statusMapping[objectProps.data.status as keyof typeof statusMapping].icon"
             ></ProfileStatus>
           </div>
         </div>
@@ -154,6 +160,13 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
+          for (var profile_index in profiles) {
+            // Extract options.datashield.seed into proper column
+            profiles[profile_index].datashieldSeed =
+              profiles[profile_index].options["datashield.seed"];
+            // Delete required or else shows when creating or editing profiles
+            delete profiles[profile_index].options["datashield.seed"];
+          }
           return profiles;
         })
         .catch((error: string) => {
@@ -213,6 +226,17 @@ export default defineComponent({
       }
       return port;
     },
+    firstFreeSeed(): string {
+      let seed = 100000000;
+      while (
+        this.profiles.find(
+          (profile) => profile.datashieldSeed == seed.toString()
+        )
+      ) {
+        seed++;
+      }
+      return String(seed);
+    },
     profilesDataStructure(): TypeObject {
       let columns: TypeObject = {
         name: "string",
@@ -221,6 +245,7 @@ export default defineComponent({
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
+        datashieldSeed: "string",
         options: "object",
       };
 
@@ -278,6 +303,7 @@ export default defineComponent({
     },
     proceedEdit(profile: Profile) {
       this.addProfile = false;
+      profile.options["datashield.seed"] = profile.datashieldSeed;
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -334,7 +360,8 @@ export default defineComponent({
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
-        options: {},
+        datashieldSeed: this.firstFreeSeed,
+        options: { "datashield.seed": "" },
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;

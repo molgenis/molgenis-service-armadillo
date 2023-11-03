@@ -24,7 +24,7 @@ public class MDCInterceptor implements WebRequestInterceptor {
 
   @Override
   public void afterCompletion(WebRequest webRequest, Exception e) throws Exception {
-    LOGGER.trace("afterCompletion");
+    LOGGER.trace("afterCompletion", e);
     MDC.clear();
   }
 }

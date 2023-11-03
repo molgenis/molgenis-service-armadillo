@@ -1,18 +1,17 @@
 package org.molgenis.armadillo.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jwt.*;
 
-// in case of test there are no oidc then we will have dummy JWT
+// in case oauth2 settings are missing a dummy JWT decoder exists because it is never used.
 @Configuration
-@Profile("basic")
+@ConditionalOnProperty(
+    name = "spring.security.oauth2.resourceserver.opaquetoken.client-id",
+    matchIfMissing = true,
+    havingValue = "value_that_never_appears")
 public class JwtDecoderConfigLocal {
-
-  private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfigLocal.class);
 
   @Bean
   public JwtDecoder jwtDecoder() {

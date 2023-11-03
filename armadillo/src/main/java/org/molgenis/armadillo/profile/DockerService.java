@@ -14,11 +14,11 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.ProcessingException;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
@@ -148,6 +148,8 @@ public class DockerService {
       } catch (Exception e2) {
         throw new ImageStopFailedException(profileName, e);
       }
+    } catch (Exception e) {
+      throw new ImageStopFailedException(profileName, e);
     }
   }
 
