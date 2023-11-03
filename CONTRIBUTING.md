@@ -23,6 +23,15 @@ We use intellij to develop
 
 We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
 
+## Profile xenon with resourcer whitelisted returns a host.docker.internal error
+When developing locally, it might be possible to come across the container error: `Could not resolve host: host.docker.internal`, 
+especially when developing on a non-supported operating system when resourcer is whitelisted (such as xenon). 
+Sadly, the only way around this error is to edit the JAVA source code of Armadillo to include starting with an extra host.
+To enable this feature, you must edit the private method `installImage` of [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/profile/DockerService.java) `CreateContainerCmd cmd` from `.withHostConfig(new HostConfig().withPortBindings(portBindings))` to `.withHostConfig(new HostConfig().withPortBindings(portBindings).withExtraHosts("host.docker.internal:host-gateway"))`.
+
+Please note that in order for this change to work, you must use Intellij to run Armadillo or compile the new source code.
+Also, if you already have a xenon container build and running, stop and remove that container.
+
 # Developing DataSHIELD packages in Armadillo
 As package developer will want to push your new packages into a DataSHIELD profile
 
