@@ -119,7 +119,7 @@ After=syslog.target
 [Service]
 User=$ARMADILLO_SYS_USER
 Environment=SPRING_PROFILES_ACTIVE=$ARMADILLO_PROFILE
-Environment=SPRING.CONFIG.ADDITIONAL-LOCATION=$ARMADILLO_CFG_PATH/application.yml
+Environment=SPRING_CONFIG_ADDITIONAL_LOCATION=$ARMADILLO_CFG_PATH/application.yml
 WorkingDirectory=$ARMADILLO_PATH
 ExecStart=java -jar $ARMADILLO_PATH/application/armadillo.jar
 StandardOutput=append:$ARMADILLO_LOG_PATH/armadillo.log
