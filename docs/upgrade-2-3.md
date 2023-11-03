@@ -1,4 +1,4 @@
-### Migrate Armadillo 2 to Armadille 3
+### Migrate Armadillo 2 to Armadillo 3
 
 To export data from and Armadillo 2 server take the following steps:
 
