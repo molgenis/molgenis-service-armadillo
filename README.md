@@ -176,7 +176,76 @@ Yes, you can run in 'offline' profile
 ```
 
 ### How to import data from Armadillo 2?
-To export data from and Armadillo 2 server take the following steps:
+For data managers, it can be very useful to export projects (and their belonging users with their user rights) from Armadillo 2
+and then later import those projects with their corresponding users into Armadillo 3. **Please note that this does not transfer the data stored in these projects!.** To do this, take the following steps:
+
+#### .1 Install required system packages
+The user export and the user import scripts both depend on Python 3.8 and a number of libraries. 
+This can be easily installed through `Pipenv` (for additionally required PIP libraries) and `Pyenv` (for Python3.8).
+_Please note that if you already have Python3.8 installed, you may skip `Pyenv`._
+
+```
+apt install pyenv
+apt install pipenv
+```
+If you do not wish to install pyenv and pipenv, there is an alternative way of installing the required python libraries described in step 2.
+
+#### .2 Install Python required libraries
+
+Using `pipenv`:
+```
+cd <armadillo_root_folder>/scrips
+pipenv install
+pipenv shell
+```
+
+Alternatively, manually installing all libraries is also possible:
+```
+cd <armadillo_root_folder>/scrips
+python3 -m venv venv
+source ./venv/bin/activate
+pip install minio fusionauth-client requests simple-term-menu pandas=2.0.3 numpy=1.24.4
+```
+You may encounter an error from the installation of pandas that numpy is not installed yet, 
+in that case install numpy (version 1.24.4) first and then after numpy is installed, install pandas (version 2.0.3).
+
+Also note that you do not have to install all required packages again if you wish to rerun the export at a later date, 
+simply activating the virtual environment by `source <armadillo_root_folder>/scrips/venv/bin/activate` will be enough.
+
+
+#### .3: Export projects and their users from an Armadillo 2 server
+
+`export-users.py` can be run by supplying the following arguments:
+
+- -f / --fusion-auth **(required)**: The URL of the Armadillo 2 instance of which the projects and its users should be exported from. Please note that `export-users.py` will prompt to supply the API key of this URL once started.
+- -o / --output **(required)**: The path to the output folder. Please note that the parent of this folder HAS to exist. `export-users.py` will place a folder inside this user supplied folder named `YYYY-MM-DD`, where YYYY is the year, MM is the month in numbers 1-12 and DD is the day. 
+Within this folder is where all unzipped TSVs will be placed, named according to the project containing its users.
+
+Example:
+
+```
+python3 export-users.py -f https://some-armadillo2-server.org/ -o ./some_export_folder
+```
+_Once started and the arguments are valid, `export-users.py` will prompt the user to supply an API key with which it can call the API to get all projects and their users exported._
+
+
+#### .4: Import projects and their users to an Armadillo 3 server from generated TSVs
+
+`import-users.py` can be run by supplying the following arguments:
+
+- -s / --server **(required)**: The URL of the Armadillo 3 instance of which the projects and its users should be imported to. Please note that `import-users.py` will prompt to supplie the API key of this URL once started.
+- -d / --user-data **(required)**: The local directory in which all the project TSVs from step 3 are stored, including the folder named after a date (YYYY-MM-DD).
+
+Example:
+
+```
+python3 import-users.py -s https://some-armadillo3-server.org/ -d ./some_export_folder/2023-11-03/ 
+```
+_Once started and the arguments are valid, `import-users.py` will prompt the user to supply an API key with which it can call the API to get all the projects and their users imported._
+
+
+### How to migrate from Armadillo 2 to Armadillo 3?
+To migrate your local Armadillo 2 to Armadillo 3 take the following steps:
 
 #### 1. Check if there's enough space left on the server
 ```
