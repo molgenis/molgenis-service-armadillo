@@ -37,9 +37,6 @@ library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
 
-# FIXME: waiting for PR https://github.com/molgenis/molgenis-r-datashield/pull/62
-#        needed for https://github.com/molgenis/molgenis-service-armadillo/pull/277
-#devtools::install("/Users/clemens/Documents/GitHub/molgenis-r-datashield/")
 library(DSMolgenisArmadillo)
 
 library(resourcer)
@@ -933,7 +930,6 @@ datashield.assign.table(conns, "core_trimesterrep", sprintf("%s/core/trimesterre
 
 datashield.assign.expr(conns, "x", expr=quote(core_trimesterrep$smk_t))
 
-# FIXME: what are we testing from above
 con <- create_ds_connection(password = admin_pwd, token = token, profile = profile, url = armadillo_url)
 if (con@name == "armadillo"){
   cli_alert_success("Succesfully connected")
