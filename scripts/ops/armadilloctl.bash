@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 CURL_OPTS=--silent
 
@@ -6,26 +6,26 @@ WARN="\033[33m"
 ERR="\033[31m"
 B="\033[0m"
 
-function warning() {
+warning() {
   echo -e "WARNING: ${WARN}${1}${B}"
 }
 
-function error() {
+error() {
   echo -e "ERROR: ${ERR}${1}${B}"
   exit 1
 }
 
-function is_armadillo_running() {
+is_armadillo_running() {
   cmd="${ARMADILLO_URL}"
   curl $CURL_OPTS --request "GET" "${cmd}" > /dev/null || (error "Armadillo not running."; exit 1)
 }
 
-function get_profiles() {
+get_profiles() {
   cmd="$ARMADILLO_URL/ds-profiles"
   profile_names=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '.[] | "\(.name)"')
 }
 
-function status {
+status() {
     if [ -z "$1" ]; then
         error "$0 needs profile name. Or try ${0}All"
     fi
@@ -36,7 +36,7 @@ function status {
     echo $stats
 }
 
-function start {
+start() {
     if [ -z "$1" ]; then
         error "$0 needs profile name. Or try ${0}All"
     fi
@@ -48,7 +48,7 @@ function start {
     curl $CURL_OPTS --user $CREDENTIALS --request "POST" "$cmd" --data ""
 }
 
-function stop {
+stop() {
     if [ -z "$1" ]; then
         error "$0 needs profile name. Or try ${0}All"
     fi
@@ -60,7 +60,7 @@ function stop {
     curl $CURL_OPTS --user $CREDENTIALS --request "POST" $cmd --data ""
 }
 
-function restart {
+restart() {
     if [ -z "$1" ]; then
         error "$0 needs profile name. Or try ${0}All"
     fi
@@ -75,7 +75,7 @@ function restart {
 
 }
 
-function is_auto_start() {
+is_auto_start() {
   if [[ $ARMADILLO_PROFILES_AUTOSTART =~ (^|[[:space:]])$1($|[[:space:]]) ]]
   then
     return 0
@@ -84,7 +84,7 @@ function is_auto_start() {
   fi
 }
 
-function doAll {
+doAll() {
   command=$1
   get_profiles
 
@@ -93,25 +93,25 @@ function doAll {
   done
 }
 
-function statusAll() {
+statusAll() {
   doAll status
 }
 
-function startAll() {
+startAll() {
     doAll start
 }
 
-function stopAll() {
+stopAll() {
     doAll stop
 }
 
-function restartAll {
+restartAll() {
   doAll stop
   sleep 5
   doAll start
 }
 
-function autoStart() {
+autoStart() {
     get_profiles
     echo "Auto starting ..."
     echo "${profile_names}" | while read -r item
@@ -123,23 +123,23 @@ function autoStart() {
     done
 }
 
-function check_dependencies() {
+check_dependencies() {
   if ! which jq > /dev/null ; then
     echo "Please install jq for json parsing ... exiting"
     exit 1
   fi
 }
 
-function var_found() {
+var_found() {
   echo "Variable $1 found ..."
 }
 
-function var_empty() {
+var_empty() {
   echo "Variable $1 not set! ... exiting"
   exit 1
 }
 
-function all_set() {
+all_set() {
   [[ -n "$ARMADILLO_URL" ]] && var_found ARMADILLO_URL
   [[ -z "$ARMADILLO_URL" ]] && var_empty ARMADILLO_URL
 
