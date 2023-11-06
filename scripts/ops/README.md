@@ -12,14 +12,14 @@ To make this possible Armadillo must have an admin user set.
 
 The file [`env.dist`](./env.dist) lists the required environment variables.
 
-- Copy this over to a location of choice ie `conf/armadillo.acc.env`
+- Copy this over to a location of choice ie `/etc/armadillo/acc.env`
 
 ### run
 
 Make sure to `source` the file in your current `zsh` or through a new shell.
 
 ```zsh
-zsh -c "source conf/armadillo.acc.env ; ./armadilloctl.zsh"
+zsh -c "source /etc/armadillo/acc.env ; ./armadilloctl.zsh"
 ```
 
 ### examples
@@ -34,5 +34,5 @@ zsh -c "source conf/armadillo.acc.env ; ./armadilloctl.zsh"
 You can test `armadilloctl.zsh` using `test_armadilloctl.zsh`.
 
 ```zsh
-zsh -c "source dev.env ; ./test_armadilloctl.zsh" || echo FAILED
+zsh -c "source /etc/armadillo/acc.env ; ./test_armadilloctl.zsh" || echo FAILED
 ```
