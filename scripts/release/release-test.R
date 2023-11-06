@@ -37,9 +37,6 @@ library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
 
-# FIXME: waiting for PR https://github.com/molgenis/molgenis-r-datashield/pull/62
-#        needed for https://github.com/molgenis/molgenis-service-armadillo/pull/277
-#devtools::install("/Users/clemens/Documents/GitHub/molgenis-r-datashield/")
 library(DSMolgenisArmadillo)
 
 library(resourcer)
@@ -750,24 +747,28 @@ if(!ADMIN_MODE){
 }
 
 cli_h2("Using tables as researcher")
+
 cli_alert_info("Creating new builder")
 cli_alert_info("Building")
-logindata <- create_dsi_builder(
-  url = armadillo_url,
-  profile = profile,
-  password = admin_pwd,
-  token = token,
-  table = sprintf("%s/2_1-core-1_0/nonrep", project1)
-  )
-
+logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
 conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
+
 cli_alert_info("Assigning table core_nonrep")
 datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", project1))
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
+
 cli_alert_info("Verifying connecting to profile possible")
 con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
+if (con@name == "armadillo") {
+  cli_alert_success("Succesfully connected")
+} else {
+  # FIXME: should we exit?
+  cli_alert_danger("Connection failed")
+}
+dsDisconnect(con)
+
 cli_alert_info("Verifying mean function works on core_nonrep$country")
 ds_mean <- ds.mean("core_nonrep$coh_country", datasources = conns)$Mean
 cli_alert_info("Verifying mean values")
@@ -789,14 +790,18 @@ compare_list_values(hist$density, density)
 cli_alert_info("Validating histogram mids")
 compare_list_values(hist$mids, mids)
 
+datashield.logout(conns)
+
 if (ADMIN_MODE) {
    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
 } else if (!"resourcer" %in% profile_info$packageWhitelist) {
   cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
 } else {
     cli_h2("Using resources as regular user")
+
     login_data <- create_dsi_builder(server = "testserver", url = armadillo_url, token = token, profile = profile, resource = sprintf("%s/ewas/GSE66351_1", omics_project))
     conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
+
     cli_alert_info("Testing if we see the resource")
     resource_path <- sprintf("%s/ewas/GSE66351_1", omics_project)
     if(datashield.resources(conns = conns)$testserver == resource_path){
@@ -820,6 +825,7 @@ if (ADMIN_MODE) {
     }, error = function(e) {
         cli_alert_danger(datashield.errors())
     })
+    datashield.logout(conns)
 }
 
 cli_h2("Default profile")
@@ -830,16 +836,16 @@ if (con@name == "armadillo") {
 } else {
   cli_alert_danger("Connection failed")
 }
+dsDisconnect(con)
 
 cli_alert_info("Verify if default profile works when specifying profile")
-
-
 con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = "default")
 if (con@name == "armadillo") {
   cli_alert_success("Succesfully connected")
 } else {
   cli_alert_danger("Connection failed")
 }
+dsDisconnect(con)
 
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
@@ -925,14 +931,15 @@ datashield.assign.table(conns, "core_trimesterrep", sprintf("%s/core/trimesterre
 datashield.assign.expr(conns, "x", expr=quote(core_trimesterrep$smk_t))
 
 con <- create_ds_connection(password = admin_pwd, token = token, profile = profile, url = armadillo_url)
-
 if (con@name == "armadillo"){
   cli_alert_success("Succesfully connected")
 } else {
   cli_alert_danger("Connection failed")
 }
+dsDisconnect(con)
 
 ds_mean <- ds.mean("core_trimesterrep$smk_t", datasources = conns)$Mean
+datashield.logout(conns)
 
 cli_alert_info("Testing Rock profile mean values")
 verify_ds_obtained_mean(ds_mean, 61.059, 3000)
