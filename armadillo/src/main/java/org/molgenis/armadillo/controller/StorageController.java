@@ -5,7 +5,6 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
@@ -27,13 +26,12 @@ import java.util.List;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
+import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "storage", description = "API to manipulate the storage")
 @RestController
@@ -252,35 +251,38 @@ public class StorageController {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Object downloaded successfully"),
+        @ApiResponse(responseCode = "200", description = "Object downloaded successfully"),
         @ApiResponse(
             responseCode = "404",
             description = "Unknown project or object",
-            content = @Content(schema = @Schema(hidden = true))),
+            content = @Content(mediaType = "application/json")),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
-            content = @Content(schema = @Schema(hidden = true)))
+            content = @Content(mediaType = "application/json"))
       })
-  @GetMapping(
-      value = "/projects/{project}/objects/{object}",
-      produces = {APPLICATION_OCTET_STREAM_VALUE})
-  public @ResponseBody ResponseEntity<InputStreamResource> downloadObject(
+  @GetMapping(value = "/projects/{project}/objects/{object}")
+  public ResponseEntity<InputStreamResource> downloadObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
-    return auditor.audit(
-        () -> getObject(project, object),
-        principal,
-        DOWNLOAD_OBJECT,
-        Map.of(PROJECT, project, OBJECT, object));
+    try {
+      return auditor.audit(
+          () -> getObject(project, object),
+          principal,
+          DOWNLOAD_OBJECT,
+          Map.of(PROJECT, project, OBJECT, object));
+    } catch (UnknownObjectException | UnknownProjectException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
-    var inputStream = storage.loadObject(project, object);
-    var objectParts = object.split("/");
-    var fileName = objectParts[objectParts.length - 1];
-
     try {
+      var inputStream = storage.loadObject(project, object);
+      var objectParts = object.split("/");
+      var fileName = objectParts[objectParts.length - 1];
       InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
       ContentDisposition contentDisposition =
           ContentDisposition.attachment().filename(fileName).build();
@@ -291,7 +293,7 @@ public class StorageController {
       httpHeaders.setContentDisposition(contentDisposition);
       httpHeaders.setContentLength(fileSize);
       httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
-      return new ResponseEntity(inputStreamResource, httpHeaders, HttpStatus.OK);
+      return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
     } catch (IOException e) {
       throw new FileProcessingException();
     }
