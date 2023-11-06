@@ -2,9 +2,14 @@
 
 CURL_OPTS=--silent
 
+OK="\033[32m"
 WARN="\033[33m"
 ERR="\033[31m"
 B="\033[0m"
+
+success() {
+  echo -e "${OK}${1}${B}"
+}
 
 warning() {
   echo -e "WARNING: ${WARN}${1}${B}"
@@ -33,7 +38,7 @@ status() {
 
     cmd="${ARMADILLO_URL}/ds-profiles/{$name}"
     stats=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '"\(.name) = \(.container.status)"')
-    echo $stats
+    success "$stats"
 }
 
 start() {
@@ -121,6 +126,7 @@ autoStart() {
         start "${item}"
       fi
     done
+    statusAll
 }
 
 check_dependencies() {
@@ -135,7 +141,7 @@ var_found() {
 }
 
 var_empty() {
-  echo "Variable $1 not set! ... exiting"
+  warning "Variable $1 not set! ... exiting"
   exit 1
 }
 
@@ -155,10 +161,11 @@ all_set() {
 
   CREDENTIALS="${ARMADILLO_ADMIN_USER}:${ARMADILLO_ADMIN_PASSWORD}"
 
-  echo "\nArmadillo settings:"
-  echo "  URL                : ${ARMADILLO_URL}"
-  echo "  ADMIN_USER         : ${ARMADILLO_ADMIN_USER}"
-  echo "  PROFILES_AUTOSTART : ${ARMADILLO_PROFILES_AUTOSTART}"
+  echo ""
+  echo "Armadillo settings:"
+  echo "  ARMADILLO_URL                : ${ARMADILLO_URL}"
+  echo "  ARMADILLO_ADMIN_USER         : ${ARMADILLO_ADMIN_USER}"
+  echo "  ARMADILLO_PROFILES_AUTOSTART : ${ARMADILLO_PROFILES_AUTOSTART}"
 }
 
 check_dependencies || exit
@@ -172,5 +179,6 @@ get_profiles
 if [[ "$1" =~ ^(status|start|stop|restart|statusAll|startAll|stopAll|restartAll|autoStart)$ ]]; then
     "$@"
 else
-  echo "\nPlease provide one of the following argument: status | start | stop | restart | statusAll | startAll | stopAll | restartAll | autoStart"
+  warning "Please provide one of the following arguments: status | start | stop | restart | statusAll | startAll | stopAll | restartAll | autoStart"
+  error "Got argument '$1'"
 fi
