@@ -3,7 +3,8 @@
   - [Configure](/ops/configuring.md)
   - [UI](/ui.md#armadillo-user-interface "Armadillo 3 UI")
   - [FAQ](/faq.md)
-  - [Armadillo 2 to 3 migration guide](/migration-guide-2-to-3.md#instructions-for-migrating-a-2x-armadillo-to-3x "Armadillo 2 to 3 migration guide")
+  - [Migration from 2 to 3](/upgrade-2-3.md)
+    - [older version](/migration-guide-2-to-3.md#instructions-for-migrating-a-2x-armadillo-to-3x "Armadillo 2 to 3 migration guide")
 - External sites
   - [DsMolgenisArmadillo](https://github.com/molgenis/molgenis-r-datashield/blob/master/README.md)
   - [MolgenisArmadillo](https://molgenis.github.io/molgenis-r-armadillo/)
