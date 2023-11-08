@@ -86,9 +86,9 @@ class CommandLineInterface:
         "required" or not.
         """
         parser = argparse.ArgumentParser(
-            prog="Import cohort users",
-            description="Utilitarian script of the Armadillo migration "
-                        "process to import users and their rights into the correct cohorts."
+            prog="Reset localhost projects and users",
+            description="Utilitarian script for developers that want to reset their localhost instance to just Project "
+                        "'Lifecycle' and a singular user if they supply -u. Does not affect Profiles."
         )
         required = parser.add_argument_group("Required arguments")
         required.add_argument(
