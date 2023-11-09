@@ -53,7 +53,7 @@ apt install docker.io
 ```
 The docker.io step might fail because containerd already exists, if that's the case, remove containerd and try again:
 ```
-apt remove containerd
+apt remove containerd.io
 apt install docker.io
 ```
 
