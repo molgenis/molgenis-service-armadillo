@@ -1,0 +1,38 @@
+# Use this version when developing on the git checkout tree
+
+version: "3.4"
+services:
+  armadillo:
+    hostname: armadillo
+    build:
+      context: 'build/docker'
+      dockerfile: 'Dockerfile'
+      args:
+        JAR_FILE: '*.jar'
+    image: molgenis/molgenis-armadillo:latest
+    environment:
+      LOGGING_CONFIG: 'classpath:logback-file.xml'
+      AUDIT_LOG_PATH: '/app/logs/audit.log'
+      SPRING_SECURITY_USER_PASSWORD: 'admin'
+    ports:
+      - 8080:8080
+    volumes:
+      - ${PWD}/logs/:/app/logs
+      - ${PWD}/data/:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  default:
+    hostname: default
+    image: datashield/armadillo-rserver:6.2.0
+    environment:
+      DEBUG: "TRUE"
+    ports:
+      - 6311:6311
+
+  citest_rserver:
+    hostname: citest_rserver
+    image: datashield/armadillo-rserver_ionic-babel:1.0.0
+    environment:
+      DEBUG: "TRUE"
+    ports:
+      - 6312:6311
