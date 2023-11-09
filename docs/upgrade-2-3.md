@@ -139,6 +139,7 @@ server {
 }
 ```
 Note that the `https://` is missing in the server_name part.
+NOTE: if port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you shouldn't comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config. 
 
 Remove the console, auth and storage file from: `/etc/nginx/sites-enabled/` and `/etc/nginx/sites-available/. 
 
