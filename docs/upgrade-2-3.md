@@ -140,7 +140,7 @@ server {
 ```
 Note that the `https://` is missing in the server_name part.
 
-Remove the console and storage file from: `/etc/nginx/sites-enabled/`. 
+Remove the console, auth and storage file from: `/etc/nginx/sites-enabled/` and `/etc/nginx/sites-available/. 
 
 ```
 systemctl restart nginx
