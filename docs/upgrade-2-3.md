@@ -122,7 +122,7 @@ Now check if all users and data are properly migrated.
 
 #### 9. Cleanup ngnix config
 
-Change `/etc/ngninx/sites-available/armadillo.conf` to:
+Change `/etc/nginx/sites-available/armadillo.conf` to:
 ```
 server {
   listen 80;
