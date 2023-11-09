@@ -72,6 +72,8 @@ describe("SimpleTable", () => {
       props: {
         data: data,
         maxWidth: 600,
+        nCols: 7,
+        nRows: data.length
       },
     });
   });
