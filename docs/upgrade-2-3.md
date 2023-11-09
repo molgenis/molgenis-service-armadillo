@@ -4,7 +4,7 @@ To export data from and Armadillo 2 server take the following steps:
 
 #### 1. Check if there's enough space left on the server
 ```
-du -h
+df -h
 ```
 Compare to:
 ```
