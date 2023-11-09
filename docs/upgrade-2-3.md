@@ -4,7 +4,7 @@ To export data from and Armadillo 2 server take the following steps:
 
 #### 1. Check if there's enough space left on the server
 ```
-du -h
+df -h
 ```
 Compare to:
 ```
@@ -53,7 +53,7 @@ apt install docker.io
 ```
 The docker.io step might fail because containerd already exists, if that's the case, remove containerd and try again:
 ```
-apt remove containerd
+apt remove containerd.io
 apt install docker.io
 ```
 
@@ -120,9 +120,11 @@ python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --arm
 ```
 Now check if all users and data are properly migrated. 
 
+NOTE: if the script fails with a timeout, try pinging the armadillo url and lifecycle auth url to see if they're reachable from the server. In case they are not, you could choose to export the users using the `export-users.py` script locally and then manually enter them into the system. 
+
 #### 9. Cleanup ngnix config
 
-Change `/etc/ngninx/sites-available/armadillo.conf` to:
+Change `/etc/nginx/sites-available/armadillo.conf` to:
 ```
 server {
   listen 80;
@@ -139,11 +141,12 @@ server {
 }
 ```
 Note that the `https://` is missing in the server_name part.
+NOTE: if port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you shouldn't comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config. 
 
-Remove the console and storage file from: `/etc/ngninx/sites-enabled/`. 
+Remove the console, auth and storage file from: `/etc/nginx/sites-enabled/` and `/etc/nginx/sites-available/. 
 
 ```
-system restart ngninx
+systemctl restart nginx
 ```
 
 #### 10. Fix application.yml
