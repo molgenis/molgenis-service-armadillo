@@ -246,3 +246,9 @@ To import users into an Armadillo 3 server, one must use the [import-users.py](h
 **Again, note that `import-users.py` will prompt to supply the API key for the `-s / --server` server once all arguments are valid!**
 
 Empty TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) will be imported as empty projects with no users.
+
+Example:
+```bash
+pipenv shell
+python3 import-users.py -s https://armadillo3-server.org -d ./armadillo_2_exports/2023-11-09
+```
