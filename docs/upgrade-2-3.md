@@ -140,10 +140,10 @@ server {
 ```
 Note that the `https://` is missing in the server_name part.
 
-Remove the console and storage file from: `/etc/ngninx/sites-enabled/`. 
+Remove the console and storage file from: `/etc/nginx/sites-enabled/`. 
 
 ```
-system restart ngninx
+systemctl restart nginx
 ```
 
 #### 10. Fix application.yml
