@@ -120,6 +120,8 @@ python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --arm
 ```
 Now check if all users and data are properly migrated. 
 
+NOTE: if the script fails with a timeout, try pinging the armadillo url and lifecycle auth url to see if they're reachable from the server. In case they are not, you could choose to export the users using the `export-users.py` script locally and then manually enter them into the system. 
+
 #### 9. Cleanup ngnix config
 
 Change `/etc/nginx/sites-available/armadillo.conf` to:
