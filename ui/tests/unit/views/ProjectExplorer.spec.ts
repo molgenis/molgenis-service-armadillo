@@ -198,7 +198,7 @@ describe("ProjectsExplorer", () => {
         wrapper.vm.selectedFile = "doesnot.exists";
         await wrapper.vm.proceedDelete("doesnt-exist/doesnot.exists");
         await wrapper.vm.$nextTick();
-        expect(wrapper.vm.errorMessage).toBe(error);
+        expect(wrapper.vm.errorMessage).toBe(`${error}`);
     });
 
     test("successfully reloads project", async () => {
@@ -238,9 +238,10 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.errorMessage).toBe("some very random error");
     });
 
-    test("show error message with Error", () => {
-        const error = new Error("fail");
-        wrapper.vm.showErrorMessage(error);
-        expect(wrapper.vm.errorMessage).toBe(error);
+    test("show error message used when UploadFile fails", () => {
+        // Since showErrorMessage already expects a string and is only used in FileUpload 
+        // and FileUpload only returns the error as string, using only a string in this test.
+        wrapper.vm.showErrorMessage("A very random UploadFile error string");
+        expect(wrapper.vm.errorMessage).toBe("A very random UploadFile error string");
     });
 });
