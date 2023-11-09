@@ -726,9 +726,9 @@ cli_alert_info(sprintf("Creating project [%s]", omics_project))
 armadillo.create_project(omics_project)
 rda_file_body <- upload_file(rda_dir)
 cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
-
-post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
-
+system.time({
+  post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
+})
 cli_alert_info("Creating resource")
 
 
@@ -747,8 +747,11 @@ armadillo.upload_resource(project = omics_project, folder = "ewas", resource = r
 
 cli_alert_info("\nNow you're going to test as researcher")
 if(!ADMIN_MODE){
-  cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
-  update_auto <- readLines("stdin", n=1)
+  update_auto = "y"
+  if(interactive) {
+    cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
+    update_auto <- readLines("stdin", n=1)
+  }
   if(update_auto == "y"){
     set_user(user, admin_pwd, F, project1, omics_project)
   }
