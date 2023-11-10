@@ -16,4 +16,6 @@
 
     * [ds-dictionaries](https://github.com/lifecycle-project/ds-dictionaries/blob/master/README.md)
 
-    * [Armadillo 2 to 3 migration guide](/migration-guide-2-to-3.md#instructions-for-migrating-a-2x-armadillo-to-3x "Armadillo 2 to 3 migration guide")
+    * [Migration from 2 to 3](/upgrade-2-3.md)
+
+    * [Release test (R)](/release-test.md)

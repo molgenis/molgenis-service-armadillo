@@ -37,9 +37,6 @@ library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
 
-# FIXME: waiting for PR https://github.com/molgenis/molgenis-r-datashield/pull/62
-#        needed for https://github.com/molgenis/molgenis-service-armadillo/pull/277
-#devtools::install("/Users/clemens/Documents/GitHub/molgenis-r-datashield/")
 library(DSMolgenisArmadillo)
 
 library(resourcer)

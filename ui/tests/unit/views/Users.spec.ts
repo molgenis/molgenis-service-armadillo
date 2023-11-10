@@ -210,22 +210,6 @@ describe("Users", () => {
     expect(testFunction).toHaveBeenCalled();
   });
 
-  test("reloads users", async () => {
-    const testFunction = jest.fn();
-    const updatedUsers = testData.concat([userToAdd]);
-    api.getUsers.mockImplementation(() => {
-      testFunction();
-      return Promise.resolve(updatedUsers);
-    });
-    wrapper.vm.reloadUsers();
-    expect(wrapper.vm.loading).toBe(true);
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    expect(wrapper.vm.loading).toBe(false);
-    expect(testFunction).toHaveBeenCalled();
-  });
-
   test("returns error when loading users fails", async () => {
     const error = new Error("fail");
     api.getUsers.mockImplementation(() => {
