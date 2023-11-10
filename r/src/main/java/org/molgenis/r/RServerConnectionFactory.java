@@ -49,9 +49,7 @@ public class RServerConnectionFactory implements RConnectionFactory {
     String url = "http://" + environment.getHost() + ":" + environment.getPort();
     int status = doHead(url);
     if (status == -99) {
-      // server down
       logger.warn("Container for '" + url + "'  is down");
-      //      throw new RockServerException("Container is down");
     } else if (status == -2) {
       logger.warn("Container for '" + url + "' is not ready");
     } else if (status == 200) {
