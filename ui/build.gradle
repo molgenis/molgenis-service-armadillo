@@ -36,10 +36,9 @@ task mybuild(type: YarnTask, dependsOn: yarn_install) {
     args = ['run', 'build']
 }
 
-//task runTest(type: YarnTask, dependsOn: mybuild) {
-//    args = ['run', 'test']
-//}
-//test.dependsOn runTest
+task test(type: YarnTask, dependsOn: mybuild) {
+    args = ['run', 'test']
+}
 
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
 task createJar(type: Zip, dependsOn: mybuild) {
@@ -49,6 +48,7 @@ task createJar(type: Zip, dependsOn: mybuild) {
     from('dist')
     into('public')
 }
+createJar.dependsOn test
 
 //first mybuild, than createJar
 build.dependsOn "createJar"
