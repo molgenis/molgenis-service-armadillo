@@ -12,27 +12,29 @@ To make this possible Armadillo must have an admin user set.
 
 The file [`env.dist`](./env.dist) lists the required environment variables.
 
-- Copy this over to a location of choice ie `conf/armadillo.acc.env`
+- Copy this over to a location of choice ie `/etc/armadillo/acc.env`
 
 ### run
 
-Make sure to `source` the file in your current `zsh` or through a new shell.
+Make sure to `source` the file in your current `bash` or through a new shell.
 
-```zsh
-zsh -c "source conf/armadillo.acc.env ; ./armadilloctl.zsh"
+```bash
+bash -c "source /etc/armadillo/acc.env ; ./armadilloctl.bash"
 ```
 
 ### examples
 
-- `./armadillo.zsh statusAll`
-- `./armadillo.zsh autoStart`
-- `./armadillo.zsh stop default`
-- `./armadillo.zsh startAll`
+- `./armadillo.bash statusAll`
+- `./armadillo.bash autoStart`
+- `./armadillo.bash stop default`
+- `./armadillo.bash startAll`
 
 ### Test script (WIP)
 
-You can test `armadilloctl.zsh` using `test_armadilloctl.zsh`.
+You can test `armadilloctl.bash` using `test_armadilloctl.bash`.
 
-```zsh
-zsh -c "source dev.env ; ./test_armadilloctl.zsh" || echo FAILED
+We source the environment variables to not contaminate our current shell.
+
+```bash
+bash -c "source /etc/armadillo/acc.env ; ./test_armadilloctl.bash" || echo FAILED
 ```
