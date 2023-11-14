@@ -166,8 +166,13 @@ set_user <- function(user, admin_pwd, isAdmin, project1, omics_project){
 }
 
 wait_for_input <- function(){
-  cat("\nPress any key to continue")
-  continue <- readLines("stdin", n=1)
+  if (interactive) {
+    cat("\nPress any key to continue")
+    continue <- readLines("stdin", n=1)
+  }
+  else {
+    cat("\n\n")
+  }
 }
 
 # log version info of loaded libraries
@@ -465,6 +470,11 @@ if(armadillo_url == ""){
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
 }
 
+interactive = TRUE
+if (Sys.getenv("INTERACTIVE") == 'N') {
+  interactive = FALSE
+}
+
 armadillo_url <- add_slash_if_not_added(armadillo_url)
 
 if(url.exists(armadillo_url)) {
@@ -697,11 +707,13 @@ wait_for_input()
 cat("\nVerify outcome contains nonrep and yearlyrep")
 wait_for_input()
 
-cat("\nWere the manual tests successful? (y/n) ")
-success <- readLines("stdin", n=1)
-if(success != "y"){
-  cli_alert_danger("Manual tests failed: problem in UI")
-  exit_test("Some values incorrect in UI projects view")
+if (interactive) {
+  cat("\nWere the manual tests successful? (y/n) ")
+  success <- readLines("stdin", n=1)
+  if(success != "y"){
+    cli_alert_danger("Manual tests failed: problem in UI")
+    exit_test("Some values incorrect in UI projects view")
+  }
 }
 
 cli_h2("Resource upload")
@@ -711,9 +723,9 @@ cli_alert_info(sprintf("Creating project [%s]", omics_project))
 armadillo.create_project(omics_project)
 rda_file_body <- upload_file(rda_dir)
 cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
-
-post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
-
+system.time({
+  post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
+})
 cli_alert_info("Creating resource")
 
 
@@ -732,8 +744,11 @@ armadillo.upload_resource(project = omics_project, folder = "ewas", resource = r
 
 cli_alert_info("\nNow you're going to test as researcher")
 if(!ADMIN_MODE){
-  cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
-  update_auto <- readLines("stdin", n=1)
+  update_auto = "y"
+  if(interactive) {
+    cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
+    update_auto <- readLines("stdin", n=1)
+  }
   if(update_auto == "y"){
     set_user(user, admin_pwd, F, project1, omics_project)
   }
