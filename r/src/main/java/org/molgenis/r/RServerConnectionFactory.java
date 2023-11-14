@@ -16,7 +16,7 @@ public class RServerConnectionFactory implements RConnectionFactory {
     this.environment = environment;
   }
 
-  int doHead(String uri) {
+  RockStatusCode doHead(String uri) {
     URL url;
     try {
       url = new URL(uri);
@@ -25,36 +25,63 @@ public class RServerConnectionFactory implements RConnectionFactory {
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("HEAD");
         connection.getContentLength();
-        // -1 for rserve : `curl --http0.9 --head http://localhost:6311`
-        // 200 for rock: `curl --head http://localhost:6311`
-        return connection.getResponseCode();
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+          return RockStatusCode.OK;
+        }
+        logger.info("Unexpected response code " + responseCode + " on " + url);
+        return RockStatusCode.UNEXPECTED_RESPONSE_CODE;
       } catch (ConnectException e) {
-        // server down
-        return -99;
+        return RockStatusCode.SERVER_DOWN;
       } catch (SocketException e) {
-        // Server not ready
         logger.info("Server not ready on " + url, e);
-        return -2;
+        return RockStatusCode.SERVER_NOT_READY;
       } catch (IOException e) {
-        logger.warn("Unexpected response on " + url, e);
+        logger.warn("IOException response on " + url, e);
+        return RockStatusCode.UNEXPECTED_RESPONSE;
       }
     } catch (MalformedURLException e) {
-      logger.warn("Unexpected url", e);
+      logger.warn("MalformedURLException url", e);
+      return RockStatusCode.UNEXPECTED_URL;
     }
-    return -3;
   }
 
   @Override
   public RServerConnection tryCreateConnection() {
     String url = "http://" + environment.getHost() + ":" + environment.getPort();
-    int status = doHead(url);
-    if (status == -99) {
+    RockStatusCode rockStatus = doHead(url);
+    if (rockStatus == RockStatusCode.SERVER_DOWN) {
       logger.warn("Container for '" + url + "'  is down");
-    } else if (status == -2) {
+    } else if (rockStatus == RockStatusCode.SERVER_NOT_READY) {
       logger.warn("Container for '" + url + "' is not ready");
-    } else if (status == 200) {
+    } else if (rockStatus == RockStatusCode.OK) {
       logger.info("Container for '" + url + "' is running");
+    } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE_CODE) {
+      logger.info("Unexpected response code on " + url);
+    } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE) {
+      logger.info("Unexpected response on " + url);
+    } else if (rockStatus == RockStatusCode.UNEXPECTED_URL) {
+      logger.warn("MalformedURLException on " + url);
     }
     return new RockConnectionFactory(environment).tryCreateConnection();
+  }
+}
+
+enum RockStatusCode {
+  SERVER_DOWN(-99),
+  SERVER_NOT_READY(-2),
+  UNEXPECTED_URL(-3),
+  UNEXPECTED_RESPONSE(-1),
+  UNEXPECTED_RESPONSE_CODE(-4),
+  OK(200);
+
+  private final int code;
+
+  RockStatusCode(int code) {
+    this.code = code;
+  }
+
+  public int getCode() {
+    return this.code;
   }
 }
