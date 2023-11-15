@@ -74,12 +74,34 @@ public class DockerService {
     return statuses;
   }
 
+  // FIXME: Get from environment
+  Boolean inContainer() {
+    return true;
+  }
+
+  // `docker container ps` show these name structure
+  String asContainerName(String profileName) {
+    if (inContainer()) {
+      return "armadillo-docker-compose-" + profileName + "-1";
+    }
+    return profileName;
+  }
+
+  String asProfileName(String containerName) {
+    if (inContainer()) {
+      return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
+    }
+    return containerName;
+  }
+
   public ContainerInfo getProfileStatus(String profileName) {
     // check profile exists
     profileService.getByName(profileName);
 
+    String containerName = asContainerName(profileName);
     try {
-      InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(profileName).exec();
+      InspectContainerResponse containerInfo =
+          dockerClient.inspectContainerCmd(containerName).exec();
       var tags = getImageTags(containerInfo.getName());
       return ContainerInfo.create(tags, ProfileStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
@@ -94,12 +116,15 @@ public class DockerService {
   }
 
   public void startProfile(String profileName) {
+    String containerName = asContainerName(profileName);
+    LOG.info(profileName + " : " + containerName);
+
     var profileConfig = profileService.getByName(profileName);
     pullImage(profileConfig);
-    stopContainer(profileName);
-    removeContainer(profileName); // for reinstall
+    stopContainer(containerName);
+    removeContainer(containerName); // for reinstall
     installImage(profileConfig);
-    startContainer(profileName);
+    startContainer(containerName);
   }
 
   private void installImage(ProfileConfig profileConfig) {
@@ -125,7 +150,7 @@ public class DockerService {
 
   private void startContainer(String profileName) {
     try {
-      dockerClient.startContainerCmd(profileName).exec();
+      dockerClient.startContainerCmd(asContainerName(profileName)).exec();
     } catch (DockerException e) {
       throw new ImageStartFailedException(profileName, e);
     }
@@ -133,11 +158,11 @@ public class DockerService {
 
   private void stopContainer(String profileName) {
     try {
-      dockerClient.stopContainerCmd(profileName).exec();
+      dockerClient.stopContainerCmd(asContainerName(profileName)).exec();
     } catch (DockerException e) {
       try {
         InspectContainerResponse containerInfo =
-            dockerClient.inspectContainerCmd(profileName).exec();
+            dockerClient.inspectContainerCmd(asContainerName(profileName)).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
           throw new ImageStopFailedException(profileName, e);
@@ -183,7 +208,7 @@ public class DockerService {
 
   private void removeContainer(String profileName) {
     try {
-      dockerClient.removeContainerCmd(profileName).exec();
+      dockerClient.removeContainerCmd(asContainerName(profileName)).exec();
     } catch (NotFoundException nfe) {
       LOG.info("Couldn't remove container '{}' because it doesn't exist", profileName);
       // not a problem, wanted to remove anyway
