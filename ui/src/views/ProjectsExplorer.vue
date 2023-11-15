@@ -431,7 +431,7 @@ export default defineComponent({
           this.successMessage = `Successfully deleted file [${file}] from directory [${folder}] of project: [${this.projectId}]`;
         })
         .catch((error) => {
-          this.errorMessage = error;
+          this.errorMessage = `${error}`;
         });
     },
     reloadProject(callback: Function | undefined = undefined) {
