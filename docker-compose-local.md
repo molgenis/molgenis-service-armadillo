@@ -112,3 +112,49 @@ Source: Conversation with Bing, 15/11/2023
 (6) docker - How to open/run YML compose file? - Stack Overflow. https://stackoverflow.com/questions/44364916/how-to-open-run-yml-compose-file.
 (7) Docker Desktop WSL 2 backend on Windows | Docker Docs. https://docs.docker.com/desktop/wsl/.
 (8) How to Automatically Create Compose Files From Running Docker ... - MUO. https://www.makeuseof.com/create-docker-compose-files-from-running-docker-containers/.
+
+## Load balancing
+
+```yml
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+  serviceA:
+    image: serviceA:latest
+  serviceB1:
+    image: serviceB:latest
+  serviceB2:
+    image: serviceB:latest
+  serviceB3:
+    image: serviceB:latest
+```
+
+### NGNX config
+
+```ngnx
+http {
+    upstream backend {
+        ip_hash;
+        server serviceB1:8080;
+        server serviceB2:8080;
+        server serviceB3:8080;
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header JSESSIONID $cookie_JSESSIONID;
+        }
+    }
+}
+```
