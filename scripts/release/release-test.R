@@ -481,6 +481,12 @@ if(url.exists(armadillo_url)) {
   exit_test(msg)
 }
 
+as_docker_container <- FALSE
+if("Y" == Sys.getenv("AS_DOCKER_CONTAINER", "N")) {
+  as_docker_container <- TRUE
+}
+cli_alert_info(sprintf("Running in docker container %d", as.integer(as_docker_container)))
+
 service_location = remove_slash_if_added(Sys.getenv("GIT_CLONE_PATH"))
 if(service_location == ""){
   cli_alert_warning("Git clone path not set, attempting to set git clone root through normalized path")
@@ -597,10 +603,13 @@ if(profile == ""){
 
 cli_alert_info("Checking if profile is prepared for all tests")
 
-create_profile_if_not_available(profile, profiles$available, token, auth_type)
+if (!as_docker_container) {
+  create_profile_if_not_available(profile, profiles$available, token, auth_type)
+}
 profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
-start_profile_if_not_running("default", token, auth_type)
-
+if (!as_docker_container) {
+  start_profile_if_not_running("default", token, auth_type)
+}
 seed <- unlist(profile_info$options$datashield.seed)
 whitelist <- unlist(profile_info$packageWhitelist)
 if(is.null(seed)){
@@ -903,7 +912,9 @@ if(ADMIN_MODE) {
   armadillo.login(armadillo_url)
 }
 profile <- "rock"
-create_profile_if_not_available(profile, profiles$available, token, auth_type)
+if (!as_docker_container) {
+  create_profile_if_not_available(profile, profiles$available, token, auth_type)
+}
 available_projects <- armadillo.list_projects()
 project3 <- generate_random_project_name(available_projects)
 available_projects <- c(available_projects, project3)
