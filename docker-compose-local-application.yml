@@ -1,0 +1,86 @@
+# NOTE: when changing this file you must rerun:
+# - docker compose --file docker-compose-local.yml build
+
+armadillo:
+  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
+  docker-management-enabled: false
+
+  # uncomment this to configure an oidc user as admin user
+  # oidc-admin-user: user@yourdomain.org
+  profiles:
+    - name: default
+      image: datashield/armadillo-rserver:6.2.0
+      port: 6311
+      host: default
+      package-whitelist:
+        - dsBase
+      function-blacklist: [ ]
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 342325352
+          # foo: bar
+    - name: xenon
+      image: datashield/armadillo-rserver_caravan-xenon:1.0.0
+      host: xenon
+      port: 6311
+      package-whitelist:
+        - dsBase
+        - resourcer
+      function-blacklist: [ ]
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 342325352
+          # foo: bar
+    - name: rock
+      image: datashield/rock-base:latest
+      host: rock
+      port: 8085
+      package-whitelist:
+        - dsBase
+      function-blacklist: [ ]
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: 342325352
+          # foo: bar
+
+# required settings:
+spring:
+  security:
+    user:
+      # please change this admin password!
+      password: admin
+    ## uncomment oauth2 settings below to enable oidcgit
+#    oauth2:
+#      client:
+#        provider:
+#          molgenis:
+#            issuer-uri: 'http://auth.molgenis.org'
+#        registration:
+#          molgenis:
+#            client-id: '...'
+#            client-secret: '...'
+#      resourceserver:
+#        jwt:
+#          issuer-uri: 'http://auth.molgenis.org'
+#        opaquetoken:
+#          client-id: '...'
+
+# optional settings (review spring handbook to find more):
+  servlet:
+    multipart:
+      ## change this if your files are bigger
+      max-file-size: 1000MB
+      max-request-size: 1000MB
+
+storage:
+  ## to change location of the data storage
+  root-dir: /app/data
+
+logging:
+  level:
+    root: DEBUG
+    ## change to DEBUG to have more details, typically when developing
+    org.molgenis: DEBUG
