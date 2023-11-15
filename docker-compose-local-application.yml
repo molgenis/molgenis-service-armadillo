@@ -39,6 +39,7 @@ armadillo:
       port: 8085
       package-whitelist:
         - dsBase
+        - resourcer
       function-blacklist: [ ]
       options:
         datashield:
