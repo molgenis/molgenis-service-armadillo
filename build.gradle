@@ -6,7 +6,7 @@ plugins {
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.34.0'
+    id 'com.palantir.docker' version '0.35.0'
 }
 
 targetCompatibility = '17'
