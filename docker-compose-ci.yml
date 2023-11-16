@@ -1,0 +1,64 @@
+# ./gradlew build -x test docker
+# docker compose --file docker-compose-local.yml build
+# docker compose --file docker-compose-local.yml up
+
+version: "3.4"
+services:
+  armadillo:
+    hostname: armadillo
+    # network_mode: host
+    ports:
+      - 8080:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    build:
+      context: 'build/docker'
+      dockerfile: 'Dockerfile'
+      args:
+        JAR_FILE: '*.jar'
+    image: molgenis/molgenis-armadillo:latest
+    environment:
+      LOGGING_CONFIG: 'classpath:logback-file.xml'
+      AUDIT_LOG_PATH: '/app/logs/audit.log'
+      SPRING_SECURITY_USER_PASSWORD: 'admin'
+    volumes:
+      - ${PWD}/logs/:/app/logs
+      - ${PWD}/data/:/app/data
+      - ${PWD}/docker-compose-local-application.yml:/application.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  default:
+    hostname: default
+    image: datashield/armadillo-rserver:6.2.0
+    environment:
+      DEBUG: "TRUE"
+    ports:
+      - 6311:6311
+
+  xenon:
+    hostname: xenon
+    image: datashield/armadillo-rserver_caravan-xenon:1.0.0
+    environment:
+      DEBUG: "TRUE"
+    ports:
+      - 6312:6311
+
+  rock:
+    hostname: rock
+    image: datashield/rock-base:latest
+    environment:
+      DEBUG: "TRUE"
+    ports:
+      - 8085:8085
+
+  cicd:
+    hostname: rock
+    image: r-base:latest
+    environment:
+      DEBUG: "TRUE"
+    volumes:
+      - ${PWD}/scripts/release/:/cicd
+    # hang around for an hour to test commands below manually
+    command: bash -c "sleep 3600"
+    # This commands download and compiles package so takes long
+    # command: bash -c "cd /cicd; ./install_release_script_dependencies.R ; ./release-test.R"
