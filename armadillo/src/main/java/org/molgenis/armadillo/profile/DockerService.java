@@ -107,8 +107,7 @@ public class DockerService {
       throw new MissingImageException(profileConfig.getImage());
     }
 
-    // TODO: have full port mapping in config or a by R server type?
-    int imageExposed = profileConfig.getName().contains("rock") ? 8085 : 6311;
+    int imageExposed = 8085;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));

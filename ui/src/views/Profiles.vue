@@ -364,7 +364,7 @@ export default defineComponent({
 
       this.profiles.unshift({
         name: "",
-        image: "datashield/armadillo-rserver",
+        image: "datashield/rock-base:latest",
         host: "localhost",
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
