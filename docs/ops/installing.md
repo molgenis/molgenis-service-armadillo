@@ -54,3 +54,31 @@ bash armadillo-setup.sh \
 ```
 Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
 you can  also use your own, see FAQ below.
+
+## Setting up Proxy Server
+We highly recommend using `nginx` with MolgenisArmadillo. We have configured it the following way in
+` /etc/nginx/sites-available/armadillo.conf`:
+```
+server {
+  listen 80;
+  server_name urlofyourserver.org
+  include /etc/nginx/global.d/*.conf;
+  location / {
+  proxy_pass http://localhost:8080;
+  client_max_body_size 0;
+  proxy_read_timeout 600s;
+  proxy_redirect http://localhost:8080/ $scheme://$host/;
+  proxy_set_header Host $host;
+  proxy_http_version 1.1;
+  }
+}
+```
+### Apache
+It is possible to run Molgenis Armadillo using Apache. We do however not provide any support regarding this configuration. Apache requires some additional configuration to get the `/storage/projects/{project}/objects/{object}` to work. When this endpoint doesn't work, tables cannot be assigned, subsets cannot be created and resources cannot be used. This basically means Armadillo is not usable. 
+
+Issues might be resolved with the following settings in the `ssl.conf`:
+```
+ProxyPass / http://localhost:8080/ nocanon
+AllowEncodedSlashes On
+```
+After setting this, don't forget to restart Apache. 
