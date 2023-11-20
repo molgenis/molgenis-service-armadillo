@@ -2,8 +2,14 @@
 # - docker compose --file docker-compose-local.yml build
 
 armadillo:
-  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
+  # DO NOT CHANGE
   docker-management-enabled: false
+  # DO NOT CHANGE
+  docker-run-in-container: true
+
+  # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
+  # docker-compose.yml file ie armadillo-dev-" + profileName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
+  container-prefix: 'armadillo-dev-'
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org

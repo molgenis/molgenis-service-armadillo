@@ -1,11 +1,18 @@
 armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
+
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
+
   # set this true if you want Armadillo runs as a docker container
   # NOTE: this needs "docker-management-enabled" == false
   docker-run-in-container: true
+
+  # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
+  # docker-compose.yml file ie armadillo-dev-" + profileName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
+  container-prefix: ''
+
 
   # uncomment this to configure a default admin user
   # oidc-admin-user: user@yourdomain.org

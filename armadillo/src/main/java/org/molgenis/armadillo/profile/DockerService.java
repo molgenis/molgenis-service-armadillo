@@ -43,6 +43,9 @@ public class DockerService {
   @Value("${armadillo.docker-run-in-container:true}")
   private boolean inContainer;
 
+  @Value("${armadillo.container-prefix:''}")
+  private String containerPrefix;
+
   public DockerService(DockerClient dockerClient, ProfileService profileService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
@@ -79,13 +82,29 @@ public class DockerService {
   }
 
   // `docker container ps` show these name structure
+
+  /**
+   * The container can run in its own network/compose.
+   *
+   * <p>Both the profiles and/or Armadillo can be part of a docker-compose.yml. You can check with
+   * `docker container ps` to see this name structure.
+   *
+   * @param profileName the profile name set by DataManager.
+   * @return adjusted container name if applicable.
+   */
   String asContainerName(String profileName) {
     if (!inContainer) {
       LOG.warn("NO ".repeat(100) + " " + profileName);
       return profileName;
     }
+
+    if (containerPrefix.isEmpty()) {
+      LOG.error("Running in container without prefix: " + profileName);
+      return profileName;
+    }
+
     LOG.warn("YES ".repeat(100) + " " + profileName);
-    return "armadillo-docker-compose-" + profileName + "-1";
+    return containerPrefix + profileName + "-1";
   }
 
   String asProfileName(String containerName) {
