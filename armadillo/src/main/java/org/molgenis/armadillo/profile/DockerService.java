@@ -46,12 +46,6 @@ public class DockerService {
   public DockerService(DockerClient dockerClient, ProfileService profileService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
-    LOG.info("Running in container?");
-    if (inContainer) {
-      LOG.warn("YES ".repeat(100));
-    } else {
-      LOG.warn("NO ".repeat(100));
-    }
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
@@ -86,10 +80,12 @@ public class DockerService {
 
   // `docker container ps` show these name structure
   String asContainerName(String profileName) {
-    if (inContainer) {
-      return "armadillo-docker-compose-" + profileName + "-1";
+    if (!inContainer) {
+      LOG.warn("NO ".repeat(100) + " " + profileName);
+      return profileName;
     }
-    return profileName;
+    LOG.warn("YES ".repeat(100) + " " + profileName);
+    return "armadillo-docker-compose-" + profileName + "-1";
   }
 
   String asProfileName(String containerName) {
@@ -152,21 +148,22 @@ public class DockerService {
     }
   }
 
-  private void startContainer(String profileName) {
+  private void startContainer(String containerName) {
     try {
-      dockerClient.startContainerCmd(asContainerName(profileName)).exec();
+      dockerClient.startContainerCmd(containerName).exec();
     } catch (DockerException e) {
-      throw new ImageStartFailedException(profileName, e);
+      throw new ImageStartFailedException(containerName, e);
     }
   }
 
-  private void stopContainer(String profileName) {
+  private void stopContainer(String containerName) {
+    String profileName = "stoppingContainer has not profileName: " + containerName;
     try {
-      dockerClient.stopContainerCmd(asContainerName(profileName)).exec();
+      dockerClient.stopContainerCmd(containerName).exec();
     } catch (DockerException e) {
       try {
         InspectContainerResponse containerInfo =
-            dockerClient.inspectContainerCmd(asContainerName(profileName)).exec();
+            dockerClient.inspectContainerCmd(containerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
           throw new ImageStopFailedException(profileName, e);
@@ -210,14 +207,14 @@ public class DockerService {
     removeContainer(profileName);
   }
 
-  private void removeContainer(String profileName) {
+  private void removeContainer(String containerName) {
     try {
-      dockerClient.removeContainerCmd(asContainerName(profileName)).exec();
+      dockerClient.removeContainerCmd(containerName).exec();
     } catch (NotFoundException nfe) {
-      LOG.info("Couldn't remove container '{}' because it doesn't exist", profileName);
+      LOG.info("Couldn't remove container '{}' because it doesn't exist", containerName);
       // not a problem, wanted to remove anyway
     } catch (DockerException e) {
-      throw new ContainerRemoveFailedException(profileName, e);
+      throw new ContainerRemoveFailedException(containerName, e);
     }
   }
 
