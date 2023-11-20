@@ -15,7 +15,7 @@ armadillo:
   # oidc-admin-user: user@yourdomain.org
   profiles:
     - name: default
-      image: datashield/armadillo-rserver:6.2.0
+      image: datashield/rock-base:latest
       port: 6311
       host: default
       package-whitelist:
@@ -27,7 +27,7 @@ armadillo:
           seed: 342325352
           # foo: bar
     - name: xenon
-      image: datashield/armadillo-rserver_caravan-xenon:1.0.0
+      image: datashield/rock-dolomite-xenon:latest
       host: xenon
       port: 6311
       package-whitelist:

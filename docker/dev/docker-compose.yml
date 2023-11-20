@@ -1,6 +1,6 @@
 # ./gradlew build -x test docker
-# docker compose --file docker-compose-local.yml build
-# docker compose --file docker-compose-local.yml up
+# docker compose build
+# docker compose up
 
 version: "3.4"
 services:
@@ -8,11 +8,11 @@ services:
     hostname: armadillo
     # network_mode: host
     ports:
-      - 8080:8080
+      - 8081:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
     build:
-      context: 'build/docker'
+      context: '../../build/docker'
       dockerfile: 'Dockerfile'
       args:
         JAR_FILE: '*.jar'
@@ -24,12 +24,12 @@ services:
     volumes:
       - ${PWD}/logs/:/app/logs
       - ${PWD}/data/:/app/data
-      - ${PWD}/docker-compose-local-application.yml:/application.yml
+      - ${PWD}/application.yml:/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:
     hostname: default
-    image: datashield/armadillo-rserver:6.2.0
+    image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
     # ports:
@@ -37,7 +37,7 @@ services:
 
   xenon:
     hostname: xenon
-    image: datashield/armadillo-rserver_caravan-xenon:1.0.0
+    image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
     # ports:
@@ -45,7 +45,7 @@ services:
 
   rock:
     hostname: rock
-    image: datashield/rock-base:latest
+    image: datashield/rock-dolomite-xenon:latest
     environment:
       DEBUG: "TRUE"
     # ports:
