@@ -33,7 +33,7 @@
                   :errorMessage="errorMessage"
                 ></FeedbackMessage>
                 <p class="fw-bold">Login using local account:</p>
-                <form>
+                <form @submit.prevent="login">
                   <div class="input-group mb-3">
                     <span class="input-group-text" id="basic-user-addon">
                       <i class="bi bi-person-fill"></i>
@@ -41,6 +41,7 @@
                     <input
                       v-model="username"
                       type="text"
+                      ref="username"
                       class="form-control"
                       placeholder="Username"
                       aria-label="Username"
@@ -62,7 +63,7 @@
                   </div>
                   <div class="d-grid gap-2">
                     <button
-                      type="button"
+                      type="submit"
                       class="btn btn-primary mb-4"
                       @click="login"
                     >
@@ -101,6 +102,11 @@ export default defineComponent({
   methods: {
     toggleShowLogin() {
       this.showLogin = !this.showLogin;
+      if (this.showLogin) {
+        this.$nextTick(() => {
+          this.$refs.username.focus();
+        });
+      }
     },
     redirect(url: string) {
       window.location.href = url;
