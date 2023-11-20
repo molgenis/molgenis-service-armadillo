@@ -25,6 +25,7 @@ import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -39,9 +40,18 @@ public class DockerService {
   private final DockerClient dockerClient;
   private final ProfileService profileService;
 
+  @Value("${armadillo.docker-run-in-container:true}")
+  private boolean inContainer;
+
   public DockerService(DockerClient dockerClient, ProfileService profileService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
+    LOG.info("Running in container?");
+    if (inContainer) {
+      LOG.warn("YES ".repeat(100));
+    } else {
+      LOG.warn("NO ".repeat(100));
+    }
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
@@ -74,21 +84,16 @@ public class DockerService {
     return statuses;
   }
 
-  // FIXME: Get from environment
-  Boolean inContainer() {
-    return true;
-  }
-
   // `docker container ps` show these name structure
   String asContainerName(String profileName) {
-    if (inContainer()) {
+    if (inContainer) {
       return "armadillo-docker-compose-" + profileName + "-1";
     }
     return profileName;
   }
 
   String asProfileName(String containerName) {
-    if (inContainer()) {
+    if (inContainer) {
       return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
     }
     return containerName;

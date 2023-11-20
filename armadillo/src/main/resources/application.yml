@@ -3,6 +3,10 @@ armadillo:
   oidc-permission-enabled: false
   # set this true if you want Armadillo to create/edit/delete profile docker images
   docker-management-enabled: true
+  # set this true if you want Armadillo runs as a docker container
+  # NOTE: this needs "docker-management-enabled" == false
+  docker-run-in-container: true
+
   # uncomment this to configure a default admin user
   # oidc-admin-user: user@yourdomain.org
 
