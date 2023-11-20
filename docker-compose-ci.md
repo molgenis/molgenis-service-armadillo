@@ -5,9 +5,13 @@ To make sure the ci works check
 
 ```sh
 docker run -it --entrypoint /bin/bash r-base:latest
+```
+
+```R
 # run your R queries like
 Rscript --version
 # Rscript (R) version 4.3.2 (2023-10-31)
+
 installed.packages()[, "Package"]
 ```
 
@@ -37,6 +41,88 @@ apt upgrade
 # devtools break
 apt --yes install libcurl4-gnutls-dev
 ```
+
+Can we make a slice of `installed.packages()[, "Package"]` to not reinstall packages?
+
+```sh
+Rscript -e 'install.packages("devtools")'
+```
+
+```
+apt install curl
+apt install openssl # allready installed
+apt install r-cran-httr
+apt install r-cran-curl
+
+ls -l /usr/local/lib/R/site-library
+```
+
+1  curl
+    2  uname -a
+    3  R
+    4  ls
+    5  cd cicd
+    6  ./install_release_script_dependencies.R
+
+
+apt update
+apt --yes upgrade
+
+apt install --yes curl xml2 openssl
+
+apt install --yes libxml2-dev libssl-dev libfontconfig1-dev
+apt install --yes libcurl4-openssl-dev libharfbuzz-dev libgit2-dev
+apt install --yes libharfbuzz-dev libfribidi-dev
+apt install --yes libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+apt install --yes r-cran-httr
+apt install --yes r-cran-curl
+apt install --yes r-cran-xml2
+
+Rscript -e 'install.packages("devtools")'
+
+   10  ./install_release_script_dependencies.R
+
+
+    1  cd /cicd/
+    2  ./install_release_script_dependencies.R
+    3  apt update
+    4  apt upgrade
+    5  apt install --yes libxml2-dev libssl-dev libfontconfig1-dev
+    6  apt install --yes libcurl4-openssl-dev libharfbuzz-dev libharfbuzz-dev libgit2-dev
+    7  apt install r-cran-httr
+    8  apt install r-cran-curl
+    9  apt install r-cran-xml2
+   10  apt install --yes r-cran-httr
+   11  apt install --yes r-cran-curl
+   12  apt install --yes r-cran-xml2
+   13  Rscript -e 'install.packages("devtools")'
+   14  apt install --yes libharfbuzz-dev libfribidi-dev
+   15  Rscript -e 'install.packages("devtools")'
+   16  apt install libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+   17  Rscript -e 'install.packages("devtools")'
+   18  ./release-test.R
+   19  Rscript -e 'install.packages("RCurl")'
+   20  ./release-test.R
+   21  history
+   22  ./release-test.R
+   23  Rscript -e 'install.packages("MolgenisArmadillo")'
+   24  ./release-test.R
+   25  Rscript -e 'install.packages("timestamp")'
+   26  ./install_release_script_dependencies.R
+   27  ./release-test.R
+   28  history
+
+```R
+write.csv(installed.packages(), "test.csv", row.names = F)
+```
+
+```sh
+R -e 'write.csv(installed.packages(), "test.csv", row.names = F)'
+```
+
+
+
 
 ```R
 source(./install_release_script_dependencies.R)
@@ -97,7 +183,7 @@ Warning messages:
   installation of package ‘MolgenisAuth’ had non-zero exit status
 27: In install.packages(pkg, repos = "http://cran.us.r-project.org",  ... :
   installation of package ‘DSMolgenisArmadillo’ had non-zero exit status
-28: In eval(ei, envir) : 
+28: In eval(ei, envir) :
 ```
 
 ```
