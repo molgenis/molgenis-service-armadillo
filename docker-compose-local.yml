@@ -32,21 +32,21 @@ services:
     image: datashield/armadillo-rserver:6.2.0
     environment:
       DEBUG: "TRUE"
-    ports:
-      - 6311:6311
+    # ports:
+    #   - 6311:6311
 
   xenon:
     hostname: xenon
     image: datashield/armadillo-rserver_caravan-xenon:1.0.0
     environment:
       DEBUG: "TRUE"
-    ports:
-      - 6312:6311
+    # ports:
+    #   - 6312:6311
 
   rock:
     hostname: rock
     image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
-    ports:
-      - 8085:8085
+    # ports:
+    #   - 8085:8085
