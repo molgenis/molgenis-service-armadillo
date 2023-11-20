@@ -8,7 +8,7 @@ services:
     hostname: armadillo
     # network_mode: host
     ports:
-      - 8081:8080
+      - 8080:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
     build:

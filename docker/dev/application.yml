@@ -9,7 +9,7 @@ armadillo:
 
   # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
   # docker-compose.yml file ie armadillo-dev-" + profileName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
-  container-prefix: 'armadillo-dev-'
+  container-prefix: 'dev-'
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
