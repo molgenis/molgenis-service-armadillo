@@ -78,6 +78,89 @@ curl --http0.9 --head http://default:6311
 # curl: (8) Weird server reply
 ```
 
+# Running on another server
+
+```
+# from your build location
+
+```
+
+```
+docker image load ...
+```
+
+# Deploy on dev
+
+We will take the image `molgenis/molgenis-armadillo:latest`
+
+```sh
+mkdir build/deploy-on-dev
+cd build/deploy-on-dev
+docker image save molgenis/molgenis-armadillo --output docker-image-molgenis-armadillo.tar
+mkdir -p app/log
+mkdir -p app/data
+cp -r ../../data/ app/data
+cp ../../docker-compose-local-application.yml application.yml
+cp ../../docker-compose-local.yml ./docker-compose.yml
+cd ../..
+```
+
+Content of `build/deploy-on-dev` should look like
+
+```sh
+.
+├── app
+│   ├── data
+│   │   ├── shared-lifecycle
+│   │   │   ├── core
+│   │   │   │   ├── monthlyrep.parquet
+│   │   │   │   ├── nonrep.parquet
+│   │   │   │   ├── trimesterrep.parquet
+│   │   │   │   └── yearlyrep.parquet
+│   │   │   └── outcome
+│   │   │       ├── nonrep.parquet
+│   │   │       └── yearlyrep.parquet
+│   │   └── system
+│   │       ├── access.json
+│   │       └── profiles.json
+│   └── log
+├── application.yml
+├── docker-compose-local.yml
+└── docker-image-molgenis-armadillo.tar
+```
+
+## Deploy on dev server
+
+scp -r build/deploy-on-dev root@10.10.12.5:
+scp build/deploy-on-dev.zip root@10.10.12.5:
+
+### As root
+
+  578  apt install tree
+  579  tree
+
+  574  unzip ../deploy-on-dev.zip 
+  576  rm -rf __MACOSX/
+
+  581  docker image ls
+  582  df -k
+
+  591  docker image import deploy-on-dev/docker-image-molgenis-armadillo.tar 
+  592  docker image ls
+
+#### troubles
+
+- file names (change them when building)
+- build step (remove)
+- image name `docker tag 4ad6ebcf5874 molgenis/molgenis-armadillo:latest`
+- network name deploy-on-dev_default_1 matches not with java
+- container names
+
+Stopping deploy-on-dev_default_1   ... done
+Stopping deploy-on-dev_rock_1      ... done
+Stopping deploy-on-dev_xenon_1     ... done
+
+
 # Newby
 
 Here's a step-by-step guide to get your Docker Compose file running on a Windows machine:
