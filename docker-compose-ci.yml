@@ -52,8 +52,9 @@ services:
       - 8085:8085
 
   cicd:
-    hostname: rock
-    image: r-base:latest
+    hostname: cicd
+    image: rocker/r-ver:4.3.2
+    # image: r-base:latest
     environment:
       DEBUG: "TRUE"
     volumes:
