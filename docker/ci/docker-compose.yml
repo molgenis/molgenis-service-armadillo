@@ -8,7 +8,7 @@ services:
     hostname: armadillo
     # network_mode: host
     ports:
-      - 8080:8080
+      - "8080:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     build:
@@ -22,39 +22,32 @@ services:
       AUDIT_LOG_PATH: '/app/logs/audit.log'
       SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/app/data
-      - ${PWD}/docker-compose-local-application.yml:/application.yml
+      - ${PWD}/armadillo/logs/:/app/logs
+      - ${PWD}/armadillo/data/:/app/data
+      - ${PWD}/armadillo/docker-compose-local-application.yml:/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:
     hostname: default
-    image: datashield/armadillo-rserver:6.2.0
-    environment:
-      DEBUG: "TRUE"
-    ports:
-      - 6311:6311
-
-  xenon:
-    hostname: xenon
-    image: datashield/armadillo-rserver_caravan-xenon:1.0.0
-    environment:
-      DEBUG: "TRUE"
-    ports:
-      - 6312:6311
-
-  rock:
-    hostname: rock
     image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
-    ports:
-      - 8085:8085
+
+  xenon:
+    hostname: xenon
+    image: datashield/rock-base:latest
+    environment:
+      DEBUG: "TRUE"
+
+  rock:
+    hostname: rock
+    image: datashield/rock-dolomite-xenon:latest
+    environment:
+      DEBUG: "TRUE"
 
   cicd:
     hostname: cicd
-    image: rocker/r-ver:4.3.2
-    # image: r-base:latest
+    image: molgenis/r-cicd
     environment:
       DEBUG: "TRUE"
     volumes:
