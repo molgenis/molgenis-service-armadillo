@@ -1,6 +1,44 @@
-# docker-compose-ci.yml
+# Continue integration
+
+## Image
+
+```sh
+docker build . --tag molgenis/r-cicd:0.0.1
+docker image ls
+```
+
+## Test the image
+```sh
+docker run -it --entrypoint /bin/bash molgenis/r-cicd
+```
+
+```bash
+R --silent -e ".libPaths()"
+ls "/usr/local/lib/R/site-library" "/usr/local/lib/R/library"
+R -e "installed.packages()"
+dpkg -L r-cran-devtools
+# /usr/lib/R/site-library/devtools
+
+R --silent -e 'Sys.getenv("R_LIBS_SITE")'
+R -e ".Library.site"
+# [1] "/usr/local/lib/R/site-library"
+R --silent -e ".libPaths()"
+R --silent -e ".Library.site"
+R  --silent -e ".Library.site"
+R --silent -e ".Library" --silent
+cat /etc/R/Renviron
+R --silent -e 'Sys.getenv("R_LIBS_SITE")'
+```
+
+while building 
+=> => #   URL 'http://lib.stat.cmu.edu/R/CRAN/src/contrib/diffobj_0.3.5.tar.gz': Timeout of 60 seconds was reached
+
+p <- installed.packages()
+
+renv
 
 ## R Base
+
 To make sure the ci works check
 
 ```sh
@@ -57,12 +95,12 @@ apt install r-cran-curl
 ls -l /usr/local/lib/R/site-library
 ```
 
-1  curl
-    2  uname -a
-    3  R
-    4  ls
-    5  cd cicd
-    6  ./install_release_script_dependencies.R
+curl
+uname -a
+R
+ls
+cd cicd
+./install_release_script_dependencies.R
 
 
 apt update
