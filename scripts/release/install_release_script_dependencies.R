@@ -25,7 +25,7 @@ if(!"cli" %in% installed.packages()) {
 library(cli)
 cli_alert_info("Installing packages")
 
-packages <- c("getPass", "arrow", "jsonlite", "future",
+packages <- c("diffobj", "getPass", "arrow", "jsonlite", "future",
   "RCurl",
   "devtools",
   "DSI",
