@@ -137,7 +137,7 @@ jobs:
           name: build, docker
           command: |
             ./gradlew docker
-            ./docker/dev/bin/prepare.bash ci
+            ./docker/bin/prepare.bash ci
 
       - run:
           name: Start all services declared in docker-compose.yml
