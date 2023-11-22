@@ -3,7 +3,7 @@
 ## Image
 
 ```sh
-docker build . --tag molgenis/r-cicd:0.0.1
+docker build . --platform linux/amd64 --tag molgenis/r-cicd
 docker image ls
 ```
 
