@@ -40,13 +40,20 @@
       </template>
       <template #objectType="objectProps">
         <div
-          v-if="objectProps.data && statusMapping[objectProps.data.status as keyof typeof statusMapping]"
+          v-if="
+            objectProps.data &&
+            statusMapping[objectProps.data.status as keyof typeof statusMapping]
+          "
           class="row"
         >
           <div class="col-6">
             <span
               class="badge"
-              :class="`bg-${statusMapping[objectProps.data.status as keyof typeof statusMapping].color}`"
+              :class="`bg-${
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].color
+              }`"
             >
               {{
                 statusMapping[
@@ -60,7 +67,9 @@
               :disabled="true"
               v-if="objectProps.row.name === loadingProfile"
               :text="
-                statusMapping[objectProps.data.status as keyof typeof statusMapping].status === 'OFFLINE'
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].status === 'OFFLINE'
                   ? 'Starting'
                   : 'Stopping'
               "
@@ -69,7 +78,11 @@
             <ProfileStatus
               v-else
               :disabled="loading"
-              :text="statusMapping[objectProps.data.status as keyof typeof statusMapping].text"
+              :text="
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].text
+              "
               @click.prevent="
                 statusMapping[
                   objectProps.data.status as keyof typeof statusMapping
@@ -77,7 +90,11 @@
                   ? stopProfile(objectProps.row.name)
                   : startProfile(objectProps.row.name)
               "
-              :icon="statusMapping[objectProps.data.status as keyof typeof statusMapping].icon"
+              :icon="
+                statusMapping[
+                  objectProps.data.status as keyof typeof statusMapping
+                ].icon
+              "
             ></ProfileStatus>
           </div>
         </div>
@@ -286,11 +303,15 @@ export default defineComponent({
         return profile.name;
       });
 
-      const portAlreadyUsed = this.profiles.some((prof) => {
-        return prof !== profile && prof.port == profile.port;
-      });
-      if (portAlreadyUsed) {
-        this.errorMessage = `Save failed: port number [${profile.port}] already used.`;
+      const hostPortCombo = `${profile.host}:${profile.port}`;
+
+      const hasDuplicates = this.profiles.some(
+        (prof) =>
+          prof !== profile && `${prof.host}:${prof.port}` === hostPortCombo
+      );
+
+      if (hasDuplicates) {
+        this.errorMessage = `Save failed: [${hostPortCombo}] already used.`;
         return;
       }
 
