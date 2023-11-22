@@ -100,6 +100,12 @@ jobs:
             mv ~/docker-compose /usr/local/bin/docker-compose
 
       - run:
+          name: update package manager again
+          command: |
+            apt update
+            apt --yes install git
+
+      - run:
           name: build, docker
           command: |
             ./gradlew docker
