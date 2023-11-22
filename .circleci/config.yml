@@ -76,7 +76,17 @@ jobs:
 
   build-dev:
     docker:
-      - image: circleci/python:3.7
+      - image: eclipse-temurin:17.0.9_9-jdk-jammy
+
+    working_directory: ~/repo
+    resource_class: large
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+      TERM: dumb
+
     steps:
       - checkout
       - setup_remote_docker
