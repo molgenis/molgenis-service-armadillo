@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17.0.9_9-jdk-focal
+FROM --platform=linux/amd64 eclipse-temurin:17.0.9_9-jdk-focal
 VOLUME /data
 ARG JAR_FILE
 EXPOSE 8080
