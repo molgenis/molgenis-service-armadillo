@@ -77,7 +77,7 @@ jobs:
   build-dev:
     docker:
       # official https://hub.docker.com/r/cimg/openjdk
-      - image: cimg/openjdk:15.0
+      - image: cimg/openjdk:17.0
 
     working_directory: ~/repo
     resource_class: large
@@ -95,7 +95,7 @@ jobs:
       # https://circleci.com/docs/building-docker-images/
       - run:
           name: Install Docker client
-          command: apk add docker-cli
+          command: apt install docker-cli
 
       - run:
           name: Install Docker Compose
