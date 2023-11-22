@@ -95,7 +95,7 @@ jobs:
       # https://circleci.com/docs/building-docker-images/
       - run:
           name: Install Docker client
-          command: apt install docker-cli
+          command: sudo apt install docker-cli
 
       - run:
           name: Install Docker Compose
