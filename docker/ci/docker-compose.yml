@@ -1,30 +1,20 @@
-# ./gradlew build -x test docker
-# docker compose --file docker-compose-local.yml build
-# docker compose --file docker-compose-local.yml up
-
 version: "3.4"
 services:
   armadillo:
     hostname: armadillo
-    # network_mode: host
     ports:
-      - "8080:8080"
+      - 8080:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    build:
-      context: 'build/docker'
-      dockerfile: 'Dockerfile'
-      args:
-        JAR_FILE: '*.jar'
     image: molgenis/molgenis-armadillo:latest
     environment:
       LOGGING_CONFIG: 'classpath:logback-file.xml'
       AUDIT_LOG_PATH: '/app/logs/audit.log'
       SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
-      - ${PWD}/armadillo/logs/:/app/logs
-      - ${PWD}/armadillo/data/:/app/data
-      - ${PWD}/armadillo/docker-compose-local-application.yml:/application.yml
+      - ${PWD}/logs/:/app/logs
+      - ${PWD}/fake-tree/data/:/app/data
+      - ${PWD}/application.yml:/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:
