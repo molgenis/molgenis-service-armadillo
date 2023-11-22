@@ -76,7 +76,8 @@ jobs:
 
   build-dev:
     docker:
-      - image: eclipse-temurin:17.0.9_9-jdk-jammy
+      # official https://hub.docker.com/r/cimg/openjdk
+      - image: cimg/openjdk:15.0
 
     working_directory: ~/repo
     resource_class: large
@@ -90,6 +91,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+
+      # https://circleci.com/docs/building-docker-images/
+      - run:
+          name: Install Docker client
+          command: apk add docker-cli
+
       - run:
           name: Install Docker Compose
           environment:
@@ -103,7 +110,6 @@ jobs:
           name: update package manager again
           command: |
             apt update
-            apt --yes install git
 
       - run:
           name: build, docker
