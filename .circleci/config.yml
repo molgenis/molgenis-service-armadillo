@@ -96,7 +96,7 @@ jobs:
           name: build, docker
           command: |
             ./gradlew docker
-            ./docker/dev/bin/prepare.bash
+            ./docker/dev/bin/prepare.bash dev
 
       - run:
           name: Start all services declared in docker-compose.yml
