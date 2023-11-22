@@ -91,37 +91,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-#
-#      # https://circleci.com/docs/building-docker-images/
-#      - run:
-#          name: Install Docker client
-#          command: sudo apt install docker-cli
-#
-#      - run:
-#          name: Install Docker Compose
-#          environment:
-#            COMPOSE_VERSION: '1.29.2'
-#          command: |
-#            curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
-#            chmod +x ~/docker-compose
-#            mv ~/docker-compose /usr/local/bin/docker-compose
-
-#      - run:
-#          name: update package manager again
-#          command: |
-#            apt update
 
       - run:
           name: build, docker
           command: |
             ./gradlew docker
             ./docker/dev/bin/prepare.bash
-
-      - run:
-          name: Build images of services declared in docker-compose.yml
-          command: |
-            cd ./docker/dev/
-            docker-compose build
 
       - run:
           name: Start all services declared in docker-compose.yml
@@ -132,7 +107,8 @@ jobs:
       - run:
           name: Start docker-compose and verify service(s)
           command: |
-            docker-compose --project dev up -d
+            cd ./docker/dev/
+            docker-compose up -d
             docker container run --network container:dev_armadillo_1 \
               docker.io/jwilder/dockerize \
               -wait http://localhost:8080/ \
