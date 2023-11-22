@@ -41,8 +41,8 @@ services:
     environment:
       DEBUG: "TRUE"
     volumes:
-      - ${PWD}/scripts/release/:/cicd
+      - ${PWD}/fake-tree/cicd:/cicd
     # hang around for an hour to test commands below manually
     command: bash -c "sleep 3600"
     # This commands download and compiles package so takes long
-    # command: bash -c "cd /cicd; ./install_release_script_dependencies.R ; ./release-test.R"
+    # command: bash -c "cd /cicd; ./release-test.R"

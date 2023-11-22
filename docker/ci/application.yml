@@ -16,7 +16,7 @@ armadillo:
   profiles:
     - name: default
       image: datashield/rock-base:latest
-      port: 6311
+      port: 8085
       host: default
       package-whitelist:
         - dsBase
@@ -29,7 +29,7 @@ armadillo:
     - name: xenon
       image: datashield/rock-dolomite-xenon:latest
       host: xenon
-      port: 6311
+      port: 8085
       package-whitelist:
         - dsBase
         - resourcer

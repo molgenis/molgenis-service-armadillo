@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 [[ "$1" == "" ]] && exit 1
+TARGET_ENV=$1
 
 # Store the current working directory
 cwd=$(pwd)
@@ -9,7 +10,7 @@ cwd=$(pwd)
 FULL_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$FULL_PATH")"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
-TARGET_DIR="$DOCKER_DIR/$1"
+TARGET_DIR="$DOCKER_DIR/$TARGET_ENV"
 
 cd "$TARGET_DIR" || exit 1
 
@@ -30,5 +31,15 @@ rm -rf "${FAKE_DIR:?}/"* || exit 1
 # Make sure Armadillo had the system directory
 mkdir -p "$FAKE_DIR/data/system"
 cp -r "$PROJECT_DIR/data/shared-lifecycle" "$FAKE_DIR/data/"
+
+if [ "$TARGET_ENV" = "ci" ]; then
+  mkdir -p "$FAKE_DIR/cicd/"
+  cp "$PROJECT_DIR/scripts/release/release-test.R" "$FAKE_DIR/cicd/"
+  cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$FAKE_DIR/cicd/"
+  cp "$TARGET_DIR/.env" "$FAKE_DIR/cicd/" || exit 1
+
+  cd "$TARGET_DIR" || exit 1
+  docker build . --platform linux/amd64 --tag molgenis/r-cicd || exit 1
+fi
 
 cd "$cwd" || exit 1

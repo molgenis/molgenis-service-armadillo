@@ -15,14 +15,15 @@ RUN install2.r --skipinstalled --repo https://cloud.r-project.org DSI resourcer 
 
 RUN mkdir -p /armadillo/ci/bin
 
-COPY r-cicd/bin/install_release_script_dependencies.R /armadillo/ci/bin
+COPY fake-tree/cicd/install_release_script_dependencies.R /armadillo/ci/bin
 
 RUN /armadillo/ci/bin/install_release_script_dependencies.R
 
-COPY r-cicd/bin/release-test.R /armadillo/ci/bin
-COPY r-cicd/.env /armadillo/ci/bin
+COPY fake-tree/cicd/release-test.R /armadillo/ci/bin
 
-RUN adduser armadillo
+COPY ci.env /armadillo/ci/bin/.env
+
+#RUN adduser armadillo
 
 #RUN chown -R armadillo:armadillo /armadillo/
 
