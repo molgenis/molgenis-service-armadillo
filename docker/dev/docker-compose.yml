@@ -1,21 +1,11 @@
-# ./gradlew build -x test docker
-# docker compose build
-# docker compose up
-
 version: "3.4"
 services:
   armadillo:
     hostname: armadillo
-    # network_mode: host
     ports:
       - 8080:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    build:
-      context: '../../build/docker'
-      dockerfile: 'Dockerfile'
-      args:
-        JAR_FILE: '*.jar'
     image: molgenis/molgenis-armadillo:latest
     environment:
       LOGGING_CONFIG: 'classpath:logback-file.xml'
@@ -23,7 +13,7 @@ services:
       SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
       - ${PWD}/logs/:/app/logs
-      - ${PWD}/data/:/app/data
+      - ${PWD}/fake-tree/data/:/app/data
       - ${PWD}/application.yml:/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -32,21 +22,15 @@ services:
     image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
-    # ports:
-    #   - 6311:6311
 
   xenon:
     hostname: xenon
     image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
-    # ports:
-    #   - 6312:6311
 
   rock:
     hostname: rock
     image: datashield/rock-dolomite-xenon:latest
     environment:
       DEBUG: "TRUE"
-    # ports:
-    #   - 8085:8085
