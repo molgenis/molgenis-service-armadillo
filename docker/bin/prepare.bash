@@ -36,7 +36,7 @@ if [ "$TARGET_ENV" = "ci" ]; then
   mkdir -p "$FAKE_DIR/cicd/"
   cp "$PROJECT_DIR/scripts/release/release-test.R" "$FAKE_DIR/cicd/"
   cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$FAKE_DIR/cicd/"
-  cp "$TARGET_DIR/.env" "$FAKE_DIR/cicd/" || exit 1
+  cp "$TARGET_DIR/ci.env" "$FAKE_DIR/cicd/.env" || exit 1
 
   cd "$TARGET_DIR" || exit 1
   docker build . --platform linux/amd64 --tag molgenis/r-cicd || exit 1
