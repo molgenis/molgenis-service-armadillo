@@ -114,8 +114,52 @@ jobs:
               -wait http://localhost:8080/ \
               -wait-retry-interval 2s \
               -timeout 20s
+
+  build-ci:
+    docker:
+      # official https://hub.docker.com/r/cimg/openjdk
+      - image: cimg/openjdk:17.0
+
+    working_directory: ~/repo
+    resource_class: large
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+      TERM: dumb
+
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run:
+          name: build, docker
+          command: |
+            ./gradlew docker
+            ./docker/dev/bin/prepare.bash ci
+
+      - run:
+          name: Start all services declared in docker-compose.yml
+          command: |
+            cd ./docker/ci/
+            docker-compose up -d
+
+      - run:
+          name: Start docker-compose and verify service(s)
+          command: |
+            cd ./docker/ci/
+            docker-compose up -d
+            docker container run --network container:ci-armadillo-1 \
+              docker.io/jwilder/dockerize \
+              -wait http://localhost:8080/ \
+              -wait-retry-interval 2s \
+              -timeout 20s
+            docker container run --network container:ci-r-cicd-1 'bash -c "cd /cicd; ./release-test.R"'
+
 workflows:
   version: 2
   build-deploy:
     jobs:
+      - build-ci
       - build-dev
