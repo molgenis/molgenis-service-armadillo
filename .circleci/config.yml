@@ -134,19 +134,19 @@ jobs:
       - setup_remote_docker
 
       - run:
-          name: build, docker
+          name: Build Armadillo and R CICD image
           command: |
             ./gradlew docker
             ./docker/bin/prepare.bash ci
 
       - run:
-          name: Make sure all services declared in docker-compose.yml are build and ready
+          name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
             cd ./docker/ci/
             docker-compose up -d
 
       - run:
-          name: Start docker-compose and verify service(s)
+          name: Start docker-compose and wait for `release-test.R` to finish
           command: |
             cd ./docker/ci/
             docker-compose up -d

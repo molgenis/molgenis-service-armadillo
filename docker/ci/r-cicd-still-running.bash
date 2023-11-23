@@ -7,7 +7,7 @@ for ((i=1; i<=duration; i++))
 do
   STATUS=`docker inspect --format '{{.State.Status}}' ci-cicd-1`
   echo "$i: r-cicd still running: $STATUS ?"
-
+  docker ps
   if [ "$STATUS" == "running" ]; then
     echo "Still running"
     sleep 2
