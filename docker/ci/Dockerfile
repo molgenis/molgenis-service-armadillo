@@ -13,15 +13,15 @@ RUN install2.r --skipinstalled --repo https://cloud.r-project.org arrow future R
 
 RUN install2.r --skipinstalled --repo https://cloud.r-project.org DSI resourcer MolgenisArmadillo DSMolgenisArmadillo
 
-RUN mkdir -p /armadillo/ci/bin
+RUN mkdir -p /cicd/armadillo/scripts/release
 
-COPY fake-tree/cicd/install_release_script_dependencies.R /armadillo/ci/bin
+# Copy slow changing file only
+COPY fake-tree/cicd/scripts/release/install_release_script_dependencies.R /cicd/scripts/release/
 
-RUN /armadillo/ci/bin/install_release_script_dependencies.R
+RUN /cicd/scripts/release/install_release_script_dependencies.R
 
-COPY fake-tree/cicd/release-test.R /armadillo/ci/bin
-
-COPY ci.env /armadillo/ci/bin/.env
+# Copy rest from of scripts
+COPY fake-tree/cicd/scripts/release/* /cicd/scripts/release/
 
 #RUN adduser armadillo
 

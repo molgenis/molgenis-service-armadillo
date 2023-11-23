@@ -26,17 +26,27 @@ cd "$PROJECT_DIR"
 ./gradlew docker
 
 rm -rf "${FAKE_DIR:?}/"* || exit 1
-# Make docker happy
-#cp -r "$PROJECT_DIR/build/docker" "$FAKE_DIR"
-# Make sure Armadillo had the system directory
+
+# Make sure Armadillo has the system directory
 mkdir -p "$FAKE_DIR/data/system"
 cp -r "$PROJECT_DIR/data/shared-lifecycle" "$FAKE_DIR/data/"
 
+set -x
 if [ "$TARGET_ENV" = "ci" ]; then
-  mkdir -p "$FAKE_DIR/cicd/"
-  cp "$PROJECT_DIR/scripts/release/release-test.R" "$FAKE_DIR/cicd/"
-  cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$FAKE_DIR/cicd/"
-  cp "$TARGET_DIR/ci.env" "$FAKE_DIR/cicd/.env" || exit 1
+
+  # expected by `release-test.R`
+  mkdir -p "$FAKE_DIR/cicd/armadillo" || exit 1
+  mv "$FAKE_DIR/data/" "$FAKE_DIR/cicd/"
+
+  DATA_DIR="$FAKE_DIR/cicd/data"
+  mkdir -p "$DATA_DIR" || exit 1
+
+  BIN_DIR="$FAKE_DIR/cicd/scripts/release/"
+  mkdir -p "$BIN_DIR" || exit 1
+
+  cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
+  cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
+  cp "$TARGET_DIR/ci.env" "$BIN_DIR/.env" || exit 1
 
   cd "$TARGET_DIR" || exit 1
   docker build . --platform linux/amd64 --tag molgenis/r-cicd || exit 1

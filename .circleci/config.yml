@@ -155,7 +155,7 @@ jobs:
               -wait http://localhost:8080/ \
               -wait-retry-interval 2s \
               -timeout 20s
-            docker container run --network container:ci-r-cicd-1 'bash -c "cd /cicd; ./release-test.R"'
+            docker container run --network container:ci-r-cicd-1 'bash -c "cd /cicd/scripts/release/ ; ./release-test.R"'
 
 workflows:
   version: 2
