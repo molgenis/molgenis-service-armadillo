@@ -167,9 +167,14 @@ jobs:
               -timeout 200s || echo "Timed out"
 
             docker ps
+
             echo "Results"
-            cat fake-tree/cicd/log/out.log
-            cat fake-tree/cicd/log/err.log
+            cat ./fake-tree/cicd/log/out.log
+            cat ./fake-tree/cicd/log/err.log
+
+      - store_artifacts:
+          path: ~/repo/docker/ci
+
 
 workflows:
   version: 2
