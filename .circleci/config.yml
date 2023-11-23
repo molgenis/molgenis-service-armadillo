@@ -140,7 +140,7 @@ jobs:
             ./docker/bin/prepare.bash ci
 
       - run:
-          name: Start all services declared in docker-compose.yml
+          name: Make sure all services declared in docker-compose.yml are build and ready
           command: |
             cd ./docker/ci/
             docker-compose up -d
@@ -150,10 +150,12 @@ jobs:
           command: |
             cd ./docker/ci/
             docker-compose up -d
+            ./r-cicd-still-running.bash
 
 workflows:
   version: 2
   build-deploy:
     jobs:
+      - build
       - build-ci
       - build-dev
