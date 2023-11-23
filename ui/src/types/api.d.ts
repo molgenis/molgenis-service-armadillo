@@ -20,7 +20,7 @@ export type Principal = {
   authorities: [
     {
       authority: string;
-    }
+    },
   ];
   details: Object | null;
   authenticated: boolean;
