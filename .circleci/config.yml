@@ -150,6 +150,15 @@ jobs:
           command: |
             cd ./docker/ci/
             docker-compose up -d
+
+            docker ps
+
+            # Poll on the wrong port to see we get 200 seconds
+            docker container run --network container:ci-armadillo-1 \
+              docker.io/jwilder/dockerize \
+              -wait http://localhost:8081/ \
+              -wait-retry-interval 5s \
+              -timeout 200s
             docker ps
             ./r-cicd-still-running.bash
 
