@@ -303,11 +303,15 @@ export default defineComponent({
         return profile.name;
       });
 
-      const portAlreadyUsed = this.profiles.some((prof) => {
-        return prof !== profile && prof.port == profile.port;
-      });
-      if (portAlreadyUsed) {
-        this.errorMessage = `Save failed: port number [${profile.port}] already used.`;
+      const hostPortCombo = `${profile.host}:${profile.port}`;
+
+      const hasDuplicates = this.profiles.some(
+        (prof) =>
+          prof !== profile && `${prof.host}:${prof.port}` === hostPortCombo
+      );
+
+      if (hasDuplicates) {
+        this.errorMessage = `Save failed: [${hostPortCombo}] already used.`;
         return;
       }
 

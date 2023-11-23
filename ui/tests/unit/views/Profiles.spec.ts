@@ -224,7 +224,7 @@ describe("Profiles", () => {
         wrapper.vm.profiles.unshift(p);
         wrapper.vm.profileToEditIndex = 0;
         wrapper.vm.saveEditedProfile();
-        expect(wrapper.vm.errorMessage).toBe("Save failed: port number [6313] already used.");
+        expect(wrapper.vm.errorMessage).toBe("Save failed: [localhost:6313] already used.");
     });
 
     test("fail to save a unnamed profile", () => {
