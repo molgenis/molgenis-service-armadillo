@@ -150,12 +150,13 @@ jobs:
           command: |
             cd ./docker/ci/
             docker-compose up -d
+            docker ps
             ./r-cicd-still-running.bash
 
 workflows:
   version: 2
   build-deploy:
     jobs:
-      - build
+      #- build
       - build-ci
-      - build-dev
+      #- build-dev
