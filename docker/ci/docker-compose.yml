@@ -43,4 +43,4 @@ services:
     volumes:
       - ${PWD}/fake-tree/cicd:/cicd
     # hang around for an hour to test commands below manually
-    command: bash -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+    command: bash -c "cd /cicd/scripts/release ; ./armadillo-ready.bash 1> /cicd/log/out.log 2> /cicd/log/err.log"

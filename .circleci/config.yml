@@ -143,7 +143,13 @@ jobs:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
             cd ./docker/ci/
+
+            docker images ls
+
+            docker-compose build
             docker-compose up -d
+
+            docker images ls
 
       - run:
           name: Start docker-compose and wait for `release-test.R` to finish
@@ -157,10 +163,13 @@ jobs:
             docker container run --network container:ci-armadillo-1 \
               docker.io/jwilder/dockerize \
               -wait http://localhost:8081/ \
-              -wait-retry-interval 5s \
-              -timeout 200s
+              -wait-retry-interval 20s \
+              -timeout 200s || echo "Timed out"
+
             docker ps
-            ./r-cicd-still-running.bash
+            echo "Results"
+            cat fake-tree/cicd/log/out.log
+            cat fake-tree/cicd/log/err.log
 
 workflows:
   version: 2

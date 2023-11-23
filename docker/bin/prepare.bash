@@ -44,6 +44,9 @@ if [ "$TARGET_ENV" = "ci" ]; then
   BIN_DIR="$FAKE_DIR/cicd/scripts/release/"
   mkdir -p "$BIN_DIR" || exit 1
 
+  LOG_DIR="$FAKE_DIR/cicd/log/"
+  mkdir -p "$LOG_DIR" || exit 1
+
   cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
   cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
   cp "$TARGET_DIR/armadillo-ready.bash" "$BIN_DIR/" || exit 1
