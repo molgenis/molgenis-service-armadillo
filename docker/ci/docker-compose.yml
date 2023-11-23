@@ -43,6 +43,4 @@ services:
     volumes:
       - ${PWD}/fake-tree/cicd:/cicd
     # hang around for an hour to test commands below manually
-    command: bash -c "sleep 3600"
-    # This commands download and compiles package so takes long
-    # command: bash -c "cd /cicd; ./release-test.R"
+    command: bash -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"

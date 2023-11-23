@@ -150,12 +150,6 @@ jobs:
           command: |
             cd ./docker/ci/
             docker-compose up -d
-            docker container run --network container:ci-armadillo-1 \
-              docker.io/jwilder/dockerize \
-              -wait http://localhost:8080/ \
-              -wait-retry-interval 2s \
-              -timeout 20s
-            docker container run --network container:ci-r-cicd-1 'bash -c "cd /cicd/scripts/release/ ; ./release-test.R"'
 
 workflows:
   version: 2

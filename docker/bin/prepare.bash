@@ -46,6 +46,7 @@ if [ "$TARGET_ENV" = "ci" ]; then
 
   cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
   cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
+  cp "$TARGET_DIR/armadillo-ready.bash" "$BIN_DIR/" || exit 1
   cp "$TARGET_DIR/ci.env" "$BIN_DIR/.env" || exit 1
 
   cd "$TARGET_DIR" || exit 1
