@@ -29,4 +29,7 @@ public interface StorageService {
   void delete(String bucketName, String objectName);
 
   public Path getPathIfObjectExists(String bucketName, String objectName);
+
+  public void createLink(
+      String bucketName, String objectName, String linkName, List<String> variables);
 }

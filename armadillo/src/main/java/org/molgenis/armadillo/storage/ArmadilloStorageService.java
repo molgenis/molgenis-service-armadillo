@@ -85,6 +85,13 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
+  public void createLinkedObject(
+      String project, String object, String linkName, String linkProject, List<String> variables) {
+    throwIfUnknown(project, object);
+    throwIfDuplicate(project, linkName);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteObject(String project, String object) {
     throwIfUnknown(project, object);
     storageService.delete(SHARED_PREFIX + project, object);

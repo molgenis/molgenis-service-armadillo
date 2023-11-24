@@ -22,8 +22,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -145,6 +147,51 @@ public class StorageController {
         principal,
         COPY_OBJECT,
         Map.of(PROJECT, project, "from", object, "to", requestBody.name()));
+  }
+
+  @Operation(
+      summary = "Create a view on an table",
+      description =
+          "The view you're creating will be a symbolic link to selected variables of an existing table. It will"
+              + "look and respond like a table, but it will not take up duplicated resources")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Link successfully"),
+        @ApiResponse(responseCode = "404", description = "Unknown project or object"),
+        @ApiResponse(responseCode = "409", description = "Object already exists"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(
+      value = "/projects/{project}/objects/{object}/link",
+      consumes = {APPLICATION_JSON_VALUE})
+  @ResponseStatus(NO_CONTENT)
+  public void createLinkedObject(
+      Principal principal,
+      @PathVariable String project,
+      @PathVariable String object,
+      @RequestBody LinkedObjectRequestBody requestBody) {
+    var variableList =
+        Optional.ofNullable(requestBody.variables()).map(it -> it.split(",")).stream()
+            .flatMap(Arrays::stream)
+            .map(String::trim)
+            .toList();
+    auditor.audit(
+        () ->
+            storage.createLinkedObject(
+                project,
+                object,
+                requestBody.linkedObjectName(),
+                requestBody.linkedObjectProject(),
+                variableList),
+        principal,
+        CREATE_LINKED_OBJECT,
+        Map.of(
+            "from",
+            project,
+            object,
+            "into",
+            requestBody.linkedObjectProject(),
+            requestBody.linkedObjectName()));
   }
 
   @Operation(
