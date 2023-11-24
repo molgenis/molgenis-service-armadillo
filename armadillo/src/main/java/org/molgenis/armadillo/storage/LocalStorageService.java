@@ -217,6 +217,17 @@ public class LocalStorageService implements StorageService {
     return objectPath;
   }
 
+  public void createLink(
+      String bucketName, String objectName, String linkName, List<String> variables) {
+    Path path = getObjectPathSafely(bucketName, linkName);
+    Path objectPath = getPathIfObjectExists(bucketName, objectName);
+    createBucketIfNotExists(bucketName);
+
+    // create parent dirs if needed
+    //noinspection ResultOfMethodCallIgnored
+    path.toFile().getParentFile().mkdirs();
+  }
+
   @Override
   public void delete(String bucketName, String objectName) {
     Objects.requireNonNull(bucketName);
