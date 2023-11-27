@@ -162,13 +162,13 @@ jobs:
             # Poll on the wrong port to see we get 200 seconds
             docker container run --network container:ci-armadillo-1 \
               docker.io/jwilder/dockerize \
-              -wait http://armadillo:8080/ \
+              -wait http://localhost:8080/ \
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
             docker ps
 
-            docker run --interactive --tty molgenis/r-cicd --entrypoint /bin/bash -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+            docker run --interactive --tty --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
             echo "Results"
             cat ./fake-tree/cicd/log/out.log
