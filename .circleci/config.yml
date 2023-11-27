@@ -168,7 +168,7 @@ jobs:
 
             docker ps
             docker network ls
-            docker network inspect container:ci-armadillo-1
+            docker network inspect ci_default
 
             docker container run --network container:ci-armadillo-1 \
               --interactive --tty \
