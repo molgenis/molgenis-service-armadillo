@@ -171,8 +171,9 @@ jobs:
             docker network inspect ci_default
 
             docker container run --network container:ci-armadillo-1 \
+              --volume ./fake-tree/cicd:/cicd:rw \
               --interactive --tty \
-              --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+              --entrypoint /bin/bash molgenis/r-cicd -c "ls -l /cicd ; cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
             echo "Results"
             cat ./fake-tree/cicd/log/out.log
