@@ -155,6 +155,8 @@ jobs:
           name: Start docker-compose and wait for `release-test.R` to finish
           command: |
             cd ./docker/ci/
+            pwd
+
             docker-compose up -d
 
             docker ps
@@ -171,7 +173,7 @@ jobs:
             docker network inspect ci_default
 
             docker container run --network container:ci-armadillo-1 \
-              --volume ./fake-tree/cicd:/cicd:rw \
+              --volume ./docker/ci/fake-tree/cicd:/cicd:rw \
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "ls -l /cicd ; cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
