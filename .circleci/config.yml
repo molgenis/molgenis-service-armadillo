@@ -168,11 +168,14 @@ jobs:
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
-            docker ps
-            docker network ls
-            docker network inspect ci_default
+            # docker ps
+            # docker network ls
+            # docker network inspect ci_default
 
+            echo "========"
+            id
             ls -l `pwd`/fake-tree
+            echo "========"
 
             docker container run --network container:ci-armadillo-1 \
               --volume `pwd`/fake-tree/cicd:/cicd:rw \
