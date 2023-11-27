@@ -10,7 +10,8 @@ do
   if wget --spider "http://${HOSTNAME}:8080"; then
   #if [ $? -eq 0 ]; then
     echo "Armadillo is up"
-    ./release-test.R
+    ./release-test.R || exit 1
+    exit 0
   else
     echo "Armadillo still down ..."
     sleep 2
