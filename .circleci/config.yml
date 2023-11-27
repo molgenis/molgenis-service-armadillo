@@ -167,8 +167,12 @@ jobs:
               -timeout 30s || echo "Timed out"
 
             docker ps
+            docker network ls
+            docker network inspect container:ci-armadillo-1
 
-            docker run --interactive --tty --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+            docker container run --network container:ci-armadillo-1 \
+              --interactive --tty \
+              --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
             echo "Results"
             cat ./fake-tree/cicd/log/out.log
