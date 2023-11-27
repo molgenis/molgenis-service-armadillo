@@ -5,9 +5,13 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -89,6 +93,16 @@ public class ArmadilloStorageService {
       String project, String object, String linkName, String linkProject, List<String> variables) {
     throwIfUnknown(project, object);
     throwIfDuplicate(project, linkName);
+    // http://localhost:8080/load-table?table=lifecycle%2Fcore%2Fnonrep&symbol=core_nonrep&async=TRUE&variables=cohort_id%2Csex%2Cagebirth_m_y%2Cbreastfed_any%2Cbreastfed_ever%2Ceusilc_income
+    String realLink =
+        String.format(
+            "/load-table?table=%s%s%s&async=TRUE&variables=%s",
+            project,
+            "%2F",
+            URLEncoder.encode(object, StandardCharsets.UTF_8),
+            String.join("%2C", variables));
+    InputStream is = new ByteArrayInputStream(realLink.getBytes());
+    storageService.save(is, SHARED_PREFIX + linkProject, linkName, TEXT_PLAIN);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

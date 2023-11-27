@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import static org.apache.logging.log4j.util.Strings.concat;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -187,11 +188,10 @@ public class StorageController {
         CREATE_LINKED_OBJECT,
         Map.of(
             "from",
-            project,
-            object,
+            concat(concat(project, "/"), object),
             "into",
-            requestBody.linkedObjectProject(),
-            requestBody.linkedObjectName()));
+            concat(
+                concat(requestBody.linkedObjectProject(), "/"), requestBody.linkedObjectName())));
   }
 
   @Operation(
