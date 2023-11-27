@@ -164,9 +164,11 @@ jobs:
               docker.io/jwilder/dockerize \
               -wait http://localhost:8081/ \
               -wait-retry-interval 20s \
-              -timeout 200s || echo "Timed out"
+              -timeout 30s || echo "Timed out"
 
             docker ps
+
+            docker run --interactive --tty molgenis/r-cicd --entrypoint /bin/bash -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
             echo "Results"
             cat ./fake-tree/cicd/log/out.log
