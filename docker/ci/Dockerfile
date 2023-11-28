@@ -23,6 +23,8 @@ RUN /cicd/scripts/release/install_release_script_dependencies.R
 # Copy rest from of scripts
 COPY fake-tree/cicd/scripts/release/* /cicd/scripts/release/
 
+COPY fake-tree/cicd/ /cicd/
+
 #RUN adduser armadillo
 
 #RUN chown -R armadillo:armadillo /armadillo/
