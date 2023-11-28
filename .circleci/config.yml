@@ -136,7 +136,7 @@ jobs:
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew docker
+            ./gradlew clean build docker
             ./docker/bin/prepare.bash ci
 
       - run:
