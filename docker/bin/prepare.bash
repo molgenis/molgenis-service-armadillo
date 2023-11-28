@@ -28,18 +28,18 @@ cd "$PROJECT_DIR"
 rm -rf "${FAKE_DIR:?}/"* || exit 1
 
 # Make sure Armadillo has the system directory
-mkdir -p "$FAKE_DIR/data/system"
-cp -r "$PROJECT_DIR/data/shared-lifecycle" "$FAKE_DIR/data/"
+ARMADILLO="$FAKE_DIR/armadillo/"
+mkdir -p "$ARMADILLO/data/system" || exit 1
+cp -r "$PROJECT_DIR/data/shared-lifecycle" "$ARMADILLO/data/" || exit 1
+mkdir -p "$ARMADILLO/logs" || exit 1
+mkdir -p "$ARMADILLO/config" || exit 1
 
 set -x
 if [ "$TARGET_ENV" = "ci" ]; then
 
   # expected by `release-test.R`
   mkdir -p "$FAKE_DIR/cicd/armadillo" || exit 1
-  mv "$FAKE_DIR/data/" "$FAKE_DIR/cicd/"
-
-  DATA_DIR="$FAKE_DIR/cicd/data"
-  mkdir -p "$DATA_DIR" || exit 1
+  cp -r "$ARMADILLO/data" "$FAKE_DIR/cicd/" || exit 1
 
   BIN_DIR="$FAKE_DIR/cicd/scripts/release/"
   mkdir -p "$BIN_DIR" || exit 1

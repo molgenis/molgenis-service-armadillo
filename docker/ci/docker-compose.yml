@@ -12,9 +12,9 @@ services:
       AUDIT_LOG_PATH: '/app/logs/audit.log'
       SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
-      - ${PWD}/logs/:/app/logs
-      - ${PWD}/fake-tree/data/:/app/data
-      - ${PWD}/application.yml:/application.yml
+      - ${PWD}/fake-tree/armadillo/logs/:/logs
+      - ${PWD}/fake-tree/armadillo/data/:/data
+      - ${PWD}/fake-tree/armadillo/config:/config
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:

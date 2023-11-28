@@ -84,7 +84,7 @@ spring:
 
 storage:
   ## to change location of the data storage
-  root-dir: /app/data
+  root-dir: /data
 
 logging:
   level:
