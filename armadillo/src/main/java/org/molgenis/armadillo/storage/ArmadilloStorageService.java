@@ -96,13 +96,16 @@ public class ArmadilloStorageService {
     // http://localhost:8080/load-table?table=lifecycle%2Fcore%2Fnonrep&symbol=core_nonrep&async=TRUE&variables=cohort_id%2Csex%2Cagebirth_m_y%2Cbreastfed_any%2Cbreastfed_ever%2Ceusilc_income
     String realLink =
         String.format(
-            "/load-table?table=%s%s%s&async=TRUE&variables=%s",
+            "url=/load-table?table=%s%s%s&async=TRUE&variables=%s",
             project,
             "%2F",
             URLEncoder.encode(object, StandardCharsets.UTF_8),
             String.join("%2C", variables));
     InputStream is = new ByteArrayInputStream(realLink.getBytes());
-    storageService.save(is, SHARED_PREFIX + linkProject, linkName, TEXT_PLAIN);
+    throwIfUnknown(linkProject);
+    throwIfDuplicate(linkProject, linkName + ".alf");
+    // Save information in armadillo link file (alf)
+    storageService.save(is, SHARED_PREFIX + linkProject, linkName + ".alf", TEXT_PLAIN);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
