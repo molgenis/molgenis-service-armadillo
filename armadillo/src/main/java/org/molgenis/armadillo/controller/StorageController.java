@@ -187,11 +187,14 @@ public class StorageController {
         principal,
         CREATE_LINKED_OBJECT,
         Map.of(
-            "from",
+            PROJECT,
+            requestBody.linkedObjectProject(),
+            OBJECT,
+            requestBody.linkedObjectName() + ".alf",
+            "source",
             concat(concat(project, "/"), object),
-            "into",
-            concat(
-                concat(requestBody.linkedObjectProject(), "/"), requestBody.linkedObjectName())));
+            "columns",
+            variableList));
   }
 
   @Operation(
