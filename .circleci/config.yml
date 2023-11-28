@@ -178,8 +178,6 @@ jobs:
             echo "========"
 
             docker container run --network container:ci-armadillo-1 \
-              \ #--user 1001 \
-              \ #--volume `pwd`/fake-tree/cicd:/cicd:rw \
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "ls -l / ; cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
