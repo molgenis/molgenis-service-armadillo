@@ -33,6 +33,7 @@ mkdir -p "$ARMADILLO/data/system" || exit 1
 cp -r "$PROJECT_DIR/data/shared-lifecycle" "$ARMADILLO/data/" || exit 1
 mkdir -p "$ARMADILLO/logs" || exit 1
 mkdir -p "$ARMADILLO/config" || exit 1
+cp -r "$TARGET_DIR/application.yml" "$ARMADILLO/config" || exit 1
 
 set -x
 if [ "$TARGET_ENV" = "ci" ]; then
