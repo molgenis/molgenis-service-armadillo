@@ -163,9 +163,9 @@ jobs:
             docker ps
 
             # CircleCI docker in docker workaround
-            docker cp ./fake-dir/armadillo/config ci-armadillo-1:/config
-            docker cp ./fake-dir/armadillo/data ci-armadillo-1:/data
-            docker cp ./fake-dir/armadillo/logs ci-armadillo-1:/logs
+            docker cp ./fake-tree/armadillo/config ci-armadillo-1:/config
+            docker cp ./fake-tree/armadillo/data ci-armadillo-1:/data
+            docker cp ./fake-tree/armadillo/logs ci-armadillo-1:/logs
 
             # Poll on the wrong port to see we get 200 seconds
             docker container run --network container:ci-armadillo-1 \
