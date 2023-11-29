@@ -137,7 +137,6 @@ jobs:
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew clean build docker
             ./docker/bin/prepare.bash ci
 
       - run:
@@ -191,7 +190,7 @@ jobs:
             docker compose rm
 
       - store_artifacts:
-          path: ~/repo/docker/ci
+          path: ~/repo/docker/ci/fake-tree
 
 
 workflows:

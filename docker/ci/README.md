@@ -1,15 +1,16 @@
 # Continue integration
 
-- Check `ci.env` for correct values.
-- Run `../prepare.bash ci`
+In the `docker/ci` directory
+
+- Check `ci.env` for correct values which is used by `release-test.R` script.
+- Check `application.yml` for the correct profiles
+- Make use profiles matches `docker-compose.yml`
+- Run `../prepare.bash ci` (calls `gradle clean build docker`)
+- Note `fake-tree`
 - Run `docker compose up`
 
 ## Debugging
 
-Shell into the r-cicd service.
-
-Is this correct to enter the running container?
-
 ```sh
-docker run -it --entrypoint /bin/bash molgenis/r-cicd
+docker run --interactive --tty --entrypoint /bin/bash molgenis/r-cicd
 ```

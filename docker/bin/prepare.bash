@@ -23,29 +23,33 @@ echo "Target        : $TARGET_DIR"
 echo "Fake tree dir : $FAKE_DIR"
 
 cd "$PROJECT_DIR"
-./gradlew docker
+./gradlew clean build docker
 
 rm -rf "${FAKE_DIR:?}/"* || exit 1
 
-# Make sure Armadillo has the system directory
+# Make sure Armadillo has needed directories and files
 ARMADILLO="$FAKE_DIR/armadillo/"
+# System dir must exists
 mkdir -p "$ARMADILLO/data/system" || exit 1
+# lifecycle data must exits
 cp -r "$PROJECT_DIR/data/shared-lifecycle" "$ARMADILLO/data/" || exit 1
 mkdir -p "$ARMADILLO/logs" || exit 1
 mkdir -p "$ARMADILLO/config" || exit 1
+# Specific application.yml file is needed
 cp -r "$TARGET_DIR/application.yml" "$ARMADILLO/config" || exit 1
 
 set -x
 if [ "$TARGET_ENV" = "ci" ]; then
+  CICD="$FAKE_DIR/cicd"
 
   # expected by `release-test.R`
-  mkdir -p "$FAKE_DIR/cicd/armadillo" || exit 1
-  cp -r "$ARMADILLO/data" "$FAKE_DIR/cicd/" || exit 1
+  mkdir -p "$CICD/armadillo" || exit 1
+  cp -r "$ARMADILLO/data" "$CICD/" || exit 1
 
-  BIN_DIR="$FAKE_DIR/cicd/scripts/release/"
+  BIN_DIR="$CICD/scripts/release/"
   mkdir -p "$BIN_DIR" || exit 1
 
-  LOG_DIR="$FAKE_DIR/cicd/log/"
+  LOG_DIR="$CICD/log/"
   mkdir -p "$LOG_DIR" || exit 1
 
   cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
