@@ -168,22 +168,14 @@ jobs:
             docker cp ./fake-tree/armadillo/logs   ci-armadillo-1:/logs
             # .1 CircleCI docker in docker workaround
 
-            # Poll on the wrong port to see we get 200 seconds
+            # Poll to see Armadillo is up
             docker container run --network container:ci-armadillo-1 \
               docker.io/jwilder/dockerize \
               -wait http://localhost:8080/ \
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
-            # docker ps
-            # docker network ls
-            # docker network inspect ci_default
-
-            echo "========"
-            id
-            ls -l `pwd`/fake-tree
-            echo "========"
-
+            # Run release-test.R
             docker container run --network container:ci-armadillo-1 \
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
@@ -193,6 +185,11 @@ jobs:
             docker cp ci-armadillo-1:/logs   ./fake-tree/armadillo/logs
             # .2 CircleCI docker in docker workaround
 
+            docker container ls
+            docker compose down
+            docker images ls
+            docker compose rm
+
       - store_artifacts:
           path: ~/repo/docker/ci
 
@@ -201,6 +198,7 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      #- build
+      - build
       - build-ci
+      # FIXME: build-dev is not yet fully configured to make a zip release out of it.
       #- build-dev
