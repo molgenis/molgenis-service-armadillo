@@ -162,11 +162,11 @@ jobs:
 
             docker ps
 
-            # 1 >> CircleCI docker in docker workaround
+            # 1 CircleCI docker in docker workaround
             docker cp ./fake-tree/armadillo/config ci-armadillo-1:/config
             docker cp ./fake-tree/armadillo/data   ci-armadillo-1:/data
             docker cp ./fake-tree/armadillo/logs   ci-armadillo-1:/logs
-            # 1 << CircleCI docker in docker workaround
+            # .1 CircleCI docker in docker workaround
 
             # Poll on the wrong port to see we get 200 seconds
             docker container run --network container:ci-armadillo-1 \
@@ -188,10 +188,10 @@ jobs:
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
-            # 2 >> CircleCI docker in docker workaround
+            # 2 CircleCI docker in docker workaround
             # See what changed within Armadillo
             docker cp ci-armadillo-1:/logs   ./fake-tree/armadillo/logs
-            # 2 << CircleCI docker in docker workaround
+            # .2 CircleCI docker in docker workaround
 
       - store_artifacts:
           path: ~/repo/docker/ci
