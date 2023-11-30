@@ -135,7 +135,7 @@ jobs:
 
             # Run release-test.R
             docker container run \
-              --network container:ci-armadillo-1 \
+              --network container:$ARMADILLO \
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
