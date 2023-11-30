@@ -9,6 +9,15 @@ In the `docker/ci` directory
 - Note `fake-tree`
 - Run `docker compose up`
 
+## Start the R CICD
+
+```sh
+docker container run \
+    --network container:armadillo-compose-armadillo-1 \
+    --volume armadillo:/cicd:rw \
+    --interactive --tty \
+    --entrypoint /bin/bash molgenis/r-cicd -c "ls -l /cicd ; cd /cicd/scripts/release ; ./armadillo-ready.bash"
+```
 ## Debugging
 
 ```sh

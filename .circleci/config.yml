@@ -74,47 +74,6 @@ jobs:
       - store_artifacts:
           path: build/libs
 
-  build-dev:
-    docker:
-      # official https://hub.docker.com/r/cimg/openjdk
-      - image: cimg/openjdk:17.0
-
-    working_directory: ~/repo
-    resource_class: large
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-      TERM: dumb
-
-    steps:
-      - checkout
-      - setup_remote_docker
-
-      - run:
-          name: build, docker
-          command: |
-            ./gradlew docker
-            ./docker/bin/prepare.bash dev
-
-      - run:
-          name: Start all services declared in docker-compose.yml
-          command: |
-            cd ./docker/dev/
-            docker-compose up -d
-
-      - run:
-          name: Start docker-compose and verify service(s)
-          command: |
-            cd ./docker/dev/
-            docker-compose up -d
-            docker container run --network container:dev-armadillo-1 \
-              docker.io/jwilder/dockerize \
-              -wait http://localhost:8080/ \
-              -wait-retry-interval 2s \
-              -timeout 20s
-
   build-ci:
     docker:
       # official https://hub.docker.com/r/cimg/openjdk
@@ -137,34 +96,30 @@ jobs:
       - run:
           name: Build Armadillo and R CICD image
           command: |
+            ./gradlew clean build docker
             ./docker/bin/prepare.bash ci
 
       - run:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
-            cd ./docker/ci/
+            cd ./build/docker/armadillo-compose
 
             docker images ls
-
-            docker-compose build
             docker-compose up -d
-
             docker images ls
 
       - run:
           name: Start docker-compose and wait for `release-test.R` to finish
           command: |
-            cd ./docker/ci/
-            pwd
+            cd ./build/docker/armadillo-compose
 
             docker-compose up -d
-
             docker ps
 
             # 1 CircleCI docker in docker workaround
-            docker cp ./fake-tree/armadillo/config ci-armadillo-1:/config
-            docker cp ./fake-tree/armadillo/data   ci-armadillo-1:/data
-            docker cp ./fake-tree/armadillo/logs   ci-armadillo-1:/logs
+            docker cp ./armadillo/config ci-armadillo-1:/config
+            docker cp ./armadillo/data   ci-armadillo-1:/data
+            docker cp ./armadillo/logs   ci-armadillo-1:/logs
             # .1 CircleCI docker in docker workaround
 
             # Poll to see Armadillo is up
@@ -174,14 +129,19 @@ jobs:
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
+            cd ./build/docker/cicd
+
             # Run release-test.R
-            docker container run --network container:ci-armadillo-1 \
+            docker container run \
+              --network container:ci-armadillo-1 \
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
+            cd ./build/docker/armadillo-compose
+
             # 2 CircleCI docker in docker workaround
             # See what changed within Armadillo
-            docker cp ci-armadillo-1:/logs   ./fake-tree/armadillo/logs
+            docker cp ci-armadillo-1:/logs   ./armadillo/logs
             # .2 CircleCI docker in docker workaround
 
             docker container ls
