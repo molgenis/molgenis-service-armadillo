@@ -30,7 +30,7 @@ The following code does **NOT** require super user rights. The code does assume 
 ```bash
 python3 -m venv venv
 source ./venv/bin/activate
-pip install minio fusionauth-client requests simple-term-menu numpy=1.24.4 pandas=2.0.3
+pip install -r requirements.txt
 ```
 
 If the installation of one (or more libraries) fails, try to install the libraries one by one.
