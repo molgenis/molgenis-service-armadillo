@@ -1,8 +1,12 @@
 package org.molgenis.armadillo.storage;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import net.minidev.json.JSONObject;
+import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloLinkFile {
 
@@ -34,10 +38,10 @@ public class ArmadilloLinkFile {
   ;
 
   public String toString() {
-    return toJson().toString();
+    return buildJson().toString();
   }
 
-  public JSONObject toJson() {
+  public JSONObject buildJson() {
     JSONObject json = new JSONObject();
     json.put("sourceObject", sourceObject);
     json.put("sourceProject", sourceProject);
@@ -61,6 +65,10 @@ public class ArmadilloLinkFile {
     return this.project;
   }
 
+  public JsonObject loadFromStream(InputStream inputStream) {
+    return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
+  }
+
   public ArmadilloLinkFile(
       String sourceProject,
       String sourceObject,
@@ -72,5 +80,35 @@ public class ArmadilloLinkFile {
     this.sourceObject = sourceObject;
     this.variables = variables;
     this.project = project;
+  }
+
+  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject)
+      throws Exception {
+    this.linkObject = linkObject;
+    this.project = linkProject;
+
+    try {
+      JsonObject json = loadFromStream(armadilloLinkStream);
+      this.sourceObject = json.get("sourceObject").getAsString();
+      try {
+        this.sourceProject = json.get("sourceProject").getAsString();
+        try {
+          this.variables = json.get("variables").getAsString();
+        } catch (Exception e) {
+          // FIXME: throw right exception
+          throw new Exception(e);
+        }
+      } catch (Exception e) {
+        // FIXME: throw right exception
+        throw new Exception(e);
+      }
+    } catch (StorageException e) {
+      // FIXME: throw right exception
+      // throw new StorageException(String.format("Could not load %s/%s", linkProject, linkObject));
+      throw new StorageException(e);
+    } catch (Exception e) {
+      // FIXME: throw right exception
+      throw new Exception(e);
+    }
   }
 }

@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +34,7 @@ import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
@@ -131,33 +134,83 @@ public class DataController {
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
-      @RequestParam(defaultValue = "false") boolean async) {
+      @RequestParam(defaultValue = "false") boolean async)
+      throws Exception {
 
     java.util.regex.Pattern tableResourcePattern =
         java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
-    if (!storage.tableExists(
+    if (storage.hasObject(
+        // FIXME: save extension somewhere as constant
+        (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + ".alf")) {
+      auditEventPublisher.audit(principal, LOAD_TABLE, data);
+      InputStream armadilloLinkFileStream =
+          storage.loadObject(
+              (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + ".alf");
+      ArmadilloLinkFile linkFile =
+          new ArmadilloLinkFile(
+              armadilloLinkFileStream,
+              data.get(PROJECT).toString(),
+              data.get(FOLDER) + "/" + data.get(TABLE));
+      List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
+      String sourceProject = linkFile.getSourceProject();
+      String sourceObject = linkFile.getSourceObject();
+      // FIXME: why does this only work for a non-existing table, but not for a non-existing object?
+      if (storage.hasObject(sourceProject, sourceObject)) {
+        // FIXME: this list doesnt work
+        List<String> variableList =
+            Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+                .flatMap(Arrays::stream)
+                .map(String::trim)
+                // FIXME: variables are not filtered at the moment
+                .filter(variable -> allowedVariables.contains(variable))
+                .toList();
+        if (variableList.size() == 0) {
+          variableList = allowedVariables;
+        }
+        List<String> finalVariableList = variableList;
+        runAsSystem(
+            () -> {
+              // FIXME: refactor to deduplicate code, extract into function
+              var result =
+                  auditEventPublisher.audit(
+                      commands.loadTable(
+                          symbol, sourceProject + "/" + sourceObject, finalVariableList),
+                      principal,
+                      LOAD_TABLE,
+                      new HashMap<>());
+              return async
+                  ? completedFuture(created(getLastCommandLocation()).body(null))
+                  : result
+                      .thenApply(ResponseEntity::ok)
+                      .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+            });
+      }
+    } else if (!storage.tableExists(
         (String) data.get(PROJECT),
         String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE)))) {
       data = new HashMap<>(data);
       data.put(MESSAGE, "Table not found");
       auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
       return completedFuture(notFound().build());
+    } else {
+      auditEventPublisher.audit(principal, LOAD_TABLE, data);
+      var variableList =
+          Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+              .flatMap(Arrays::stream)
+              .map(String::trim)
+              .toList();
+      var result =
+          auditEventPublisher.audit(
+              commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
+      return async
+          ? completedFuture(created(getLastCommandLocation()).body(null))
+          : result
+              .thenApply(ResponseEntity::ok)
+              .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
     }
-    var variableList =
-        Optional.ofNullable(variables).map(it -> it.split(",")).stream()
-            .flatMap(Arrays::stream)
-            .map(String::trim)
-            .toList();
-    var result =
-        auditEventPublisher.audit(
-            commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
-    return async
-        ? completedFuture(created(getLastCommandLocation()).body(null))
-        : result
-            .thenApply(ResponseEntity::ok)
-            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+    return null;
   }
 
   @Operation(
