@@ -102,7 +102,8 @@ jobs:
       - run:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             docker images ls
             docker-compose up -d
@@ -111,7 +112,8 @@ jobs:
       - run:
           name: Start docker-compose and wait for `release-test.R` to finish
           command: |
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             docker-compose up -d
             docker ps
@@ -131,7 +133,8 @@ jobs:
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
-            cd /home/circleci/repo/build/docker/cicd
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/cicd
 
             # Run release-test.R
             docker container run \
@@ -139,11 +142,12 @@ jobs:
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             # 2 CircleCI docker in docker workaround
             # See what changed within Armadillo
-            docker cp ci-armadillo-1:/logs   ./armadillo/logs
+            docker cp $ARMADILLO:/logs   ./armadillo/logs
             # .2 CircleCI docker in docker workaround
 
             docker container ls
