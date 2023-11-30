@@ -115,15 +115,17 @@ jobs:
 
             docker-compose up -d
             docker ps
+            # FIXME: make this name not directory dependent
+            ARMADILLO="armadillo-compose-armadillo-1"
 
             # 1 CircleCI docker in docker workaround
-            docker cp ./armadillo/config ci-armadillo-1:/config
-            docker cp ./armadillo/data   ci-armadillo-1:/data
-            docker cp ./armadillo/logs   ci-armadillo-1:/logs
+            docker cp ./armadillo/config $ARMADILLO:/config
+            docker cp ./armadillo/data   $ARMADILLO:/data
+            docker cp ./armadillo/logs   $ARMADILLO:/logs
             # .1 CircleCI docker in docker workaround
 
             # Poll to see Armadillo is up
-            docker container run --network container:ci-armadillo-1 \
+            docker container run --network container:$ARMADILLO \
               docker.io/jwilder/dockerize \
               -wait http://localhost:8080/ \
               -wait-retry-interval 20s \
