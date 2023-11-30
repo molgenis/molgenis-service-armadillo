@@ -154,11 +154,14 @@ jobs:
             docker compose rm
 
       - store_artifacts:
-          path: ~/repo/docker/ci/fake-tree
+          path: build/libs
+
+      - store_artifacts:
+          path: build/docker/armadillo-compose
 
 
 workflows:
   build-deploy:
     jobs:
-      - build
+      # - build
       - build-ci
