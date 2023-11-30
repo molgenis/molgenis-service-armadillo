@@ -4,14 +4,10 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static org.springframework.http.MediaType.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -90,22 +86,21 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void createLinkedObject(
-      String project, String object, String linkName, String linkProject, List<String> variables) {
-    throwIfUnknown(project, object);
-    throwIfDuplicate(project, linkName);
-    // http://localhost:8080/load-table?table=lifecycle%2Fcore%2Fnonrep&symbol=core_nonrep&async=TRUE&variables=cohort_id%2Csex%2Cagebirth_m_y%2Cbreastfed_any%2Cbreastfed_ever%2Ceusilc_income
-    String realLink =
-        String.format(
-            "url=/load-table?table=%s%s%s&async=TRUE&variables=%s",
-            project,
-            "%2F",
-            URLEncoder.encode(object, StandardCharsets.UTF_8),
-            String.join("%2C", variables));
-    InputStream is = new ByteArrayInputStream(realLink.getBytes());
+      String sourceProject,
+      String sourceObject,
+      String linkName,
+      String linkProject,
+      String variables) {
+    throwIfUnknown(sourceProject, sourceObject);
+    throwIfDuplicate(sourceProject, linkName);
     throwIfUnknown(linkProject);
     throwIfDuplicate(linkProject, linkName + ".alf");
     // Save information in armadillo link file (alf)
-    storageService.save(is, SHARED_PREFIX + linkProject, linkName + ".alf", TEXT_PLAIN);
+    ArmadilloLinkFile armadilloLinkFile =
+        new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
+    InputStream is = armadilloLinkFile.toStream();
+    storageService.save(
+        is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
