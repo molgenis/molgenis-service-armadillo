@@ -183,7 +183,7 @@ public class StorageController {
                 object,
                 requestBody.linkedObjectName(),
                 requestBody.linkedObjectProject(),
-                variableList),
+                requestBody.variables()),
         principal,
         CREATE_LINKED_OBJECT,
         Map.of(
