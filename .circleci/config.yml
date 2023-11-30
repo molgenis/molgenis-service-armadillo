@@ -156,8 +156,14 @@ jobs:
       - store_artifacts:
           path: build/libs
 
+      - run:
+          name: Zip armadillo-compose
+          command: |
+            mkdir build/artifacts
+            zip -r build/artifacts/armadillo-compose.zip build/docker/armadillo-compose
+
       - store_artifacts:
-          path: build/docker/armadillo-compose
+          path: build/artifacts/armadillo-compose.zip
 
 
 workflows:
