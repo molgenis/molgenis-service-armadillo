@@ -26,8 +26,10 @@ jobs:
           command: |
             id
             pwd
+            cd
+            pwd
             echo "$CIRCLE_WORKING_DIRECTORY"
-            exit 1
+            cd $CIRCLE_WORKING_DIRECTORY || exit 1
 
       - run:
           name: update package manager
@@ -91,7 +93,8 @@ jobs:
       - run:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             docker images ls
             docker-compose up -d
@@ -103,7 +106,8 @@ jobs:
             # FIXME: make this name not directory dependent
             ARMADILLO="armadillo-compose-armadillo-1"
 
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             docker-compose up -d
             docker ps
@@ -122,7 +126,8 @@ jobs:
               -wait-retry-interval 20s \
               -timeout 30s || echo "Timed out"
 
-            cd /home/circleci/repo/build/docker/cicd
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/cicd
 
             # Run release-test.R
             docker container run \
@@ -130,7 +135,8 @@ jobs:
               --interactive --tty \
               --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
-            cd /home/circleci/repo/build/docker/armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
 
             # 2 CircleCI docker in docker workaround
             # See what changed within Armadillo
@@ -148,9 +154,13 @@ jobs:
       - run:
           name: Zip armadillo-compose
           command: |
-            mkdir /home/circleci/repo/build/artifacts
-            cd /home/circleci/repo/build/docker/
-            zip -r /home/circleci/repo/build/artifacts/armadillo-compose.zip armadillo-compose
+            cd $CIRCLE_WORKING_DIRECTORY
+            mkdir build/artifacts
+
+            # Workaround for ~ expansion not working
+            K=`pwd`
+            cd build/docker/
+            zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
 
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
