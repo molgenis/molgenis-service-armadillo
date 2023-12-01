@@ -2,11 +2,14 @@
 
 ## Test as a UI developer
 
+From the terminal:
 - `cd ui/`
 - make sure you have `yarn` installed.
 - `yarn test --watch`
-- change one of `src/**`
-- change corresponding `tests/unit/**`
+
+Do your develop stuff and watch your test fail or succeed on the go. That is:
+- change files in `src/**`
+- change files in `tests/unit/**`
 
 ## How this project was generated
 
