@@ -101,7 +101,7 @@ jobs:
             cd build/docker/armadillo-compose
 
             docker images ls
-            docker-compose up -d
+            docker compose up -d
             docker images ls
 
       - run:
@@ -113,7 +113,7 @@ jobs:
             cd $CIRCLE_WORKING_DIRECTORY
             cd build/docker/armadillo-compose
 
-            docker-compose up -d
+            docker compose up -d
             docker ps
 
 
