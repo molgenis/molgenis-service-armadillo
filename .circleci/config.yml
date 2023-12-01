@@ -23,7 +23,7 @@ jobs:
 
       - run:
           name: Test env
-          command:|
+          command: |
             id
             pwd
             echo "$CIRCLE_WORKING_DIRECTORY"
