@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public record LinkedObjectRequestBody(
     @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam(required = true)
-        String linkedObjectName,
-    @NotNull @NotEmpty String linkedObjectProject,
+        String sourceObjectName,
+    @NotNull @NotEmpty String sourceProject,
+    @NotNull @NotEmpty String linkedObject,
     @RequestParam(required = false) String variables) {}
