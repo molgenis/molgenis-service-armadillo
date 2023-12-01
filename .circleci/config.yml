@@ -25,10 +25,6 @@ jobs:
           docker_layer_caching: true
 
       - run:
-          name: Sign in to docker
-          command: echo $DOCKER_PASS | docker login -u $DOCKER_NAME --password-stdin
-
-      - run:
           name: Setup git
           command: |
             git config --global --add safe.directory '*'
@@ -41,6 +37,10 @@ jobs:
           command: |
             ./gradlew test jacocoMergedReport sonar \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+
+      - run:
+          name: Sign in to docker
+          command: echo $DOCKER_PASS | docker login -u $DOCKER_NAME --password-stdin
 
       - store_artifacts:
           path: build/libs
