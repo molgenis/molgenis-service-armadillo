@@ -25,6 +25,12 @@ jobs:
           docker_layer_caching: true
 
       - run:
+          name: Run unit tests
+          command: |
+            ./gradlew test jacocoMergedReport sonar \
+            -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+
+      - run:
           name: Setup git
           command: |
             git config --global --add safe.directory '*'
@@ -32,11 +38,6 @@ jobs:
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
 
-      - run:
-          name: Run unit tests
-          command: |
-            ./gradlew test jacocoMergedReport sonar \
-            -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
 
       - run:
           name: Sign in to docker
