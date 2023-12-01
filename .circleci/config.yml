@@ -37,7 +37,7 @@ jobs:
             git config url.https://.insteadOf git://
 
       - run:
-          name: Run unit tests
+          name: build, test, push docker
           command: |
             ./gradlew test jacocoMergedReport sonar \
             -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
@@ -45,10 +45,33 @@ jobs:
       - store_artifacts:
           path: build/libs
 
+  build-ci:
+    docker:
+      # official https://hub.docker.com/r/cimg/openjdk
+      - image: cimg/openjdk:17.0
+
+    working_directory: ~/repo
+    resource_class: large
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+      TERM: dumb
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - run:
+          name: Sign in to docker
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew docker
+            ./gradlew clean build docker
             ./docker/bin/prepare.bash ci
 
       - run:
@@ -122,3 +145,4 @@ workflows:
   build-deploy:
     jobs:
       - build
+      #- build-ci
