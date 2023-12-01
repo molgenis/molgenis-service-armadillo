@@ -47,30 +47,27 @@ cp -r "$TARGET_DIR/docker-compose.yml" "$ARMADILLO_COMPOSE_BUILD_DIR" || exit 1
 cp "$BUILD_ROOT"/*.jar "$ARMADILLO_COMPOSE_BUILD_DIR/" || exit 1
 cp "$BUILD_ROOT/Dockerfile" "$ARMADILLO_COMPOSE_BUILD_DIR/" || exit 1
 
-set -x
-if [ "$TARGET_ENV" = "ci" ]; then
-  CICD_DIR="$BUILD_ROOT/cicd"
-  rm -rf "${CICD_DIR:?}/"* || exit 1
+CICD_DIR="$BUILD_ROOT/cicd"
+rm -rf "${CICD_DIR:?}/"* || exit 1
 
-  # expected by `release-test.R`
-  ARMADILLO_ROOT="$CICD_DIR/armadillo"
-  mkdir -p "$ARMADILLO_ROOT" || exit 1
-  cp -r "$ARMADILLO/data" "$ARMADILLO_ROOT/" || exit 1
+# expected by `release-test.R`
+ARMADILLO_ROOT="$CICD_DIR/armadillo"
+mkdir -p "$ARMADILLO_ROOT" || exit 1
+cp -r "$ARMADILLO/data" "$ARMADILLO_ROOT/" || exit 1
 
-  BIN_DIR="$ARMADILLO_ROOT/scripts/release/"
-  mkdir -p "$BIN_DIR" || exit 1
+BIN_DIR="$ARMADILLO_ROOT/scripts/release/"
+mkdir -p "$BIN_DIR" || exit 1
 
-  LOG_DIR="$ARMADILLO_ROOT/log/"
-  mkdir -p "$LOG_DIR" || exit 1
+LOG_DIR="$ARMADILLO_ROOT/log/"
+mkdir -p "$LOG_DIR" || exit 1
 
-  cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
-  cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
-  cp "$TARGET_DIR/armadillo-ready.bash" "$BIN_DIR/" || exit 1
-  cp "$TARGET_DIR/ci.env" "$BIN_DIR/.env" || exit 1
+cp "$PROJECT_DIR/scripts/release/release-test.R" "$BIN_DIR/" || exit 1
+cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
+cp "$TARGET_DIR/armadillo-ready.bash" "$BIN_DIR/" || exit 1
+cp "$TARGET_DIR/ci.env" "$BIN_DIR/.env" || exit 1
 
-  cp "$TARGET_DIR/Dockerfile" "$CICD_DIR/"
-  cd "$CICD_DIR" || exit 1
-  docker build . --platform linux/amd64 --tag "$CICD_IMAGE:$CICD_VERSION" || fail "Unable to build R CICD image"
-fi
+cp "$TARGET_DIR/Dockerfile" "$CICD_DIR/"
+cd "$CICD_DIR" || exit 1
+docker build . --platform linux/amd64 --tag "$CICD_IMAGE:$CICD_VERSION" || fail "Unable to build R CICD image"
 
 cd "$cwd" || exit 1
