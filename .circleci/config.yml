@@ -94,10 +94,6 @@ jobs:
           docker_layer_caching: true
 
       - run:
-          name: Sign in to docker
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
-
-      - run:
           name: Build Armadillo and R CICD image
           command: |
             ./gradlew clean build docker
@@ -173,5 +169,5 @@ jobs:
 workflows:
   build-deploy:
     jobs:
-      #- build
-      - build-ci
+      - build
+      #- build-ci
