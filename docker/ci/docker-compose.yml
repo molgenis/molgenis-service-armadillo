@@ -6,6 +6,12 @@ services:
       - 8080:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    build:
+      context: '.'
+      dockerfile: 'Dockerfile'
+      args:
+        JAR_FILE: '*.jar'
+
     image: molgenis/molgenis-armadillo:latest
     environment:
       LOGGING_CONFIG: 'classpath:logback-file.xml'
