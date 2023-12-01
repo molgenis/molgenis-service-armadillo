@@ -55,7 +55,7 @@ jobs:
 
       - run:
           name: Sign in to docker
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+          command: echo $DOCKER_PASS | docker login -u $DOCKER_NAME --password-stdin
 
       - run:
           name: Setup git
@@ -74,29 +74,10 @@ jobs:
       - store_artifacts:
           path: build/libs
 
-  build-ci:
-    docker:
-      # official https://hub.docker.com/r/cimg/openjdk
-      - image: cimg/openjdk:17.0
-
-    working_directory: ~/repo
-    resource_class: large
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-      TERM: dumb
-
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew clean build docker
+            ./gradlew docker
             ./docker/bin/prepare.bash ci
 
       - run:
@@ -169,5 +150,4 @@ jobs:
 workflows:
   build-deploy:
     jobs:
-      # - build
-      - build-ci
+      - build
