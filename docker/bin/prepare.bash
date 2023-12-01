@@ -44,6 +44,7 @@ mkdir -p "$ARMADILLO/config" || exit 1
 cp -r "$TARGET_DIR/application.yml" "$ARMADILLO/config" || exit 1
 
 cp -r "$TARGET_DIR/docker-compose.yml" "$ARMADILLO_COMPOSE_BUILD_DIR" || exit 1
+cp "$TARGET_DIR/armadillo-compose.md" "$ARMADILLO_COMPOSE_BUILD_DIR/README.md" || exit 1
 cp "$BUILD_ROOT"/*.jar "$ARMADILLO_COMPOSE_BUILD_DIR/" || exit 1
 cp "$BUILD_ROOT/Dockerfile" "$ARMADILLO_COMPOSE_BUILD_DIR/" || exit 1
 

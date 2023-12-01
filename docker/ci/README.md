@@ -23,3 +23,5 @@ docker container run \
 ```sh
 docker run --interactive --tty --entrypoint /bin/bash molgenis/r-cicd
 ```
+
+Original file: git: docker/ci/armadillo-compose.md
