@@ -55,7 +55,7 @@ jobs:
 
       - run:
           name: Sign in to docker
-          command: docker login -u $DOCKER_NAME -p $DOCKER_PASS
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
           name: Setup git
@@ -140,8 +140,9 @@ jobs:
       - run:
           name: Zip armadillo-compose
           command: |
-            mkdir build/artifacts
-            zip -r build/artifacts/armadillo-compose.zip build/docker/armadillo-compose
+            mkdir /home/circleci/repo/build/artifacts
+            cd /home/circleci/repo/build/docker/
+            zip -r /home/circleci/repo/build/artifacts/armadillo-compose.zip armadillo-compose
 
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
