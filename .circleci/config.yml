@@ -23,8 +23,8 @@ jobs:
 
       # https://support.circleci.com/hc/en-us/articles/16164465307931-Using-an-environment-variable-to-define-a-path-when-using-the-Docker-executor
       - run:
-        name: "Fix CIRCLE_WORKING_DIRECTORY"
-        command: echo 'CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"' >> $BASH_ENV
+          name: "Fix CIRCLE_WORKING_DIRECTORY"
+          command: echo 'CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"' >> $BASH_ENV
 
       - run:
           name: Test env
