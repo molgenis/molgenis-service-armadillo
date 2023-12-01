@@ -55,7 +55,7 @@ jobs:
 
       - run:
           name: Sign in to docker
-          command: echo $DOCKER_PASS | docker login -u $DOCKER_NAME --password-stdin
+          command: docker login -u $DOCKER_NAME -p $DOCKER_PASS
 
       - run:
           name: Setup git
