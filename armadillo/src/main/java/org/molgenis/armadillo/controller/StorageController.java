@@ -151,25 +151,24 @@ public class StorageController {
   }
 
   @Operation(
-      summary = "Create a view on an table",
+      summary = "Create a view from an existing table in another project",
       description =
           "The view you're creating will be a symbolic link to selected variables of an existing table. It will"
               + "look and respond like a table, but it will not take up duplicated resources")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Link successfully"),
+        @ApiResponse(responseCode = "204", description = "Link successfully created"),
         @ApiResponse(responseCode = "404", description = "Unknown project or object"),
         @ApiResponse(responseCode = "409", description = "Object already exists"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping(
-      value = "/projects/{project}/objects/{object}/link",
+      value = "/projects/{project}/objects/link",
       consumes = {APPLICATION_JSON_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void createLinkedObject(
       Principal principal,
       @PathVariable String project,
-      @PathVariable String object,
       @RequestBody LinkedObjectRequestBody requestBody) {
     var variableList =
         Optional.ofNullable(requestBody.variables()).map(it -> it.split(",")).stream()
@@ -179,20 +178,20 @@ public class StorageController {
     auditor.audit(
         () ->
             storage.createLinkedObject(
+                requestBody.sourceProject(),
+                requestBody.sourceObjectName(),
+                requestBody.linkedObject(),
                 project,
-                object,
-                requestBody.linkedObjectName(),
-                requestBody.linkedObjectProject(),
                 requestBody.variables()),
         principal,
         CREATE_LINKED_OBJECT,
         Map.of(
             PROJECT,
-            requestBody.linkedObjectProject(),
+            project,
             OBJECT,
-            requestBody.linkedObjectName() + ".alf",
+            requestBody.linkedObject() + ".alf",
             "source",
-            concat(concat(project, "/"), object),
+            concat(concat(project, "/"), requestBody.linkedObject()),
             "columns",
             variableList));
   }
