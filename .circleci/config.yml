@@ -22,6 +22,14 @@ jobs:
       - checkout
 
       - run:
+          name: Test env
+          command:|
+            id
+            pwd
+            echo "$CIRCLE_WORKING_DIRECTORY"
+            exit 1
+
+      - run:
           name: update package manager
           command: apt-get update
 
