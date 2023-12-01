@@ -158,13 +158,11 @@ public class DataController {
       String sourceObject = linkFile.getSourceObject();
       // FIXME: why does this only work for a non-existing table, but not for a non-existing object?
       if (storage.hasObject(sourceProject, sourceObject)) {
-        // FIXME: this list doesnt work
         List<String> variableList =
             Optional.ofNullable(variables).map(it -> it.split(",")).stream()
                 .flatMap(Arrays::stream)
                 .map(String::trim)
-                // FIXME: variables are not filtered at the moment
-                .filter(variable -> allowedVariables.contains(variable))
+                .filter(allowedVariables::contains)
                 .toList();
         if (variableList.size() == 0) {
           variableList = allowedVariables;
