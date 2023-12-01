@@ -24,12 +24,11 @@ jobs:
       - run:
           name: Test env
           command: |
-            id
-            pwd
+            echo "id: `id`"
             cd
+            cd repo
             pwd
             echo "$CIRCLE_WORKING_DIRECTORY"
-            cd $CIRCLE_WORKING_DIRECTORY || exit 1
 
       - run:
           name: update package manager
