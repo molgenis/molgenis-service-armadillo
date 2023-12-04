@@ -36,6 +36,18 @@ We have several components
   - [release](./scripts/release/) source
   - [ops](./scripts/ops/README.md) readme
 
+## Releasing
+
+We release through [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) which autoincrement using [Semantic versioning](https://semver.org/).
+
+Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
+
+List messages to see usage of conventional commits from the past.
+
+```sh
+git log --pretty=format:"%s" | cut -c -20
+```
+
 ## Profile xenon with resourcer whitelisted returns a host.docker.internal error
 When developing locally, it might be possible to come across the container error: `Could not resolve host: host.docker.internal`, 
 especially when developing on a non-supported operating system when resourcer is whitelisted (such as xenon). 
