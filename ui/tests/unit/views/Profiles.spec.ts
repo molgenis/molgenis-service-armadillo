@@ -54,7 +54,7 @@ describe("Profiles", () => {
 
         default_profile_not_running = {
             name: "default",
-            image: "datashield/armadillo-rserver",
+            image: "datashield/rock-base:version",
             host: "localhost",
             port: 6311,
             packageWhitelist: [
@@ -67,8 +67,7 @@ describe("Profiles", () => {
             },
             container: {
                 tags:  [
-                    "datashield/armadillo-rserver:2.0.0",
-                    "datashield/armadillo-rserver:latest"
+                    "datashield/rock-base:latest"
                   ],
                 status: "NOT_RUNNING"
             }
@@ -80,7 +79,7 @@ describe("Profiles", () => {
         singleTestData = [
             {
                 name: "profile-one",
-                image: "source/some_profile-one",
+                image: "source/some_profile-one:version-one",
                 host: "localhost",
                 port: 6312,
                 packageWhitelist: [
@@ -92,7 +91,7 @@ describe("Profiles", () => {
                     "datashield.seed": "100000001"
                 },
                 container: {
-                    tags: ["source/some_profile-two"],
+                    tags: ["source/some_profile-one:version-one"],
                     status: "NOT_RUNNING"
                 }
             }
@@ -109,7 +108,7 @@ describe("Profiles", () => {
 
         profileToAdd = {
             name: "profile-two",
-            image: "other_source/profile-two",
+            image: "other_source/profile-two:version-two",
             host: "localhost",
             port: 6313,
             packageWhitelist: [
@@ -215,6 +214,27 @@ describe("Profiles", () => {
         wrapper.vm.profileToEdit = "default"
         wrapper.vm.saveEditedProfile();
         expect(wrapper.vm.errorMessage).toBe("Save failed: cannot rename 'default' package.");
+    });
+
+    test("bad image name 'A' for profile", () => {
+        wrapper.vm.profiles.unshift(profileToAdd);
+        let p = {... profileToAdd};
+        p.image = 'A';
+        wrapper.vm.profiles.unshift(p);
+        wrapper.vm.profileToEditIndex = 0;
+        wrapper.vm.saveEditedProfile();
+        expect(wrapper.vm.errorMessage).toBe("Save failed: [A] needs a version added. Try [A:latest]");
+    });
+
+    test("bad image name 'A:B:C' for profile", () => {
+        wrapper.vm.profiles.unshift(profileToAdd);
+        let p = {... profileToAdd};
+        p.image = 'A:B:C';
+        wrapper.vm.profiles.unshift(p);
+        wrapper.vm.profileToEditIndex = 0;
+        wrapper.vm.saveEditedProfile();
+        expect(wrapper.vm.errorMessage).toBe("Save failed: [A:B:C] needs a version added. Try [A:latest]");
+
     });
 
     test("fail to use same port for profile", () => {
