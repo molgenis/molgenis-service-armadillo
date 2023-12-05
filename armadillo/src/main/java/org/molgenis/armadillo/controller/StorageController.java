@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.apache.logging.log4j.util.Strings.concat;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -189,7 +190,7 @@ public class StorageController {
             PROJECT,
             project,
             OBJECT,
-            requestBody.linkedObject() + ".alf",
+            requestBody.linkedObject() + LINK_FILE,
             "source",
             concat(concat(project, "/"), requestBody.linkedObject()),
             "columns",

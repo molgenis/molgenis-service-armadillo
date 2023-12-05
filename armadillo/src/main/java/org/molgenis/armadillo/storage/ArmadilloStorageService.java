@@ -33,6 +33,7 @@ public class ArmadilloStorageService {
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
+  public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
   private final StorageService storageService;
@@ -94,7 +95,7 @@ public class ArmadilloStorageService {
     throwIfUnknown(sourceProject, sourceObject);
     throwIfDuplicate(sourceProject, linkName);
     throwIfUnknown(linkProject);
-    throwIfDuplicate(linkProject, linkName + ".alf");
+    throwIfDuplicate(linkProject, linkName + LINK_FILE);
     // Save information in armadillo link file (alf)
     ArmadilloLinkFile armadilloLinkFile =
         new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
