@@ -30,12 +30,12 @@ services:
 
   xenon:
     hostname: xenon
-    image: datashield/rock-base:latest
+    image: datashield/rock-dolomite-xenon:latest
     environment:
       DEBUG: "TRUE"
 
   rock:
     hostname: rock
-    image: datashield/rock-dolomite-xenon:latest
+    image: datashield/rock-base:latest
     environment:
       DEBUG: "TRUE"
