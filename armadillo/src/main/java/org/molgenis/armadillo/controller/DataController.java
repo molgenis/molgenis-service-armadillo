@@ -7,6 +7,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -142,12 +144,11 @@ public class DataController {
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
     if (storage.hasObject(
-        // FIXME: save extension somewhere as constant
-        (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + ".alf")) {
+        (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE)) {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
       InputStream armadilloLinkFileStream =
           storage.loadObject(
-              (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + ".alf");
+              (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE);
       ArmadilloLinkFile linkFile =
           new ArmadilloLinkFile(
               armadilloLinkFileStream,
@@ -157,7 +158,7 @@ public class DataController {
       String sourceProject = linkFile.getSourceProject();
       String sourceObject = linkFile.getSourceObject();
       // FIXME: why does this only work for a non-existing table, but not for a non-existing object?
-      if (storage.hasObject(sourceProject, sourceObject)) {
+      if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
         List<String> variableList =
             Optional.ofNullable(variables).map(it -> it.split(",")).stream()
                 .flatMap(Arrays::stream)

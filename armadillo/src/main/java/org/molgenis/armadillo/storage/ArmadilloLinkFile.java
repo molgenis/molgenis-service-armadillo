@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.storage;
 
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.ByteArrayInputStream;
@@ -10,7 +12,7 @@ import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloLinkFile {
 
-  private final String extension = ".alf";
+  private final String extension = LINK_FILE;
   private final String sourceProject;
   private final String sourceObject;
   private final String variables;
