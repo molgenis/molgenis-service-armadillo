@@ -79,7 +79,7 @@ describe("Profiles", () => {
         singleTestData = [
             {
                 name: "profile-one",
-                image: "source/some_profile-one",
+                image: "source/some_profile-one:version-one",
                 host: "localhost",
                 port: 6312,
                 packageWhitelist: [
