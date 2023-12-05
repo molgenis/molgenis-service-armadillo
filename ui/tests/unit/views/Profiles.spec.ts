@@ -91,7 +91,7 @@ describe("Profiles", () => {
                     "datashield.seed": "100000001"
                 },
                 container: {
-                    tags: ["source/some_profile-two:version-one"],
+                    tags: ["source/some_profile-one:version-one"],
                     status: "NOT_RUNNING"
                 }
             }
