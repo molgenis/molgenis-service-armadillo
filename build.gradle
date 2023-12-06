@@ -112,11 +112,13 @@ project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghTo
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'
 def tagName = project.version.toString()
-if (version.toString().endsWith('-SNAPSHOT')) {
+if (version.toString().contains('-SNAPSHOT')) {
     ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
     imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
     tagName = "${project.version.toString()}-${ext.hash}"
 }
+
+// docker build --build-arg JAR_FILE=molgenis-armadillo-3.4.0-SNAPSHOT-cef74ace.jar -t docker.io/molgenis/molgenis-armadillo-snapshot .
 docker {
     name imageName
     tags 'latest', tagName
