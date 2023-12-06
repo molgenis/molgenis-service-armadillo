@@ -69,7 +69,9 @@ jobs:
           name: build, test, push docker
           command: |
             ./gradlew test jacocoMergedReport sonar \
-            -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+              -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+
+            ./gradlew dockerPush
 
       - store_artifacts:
           path: build/libs
