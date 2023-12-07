@@ -48,6 +48,7 @@ build/
 **/audit.log
 
 # during development you can safely create an application.yml but don't commit it!
-application.yml
-application.yaml
-application.properties
+/application.yml
+/application.yaml
+/application.properties
+.Rproj.user

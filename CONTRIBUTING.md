@@ -48,6 +48,32 @@ List messages to see usage of conventional commits from the past.
 git log --pretty=format:"%s" | cut -c -20
 ```
 
+## Continuous integration
+
+- we test on each PR and merges on master
+- we build docker compose set for CI testing and demo purposes.
+  - [CI testing](./docker/ci/README.md)
+  - Demo zip file is a delivery you as artifact
+  - Master build have a armadillo-compose.zip for download
+
+### Local CI build
+
+```
+./gradlew docker
+./docker/bin/prepare.bash ci
+
+cd build/docker/armadillo-compose
+# Follow README.md to see Armadillo and R images run in container
+docker compose build
+docker compose up
+```
+
+then run `./release-test.R` against this.
+
+### Local CI test of armadillo-compose
+
+Follow [docker CI README.md](./docker/ci/README.md) to run `release-test.R` using `molgenis/r-cicd` image
+
 ## Profile xenon with resourcer whitelisted returns a host.docker.internal error
 When developing locally, it might be possible to come across the container error: `Could not resolve host: host.docker.internal`, 
 especially when developing on a non-supported operating system when resourcer is whitelisted (such as xenon). 

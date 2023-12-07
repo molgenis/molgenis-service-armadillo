@@ -25,7 +25,14 @@ if(!"cli" %in% installed.packages()) {
 library(cli)
 cli_alert_info("Installing packages")
 
-packages <- c("getPass", "arrow", "jsonlite", "future", "MolgenisArmadillo", "DSI", "devtools", "resourcer", "DSMolgenisArmadillo", "RCurl")
+packages <- c("diffobj", "getPass", "arrow", "jsonlite", "future",
+  "RCurl",
+  "devtools",
+  "DSI",
+  "resourcer",
+  "MolgenisArmadillo",
+  "DSMolgenisArmadillo"
+)
 
 install_requirements_from_cran <- function(packages) {
   n_requirements <- length(packages)
@@ -43,6 +50,8 @@ install_requirements_from_cran <- function(packages) {
   cli_progress_done()
 }
 install_requirements_from_cran(packages)
+
+warnings()
 
 library("devtools")
 install_github("datashield/dsBaseClient")

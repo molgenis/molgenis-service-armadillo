@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfilesDockerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
+  public static final String DOCKER_RUN_IN_CONTAINER = "armadillo.docker-run-in-container";
 
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;

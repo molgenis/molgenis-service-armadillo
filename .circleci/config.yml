@@ -21,6 +21,21 @@ jobs:
     steps:
       - checkout
 
+      # https://support.circleci.com/hc/en-us/articles/16164465307931-Using-an-environment-variable-to-define-a-path-when-using-the-Docker-executor
+      - run:
+          name: "Fix CIRCLE_WORKING_DIRECTORY"
+          # replace ~ by $HOME
+          command: echo 'CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"' >> $BASH_ENV
+
+      - run:
+          name: Test env
+          command: |
+            echo "id: `id`"
+            cd
+            cd repo
+            pwd
+            echo "$CIRCLE_WORKING_DIRECTORY"
+
       - run:
           name: update package manager
           command: apt-get update
@@ -49,6 +64,10 @@ jobs:
           name: Install Docker client
           command: apt-get -y install docker-ce docker-ce-cli containerd.io
 
+      - run:
+          name: Install zip
+          command: apt-get --yes install zip
+
       - setup_remote_docker:
           version: 19.03.13
           docker_layer_caching: true
@@ -73,3 +92,90 @@ jobs:
 
       - store_artifacts:
           path: build/libs
+
+      - run:
+          name: Build Armadillo and R CICD image
+          command: |
+            ./gradlew docker
+            ./docker/bin/prepare.bash ci
+
+      - run:
+          name: Make sure all images declared in docker-compose.yml are available and ready
+          command: |
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
+
+            docker images ls
+            docker compose up -d
+            docker images ls
+
+      - run:
+          name: Start docker-compose and wait for `release-test.R` to finish
+          command: |
+            # FIXME: make this name not directory dependent
+            ARMADILLO="armadillo-compose-armadillo-1"
+
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
+
+            docker compose up -d
+            docker ps
+
+
+            # 1 CircleCI docker in docker workaround
+            docker cp ./armadillo/config $ARMADILLO:/config
+            docker cp ./armadillo/data   $ARMADILLO:/data
+            docker cp ./armadillo/logs   $ARMADILLO:/logs
+            # .1 CircleCI docker in docker workaround
+
+            # Poll to see Armadillo is up
+            docker container run --network container:$ARMADILLO \
+              docker.io/jwilder/dockerize \
+              -wait http://localhost:8080/ \
+              -wait-retry-interval 20s \
+              -timeout 30s || echo "Timed out"
+
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/cicd
+
+            # Run release-test.R
+            docker container run \
+              --network container:$ARMADILLO \
+              --interactive --tty \
+              --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+
+            cd $CIRCLE_WORKING_DIRECTORY
+            cd build/docker/armadillo-compose
+
+            # 2 CircleCI docker in docker workaround
+            # See what changed within Armadillo
+            docker cp $ARMADILLO:/logs   ./armadillo/logs
+            # .2 CircleCI docker in docker workaround
+
+            docker container ls
+            docker compose down
+            docker images ls
+            docker compose rm
+
+      - store_artifacts:
+          path: build/libs
+
+      - run:
+          name: Zip armadillo-compose
+          command: |
+            cd $CIRCLE_WORKING_DIRECTORY
+            mkdir build/artifacts
+
+            # Workaround for ~ expansion not working
+            K=`pwd`
+            cd build/docker/
+            zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
+
+      - store_artifacts:
+          path: build/artifacts/armadillo-compose.zip
+
+
+workflows:
+  build-deploy:
+    jobs:
+      - build
