@@ -12,6 +12,8 @@ plugins {
 targetCompatibility = '17'
 sourceCompatibility = '17'
 
+println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.previousVersion
+
 allprojects {
     group = 'org.molgenis'
 
