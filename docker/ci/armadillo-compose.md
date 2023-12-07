@@ -51,3 +51,4 @@ To clean up you can:
 - list images `docker image ls`
 - remove image `docker image rm <name>`
 
+Original file: git: docker/ci/armadillo-compose.md

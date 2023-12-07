@@ -25,7 +25,6 @@ armadillo:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-          # foo: bar
     - name: xenon
       image: datashield/rock-dolomite-xenon:latest
       host: xenon
@@ -38,7 +37,6 @@ armadillo:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-          # foo: bar
     - name: rock
       image: datashield/rock-base:latest
       host: rock
@@ -51,7 +49,6 @@ armadillo:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-          # foo: bar
 
 # required settings:
 spring:
