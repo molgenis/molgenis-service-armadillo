@@ -5,23 +5,48 @@
 You can run from source code as follows:
 
 1. Install Java and Docker
-2. Checkout the source using ```git clone https://github.com/molgenis/molgenis-service-armadillo.git```
-3. Optionally copy ```application.template.yml``` to ```application.yml``` to change settings (will be .gitignored)
-4. Compile and execute the code using ```./gradlew run```
+2. Checkout the source using `git clone https://github.com/molgenis/molgenis-service-armadillo.git`
+3. Optionally copy `application.template.yml` to `application.yml` to change settings (will be .gitignored)
+4. Compile and execute the code using `./gradlew run`
 
 Note: contact MOLGENIS team if you want to contribute and need a testing OIDC config that you can run against localhost.
 
 # Developing Armadillo
 
 We use gradle to build:
-* run using ```./gradlew run```
-* run tests using ```./gradlew test```
+* run using `./gradlew run`
+* run tests using `./gradlew test`
 
 We use intellij to develop
 * To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
 * To run using oidc, create a copy of [application.yml](application.template.yml) in root of your project
 
 We have a swagger-ui to quickly see and test available web services at http://localhost:8080/swagger-ui/ 
+
+## Components
+
+We have several components
+
+- [Armadillo](./armadillo/src/) source
+- [UI](./ui/README.md) readme
+- [R](./r/) java integration source
+- [docker builds](./docker/) source
+- [scripts](./scripts/README.md) migration readme
+  - [install](./scripts/install/README.md) readme
+  - [release](./scripts/release/) source
+  - [ops](./scripts/ops/README.md) readme
+
+## Releasing
+
+We release through [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) which autoincrement using [Semantic versioning](https://semver.org/).
+
+Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
+
+List messages to see usage of conventional commits from the past.
+
+```sh
+git log --pretty=format:"%s" | cut -c -20
+```
 
 ## Continuous integration
 

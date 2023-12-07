@@ -1,4 +1,17 @@
-# Vue 3 + Vite
+# Armadillo UI
+
+## Test as a UI developer
+
+From the terminal:
+- `cd ui/`
+- make sure you have `yarn` installed.
+- `yarn test --watch`
+
+Do your develop stuff and watch your test fail or succeed on the go. That is:
+- change files in `src/**`
+- change files in `tests/unit/**`
+
+## How this project was generated
 
 This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 

@@ -303,6 +303,16 @@ export default defineComponent({
         return profile.name;
       });
 
+      const imageParts = profile.image.split(":");
+      if (imageParts.length == 1) {
+        this.errorMessage = `Save failed: [${profile.image}] needs a version added. Try [${profile.image}:latest]`;
+        return;
+      }
+      if (imageParts.length > 2) {
+        this.errorMessage = `Save failed: [${profile.image}] needs a version added. Try [${imageParts[0]}:latest]`;
+        return;
+      }
+
       const hostPortCombo = `${profile.host}:${profile.port}`;
 
       const hasDuplicates = this.profiles.some(
