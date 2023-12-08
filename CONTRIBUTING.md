@@ -48,6 +48,8 @@ Each commit with `!` is a major update. So use it wisely. You can also add `BREA
 
 ### Checking log messages
 
+As [changelog template](./changelog-notes.tpl) uses the commit message it is good to check their quality.
+
 List messages to see usage of conventional commits from the past.
 
 ```sh
