@@ -55,6 +55,12 @@ List messages to see usage of conventional commits from the past.
 git log --pretty=format:"%s" | cut -d: -f1 | sort | uniq -c | sort -n
 ```
 
+### Building locally
+
+```sh
+./gradlew clean assemble
+```
+
 ## Continuous integration
 
 - we test on each PR and merges on master
