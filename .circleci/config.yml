@@ -175,7 +175,9 @@ jobs:
           path: build/artifacts/armadillo-compose.zip
 
       - run:
-        ./gradlew release
+        name: Release
+        command: |
+          ./gradlew release
 
 workflows:
   build-deploy:
