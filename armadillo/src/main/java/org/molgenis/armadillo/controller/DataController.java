@@ -18,7 +18,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -130,6 +133,18 @@ public class DataController {
       summary = "Load table",
       description = "Load a table",
       security = {@SecurityRequirement(name = "jwt")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Object loaded successfully"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Unknown project or object",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(mediaType = "application/json"))
+      })
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
@@ -145,7 +160,6 @@ public class DataController {
     data.put(SYMBOL, symbol);
     if (storage.hasObject(
         (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE)) {
-      auditEventPublisher.audit(principal, LOAD_TABLE, data);
       InputStream armadilloLinkFileStream =
           storage.loadObject(
               (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE);
@@ -157,8 +171,8 @@ public class DataController {
       List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
       String sourceProject = linkFile.getSourceProject();
       String sourceObject = linkFile.getSourceObject();
-      // FIXME: why does this only work for a non-existing table, but not for a non-existing object?
       if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
+        auditEventPublisher.audit(principal, LOAD_TABLE, data);
         List<String> variableList =
             Optional.ofNullable(variables).map(it -> it.split(",")).stream()
                 .flatMap(Arrays::stream)
@@ -185,14 +199,13 @@ public class DataController {
                       .thenApply(ResponseEntity::ok)
                       .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
             });
+      } else {
+        data = new HashMap<>(data);
+        data.put(MESSAGE, "Object not found");
+        auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
+        ;
+        throw new UnknownObjectException(sourceProject, sourceObject);
       }
-    } else if (!storage.tableExists(
-        (String) data.get(PROJECT),
-        String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE)))) {
-      data = new HashMap<>(data);
-      data.put(MESSAGE, "Table not found");
-      auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
-      return completedFuture(notFound().build());
     } else {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
       var variableList =
@@ -209,7 +222,7 @@ public class DataController {
               .thenApply(ResponseEntity::ok)
               .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
     }
-    return null;
+    return completedFuture(notFound().build());
   }
 
   @Operation(
