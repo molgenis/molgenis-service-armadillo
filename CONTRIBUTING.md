@@ -42,10 +42,17 @@ We release through [Conventional Commits](https://www.conventionalcommits.org/en
 
 Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
 
+### Major, Minor, Fix updates
+
+Each commit with `!` is a major update. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
+
+### Checking log messages
+
 List messages to see usage of conventional commits from the past.
 
 ```sh
-git log --pretty=format:"%s" | cut -c -20
+# How many colon usages
+git log --pretty=format:"%s" | cut -d: -f1 | sort | uniq -c | sort -n
 ```
 
 ## Continuous integration
