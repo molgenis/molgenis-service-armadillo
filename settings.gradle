@@ -34,8 +34,12 @@ nyx {
     }
     releaseAssets {
         jar {
-            path = "build/libs/molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
-            fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
+            // scrub of the 'v' from Nyx version ?
+            // build/lib/molgenis-armadillo-4.0.0-fd06cdc7.jar < adding hash ourselves
+            //                              v4.0.0-SNAPSHOT.1-fd06cdc7 adding hash + NYX
+            //           molgenis-armadillo-v4.0.0-SNAPSHOT.1 <=== by NYX !!!
+            path = "build/libs/*.jar"
+            // fileName = "molgenis-armadillo-*.jar"
             type = "application/java-archive"
         }
     }
