@@ -30,15 +30,16 @@ println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.p
 allprojects {
     group = 'org.molgenis'
 
-    if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
-            //temporarily also compare to 'v' because we are remove this prefix
-            rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
-        version = rootProject.nyxState.releaseScope.previousVersion + "-SNAPSHOT"
-    }
-    else {
-        version = rootProject.version.replace("SNAPSHOT.1","SNAPSHOT")
-    }
-    version = version.replace("v","")
+    // Go with version of NYX
+    // if(rootProject.nyxState.releaseScope.previousVersion == rootProject.version ||
+    //         //temporarily also compare to 'v' because we are remove this prefix
+    //         rootProject.nyxState.releaseScope.previousVersion == "v" + rootProject.version ) {
+    //     version = rootProject.nyxState.releaseScope.previousVersion + "-SNAPSHOT"
+    // }
+    // else {
+    //     version = rootProject.version.replace("SNAPSHOT.1","SNAPSHOT")
+    // }
+    // version = version.replace("v","")
 }
 
 if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
@@ -182,6 +183,7 @@ task myNyxDiagnostics() {
     dependsOn nyxInfer
     doLast {
         println "Nyx dump > =============="
+        println "Current   : " + rootProject.nyxState.releaseScope.previousVersion
         println "Bump level: " + project.nyxState.bump
         println "Scheme:     " + project.nyxState.scheme.toString()
         println "Timestamp:  " + Long.valueOf(project.nyxState.timestamp).toString()
