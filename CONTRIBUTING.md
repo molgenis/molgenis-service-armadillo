@@ -40,6 +40,10 @@ We have several components
 
 We release through [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) which autoincrement using [Semantic versioning](https://semver.org/).
 
+We use mooltiverse [Nyx](https://mooltiverse.github.io/nyx/guide/user/introduction/how-nyx-works/) for changelog and publishing to github.
+
+Run `./gradlew tasks --group Release` to see all release tasks
+
 Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
 
 ### Major, Minor, Fix updates

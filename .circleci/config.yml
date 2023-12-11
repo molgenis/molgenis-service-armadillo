@@ -173,11 +173,14 @@ jobs:
 
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
+          destination: armadillo-compose.zip
 
       - run:
           name: Release
           command: |
-            ./gradlew release
+            ./gradlew myNyxDiagnostics
+            ./gradlew release \
+              -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
 
 workflows:
   build-deploy:
