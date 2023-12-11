@@ -176,3 +176,17 @@ task installLocalGitHook(type: Copy) {
     fileMode 0775
 }
 build.dependsOn installLocalGitHook
+
+task myNyxDiagnostics() {
+    // https://mooltiverse.github.io/nyx/guide/user/introduction/usage/#accessing-the-nyx-state-extra-project-property-from-build-scripts
+    dependsOn nyxInfer
+    doLast {
+        println "Nyx dump > =============="
+        println "Bump level: " + project.nyxState.bump
+        println "Scheme:     " + project.nyxState.scheme.toString()
+        println "Timestamp:  " + Long.valueOf(project.nyxState.timestamp).toString()
+        println "Version:    " + project.nyxState.version
+        println "# of commits: " + project.nyxState.releaseScope.significantCommits.size()
+        println "Nyx dump < =============="
+    }
+}
