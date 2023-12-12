@@ -17,7 +17,10 @@ nyx {
                 publicationServices = ["github"]
             }
             clemens {
-                matchBranches = "^feat/github-add-deliverables$"
+                // RegEx not allow?!?
+                // token recognition error at: '"' @ line 20, column 64.
+                // ^feat/github-add-deliverables$"
+                matchBranches = "feat/github-add-deliverables"
                 publish = "true"
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
