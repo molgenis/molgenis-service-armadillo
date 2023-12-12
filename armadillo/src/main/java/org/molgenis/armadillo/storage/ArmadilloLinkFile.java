@@ -12,7 +12,11 @@ import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloLinkFile {
 
-  private final String extension = LINK_FILE;
+  private final String SOURCE_OBJECT = "sourceObject";
+
+  private final String SOURCE_PROJECT = "sourceProject";
+
+  private final String VARIABLES = "variables";
   private final String sourceProject;
   private final String sourceObject;
   private final String variables;
@@ -45,9 +49,9 @@ public class ArmadilloLinkFile {
 
   public JSONObject buildJson() {
     JSONObject json = new JSONObject();
-    json.put("sourceObject", sourceObject);
-    json.put("sourceProject", sourceProject);
-    json.put("variables", variables);
+    json.put(SOURCE_OBJECT, sourceObject);
+    json.put(SOURCE_PROJECT, sourceProject);
+    json.put(VARIABLES, variables);
     return json;
   }
 
@@ -56,11 +60,11 @@ public class ArmadilloLinkFile {
   }
 
   public String getExtension() {
-    return this.extension;
+    return LINK_FILE;
   }
 
   public String getFileName() {
-    return getLinkObject() + extension;
+    return getLinkObject() + LINK_FILE;
   }
 
   public String getProject() {
@@ -91,11 +95,11 @@ public class ArmadilloLinkFile {
 
     try {
       JsonObject json = loadFromStream(armadilloLinkStream);
-      this.sourceObject = json.get("sourceObject").getAsString();
+      this.sourceObject = json.get(SOURCE_OBJECT).getAsString();
       try {
-        this.sourceProject = json.get("sourceProject").getAsString();
+        this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
         try {
-          this.variables = json.get("variables").getAsString();
+          this.variables = json.get(VARIABLES).getAsString();
         } catch (Exception e) {
           // FIXME: throw right exception
           throw new Exception(e);
