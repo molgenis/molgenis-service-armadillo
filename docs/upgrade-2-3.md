@@ -1,6 +1,41 @@
 ### Migrate Armadillo 2 to Armadillo 3
 
-To export data from and Armadillo 2 server take the following steps:
+Migrating from Armadillo 2 to Armadillo 3 can be done in 2 variants, a full migration including [projects, users and data](#migrate-projects-users-and-data) or [just projects and their users](#migrate-projects-and-their-users).
+Both options require Python (version 3.8) and additional python libraries, described in [Getting started](#getting-started).
+
+### Getting started
+
+To start the migration, python 3.8 is advised together with a number of utilitarian python libraries. Other python versions might work, but performance has only been tested with python 3.8.
+We recommend the use of `pyenv` to get multiple python versions running and the use of `pipenv` to install the additional libraries. Alternatively, if `pipenv` is not an option, one may install the required python libraries through a [python virtual environment](https://docs.python.org/3/library/venv.html).
+See [install with pipenv](#install-with-pipenv) to see the installation of the python libraries with `pipenv`, alternatively see [install with Python virtual environment](#install-with-python-virtual-environment) if `pipenv` is not an option.
+
+#### Install with pipenv
+
+The following code assumes you have some sort of super user rights (either through the use of `sudo` or `su`) and the usage of Ubuntu. Change `apt` to your package manager.
+The code also assumes you are already in the [scrips](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
+
+```bash
+apt update
+apt install pyenv pipenv
+pipenv install
+pipenv shell
+```
+
+If you wish to exit, you can type `exit` in the terminal. To re-enter, change directory to `scrips` and execute `pipenv shell`.
+
+#### Install with Python virtual environment
+
+The following code does **NOT** require super user rights. The code does assume you are already in the [scrips](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
+
+```bash
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+```
+
+If the installation of one (or more libraries) fails, try to install the libraries one by one.
+
+### Migrate Projects, users and data
 
 #### 1. Check if there's enough space left on the server
 ```
@@ -176,3 +211,44 @@ docker rm containername -f
 ```
 After that remove the data:
 ```rm -Rf /var/lib/minio/ ```
+
+### Migrate Projects and their users
+
+Migration of just the projects and their users (with their corresponding rights) can be done by using [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/export-users.py) and [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/import-users.py). 
+**This options does not migrate the data!**
+
+#### 1. Export Projects and users from Armadillo 2
+
+To export users from an Armadillo 2 server, one must use the [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/export-users.py) script. `export-users.py` can be used by using the following arguments:
+
+- -f / --fusion-auth **(required)**: The full URL (including http) of the Armadillo 2 server of which you wish to export the Projects and their users from. **Please note that `export-users.py` will prompt to supply the API key for this server once all arguments are valid!**
+- -o / --output **(required)**: The output directory in which (unzipped) TSVs will be placed of all projects and their users, with the project name being the TSV name. `export-users.py` will create a new folder in the supplied output folder named: `YYYY-MM-DD`, where `YYYY` is the current year, `MM` is the current month and `DD` is the current day.
+
+**Again, note that `export-users.py` will prompt to supply the API key for the `-f / --fusion-auth` server once all arguments are valid!**
+
+Empty projects (without users) will also be exported as empty TSV (containing only the header). This is a feature that `import-users.py`, the next step, is able to function with.
+
+Also note that some projects might change in name, as Armadillo 3 is stricter with naming projects.
+
+Example:
+```bash
+pipenv shell
+python3 export-users.py -f https://armadillo2-server.org -o ./armadillo_2_exports
+```
+
+#### 2. Import Projects and users TSVs into Armadillo 3
+
+To import users into an Armadillo 3 server, one must use the [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/import-users.py) script. `import-users` can be used by using the following arguments:
+
+- -s / --server **(required)**: The full URL (including http) of the Armadillo 3 server of which you wish to import the Projects and their users TSVs in [step 1](#1-export-projects-and-users-from-armadillo-2). **Please note that `import-users.py` will prompt to supply the API key for this server once all arguments are valid!**
+- -d / --user-data **(required)**: The directory, including the folder named after the year-month-day combination, where the export TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) are stored.
+
+**Again, note that `import-users.py` will prompt to supply the API key for the `-s / --server` server once all arguments are valid!**
+
+Empty TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) will be imported as empty projects with no users.
+
+Example:
+```bash
+pipenv shell
+python3 import-users.py -s https://armadillo3-server.org -d ./armadillo_2_exports/2023-11-09
+```
