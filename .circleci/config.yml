@@ -87,8 +87,9 @@ jobs:
       - run:
           name: build, test, push docker
           command: |
-            ./gradlew test jacocoMergedReport sonar \
-            -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+            ./gradlew test jacocoMergedReport sonar release \
+              -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io
+              -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
 
       - store_artifacts:
           path: build/libs
