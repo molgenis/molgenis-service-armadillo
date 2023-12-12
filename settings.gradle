@@ -53,6 +53,11 @@ nyx {
             fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             type = "application/java-archive"
         }
+        text {
+            path = "README.md"
+            fileName = "do-not-use-{{version}}.md"
+            type = "text/markdown"
+        }
     }
     changelog {
         path = "CHANGELOG.md"
