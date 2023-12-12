@@ -31,11 +31,13 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
+import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -158,29 +160,30 @@ public class DataController {
         java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
-    if (storage.hasObject(
-        (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE)) {
-      InputStream armadilloLinkFileStream =
-          storage.loadObject(
-              (String) data.get(PROJECT), data.get(FOLDER) + "/" + data.get(TABLE) + LINK_FILE);
+    String project = (String) data.get(PROJECT);
+    String objectName = data.get(FOLDER) + "/" + data.get(TABLE);
+    if (storage.hasObject(project, objectName + LINK_FILE)) {
+      InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
       ArmadilloLinkFile linkFile =
-          new ArmadilloLinkFile(
-              armadilloLinkFileStream,
-              data.get(PROJECT).toString(),
-              data.get(FOLDER) + "/" + data.get(TABLE));
+          new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
       List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
       String sourceProject = linkFile.getSourceProject();
       String sourceObject = linkFile.getSourceObject();
       if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
         auditEventPublisher.audit(principal, LOAD_TABLE, data);
-        List<String> variableList =
-            Optional.ofNullable(variables).map(it -> it.split(",")).stream()
-                .flatMap(Arrays::stream)
-                .map(String::trim)
-                .filter(allowedVariables::contains)
-                .toList();
+        List<String> variableList = getVariableList(variables);
+        var invalidVariables =
+            variableList.stream()
+                .filter(element -> !allowedVariables.contains(element))
+                .collect(Collectors.toList());
+        if (invalidVariables.size() > 0) {
+          String invalid = String.join(", ", invalidVariables);
+          throw new UnknownVariableException(project, objectName, invalid);
+        }
         if (variableList.size() == 0) {
           variableList = allowedVariables;
+        } else {
+          variableList = variableList.stream().filter(allowedVariables::contains).toList();
         }
         List<String> finalVariableList = variableList;
         runAsSystem(
@@ -208,11 +211,7 @@ public class DataController {
       }
     } else {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
-      var variableList =
-          Optional.ofNullable(variables).map(it -> it.split(",")).stream()
-              .flatMap(Arrays::stream)
-              .map(String::trim)
-              .toList();
+      var variableList = getVariableList(variables);
       var result =
           auditEventPublisher.audit(
               commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
@@ -222,7 +221,7 @@ public class DataController {
               .thenApply(ResponseEntity::ok)
               .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
     }
-    return completedFuture(notFound().build());
+    return completedFuture(created(getLastCommandLocation()).body(null));
   }
 
   @Operation(
@@ -524,5 +523,12 @@ public class DataController {
     groups.put(FOLDER, matcher.group(2));
     groups.put(resource, matcher.group(3));
     return groups;
+  }
+
+  private List<String> getVariableList(String variables) {
+    return Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+        .flatMap(Arrays::stream)
+        .map(String::trim)
+        .toList();
   }
 }
