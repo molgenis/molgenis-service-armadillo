@@ -2,7 +2,8 @@ plugins {
     id "com.mooltiverse.oss.nyx" version "2.4.4-hotfix219.3"
 }
 
-//nyx is our release plugin
+// nyx is our release plugin
+// https://mooltiverse.github.io/nyx/guide/user/introduction/how-nyx-works/
 nyx {
     verbosity = "INFO"
     preset = "simple"
@@ -14,6 +15,14 @@ nyx {
                 publish = "true"
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
+            }
+            clemens {
+                matchBranches = "^feat/github-add-deliverables$"
+                publish = "true"
+                description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
+                publicationServices = ["github"]
+                publishPreRelease = true
+
             }
             internal {
                 collapseVersions = true
