@@ -180,28 +180,19 @@ public class DataController {
           String invalid = String.join(", ", invalidVariables);
           throw new UnknownVariableException(project, objectName, invalid);
         }
-        if (variableList.size() == 0) {
-          variableList = allowedVariables;
-        } else {
-          variableList = variableList.stream().filter(allowedVariables::contains).toList();
-        }
-        List<String> finalVariableList = variableList;
+        List<String> finalVariableList =
+            variableList.size() == 0
+                ? allowedVariables
+                : variableList.stream().filter(allowedVariables::contains).toList();
         runAsSystem(
-            () -> {
-              // FIXME: refactor to deduplicate code, extract into function
-              var result =
-                  auditEventPublisher.audit(
-                      commands.loadTable(
-                          symbol, sourceProject + "/" + sourceObject, finalVariableList),
-                      principal,
-                      LOAD_TABLE,
-                      new HashMap<>());
-              return async
-                  ? completedFuture(created(getLastCommandLocation()).body(null))
-                  : result
-                      .thenApply(ResponseEntity::ok)
-                      .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
-            });
+            () ->
+                doLoadTable(
+                    symbol,
+                    sourceProject + "/" + sourceObject,
+                    finalVariableList,
+                    principal,
+                    new HashMap<>(),
+                    async));
       } else {
         data = new HashMap<>(data);
         data.put(MESSAGE, "Object not found");
@@ -212,14 +203,7 @@ public class DataController {
     } else {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
       var variableList = getVariableList(variables);
-      var result =
-          auditEventPublisher.audit(
-              commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
-      return async
-          ? completedFuture(created(getLastCommandLocation()).body(null))
-          : result
-              .thenApply(ResponseEntity::ok)
-              .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+      return doLoadTable(symbol, table, variableList, principal, data, async);
     }
     return completedFuture(created(getLastCommandLocation()).body(null));
   }
@@ -530,5 +514,22 @@ public class DataController {
         .flatMap(Arrays::stream)
         .map(String::trim)
         .toList();
+  }
+
+  private CompletableFuture<ResponseEntity<Void>> doLoadTable(
+      String symbol,
+      String table,
+      List<String> variableList,
+      Principal principal,
+      Map<String, Object> data,
+      Boolean async) {
+    var result =
+        auditEventPublisher.audit(
+            commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 }
