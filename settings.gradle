@@ -24,7 +24,9 @@ nyx {
                 publish = "true"
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
-                publishPreRelease = true
+                //Could not set unknown property 'publishPreRelease' for object of type com.mooltiverse.oss.nyx.gradle.NyxExtension$ReleaseTypes$ReleaseType.
+                //publishPreRelease = true
+                publishDraft = true
 
             }
             internal {
