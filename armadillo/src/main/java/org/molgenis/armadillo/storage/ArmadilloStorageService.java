@@ -92,7 +92,7 @@ public class ArmadilloStorageService {
       String linkName,
       String linkProject,
       String variables) {
-    throwIfUnknown(sourceProject, sourceObject);
+    throwIfUnknown(sourceProject, sourceObject + PARQUET);
     throwIfDuplicate(sourceProject, linkName);
     throwIfUnknown(linkProject);
     throwIfDuplicate(linkProject, linkName + LINK_FILE);
