@@ -90,7 +90,7 @@ springBoot {
     buildInfo()
 }
 bootJar {
-    mainClassName = mainClassName
+    mainClass = mainClassName
     manifest {
         attributes(
                 'Specification-Version': project.version.toString(),
@@ -105,7 +105,7 @@ bootJar {
 
 //define run
 application {
-    mainClass.set(mainClassName)
+    mainClass.set(rootProject.mainClassName)
 }
 
 //define release
@@ -141,9 +141,7 @@ task jacocoMergedReport(type: JacocoReport) {
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled false
+        xml.required
     }
 }
 
