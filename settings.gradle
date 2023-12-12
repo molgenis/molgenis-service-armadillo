@@ -26,7 +26,8 @@ nyx {
                 publicationServices = ["github"]
                 //Could not set unknown property 'publishPreRelease' for object of type com.mooltiverse.oss.nyx.gradle.NyxExtension$ReleaseTypes$ReleaseType.
                 //publishPreRelease = true
-                publishDraft = true
+                //Could not set unknown property 'publishDraft' for object of type com.mooltiverse.oss.nyx.gradle.NyxExtension$ReleaseTypes$ReleaseType.
+                //publishDraft = true
 
             }
             internal {
