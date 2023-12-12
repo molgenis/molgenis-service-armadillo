@@ -16,6 +16,7 @@ nyx {
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
             }
+            // Publish release: v3.4.0 !?!
             clemens {
                 // RegEx not allow?!?
                 // token recognition error at: '"' @ line 20, column 64.
@@ -49,6 +50,8 @@ nyx {
     }
     releaseAssets {
         jar {
+            // Publish release: v3.4.0
+            // build/libs/molgenis-armadillo-3.4.0-SNAPSHOT-85019e76.jar
             path = "build/libs/molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             type = "application/java-archive"
