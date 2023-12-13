@@ -137,9 +137,9 @@ jobs:
           command: |
             echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
-            ls -l .
-            ls -l build
-            ls -l build/docker
+
+            # Somehow build/docker/armadillo-compose is deleted so redo
+            ./docker/bin/prepare.bash ci
 
             cd build/docker/armadillo-compose
 
