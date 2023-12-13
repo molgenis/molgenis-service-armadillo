@@ -98,11 +98,14 @@ jobs:
       - run:
           name: Zip armadillo-compose
           command: |
+            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"q
             cd $CIRCLE_WORKING_DIRECTORY
             mkdir build/artifacts
 
+            # Workaround for ~ expansion not working
+            K=`pwd`
             cd build/docker/
-            zip -r build/artifacts/armadillo-compose.zip armadillo-compose
+            zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
 
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
