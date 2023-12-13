@@ -34,7 +34,7 @@ if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
     version = version.replace("-SNAPSHOT", "")
 }
 else {
-    version = version + "-" + gitHash
+    //version = version + "-" + gitHash
 }
 
 println "Corrected version checking for optional snapshot: " + rootProject.version
