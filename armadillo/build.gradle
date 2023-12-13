@@ -70,7 +70,7 @@ dependencies {
 
 jacocoTestReport {
     reports {
-        xml.enabled true
+        xml.required
     }
     dependsOn test
 }
