@@ -137,7 +137,10 @@ jobs:
           command: |
             echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
-            ls build
+            ls -l .
+            ls -l build
+            ls -l build/docker
+
             cd build/docker/armadillo-compose
 
             docker images ls
