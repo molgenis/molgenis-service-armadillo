@@ -1,3 +1,4 @@
+// Installed here as advised to load before all other
 plugins {
     id "com.mooltiverse.oss.nyx" version "2.4.4-hotfix219.3"
 }
@@ -37,6 +38,11 @@ nyx {
             path = "build/libs/molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             fileName = "molgenis-armadillo-{{#replace from=\"v\"}}{{version}}{{/replace}}.jar"
             type = "application/java-archive"
+        }
+        file {
+            path = "build/artifacts/armadillo-compose.zip"
+            fileName = "armadillo-compose-{{#replace from=\"v\"}}{{version}}{{/replace}}.zip"
+            type = "application/zip"
         }
     }
     changelog {

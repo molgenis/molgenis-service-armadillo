@@ -1,3 +1,16 @@
+/* file: build.gradle
+ *
+ * Gradle related files:
+ *
+ * - gradle.properties (to start the gradle process itself)
+ * - settings.gradle (loaded before build.gradle)
+ *
+ * Sub projects:
+ *
+ * - armadillo/build.gradle
+ * - r/build.gradle
+ * - ui/build.gradle
+ */
 plugins {
     id 'org.springframework.boot' version '3.1.5'
     id "io.spring.dependency-management" version "1.1.4"
@@ -161,3 +174,18 @@ task installLocalGitHook(type: Copy) {
     fileMode 0775
 }
 build.dependsOn installLocalGitHook
+
+task myNyxDiagnostics() {
+    // https://mooltiverse.github.io/nyx/guide/user/introduction/usage/#accessing-the-nyx-state-extra-project-property-from-build-scripts
+    dependsOn nyxInfer
+    doLast {
+        println "Nyx dump > =============="
+        println "Current     : " + rootProject.nyxState.releaseScope.previousVersion
+        println "Bump level  : " + project.nyxState.bump
+        println "Scheme      : " + project.nyxState.scheme.toString()
+        println "Timestamp   : " + Long.valueOf(project.nyxState.timestamp).toString()
+        println "Version     : " + project.nyxState.version
+        println "# of commits: " + project.nyxState.releaseScope.significantCommits.size()
+        println "Nyx dump < =============="
+    }
+}

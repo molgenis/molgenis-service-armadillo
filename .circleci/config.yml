@@ -2,6 +2,8 @@
 #
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
+# https://circleci.com/docs/variables/#built-in-environment-variables
+#
 version: 2.1
 
 jobs:
@@ -105,6 +107,7 @@ jobs:
                 release \
                   -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
             fi
+
       - store_artifacts:
           path: build/libs
 
@@ -181,8 +184,6 @@ jobs:
             cd $CIRCLE_WORKING_DIRECTORY
             mkdir build/artifacts
 
-            # Workaround for ~ expansion not working
-            K=`pwd`
             cd build/docker/
             zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
 
