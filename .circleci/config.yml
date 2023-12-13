@@ -98,7 +98,7 @@ jobs:
       - run:
           name: Zip armadillo-compose
           command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"q
+            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
             mkdir build/artifacts
 
@@ -119,7 +119,8 @@ jobs:
                 sonar \
                   -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
                 release \
-                  -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+                  -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password \
+                dockerPush
             else
               echo "PR number: ${CIRCLE_PULL_REQUEST##*/}"
               ./gradlew --stacktrace \
@@ -128,14 +129,18 @@ jobs:
                 sonar \
                   -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
                   -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
-                release \
-                  -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password
+                dockerPush
             fi
 
       - run:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
+            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
+
+            # Somehow build/docker/armadillo-compose is deleted so redo
+            ./docker/bin/prepare.bash ci
+
             cd build/docker/armadillo-compose
 
             docker images ls
