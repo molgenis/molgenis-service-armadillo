@@ -98,7 +98,7 @@ jobs:
       - run:
           name: Zip armadillo-compose
           command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"q
+            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
             mkdir build/artifacts
 
@@ -135,7 +135,9 @@ jobs:
       - run:
           name: Make sure all images declared in docker-compose.yml are available and ready
           command: |
+            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
+            ls build
             cd build/docker/armadillo-compose
 
             docker images ls
