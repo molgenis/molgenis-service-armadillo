@@ -128,9 +128,10 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      // FIXME: pattern does not work in swagger
+      /*@Valid @Pattern(regexp = SYMBOL_RE)*/ @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
-      // FIXME: upgrade swagger or remove in 2025
+      // FIXME: not performing: upgrade swagger or remove in 2025
       /*@Valid @Pattern(regexp = SYMBOL_CSV_RE)*/ @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
 
