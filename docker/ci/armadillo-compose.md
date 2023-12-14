@@ -18,7 +18,7 @@ When having done changes in some locations like
 Build or rebuild the Armadillo server as a docker image using:
 
 ```sh
-docker compose up build
+docker compose build
 ```
 
 ### Every time
@@ -33,6 +33,12 @@ This will show all messages from all running images. To stop you need to use `CT
 
 If you don't want to see these `docker compose up --detach`
 
+## Login
+
+You can now navigate to http://localhost:8080 and login using admin / admin
+
+For more information see https://molgenis.github.io/molgenis-service-armadillo/#/ui
+
 ## Stop
 
 Stop the set of Armadillo and R images.
@@ -46,9 +52,13 @@ or use `CTRL-C`
 
 To clean up you can:
 
+- use Docker Desktop UI to delete containers, images and volumes.
+
+or from the terminal
+
 - list containers `docker container ls`
-- remove a container `docker container rm <name>`
+- remove a container `docker container rm <id>`
 - list images `docker image ls`
-- remove image `docker image rm <name>`
+- remove image `docker image rm <id>`
 
 Original file: git: docker/ci/armadillo-compose.md
