@@ -130,7 +130,8 @@ public class DataController {
       Principal principal,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
-      @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
+      // FIXME: upgrade swagger or remove in 2025
+      /*@Valid @Pattern(regexp = SYMBOL_CSV_RE)*/ @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
 
     java.util.regex.Pattern tableResourcePattern =
