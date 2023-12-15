@@ -107,7 +107,7 @@ class RExecutorServiceImplTest {
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))",
+            "is.null(base::assign('D', value={data.frame(arrow::read_parquet('project_folder_table.parquet', as_data_frame = FALSE, col_select = tidyselect::any_of(c(\"col1\",\"col2\"))))}))",
             false))
         .thenReturn(new RockResult(new REXPLogical(true)));
     when(rConnection.eval("base::unlink('project_folder_table.parquet')", false))
@@ -118,7 +118,7 @@ class RExecutorServiceImplTest {
 
     verify(rConnection)
         .eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet', col_select = tidyselect::any_of(c(\"col1\",\"col2\")))}))",
+            "is.null(base::assign('D', value={data.frame(arrow::read_parquet('project_folder_table.parquet', as_data_frame = FALSE, col_select = tidyselect::any_of(c(\"col1\",\"col2\"))))}))",
             false);
     verify(rConnection).eval("base::unlink('project_folder_table.parquet')", false);
   }
@@ -128,7 +128,7 @@ class RExecutorServiceImplTest {
     Resource resource = new InMemoryResource("Hello");
 
     when(rConnection.eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))",
+            "is.null(base::assign('D', value={data.frame(arrow::read_parquet('project_folder_table.parquet', as_data_frame = FALSE))}))",
             false))
         .thenReturn(new RockResult(new REXPLogical(true)));
     when(rConnection.eval("base::unlink('project_folder_table.parquet')", false))
@@ -139,7 +139,7 @@ class RExecutorServiceImplTest {
 
     verify(rConnection)
         .eval(
-            "is.null(base::assign('D', value={arrow::read_parquet('project_folder_table.parquet')}))",
+            "is.null(base::assign('D', value={data.frame(arrow::read_parquet('project_folder_table.parquet', as_data_frame = FALSE))}))",
             false);
     verify(rConnection).eval("base::unlink('project_folder_table.parquet')", false);
   }
