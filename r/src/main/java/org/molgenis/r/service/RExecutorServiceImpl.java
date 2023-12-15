@@ -79,7 +79,7 @@ public class RExecutorServiceImpl implements RExecutorService {
       if (variables.isEmpty()) {
         execute(
             format(
-                "is.null(base::assign('%s', value={arrow::read_parquet('%s')}))",
+                "is.null(base::assign('%s', value={data.frame(arrow::read_parquet('%s', as_data_frame = FALSE))}))",
                 symbol, rFileName),
             connection);
       } else {
@@ -89,7 +89,7 @@ public class RExecutorServiceImpl implements RExecutorService {
                 + ")";
         execute(
             format(
-                "is.null(base::assign('%s', value={arrow::read_parquet('%s', col_select = %s)}))",
+                "is.null(base::assign('%s', value={data.frame(arrow::read_parquet('%s', as_data_frame = FALSE, col_select = %s))}))",
                 symbol, rFileName, colSelect),
             connection);
       }
