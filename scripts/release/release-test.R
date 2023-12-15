@@ -771,6 +771,17 @@ conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables 
 
 cli_alert_info("Assigning table core_nonrep")
 datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", project1))
+datatype <- ds.class(x = "core_nonrep", datasources = conns)
+expected_type <- list()
+expected_type$armadillo = "data.frame"
+
+if (identical(datatype, expected_type)){
+    cli_alert_success("Assigned table is dataframe")
+} else {
+    cli_alert_danger("Assigned table not of expected type:")
+    print(datatype)
+}
+
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 
