@@ -1,8 +1,10 @@
 package org.molgenis.armadillo.storage;
 
+import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -88,8 +90,7 @@ public class ArmadilloLinkFile {
     this.project = project;
   }
 
-  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject)
-      throws Exception {
+  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
     this.linkObject = linkObject;
     this.project = linkProject;
 
@@ -100,21 +101,23 @@ public class ArmadilloLinkFile {
         this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
         try {
           this.variables = json.get(VARIABLES).getAsString();
-        } catch (Exception e) {
-          // FIXME: throw right exception
-          throw new Exception(e);
+        } catch (NullPointerException e) {
+          throw new NullPointerException(
+              format("Variables are not defined on [%s/%s]", project, linkObject));
         }
-      } catch (Exception e) {
-        // FIXME: throw right exception
-        throw new Exception(e);
+      } catch (NullPointerException e) {
+        throw new NullPointerException(
+            format("Source project is missing from [%s/%s]", project, linkObject));
       }
-    } catch (StorageException e) {
-      // FIXME: throw right exception
-      // throw new StorageException(String.format("Could not load %s/%s", linkProject, linkObject));
-      throw new StorageException(e);
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Source object is missing from [%s/%s]", project, linkObject));
+    } catch (JsonParseException e) {
+      throw new JsonParseException(
+          format("Cannot load [%s/%s] because JSON is invalid", project, linkObject));
     } catch (Exception e) {
-      // FIXME: throw right exception
-      throw new Exception(e);
+      throw new StorageException(
+          format("Cannot load [%s/%s] for unknown reason", project, linkObject));
     }
   }
 }

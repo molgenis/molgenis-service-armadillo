@@ -169,9 +169,9 @@ public class DataController {
       String sourceProject = linkFile.getSourceProject();
       String sourceObject = linkFile.getSourceObject();
       if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
-        auditEventPublisher.audit(principal, LOAD_TABLE, data);
         List<String> variableList = getLinkedVariables(linkFile, variables);
-        runAsSystem(
+        auditEventPublisher.audit(principal, LOAD_TABLE, data);
+        return runAsSystem(
             () ->
                 doLoadTable(
                     symbol,
@@ -191,7 +191,6 @@ public class DataController {
       var variableList = getVariableList(variables);
       return doLoadTable(symbol, table, variableList, principal, data, async);
     }
-    return completedFuture(created(getLastCommandLocation()).body(null));
   }
 
   @Operation(
