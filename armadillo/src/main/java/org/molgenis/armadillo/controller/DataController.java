@@ -166,30 +166,17 @@ public class DataController {
       InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
       ArmadilloLinkFile linkFile =
           new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
-      List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
       String sourceProject = linkFile.getSourceProject();
       String sourceObject = linkFile.getSourceObject();
       if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
         auditEventPublisher.audit(principal, LOAD_TABLE, data);
-        List<String> variableList = getVariableList(variables);
-        var invalidVariables =
-            variableList.stream()
-                .filter(element -> !allowedVariables.contains(element))
-                .collect(Collectors.toList());
-        if (invalidVariables.size() > 0) {
-          String invalid = String.join(", ", invalidVariables);
-          throw new UnknownVariableException(project, objectName, invalid);
-        }
-        List<String> finalVariableList =
-            variableList.size() == 0
-                ? allowedVariables
-                : variableList.stream().filter(allowedVariables::contains).toList();
+        List<String> variableList = getLinkedVariables(linkFile, variables);
         runAsSystem(
             () ->
                 doLoadTable(
                     symbol,
-                    sourceProject + "/" + sourceObject,
-                    finalVariableList,
+                    linkFile.getSourceProject() + "/" + sourceObject,
+                    variableList,
                     principal,
                     new HashMap<>(),
                     async));
@@ -197,7 +184,6 @@ public class DataController {
         data = new HashMap<>(data);
         data.put(MESSAGE, "Object not found");
         auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
-        ;
         throw new UnknownObjectException(sourceProject, sourceObject);
       }
     } else {
@@ -531,5 +517,21 @@ public class DataController {
         : result
             .thenApply(ResponseEntity::ok)
             .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+  }
+
+  private List<String> getLinkedVariables(ArmadilloLinkFile linkFile, String variables) {
+    List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
+    List<String> variableList = getVariableList(variables);
+    var invalidVariables =
+        variableList.stream()
+            .filter(element -> !allowedVariables.contains(element))
+            .collect(Collectors.toList());
+    if (invalidVariables.size() > 0) {
+      String invalid = String.join(", ", invalidVariables);
+      throw new UnknownVariableException(linkFile.getProject(), linkFile.getLinkObject(), invalid);
+    }
+    return variableList.size() == 0
+        ? allowedVariables
+        : variableList.stream().filter(allowedVariables::contains).toList();
   }
 }
