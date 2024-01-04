@@ -46,6 +46,8 @@ storage:
   ## to change location of the data storage
   root-dir: data
 
+stdout.log.path: './logs/armadillo.log'
+
 logging:
   level:
     ## change to DEBUG to have more details, typically when developing
