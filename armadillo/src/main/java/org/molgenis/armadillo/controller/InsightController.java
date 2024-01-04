@@ -34,11 +34,11 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("insight")
 public class InsightController {
-  private final InsightService metadata;
+  private final InsightService insightService;
   private final AuditEventPublisher auditor;
 
-  public InsightController(InsightService metadataService, AuditEventPublisher auditor) {
-    this.metadata = metadataService;
+  public InsightController(InsightService insightService, AuditEventPublisher auditor) {
+    this.insightService = insightService;
     this.auditor = auditor;
   }
 
@@ -58,7 +58,7 @@ public class InsightController {
   @GetMapping(path = "files", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public List<FileInfo> filesList(Principal principal) {
-    return auditor.audit(metadata::filesInfo, principal, LIST_FILES, Map.of());
+    return auditor.audit(insightService::filesInfo, principal, LIST_FILES, Map.of());
   }
 
   @Operation(summary = "File details")
@@ -77,7 +77,10 @@ public class InsightController {
   @ResponseStatus(OK)
   public FileDetails fileDetails(Principal principal, @PathVariable String file_id) {
     return auditor.audit(
-        () -> metadata.fileDetails(file_id), principal, FILE_DETAILS, Map.of("FILE_ID", file_id));
+        () -> insightService.fileDetails(file_id),
+        principal,
+        FILE_DETAILS,
+        Map.of("FILE_ID", file_id));
   }
 
   @Operation(summary = "Download file details")
@@ -95,15 +98,13 @@ public class InsightController {
   }
 
   public ResponseEntity<Resource> createDownloadFile(String file_id) {
-    // Load file from the file system
-    String data = metadata.fileDetails(file_id).toString();
+    String data = insightService.fileDetails(file_id).toString();
     Resource file = new ByteArrayResource(data.getBytes());
-    // Prepare headers
+
     HttpHeaders headers = new HttpHeaders();
     headers.add(
         HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"");
 
-    // Return file to download
     return new ResponseEntity<>(file, headers, HttpStatus.OK);
   }
 }
