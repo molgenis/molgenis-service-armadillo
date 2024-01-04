@@ -79,8 +79,13 @@ export default defineComponent({
   data() {
     return {
       loading: false,
-      tabs: ["Projects", "Users", "Profiles"],
-      tabIcons: ["clipboard2-data", "people-fill", "shield-shaded"],
+      tabs: ["Projects", "Users", "Profiles", "Insight"],
+      tabIcons: [
+        "clipboard2-data",
+        "people-fill",
+        "shield-shaded",
+        "brilliance",
+      ],
     };
   },
   methods: {

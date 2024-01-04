@@ -1,6 +1,14 @@
 import { ApiError } from "@/helpers/errors";
 import { sanitizeObject } from "@/helpers/utils";
-import { Principal, Profile, Project, User, Auth } from "@/types/api";
+import {
+  Principal,
+  Profile,
+  Project,
+  User,
+  Auth,
+  RemoteFileInfo,
+  RemoteFileDetail,
+} from "@/types/api";
 import { ObjectWithStringKey, StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -80,6 +88,16 @@ export async function handleResponse(response: Response) {
   }
 }
 
+export async function getActuator() {
+  let result = await get("/actuator");
+  return result;
+}
+
+export async function getActuatorItem(item: string) {
+  let result = await get(`/actuator/${item}`);
+  return result;
+}
+
 export async function getVersion() {
   let result = await get("/actuator/info");
   return result.build.version;
@@ -107,6 +125,30 @@ export async function getUsers(): Promise<User[]> {
 
 export async function getProjects(): Promise<Project[]> {
   return get("/access/projects");
+}
+
+export async function getFiles(): Promise<RemoteFileInfo[]> {
+  return get("/access/files");
+}
+
+export async function getFileDetail(
+  file_id: string
+): Promise<RemoteFileDetail> {
+  return get(`/access/files/${file_id}`);
+}
+
+export async function getFileDownload(file_id: string) {
+  const url = `/access/files/${file_id}/download`;
+  console.log("getFileDownload: " + url);
+
+  let headers = APISettings.headers;
+  headers.delete("Content-Type");
+  const response = await fetch(url, {
+    method: "GET",
+    headers: headers,
+  });
+
+  return response;
 }
 
 export async function getPrincipal(): Promise<Principal> {

@@ -5,6 +5,18 @@ export type Project = {
   users: string[];
 };
 
+export type RemoteFileInfo = {
+  id: string;
+  name: string;
+};
+
+export type RemoteFileDetail = {
+  id: string;
+  name: string;
+  timestamp: string;
+  content: string;
+};
+
 export type User = {
   email: string;
   firstName: string;

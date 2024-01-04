@@ -4,6 +4,7 @@ import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
 import Profiles from "@/views/Profiles.vue";
 import Login from "@/views/Login.vue";
+import Insight from "./views/Insight.vue";
 
 const routes = [
   {
@@ -34,6 +35,11 @@ const routes = [
     path: "/profiles",
     name: "profiles",
     component: Profiles,
+  },
+  {
+    path: "/insight",
+    name: "insight",
+    component: Insight,
   },
 ];
 
