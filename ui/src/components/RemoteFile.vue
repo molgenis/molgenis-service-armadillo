@@ -91,7 +91,7 @@ fetchFile();
 
 .content {
   overflow-y: scroll;
-  max-height: 80vh;
+  max-height: 65vh;
   border: none;
   padding-top: 0.5em;
 }

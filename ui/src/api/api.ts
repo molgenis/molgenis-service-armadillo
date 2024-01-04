@@ -128,17 +128,17 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export async function getFiles(): Promise<RemoteFileInfo[]> {
-  return get("/access/files");
+  return get("/insight/files");
 }
 
 export async function getFileDetail(
   file_id: string
 ): Promise<RemoteFileDetail> {
-  return get(`/access/files/${file_id}`);
+  return get(`/insight/files/${file_id}`);
 }
 
 export async function getFileDownload(file_id: string) {
-  const url = `/access/files/${file_id}/download`;
+  const url = `/insight/files/${file_id}/download`;
   console.log("getFileDownload: " + url);
 
   let headers = APISettings.headers;

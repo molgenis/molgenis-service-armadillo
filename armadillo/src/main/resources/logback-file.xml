@@ -2,12 +2,27 @@
 
     <springProperty name="file" source="audit.log.path" />
 
+    <springProperty name="stdoutFile" source="stdout.log.path" />
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
                 %d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n
             </Pattern>
         </layout>
+    </appender>
+
+    <appender name="FILE-STDOUT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${stdoutFile}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${stdoutFile}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- keep 30 days' worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
     </appender>
 
     <appender name="FILE-AUDIT" class="ch.qos.logback.core.FileAppender">
@@ -25,6 +40,7 @@
 
     <root level="info">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE-STDOUT"/>
     </root>
 
 </configuration>
