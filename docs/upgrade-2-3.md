@@ -5,27 +5,15 @@ Both options require Python (version 3.8) and additional python libraries, descr
 
 ### Getting started
 
-To start the migration, python 3.8 is advised together with a number of utilitarian python libraries. Other python versions might work, but performance has only been tested with python 3.8.
-We recommend the use of `pyenv` to get multiple python versions running and the use of `pipenv` to install the additional libraries. Alternatively, if `pipenv` is not an option, one may install the required python libraries through a [python virtual environment](https://docs.python.org/3/library/venv.html).
-See [install with pipenv](#install-with-pipenv) to see the installation of the python libraries with `pipenv`, alternatively see [install with Python virtual environment](#install-with-python-virtual-environment) if `pipenv` is not an option.
-
-#### Install with pipenv
-
-The following code assumes you have some sort of super user rights (either through the use of `sudo` or `su`) and the usage of Ubuntu. Change `apt` to your package manager.
-The code also assumes you are already in the [scrips](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
-
-```bash
-apt update
-apt install pyenv pipenv
-pipenv install
-pipenv shell
-```
-
-If you wish to exit, you can type `exit` in the terminal. To re-enter, change directory to `scrips` and execute `pipenv shell`.
+To start the migration, python 3.8 is advised together with a number of utilitarian python libraries. Other python
+versions might work, but performance has only been tested with python 3.8.
 
 #### Install with Python virtual environment
 
-The following code does **NOT** require super user rights. The code does assume you are already in the [scrips](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
+For more info see [python virtual environment](https://docs.python.org/3/library/venv.html).
+
+The following code does not require superuser rights. The code does assume you are already
+in the [scripts](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
 
 ```bash
 python3 -m venv venv
