@@ -5,7 +5,11 @@ import java.util.Enumeration;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import org.molgenis.armadillo.profile.annotation.ProfileScope;
+import org.springframework.stereotype.Service;
 
+@Service
+@ProfileScope
 public class FileService {
 
   public String readLogFile(String logFilePath) {
