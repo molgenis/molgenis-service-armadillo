@@ -186,10 +186,12 @@ public class DataController {
         auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
         throw new UnknownObjectException(sourceProject, sourceObject);
       }
-    } else {
+    } else if (storage.hasObject(project, objectName + PARQUET)) {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
       var variableList = getVariableList(variables);
       return doLoadTable(symbol, table, variableList, principal, data, async);
+    } else {
+      throw new UnknownObjectException(project, objectName);
     }
   }
 
