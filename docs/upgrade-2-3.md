@@ -13,7 +13,7 @@ versions might work, but performance has only been tested with python 3.8.
 For more info see [python virtual environment](https://docs.python.org/3/library/venv.html).
 
 The following code does not require superuser rights. The code does assume you are already
-in the [scripts](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts) directory.
+in the [scripts/upgrade](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts/upgrade) directory.
 
 ```bash
 python3 -m venv venv
@@ -44,13 +44,17 @@ cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml
 N.B.change /usr/share to path matching your local config.
 
 #### 3. Install helper software
-Login to your server as root, using ssh. 
+
+FIXME: Skip these steps as you have already done installing the python code in a virtual env.
+
+Login to your server as root, using ssh.
 ```
-apt update 
-apt install pip 
-pip install minio 
-pip install fusionauth-client 
-pip install simple_term_menu 
+apt update
+
+#apt install pip
+#pip install minio
+#pip install fusionauth-client
+#pip install simple_term_menu
 ```
 If you get a purple message asking to update, accept and install everything.
 Restart of server is recommended after this.
@@ -120,7 +124,7 @@ cd /usr/share/armadillo
 This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
 ```
 mkdir data
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-minio.py
 python3 migrate-minio.py  --minio http://localhost:9000 --target /usr/share/armadillo/data  
 ```
 
@@ -138,7 +142,7 @@ Check if armadillo is running by going to the URL of your server in the browser,
 If you previously run central authorisation server with MOLGENIS team, they can provide you with procedure to load 
 pre-existing permissions. They will use:
 ```
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-auth.py 
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-auth.py
 python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo https://thearmadillourl.net
 ```
 Now check if all users and data are properly migrated. 
@@ -202,12 +206,13 @@ After that remove the data:
 
 ### Migrate Projects and their users
 
-Migration of just the projects and their users (with their corresponding rights) can be done by using [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/export-users.py) and [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/import-users.py). 
+Migration of just the projects and their users (with their corresponding rights) can be done
+by using [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py) and [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py). 
 **This options does not migrate the data!**
 
 #### 1. Export Projects and users from Armadillo 2
 
-To export users from an Armadillo 2 server, one must use the [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/export-users.py) script. `export-users.py` can be used by using the following arguments:
+To export users from an Armadillo 2 server, one must use the [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py) script. `export-users.py` can be used by using the following arguments:
 
 - -f / --fusion-auth **(required)**: The full URL (including http) of the Armadillo 2 server of which you wish to export the Projects and their users from. **Please note that `export-users.py` will prompt to supply the API key for this server once all arguments are valid!**
 - -o / --output **(required)**: The output directory in which (unzipped) TSVs will be placed of all projects and their users, with the project name being the TSV name. `export-users.py` will create a new folder in the supplied output folder named: `YYYY-MM-DD`, where `YYYY` is the current year, `MM` is the current month and `DD` is the current day.
@@ -226,7 +231,7 @@ python3 export-users.py -f https://armadillo2-server.org -o ./armadillo_2_export
 
 #### 2. Import Projects and users TSVs into Armadillo 3
 
-To import users into an Armadillo 3 server, one must use the [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/import-users.py) script. `import-users` can be used by using the following arguments:
+To import users into an Armadillo 3 server, one must use the [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py) script. `import-users` can be used by using the following arguments:
 
 - -s / --server **(required)**: The full URL (including http) of the Armadillo 3 server of which you wish to import the Projects and their users TSVs in [step 1](#1-export-projects-and-users-from-armadillo-2). **Please note that `import-users.py` will prompt to supply the API key for this server once all arguments are valid!**
 - -d / --user-data **(required)**: The directory, including the folder named after the year-month-day combination, where the export TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) are stored.
