@@ -8,6 +8,7 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.DummyAccessLoader;
 import org.molgenis.armadillo.metadata.DummyProfilesLoader;
 import org.molgenis.armadillo.metadata.InitialProfileConfigs;
+import org.molgenis.armadillo.metadata.InsightService;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
