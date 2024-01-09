@@ -13,6 +13,13 @@ const props = defineProps({
   },
 });
 
+const input = ref("");
+const file = ref(null);
+const lines = ref([]);
+const filterValue = ref("");
+const numberOfLines = ref(-1);
+const currentFocus = ref(0);
+
 watch(
   () => props.fileId,
   (_val, _oldVal) => {
@@ -21,8 +28,7 @@ watch(
   }
 );
 
-const file = ref(null);
-const lines = ref(null);
+watch(filterValue, (_newVal, _oldVal) => filteredLines());
 
 async function fetchFile() {
   try {
@@ -61,23 +67,106 @@ function downloadFile() {
 }
 
 fetchFile();
+
+// Find line numbers with matching string values
+let matchedLines: number[] = [];
+const filteredLines = () => {
+  currentFocus.value = -1;
+  matchedLines = lines.value
+    .map((v: string, i: number) =>
+      v.toLowerCase().includes(filterValue.value.toLowerCase()) ? i : -1
+    )
+    .filter((v) => v > -1);
+  if (matchedLines.length == lines.value.length) {
+    matchedLines = [];
+  }
+  numberOfLines.value = matchedLines.length;
+  setTimeout(setFocusOnLine, 20, 0);
+};
+
+// Helper to highlight lines
+const isMatchedLine = (lineNo: number) => matchedLines.includes(lineNo);
+
+const setFocusOnLine = (item: number) => {
+  const elements = document.getElementsByClassName("text-danger");
+  if (elements.length > 0) {
+    if (item < 0) item = 0;
+    if (item >= elements.length) item = elements.length - 1;
+    if (item >= matchedLines.length) item = matchedLines.length - 1;
+    currentFocus.value = item;
+    elements[item].scrollIntoView();
+  }
+};
+
+function navigate(direction: string) {
+  if (direction === "first") {
+    currentFocus.value = 0;
+  } else if (direction === "prev") {
+    currentFocus.value -= 1;
+  } else if (direction === "next") {
+    currentFocus.value += 1;
+  } else if (direction === "last") {
+    currentFocus.value += matchedLines.length - 1;
+  }
+  setTimeout(setFocusOnLine, 20, currentFocus.value);
+}
 </script>
 
 <template>
   <div v-if="file">
     <header>
-      <span class="alert alert-warning" role="alert">
-        Fetched @ server time {{ file.fetched }}
-      </span>
+      <button class="btn btn-info" type="button" @click="fetchFile">
+        Reload @ server time {{ file.fetched }}
+      </button>
       &nbsp;
       <button class="btn btn-primary" type="button" @click="downloadFile">
         Download '{{ file.name }}' file
       </button>
     </header>
     <main>
+      <input
+        type="text"
+        v-model="filterValue"
+        placeholder="Search..."
+        v-on:change="filteredLines"
+      />
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="navigate('first')"
+      >
+        |&lt
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="navigate('prev')"
+      >
+        &lt;
+      </button>
+      <span>{{ currentFocus }} / {{ numberOfLines }}</span>
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="navigate('next')"
+      >
+        &gt;
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="navigate('last')"
+      >
+        &gt|
+      </button>
       <div class="content">
         <div class="line" v-for="(line, index) in lines" :key="index">
-          <span class="line-content">{{ line }}</span>
+          <span
+            class="line-content"
+            :class="{ 'text-danger': isMatchedLine(index) }"
+          >
+            {{ line }}
+          </span>
         </div>
       </div>
     </main>
