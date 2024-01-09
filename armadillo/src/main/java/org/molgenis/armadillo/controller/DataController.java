@@ -153,9 +153,7 @@ public class DataController {
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
-      @RequestParam(defaultValue = "false") boolean async)
-      throws Exception {
-
+      @RequestParam(defaultValue = "false") boolean async) {
     java.util.regex.Pattern tableResourcePattern =
         java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
