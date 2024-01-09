@@ -13,7 +13,7 @@ export type RemoteFileInfo = {
 export type RemoteFileDetail = {
   id: string;
   name: string;
-  timestamp: string;
+  fetched: string;
   content: string;
 };
 

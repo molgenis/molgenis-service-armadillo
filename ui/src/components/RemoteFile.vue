@@ -14,25 +14,30 @@ const props = defineProps({
 });
 
 const input = ref("");
-const file = ref(null);
-const lines = ref([]);
+const file = ref<RemoteFileDetail>();
+const lines = ref<Array<string>>([]);
 const filterValue = ref("");
 const numberOfLines = ref(-1);
 const currentFocus = ref(0);
 
+// Watch for setting the component value
 watch(
   () => props.fileId,
-  (_val, _oldVal) => {
-    // console.log(`FileID changed from ${oldVal} to ${val}`);
-    fetchFile();
-  }
+  (_val, _oldVal) => fetchFile()
 );
 
+// Watch for changes
 watch(filterValue, (_newVal, _oldVal) => filteredLines());
+
+function resetNavigation() {
+  filterValue.value = "";
+  currentFocus.value = -1;
+  file.value = undefined;
+}
 
 async function fetchFile() {
   try {
-    file.value = null;
+    // resetNavigation();
 
     const res = await getFileDetail(props.fileId);
     lines.value = res.content.split("\n");
@@ -45,7 +50,7 @@ async function fetchFile() {
 function downloadFile() {
   console.log("Downloading: " + props.fileId);
   // FIXME: filedetails need name, extension
-  const name = file.value.name;
+  const name = file.value?.name;
   const ext = "log";
   getFileDownload(props.fileId)
     .then((r) => {
@@ -70,8 +75,10 @@ fetchFile();
 
 // Find line numbers with matching string values
 let matchedLines: number[] = [];
-const filteredLines = () => {
-  currentFocus.value = -1;
+function filteredLines() {
+  // resetNavigation();
+
+  // find filter value in lines
   matchedLines = lines.value
     .map((v: string, i: number) =>
       v.toLowerCase().includes(filterValue.value.toLowerCase()) ? i : -1
@@ -82,7 +89,7 @@ const filteredLines = () => {
   }
   numberOfLines.value = matchedLines.length;
   setTimeout(setFocusOnLine, 20, 0);
-};
+}
 
 // Helper to highlight lines
 const isMatchedLine = (lineNo: number) => matchedLines.includes(lineNo);
@@ -130,35 +137,42 @@ function navigate(direction: string) {
         placeholder="Search..."
         v-on:change="filteredLines"
       />
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        @click="navigate('first')"
+      <div
+        class="btn-group"
+        role="group"
+        aria-label="navigation"
+        v-if="filterValue && matchedLines.length > 0"
       >
-        |&lt
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        @click="navigate('prev')"
-      >
-        &lt;
-      </button>
-      <span>{{ currentFocus }} / {{ numberOfLines }}</span>
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        @click="navigate('next')"
-      >
-        &gt;
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        @click="navigate('last')"
-      >
-        &gt|
-      </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          @click="navigate('first')"
+        >
+          |&lt
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          @click="navigate('prev')"
+        >
+          &lt;
+        </button>
+        <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          @click="navigate('next')"
+        >
+          &gt;
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          @click="navigate('last')"
+        >
+          &gt|
+        </button>
+      </div>
       <div class="content">
         <div class="line" v-for="(line, index) in lines" :key="index">
           <span
