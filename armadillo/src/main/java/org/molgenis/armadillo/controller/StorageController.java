@@ -177,13 +177,18 @@ public class StorageController {
             .map(String::trim)
             .toList();
     auditor.audit(
-        () ->
+        () -> {
+          try {
             storage.createLinkedObject(
                 requestBody.sourceProject(),
                 requestBody.sourceObjectName(),
                 requestBody.linkedObject(),
                 project,
-                requestBody.variables()),
+                requestBody.variables());
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        },
         principal,
         CREATE_LINKED_OBJECT,
         Map.of(

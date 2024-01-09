@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class UnknownVariableException extends RuntimeException {
 
   public UnknownVariableException(String project, String object, String variable) {
-    super(format("Variables ['%s'] do not exist in object '%s/%s'", variable, project, object));
+    super(format("Variables '%s' do not exist in object '%s/%s'", variable, project, object));
   }
 }

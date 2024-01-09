@@ -16,10 +16,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
-import org.molgenis.armadillo.exceptions.DuplicateObjectException;
-import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
-import org.molgenis.armadillo.exceptions.UnknownObjectException;
-import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
@@ -91,12 +88,20 @@ public class ArmadilloStorageService {
       String sourceObject,
       String linkName,
       String linkProject,
-      String variables) {
+      String variables)
+      throws IOException {
     throwIfUnknown(sourceProject, sourceObject + PARQUET);
     throwIfDuplicate(sourceProject, linkName);
     throwIfUnknown(linkProject);
     throwIfDuplicate(linkProject, linkName + LINK_FILE);
     // Save information in armadillo link file (alf)
+    List<String> unavailableVariables =
+        storageService.getUnavailableVariables(
+            SHARED_PREFIX + sourceProject, sourceObject, variables);
+    if (unavailableVariables.size() > 0) {
+      throw new UnknownVariableException(
+          sourceProject, sourceObject, unavailableVariables.toString());
+    }
     ArmadilloLinkFile armadilloLinkFile =
         new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
     InputStream is = armadilloLinkFile.toStream();
