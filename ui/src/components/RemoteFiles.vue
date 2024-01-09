@@ -4,11 +4,13 @@ import { ref } from "vue";
 import RemoteFile from "./RemoteFile.vue";
 import { getFiles } from "@/api/api";
 
-const remoteFiles = ref(null);
+import { RemoteFileInfo } from "@/types/api";
+
+const remoteFiles = ref<Array<RemoteFileInfo>>([]);
 const selectedFileID = ref("");
 
 async function fetchData() {
-  remoteFiles.value = null;
+  remoteFiles.value = [];
   const res = await getFiles();
   remoteFiles.value = res;
   selectedFileID.value = res[0].id;
