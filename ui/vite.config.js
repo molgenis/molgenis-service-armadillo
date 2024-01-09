@@ -25,7 +25,7 @@ export default defineConfig({
           port: 8080,
         },
       },
-      "^/actuator/.*": {
+      "^/insight/.*": {
         target: {
           protocol: "http:",
           host: "localhost",
