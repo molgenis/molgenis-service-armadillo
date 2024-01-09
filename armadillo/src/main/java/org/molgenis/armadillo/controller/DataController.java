@@ -161,29 +161,7 @@ public class DataController {
     String project = (String) data.get(PROJECT);
     String objectName = data.get(FOLDER) + "/" + data.get(TABLE);
     if (storage.hasObject(project, objectName + LINK_FILE)) {
-      InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
-      ArmadilloLinkFile linkFile =
-          new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
-      String sourceProject = linkFile.getSourceProject();
-      String sourceObject = linkFile.getSourceObject();
-      if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
-        List<String> variableList = getLinkedVariables(linkFile, variables);
-        auditEventPublisher.audit(principal, LOAD_TABLE, data);
-        return runAsSystem(
-            () ->
-                doLoadTable(
-                    symbol,
-                    linkFile.getSourceProject() + "/" + sourceObject,
-                    variableList,
-                    principal,
-                    new HashMap<>(),
-                    async));
-      } else {
-        data = new HashMap<>(data);
-        data.put(MESSAGE, "Object not found");
-        auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
-        throw new UnknownObjectException(sourceProject, sourceObject);
-      }
+      return loadTableFromLinkFile(project, objectName, variables, principal, data, symbol, async);
     } else if (storage.hasObject(project, objectName + PARQUET)) {
       auditEventPublisher.audit(principal, LOAD_TABLE, data);
       var variableList = getVariableList(variables);
@@ -532,5 +510,38 @@ public class DataController {
     return variableList.size() == 0
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
+  }
+
+  private CompletableFuture<ResponseEntity<Void>> loadTableFromLinkFile(
+      String project,
+      String objectName,
+      String variables,
+      Principal principal,
+      HashMap<String, Object> data,
+      String symbol,
+      Boolean async) {
+    InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
+    ArmadilloLinkFile linkFile =
+        new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
+    String sourceProject = linkFile.getSourceProject();
+    String sourceObject = linkFile.getSourceObject();
+    if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
+      List<String> variableList = getLinkedVariables(linkFile, variables);
+      auditEventPublisher.audit(principal, LOAD_TABLE, data);
+      return runAsSystem(
+          () ->
+              doLoadTable(
+                  symbol,
+                  linkFile.getSourceProject() + "/" + sourceObject,
+                  variableList,
+                  principal,
+                  new HashMap<>(),
+                  async));
+    } else {
+      data = new HashMap<>(data);
+      data.put(MESSAGE, "Object not found");
+      auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
+      throw new UnknownObjectException(sourceProject, sourceObject);
+    }
   }
 }
