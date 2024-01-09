@@ -528,7 +528,7 @@ public class DataController {
             .filter(element -> !allowedVariables.contains(element))
             .collect(Collectors.toList());
     if (invalidVariables.size() > 0) {
-      String invalid = String.join(", ", invalidVariables);
+      String invalid = invalidVariables.toString();
       throw new UnknownVariableException(linkFile.getProject(), linkFile.getLinkObject(), invalid);
     }
     return variableList.size() == 0
