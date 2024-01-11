@@ -4,9 +4,15 @@ plugins {
 }
 
 def nodeSpec = {
-    version = '16.16.0'
-    yarnVersion = '1.22.19'
-    npmVersion = "8.17.0"
+    // Should match LTS from https://nodejs.org/en/download
+    // 2024-01-11: 20.11.0 (includes npm 10.2.4)
+    // Cannot do as yarn breaks
+    version = "19.9.0"
+    npmVersion = "9.5.1"
+
+    // https://github.com/yarnpkg/berry/releases
+    // 2024-01-11: v3.6.4 / v4.0.2-dev
+    yarnVersion = "1.22.19"
     download = true
 }
 
