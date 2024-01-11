@@ -1,20 +1,25 @@
 package org.molgenis.armadillo.controller;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.InsightService;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import({AuditEventPublisher.class, TestSecurityConfig.class})
+@WithMockUser(roles = "SU")
 public class InsightControllerTest {
 
   @Autowired AuditEventPublisher auditEventPublisher;
@@ -29,13 +35,42 @@ public class InsightControllerTest {
   @MockBean JwtDecoder jwtDecoder;
   @Autowired InsightService insightService;
 
-  //    @BeforeEach
-  //    public void before() {
-  ////        runAsSystem(() -> insightService.initialize());
-  //    }
+  @MockBean ArmadilloStorageService armadilloStorage;
+  @Autowired AccessService accessService;
+
+  @BeforeEach
+  public void before() {
+    //      runAsSystem(() -> insightService.initialize());
+  }
 
   @Test
   public void testFilesList() throws Exception {
-    mockMvc.perform(get("/insight")).andExpect(status().isOk());
+    mockMvc
+        .perform(get("/insight/files"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON));
+  }
+
+  @Test
+  public void testFilesDetail() throws Exception {
+    // FIXME: needs: ./logs/armadillo.log (No such file or directory)
+    //        test runs in ~/armadillo somehow and create/fetch
+    //        creates file ~/armadillo/stdoutFile_IS_UNDEFINED
+    //    mockMvc
+    //            .perform(get("/insight/files/LOG_FILE"))
+    //            .andExpect(status().isOk())
+    //            .andExpect(content().contentType(APPLICATION_JSON))
+    //            .andExpect(jsonPath("$.id").value("LOG_FILE"))
+    //            .andExpect(content().json("A"));
+
+    mockMvc
+        .perform(get("/insight/files/XyZ"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value("XyZ"))
+        .andExpect(jsonPath("$.name").value("XyZ"))
+        .andExpect(jsonPath("$.content").value("XyZ"))
+    // FIXME: failed to data check on "fetched":"2024-01-11 13:57:28" matching
+    ;
   }
 }

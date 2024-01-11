@@ -25,6 +25,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "insight", description = "Insight API to check Armadillo status")
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("insight")
+@PreAuthorize("hasRole('ROLE_SU')")
 public class InsightController {
   private final InsightService insightService;
   private final AuditEventPublisher auditor;

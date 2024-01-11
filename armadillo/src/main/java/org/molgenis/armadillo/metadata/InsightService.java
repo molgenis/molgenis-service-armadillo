@@ -18,12 +18,11 @@ public class InsightService {
   public InsightService(FileService fileService) {
     this.fileService = fileService;
   }
-  ;
 
   public List<FileInfo> filesInfo() {
     ArrayList<FileInfo> list = new ArrayList<>();
-    list.add(FileInfo.create("LOG_FILE", "Log file"));
     list.add(FileInfo.create("AUDIT_FILE", "Audit file"));
+    list.add(FileInfo.create("LOG_FILE", "Log file"));
     list.add(FileInfo.create("LOGGER_INFO", "Log settings"));
     list.add(FileInfo.create("CONFIG", "Current configuration"));
     return list;
