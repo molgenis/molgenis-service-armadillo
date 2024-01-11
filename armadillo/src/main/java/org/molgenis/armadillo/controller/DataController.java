@@ -51,6 +51,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "DataSHIELD", description = "Core API that interacts with the DataSHIELD environments")
 @SecurityRequirement(name = "bearerAuth")
@@ -159,7 +160,7 @@ public class DataController {
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
     String project = (String) data.get(PROJECT);
-    String objectName = data.get(FOLDER) + "/" + data.get(TABLE);
+    String objectName = String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE));
     if (storage.hasObject(project, objectName + LINK_FILE)) {
       return loadTableFromLinkFile(project, objectName, variables, principal, data, symbol, async);
     } else if (storage.hasObject(project, objectName + PARQUET)) {
@@ -167,7 +168,11 @@ public class DataController {
       var variableList = getVariableList(variables);
       return doLoadTable(symbol, table, variableList, principal, data, async);
     } else {
-      throw new UnknownObjectException(project, objectName);
+      data = new HashMap<>(data);
+      data.put(MESSAGE, "Table not found");
+      auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
+      throw new ResponseStatusException(
+          NOT_FOUND, format("Project '%s' has no object '%s'", project, objectName));
     }
   }
 
