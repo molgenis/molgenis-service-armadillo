@@ -164,7 +164,6 @@ public class DataController {
     if (storage.hasObject(project, objectName + LINK_FILE)) {
       return loadTableFromLinkFile(project, objectName, variables, principal, data, symbol, async);
     } else if (storage.hasObject(project, objectName + PARQUET)) {
-      auditEventPublisher.audit(principal, LOAD_TABLE, data);
       var variableList = getVariableList(variables);
       return doLoadTable(symbol, table, variableList, principal, data, async);
     } else {
