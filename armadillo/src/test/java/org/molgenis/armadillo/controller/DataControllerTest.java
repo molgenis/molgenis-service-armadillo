@@ -670,13 +670,12 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testLoadTableDoesNotExist() throws Exception {
-    when(armadilloStorage.tableExists("gecko", "core/core-all")).thenReturn(false);
+    when(armadilloStorage.hasObject("gecko", "core/core-all.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("gecko", "core/core-all.parquet")).thenReturn(false);
 
-    var result =
-        mockMvc
-            .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
-            .andReturn();
-    mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
+        .andExpect(status().isNotFound());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -703,7 +702,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testLoadTable() throws Exception {
-    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
     when(commands.loadTable("D", "project/folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
@@ -735,7 +735,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testLoadTableWithVariables() throws Exception {
-    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
     when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 
