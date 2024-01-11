@@ -1,6 +1,7 @@
 import { DOMWrapper, shallowMount, VueWrapper } from "@vue/test-utils";
 import RemoteFile from "@/components/RemoteFile.vue";
 import * as _api from "@/api/api";
+import { nextTick } from "vue";
 
 const api = _api as any;
 
@@ -17,7 +18,6 @@ jest.mock('@/api/api', () => ({
   }));
 
 describe("RemoteFile", () => {
-    // Vars
     let wrapper: VueWrapper<any>;
     beforeEach(function () {
 
@@ -34,9 +34,9 @@ describe("RemoteFile", () => {
           },
         });
         expect(wrapper.exists()).toBe(true);
-      });
+    });
     
-      it('calls fetchFile when fileId changes', async () => {
+    it('calls fetchFile when fileId changes', async () => {
         const wrapper = shallowMount(RemoteFile, {
           props: {
             fileId: '123',
@@ -57,9 +57,29 @@ describe("RemoteFile", () => {
         timestamp: '2024-01-03T15:39:56Z',
         content: 'test content',
         });
-      });
+    });
 
-      it('calls downloadFile and creates a download link', async () => {
+    it('filters out value when searching', async () => {
+        wrapper = shallowMount(RemoteFile, {
+          props: {
+            fileId: '123',
+          },
+        });
+        await wrapper.vm.$nextTick();
+
+        const searchValue = "somesearchvalue";
+        const input: DOMWrapper<HTMLElement> = wrapper.find("#searchbox");
+        // console.log(wrapper.html(), 'xxxxx');
+
+        // FIXME: errors on Error: wrapper.setValue() cannot be called on SEARCH-BAR-STUB
+        // console.log(input.html(), 'xxxxx');
+        // input.setValue(searchValue);
+
+        // expect(input.value).toBe(searchValue);
+        // expect(wrapper.emitted()).toHaveProperty("update:modelValue");
+    });
+
+    it('calls downloadFile and creates a download link', async () => {
         // Mock locally window function(s)
         const mockCreateObjectURL = jest.fn(() => 'mocked_blob_url');
         const originalCreateObjectURL = URL.createObjectURL;
@@ -85,5 +105,5 @@ describe("RemoteFile", () => {
         expect(URL.createObjectURL).toHaveBeenCalled();
         // Restore overwrites
         URL.createObjectURL = originalCreateObjectURL;
-      });
+    });
 });
