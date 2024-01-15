@@ -46,9 +46,13 @@ Run `./gradlew tasks --group Release` to see all release tasks
 
 Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
 
-### Major, Minor, Fix updates
+### Major, Minor, Patch updates
 
-Each commit with `!` is a major update. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
+Each commit with `!` just before the color `:` is a major update. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
+
+- Use `feat!: ...` or `fix!: ...` for a major upgrade
+- Use `feat: ...` for a minor upgrade
+- Use `fix: ...` for a patch update
 
 ### Checking log messages
 
