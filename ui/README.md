@@ -17,6 +17,15 @@ As the [UI build file](./build.gradle) has settings for node, npm and **yarn** y
 
 You may notice warning when running `../gradlew clean :ui:build` afterwards.
 
+In case of problems
+
+```bash
+rm yarn.lock
+../gradlew :ui:build
+# Yes twice because the addition could cause a new dependency
+../gradlew :ui:build
+```
+
 ## How this project was generated
 
 This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
