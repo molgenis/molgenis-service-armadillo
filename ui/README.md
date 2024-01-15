@@ -4,12 +4,18 @@
 
 From the terminal:
 - `cd ui/`
-- make sure you have `yarn` installed.
+- make sure you have `yarn` installed. See below for some caveats.
 - `yarn test --watch`
 
 Do your develop stuff and watch your test fail or succeed on the go. That is:
 - change files in `src/**`
 - change files in `tests/unit/**`
+
+## Adding or updating dependencies
+
+As the [UI build file](./build.gradle) has settings for node, npm and **yarn** you must use `yarn` to add dependencies.
+
+You may notice warning when running `../gradlew clean :ui:build` afterwards.
 
 ## How this project was generated
 
