@@ -8,7 +8,7 @@
           width="35"
           class="d-inline-block me-2"
         />
-        Armadillo portal <small class="text-muted">{{ version }}</small>
+        Armadillo portal <small class="text-secondary">{{ version }}</small>
       </a>
       <form class="d-flex mt-1">
         <span class="navbar-text p-2" v-show="username"
