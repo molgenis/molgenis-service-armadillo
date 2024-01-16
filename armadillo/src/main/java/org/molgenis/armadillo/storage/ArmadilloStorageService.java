@@ -103,10 +103,24 @@ public class ArmadilloStorageService {
           sourceProject, sourceObject, unavailableVariables.toString());
     }
     ArmadilloLinkFile armadilloLinkFile =
-        new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
+        createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
     InputStream is = armadilloLinkFile.toStream();
     storageService.save(
         is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
+  }
+
+  public ArmadilloLinkFile createArmadilloLinkFileFromStream(
+      InputStream armadilloLinkFileStream, String project, String objectName) {
+    return new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
+  }
+
+  public ArmadilloLinkFile createLinkFileFromSource(
+      String sourceProject,
+      String sourceObject,
+      String variables,
+      String linkName,
+      String linkProject) {
+    return new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
