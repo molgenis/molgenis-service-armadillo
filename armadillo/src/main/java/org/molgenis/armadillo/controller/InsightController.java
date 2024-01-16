@@ -100,12 +100,13 @@ public class InsightController {
   }
 
   public ResponseEntity<Resource> createDownloadFile(String file_id) {
-    String data = insightService.fileDetails(file_id).toString();
+    FileDetails fileDetails = insightService.downloadFile(file_id);
+    String data = fileDetails.getContent();
     Resource file = new ByteArrayResource(data.getBytes());
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"");
+        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDetails.getName() + "\"");
 
     return new ResponseEntity<>(file, headers, HttpStatus.OK);
   }
