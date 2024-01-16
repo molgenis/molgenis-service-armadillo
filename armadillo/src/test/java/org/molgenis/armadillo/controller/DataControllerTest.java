@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.*;
@@ -18,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.github.dockerjava.api.DockerClient;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -37,6 +40,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.rock.RockResult;
@@ -730,6 +734,55 @@ class DataControllerTest extends ArmadilloControllerTestBase {
                 "folder",
                 "table",
                 "table")));
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadTableLinkFile() throws Exception {
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    InputStream isMock = mock(InputStream.class);
+    String project = "project";
+    String sourceProject = "source-project";
+    String sourceObject = "source/object";
+    String linkObject = "folder/table-view";
+    String variables = "childId,rowId,age,weight";
+    when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
+    when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
+    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+        .thenReturn(alfMock);
+    when(alfMock.getSourceObject()).thenReturn(sourceObject);
+    when(alfMock.getSourceProject()).thenReturn(sourceProject);
+    when(alfMock.getVariables()).thenReturn(variables);
+    when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
+    when(commands.loadTable(
+            "D",
+            sourceProject + "/" + sourceObject,
+            new ArrayList<>(Arrays.asList(variables.split(",")))))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(
+            post("/load-table?symbol=D&table=project/folder/table-view&async=false")
+                .session(session))
+        .andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "project",
+                project,
+                "folder",
+                "folder",
+                "table",
+                "table-view")));
   }
 
   @Test
