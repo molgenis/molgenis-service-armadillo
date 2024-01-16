@@ -137,20 +137,6 @@ export async function getFileDetail(
   return get(`/insight/files/${file_id}`);
 }
 
-export async function getFileDownload(file_id: string) {
-  const url = `/insight/files/${file_id}/download`;
-  console.log("getFileDownload: " + url);
-
-  let headers = APISettings.headers;
-  headers.delete("Content-Type");
-  const response = await fetch(url, {
-    method: "GET",
-    headers: headers,
-  });
-
-  return response;
-}
-
 export async function getPrincipal(): Promise<Principal> {
   return get("/my/principal");
 }

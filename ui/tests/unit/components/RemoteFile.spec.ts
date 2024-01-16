@@ -79,31 +79,4 @@ describe("RemoteFile", () => {
         // expect(wrapper.emitted()).toHaveProperty("update:modelValue");
     });
 
-    it('calls downloadFile and creates a download link', async () => {
-        // Mock locally window function(s)
-        const mockCreateObjectURL = jest.fn(() => 'mocked_blob_url');
-        const originalCreateObjectURL = URL.createObjectURL;
-        URL.createObjectURL = mockCreateObjectURL;
-      
-        const wrapper = shallowMount(RemoteFile, {
-          props: {
-            fileId: '123',
-          },
-        });
-    
-        await wrapper.vm.$nextTick();
-
-        wrapper.vm.downloadFile();
-        await wrapper.vm.$nextTick();
-
-        expect(api.getFileDownload).toHaveBeenCalledWith('123');
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-
-        expect(URL.createObjectURL).toHaveBeenCalled();
-        // Restore overwrites
-        URL.createObjectURL = originalCreateObjectURL;
-    });
 });

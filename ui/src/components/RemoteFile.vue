@@ -2,7 +2,6 @@
 import { ref, watch } from "vue";
 
 import { getFileDetail } from "@/api/api";
-import { getFileDownload } from "@/api/api";
 
 import { RemoteFileDetail } from "@/types/api";
 
@@ -82,29 +81,6 @@ async function fetchFile() {
   }
 }
 
-function downloadFile() {
-  // FIXME: filedetails need name, extension
-  const name = file.value?.name;
-  const ext = "log";
-  getFileDownload(props.fileId)
-    .then((r) => {
-      return r;
-    })
-    .then((response) => response.blob())
-    .then((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${name}.${ext}`);
-      document.body.appendChild(link);
-      link.click();
-      // Release the reference to the object URL after the download starts
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      link.remove();
-    })
-    .catch(console.error);
-}
-
 fetchFile();
 
 // Find line numbers with matching string values
@@ -159,9 +135,11 @@ function navigate(direction: string) {
         <button class="btn btn-info" type="button" @click="fetchFile">
           Reload @ server time {{ file.fetched }}
         </button>
-        <button class="btn btn-primary" type="button" @click="downloadFile">
-          Download '{{ file.name }}' file
-        </button>
+        <a
+          class="btn btn-primary"
+          :href="'/insight/files/' + file.id + '/download'"
+          >Download</a
+        >
       </div>
     </div>
     <div class="row">
