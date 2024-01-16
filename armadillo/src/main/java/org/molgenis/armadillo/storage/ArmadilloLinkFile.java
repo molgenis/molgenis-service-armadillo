@@ -73,7 +73,7 @@ public class ArmadilloLinkFile {
     return this.project;
   }
 
-  public JsonObject loadFromStream(InputStream inputStream) {
+  public static JsonObject loadFromStream(InputStream inputStream) {
     return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
   }
 

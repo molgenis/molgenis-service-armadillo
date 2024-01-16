@@ -31,7 +31,6 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
@@ -504,9 +503,7 @@ public class DataController {
     List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
     List<String> variableList = getVariableList(variables);
     var invalidVariables =
-        variableList.stream()
-            .filter(element -> !allowedVariables.contains(element))
-            .collect(Collectors.toList());
+        variableList.stream().filter(element -> !allowedVariables.contains(element)).toList();
     if (invalidVariables.size() > 0) {
       String invalid = invalidVariables.toString();
       throw new UnknownVariableException(linkFile.getProject(), linkFile.getLinkObject(), invalid);
@@ -526,20 +523,20 @@ public class DataController {
       Boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =
-        new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
+        storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
     String sourceProject = linkFile.getSourceProject();
     String sourceObject = linkFile.getSourceObject();
     if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
       List<String> variableList = getLinkedVariables(linkFile, variables);
-      auditEventPublisher.audit(principal, LOAD_TABLE, data);
+      HashMap<String, Object> finalData = data;
       return runAsSystem(
           () ->
               doLoadTable(
                   symbol,
-                  linkFile.getSourceProject() + "/" + sourceObject,
+                  sourceProject + "/" + sourceObject,
                   variableList,
                   principal,
-                  new HashMap<>(),
+                  finalData,
                   async));
     } else {
       data = new HashMap<>(data);
