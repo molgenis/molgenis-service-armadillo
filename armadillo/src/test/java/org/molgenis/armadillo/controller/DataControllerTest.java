@@ -787,6 +787,75 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
+  void testLoadTableLinkFileWithVars() throws Exception {
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    InputStream isMock = mock(InputStream.class);
+    String project = "project";
+    String sourceProject = "source-project";
+    String sourceObject = "source/object";
+    String linkObject = "folder/table-view";
+    String variables = "childId,rowId,age,weight";
+    ArrayList<String> selectedVariables = new ArrayList<>();
+    selectedVariables.add("age");
+    selectedVariables.add("weight");
+    when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
+    when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
+    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+        .thenReturn(alfMock);
+    when(alfMock.getSourceObject()).thenReturn(sourceObject);
+    when(alfMock.getSourceProject()).thenReturn(sourceProject);
+    when(alfMock.getVariables()).thenReturn(variables);
+    when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
+    when(commands.loadTable("D", sourceProject + "/" + sourceObject, selectedVariables))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(
+            post("/load-table?symbol=D&table=project/folder/table-view&async=false&variables=age,weight")
+                .session(session))
+        .andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "project",
+                project,
+                "folder",
+                "folder",
+                "table",
+                "table-view")));
+  }
+
+  @Test
+  void testGetLinkedVariables() {
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+  }
+
+  @Test
+  void testGetVariableList() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
+    String variables = "1,b,c";
+    List<String> expected = new ArrayList<>();
+    expected.add("1");
+    expected.add("b");
+    expected.add("c");
+    assertArrayEquals(expected, dataController.getVariableList(variables));
+  }
+
+  private void assertArrayEquals(List<String> expected, List<String> variableList) {}
+
+  @Test
+  @WithMockUser
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
