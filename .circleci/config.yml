@@ -114,7 +114,7 @@ jobs:
           name: build, test, push docker
           command: |
             if [ "${CIRCLE_BRANCH}" = "master" ]; then
-              ./gradlew --stacktrace \
+              ./gradlew --stacktrace --info \
                 test jacocoMergedReport \
                 sonar \
                   -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
