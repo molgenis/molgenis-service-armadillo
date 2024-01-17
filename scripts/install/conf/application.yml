@@ -7,7 +7,7 @@ armadillo:
 
   profiles:
     - name: default
-      image: datashield/armadillo-rserver
+      image: datashield/rock-base:latest
       port: 6311
       package-whitelist:
         - dsBase
