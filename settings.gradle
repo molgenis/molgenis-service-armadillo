@@ -13,6 +13,7 @@ nyx {
         items {
             mainline {
                 matchBranches = "master"
+                publish = "true"
                 publishPreRelease = "true"
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
