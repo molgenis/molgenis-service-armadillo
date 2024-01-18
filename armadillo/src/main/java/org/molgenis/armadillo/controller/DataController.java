@@ -475,7 +475,7 @@ public class DataController {
     return groups;
   }
 
-  private List<String> getVariableList(String variables) {
+  public List<String> getVariableList(String variables) {
     return Optional.ofNullable(variables).map(it -> it.split(",")).stream()
         .flatMap(Arrays::stream)
         .map(String::trim)
@@ -499,7 +499,7 @@ public class DataController {
             .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
-  private List<String> getLinkedVariables(ArmadilloLinkFile linkFile, String variables) {
+  protected List<String> getLinkedVariables(ArmadilloLinkFile linkFile, String variables) {
     List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
     List<String> variableList = getVariableList(variables);
     var invalidVariables =

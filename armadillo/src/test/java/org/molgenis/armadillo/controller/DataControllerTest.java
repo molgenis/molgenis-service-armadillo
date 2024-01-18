@@ -37,6 +37,7 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -836,7 +837,32 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testGetLinkedVariables() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    String selectedVariables = "my,variable,list";
+    when(alfMock.getVariables()).thenReturn("my,full,complete,extended,variable,list");
+    assertEquals(
+        Arrays.stream(selectedVariables.split(",")).toList(),
+        dataController.getLinkedVariables(alfMock, selectedVariables));
+  }
+
+  @Test
+  void testGetLinkedInvalidVariables() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    String selectedVariables = "not,my,variable,list";
+    when(alfMock.getVariables()).thenReturn("my,full,complete,extended,variable,list");
+    when(alfMock.getProject()).thenReturn("project");
+    when(alfMock.getLinkObject()).thenReturn("object");
+    try {
+      dataController.getLinkedVariables(alfMock, selectedVariables);
+    } catch (UnknownVariableException e) {
+      assertEquals("Variables '[not]' do not exist in object 'project/object'", e.getMessage());
+    }
   }
 
   @Test
@@ -845,14 +871,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         new DataController(
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String variables = "1,b,c";
-    List<String> expected = new ArrayList<>();
-    expected.add("1");
-    expected.add("b");
-    expected.add("c");
-    assertArrayEquals(expected, dataController.getVariableList(variables));
+    List<String> expected = Arrays.asList("1", "b", "c");
+    assertEquals(expected, dataController.getVariableList(variables));
   }
-
-  private void assertArrayEquals(List<String> expected, List<String> variableList) {}
 
   @Test
   @WithMockUser
