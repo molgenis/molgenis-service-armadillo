@@ -92,31 +92,33 @@ public class ArmadilloLinkFile {
   public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
     this.linkObject = linkObject;
     this.project = linkProject;
-
+    JsonObject json;
     try {
-      JsonObject json = loadFromStream(armadilloLinkStream);
-      this.sourceObject = json.get(SOURCE_OBJECT).getAsString();
-      try {
-        this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
-        try {
-          this.variables = json.get(VARIABLES).getAsString();
-        } catch (NullPointerException e) {
-          throw new NullPointerException(
-              format("Variables are not defined on [%s/%s]", project, linkObject));
-        }
-      } catch (NullPointerException e) {
-        throw new NullPointerException(
-            format("Source project is missing from [%s/%s]", project, linkObject));
-      }
-    } catch (NullPointerException e) {
-      throw new NullPointerException(
-          format("Source object is missing from [%s/%s]", project, linkObject));
+      json = loadFromStream(armadilloLinkStream);
     } catch (JsonParseException e) {
       throw new JsonParseException(
           format("Cannot load [%s/%s] because JSON is invalid", project, linkObject));
     } catch (Exception e) {
       throw new StorageException(
           format("Cannot load [%s/%s] for unknown reason", project, linkObject));
+    }
+    try {
+      this.sourceObject = json.get(SOURCE_OBJECT).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Source object is missing from [%s/%s]", project, linkObject));
+    }
+    try {
+      this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Source project is missing from [%s/%s]", project, linkObject));
+    }
+    try {
+      this.variables = json.get(VARIABLES).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Variables are not defined on [%s/%s]", project, linkObject));
     }
   }
 }
