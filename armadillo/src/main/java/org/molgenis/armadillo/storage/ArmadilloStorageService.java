@@ -91,7 +91,6 @@ public class ArmadilloStorageService {
       String variables)
       throws IOException {
     throwIfUnknown(sourceProject, sourceObject + PARQUET);
-    throwIfDuplicate(sourceProject, linkName);
     throwIfUnknown(linkProject);
     throwIfDuplicate(linkProject, linkName + LINK_FILE);
     // Save information in armadillo link file (alf)
@@ -258,6 +257,7 @@ public class ArmadilloStorageService {
 
   private void throwIfUnknown(String project, String object) {
     if (!hasObject(project, object)) {
+
       throw new UnknownObjectException(project, object);
     }
   }
