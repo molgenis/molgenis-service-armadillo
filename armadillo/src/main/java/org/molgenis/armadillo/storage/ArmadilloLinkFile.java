@@ -9,7 +9,6 @@ import com.google.gson.JsonParser;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import net.minidev.json.JSONObject;
 import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloLinkFile {
@@ -49,11 +48,11 @@ public class ArmadilloLinkFile {
     return buildJson().toString();
   }
 
-  public JSONObject buildJson() {
-    JSONObject json = new JSONObject();
-    json.put(SOURCE_OBJECT, sourceObject);
-    json.put(SOURCE_PROJECT, sourceProject);
-    json.put(VARIABLES, variables);
+  public JsonObject buildJson() {
+    JsonObject json = new JsonObject();
+    json.addProperty(SOURCE_OBJECT, sourceObject);
+    json.addProperty(SOURCE_PROJECT, sourceProject);
+    json.addProperty(VARIABLES, variables);
     return json;
   }
 
@@ -73,7 +72,7 @@ public class ArmadilloLinkFile {
     return this.project;
   }
 
-  public static JsonObject loadFromStream(InputStream inputStream) {
+  public JsonObject loadFromStream(InputStream inputStream) {
     return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
   }
 
