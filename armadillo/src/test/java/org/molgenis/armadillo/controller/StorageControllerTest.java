@@ -429,6 +429,37 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  void createLinkedObject() throws Exception {
+    doNothing()
+        .when(storage)
+        .createLinkedObject("lifecycle", "test", "my-link", "lifecycle", "a,b,c");
+    mockMvc
+        .perform(
+            post("/storage/projects/lifecycle/objects/link")
+                .content(
+                    "{\"sourceProject\": \"lifecycle\", \"sourceObjectName\": \"test\", \"linkedObject\": \"my-link\", \"variables\": \"a,b,c\"}")
+                .contentType(APPLICATION_JSON)
+                .session(session))
+        .andExpect(status().isNoContent());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            CREATE_LINKED_OBJECT,
+            mockSuAuditMap(
+                Map.of(
+                    PROJECT,
+                    "lifecycle",
+                    "source",
+                    "lifecycle/my-link",
+                    "columns",
+                    List.of("a", "b", "c"),
+                    OBJECT,
+                    "my-link.alf"))));
+  }
+
+  @Test
   void getObjectInfo() throws Exception {
     when(storage.getInfo("lifecycle", "test.parquet"))
         .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30"));
