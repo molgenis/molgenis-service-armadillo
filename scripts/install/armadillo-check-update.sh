@@ -4,6 +4,8 @@
 # We assume all version are 3 numbers x.y.z
 #
 # Giving an argument that must be a version which forces this version to download.
+# - ./armadillo-check-update.sh 3.4.0
+# will download version 3.4.0
 #
 # To test locally
 # - set MODE=dev
@@ -17,13 +19,12 @@ echo "Updater version: $ARMADILLO_UPDATER_VERSION"
 MODE=prd
 MODE=dev
 
-PINNED_VERSION=""
+REQUESTED_VERSION=""
 if [ -n "$1" ]
 then
-  PINNED_VERSION="$1"
-  echo "Will fetch '$PINNED_VERSION' shortly"
+  REQUESTED_VERSION="$1"
+  echo "Will fetch requested version '$REQUESTED_VERSION' shortly"
 fi
-
 
 
 # Armadillo variables
@@ -35,16 +36,22 @@ ARMADILLO_VERSION_MINIMAL=4.0.0
 # Change to y to auto upgrade
 AUTO_INSTALL=n
 
+# To prevent a downgrade do not auto install
+if [ -n "$REQUESTED_VERSION" ]; then
+  AUTO_INSTALL=n
+fi
 
 # System variables
 ARMADILLO_PATH=/usr/share/armadillo
 if [ $MODE = "dev" ]; then
+  # we assume a git checkout
   ARMADILLO_PATH=../../../build/armadillo-check-update
   mkdir -p "$ARMADILLO_PATH/application"
 fi
 
+
 check_armadillo_update() {
-  # check the local running version
+  # Check the running Armadillo version whether it is upgradeable.
   VERSION_USED=$(curl --location --silent --header 'Accept: application/json' http://localhost:8080/actuator/info | sed -e 's/.*"version":"\([^"]*\)".*/\1/')
   echo "Current running version $VERSION_USED"
   GREATEST=$(compare_versions "$VERSION_USED" "$ARMADILLO_VERSION_MINIMAL")
@@ -53,7 +60,8 @@ check_armadillo_update() {
     exit
   fi
 
-  NEXT_VERSION="$PINNED_VERSION"
+  # if no pinned version fetch latest.
+  NEXT_VERSION="$REQUESTED_VERSION"
   if [ -z "$NEXT_VERSION" ]; then
     # Check the remote latest available version
     LATEST_RELEASE_URL=$ARMADILLO_GITHUB/releases/latest
@@ -64,7 +72,7 @@ check_armadillo_update() {
     echo "Latest release found $NEXT_VERSION"
   fi
 
-  if [ "$PINNED_VERSION" != "$NEXT_VERSION" ]; then
+  if [ "$REQUESTED_VERSION" != "$NEXT_VERSION" ]; then
     GREATEST=$(compare_versions "$VERSION_USED" "$NEXT_VERSION")
     if [ "$GREATEST" =  "$VERSION_USED" ]; then
       echo "Current version $VERSION_USED is greater then $NEXT_VERSION ... skipping"
