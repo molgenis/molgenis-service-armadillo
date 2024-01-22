@@ -46,7 +46,9 @@ storage:
   ## to change location of the data storage
   root-dir: data
 
-stdout.log.path: './logs/armadillo.log'
+audit.log.path: 'logs/audit.log'
+
+stdout.log.path: 'logs/armadillo.log'
 
 logging:
   level:

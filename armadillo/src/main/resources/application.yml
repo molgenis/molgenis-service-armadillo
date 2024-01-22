@@ -67,9 +67,9 @@ server:
     include-binding-errors: always
     include-message: always
 
-audit:
-  log:
-    path: logs/audit.log
+audit.log.path: 'logs/audit.log'
+
+stdout.log.path: 'logs/armadillo.log'
 
 storage:
   root-dir: data

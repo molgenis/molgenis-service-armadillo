@@ -34,9 +34,7 @@ public class InsightService {
 
   private String getServerTime() {
     LocalDateTime now = LocalDateTime.now();
-    System.out.println("Current DateTime: " + now);
 
-    // To print in a particular format
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     return now.format(formatter);
   }
