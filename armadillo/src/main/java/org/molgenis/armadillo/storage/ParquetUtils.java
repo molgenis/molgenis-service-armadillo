@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.IntStream;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroup;
@@ -47,14 +48,8 @@ public class ParquetUtils {
   public static List<String> getColumns(Path path) throws IOException {
     LocalInputFile file = new LocalInputFile(path);
     try (ParquetFileReader reader = ParquetFileReader.open(file)) {
-      var fields = reader.getFooter().getFileMetaData().getSchema().getFields();
-      return fields.stream().toList().stream()
-          .map(
-              field -> {
-                String[] fieldInfo = field.toString().split(" ");
-                return fieldInfo[fieldInfo.length - 1];
-              })
-          .toList();
+      var schema = reader.getFooter().getFileMetaData().getSchema();
+      return IntStream.range(0, schema.getFieldCount()).mapToObj(schema::getFieldName).toList();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
