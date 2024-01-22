@@ -23,7 +23,7 @@ REQUESTED_VERSION=""
 if [ -n "$1" ]
 then
   REQUESTED_VERSION="$1"
-  echo "Will fetch requested version '$REQUESTED_VERSION' shortly"
+  echo "Fetch version  : $REQUESTED_VERSION"
 fi
 
 
@@ -49,11 +49,16 @@ if [ $MODE = "dev" ]; then
   mkdir -p "$ARMADILLO_PATH/application"
 fi
 
+echo "Mode           : $MODE"
+echo "Auto install   : $AUTO_INSTALL"
+echo "Armadillo home : $ARMADILLO_PATH"
+
 
 check_armadillo_update() {
   # Check the running Armadillo version whether it is upgradeable.
   VERSION_USED=$(curl --location --silent --header 'Accept: application/json' http://localhost:8080/actuator/info | sed -e 's/.*"version":"\([^"]*\)".*/\1/')
-  echo "Current running version $VERSION_USED"
+  echo "Current version: $VERSION_USED"
+  echo ""
   GREATEST=$(compare_versions "$VERSION_USED" "$ARMADILLO_VERSION_MINIMAL")
   if [ "$GREATEST" = "$ARMADILLO_VERSION_MINIMAL" ]; then
     echo "Current version is not upgradeable. It must be higher then $ARMADILLO_VERSION_MINIMAL"
@@ -84,24 +89,24 @@ check_armadillo_update() {
 
   if validate_url "$DL_URL"; then
   {
-    # Skip on dev
-    [ $MODE = "dev" ] || systemctl stop armadillo
-
     DOWNLOAD_DESTINATION_JAR="$ARMADILLO_PATH/application/armadillo-$NEXT_VERSION.jar"
     if [[ -f "$DOWNLOAD_DESTINATION_JAR" ]]; then
-      echo "File already downloaded"
+      echo "File already downloaded in $DOWNLOAD_DESTINATION_JAR"
     else
       echo "Downloading $DOWNLOAD_DESTINATION_JAR"
       wget -q -O "$DOWNLOAD_DESTINATION_JAR" "$DL_URL"
     fi
 
     if [ "$AUTO_INSTALL" = "y" ]; then
+      # Skip on dev
+      [ $MODE = "dev" ] || systemctl stop armadillo
+
       ln -s -f $DOWNLOAD_DESTINATION_JAR $ARMADILLO_PATH/application/armadillo.jar
       echo "armadillo $NEXT_VERSION updated"
-    fi
 
-    # Skip on dev
-    [ $MODE = "dev" ] || systemctl start armadillo
+      # Skip on dev
+      [ $MODE = "dev" ] || systemctl start armadillo
+    fi
   }
   else
     echo "Somehow $DL_URL is not a valid page."
