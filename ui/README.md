@@ -4,7 +4,7 @@
 
 From the terminal:
 - `cd ui/`
-- make sure you have `yarn` installed.
+- make sure you have `yarn` installed. See below for some caveats.
 - `yarn test --watch`
 
 Do your develop stuff and watch your test fail or succeed on the go. That is:
@@ -17,6 +17,20 @@ Make sure Armadillo is running on 8080 as it needs an endpoint to talk with.
 
 Then run `npm run dev` and start developing the UI.
 
+## Adding or updating dependencies
+
+As the [UI build file](./build.gradle) has settings for node, npm and **yarn** you must use `yarn` to add dependencies.
+
+You may notice warning when running `../gradlew clean :ui:build` afterwards.
+
+In case of problems
+
+```bash
+rm yarn.lock
+../gradlew :ui:build
+# Yes twice because the addition could cause a new dependency
+../gradlew :ui:build
+```
 
 ## How this project was generated
 

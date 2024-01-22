@@ -1,6 +1,7 @@
 // Installed here as advised to load before all other
+// @see https://mooltiverse.github.io/nyx/guide/user/quick-start/gradle-plugin/#apply-the-plugin
 plugins {
-    id "com.mooltiverse.oss.nyx" version "2.4.4-hotfix219.3"
+    id "com.mooltiverse.oss.nyx" version "2.5.1"
 }
 
 //nyx is our release plugin
@@ -13,6 +14,7 @@ nyx {
             mainline {
                 matchBranches = "master"
                 publish = "true"
+                publishPreRelease = "true"
                 description = "{{#fileContent}}CHANGELOG.md{{/fileContent}}"
                 publicationServices = ["github"]
             }
