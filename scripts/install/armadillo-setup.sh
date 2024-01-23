@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARMADILLO_SETUP_VER=1.0.1
+ARMADILLO_SETUP_VER=1.0.2
 ARMADILLO_URL=https://github.com/molgenis/molgenis-service-armadillo/
 ARMADILLO_PROFILE=default
 ARMADILLO_PATH=/usr/share/armadillo
@@ -207,22 +207,21 @@ check_req() {
 }
 
 setup_updatescript() {
-  # Download update script 
-  DL_URL=https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-check-update.sh
-  
+  # Download update script
+  UPDATE_SCRIPT="armadillo-check-update.sh"
+  DL_URL="https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/$UPDATE_SCRIPT"
     
-  if validate_url $DL_URL; then
+  if validate_url "$DL_URL" ; then
+    UPDATE_SCRIPT_PATH="$ARMADILLO_PATH/application/$UPDATE_SCRIPT"
 
-    wget -q -O $ARMADILLO_PATH/application/armadillo-update.sh "$DL_URL"
+    wget -q -O "$UPDATE_SCRIPT_PATH" "$DL_URL"
     echo "Update script downloaded"
-    chmod +x $ARMADILLO_PATH/application/armadillo-update.sh
-    ln -s /usr/share/armadillo/application/check-update.sh /etc/cron.weekly/check-armadillo-update
+    chmod +x "$UPDATE_SCRIPT_PATH"
+    ln -s "$UPDATE_SCRIPT_PATH" "/etc/cron.weekly/$UPDATE_SCRIPT"
       
   else
     echo "[ ERROR ] update script not downloaded"
   fi
-
-
 }
 
 
@@ -259,12 +258,14 @@ cleanup(){
   fi
 }
 
+
 startup_armadillo() {
   systemctl enable armadillo
   systemctl start armadillo
   echo "Armadillo started"
 
 }
+
 
 validate_url(){
   if [[ `wget -S --spider $1  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
@@ -297,6 +298,7 @@ parameters_help() {
     echo '      --admin-email                 Email adres of the oidc Admin User'
 }
 
+
 if [ "$#" -eq 0 ]; then
     echo 'No parameters provided, please provide the correct parameters'
     parameters_help
@@ -313,4 +315,3 @@ setup_updatescript
 setup_armadillo_config
 setup_systemd
 startup_armadillo
-
