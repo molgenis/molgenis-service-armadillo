@@ -1,0 +1,8 @@
+# Ignore user-specific RStudio settings
+.Rproj.user/
+
+# Ignore renv cache
+renv/
+
+# Ignore .env file
+.env

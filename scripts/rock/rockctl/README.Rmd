@@ -1,0 +1,32 @@
+# Rock stats
+
+We use [renv](https://rstudio.github.io/renv/) for dependency management.
+
+## Running
+
+```r
+./src/rockctl.R
+```
+## Renv workflow
+
+### Once
+
+Run this on a new project.
+
+``` r
+renv::init()
+```
+
+### Install packages
+
+The normal way.
+
+### Status
+
+renv::status()
+
+### Snapshot
+
+set the version using the install option if asked for.
+
+renv::snapshot()
