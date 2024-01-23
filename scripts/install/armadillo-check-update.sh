@@ -17,7 +17,6 @@ echo "Updater version: $ARMADILLO_UPDATER_VERSION"
 
 # Change mode to dev when testing locally
 MODE=prd
-MODE=dev
 
 REQUESTED_VERSION=""
 if [ -n "$1" ]
@@ -31,15 +30,10 @@ fi
 ARMADILLO_GITHUB=https://github.com/molgenis/molgenis-service-armadillo
 
 # Minimal version we support
-ARMADILLO_VERSION_MINIMAL=4.0.0
+ARMADILLO_VERSION_MINIMAL=3.9999.0
 
 # Change to y to auto upgrade
-AUTO_INSTALL=n
-
-# To prevent a downgrade do not auto install
-if [ -n "$REQUESTED_VERSION" ]; then
-  AUTO_INSTALL=n
-fi
+AUTO_INSTALL=y
 
 # System variables
 ARMADILLO_PATH=/usr/share/armadillo
@@ -93,7 +87,7 @@ check_armadillo_update() {
     if [[ -f "$DOWNLOAD_DESTINATION_JAR" ]]; then
       echo "File already downloaded in $DOWNLOAD_DESTINATION_JAR"
     else
-      echo "Downloading $DOWNLOAD_DESTINATION_JAR"
+      echo "Downloading $NEXT_VERSION to $DOWNLOAD_DESTINATION_JAR"
       wget -q -O "$DOWNLOAD_DESTINATION_JAR" "$DL_URL"
     fi
 
