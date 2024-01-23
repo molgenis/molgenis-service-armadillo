@@ -118,10 +118,10 @@ bash armadillo-setup.sh \
 The script creates using default values the follow files and directories:
 
 ```bash
-/etc/armadillo/application.yml
-/etc/systemd/system/armadillo.service
-/usr/share/armadillo/*
-/var/log/armadillo/*
+ls /etc/armadillo/application.yml
+ls /etc/systemd/system/armadillo.service
+ls /usr/share/armadillo/*
+ls /var/log/armadillo/*
 ```
 
 ## Controlling the Armadillo service
@@ -134,9 +134,16 @@ systemctl stop armadillo
 systemctl start armadillo
 ```
 
-After the installation is complet armadillo is listening on port 8080. Test the setup by visiting `http://armadillo.cohort.study.com:8080` or type in the terminal `wget http://localhost:8080` to see a text response.
+After the installation is complete Armadillo is listening on port 8080. Test the setup by visiting `http://armadillo.cohort.study.com:8080` or type in the terminal `wget http://localhost:8080` to see a text response.
 
 > Note: the Armadillo website is not secure yet so you need to setup a *front-end* proxy.
+
+When having setup this *front-end* proxy you could get a bad gateway. This mostly means Armadillo is not ready yet as you already have tested armadillo as mentioned above.
+
+> 502 Bad Gateway
+> nginx/1.18.0 (Ubuntu)
+
+Recheck with `wget http://localhost:8080` and check the log files.
 
 ## Setting up Proxy Server
 
