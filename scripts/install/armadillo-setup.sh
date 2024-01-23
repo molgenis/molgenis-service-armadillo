@@ -10,7 +10,6 @@ ARMADILLO_LOG_PATH=/var/log/armadillo
 ARMADILLO_AUDITLOG=$ARMADILLO_LOG_PATH/audit.log
 ARMADILLO_DATADIR=$ARMADILLO_PATH/data
 
-
 handle_args() {
     while :
     do
@@ -87,14 +86,11 @@ handle_args() {
         exit 1;
       fi
     fi
-
-
 }
 
-
 setup_environment() {
-    mkdir -p $ARMADILLO_PATH/application
-    mkdir -p $ARMADILLO_PATH/services
+    mkdir -p "$ARMADILLO_PATH/application"
+    mkdir -p "$ARMADILLO_PATH/services"
     mkdir -p "$ARMADILLO_LOG_PATH"
     mkdir -p "$ARMADILLO_CFG_PATH"
     mkdir -p "$ARMADILLO_DATADIR"
@@ -164,11 +160,8 @@ setup_armadillo_config() {
     sed -i -e 's/@ARMADILLODOMAIN@/'"$ARMADILLO_DOMAIN"'/' $ARMADILLO_CFG_PATH/application.yml
     sed -i -e 's|# oidc-admin-user: @ADMIN_EMAIL@|oidc-admin-user: '"$ARMADILLO_OIDC_ADMIN_EMAIL"'|' $ARMADILLO_CFG_PATH/application.yml
   fi
-  
-  
-  
-  echo "Config downloaded"
 
+  echo "Config downloaded"
 }
 
 download_armadillo() {
@@ -188,7 +181,6 @@ download_armadillo() {
 
   DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/v$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar
 
- 
   if validate_url $DL_URL; then
 
     wget -q -O $ARMADILLO_PATH/application/armadillo-"$ARMADILLO_VERSION".jar "$DL_URL"
@@ -303,13 +295,7 @@ parameters_help() {
     echo '      --oidc_clientid               Client id of the oidc config'
     echo '      --oidc_clientsecret           Secret of the client'
     echo '      --admin-email                 Email adres of the oidc Admin User'
-    
-
-    
 }
-
-
-
 
 if [ "$#" -eq 0 ]; then
     echo 'No parameters provided, please provide the correct parameters'
