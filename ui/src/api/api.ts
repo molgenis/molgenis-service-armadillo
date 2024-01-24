@@ -85,6 +85,47 @@ export async function getVersion() {
   return result.build.version;
 }
 
+export async function getMetrics() {
+  let result = await get("/actuator/metrics")
+    .then((data) => {
+      // Check if the data has 'names' property
+      if (data.hasOwnProperty("names")) {
+        // Initialize an empty tree
+        let tree = { _bare: {} };
+
+        // Process each name
+        data.names.forEach((name: string) => {
+          tree["_bare"][name] = {};
+          // Split the name into parts
+          let parts = name.split(".");
+
+          // Start at the root of the tree
+          let node = tree;
+
+          // For each part, add a node to the tree if it doesn't exist
+          parts.forEach((part: PropertyKey) => {
+            if (!node.hasOwnProperty(part)) {
+              node[part] = {};
+            }
+
+            // Move to the next level of the tree
+            node = node[part];
+          });
+        });
+
+        // Log the tree
+        console.log(tree);
+        return tree;
+      } else {
+        console.log("No names found in the data");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+  return result;
+}
+
 export async function deleteUser(email: string) {
   return delete_("/access/users", email);
 }
