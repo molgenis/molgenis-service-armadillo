@@ -14,11 +14,6 @@
           </div>
           <Login @loginEvent="reloadUser" v-else />
         </div>
-        <div class="row">
-          <pre>
-            {{ JSON.stringify(metrics, null, 3) }}
-          </pre>
-        </div>
       </div>
     </div>
   </div>
@@ -28,8 +23,8 @@
 import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
-import { defineComponent, onMounted, ref, Ref, toRaw } from "vue";
-import { getPrincipal, getVersion, getMetrics, logout } from "@/api/api";
+import { defineComponent, onMounted, ref, Ref } from "vue";
+import { getPrincipal, getVersion, logout } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
 
@@ -44,13 +39,11 @@ export default defineComponent({
     const isAuthenticated: Ref<boolean> = ref(false);
     const username: Ref<string> = ref("");
     const version: Ref<string> = ref("");
-    const metrics: Ref<Array<string>> = ref([]);
     const router = useRouter();
 
     onMounted(() => {
       loadUser();
       loadVersion();
-      loadMetrics();
     });
 
     const loadUser = async () => {
@@ -75,14 +68,10 @@ export default defineComponent({
       version.value = await getVersion();
     };
 
-    const loadMetrics = async () => {
-      metrics.value = await getMetrics();
-    };
     return {
       username,
       isAuthenticated,
       version,
-      metrics,
       loadUser,
       loadVersion,
     };

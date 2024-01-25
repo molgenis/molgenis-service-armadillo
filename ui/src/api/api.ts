@@ -85,13 +85,17 @@ export async function getVersion() {
   return result.build.version;
 }
 
+interface Tree {
+  [key: string]: any;
+}
+
 export async function getMetrics() {
   let result = await get("/actuator/metrics")
     .then((data) => {
       // Check if the data has 'names' property
       if (data.hasOwnProperty("names")) {
         // Initialize an empty tree
-        let tree = { _bare: {} };
+        let tree: Tree = { _bare: {} };
 
         // Process each name
         data.names.forEach((name: string) => {
@@ -100,10 +104,10 @@ export async function getMetrics() {
           let parts = name.split(".");
 
           // Start at the root of the tree
-          let node = tree;
+          let node: Tree = tree;
 
           // For each part, add a node to the tree if it doesn't exist
-          parts.forEach((part: PropertyKey) => {
+          parts.forEach((part: string) => {
             if (!node.hasOwnProperty(part)) {
               node[part] = {};
             }
@@ -115,10 +119,21 @@ export async function getMetrics() {
 
         // Log the tree
         console.log(tree);
-        return tree;
+        return JSON.parse(JSON.stringify(tree));
       } else {
         console.log("No names found in the data");
       }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+  return result;
+}
+
+export async function getMetric(name: string) {
+  let result = await get(`/actuator/metrics/${name}`)
+    .then((data) => {
+      return JSON.parse(JSON.stringify(data));
     })
     .catch((error) => {
       console.error("Error:", error);
