@@ -18,11 +18,14 @@ echo "Updater version: $ARMADILLO_UPDATER_VERSION"
 # Change mode to dev when testing locally
 MODE=prd
 
+DOWNLOAD_ANYWAYS="n"
+
 REQUESTED_VERSION=""
 if [ -n "$1" ]
 then
   REQUESTED_VERSION="$1"
   echo "Fetch version  : $REQUESTED_VERSION"
+  DOWNLOAD_ANYWAYS="y"
 fi
 
 
@@ -33,7 +36,7 @@ ARMADILLO_GITHUB=https://github.com/molgenis/molgenis-service-armadillo
 ARMADILLO_VERSION_MINIMAL=3.9999.0
 
 # Change to y to auto upgrade
-AUTO_INSTALL=y
+AUTO_INSTALL=n
 
 # System variables
 ARMADILLO_PATH=/usr/share/armadillo
@@ -46,6 +49,9 @@ fi
 echo "Mode           : $MODE"
 echo "Auto install   : $AUTO_INSTALL"
 echo "Armadillo home : $ARMADILLO_PATH"
+echo "- " $(cd "$ARMADILLO_PATH/application/" && ls *.jar)
+echo "systemd ?      : " $(ls -l /etc/systemd/system/armadillo.service)
+echo "cron ?         : " $(ls -l /etc/cron.*/*dillo*)
 
 
 check_armadillo_update() {
@@ -56,7 +62,9 @@ check_armadillo_update() {
   GREATEST=$(compare_versions "$VERSION_USED" "$ARMADILLO_VERSION_MINIMAL")
   if [ "$GREATEST" = "$ARMADILLO_VERSION_MINIMAL" ]; then
     echo "Current version is not upgradeable. It must be higher then $ARMADILLO_VERSION_MINIMAL"
-    exit
+    if [ -z "$REQUESTED_VERSION" ] ; then
+      exit
+    fi
   fi
 
   # if no pinned version fetch latest.
@@ -130,6 +138,7 @@ compare_versions() {
   local -a ver2=($2)
 
   for i in {0..2}; do
+    # 10# is 10 base number
     if ((10#${ver1[i]} > 10#${ver2[i]})); then
       echo "$1"
       return
