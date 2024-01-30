@@ -167,6 +167,7 @@ function navigate(direction: string) {
         >
           <button
             type="button"
+            :disabled="numberOfLines < 1"
             class="btn btn-primary me-1"
             @click="navigate('first')"
           >
@@ -174,6 +175,7 @@ function navigate(direction: string) {
           </button>
           <button
             type="button"
+            :disabled="numberOfLines < 1"
             class="btn btn-primary me-1"
             @click="navigate('prev')"
           >
@@ -181,6 +183,7 @@ function navigate(direction: string) {
           </button>
           <button
             type="button"
+            :disabled="numberOfLines < 1"
             class="btn btn-primary me-1"
             @click="navigate('next')"
           >
@@ -188,6 +191,7 @@ function navigate(direction: string) {
           </button>
           <button
             type="button"
+            :disabled="numberOfLines < 1"
             class="btn btn-primary"
             @click="navigate('last')"
           >
