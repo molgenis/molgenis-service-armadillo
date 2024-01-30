@@ -8,6 +8,7 @@ import { RemoteFileDetail } from "@/types/api";
 import SearchBar from "@/components/SearchBar.vue";
 
 import { matchedLineIndices } from "@/helpers/insight";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 const props = defineProps({
   fileId: {
@@ -90,13 +91,14 @@ function filteredLines() {
   const searchFor = filterValue.value.toLowerCase();
   matchedLines = matchedLineIndices(lines.value, searchFor);
 
-  numberOfLines.value = matchedLines.length;
+  numberOfLines.value = matchedLines.length || -1;
   // FIXME: is this bad?
   setTimeout(setFocusOnLine, 20, 0);
 }
 
 // Helper to highlight lines
-const isMatchedLine = (lineNo: number) => matchedLines.includes(lineNo);
+const isMatchedLine = (lineNo: number) =>
+  !(numberOfLines.value === -1) && matchedLines.includes(lineNo);
 
 /**
  * Scroll to one of the search results
@@ -115,15 +117,20 @@ function setFocusOnLine(item: number) {
 }
 
 function navigate(direction: string) {
+  let curValue = currentFocus.value;
   if (direction === "first") {
-    currentFocus.value = 0;
+    curValue = 0;
   } else if (direction === "prev") {
-    currentFocus.value -= 1;
+    curValue -= 1;
+    if (curValue < -1) {
+      curValue = 0;
+    }
   } else if (direction === "next") {
-    currentFocus.value += 1;
+    curValue += 1;
   } else if (direction === "last") {
-    currentFocus.value += matchedLines.length - 1;
+    curValue += matchedLines.length - 1;
   }
+  currentFocus.value = curValue;
   setTimeout(setFocusOnLine, 20, currentFocus.value);
 }
 </script>
@@ -132,21 +139,25 @@ function navigate(direction: string) {
   <div v-if="file">
     <div class="row">
       <div class="col-sm-6">
-        <button class="btn btn-info" type="button" @click="fetchFile">
-          Reload @ server time {{ file.fetched }}
+        <button class="btn btn-info me-1" type="button" @click="fetchFile">
+          <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
         <a
           class="btn btn-primary"
           :href="'/insight/files/' + file.id + '/download'"
-          >Download</a
+          ><i class="bi bi-box-arrow-down"></i>Download</a
         >
+      </div>
+    </div>
+    <div class="row">
+      <div class="text-secondary fst-italic">
+        Last reload @ server time {{ file.fetched }}
       </div>
     </div>
     <div class="row">
       <div class="col-sm-3">
         <SearchBar id="searchbox" v-model="filterValue" />
       </div>
-
       <div class="col">
         <div
           class="btn-group"
@@ -156,22 +167,21 @@ function navigate(direction: string) {
         >
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary me-1"
             @click="navigate('first')"
           >
             <i class="bi bi-skip-backward-fill"></i>
           </button>
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary me-1"
             @click="navigate('prev')"
           >
             <i class="bi bi-skip-start-fill"></i>
           </button>
-          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary me-1"
             @click="navigate('next')"
           >
             <i class="bi bi-skip-end-fill"></i>
@@ -183,6 +193,16 @@ function navigate(direction: string) {
           >
             <i class="bi bi-skip-forward-fill"></i>
           </button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
+          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+        </div>
+        <div v-else class="text-secondary fst-italic">
+          <span>No search results</span>
         </div>
       </div>
     </div>
@@ -200,6 +220,9 @@ function navigate(direction: string) {
         </div>
       </div>
     </div>
+  </div>
+  <div v-else>
+    <LoadingSpinner></LoadingSpinner>
   </div>
 </template>
 

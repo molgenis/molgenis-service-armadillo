@@ -10,11 +10,12 @@ export function matchedLineIndices(
   lines: Array<string>,
   searchFor: string
 ): number[] {
+  if (searchFor.length == 0) return [];
+
   let matchedLines = lines
     .map((v: string, i: number) =>
       v.toLowerCase().includes(searchFor) ? i : -1
     )
     .filter((v) => v > -1);
-
   return matchedLines;
 }
