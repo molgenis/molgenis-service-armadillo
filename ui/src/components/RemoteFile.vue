@@ -159,14 +159,14 @@ function navigate(direction: string) {
             class="btn btn-primary"
             @click="navigate('first')"
           >
-            |&lt
+            <i class="bi bi-skip-backward-fill"></i>
           </button>
           <button
             type="button"
             class="btn btn-primary"
             @click="navigate('prev')"
           >
-            &lt;
+            <i class="bi bi-skip-start-fill"></i>
           </button>
           <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
           <button
@@ -174,14 +174,14 @@ function navigate(direction: string) {
             class="btn btn-primary"
             @click="navigate('next')"
           >
-            &gt;
+            <i class="bi bi-skip-end-fill"></i>
           </button>
           <button
             type="button"
             class="btn btn-primary"
             @click="navigate('last')"
           >
-            &gt|
+            <i class="bi bi-skip-forward-fill"></i>
           </button>
         </div>
       </div>
