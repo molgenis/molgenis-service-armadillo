@@ -2,7 +2,9 @@
 
 > We assume Ubuntu with systemd running.
 
-The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock only profiles.
+The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock only profiles. 
+Additionally, when working with an armadillo 4 instance, researchers should update their 
+`DSMolgenisArmadillo` to 2.0.5 (this version is compatible with armadillo 3 as well). 
 
 ## 1. Check your profile types
 
@@ -15,7 +17,7 @@ are compatible with your needs. See also DataSHIELD [profiles](https://www.datas
 
 ## 2. Check server space
 
-Make sure enough disk space is available for the Rock only images.
+Make sure enough disk space is available for the Rock only images. 
 
 ### 2.1 Check disk space
 
@@ -23,6 +25,7 @@ Make sure enough disk space is available for the Rock only images.
 # Check disk space
 df -H
 ```
+If you have 15 GB or more available, you can continue. If you have less available, check `docker image list` to see if you can cleanup some docker images (you only need the latest `datashield/armadillo-rserver` and `datashield/armadillo-rserver_caravan-xenon` for armadillo 3). 
 
 ### 2.2 Check docker images
 
@@ -36,7 +39,7 @@ Now that the profiles are not running you can delete the old versions of their d
 The command are indicative so change as needed.
 
 ```bash
-# should return empty list (default, xenon, rock)
+# should return empty list (i.e. default, xenon, rock)
 docker container list
 
 # remove containers not needed
@@ -48,7 +51,7 @@ docker image list
 docker image rm <id>
 ```
 
-If possible download them from shell docker pull beforehand
+If possible download the new images from shell docker pull beforehand (for minimum downtime):
 
 ```bash
 docker pull datashield/rock-base:latest
@@ -65,8 +68,6 @@ df -H
 ## 3. Download required files
 
 Download latest release v4.x.y from https://github.com/molgenis/molgenis-service-armadillo/releases/latest.
-
-> This redirect to current latest release.
 
 Make a note of the version number ie. `v4.1.3` as you need to download some files from the terminal using the updatescript.
 
@@ -102,7 +103,7 @@ You can run to see you whether you can upgrade.
 
 ```bash
 # Change the version number v4.x.y
-./armadillo-check-update.sh v4.x.y
+./armadillo-check-update.sh 4.x.y
 ```
 
 As a result of running above the Armadillo jar file is downloaded.
@@ -115,6 +116,7 @@ ls -ltr /usr/share/armadillo/application/
 ## 4. Config the new version
 
 ### 4.1 application template
+This step is optional, you can try if it works without. 
 
 The application settings could have new entries so you may need to check these.
 
@@ -129,7 +131,7 @@ Too see the difference run
 diff --side-by-side /etc/armadillo/application.yml application.template.yml
 ```
 
-Output make look like below.
+Your output should look like:
 
 Left side column is your settings.
 Right side column is our expected settings.
@@ -173,7 +175,7 @@ nano /etc/armadillo/application.yml
 ### 4.2 Make backup of system config
 
 ```bash
-# Still in the correct directory?
+# Still in the correct directory? (`/root/v4.x.y`)
 pwd
 ```
 
