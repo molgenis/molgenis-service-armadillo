@@ -927,7 +927,7 @@ dsDisconnect(con)
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
 if(update_auto == "y"){
-  set_user(user, admin_pwd, T, project1, omics_project)
+  set_user(user, admin_pwd, T, project1, omics_project, link_project)
 } else{
   cat("Make your account admin again")
   wait_for_input()
