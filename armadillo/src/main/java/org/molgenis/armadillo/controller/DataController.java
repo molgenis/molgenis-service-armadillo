@@ -526,7 +526,7 @@ public class DataController {
         storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
     String sourceProject = linkFile.getSourceProject();
     String sourceObject = linkFile.getSourceObject();
-    if (storage.hasObject(sourceProject, sourceObject + PARQUET)) {
+    if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {
       List<String> variableList = getLinkedVariables(linkFile, variables);
       HashMap<String, Object> finalData = data;
       return runAsSystem(
