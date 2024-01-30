@@ -1,68 +1,159 @@
 # Armadillo installation
-Armadillo requires Java to run, Docker to access the DataSHIELD profiles, and OIDC for authentication (not needed for local tests). Below instructions how to run Armadillo directly from Java, as a Docker container, as a service on Ubuntu or from source code.
-Note that for production you should add a https proxy for essential security. And you might need to enable 'Docker socket' on your docker service.
 
-## Run Armadillo using java commandline
-Software developers often run Armadillo as java jar file: 
+> This guide assumes using Ubuntu Server LTS as the installation script expect the `systemd` service. See [Install alternatives](#install-alternatives) below.
 
-1. Install Java and Docker (for the DataSHIELD profiles)
-2. Download Armadillo jar file from [releases](https://github.com/molgenis/molgenis-service-armadillo/releases), for example:
-[molgenis-armadillo-3.3.0.jar](https://github.com/molgenis/molgenis-service-armadillo/releases/download/V3.3.0/)
-3. Run armadillo using ```java -jar molgenis-armadillo-3.3.0.jar```
-4. Go to http://localhost:8080 to see your Armadillo running.
+## Requirements
 
-Default Armadillo will start with only 'basic-auth' and user 'admin' with password 'admin'. You can enable 'oidc' for connecting more users. You can change 
-by providing and editing [application.yaml](application.template.yml) file
-in your working directory and then run command above again.
+## Server resources
 
-## Run Armadillo via docker compose
-For testing without having to installing Java you can run using docker:
+You need a server or virtual machine to deploy the Armadillo stack. The specifications of the resource are the following, depending on the participant size of the cohort you are running.
 
-1. Install [docker-compose](https://docs.docker.com/compose/install/)
-2. Download this [docker-compose.yml](docker-compose.yml).
-3. Execute ```docker-compose up```
-4. Once it says 'Started' go to http://localhost:8080 to see your Armadillo running.
+| Participants  | Memory (in GB) | Diskspace (in GB) | CPU cores |
+| ------------- | -------------- | ----------------- | --------- |
+| 0-20.000      | 8              | 100               | 4         |
+| 20.000-70.000 | 16             | 100               | 4         |
+| 70.000 >      | 32             | 150               | 8         |
 
-The command must run in same directory as downloaded docker file. We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. Alternatively you must include the datashield profiles into this docker-compose. You can override all application.yaml settings via environment variables 
-(see commented code in docker-compose file).
+In case of using dsOmics this setup can be rather bigger. Please contact molgenis-operations@umcg.nl for the latest specifications.
 
-## Run Armadillo as service on Ubuntu
-We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on
-CentOS (using yum instead of apt).
+## Software requirements
+
+* Java 17 JRE or JDK
+* Docker
+
+In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy. 
+
+## Domain
+
+An domain or an hostname ie `cohort.armadillo.domain.org` is required to run Armadillo.
+
+This domain is needed for the installation script.
+
+## Authentication
+
+Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo on the DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager (who gets access and who don't get access) within your armadillo installation.
+
+To registrate you will need to send a mail to `molgenis-support@umcg.nl` with the [chosen domains](#domain) and the e-mail adres of the Data Manager who is granted admin permissions in Armadillo. Also add to the mail that you want to register for the the DataSHIELD authentication server and if you belong to a project like Lifecycle, Athlete or Longitools.
+
+When the Armadillo domain is registrerd you will get an mail back with data that need to be inserted in step 2.
+
+The values needed are:
+
+- OIDC service url i.e. https://lifecycle-auth.molgenis.org
+- OIDC Client ID
+- OIDC Client Secret
+
+## Securing the connection
+
+You need a SSL certificate to configuring the front-end proxy and make the browser use **https** before putting data on the server.
+
+## Installing Armadillo as service
+
+We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on CentOS (using yum instead of apt).
 
 ### 1. Install necessary software
-```
+
+```bash
 apt update
 apt install openjdk-19-jre-headless
 apt install docker.io 
 ```
+
 Note: you might need 'sudo'
 
 ### 2. Run installation script
-This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases):
+
+This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases)
+
+After installation the Armadillo application is installed with the given configuration and its service.
+
+#### 2.1 Download the setup script
+
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
+```
+
+Or manually download the setup script via right click on this [link](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh) (Right mouse 'save as')
+
+Make sure `armadillo-setup.sh` is executable using
+
+```bash
+chmod u+x armadillo-setup.sh
+```
+
+The installation script requires some arguments:
+
+| Argument         | Application   |
+| ---------------- | ------------- |
+| admin-user       | Local armadillo admin user            |
+| admin-password   | Secure password for the admin user    |
+| datadir          | The location where the data is stored. This directory should be have enough diskspace en could be backuped (Default &rarr; /usr/share/armadillo/data)|
+| domain           | The URL where armadillo is listening on. For example: cohort.armadillo.domain.org  |
+|||
+|oidc              | Enable OIDC, see [authentication](#Authentication) |
+|oidc_url          | Given oidc URL |
+|oidc_clientid     | Given client ID|
+|oidc_clientsecret | Given secret ID|
+
+### 2.2 Run the install script
+
+Adapt the following install command to suit your situation. Use `--help` to see all options.
+
+> Note: https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
+you can  also use your own, see FAQ below.
+
+```bash
 bash armadillo-setup.sh \
     --admin-user admin \
     --admin-password xxxxx 
-    --domain my.server.com \
+    --domain armadillo.cohort.study.com \
     --oidc \
     --oidc_url https://lifecycle-auth.molgenis.org \
     --oidc_clientid clientid \
     --oidc_clientsecret secret \
-    --cleanup 
 ```
-Note: adapt install command to suit your situation. Use --help to see the options. https://lifecycle-auth.molgenis.org is MOLGENIS provided OIDC service but
-you can  also use your own, see FAQ below.
+
+## File locations
+
+The script creates using default values the follow files and directories:
+
+```bash
+ls /etc/armadillo/application.yml
+ls /etc/systemd/system/armadillo.service
+ls /usr/share/armadillo/*
+ls /var/log/armadillo/*
+```
+
+## Controlling the Armadillo service
+
+```bash
+systemctl status armadillo
+
+systemctl stop armadillo
+
+systemctl start armadillo
+```
+
+After the installation is complete Armadillo is listening on port 8080. Test the setup by visiting `http://armadillo.cohort.study.com:8080` or type in the terminal `wget http://localhost:8080` to see a text response.
+
+> Note: the Armadillo website is not secure yet so you need to setup a *front-end* proxy.
+
+When having setup this *front-end* proxy you could get a bad gateway. This mostly means Armadillo is not ready yet as you already have tested armadillo as mentioned above.
+
+> 502 Bad Gateway
+> nginx/1.18.0 (Ubuntu)
+
+Recheck with `wget http://localhost:8080` and check the log files.
 
 ## Setting up Proxy Server
-We highly recommend using `nginx` with MolgenisArmadillo. We have configured it the following way in
-` /etc/nginx/sites-available/armadillo.conf`:
-```
+
+We highly recommend using `nginx` with MolgenisArmadillo. We use the follow configuration located in `/etc/nginx/sites-available/armadillo.conf`
+
+```nginx
 server {
   listen 80;
-  server_name urlofyourserver.org
-  include /etc/nginx/global.d/*.conf;
+  server_name armadillo.cohort.study.com
+  include /etc/nginx/conf.d/*.conf;
   location / {
   proxy_pass http://localhost:8080;
   client_max_body_size 0;
@@ -73,12 +164,24 @@ server {
   }
 }
 ```
-### Apache
-It is possible to run Molgenis Armadillo using Apache. We do however not provide any support regarding this configuration. Apache requires some additional configuration to get the `/storage/projects/{project}/objects/{object}` to work. When this endpoint doesn't work, tables cannot be assigned, subsets cannot be created and resources cannot be used. This basically means Armadillo is not usable. 
 
-Issues might be resolved with the following settings in the `ssl.conf`:
-```
-ProxyPass / http://localhost:8080/ nocanon
-AllowEncodedSlashes On
-```
-After setting this, don't forget to restart Apache. 
+> Note: the above is still not secure but not you can reach Armadillo from `http://armadillo.cohort.study.com`.
+
+To secure the communication using https we have a [nginx example](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/armadillo-nginx.conf)
+
+## Backups
+
+A good start for backuping data is the /usr/share/armadillo and /etc/armadillo. If you gave another datadir as setup option you also should backup this directory. For disaster backups you should contact your IT department.
+
+## Install alternatives
+
+- On local machine using [java](./install/install_java.md)
+- Armidillo running as a [Docker](./install/install_docker.md) container.
+- [Apache](./install/install_apache.md)
+
+For questions on other linux release you can email molgenis-operations@umcg.nl
+
+## What's next?
+
+* [For the server owner or data manager who need to put data on to the server](https://molgenis.github.io/molgenis-r-armadillo/)
+* [For the researcher who want to start analyzing the data on the server](https://molgenis.github.io/molgenis-r-datashield/)

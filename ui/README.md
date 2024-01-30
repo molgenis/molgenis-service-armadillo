@@ -1,5 +1,20 @@
 # Armadillo UI
 
+As we use Gradle for building Armadillo we have node related versions defined
+in UI [build.gradel](./build.gradle).
+
+After the first build these specific versions appear in UI [.gradle/](./.gradle/) and can be used.
+
+You could ie run the same yarn as CI will run.
+
+```
+.gradle/yarn/yarn-v1.22.19/bin/yarn run dev
+
+.gradle/yarn/yarn-v1.22.19/bin/yarn why ts-node
+
+# etc
+```
+
 ## Test as a UI developer
 
 From the terminal:

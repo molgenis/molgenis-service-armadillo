@@ -1,7 +1,7 @@
 // Installed here as advised to load before all other
 // @see https://mooltiverse.github.io/nyx/guide/user/quick-start/gradle-plugin/#apply-the-plugin
 plugins {
-    id "com.mooltiverse.oss.nyx" version "2.5.1"
+    id "com.mooltiverse.oss.nyx" version "2.5.2"
 }
 
 //nyx is our release plugin
