@@ -67,8 +67,6 @@ df -H
 
 ## 3. Download required files
 
-Download latest release v4.x.y from https://github.com/molgenis/molgenis-service-armadillo/releases/latest.
-
 Make a note of the version number ie. `v4.1.3` as you need to download some files from the terminal using the updatescript.
 
 ### 3.1 Update script
