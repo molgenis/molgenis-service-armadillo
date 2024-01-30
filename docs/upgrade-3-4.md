@@ -1,10 +1,16 @@
-# Upgrading to Armadillo
+# Upgrading to Armadillo 4 (rock only)
 
-> We assume Ubuntu with systemd running.
+> Note: We assume Ubuntu with systemd is used.
 
-The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock only profiles. 
-Additionally, when working with an armadillo 4 instance, researchers should update their 
-`DSMolgenisArmadillo` to 2.0.5 (this version is compatible with armadillo 3 as well). 
+The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock profiles.
+
+Additionally, when working with an armadillo 4 instance, researchers should update their `DSMolgenisArmadillo` to 2.0.5 (this version is compatible with armadillo 3 as well).
+
+## Get latest version
+
+For the latest 4.x release check https://github.com/molgenis/molgenis-service-armadillo/releases/latest. This will redirect to a v4.x.y page.
+
+Make a note of the version as you will use this below.
 
 ## 1. Check your profile types
 
@@ -17,7 +23,7 @@ are compatible with your needs. See also DataSHIELD [profiles](https://www.datas
 
 ## 2. Check server space
 
-Make sure enough disk space is available for the Rock only images. 
+Make sure enough disk space is available for the Rock only images.
 
 ### 2.1 Check disk space
 
@@ -51,7 +57,7 @@ docker image list
 docker image rm <id>
 ```
 
-If possible download the new images from shell docker pull beforehand (for minimum downtime):
+If possible download the new images from shell using `docker pull` beforehand (for minimum downtime):
 
 ```bash
 docker pull datashield/rock-base:latest
@@ -95,7 +101,7 @@ chmod u+x armadillo-check-update.sh
 
 ### 3.2 Run update script
 
-You can run to see you whether you can upgrade.
+You can run the script to see whether you can upgrade.
 
 > The output could help us to help you fix problems.
 
@@ -114,6 +120,7 @@ ls -ltr /usr/share/armadillo/application/
 ## 4. Config the new version
 
 ### 4.1 application template
+
 This step is optional, you can try if it works without. 
 
 The application settings could have new entries so you may need to check these.
@@ -123,21 +130,20 @@ The application settings could have new entries so you may need to check these.
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/application.template.yml
 ```
 
-Too see the difference run
+To see the difference run:
 
 ```bash
 diff --side-by-side /etc/armadillo/application.yml application.template.yml
 ```
 
-Your output should look like:
+Your output should look like output below.
 
-Left side column is your settings.
-Right side column is our expected settings.
-
-In the middle some symbols may occur:
-- the `&lt;` means only your settings
-- the `&gt;` means we have a setting (probably added or options)
-- the `|` means both have different values which happens with OICD/oauth settings for sure.
+- Left side column is your settings.
+- Right side column is our expected settings.
+- In the middle some symbols may occur:
+  - the `&lt;` means only your settings
+  - the `&gt;` means we have a setting (probably added or options)
+  - the `|` means both have different values which happens with OICD/oauth settings for sure.
 
 ```
 armadillo:                            armadillo:
@@ -168,7 +174,6 @@ then edit
 ```bash
 nano /etc/armadillo/application.yml
 ```
-
 
 ### 4.2 Make backup of system config
 
