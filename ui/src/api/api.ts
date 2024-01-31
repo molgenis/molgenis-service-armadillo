@@ -89,8 +89,13 @@ interface Tree {
   [key: string]: any;
 }
 
+/**
+ * build a property tree out of dot separated path.
+ *
+ * a.b.c => {a: { b: { c: { path: a.b.c } } } }
+ */
 export async function getMetrics() {
-  let result = await get("/actuator/metrics")
+  return await get("/actuator/metrics")
     .then((data) => {
       // Check if the data has 'names' property
       if (data.hasOwnProperty("names")) {
@@ -115,23 +120,31 @@ export async function getMetrics() {
             // Move to the next level of the tree
             node = node[part];
           });
+          node["path"] = name;
         });
 
         // Log the tree
         console.log(tree);
-        return JSON.parse(JSON.stringify(tree));
+        return JSON.parse(JSON.stringify(tree["_bare"]));
       } else {
         console.log("No names found in the data");
+        return {};
       }
     })
     .catch((error) => {
       console.error("Error:", error);
     });
-  return result;
 }
 
-export async function getMetric(name: string) {
-  let result = await get(`/actuator/metrics/${name}`)
+/**
+ * Fetches on property from actuator
+ *
+ * @path: dot separated string
+ *
+ * Example: a.b.c
+ */
+export async function getMetric(path: string) {
+  let result = await get(`/actuator/metrics/${path}`)
     .then((data) => {
       return JSON.parse(JSON.stringify(data));
     })
