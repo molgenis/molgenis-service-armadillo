@@ -15,6 +15,15 @@ You could ie run the same yarn as CI will run.
 # etc
 ```
 
+## Work on the docs
+
+This is a little weird as the docs do not belong to the UI project but configuring
+it here makes is useable in CI (as an exercise for now).
+
+```bash
+.gradle/yarn/yarn-v1.22.19/bin/yarn docs
+```
+
 ## Test as a UI developer
 
 From the terminal:

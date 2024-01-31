@@ -23,3 +23,4 @@ service provides the following features:
 For installing and using Armadillo see https://molgenis.github.io/molgenis-service-armadillo/#/
 
 For developing and contributing see [Contributing](./CONTRIBUTING.md).
+ 

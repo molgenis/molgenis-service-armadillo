@@ -1,7 +1,8 @@
 #!/bin/bash
 
-ARMADILLO_SETUP_VER=1.0.2
-ARMADILLO_URL=https://github.com/molgenis/molgenis-service-armadillo/
+ARMADILLO_SETUP_VER=1.0.3
+ARMADILLO_URL="https://github.com/molgenis/molgenis-service-armadillo"
+ARMADILLO_RAW_URL="https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo"
 ARMADILLO_PROFILE=default
 ARMADILLO_PATH=/usr/share/armadillo
 ARMADILLO_CFG_PATH=/etc/armadillo
@@ -135,7 +136,7 @@ echo "Armadillo Installed under systemd"
 
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-  wget -q -O /etc/armadillo/application.yml https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/conf/application.yml
+  wget -q -O /etc/armadillo/application.yml "$ARMADILLO_RAW_URL/$ARMADILLO_VERSION/scripts/install/conf/application.yml"
   
   
   if [ ! "$ADMINUSER" ]; then 
@@ -174,12 +175,12 @@ download_armadillo() {
 
     
     if [[ "$ARMADILLO_VERSION" =~ 'armadillo-service-2' ]]; then
-      echo "Armadillo version 2 not supported! Please use provide an armadillo 3 version with --version"
+      echo "Armadillo version 2 not supported! Please provide an armadillo 3 version with --version"
       exit 1;
     fi
   fi
 
-  DL_URL=https://github.com/molgenis/molgenis-service-armadillo/releases/download/v$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar
+  DL_URL="$ARMADILLO_URL/releases/download/v$ARMADILLO_VERSION/molgenis-armadillo-$ARMADILLO_VERSION.jar"
 
   if validate_url $DL_URL; then
 
@@ -209,15 +210,15 @@ check_req() {
 setup_updatescript() {
   # Download update script
   UPDATE_SCRIPT="armadillo-check-update.sh"
-  DL_URL="https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/$UPDATE_SCRIPT"
-    
+  CRON_NAME="armadillo-check-update"
+  DL_URL="$ARMADILLO_RAW_URL/v$ARMADILLO_VERSION/scripts/install/$UPDATE_SCRIPT"
   if validate_url "$DL_URL" ; then
     UPDATE_SCRIPT_PATH="$ARMADILLO_PATH/application/$UPDATE_SCRIPT"
 
     wget -q -O "$UPDATE_SCRIPT_PATH" "$DL_URL"
     echo "Update script downloaded"
     chmod +x "$UPDATE_SCRIPT_PATH"
-    ln -s "$UPDATE_SCRIPT_PATH" "/etc/cron.weekly/$UPDATE_SCRIPT"
+    ln -s "$UPDATE_SCRIPT_PATH" "/etc/cron.weekly/$CRON_NAME"
       
   else
     echo "[ ERROR ] update script not downloaded"
