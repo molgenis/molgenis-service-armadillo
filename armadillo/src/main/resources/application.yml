@@ -67,8 +67,10 @@ server:
     include-binding-errors: always
     include-message: always
 
+# Needed to reallocate and download
 audit.log.path: 'logs/audit.log'
 
+# Needed to download ... this file is reallocated by OPS
 stdout.log.path: 'logs/armadillo.log'
 
 storage:
