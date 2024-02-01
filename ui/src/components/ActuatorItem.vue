@@ -56,23 +56,11 @@ console.log(convertBytes(222837712)); // Call the function with your byte value
 </script>
 <template>
   <div v-if="actuatorItem">
-    <h3>
-      {{ actuatorItem.name }}
-    </h3>
-    <summary>
-      <details>
-        <pre>
-          {{ JSON.stringify(actuatorItem, null, 3) }}
-        </pre>
-      </details>
-    </summary>
-    <h4 v-if="actuatorItem.description">
-      {{ actuatorItem.description }}
-    </h4>
     <table class="table">
       <thead>
         <tr>
           <th scope="col">#</th>
+          <th>key</th>
           <th>statistic</th>
           <th>value</th>
         </tr>
@@ -80,11 +68,31 @@ console.log(convertBytes(222837712)); // Call the function with your byte value
       <tbody>
         <tr v-for="(v, k) in actuatorItem.measurements">
           <td scope="col">{{ k }}</td>
+          <td :title="actuatorItem.description">
+            <span>
+              {{ actuatorItem.name }}
+              <i
+                v-if="actuatorItem.description"
+                class="bi bi-info-circle-fill"
+              ></i>
+            </span>
+          </td>
           <td>{{ v.statistic }}</td>
           <td v-if="actuatorItem.baseUnit === 'bytes'">
             {{ convertBytes(v.value) }}
           </td>
           <td v-else>{{ v.value }} {{ actuatorItem.baseUnit }}</td>
+        </tr>
+        <tr>
+          <td colspan="5">
+            <summary>
+              <details>
+                <pre>
+                  {{ JSON.stringify(actuatorItem, null, 3) }}
+                </pre>
+              </details>
+            </summary>
+          </td>
         </tr>
       </tbody>
     </table>
