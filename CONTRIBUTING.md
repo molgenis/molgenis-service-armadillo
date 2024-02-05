@@ -31,10 +31,11 @@ We have several components
 - [UI](./ui/README.md) readme
 - [R](./r/) java integration source
 - [docker builds](./docker/) source
-- [scripts](./scripts/README.md) migration readme
-  - [install](./scripts/install/README.md) readme
-  - [release](./scripts/release/) source
-  - [ops](./scripts/ops/README.md) readme
+- [scripts](./scripts/README.md) migration
+  - [install](./scripts/install/README.md)
+  - [release](./scripts/release/README.md)
+  - [ops](./scripts/ops/README.md)
+  - [upgrade](./scripts/upgrade/README.md)
 
 ## Releasing
 
