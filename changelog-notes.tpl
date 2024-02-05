@@ -2,13 +2,13 @@
 
 
 {{#releases}}
-## Release [{{name}}](https://github.com/molgenis/molgenis-emx2/releases/{{name}}) ({{date}})
+## Release [{{name}}](https://github.com/molgenis/molgenis-service-armadillo/releases/{{name}}) ({{date}})
 
 {{#sections}}
 ### {{name}}
 
 {{#commits}}
-* {{message.shortMessage}} ([{{#short7}}{{sha}}{{/short7}}](https://github.com/molgenis/molgenis-emx2/commit/{{#short7}}{{sha}}{{/short7}}))
+* {{message.shortMessage}} ([{{#short7}}{{sha}}{{/short7}}](https://github.com/molgenis/molgenis-service-armadillo/commit/{{#short7}}{{sha}}{{/short7}}))
 
 
 {{/commits}}

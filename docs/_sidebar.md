@@ -3,6 +3,7 @@
   - [Configure](/ops/configuring.md)
   - [UI](/ui.md#armadillo-user-interface "Armadillo 3 UI")
   - [FAQ](/faq.md)
+  - [Migration from 3 to 4](/upgrade-3-4.md)
   - [Migration from 2 to 3](/upgrade-2-3.md)
   - [Release test (R)](/release-test.md)
 - External sites

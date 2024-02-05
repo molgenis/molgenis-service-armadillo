@@ -1,19 +1,25 @@
 # To develop the docs
 
-First time, install docsify
+You can run following the [UI docs](../ui/README.md) section. Then there
+is no need for installing docsify globally.
 
-```
+## Install docsify
+
+Install docsify
+
+```bash
 npm i docsify-cli -g
 ```
 
+## Serve
+
 Then you can serve the dev in this directory using
 
-```
+```bash
 docsify serve ./docs
 ```
 
-And view the result on
-
+## View
 ```
 http://localhost:3000
 ```
@@ -27,3 +33,4 @@ We have this configured through github pages instead of custom actions:
 You can check its status on:
 
 - https://github.com/molgenis/molgenis-service-armadillo/actions
+
