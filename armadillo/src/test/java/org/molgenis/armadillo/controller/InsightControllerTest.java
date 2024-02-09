@@ -53,24 +53,12 @@ public class InsightControllerTest {
 
   @Test
   public void testFilesDetail() throws Exception {
-    // FIXME: needs: ./logs/armadillo.log (No such file or directory)
-    //        test runs in ~/armadillo somehow and create/fetch
-    //        creates file ~/armadillo/stdoutFile_IS_UNDEFINED
-    //    mockMvc
-    //            .perform(get("/insight/files/LOG_FILE"))
-    //            .andExpect(status().isOk())
-    //            .andExpect(content().contentType(APPLICATION_JSON))
-    //            .andExpect(jsonPath("$.id").value("LOG_FILE"))
-    //            .andExpect(content().json("A"));
-
     mockMvc
         .perform(get("/insight/files/XyZ"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value("XyZ"))
         .andExpect(jsonPath("$.name").value("XyZ"))
-        .andExpect(jsonPath("$.content").value("XyZ"))
-    // FIXME: failed to data check on "fetched":"2024-01-11 13:57:28" matching
-    ;
+        .andExpect(jsonPath("$.content").value("XyZ"));
   }
 }
