@@ -35,6 +35,12 @@ Do your develop stuff and watch your test fail or succeed on the go. That is:
 - change files in `src/**`
 - change files in `tests/unit/**`
 
+## Run the UI locally
+
+Make sure Armadillo is running on 8080 as it needs an endpoint to talk with.
+
+Then run `npm run dev` and start developing the UI.
+
 ## Adding or updating dependencies
 
 As the [UI build file](./build.gradle) has settings for node, npm and **yarn** you must use `yarn` to add dependencies.

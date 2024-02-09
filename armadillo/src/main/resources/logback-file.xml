@@ -2,10 +2,13 @@
 
     <springProperty name="file" source="audit.log.path" />
 
+    <springProperty name="stdoutFile" source="stdout.log.path" />
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %d{HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n
+                <!-- make sure non roll over is still useful by having dates -->
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread|%.8X{sessionID}] %-5level %logger{36} - %msg%n
             </Pattern>
         </layout>
     </appender>

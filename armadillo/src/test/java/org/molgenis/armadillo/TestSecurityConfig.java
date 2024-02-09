@@ -8,9 +8,11 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.DummyAccessLoader;
 import org.molgenis.armadillo.metadata.DummyProfilesLoader;
 import org.molgenis.armadillo.metadata.InitialProfileConfigs;
+import org.molgenis.armadillo.metadata.InsightService;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +59,16 @@ public class TestSecurityConfig {
   @Bean
   AccessService accessService(ArmadilloStorageService storageService, AccessLoader accessLoader) {
     return new AccessService(storageService, accessLoader, null);
+  }
+
+  @Bean
+  InsightService insightService(FileService fileService) {
+    return new InsightService(fileService);
+  }
+
+  @Bean
+  FileService fileService() {
+    return new FileService();
   }
 
   @Bean

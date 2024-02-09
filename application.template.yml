@@ -46,6 +46,12 @@ storage:
   ## to change location of the data storage
   root-dir: data
 
+# Needed to reallocate and for download (defaults 'logs/audit.log')
+#audit.log.path: 'logs/audit.log'
+
+# Needed to download ... this file is reallocated by OPS (defaults 'logs/armadillo.log')
+#stdout.log.path: 'logs/armadillo.log'
+
 logging:
   level:
     ## change to DEBUG to have more details, typically when developing
