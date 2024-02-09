@@ -106,13 +106,32 @@ export async function getVersion() {
 interface Tree {
   [key: string]: any;
 }
+/**
+ * Fetch all metric values on one go using the list.
+ */
+export async function getMetricsAll() {
+  try {
+    const metrics = await getMetrics();
+    const paths = Object.keys(metrics);
+    // FIXME: path.forEach is more appropiate
+    await Promise.all(
+      paths.map(async (path) => {
+        const response = await getMetric(path);
+        metrics[path] = response;
+        return { path: response };
+      })
+    );
+
+    return metrics;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
 /**
- * build a property tree out of dot separated path.
- *
- * a.b.c => {a: { b: { c: { path: a.b.c } } } }
+ * Get list of metrics.
  */
-export async function getMetrics() {
+async function getMetrics() {
   return await get("/actuator/metrics")
     .then((data) => {
       // Check if the data has 'names' property
@@ -123,26 +142,27 @@ export async function getMetrics() {
         // Process each name
         data.names.forEach((name: string) => {
           tree["_bare"][name] = {};
-          // Split the name into parts
-          let parts = name.split(".");
 
-          // Start at the root of the tree
-          let node: Tree = tree;
+          // FIXME: do we need a tree structure?
+          // // Split the name into parts
+          // let parts = name.split(".");
 
-          // For each part, add a node to the tree if it doesn't exist
-          parts.forEach((part: string) => {
-            if (!node.hasOwnProperty(part)) {
-              node[part] = {};
-            }
+          // // Start at the root of the tree
+          // let node: Tree = tree;
 
-            // Move to the next level of the tree
-            node = node[part];
-          });
-          node["path"] = name;
+          // // For each part, add a node to the tree if it doesn't exist
+          // parts.forEach((part: string) => {
+          //   if (!node.hasOwnProperty(part)) {
+          //     node[part] = {};
+          //   }
+
+          //   // Move to the next level of the tree
+          //   node = node[part];
+          // });
+          // node["path"] = name;
         });
 
-        // Log the tree
-        console.log(tree);
+        // console.log(tree);
         return JSON.parse(JSON.stringify(tree["_bare"]));
       } else {
         console.log("No names found in the data");
@@ -161,7 +181,7 @@ export async function getMetrics() {
  *
  * Example: a.b.c
  */
-export async function getMetric(path: string) {
+async function getMetric(path: string) {
   let result = await get(`/actuator/metrics/${path}`)
     .then((data) => {
       return JSON.parse(JSON.stringify(data));

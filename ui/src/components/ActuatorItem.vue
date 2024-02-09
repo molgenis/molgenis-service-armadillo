@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { getMetric } from "@/api/api";
-import { ref } from "vue";
-
 const props = defineProps({
   name: {
     type: String,
     required: true,
   },
+  data: {
+    type: Object,
+    required: true,
+  },
 });
 
-const actuatorItem = ref(null);
-
-async function fetchData() {
-  let res = await getMetric(props.name);
-  console.log(res);
-  actuatorItem.value = res;
-}
-fetchData();
-
-function convertBytes(bytes: number) {
-  const units = ["bytes", "KB", "MB", "GB", "TB"];
+/**
+ * Convert given bytes to 2 digits precision round exponent version string.
+ * @param bytes number
+ */
+function convertBytes(bytes: number): string {
+  const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
   let unitIndex = 0;
 
   while (bytes >= 1024 && unitIndex < units.length - 1) {
@@ -29,8 +25,6 @@ function convertBytes(bytes: number) {
 
   return `${bytes.toFixed(2)} ${units[unitIndex]}`;
 }
-
-console.log(convertBytes(222837712)); // Call the function with your byte value
 
 /*
 {
@@ -55,47 +49,29 @@ console.log(convertBytes(222837712)); // Call the function with your byte value
 */
 </script>
 <template>
-  <div v-if="actuatorItem">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th>key</th>
-          <th>statistic</th>
-          <th>value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(v, k) in actuatorItem.measurements">
-          <td scope="col">{{ k }}</td>
-          <td :title="actuatorItem.description">
-            <span>
-              {{ actuatorItem.name }}
-              <i
-                v-if="actuatorItem.description"
-                class="bi bi-info-circle-fill"
-              ></i>
-            </span>
-          </td>
-          <td>{{ v.statistic }}</td>
-          <td v-if="actuatorItem.baseUnit === 'bytes'">
-            {{ convertBytes(v.value) }}
-          </td>
-          <td v-else>{{ v.value }} {{ actuatorItem.baseUnit }}</td>
-        </tr>
-        <tr>
-          <td colspan="5">
-            <summary>
-              <details>
-                <pre>
-                  {{ JSON.stringify(actuatorItem, null, 3) }}
-                </pre>
-              </details>
-            </summary>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div v-else>Waiting for {{ name }}</div>
+  <tr v-for="(v, k) in data.measurements">
+    <td scope="col">{{ k }}</td>
+    <td :title="data.description">
+      <span>
+        {{ data.name }}
+        <i v-if="data.description" class="bi bi-info-circle-fill"></i>
+      </span>
+    </td>
+    <td>{{ v.statistic }}</td>
+    <td v-if="data.baseUnit === 'bytes'">
+      {{ convertBytes(v.value) }}
+    </td>
+    <td v-else>{{ v.value }} {{ data.baseUnit }}</td>
+  </tr>
+  <tr>
+    <td colspan="5">
+      <summary>
+        <details>
+          <pre>
+            {{ JSON.stringify(data, null, 3) }}
+          </pre>
+        </details>
+      </summary>
+    </td>
+  </tr>
 </template>

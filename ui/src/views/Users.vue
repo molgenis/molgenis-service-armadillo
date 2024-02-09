@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Actuator />
     <h2 class="mt-3">Users</h2>
     <div class="row">
       <div class="col">
@@ -125,7 +124,6 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import Actuator from "@/components/Actuator.vue";
 
 import { deleteUser, getUsers, putUser, getProjects } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
@@ -138,7 +136,6 @@ import { processErrorMessages } from "@/helpers/errorProcessing";
 export default defineComponent({
   name: "Users",
   components: {
-    Actuator,
     Badge,
     BadgeList,
     ButtonGroup,
