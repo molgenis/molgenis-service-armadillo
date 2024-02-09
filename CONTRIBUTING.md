@@ -14,8 +14,25 @@ Note: contact MOLGENIS team if you want to contribute and need a testing OIDC co
 # Developing Armadillo
 
 We use gradle to build:
-* run using `./gradlew run`
-* run tests using `./gradlew test`
+
+## Running locally
+
+```bash
+./gradlew run
+```
+
+As we now have the option to download the logfile from the application we need to have one to begin with!
+
+```bash
+# Leave out the -a to overwrite instead of append
+./gradlew run | tee -a logs/armadillo.log
+```
+
+## Running tests
+
+```
+./gradlew test
+```
 
 We use intellij to develop
 * To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
@@ -31,10 +48,11 @@ We have several components
 - [UI](./ui/README.md) readme
 - [R](./r/) java integration source
 - [docker builds](./docker/) source
-- [scripts](./scripts/README.md) migration readme
-  - [install](./scripts/install/README.md) readme
-  - [release](./scripts/release/) source
-  - [ops](./scripts/ops/README.md) readme
+- [scripts](./scripts/README.md) migration
+  - [install](./scripts/install/README.md)
+  - [release](./scripts/release/README.md)
+  - [ops](./scripts/ops/README.md)
+  - [upgrade](./scripts/upgrade/README.md)
 
 ## Releasing
 

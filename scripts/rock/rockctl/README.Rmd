@@ -1,0 +1,49 @@
+# Rock stats
+
+For this to work you need to copy `dist.env` to `.env` and check its values
+
+## Status
+
+- clean checkout
+- renv did not run automagical from RStudio
+- in shell had to manual run `Rscript .Rprofile` which did something but not enough
+
+```
+Rscript .Rprofile
+Rscript -e 'renv::status()'
+Rscript -e '?renv'
+Rscript -e 'renv::install()'
+```
+seemed to fix it
+
+
+We use [renv](https://rstudio.github.io/renv/) for dependency management.
+
+## Running
+
+```r
+./src/rockctl.R
+```
+## Renv workflow
+
+### Once
+
+Run this on a new project.
+
+``` r
+renv::init()
+```
+
+### Install packages
+
+The normal way.
+
+### Status
+
+renv::status()
+
+### Snapshot
+
+set the version using the install option if asked for.
+
+renv::snapshot()

@@ -1,6 +1,14 @@
 import { ApiError } from "@/helpers/errors";
 import { sanitizeObject } from "@/helpers/utils";
-import { Principal, Profile, Project, User, Auth } from "@/types/api";
+import {
+  Principal,
+  Profile,
+  Project,
+  User,
+  Auth,
+  RemoteFileInfo,
+  RemoteFileDetail,
+} from "@/types/api";
 import { ObjectWithStringKey, StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -78,6 +86,16 @@ export async function handleResponse(response: Response) {
   } else {
     return response;
   }
+}
+
+export async function getActuator() {
+  let result = await get("/actuator");
+  return result;
+}
+
+export async function getActuatorItem(item: string) {
+  let result = await get(`/actuator/${item}`);
+  return result;
 }
 
 export async function getVersion() {
@@ -176,6 +194,16 @@ export async function getUsers(): Promise<User[]> {
 
 export async function getProjects(): Promise<Project[]> {
   return get("/access/projects");
+}
+
+export async function getFiles(): Promise<RemoteFileInfo[]> {
+  return get("/insight/files");
+}
+
+export async function getFileDetail(
+  file_id: string
+): Promise<RemoteFileDetail> {
+  return get(`/insight/files/${file_id}`);
 }
 
 export async function getPrincipal(): Promise<Principal> {
