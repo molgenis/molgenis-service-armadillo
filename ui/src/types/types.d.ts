@@ -45,6 +45,7 @@ export type ProjectsExplorerData = {
   loading_preview: boolean;
   newFolder: string;
   projectContent: Record<string, string[]>;
+  createLink: boolean;
 };
 
 export type ProjectsData = {

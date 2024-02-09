@@ -27,6 +27,8 @@ public interface StorageService {
 
   FileInfo getInfo(String bucketName, String objectName);
 
+  List<String> getVariables(String bucketName, String objectName);
+
   List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit);
 

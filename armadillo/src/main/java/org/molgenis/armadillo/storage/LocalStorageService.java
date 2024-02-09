@@ -202,6 +202,19 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
+  public List<String> getVariables(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      return ParquetUtils.getColumns(objectPath);
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
   public List<Map<String, String>> preview(
       String bucketName, String objectName, int rowLimit, int columnLimit) {
     try {

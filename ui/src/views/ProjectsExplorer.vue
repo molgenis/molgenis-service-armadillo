@@ -133,12 +133,63 @@
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
-                <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
                   `${dataSizeRows}x${dataSizeColumns}`
                 }})
+                <button
+                  v-if="!createLink"
+                  @click="createLink = true"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                >
+                  <i class="bi bi-link-45deg"></i> Create view
+                </button>
+                <button
+                  v-else
+                  @click="createLink = false"
+                  type="button"
+                  class="btn btn-danger btn-sm m-1"
+                >
+                  <i class="bi bi-x"></i> Cancel view
+                </button>
+              </div>
+              <div v-if="createLink">
+                <h3>Create view on data</h3>
+                <div>Source project: {{ projectId }}</div>
+                <div>
+                  Source table: {{ selectedFolder + "/" + selectedFile }}
+                </div>
+                <div>Select variables:</div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    value=""
+                    id="flexCheckDefault"
+                  />
+                  <label class="form-check-label" for="flexCheckDefault">
+                    Default checkbox
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    value=""
+                    id="flexCheckChecked"
+                  />
+                  <label class="form-check-label" for="flexCheckChecked">
+                    Checked checkbox
+                  </label>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <button class="btn btn-primary" type="button">
+                    <i class="bi bi-floppy-fill"></i> Save
+                  </button>
+                </div>
               </div>
               <SimpleTable
+                v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="dataSizeRows"
@@ -270,6 +321,7 @@ export default defineComponent({
       createNewFolder: false,
       newFolder: "",
       projectContent: {},
+      createLink: false,
     };
   },
   watch: {
