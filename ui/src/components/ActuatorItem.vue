@@ -49,7 +49,7 @@ function convertBytes(bytes: number): string {
 */
 </script>
 <template>
-  <tr v-for="(v, k) in data.measurements">
+  <tr v-if="data._display" v-for="(v, k) in data.measurements">
     <td scope="col">{{ k }}</td>
     <td :title="data.description">
       <span>
@@ -63,7 +63,7 @@ function convertBytes(bytes: number): string {
     </td>
     <td v-else>{{ v.value }} {{ data.baseUnit }}</td>
   </tr>
-  <tr>
+  <tr v-if="data._display">
     <td colspan="5">
       <summary>
         <details>
