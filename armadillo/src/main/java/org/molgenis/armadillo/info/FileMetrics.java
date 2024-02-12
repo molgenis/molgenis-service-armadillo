@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.info;
 
+import io.micrometer.common.lang.NonNull;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -12,7 +13,7 @@ public class FileMetrics implements MeterBinder {
   private static final String PATH = System.getProperty("user.dir");
 
   @Override
-  public void bindTo(MeterRegistry registry) {
+  public void bindTo(@NonNull MeterRegistry registry) {
     File folder = new File(PATH);
     File[] listOfFiles = folder.listFiles();
 
@@ -37,7 +38,7 @@ public class FileMetrics implements MeterBinder {
 
     Gauge.builder("user.directories.count", dirCount, Integer::doubleValue)
         .description("Number of directories in the current directory")
-        .baseUnit("user.directory.count")
+        .baseUnit("directories")
         .tags("path", PATH)
         .register(registry);
   }
