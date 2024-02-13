@@ -24,6 +24,52 @@ public class ArmadilloLinkFile {
   private final String linkObject;
   private final String project;
 
+  public ArmadilloLinkFile(
+      String sourceProject,
+      String sourceObject,
+      String variables,
+      String linkObject,
+      String project) {
+    this.linkObject = linkObject;
+    this.sourceProject = sourceProject;
+    this.sourceObject = sourceObject;
+    this.variables = variables;
+    this.project = project;
+  }
+
+  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
+    this.linkObject = linkObject;
+    this.project = linkProject;
+    JsonObject json;
+    try {
+      json = loadFromStream(armadilloLinkStream);
+    } catch (JsonParseException e) {
+      throw new JsonParseException(
+          format("Cannot load [%s/%s] because JSON is invalid", project, linkObject));
+    } catch (Exception e) {
+      throw new StorageException(
+          format("Cannot load [%s/%s] for unknown reason", project, linkObject));
+    }
+    try {
+      this.sourceObject = json.get(SOURCE_OBJECT).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Source object is missing from [%s/%s]", project, linkObject));
+    }
+    try {
+      this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Source project is missing from [%s/%s]", project, linkObject));
+    }
+    try {
+      this.variables = json.get(VARIABLES).getAsString();
+    } catch (NullPointerException e) {
+      throw new NullPointerException(
+          format("Variables are not defined on [%s/%s]", project, linkObject));
+    }
+  }
+
   public String getSourceProject() {
     return this.sourceProject;
   }
@@ -74,51 +120,5 @@ public class ArmadilloLinkFile {
 
   public JsonObject loadFromStream(InputStream inputStream) {
     return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
-  }
-
-  public ArmadilloLinkFile(
-      String sourceProject,
-      String sourceObject,
-      String variables,
-      String linkObject,
-      String project) {
-    this.linkObject = linkObject;
-    this.sourceProject = sourceProject;
-    this.sourceObject = sourceObject;
-    this.variables = variables;
-    this.project = project;
-  }
-
-  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
-    this.linkObject = linkObject;
-    this.project = linkProject;
-    JsonObject json;
-    try {
-      json = loadFromStream(armadilloLinkStream);
-    } catch (JsonParseException e) {
-      throw new JsonParseException(
-          format("Cannot load [%s/%s] because JSON is invalid", project, linkObject));
-    } catch (Exception e) {
-      throw new StorageException(
-          format("Cannot load [%s/%s] for unknown reason", project, linkObject));
-    }
-    try {
-      this.sourceObject = json.get(SOURCE_OBJECT).getAsString();
-    } catch (NullPointerException e) {
-      throw new NullPointerException(
-          format("Source object is missing from [%s/%s]", project, linkObject));
-    }
-    try {
-      this.sourceProject = json.get(SOURCE_PROJECT).getAsString();
-    } catch (NullPointerException e) {
-      throw new NullPointerException(
-          format("Source project is missing from [%s/%s]", project, linkObject));
-    }
-    try {
-      this.variables = json.get(VARIABLES).getAsString();
-    } catch (NullPointerException e) {
-      throw new NullPointerException(
-          format("Variables are not defined on [%s/%s]", project, linkObject));
-    }
   }
 }
