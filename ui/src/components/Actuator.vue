@@ -128,7 +128,7 @@ function removeFields(json) {
             <td>{{ item.key }}</td>
             <td v-if="item.templated">{{ item.href }}</td>
             <td v-if="!item.templated">
-              <a href="{{item.href}}">{{ item.href }}</a>
+              <a :href="item.href" target="_new">{{ item.href }}</a>
             </td>
             <td>{{ item.templated }}</td>
           </tr>
