@@ -102,6 +102,14 @@
                 <!-- Placeholder for file upload for uploading complete project in future-->
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
+                <div
+                  class="d-grid gap-2 d-md-flex justify-content-md-end"
+                  @click="openLinkView"
+                >
+                  <div class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add view from source
+                  </div>
+                </div>
                 <FileUpload
                   :project="projectId"
                   :object="selectedFolder"
@@ -138,11 +146,11 @@
                 }})
                 <button
                   v-if="!createLink"
-                  @click="createLink = true"
+                  @click="openLinkView"
                   type="button"
                   class="btn btn-primary btn-sm m-1"
                 >
-                  <i class="bi bi-link-45deg"></i> Create view
+                  <i class="bi bi-box-arrow-in-up-right"></i> Create view
                 </button>
                 <button
                   v-else
@@ -153,40 +161,14 @@
                   <i class="bi bi-x"></i> Cancel view
                 </button>
               </div>
-              <div v-if="createLink">
-                <h3>Create view on data</h3>
-                <div>Source project: {{ projectId }}</div>
-                <div>
-                  Source table: {{ selectedFolder + "/" + selectedFile }}
-                </div>
-                <div>Select variables:</div>
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    value=""
-                    id="flexCheckDefault"
-                  />
-                  <label class="form-check-label" for="flexCheckDefault">
-                    Default checkbox
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    value=""
-                    id="flexCheckChecked"
-                  />
-                  <label class="form-check-label" for="flexCheckChecked">
-                    Checked checkbox
-                  </label>
-                </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <button class="btn btn-primary" type="button">
-                    <i class="bi bi-floppy-fill"></i> Save
-                  </button>
-                </div>
+              <div v-if="createLink" class="p-2">
+                <ViewCreator
+                  :projectId="projectId"
+                  :selectedFolder="selectedFolder"
+                  :selectedFile="selectedFile"
+                  :variables="variables"
+                  :onSave="doCreateLinkFile"
+                />
               </div>
               <SimpleTable
                 v-else
@@ -212,6 +194,7 @@
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import ListGroup from "@/components/ListGroup.vue";
+import ViewCreator from "@/components/ViewCreator.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import {
@@ -219,6 +202,8 @@ import {
   deleteObject,
   previewObject,
   getFileDetails,
+  getTableVariables,
+  createLinkFile,
 } from "@/api/api";
 import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
@@ -239,6 +224,7 @@ export default defineComponent({
     LoadingSpinner,
     FileUpload,
     SimpleTable,
+    ViewCreator,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
@@ -322,6 +308,7 @@ export default defineComponent({
       newFolder: "",
       projectContent: {},
       createLink: false,
+      variables: [],
     };
   },
   watch: {
@@ -329,6 +316,7 @@ export default defineComponent({
       this.selectedFile = "";
     },
     selectedFile() {
+      this.createLink = false;
       if (this.selectedFile.endsWith(".parquet")) {
         this.loading_preview = true;
         previewObject(
@@ -461,6 +449,19 @@ export default defineComponent({
       this.fileToDelete = "";
       this.folderToDeleteFrom = "";
     },
+    openLinkView() {
+      this.createLink = true;
+      getTableVariables(
+        this.projectId,
+        `${this.selectedFolder}%2F${this.selectedFile}`
+      )
+        .then((data: string[]) => {
+          this.variables = data;
+        })
+        .catch((error: any) => {
+          this.errorMessage = `Cannot load variables for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+        });
+    },
     proceedDelete(fileAndFolder: string) {
       this.clearRecordToDelete();
       const splittedFileAndFolder = fileAndFolder.split("/");
@@ -502,6 +503,29 @@ export default defineComponent({
     },
     showErrorMessage(error: string) {
       this.errorMessage = error;
+    },
+    doCreateLinkFile(
+      sourceProject: string,
+      sourceObject: string,
+      viewProject: string,
+      viewObject: string,
+      variables: string[]
+    ) {
+      const response = createLinkFile(
+        sourceProject,
+        sourceObject,
+        viewProject,
+        viewObject,
+        variables
+      );
+      response
+        .then(() => {
+          this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
+          this.createLink = false;
+        })
+        .catch((error) => {
+          this.errorMessage = `${error}`;
+        });
     },
   },
 });

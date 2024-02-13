@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group has-search">
+  <div class="form-group has-search p-0">
     <i class="bi bi-search form-control-feedback"></i>
     <input
       type="text"

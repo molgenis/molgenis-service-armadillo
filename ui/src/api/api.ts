@@ -42,6 +42,16 @@ export async function put(url: string, body: ObjectWithStringKey) {
   return handleResponse(response);
 }
 
+export async function postJson(url: string, body: ObjectWithStringKey) {
+  const requestOptions = {
+    method: "POST",
+    headers: APISettings.headers,
+    body: JSON.stringify(sanitizeObject(body)),
+  };
+  const response = await fetch(url, requestOptions);
+  return handleResponse(response);
+}
+
 export async function post(url: string) {
   const requestOptions = {
     method: "POST",
@@ -204,4 +214,28 @@ export async function authenticate(auth: Auth) {
 
 export async function getFileDetails(project: string, object: string) {
   return get(`/storage/projects/${project}/objects/${object}/info`);
+}
+
+export async function getTableVariables(
+  project: string,
+  object: string
+): Promise<string[]> {
+  return get(`/storage/projects/${project}/objects/${object}/variables`);
+}
+
+export async function createLinkFile(
+  srcProject: string,
+  srcObject: string,
+  viewProject: string,
+  viewObject: string,
+  variableList: string[]
+) {
+  const variables = variableList.join(",");
+  const data = {
+    sourceObjectName: srcObject,
+    sourceProject: srcProject,
+    linkedObject: viewObject,
+    variables: variables,
+  };
+  return postJson(`/storage/projects/${viewProject}/objects/link`, data);
 }
