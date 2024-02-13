@@ -3,13 +3,11 @@ import { getMetricsAll } from "@/api/api";
 import { ref, watch } from "vue";
 import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
-import { json } from "stream/consumers";
 
-const metrics = ref(null);
+const metrics = ref({});
 const names = ref<Array<string>>([]);
 
 const loadMetrics = async () => {
-  // metrics.value = await getMetrics();
   metrics.value = await getMetricsAll();
   console.log("Loaded?", metrics.value);
   const bare = metrics.value ? ["_bare"] : {};

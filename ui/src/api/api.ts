@@ -126,13 +126,15 @@ export async function getMetricsAll() {
   } catch (error) {
     console.error("Error:", error);
   }
+  return {};
 }
 
 /**
  * Get list of metrics.
  */
 async function getMetrics() {
-  return await get("/actuator/metrics")
+  const path = "/actuator/metrics";
+  return await get(path)
     .then((data) => {
       // Check if the data has 'names' property
       if (data.hasOwnProperty("names")) {
@@ -142,24 +144,6 @@ async function getMetrics() {
         // Process each name
         data.names.forEach((name: string) => {
           tree["_bare"][name] = {};
-
-          // FIXME: do we need a tree structure?
-          // // Split the name into parts
-          // let parts = name.split(".");
-
-          // // Start at the root of the tree
-          // let node: Tree = tree;
-
-          // // For each part, add a node to the tree if it doesn't exist
-          // parts.forEach((part: string) => {
-          //   if (!node.hasOwnProperty(part)) {
-          //     node[part] = {};
-          //   }
-
-          //   // Move to the next level of the tree
-          //   node = node[part];
-          // });
-          // node["path"] = name;
         });
 
         // console.log(tree);
@@ -170,7 +154,8 @@ async function getMetrics() {
       }
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error(`Error fetching ${path}`, error);
+      return {};
     });
 }
 
@@ -181,13 +166,15 @@ async function getMetrics() {
  *
  * Example: a.b.c
  */
-async function getMetric(path: string) {
-  let result = await get(`/actuator/metrics/${path}`)
+async function getMetric(id: string) {
+  const path = `/actuator/metrics/${id}`;
+  let result = await get(path)
     .then((data) => {
       return JSON.parse(JSON.stringify(data));
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error(`Error fetching ${path}`, error);
+      return {};
     });
   return result;
 }
