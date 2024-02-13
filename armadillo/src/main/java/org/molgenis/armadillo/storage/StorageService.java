@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.storage;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
@@ -8,6 +9,9 @@ import org.springframework.http.MediaType;
 
 public interface StorageService {
   boolean objectExists(String bucket, String objectName);
+
+  List<String> getUnavailableVariables(String bucketName, String objectName, String variables)
+      throws IOException;
 
   void createBucketIfNotExists(String bucketName);
 

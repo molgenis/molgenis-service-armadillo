@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.IOException;
@@ -16,10 +17,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
-import org.molgenis.armadillo.exceptions.DuplicateObjectException;
-import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
-import org.molgenis.armadillo.exceptions.UnknownObjectException;
-import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
@@ -33,6 +31,7 @@ public class ArmadilloStorageService {
   public static final String USER_PREFIX = "user-";
   public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
+  public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
   private final StorageService storageService;
@@ -82,6 +81,46 @@ public class ArmadilloStorageService {
     throwIfDuplicate(project, newObject);
     var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
     storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void createLinkedObject(
+      String sourceProject,
+      String sourceObject,
+      String linkName,
+      String linkProject,
+      String variables)
+      throws IOException {
+    throwIfUnknown(sourceProject, sourceObject + PARQUET);
+    throwIfUnknown(linkProject);
+    throwIfDuplicate(linkProject, linkName + LINK_FILE);
+    // Save information in armadillo link file (alf)
+    List<String> unavailableVariables =
+        storageService.getUnavailableVariables(
+            SHARED_PREFIX + sourceProject, sourceObject, variables);
+    if (unavailableVariables.size() > 0) {
+      throw new UnknownVariableException(
+          sourceProject, sourceObject, unavailableVariables.toString());
+    }
+    ArmadilloLinkFile armadilloLinkFile =
+        createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
+    InputStream is = armadilloLinkFile.toStream();
+    storageService.save(
+        is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
+  }
+
+  public ArmadilloLinkFile createArmadilloLinkFileFromStream(
+      InputStream armadilloLinkFileStream, String project, String objectName) {
+    return new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
+  }
+
+  public ArmadilloLinkFile createLinkFileFromSource(
+      String sourceProject,
+      String sourceObject,
+      String variables,
+      String linkName,
+      String linkProject) {
+    return new ArmadilloLinkFile(sourceProject, sourceObject, variables, linkName, linkProject);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
