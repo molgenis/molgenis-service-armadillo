@@ -159,6 +159,9 @@ async function getMetrics() {
     });
 }
 
+async function getActuators() {
+  return await get("/actuator");
+}
 /**
  * Fetches on property from actuator
  *
