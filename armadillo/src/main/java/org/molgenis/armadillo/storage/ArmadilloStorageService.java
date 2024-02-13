@@ -4,7 +4,8 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -257,7 +258,6 @@ public class ArmadilloStorageService {
 
   private void throwIfUnknown(String project, String object) {
     if (!hasObject(project, object)) {
-
       throw new UnknownObjectException(project, object);
     }
   }
