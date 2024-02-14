@@ -47,7 +47,8 @@ We have several components
 - [Armadillo](./armadillo/src/) source
 - [UI](./ui/README.md) readme
 - [R](./r/) java integration source
-- [docker builds](./docker/) source
+- [docker](./docker/README.md)
+  - [ci](./docker/ci/README.md)
 - [scripts](./scripts/README.md) migration
   - [install](./scripts/install/README.md)
   - [release](./scripts/release/README.md)
