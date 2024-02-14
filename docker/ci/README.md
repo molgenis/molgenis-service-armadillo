@@ -53,8 +53,9 @@ should list
 From with in [build/docker/armadillo-compos](../../build/docker/armadillo-compose/) run
 
 ```bash
+docker compose down
 # Later stop with CTRL-C
-docker compose restart
+docker compose up
 ```
 
 In same directory you can:
