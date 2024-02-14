@@ -8,7 +8,11 @@ import {
   Auth,
   RemoteFileInfo,
   RemoteFileDetail,
+  Metric,
+  HALResponse,
+  Metrics,
 } from "@/types/api";
+
 import { ObjectWithStringKey, StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -103,17 +107,14 @@ export async function getVersion() {
   return result.build.version;
 }
 
-interface Tree {
-  [key: string]: any;
-}
 /**
  * Fetch all metric values on one go using the list.
  */
-export async function getMetricsAll() {
+export async function getMetricsAll(): Promise<Metrics> {
   try {
     const metrics = await getMetrics();
     const paths = Object.keys(metrics);
-    // FIXME: path.forEach is more appropiate
+
     await Promise.all(
       paths.map(async (path) => {
         const response = await getMetric(path);
@@ -125,12 +126,12 @@ export async function getMetricsAll() {
     return metrics;
   } catch (error) {
     console.error("Error:", error);
+    return [];
   }
-  return {};
 }
 
 /**
- * Get list of metrics.
+ * Get list of metric IDs in as dictionary keys.
  */
 async function getMetrics() {
   const path = "/actuator/metrics";
@@ -138,16 +139,15 @@ async function getMetrics() {
     .then((data) => {
       // Check if the data has 'names' property
       if (data.hasOwnProperty("names")) {
-        // Initialize an empty tree
-        let tree: Tree = { _bare: {} };
+        let result: { [name: string]: Metric | null } = {};
 
         // Process each name
         data.names.forEach((name: string) => {
-          tree["_bare"][name] = {};
+          result[name] = null;
         });
 
         // console.log(tree);
-        return JSON.parse(JSON.stringify(tree["_bare"]));
+        return JSON.parse(JSON.stringify(result));
       } else {
         console.log("No names found in the data");
         return {};
@@ -159,17 +159,18 @@ async function getMetrics() {
     });
 }
 
-async function getActuators() {
+async function getActuators(): Promise<HALResponse> {
   return await get("/actuator");
 }
+
 /**
- * Fetches on property from actuator
+ * Fetches give Metric ID.
  *
  * @path: dot separated string
  *
  * Example: a.b.c
  */
-async function getMetric(id: string) {
+async function getMetric(id: string): Promise<Metric> {
   const path = `/actuator/metrics/${id}`;
   let result = await get(path)
     .then((data) => {

@@ -71,3 +71,46 @@ export type Profile = {
 };
 
 export type Auth = { user: string; pwd: string };
+
+/**
+ * Type for /actuator response
+ *
+ * Seems HAL API
+ */
+interface Link {
+  href: string;
+  templated?: boolean;
+}
+
+interface Links {
+  [key: string]: Link;
+}
+
+export interface HALResponse {
+  _links: Links;
+}
+
+/**
+ * Types for /actuator/metric response.
+ */
+type Measurement = {
+  statistic: string;
+  value: number;
+};
+
+type AvailableTag = {
+  tag: string;
+  values: string[];
+};
+
+export type Metric = {
+  name: string;
+  description: string;
+  baseUnit: string;
+  measurements: Measurement[];
+  availableTags: AvailableTag[];
+  searchWords: string;
+  _display: boolean;
+};
+
+export type Metrics = Metric[];
