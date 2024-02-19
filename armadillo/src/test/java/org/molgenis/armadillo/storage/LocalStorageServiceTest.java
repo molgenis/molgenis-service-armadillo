@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -190,36 +189,6 @@ class LocalStorageServiceTest {
     assertEquals(objectPathMock, localStorageService.getPathIfObjectExists(bucket, object));
     mockedPaths.close();
     mockedFiles.close();
-  }
-
-  @Test
-  void testGetUnavailableVariables() throws IOException {
-    String bucket = "my-bucket";
-    String object = "my-object";
-    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
-    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
-    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
-    Path bucketPathMock = mock(Path.class);
-    Path objectPathMock = mock(Path.class);
-    when(Paths.get(localStorageService.rootDir, bucket, object + ".parquet")
-            .toAbsolutePath()
-            .normalize())
-        .thenReturn(objectPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
-        .thenReturn(bucketPathMock);
-    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
-        .thenReturn(bucketPathMock);
-    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
-    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
-    when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
-    when(ParquetUtils.getColumns(objectPathMock)).thenReturn(List.of("var1", "var2"));
-    List<String> unavailableVariables =
-        localStorageService.getUnavailableVariables(bucket, object, "var1,var2,var3");
-    assertEquals(unavailableVariables, List.of("var3"));
-    mockedPaths.close();
-    mockedFiles.close();
-    mockedParquetUtils.close();
   }
 
   @Test

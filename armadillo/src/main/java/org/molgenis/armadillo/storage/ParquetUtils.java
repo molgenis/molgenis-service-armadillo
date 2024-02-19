@@ -6,9 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.IntStream;
 import org.apache.parquet.column.page.PageReadStore;
-import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.example.data.simple.convert.GroupRecordConverter;
 import org.apache.parquet.hadoop.ParquetFileReader;
@@ -26,8 +24,7 @@ public class ParquetUtils {
       MessageType schema = reader.getFooter().getFileMetaData().getSchema();
       MessageColumnIO columnIO = new ColumnIOFactory().getColumnIO(schema);
       PageReadStore store = reader.readNextRowGroup();
-      RecordReader<Group> recordReader =
-          columnIO.getRecordReader(store, new GroupRecordConverter(schema));
+      RecordReader recordReader = columnIO.getRecordReader(store, new GroupRecordConverter(schema));
       int fieldSize = schema.getFields().size();
       for (int i = 0; i < rowLimit; i++) {
         SimpleGroup group = (SimpleGroup) recordReader.read();
@@ -43,16 +40,6 @@ public class ParquetUtils {
       }
     }
     return result;
-  }
-
-  public static List<String> getColumns(Path path) throws IOException {
-    LocalInputFile file = new LocalInputFile(path);
-    try (ParquetFileReader reader = ParquetFileReader.open(file)) {
-      var schema = reader.getFooter().getFileMetaData().getSchema();
-      return IntStream.range(0, schema.getFieldCount()).mapToObj(schema::getFieldName).toList();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {

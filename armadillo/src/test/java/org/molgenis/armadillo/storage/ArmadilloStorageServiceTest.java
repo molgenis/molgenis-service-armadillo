@@ -31,7 +31,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.exceptions.DuplicateObjectException;
+import org.molgenis.armadillo.exceptions.InvalidProjectNameException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
+import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -563,81 +566,6 @@ class ArmadilloStorageServiceTest {
     verify(storageService)
         .save(argument.capture(), eq(SYSTEM), eq(METADATA_FILE), eq(APPLICATION_JSON));
     assertEquals(testValue, new String(argument.getValue().readAllBytes()));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObject() {
-    mockExistingObject(SHARED_GECKO, "1_0_release_1_1/gecko.parquet");
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
-    assertDoesNotThrow(
-        () ->
-            armadilloStorage.createLinkedObject(
-                "gecko", "1_0_release_1_1/gecko", "folder/my_link", "diabetes", "a,b,c"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObjectUnknownSrcObj() {
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
-    assertThrows(
-        UnknownObjectException.class,
-        () ->
-            armadilloStorage.createLinkedObject(
-                "gecko", "1_0_release_1_1/gecko", "folder/my_link", "diabetes", "a,b,c"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObjectUnknownSrcProject() {
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES));
-    assertThrows(
-        UnknownProjectException.class,
-        () ->
-            armadilloStorage.createLinkedObject(
-                "gecko", "1_0_release_1_1/gecko", "folder/my_link", "diabetes", "a,b,c"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObjectUnknownLinkProject() {
-    mockExistingObject(SHARED_GECKO, "1_0_release_1_1/gecko.parquet");
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO));
-    assertThrows(
-        UnknownProjectException.class,
-        () ->
-            armadilloStorage.createLinkedObject(
-                "gecko", "1_0_release_1_1/gecko", "folder/my_link", "diabetes", "a,b,c"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObjectDupLinkFile() {
-    String obj = "folder/my_link";
-    String obj_file = obj + ".alf";
-    mockExistingObject(SHARED_GECKO, "1_0_release_1_1/gecko.parquet");
-    mockExistingObject(SHARED_DIABETES, obj_file);
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
-    when(storageService.objectExists(SHARED_DIABETES, obj_file)).thenReturn(true);
-    assertThrows(
-        DuplicateObjectException.class,
-        () ->
-            armadilloStorage.createLinkedObject(
-                "gecko", "1_0_release_1_1/gecko", obj, "diabetes", "a,b,c"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
-  void testCreateLinkedObjectUnavailableVars() throws IOException {
-    String obj = "folder/my_link";
-    String srcObj = "1_0_release_1_1/gecko";
-    mockExistingObject(SHARED_GECKO, srcObj + ".parquet");
-    when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
-    when(storageService.getUnavailableVariables(SHARED_GECKO, srcObj, "a,b,c,x,y,z"))
-        .thenReturn(List.of("x,y,z"));
-    assertThrows(
-        UnknownVariableException.class,
-        () -> armadilloStorage.createLinkedObject("gecko", srcObj, obj, "diabetes", "a,b,c,x,y,z"));
   }
 
   @Test
