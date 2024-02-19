@@ -79,7 +79,7 @@ armadillo.upload_table(study, "2_1-core-1_0", subset_core_yearlyrep, "yearlyrep"
 # See if tables are uploaded
 armadillo.list_tables(study)
 
-# Now you can also take a look at the files in the user interface of the Armadillo server. In this case: https://armadillo-minio.test.molgenis.org
+# Now you can also take a look at the files in the user interface of the Armadillo server. In this case: https://armadillo.test.molgenis.org/#/projects
 
 # > !IMPORTANT: run this part after subsetting the data
 
