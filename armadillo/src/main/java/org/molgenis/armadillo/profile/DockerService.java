@@ -40,7 +40,7 @@ public class DockerService {
   private final DockerClient dockerClient;
   private final ProfileService profileService;
 
-  @Value("${armadillo.docker-run-in-container:true}")
+  @Value("${armadillo.docker-run-in-container:false}")
   private boolean inContainer;
 
   @Value("${armadillo.container-prefix:''}")
