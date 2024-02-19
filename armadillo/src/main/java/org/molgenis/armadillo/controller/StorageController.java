@@ -1,8 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.apache.logging.log4j.util.Strings.concat;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -24,10 +22,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -149,57 +145,6 @@ public class StorageController {
         principal,
         COPY_OBJECT,
         Map.of(PROJECT, project, "from", object, "to", requestBody.name()));
-  }
-
-  @Operation(
-      summary = "Create a view from an existing table in another project",
-      description =
-          "The view you're creating will be a symbolic link to selected variables of an existing table. It will"
-              + "look and respond like a table, but it will not take up duplicated resources")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Link successfully created"),
-        @ApiResponse(responseCode = "404", description = "Unknown project or object"),
-        @ApiResponse(responseCode = "409", description = "Object already exists"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-      })
-  @PostMapping(
-      value = "/projects/{project}/objects/link",
-      consumes = {APPLICATION_JSON_VALUE})
-  @ResponseStatus(NO_CONTENT)
-  public void createLinkedObject(
-      Principal principal,
-      @PathVariable String project,
-      @RequestBody LinkedObjectRequestBody requestBody) {
-    var variableList =
-        Optional.ofNullable(requestBody.variables()).map(it -> it.split(",")).stream()
-            .flatMap(Arrays::stream)
-            .map(String::trim)
-            .toList();
-    auditor.audit(
-        () -> {
-          try {
-            storage.createLinkedObject(
-                requestBody.sourceProject(),
-                requestBody.sourceObjectName(),
-                requestBody.linkedObject(),
-                project,
-                requestBody.variables());
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        principal,
-        CREATE_LINKED_OBJECT,
-        Map.of(
-            PROJECT,
-            project,
-            OBJECT,
-            requestBody.linkedObject() + LINK_FILE,
-            "source",
-            concat(concat(project, "/"), requestBody.linkedObject()),
-            "columns",
-            variableList));
   }
 
   @Operation(
