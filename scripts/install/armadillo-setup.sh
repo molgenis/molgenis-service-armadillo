@@ -110,7 +110,7 @@ setup_environment() {
 setup_systemd() {
   cat  > /etc/systemd/system/armadillo.service << EOF
 [Unit]
-Description=DataSHIELD Armadillo 3
+Description=DataSHIELD Armadillo 4
 After=syslog.target
 
 [Service]

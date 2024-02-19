@@ -17,8 +17,7 @@ library(MolgenisArmadillo)
 ?armadillo.login
 
 armadillo.login(
-  armadillo = "https://armadillo.test.molgenis.org",
-  minio = "https://armadillo-minio.test.molgenis.org"
+  armadillo = "https://armadillo.test.molgenis.org"
 )
 #token <- armadillo.get_token("https://armadillo.test.molgenis.org")
 
