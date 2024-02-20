@@ -542,7 +542,7 @@ verify_ne_lht_class <- function(){
 
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediation"))
+show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient"))
 
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
