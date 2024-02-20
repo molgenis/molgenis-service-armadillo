@@ -55,7 +55,7 @@ profile_defaults = data.frame(
   port = c("", ""),
   # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
   # Not adding dsBase since that is always(?) required
-  whitelist = c("resourcer", "dsMediation"),
+  whitelist = c("resourcer,dsMediation", ""),
   blacklist = c("", "")
 )
 
