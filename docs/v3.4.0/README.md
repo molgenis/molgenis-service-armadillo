@@ -59,9 +59,15 @@ apt install docker.io
 Note: you might need 'sudo'
 
 #### 2. Run installation script
+
+> Download [./scripts/armadillo-setup.sh](./scripts/armadillo-setup.sh) or use it's URL to wget it from the server.
+
+Run wget with URL from above
+```
+wget URL
+```
 This step will install most recent [release](https://github.com/molgenis/molgenis-service-armadillo/releases):
 ```
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
 bash armadillo-setup.sh \
     --admin-user admin \
     --admin-password xxxxx 
@@ -201,8 +207,8 @@ This step will copy Armadillo 2 data from minio into the folder matching of an A
 
 ```
 mkdir data
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-minio.py  
-python3 migrate-minio.py  --minio http://localhost:9000 --target data  
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v3.4.0/scripts/migrate-minio.py
+python3 migrate-minio.py  --minio http://localhost:9000 --target data
 ```
 
 N.B.: when aiming running armadillo as a service this folder should be /usr/share/armadillo/data
@@ -229,8 +235,8 @@ chown armadillo:armadillo -R data
 If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
 They will use:
 ```
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/migrate-auth.py 
-python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080 
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v3.4.0/scripts/migrate-auth.py
+python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo http://localhost:8080
 ```
 
 ### How to run previous armadillo 2?
