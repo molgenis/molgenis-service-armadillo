@@ -55,6 +55,7 @@ warnings()
 
 library("devtools")
 install_github("datashield/dsBaseClient")
-install_github("datashield/dsMediationClient")
+install_github("https://github.com/transbioZI/dsMTLClient")
+
 #check if all packages are installed
 cli_alert_success("All packages are installed")
