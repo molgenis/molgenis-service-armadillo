@@ -32,6 +32,7 @@ armadillo:
         - dsBase
         - resourcer
         - dsMediation
+        - dsMTLBase
       function-blacklist: [ ]
       options:
         datashield:

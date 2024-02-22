@@ -42,6 +42,7 @@ library(DSMolgenisArmadillo)
 library(resourcer)
 
 library(dsMediationClient)
+library(dsMTLClient)
 
 # set when admin password given + question answered with y
 update_auto = ""
@@ -55,7 +56,7 @@ profile_defaults = data.frame(
   port = c("", ""),
   # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
   # Not adding dsBase since that is always(?) required
-  whitelist = c("resourcer,dsMediation", ""),
+  whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
   blacklist = c("", "")
 )
 
@@ -540,9 +541,53 @@ verify_ne_lht_class <- function(){
 
 }
 
+prepare_data_for_lasso <- function(){
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(5, 9, 13, 17),
+    newobj = "x_df")
+
+  ds.asDataMatrix("x_df", "x_mat")
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(21),
+    newobj = "y_df")
+
+  ds.asDataMatrix("y_df", "y_mat")
+
+}
+
+verify_lasso_cov_train_output <- function(){
+
+  lasso_results <- ds.LassoCov_Train(
+    X = "x_mat",
+    Y = "y_mat",
+    type = "regress",
+    lambda = 298.9465,
+    covar = 1,
+    nDigits = 4,
+    datasources = conns)
+
+  if(identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))){
+    cli_alert_success("ds.LassoCov_Train passed")
+    } else{
+    cli_alert_danger("ds.LassoCov_Train failed")
+    exit_test("ds.LassoCov_Train did not return an object with expected names")
+    }
+
+  }
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient"))
+show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
 
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
@@ -921,6 +966,15 @@ verify_ne_weight_class()
 verify_ne_model_class()
 verify_ne_imp_class()
 verify_ne_lht_class()
+
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+
+conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+
+prepare_data_for_lasso()
+verify_lasso_cov_train_output()
 
 datashield.logout(conns)
 
