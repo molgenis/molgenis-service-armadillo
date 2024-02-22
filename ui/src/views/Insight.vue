@@ -1,50 +1,67 @@
 <template>
-  <h2>Insight</h2>
-  <!-- FIXME: Cannot use tabs as it
-    uses router views but we have sub views.
-    <Tabs :menu="tabs" :icons="tabIcons" />
-  -->
-  <div class="row">
-    <div class="col">
-      <div class="btn-group" role="group" aria-label="Basic outlined example">
-        <button
-          v-for="(tab, index) in tabs"
-          :key="index"
-          class="btn"
-          :class="{
-            active: currentTab === index,
-            'btn-primary': currentTab === index,
-            'btn-secondary': currentTab !== index,
-          }"
-          @click="currentTab = index"
-        >
-          {{ tab }}
-        </button>
-      </div>
+  <div class="row mt-3">
+    <div class="col-2">
+      <h2>Insight</h2>
     </div>
-    <div>
-      <div v-show="currentTab === 0">
+  </div>
+  <div class="row">
+    <div class="col-2">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a
+            class="nav-link btn text-start"
+            :class="currentTab == 0 ? 'active' : ''"
+            aria-current="page"
+            @click="currentTab = 0"
+            ><i class="bi bi-file-earmark-binary"></i> Logs</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link btn text-start"
+            :class="currentTab == 1 ? 'active' : ''"
+            @click="currentTab = 1"
+            ><i class="bi bi-hdd-stack-fill"></i> Metrics</a
+          >
+        </li>
+        <!-- <li class="nav-item">
+          <a class="nav-link btn text-start" :class="currentTab == 2 ? 'active' : ''"><i class="bi bi-clipboard2-data-fill" disabled></i> Dashboard</a>
+        </li> -->
+      </ul>
+    </div>
+    <div class="col-10 p-2 border">
+      <div v-if="currentTab === 0">
         <RemoteFiles />
       </div>
-      <div v-show="currentTab === 1">
+      <div v-else-if="currentTab === 1">
         <Actuator />
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import Actuator from "@/components/Actuator.vue";
 import RemoteFiles from "@/components/RemoteFiles.vue";
-import { ref } from "vue";
 
-let currentTab = ref(0);
-const tabs = ["Files", "Server metrics"];
+export default {
+  name: "Insight",
+  components: {
+    Actuator,
+    RemoteFiles,
+  },
+  data() {
+    return {
+      currentTab: 0,
+      loading: false,
+    };
+  },
+};
 </script>
 
-<style scoped>
-.active {
-  border: 2p solid red;
-  /* Styles for active tab */
+<style :scoped>
+.nav-link.active {
+  color: black;
+  font-weight: bold;
 }
 </style>

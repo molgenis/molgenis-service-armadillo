@@ -1,55 +1,5 @@
-<script setup lang="ts">
-const props = defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
-  data: {
-    type: Object,
-    required: true,
-  },
-});
-
-/**
- * Convert given bytes to 2 digits precision round exponent version string.
- * @param bytes number
- */
-function convertBytes(bytes: number): string {
-  const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
-  let unitIndex = 0;
-
-  while (bytes >= 1024 && unitIndex < units.length - 1) {
-    bytes /= 1024;
-    unitIndex++;
-  }
-
-  return `${bytes.toFixed(2)} ${units[unitIndex]}`;
-}
-
-/*
-{
-   "name": "application.ready.time",
-   "description": "Time taken for the application to be ready to service requests",
-   "baseUnit": "seconds",
-   "measurements": [
-      {
-         "statistic": "VALUE",
-         "value": 2.649
-      }
-   ],
-   "availableTags": [
-      {
-         "tag": "main.application.class",
-         "values": [
-            "org.molgenis.armadillo.ArmadilloServiceApplication"
-         ]
-      }
-   ]
-}
-*/
-</script>
 <template>
-  <tr v-if="data._display" v-for="(v, k) in data.measurements">
+  <tr v-for="(v, k) in data.measurements">
     <td scope="col">{{ k }}</td>
     <td :title="data.description">
       <span>
@@ -63,7 +13,7 @@ function convertBytes(bytes: number): string {
     </td>
     <td v-else>{{ v.value }} {{ data.baseUnit }}</td>
   </tr>
-  <tr v-if="data._display">
+  <tr>
     <td colspan="5">
       <summary>
         <details>
@@ -75,3 +25,38 @@ function convertBytes(bytes: number): string {
     </td>
   </tr>
 </template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  name: "ActuatorItem",
+  props: {
+    name: {
+      type: Number,
+      required: true,
+    },
+    data: {
+      type: Object,
+      required: true,
+    },
+  },
+  methods: {
+    /**
+     * Convert given bytes to 2 digits precision round exponent version string.
+     * @param bytes number
+     */
+    convertBytes(bytes: number): string {
+      const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
+      let unitIndex = 0;
+
+      while (bytes >= 1024 && unitIndex < units.length - 1) {
+        bytes /= 1024;
+        unitIndex++;
+      }
+
+      return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+    },
+  },
+});
+</script>
