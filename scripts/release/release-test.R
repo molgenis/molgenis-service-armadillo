@@ -829,6 +829,17 @@ armadillo.upload_table(project1, "1_1-outcome-1_0", nonrep)
 armadillo.upload_table(project1, "1_1-outcome-1_0", yearlyrep)
 cli_alert_success("Uploaded files into outcome")
 
+cli_alert_info("Reading parquet files for survival variables")
+veteran <- arrow::read_parquet(paste0(dest, "survival/veteran.parquet"))
+
+cli_alert_info("Logging in as admin user")
+armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+
+cli_alert_info("Uploading survival test table")
+armadillo.upload_table(project1, "survival", veteran)
+rm(veteran)
+cli_alert_success("Uploaded files into survival")
+
 cli_alert_info("Checking if colnames of trimesterrep available")
 trimesterrep <- armadillo.load_table(project1, "2_1-core-1_0", "trimesterrep")
 cols <- c("row_id","child_id","age_trimester","smk_t","alc_t")
@@ -868,9 +879,9 @@ cli_alert_info(sprintf("Creating project [%s]", omics_project))
 armadillo.create_project(omics_project)
 rda_file_body <- upload_file(rda_dir)
 cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
-system.time({
-  post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
-})
+# system.time({
+#   post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
+# })
 cli_alert_info("Creating resource")
 
 
@@ -975,6 +986,10 @@ conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep"
 
 prepare_data_for_lasso()
 verify_lasso_cov_train_output()
+
+cli_alert_info("Testing dsSurvival")
+source("xenon-survival.R")
+
 
 datashield.logout(conns)
 

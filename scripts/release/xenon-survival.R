@@ -1,0 +1,109 @@
+create_survival_object <- function(){
+
+  dsSurvivalClient::ds.Surv(
+    time='survival$time',
+    event = 'survival$status',
+    objectname='surv_object')
+
+}
+
+verify_survival_class <- function(){
+
+  surv_class <- ds.class("surv_object")
+
+  if(surv_class$armadillo == "Surv"){
+    cli_alert_success("ds.survival passed")
+  } else{
+    cli_alert_danger("ds.survival failed")
+    exit_test("ds.survival did not create a serverside object with the expected class")
+  }
+
+}
+
+verify_cox_output <- function(){
+
+  cox_output <- dsSurvivalClient::ds.coxph.SLMA(formula = 'surv_object~survival$age')
+  expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients",
+                      "conf.int", "logtest", "sctest", "rsq", "waldtest", "used.robust", "concordance")
+
+  if(identical(names(cox_output$armadillo), expected_names)){
+    cli_alert_success("ds.coxph.SLMA passed")
+  } else{
+    cli_alert_danger("ds.coxph.SLMA failed")
+    exit_test("ds.coxph.SLMA did not create a list with the expected elements")
+  }
+
+}
+
+verify_cox_phSLMAassign_class <- function(){
+
+  dsSurvivalClient::ds.coxphSLMAassign(formula = 'surv_object~survival$age',
+                                       objectname = 'coxph_serverside')
+
+  cox_class <- ds.class("coxph_serverside")
+
+  if(cox_class$armadillo == "coxph"){
+    cli_alert_success("ds.coxphSLMAassign passed")
+  } else{
+    cli_alert_danger("ds.coxphSLMAassign failed")
+    exit_test("ds.coxphSLMAassign did not create a serverside object with the expected class")
+  }
+
+}
+
+verify_cox_zphSLMA_object <- function(){
+
+  hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(fit = 'coxph_serverside')
+  expected_names <- c("table", "var", "transform", "call")
+
+  if(identical(names(hazard_assumption$armadillo), expected_names)){
+    cli_alert_success("ds.cox.zphSLMA passed")
+  } else{
+    cli_alert_danger("ds.cox.zphSLMA failed")
+    exit_test("ds.cox.zphSLMA did not create a list with the expected elements")
+  }
+
+}
+
+verify_cox_phsummary <- function(){
+
+  hazard_summary <- dsSurvivalClient::ds.coxphSummary(x = 'coxph_serverside')
+  expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients",
+                      "conf.int", "logtest", "sctest", "rsq", "waldtest", "used.robust", "concordance")
+
+  if(identical(names(hazard_summary$armadillo), expected_names)){
+    cli_alert_success("ds.coxphSummary passed")
+  } else{
+    cli_alert_danger("ds.coxphSummary failed")
+    exit_test("ds.coxphSummary did not create a list with the expected elements")
+  }
+
+}
+
+library(dsSurvivalClient)
+
+logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/survival/veteran", project1))
+cli_alert_info(sprintf("Login with profile [%s] and table: [%s/survival/veteran]", profile, project1))
+conns <- datashield.login(logins = logindata, symbol = "survival", assign = TRUE)
+
+cli_alert_info("Creating survival object")
+create_survival_object()
+cli_alert_success("Survival object created")
+
+cli_alert_info("Creating survival object")
+create_survival_object()
+
+cli_alert_info("Checking ds.Surv")
+verify_survival_class()
+
+cli_alert_info("Checking ds.coxph.SLMA")
+verify_cox_output()
+
+cli_alert_info("Checking ds.coxphSLMAassign")
+verify_cox_phSLMAassign_class()
+
+cli_alert_info("Checking ds.cox.zphSLMA")
+verify_cox_zphSLMA_object()
+
+cli_alert_info("Checking ds.coxphSummary")
+verify_cox_phsummary()
