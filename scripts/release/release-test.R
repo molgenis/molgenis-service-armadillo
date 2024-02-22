@@ -967,16 +967,11 @@ verify_ne_model_class()
 verify_ne_imp_class()
 verify_ne_lht_class()
 
-token_1 <- armadillo.get_token(armadillo_url)
-token_2 <- armadillo.get_token(armadillo_url)
-
-logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token_1, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token_2, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
 
 conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
-
-ds.ls()
 
 prepare_data_for_lasso()
 verify_lasso_cov_train_output()
