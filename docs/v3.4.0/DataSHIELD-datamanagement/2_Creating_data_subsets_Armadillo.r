@@ -24,7 +24,8 @@ library(dplyr)
 # A browser window will be opened where you can identify yourself with the ID provider.
 
 armadillo.login(
-  armadillo = "https://armadillo.test.molgenis.org"
+  armadillo = "https://armadillo.test.molgenis.org",
+  minio = "https://armadillo-minio.test.molgenis.org"
 )
 # A session will be created and the credentials are stored in the environment.
 
@@ -32,7 +33,7 @@ armadillo.login(
 # Let's assume you are in a consortium which has core-variables and outcome-variables. 
 # You want to share a subset of the whole data set with certain researchers that applied for access to your data.
 
-# List projects on the Armadillo server.
+# List projects on the MinIO file server
 armadillo.list_projects()
 
 # Next create a study, here called 'subset1'.
@@ -79,7 +80,7 @@ armadillo.upload_table(study, "2_1-core-1_0", subset_core_yearlyrep, "yearlyrep"
 # See if tables are uploaded
 armadillo.list_tables(study)
 
-# Now you can also take a look at the files in the user interface of the Armadillo server. In this case: https://armadillo.test.molgenis.org/#/projects
+# Now you can also take a look at the files in the user interface of the MinIO file server. In this case: https://armadillo-minio.test.molgenis.org
 
 # > !IMPORTANT: run this part after subsetting the data
 

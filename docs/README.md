@@ -11,3 +11,10 @@ service provides the following features:
 
 ![DataSHIELD overview](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/docs/img/overview-datashield.png)
 
+## Older versions
+
+<ul>
+  <li>
+    <a href="./v3.4.0/index.html">v3.4.0</a>
+  </li>
+</ul>

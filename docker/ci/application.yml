@@ -31,6 +31,8 @@ armadillo:
       package-whitelist:
         - dsBase
         - resourcer
+        - dsMediation
+        - dsMTLBase
       function-blacklist: [ ]
       options:
         datashield:

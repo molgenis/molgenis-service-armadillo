@@ -1,4 +1,4 @@
-# Molgenis Armadillo <small>4</small>
+# Molgenis Armadillo <small>3</small>
 
 ![logo](img/armadillo-logo.png)
 
