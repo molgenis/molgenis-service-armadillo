@@ -877,6 +877,7 @@ cli_h2("Creating linked view on table")
 #TODO: replace with R code once that is created and released
 auth_header <- get_auth_header(auth_type, token)
 link_project <- generate_random_project_name(available_projects)
+armadillo.create_project(link_project)
 srcObj <- "core/nonrep"
 srcProject <- "lifecycle"
 linkObj <- "core-variables/nonrep"
@@ -885,7 +886,6 @@ json_body <- jsonlite::toJSON(
        sourceProject = srcProject,
        linkedObject = linkObj,
        variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
-armadillo.create_project(link_project)
 post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
 response <- POST(post_url,
                  body=json_body,
