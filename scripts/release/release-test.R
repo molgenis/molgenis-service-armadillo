@@ -41,6 +41,9 @@ library(DSMolgenisArmadillo)
 
 library(resourcer)
 
+library(dsMediationClient)
+library(dsMTLClient)
+
 # set when admin password given + question answered with y
 update_auto = ""
 do_run_spinner <- TRUE
@@ -53,7 +56,7 @@ profile_defaults = data.frame(
   port = c("", ""),
   # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
   # Not adding dsBase since that is always(?) required
-  whitelist = c("resourcer", ""),
+  whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
   blacklist = c("", "")
 )
 
@@ -449,9 +452,142 @@ verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_t
   }
 }
 
+verify_mediate_class <- function(){
+
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+  newobj = 'med.fit.1a')
+
+  ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex', family = 'gaussian',dataName = 'core_nonrep',
+  newobj = 'out.fit.1a')
+
+  med_out <- ds.mediate(model.m = 'med.fit.1a', model.y = 'out.fit.1a', treat = "ethn3_m", mediator = "agebirth_m_y",
+  boot = FALSE, conf.level = 0.95, robustSE = TRUE, sims = 100, seed = 123, newobj = 'med.out.1a')
+
+  med_class <- ds.class("med.out.1a")
+
+  if(med_class == "mediate"){
+    cli_alert_success("ds.mediate passed")
+  } else{
+    cli_alert_danger("ds.mediate failed")
+    exit_test("ds.mediate did not return the expected class")
+    }
+}
+
+verify_ne_weight_class <- function(){
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+             newobj = 'med.fit.1b')
+
+  ds.neWeight(object = 'med.fit.1b', newobj = 'expData')
+
+  med_class <- ds.class("expData")
+
+  if(identical(med_class$armadillo, c("data.frame", "expData", "weightData"))){
+    cli_alert_success("ds.neWeight passed")
+  } else{
+    cli_alert_danger("ds.neWeight failed")
+    exit_test("ds.neWeight did not return the expected class")
+  }
+
+}
+
+verify_ne_model_class <- function(){
+
+  med.out.1b <- ds.neModel(formula = 'preg_dia ~ ethn3_m0 + ethn3_m1 + sex',
+                           family = 'gaussian', se = 'robust', expData = 'expData',
+                           newobj = 'med.out.1b')
+
+  med_class <- ds.class("med.out.1b")
+
+  if(med_class == "neModel"){
+    cli_alert_success("ds.neModel passed")
+  } else{
+    cli_alert_danger("ds.neModel failed")
+    exit_test("ds.neModel did not return the expected class")
+
+  }
+
+}
+
+verify_ne_imp_class <- function(){
+
+  out.fit.1c <- ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex',
+                           family = 'gaussian', dataName = 'core_nonrep', newobj ='out.fit.1c')
+
+  ds.neImpute(object = 'out.fit.1c', nMed = 1, newobj = 'impData')
+
+  med_class <- ds.class("impData")
+
+  if(identical(med_class$armadillo, c("data.frame", "expData", "impData"))){
+    cli_alert_success("ds.neImpute passed")
+  } else{
+    cli_alert_danger("ds.neImpute failed")
+    exit_test("ds.neImpute did not return the expected class")
+  }
+
+}
+
+verify_ne_lht_class <- function(){
+
+  lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c('ethn3_m0=0', 'ethn3_m1=0', 'ethn3_m0+ethn3_m1=0'))
+
+  med_class <- class(lht.out.1b$armadillo)
+
+  if(med_class == "summary.neLht"){
+    cli_alert_success("ds.neLht passed")
+  } else{
+    cli_alert_danger("ds.neLht failed")
+    exit_test("ds.neLht did not return the expected class")
+  }
+
+}
+
+prepare_data_for_lasso <- function(){
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(5, 9, 13, 17),
+    newobj = "x_df")
+
+  ds.asDataMatrix("x_df", "x_mat")
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(21),
+    newobj = "y_df")
+
+  ds.asDataMatrix("y_df", "y_mat")
+
+}
+
+verify_lasso_cov_train_output <- function(){
+
+  lasso_results <- ds.LassoCov_Train(
+    X = "x_mat",
+    Y = "y_mat",
+    type = "regress",
+    lambda = 298.9465,
+    covar = 1,
+    nDigits = 4,
+    datasources = conns)
+
+  if(identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))){
+    cli_alert_success("ds.LassoCov_Train passed")
+    } else{
+    cli_alert_danger("ds.LassoCov_Train failed")
+    exit_test("ds.LassoCov_Train did not return an object with expected names")
+    }
+
+  }
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer"))
+show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
 
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
@@ -866,6 +1002,21 @@ cli_alert_info("Validating histogram density")
 compare_list_values(hist$density, density)
 cli_alert_info("Validating histogram mids")
 compare_list_values(hist$mids, mids)
+
+verify_mediate_class()
+verify_ne_weight_class()
+verify_ne_model_class()
+verify_ne_imp_class()
+verify_ne_lht_class()
+
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+
+conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+
+prepare_data_for_lasso()
+verify_lasso_cov_train_output()
 
 datashield.logout(conns)
 
