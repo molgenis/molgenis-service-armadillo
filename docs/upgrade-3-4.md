@@ -121,6 +121,8 @@ ls -ltr /usr/share/armadillo/application/
 
 ### 4.1 application.yml
 
+NOTE: We do have a template application.yml. To compare the latest template to your configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section, but if you have trouble doing that, you could try the following first:
+
 Edit the application.yml:
 ```bash
 nano /etc/armadillo/application.yml
@@ -225,14 +227,12 @@ almost finished.
 ## 7. Update profiles
 Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`. 
 
-1. Stop the xenon profile. 
-2. Stop the default profile.
-3. Edit the default profile. 
-4. Change the "image" to `datashield/rock-base:latest` and save. 
-5. Start the default profile.
-6. Edit the "xenon" profile.
-7. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-8. Start the xenon profile. 
+1. Edit the default profile. 
+2. Change the "image" to `datashield/rock-base:latest` and save. 
+3. Start the default profile.
+4. Edit the "xenon" profile.
+5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
+6. Start the xenon profile. 
 
 Everything should be working fine now. You can try and login to your server via the central analysis server, using
 the `DSMolgenisArmadillo` (2.0.5 or up) package to test. 
