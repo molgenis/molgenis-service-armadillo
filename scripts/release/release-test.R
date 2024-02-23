@@ -891,7 +891,7 @@ response <- POST(post_url,
                  body=json_body,
                  encode="json",
                  config = c(httr::content_type_json(), httr::add_headers(auth_header)))
-if (!response$status_code == 204) {
+if (response$status_code != 204) {
   exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, srcProject, srcObj, response$status_code))
 } else {
   cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, srcProject, srcObj))
