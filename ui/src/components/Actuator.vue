@@ -8,6 +8,7 @@ import { ObjectWithStringKey } from "@/types/types";
 
 const actuator = ref<HalLinks>();
 const metrics = ref<Metrics>([]);
+const isLoading = ref<boolean>(true);
 
 const loadActuator = async () => {
   let result = (await getActuator())["_links"];
@@ -90,13 +91,19 @@ function removeFields(json: Metrics) {
 }
 </script>
 <template>
-  <button class="btn btn-primary" v-if="metrics" @click="downloadMetrics">
-    <i class="bi bi-box-arrow-down"></i>
-    Download metrics
-  </button>
-  <div class="row">
+<div>
+  <div class="col mt-3" v-if="isLoading">
+    <LoadingSpinner />
+  </div>
+  <div class="row" v-else>
     <div class="col-sm-3">
       <SearchBar id="searchbox" v-model="filterValue" />
+    </div>
+    <div class="col">
+      <button class="btn btn-primary float-end" v-if="metrics" @click="downloadMetrics">
+        <i class="bi bi-box-arrow-down"></i>
+        Download metrics
+      </button>
     </div>
   </div>
   <table class="table">
@@ -142,4 +149,5 @@ function removeFields(json: Metrics) {
       </table>
     </details>
   </summary>
+</div>
 </template>
