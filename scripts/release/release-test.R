@@ -878,8 +878,7 @@ cli_h2("Creating linked view on table")
 auth_header <- get_auth_header(auth_type, token)
 link_project <- generate_random_project_name(available_projects)
 armadillo.create_project(link_project)
-srcObj <- "core/nonrep"
-srcProject <- "lifecycle"
+srcObj <- "2_1-core-1_0/nonrep"
 linkObj <- "core-variables/nonrep"
 json_body <- jsonlite::toJSON(
   list(sourceObjectName = srcObj,
@@ -892,9 +891,9 @@ response <- POST(post_url,
                  encode="json",
                  config = c(httr::content_type_json(), httr::add_headers(auth_header)))
 if (response$status_code != 204) {
-  exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, srcProject, srcObj, response$status_code))
+  exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s, message: %s", link_project, linkObj, project1, srcObj, response$status_code, response$message))
 } else {
-  cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, srcProject, srcObj))
+  cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
 }
 
 rds_url <- armadillo_url
