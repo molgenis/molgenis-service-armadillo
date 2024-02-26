@@ -65,13 +65,15 @@ Run `./gradlew tasks --group Release` to see all release tasks
 
 Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/distributions/).
 
-### Major, Minor, Patch updates
+### Commit messages and versioning (Major, Minor, Patch updates)
 
-Each commit with `!` just before the color `:` is a major update. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
+Each commit with `!` just before the colon `:` is a major update, indicating a breaking change. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
 
-- Use `feat!: ...` or `fix!: ...` for a major upgrade
-- Use `feat: ...` for a minor upgrade
-- Use `fix: ...` for a patch update
+- Use `feat!: ...` or `fix!: ...` for a major upgrade, indicating a breaking change.
+- Use `feat: ...` for a minor upgrade, indicating a new feature.
+- Use `fix: ...` for a patch update, indicating a bugfix.
+
+We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) in our repository. Please be aware that only new releases will be done when one of the above prefixes is used. Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
 
 ### Checking log messages
 
