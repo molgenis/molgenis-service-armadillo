@@ -3,9 +3,11 @@ import { getActuator, getMetricsAll } from "@/api/api";
 import { ref, watch } from "vue";
 import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
+import { Metrics, HalLinks } from "@/types/api";
+import { ObjectWithStringKey } from "@/types/types";
 
-const actuator = ref({});
-const metrics = ref({});
+const actuator = ref<HalLinks>();
+const metrics = ref<Metrics>([]);
 
 const loadActuator = async () => {
   let result = (await getActuator())["_links"];
@@ -27,7 +29,8 @@ const loadMetrics = async () => {
 
 loadMetrics();
 loadActuator();
-function downloadJSON(json, filename: string) {
+
+function downloadJSON(json: Metrics, filename: string) {
   const cleanedUp = removeFields(json);
   var dataStr =
     "data:text/json;charset=utf-8," +
@@ -59,7 +62,7 @@ const SEARCH_TEXT_FIELDS = "searchWords";
  */
 function filteredLines() {
   const filterOn: string = filterValue.value.toLowerCase();
-  for (let [key, value] of Object.entries(metrics.value)) {
+  for (let [_key, value] of Object.entries(metrics.value)) {
     if (!value[SEARCH_TEXT_FIELDS]) {
       // TODO: drop keys before stringify?
       value[SEARCH_TEXT_FIELDS] = JSON.stringify(value).toLowerCase();
@@ -74,11 +77,14 @@ function filteredLines() {
  *
  * @param json
  */
-function removeFields(json) {
-  const result = JSON.parse(JSON.stringify(json));
-  for (let [key, value] of Object.entries(result)) {
-    delete value[SEARCH_TEXT_FIELDS];
-    delete value[FIELD_DISPLAY];
+function removeFields(json: Metrics) {
+  // Copy object
+  const result: Metrics = JSON.parse(JSON.stringify(json));
+  for (let [_key, value] of Object.entries(result)) {
+    const wrapper: ObjectWithStringKey = value;
+
+    delete wrapper[SEARCH_TEXT_FIELDS];
+    delete wrapper[FIELD_DISPLAY];
   }
   return result;
 }

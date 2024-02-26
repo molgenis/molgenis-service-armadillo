@@ -9,7 +9,7 @@ import {
   RemoteFileInfo,
   RemoteFileDetail,
   Metric,
-  HALResponse,
+  HalResponse,
   Metrics,
 } from "@/types/api";
 
@@ -92,7 +92,7 @@ export async function handleResponse(response: Response) {
   }
 }
 
-export async function getActuator() {
+export async function getActuator(): Promise<HalResponse> {
   let result = await get("/actuator");
   return result;
 }
@@ -157,10 +157,6 @@ async function getMetrics() {
       console.error(`Error fetching ${path}`, error);
       return {};
     });
-}
-
-async function getActuators(): Promise<HALResponse> {
-  return await get("/actuator");
 }
 
 /**

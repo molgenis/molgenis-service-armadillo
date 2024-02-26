@@ -73,21 +73,21 @@ export type Profile = {
 export type Auth = { user: string; pwd: string };
 
 /**
- * Type for /actuator response
+ * Types for /actuator response
  *
  * Seems HAL API
  */
-interface Link {
+interface ActuatorLink {
   href: string;
   templated?: boolean;
 }
 
-interface Links {
-  [key: string]: Link;
+interface HalLinks {
+  [key: string]: ActuatorLink;
 }
 
-export interface HALResponse {
-  _links: Links;
+export interface HalResponse {
+  _links: HalLinks;
 }
 
 /**
