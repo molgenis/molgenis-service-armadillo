@@ -1,3 +1,71 @@
+<template>
+  <div class="row">
+    <div class="col mt-3" v-if="isLoading">
+      <LoadingSpinner />
+    </div>
+    <div class="col" v-else>
+      <div class="row">
+        <div class="col-sm-3">
+          <SearchBar id="searchbox" v-model="filterValue" />
+        </div>
+        <div class="col">
+          <button
+            class="btn btn-primary float-end"
+            v-if="metrics"
+            @click="downloadMetrics"
+          >
+            <i class="bi bi-box-arrow-down"></i>
+            Download metrics
+          </button>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th>key</th>
+            <th>statistic</th>
+            <th>value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ActuatorItem
+            v-for="(metric, path, index) in metrics"
+            :key="index"
+            :data="metric"
+            :name="path"
+          />
+        </tbody>
+      </table>
+      <hr />
+      <summary>
+        <h3>Other Actuator links</h3>
+        <details>
+          <table>
+            <thead>
+              <tr>
+                <td>key</td>
+                <td>href</td>
+                <td>templated</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in actuator">
+                <td>{{ item.key }}</td>
+                <td v-if="item.templated">{{ item.href }}</td>
+                <td v-if="!item.templated">
+                  <a :href="item.href" target="_new">{{ item.href }}</a>
+                </td>
+                <td>{{ item.templated }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </details>
+      </summary>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { getActuator, getMetricsAll } from "@/api/api";
 import { ref, watch } from "vue";
@@ -104,70 +172,3 @@ function removeFields(json: Metrics) {
   return result;
 }
 </script>
-<template>
-  <div class="row">
-    <div class="col mt-3" v-if="isLoading">
-      <LoadingSpinner />
-    </div>
-    <div class="col" v-else>
-      <div class="row">
-        <div class="col-sm-3">
-          <SearchBar id="searchbox" v-model="filterValue" />
-        </div>
-        <div class="col">
-          <button
-            class="btn btn-primary float-end"
-            v-if="metrics"
-            @click="downloadMetrics"
-          >
-            <i class="bi bi-box-arrow-down"></i>
-            Download metrics
-          </button>
-        </div>
-      </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th>key</th>
-            <th>statistic</th>
-            <th>value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ActuatorItem
-            v-for="(metric, path, index) in metrics"
-            :key="index"
-            :data="metric"
-            :name="path"
-          />
-        </tbody>
-      </table>
-      <hr />
-      <summary>
-        <h3>Other Actuator links</h3>
-        <details>
-          <table>
-            <thead>
-              <tr>
-                <td>key</td>
-                <td>href</td>
-                <td>templated</td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in actuator">
-                <td>{{ item.key }}</td>
-                <td v-if="item.templated">{{ item.href }}</td>
-                <td v-if="!item.templated">
-                  <a :href="item.href" target="_new">{{ item.href }}</a>
-                </td>
-                <td>{{ item.templated }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </details>
-      </summary>
-    </div>
-  </div>
-</template>
