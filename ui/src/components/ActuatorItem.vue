@@ -1,3 +1,31 @@
+<template>
+  <tr v-if="data._display" v-for="(v, k) in data.measurements">
+    <td scope="col">{{ k }}</td>
+    <td :title="data.description">
+      <span>
+        {{ data.name }}
+        <i v-if="data.description" class="bi bi-info-circle-fill"></i>
+      </span>
+    </td>
+    <td>{{ v.statistic }}</td>
+    <td v-if="data.baseUnit === 'bytes'">
+      {{ convertBytes(v.value) }}
+    </td>
+    <td v-else>{{ v.value }} {{ data.baseUnit }}</td>
+  </tr>
+  <tr v-if="data._display">
+    <td colspan="5">
+      <summary>
+        <details>
+          <pre>
+            {{ JSON.stringify(data, null, 3) }}
+          </pre>
+        </details>
+      </summary>
+    </td>
+  </tr>
+</template>
+
 <script setup lang="ts">
 const props = defineProps({
   name: {
@@ -48,30 +76,3 @@ function convertBytes(bytes: number): string {
 }
 */
 </script>
-<template>
-  <tr v-if="data._display" v-for="(v, k) in data.measurements">
-    <td scope="col">{{ k }}</td>
-    <td :title="data.description">
-      <span>
-        {{ data.name }}
-        <i v-if="data.description" class="bi bi-info-circle-fill"></i>
-      </span>
-    </td>
-    <td>{{ v.statistic }}</td>
-    <td v-if="data.baseUnit === 'bytes'">
-      {{ convertBytes(v.value) }}
-    </td>
-    <td v-else>{{ v.value }} {{ data.baseUnit }}</td>
-  </tr>
-  <tr v-if="data._display">
-    <td colspan="5">
-      <summary>
-        <details>
-          <pre>
-            {{ JSON.stringify(data, null, 3) }}
-          </pre>
-        </details>
-      </summary>
-    </td>
-  </tr>
-</template>
