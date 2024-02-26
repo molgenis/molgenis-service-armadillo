@@ -155,6 +155,6 @@ export function isEmptyObject(obj: Object) {
  *
  * @param input:Object
  */
-export function objectDeepCopy<T>(input:T):T {
+export function objectDeepCopy<T>(input: T): T {
   return JSON.parse(JSON.stringify(input));
 }
