@@ -57,7 +57,7 @@ We have several components
 
 ## Releasing
 
-We release through [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) which autoincrement using [Semantic versioning](https://semver.org/).
+Releases are done whenever the versionnumber gets bumped. For more information see the `Commit messages and versioning (Major, Minor, Patch updates)` section below.
 
 We use mooltiverse [Nyx](https://mooltiverse.github.io/nyx/guide/user/introduction/how-nyx-works/) for changelog and publishing to github.
 
@@ -67,13 +67,13 @@ Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/di
 
 ### Commit messages and versioning (Major, Minor, Patch updates)
 
+Versionnumbers are updated according to [Semantic versioning](https://semver.org/), using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). Please be aware that only new releases will be done when one of the above prefixes is used. Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
+
 Each commit with `!` just before the colon `:` is a major update, indicating a breaking change. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
 
 - Use `feat!: ...` or `fix!: ...` for a major upgrade, indicating a breaking change.
 - Use `feat: ...` for a minor upgrade, indicating a new feature.
 - Use `fix: ...` for a patch update, indicating a bugfix.
-
-We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) in our repository. Please be aware that only new releases will be done when one of the above prefixes is used. Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
 
 ### Checking log messages
 
