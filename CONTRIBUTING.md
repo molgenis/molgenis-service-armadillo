@@ -67,7 +67,11 @@ Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/di
 
 ### Commit messages and versioning (Major, Minor, Patch updates)
 
-Versionnumbers are updated according to [Semantic versioning](https://semver.org/), using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). Please be aware that only new releases will be done when one of the above prefixes is used. Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
+Versionnumbers are updated according to [Semantic versioning](https://semver.org/), using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). 
+
+Please be aware that only new releases will be done when one of the above prefixes is used. 
+
+Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
 
 Each commit with `!` just before the colon `:` is a major update, indicating a breaking change. So use it wisely. You can also add `BREAKING CHANGE:` in the long commit message format.
 
