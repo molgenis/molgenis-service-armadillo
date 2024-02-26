@@ -109,8 +109,8 @@ export type Metric = {
   baseUnit: string;
   measurements: Measurement[];
   availableTags: AvailableTag[];
-  searchWords: string;
-  _display: boolean;
+  searchWords?: string;
+  _display?: boolean;
 };
 
 export type Metrics = Metric[];

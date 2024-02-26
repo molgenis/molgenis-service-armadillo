@@ -22,6 +22,7 @@ const loadActuator = async () => {
   }
   actuator.value = list;
 };
+
 const loadMetrics = async () => {
   metrics.value = await getMetricsAll();
 
@@ -33,8 +34,8 @@ const loadMetrics = async () => {
 loadMetrics();
 loadActuator();
 
-function downloadJSON(json: Metrics, filename: string) {
-  const cleanedUp = removeFields(json);
+function downloadJSON(filename: string) {
+  const cleanedUp = removeFields(metrics.value);
   var dataStr =
     "data:text/json;charset=utf-8," +
     encodeURIComponent(JSON.stringify(cleanedUp));
@@ -47,7 +48,7 @@ function downloadJSON(json: Metrics, filename: string) {
 }
 
 function downloadMetrics() {
-  downloadJSON(metrics.value, "armadillo-metrics-" + new Date().toISOString());
+  downloadJSON("armadillo-metrics-" + new Date().toISOString());
 }
 
 const filterValue = ref("");
