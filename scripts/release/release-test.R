@@ -882,7 +882,7 @@ srcObj <- "2_1-core-1_0/nonrep"
 linkObj <- "core-variables/nonrep"
 json_body <- jsonlite::toJSON(
   list(sourceObjectName = srcObj,
-       sourceProject = srcProject,
+       sourceProject = project1,
        linkedObject = linkObj,
        variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
 post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
@@ -966,9 +966,9 @@ response <- httr::POST(
 )
 
 if (!response$status_code == 201) {
-  exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, srcProject, srcObj, response$status_code))
+  exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, project1, srcObj, response$status_code))
 } else {
-  cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, srcProject, srcObj, paste(variables, collapse = ", ")))
+  cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, project1, srcObj, paste(variables, collapse = ", ")))
 }
 
 cli_alert_info("Verifying connecting to profile possible")
