@@ -27,6 +27,28 @@
 </template>
 
 <script setup lang="ts">
+/*
+{
+   "name": "application.ready.time",
+   "description": "Time taken for the application to be ready to service requests",
+   "baseUnit": "seconds",
+   "measurements": [
+      {
+         "statistic": "VALUE",
+         "value": 2.649
+      }
+   ],
+   "availableTags": [
+      {
+         "tag": "main.application.class",
+         "values": [
+            "org.molgenis.armadillo.ArmadilloServiceApplication"
+         ]
+      }
+   ]
+}
+*/
+
 const props = defineProps({
   name: {
     type: String,
@@ -53,26 +75,4 @@ function convertBytes(bytes: number): string {
 
   return `${bytes.toFixed(2)} ${units[unitIndex]}`;
 }
-
-/*
-{
-   "name": "application.ready.time",
-   "description": "Time taken for the application to be ready to service requests",
-   "baseUnit": "seconds",
-   "measurements": [
-      {
-         "statistic": "VALUE",
-         "value": 2.649
-      }
-   ],
-   "availableTags": [
-      {
-         "tag": "main.application.class",
-         "values": [
-            "org.molgenis.armadillo.ArmadilloServiceApplication"
-         ]
-      }
-   ]
-}
-*/
 </script>
