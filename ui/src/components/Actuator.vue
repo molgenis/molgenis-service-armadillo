@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { getActuator, getMetricsAll } from "@/api/api";
 import { ref, watch } from "vue";
-import ActuatorItem from "./ActuatorItem.vue";
-import SearchBar from "@/components/SearchBar.vue";
 import { Metrics, HalLinks } from "@/types/api";
 import { ObjectWithStringKey } from "@/types/types";
+
+import ActuatorItem from "./ActuatorItem.vue";
+import SearchBar from "@/components/SearchBar.vue";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 const actuator = ref<HalLinks>();
 const metrics = ref<Metrics>([]);
@@ -19,13 +21,13 @@ const loadActuator = async () => {
     list.push(result[key]);
   }
   actuator.value = list;
-  console.log(JSON.stringify(actuator.value, null, 2));
 };
 const loadMetrics = async () => {
   metrics.value = await getMetricsAll();
 
   // preload search values
   filteredLines();
+  isLoading.value = false;
 };
 
 loadMetrics();
