@@ -1,5 +1,5 @@
 import { ApiError } from "@/helpers/errors";
-import { sanitizeObject } from "@/helpers/utils";
+import { objectDeepCopy, sanitizeObject } from "@/helpers/utils";
 import {
   Principal,
   Profile,
@@ -133,7 +133,7 @@ export async function getMetricsAll(): Promise<Metrics> {
 /**
  * Get list of metric IDs in as dictionary keys.
  */
-async function getMetrics() {
+async function getMetrics(): Promise<Metrics | {}> {
   const path = "/actuator/metrics";
   return await get(path)
     .then((data) => {
@@ -166,17 +166,16 @@ async function getMetrics() {
  *
  * Example: a.b.c
  */
-async function getMetric(id: string): Promise<Metric> {
+async function getMetric(id: string): Promise<Metric | {}> {
   const path = `/actuator/metrics/${id}`;
-  let result = await get(path)
+  return await get(path)
     .then((data) => {
-      return JSON.parse(JSON.stringify(data));
+      return objectDeepCopy<Metric>(data);
     })
     .catch((error) => {
       console.error(`Error fetching ${path}`, error);
       return {};
     });
-  return result;
 }
 
 export async function deleteUser(email: string) {

@@ -7,6 +7,7 @@ import { ObjectWithStringKey } from "@/types/types";
 import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import { objectDeepCopy } from "@/helpers/utils";
 
 const actuator = ref<HalLinks>();
 const metrics = ref<Metrics>([]);
@@ -93,8 +94,7 @@ function filteredLines() {
  * @param json
  */
 function removeFields(json: Metrics) {
-  // Copy object
-  const result: Metrics = JSON.parse(JSON.stringify(json));
+  const result: Metrics = objectDeepCopy<Metrics>(json);
   for (let [_key, value] of Object.entries(result)) {
     const wrapper: ObjectWithStringKey = value;
 

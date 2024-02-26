@@ -149,3 +149,12 @@ export function sanitizeObject(
 export function isEmptyObject(obj: Object) {
   return Object.keys(obj).length === 0;
 }
+
+/**
+ * Get a cloned version of the input.
+ *
+ * @param input:Object
+ */
+export function objectDeepCopy<T>(input:T):T {
+  return JSON.parse(JSON.stringify(input));
+}
