@@ -54,6 +54,18 @@ watch(filterValue, (_newVal, _oldVal) => filteredLines());
 const FIELD_DISPLAY = "_display";
 const SEARCH_TEXT_FIELDS = "searchWords";
 
+function concatValues(obj: any): string {
+    let result = '';
+    for (const key in obj) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+            result += concatValues(obj[key]);
+        } else {
+            result += obj[key];
+        }
+    }
+    return result;
+}
+
 /**
  * Filter metrics on search value
  *
@@ -65,8 +77,7 @@ function filteredLines() {
   const filterOn: string = filterValue.value.toLowerCase();
   for (let [_key, value] of Object.entries(metrics.value)) {
     if (!value[SEARCH_TEXT_FIELDS]) {
-      // TODO: drop keys before stringify?
-      value[SEARCH_TEXT_FIELDS] = JSON.stringify(value).toLowerCase();
+      value[SEARCH_TEXT_FIELDS] = concatValues(value).toLowerCase();
     }
     const searchWords: string = value[SEARCH_TEXT_FIELDS];
     value[FIELD_DISPLAY] = filterOn === "" || searchWords.includes(filterOn);
