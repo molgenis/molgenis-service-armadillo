@@ -1,12 +1,16 @@
+library(dsSurvivalClient)
+
 create_survival_object <- function() {
+  cli_alert_info("Creating survival object")
   dsSurvivalClient::ds.Surv(
-    time='survival$time',
-    event = 'survival$status',
-    objectname='surv_object')
+    time = "survival$time",
+    event = "survival$status",
+    objectname = "surv_object")
 
 }
 
 verify_survival_class <- function() {
+  cli_alert_info("Checking ds.Surv")
   surv_class <- ds.class("surv_object")
 
   if(surv_class$armadillo == "Surv") {
@@ -19,9 +23,10 @@ verify_survival_class <- function() {
 }
 
 verify_cox_output <- function() {
-  cox_output <- dsSurvivalClient::ds.coxph.SLMA(formula = 'surv_object~survival$age')
-  expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients",
-                      "conf.int", "logtest", "sctest", "rsq", "waldtest", "used.robust", "concordance")
+  cli_alert_info("Checking ds.coxph.SLMA")
+  cox_output <- dsSurvivalClient::ds.coxph.SLMA(formula = "surv_object~survival$age")
+  expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients", "conf.int", "logtest",
+  "sctest", "rsq", "waldtest", "used.robust", "concordance")
 
   if(identical(names(cox_output$armadillo), expected_names)) {
     cli_alert_success("ds.coxph.SLMA passed")
@@ -33,8 +38,9 @@ verify_cox_output <- function() {
 }
 
 verify_cox_phSLMAassign_class <- function() {
-  dsSurvivalClient::ds.coxphSLMAassign(formula = 'surv_object~survival$age',
-                                       objectname = 'coxph_serverside')
+  cli_alert_info("Checking ds.coxphSLMAassign")
+  dsSurvivalClient::ds.coxphSLMAassign(formula = "surv_object~survival$age",
+                                       objectname = "coxph_serverside")
 
   cox_class <- ds.class("coxph_serverside")
 
@@ -48,7 +54,9 @@ verify_cox_phSLMAassign_class <- function() {
 }
 
 verify_cox_zphSLMA_object <- function() {
-  hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(fit = 'coxph_serverside')
+  cli_alert_info("Checking ds.coxphSummary")
+  cli_alert_info("Checking ds.cox.zphSLMA")
+  hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(fit = "coxph_serverside")
   expected_names <- c("table", "var", "transform", "call")
 
   if(identical(names(hazard_assumption$armadillo), expected_names)) {
@@ -61,7 +69,7 @@ verify_cox_zphSLMA_object <- function() {
 }
 
 verify_cox_phsummary <- function() {
-  hazard_summary <- dsSurvivalClient::ds.coxphSummary(x = 'coxph_serverside')
+  hazard_summary <- dsSurvivalClient::ds.coxphSummary(x = "coxph_serverside")
   expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients",
                       "conf.int", "logtest", "sctest", "rsq", "waldtest", "used.robust", "concordance")
 
@@ -74,30 +82,21 @@ verify_cox_phsummary <- function() {
 
 }
 
-library(dsSurvivalClient)
+assign_survival_data <- function(project, data_path, conns){
 
-logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/survival/veteran", project1))
-cli_alert_info(sprintf("Login with profile [%s] and table: [%s/survival/veteran]", profile, project1))
-conns <- datashield.login(logins = logindata, symbol = "survival", assign = TRUE)
+  cli_alert_info(sprintf("Assigning table: [%s%s]", project, data_path))
+  datashield.assign.table(conns, "survival", sprintf("%s%s", project, data_path))
 
-cli_alert_info("Creating survival object")
-create_survival_object()
-cli_alert_success("Survival object created")
+}
 
-cli_alert_info("Creating survival object")
-create_survival_object()
+run_survival_tests <- function(project, data_path, conns) {
 
-cli_alert_info("Checking ds.Surv")
-verify_survival_class()
+  assign_survival_data(project = project, data_path = data_path, conns = conns)
+  create_survival_object()
+  verify_survival_class()
+  verify_cox_output()
+  verify_cox_phSLMAassign_class()
+  verify_cox_zphSLMA_object()
+  verify_cox_phsummary()
 
-cli_alert_info("Checking ds.coxph.SLMA")
-verify_cox_output()
-
-cli_alert_info("Checking ds.coxphSLMAassign")
-verify_cox_phSLMAassign_class()
-
-cli_alert_info("Checking ds.cox.zphSLMA")
-verify_cox_zphSLMA_object()
-
-cli_alert_info("Checking ds.coxphSummary")
-verify_cox_phsummary()
+}
