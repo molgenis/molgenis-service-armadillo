@@ -2,6 +2,7 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -37,6 +38,16 @@ public class LocalStorageService implements StorageService {
     this.rootDir = rootDir;
 
     LOGGER.info("Using local storage at {}", dir.getAbsolutePath());
+  }
+
+  @Override
+  public List<String> getUnavailableVariables(
+      String bucketName, String objectName, String variables) throws IOException {
+    Path objectPath = getPathIfObjectExists(bucketName, objectName + PARQUET);
+    List<String> availableColumns = ParquetUtils.getColumns(objectPath);
+    return Arrays.stream(variables.split(","))
+        .filter(variable -> !availableColumns.contains(variable))
+        .toList();
   }
 
   @Override

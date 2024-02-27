@@ -6,6 +6,9 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -15,12 +18,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -29,9 +35,12 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.UnknownObjectException;
+import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
@@ -41,6 +50,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "DataSHIELD", description = "Core API that interacts with the DataSHIELD environments")
 @SecurityRequirement(name = "bearerAuth")
@@ -125,6 +135,18 @@ public class DataController {
       summary = "Load table",
       description = "Load a table",
       security = {@SecurityRequirement(name = "jwt")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Object loaded successfully"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Unknown project or object",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(mediaType = "application/json"))
+      })
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
@@ -132,32 +154,24 @@ public class DataController {
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
-
     java.util.regex.Pattern tableResourcePattern =
         java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
     HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
-    if (!storage.tableExists(
-        (String) data.get(PROJECT),
-        String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE)))) {
+    String project = (String) data.get(PROJECT);
+    String objectName = String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE));
+    if (storage.hasObject(project, objectName + LINK_FILE)) {
+      return loadTableFromLinkFile(project, objectName, variables, principal, data, symbol, async);
+    } else if (storage.hasObject(project, objectName + PARQUET)) {
+      var variableList = getVariableList(variables);
+      return doLoadTable(symbol, table, variableList, principal, data, async);
+    } else {
       data = new HashMap<>(data);
       data.put(MESSAGE, "Table not found");
       auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
-      return completedFuture(notFound().build());
+      throw new ResponseStatusException(
+          NOT_FOUND, format("Project '%s' has no object '%s'", project, objectName));
     }
-    var variableList =
-        Optional.ofNullable(variables).map(it -> it.split(",")).stream()
-            .flatMap(Arrays::stream)
-            .map(String::trim)
-            .toList();
-    var result =
-        auditEventPublisher.audit(
-            commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
-    return async
-        ? completedFuture(created(getLastCommandLocation()).body(null))
-        : result
-            .thenApply(ResponseEntity::ok)
-            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
   }
 
   @Operation(
@@ -459,5 +473,76 @@ public class DataController {
     groups.put(FOLDER, matcher.group(2));
     groups.put(resource, matcher.group(3));
     return groups;
+  }
+
+  public List<String> getVariableList(String variables) {
+    return Optional.ofNullable(variables).map(it -> it.split(",")).stream()
+        .flatMap(Arrays::stream)
+        .map(String::trim)
+        .toList();
+  }
+
+  private CompletableFuture<ResponseEntity<Void>> doLoadTable(
+      String symbol,
+      String table,
+      List<String> variableList,
+      Principal principal,
+      Map<String, Object> data,
+      Boolean async) {
+    var result =
+        auditEventPublisher.audit(
+            commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
+    return async
+        ? completedFuture(created(getLastCommandLocation()).body(null))
+        : result
+            .thenApply(ResponseEntity::ok)
+            .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
+  }
+
+  protected List<String> getLinkedVariables(ArmadilloLinkFile linkFile, String variables) {
+    List<String> allowedVariables = List.of(linkFile.getVariables().split(","));
+    List<String> variableList = getVariableList(variables);
+    var invalidVariables =
+        variableList.stream().filter(element -> !allowedVariables.contains(element)).toList();
+    if (invalidVariables.size() > 0) {
+      String invalid = invalidVariables.toString();
+      throw new UnknownVariableException(linkFile.getProject(), linkFile.getLinkObject(), invalid);
+    }
+    return variableList.size() == 0
+        ? allowedVariables
+        : variableList.stream().filter(allowedVariables::contains).toList();
+  }
+
+  private CompletableFuture<ResponseEntity<Void>> loadTableFromLinkFile(
+      String project,
+      String objectName,
+      String variables,
+      Principal principal,
+      HashMap<String, Object> data,
+      String symbol,
+      Boolean async) {
+    InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
+    ArmadilloLinkFile linkFile =
+        storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
+    String sourceProject = linkFile.getSourceProject();
+    String sourceObject = linkFile.getSourceObject();
+    if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {
+      List<String> variableList = getLinkedVariables(linkFile, variables);
+      HashMap<String, Object> finalData = data;
+      return runAsSystem(
+          () ->
+              doLoadTable(
+                  symbol,
+                  sourceProject + "/" + sourceObject,
+                  variableList,
+                  principal,
+                  finalData,
+                  async));
+    } else {
+      data = new HashMap<>(data);
+      data.put(MESSAGE, "Object not found");
+      auditEventPublisher.audit(principal, LOAD_TABLE_FAILURE, data);
+      throw new UnknownObjectException(sourceProject, sourceObject);
+    }
   }
 }

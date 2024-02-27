@@ -25,4 +25,10 @@ public class ParquetUtilsTest {
     assertEquals("3", dimensions.get("columns"));
     assertEquals("11", dimensions.get("rows"));
   }
+
+  @Test
+  void testGetColumns() throws URISyntaxException, IOException {
+    Path path = Path.of(this.getClass().getClassLoader().getResource("patient.parquet").toURI());
+    assertEquals(List.of("id", "age", "name"), ParquetUtils.getColumns(path));
+  }
 }
