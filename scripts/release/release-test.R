@@ -1033,9 +1033,6 @@ conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep"
 prepare_data_for_lasso()
 verify_lasso_cov_train_output()
 
-
-
-
 datashield.logout(conns)
 
 if (ADMIN_MODE) {
