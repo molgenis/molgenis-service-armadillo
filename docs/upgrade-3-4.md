@@ -120,8 +120,11 @@ ls -ltr /usr/share/armadillo/application/
 ## 4. Config the new version
 
 ### 4.1 application.yml
-
-NOTE: We do have a template application.yml. To compare the latest template to your configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section, but if you have trouble doing that, you could try the following first:
+Download the application template (for reference).
+``` bash
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/application.template.yml
+```
+NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section, but if you have trouble doing that, you could try the following first:
 
 Edit the application.yml:
 ```bash
