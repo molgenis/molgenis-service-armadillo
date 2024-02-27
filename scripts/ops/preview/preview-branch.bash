@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+echo "Script dir: $SCRIPT_DIR"
+
 # Function to display an error message and exit
 function error {
   echo "ERROR: $1"
@@ -14,6 +17,8 @@ fi
 
 # Store the current directory
 original_dir=$(pwd)
+
+cd "$SCRIPT_DIR" || error "Cannot change to $SCRIPT_DIR"
 
 # Define paths and filenames
 ARMADILLO_DIR="/usr/share/armadillo/application"
@@ -44,3 +49,5 @@ ln -s "$JAR_FILE" "$SYMLINK_FILE" || error "Cannot create symbolic link"
 cd "$original_dir" || error "Cannot switch back to original directory"
 
 systemctl restart armadillo
+systemctl status armadillo
+ls -l $ARMADILLO_DIR
