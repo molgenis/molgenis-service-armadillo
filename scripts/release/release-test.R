@@ -879,9 +879,9 @@ cli_alert_info(sprintf("Creating project [%s]", omics_project))
 armadillo.create_project(omics_project)
 rda_file_body <- upload_file(rda_dir)
 cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
-# system.time({
-#   post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
-# })
+system.time({
+  post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
+})
 cli_alert_info("Creating resource")
 
 
