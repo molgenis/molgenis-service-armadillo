@@ -23,8 +23,6 @@ RUN /cicd/scripts/release/install_release_script_dependencies.R
 # Copy rest from of scripts
 COPY armadillo/scripts/release/* /cicd/scripts/release/
 
-COPY armadillo/scripts/release/xenon-survival.R /cicd/scripts/release/
-
 COPY armadillo /cicd/
 
 #RUN adduser armadillo
