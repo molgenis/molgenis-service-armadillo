@@ -979,8 +979,7 @@ verify_ne_imp_class()
 verify_ne_lht_class()
 
 cli_alert_info("Testing dsSurvival")
-print(getwd())
-source("xenon-survival.R")
+source("/cicd/scripts/release/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
 
 logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
