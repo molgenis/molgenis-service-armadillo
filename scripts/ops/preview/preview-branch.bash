@@ -15,15 +15,15 @@ fi
 # Store the current directory
 original_dir=$(pwd)
 
+# Define paths and filenames
+ARMADILLO_DIR="/usr/share/armadillo/application"
+BRANCH="$1"
+BRANCH_AS_FILE_NAME=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9_-]/_/g')
+JAR_FILE="$ARMADILLO_DIR/armadillo_$BRANCH_AS_FILE_NAME.jar"
+SYMLINK_FILE="$ARMADILLO_DIR/armadillo.jar"
+
 # Navigate to the git repository directory
 cd molgenis-service-armadillo || error "Cannot cd into git repo"
-
-# Assign the input argument to the BRANCH variable
-BRANCH="$1"
-
-# Validate and create a valid file name for the branch
-# Replace invalid characters with underscores
-BRANCH_AS_FILE_NAME=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9_-]/_/g')
 
 # Checkout the specified branch
 git checkout "origin/$BRANCH" || error "No branch named $BRANCH"
@@ -32,10 +32,15 @@ git checkout "origin/$BRANCH" || error "No branch named $BRANCH"
 ./gradlew clean build -x test || error "Cannot build"
 
 # Copy the JAR file to the specified location
-cp build/lib/*.jar "/usr/share/armadillo/application/armadillo_$BRANCH_AS_FILE_NAME.jar" || error "Cannot copy JAR file"
+cp build/libs/*.jar "$JAR_FILE" || error "Cannot copy JAR file"
+
+# Remove the symlink
+rm "$SYMLINK_FILE" || error "Cannot remove symbolic link $SYMLINK_FILE"
 
 # Create a symbolic link named "armadillo.jar" in the same directory
-ln -s "/usr/share/armadillo/application/armadillo_$BRANCH_AS_FILE_NAME.jar" "/usr/share/armadillo/application/armadillo.jar" || error "Cannot create symbolic link"
+ln -s "$JAR_FILE" "$SYMLINK_FILE" || error "Cannot create symbolic link"
 
 # Return to the original directory
 cd "$original_dir" || error "Cannot switch back to original directory"
+
+systemctl restart armadillo
