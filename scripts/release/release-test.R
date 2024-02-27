@@ -979,6 +979,7 @@ verify_ne_imp_class()
 verify_ne_lht_class()
 
 cli_alert_info("Testing dsSurvival")
+ls()
 source("/cicd/scripts/release/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
 
