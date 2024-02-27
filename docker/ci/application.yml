@@ -33,6 +33,7 @@ armadillo:
         - resourcer
         - dsMediation
         - dsMTLBase
+        - dsSurvival
       function-blacklist: [ ]
       options:
         datashield:
