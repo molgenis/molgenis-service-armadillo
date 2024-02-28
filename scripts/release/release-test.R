@@ -585,6 +585,24 @@ verify_lasso_cov_train_output <- function(){
 
   }
 
+  verify_output <- function(function_name = NULL, object = NULL, expected = NULL, fail_msg = NULL){
+    if(identical(object, expected)) {
+      cli_alert_success(sprintf("%s passed", function_name))
+    } else {
+      cli_alert_danger(sprintf("%s failed", function_name))
+      print(sprintf("%s %s", function_name, fail_msg))
+      # exit_test(sprintf("%s %s", function_name, message))
+    }
+
+  }
+
+  xenon_fail_msg <- list(
+    srv_class = "did not create a serverside object with the expected class",
+    clt_class = "did not create a clientside object with the expected class",
+    clt_var = "did not create a clientside object with the expected variable names",
+    clt_list_names = "did not return a clientside list with the expected names",
+    clt_dim = "did not return a clientside object with the expected dimensions")
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
 show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
@@ -1022,6 +1040,10 @@ verify_ne_lht_class()
 cli_alert_info("Testing dsSurvival")
 source("/cicd/scripts/release/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+
+cli_alert_info("Testing dsExposome")
+source("/cicd/scripts/release/xenon-exposome.R")
+run_exposome_tests()
 
 logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
