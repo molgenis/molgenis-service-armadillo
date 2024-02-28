@@ -155,6 +155,31 @@ function navigate(direction: string) {
       </div>
     </div>
     <div class="row">
+      <div class="col col-mb-3">
+        <label for="page_size">Number of lines</label>
+        <input
+          type="number"
+          class="form-control"
+          id="page_size"
+          placeholder="Page size"
+          min="1000"
+          value="1000"
+        />
+      </div>
+      <div class="col col-mb-3">
+        <label for="page"
+          >Page index: &lt; 0 from end ; &ge; 0: from beginning</label
+        >
+        <input
+          type="number"
+          class="form-control"
+          id="page"
+          placeholder="page"
+          value="-1"
+        />
+      </div>
+    </div>
+    <div class="row">
       <div class="col-sm-3">
         <SearchBar id="searchbox" v-model="filterValue" />
       </div>
