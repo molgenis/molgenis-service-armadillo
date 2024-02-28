@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.molgenis.armadillo.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,32 +46,35 @@ public class InsightService {
   @Value("${audit.log.path:./logs/audit.log}")
   private String auditFilePath;
 
-  public FileDetails fileDetails(String file_id) {
+  public String getFileName(String file_id) {
+    return switch (file_id) {
+      case LOG_FILE -> LOG_FILE_NAME;
+      case AUDIT_FILE -> AUDIT_FILE_NAME;
+      default -> file_id;
+    };
+  }
+
+  public FileDetails fileDetails(String file_id, int page, int pageSize) {
     return switch (file_id) {
       case LOG_FILE -> FileDetails.create(
           LOG_FILE,
           LOG_FILE_DISPLAY_NAME,
-          this.fileService.readLogFile(logFilePath),
-          getServerTime());
+          this.fileService.readLogFileBiz(logFilePath, page, pageSize),
+          getServerTime() + ": " + fileService.getFileSize(logFilePath));
       case AUDIT_FILE -> FileDetails.create(
           AUDIT_FILE,
           AUDIT_FILE_DISPLAY_NAME,
-          this.fileService.readLogFile(auditFilePath),
-          getServerTime());
+          this.fileService.readLogFile(auditFilePath, page, pageSize),
+          getServerTime() + ": " + fileService.getFileSize(auditFilePath));
       default -> FileDetails.create(file_id, file_id, file_id, getServerTime());
     };
   }
 
-  public FileDetails downloadFile(String file_id) {
+  public Stream<String> downloadFile(String file_id) {
     return switch (file_id) {
-      case LOG_FILE -> FileDetails.create(
-          LOG_FILE, LOG_FILE_NAME, this.fileService.readLogFile(logFilePath), getServerTime());
-      case AUDIT_FILE -> FileDetails.create(
-          AUDIT_FILE,
-          AUDIT_FILE_NAME,
-          this.fileService.readLogFile(auditFilePath),
-          getServerTime());
-      default -> FileDetails.create(file_id, file_id, file_id, getServerTime());
+      case LOG_FILE -> this.fileService.streamLogFile(logFilePath);
+      case AUDIT_FILE -> this.fileService.streamLogFile(auditFilePath);
+      default -> Stream.empty();
     };
   }
 }

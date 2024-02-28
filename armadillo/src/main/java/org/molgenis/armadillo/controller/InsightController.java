@@ -20,7 +20,6 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.FileDetails;
 import org.molgenis.armadillo.metadata.FileInfo;
 import org.molgenis.armadillo.metadata.InsightService;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,9 +76,14 @@ public class InsightController {
       })
   @GetMapping(path = "files/{file_id}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public FileDetails fileDetails(Principal principal, @PathVariable String file_id) {
+  public FileDetails fileDetails(
+      Principal principal,
+      @PathVariable String file_id,
+      @RequestParam(name = "page", required = false, defaultValue = "-1") int page,
+      @RequestParam(name = "number_of_size", required = false, defaultValue = "1000")
+          int numOfLines) {
     return auditor.audit(
-        () -> insightService.fileDetails(file_id),
+        () -> insightService.fileDetails(file_id, page, numOfLines),
         principal,
         FILE_DETAILS,
         Map.of("FILE_ID", file_id));
@@ -100,13 +104,12 @@ public class InsightController {
   }
 
   public ResponseEntity<Resource> createDownloadFile(String file_id) {
-    FileDetails fileDetails = insightService.downloadFile(file_id);
-    String data = fileDetails.getContent();
-    Resource file = new ByteArrayResource(data.getBytes());
+    Resource file = (Resource) insightService.downloadFile(file_id);
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDetails.getName() + "\"");
+        HttpHeaders.CONTENT_DISPOSITION,
+        "attachment; filename=\"" + insightService.getFileName(file_id) + "\"");
 
     return new ResponseEntity<>(file, headers, HttpStatus.OK);
   }
