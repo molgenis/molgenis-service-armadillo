@@ -54,7 +54,6 @@ verify_cox_phSLMAassign_class <- function() {
 }
 
 verify_cox_zphSLMA_object <- function() {
-  cli_alert_info("Checking ds.coxphSummary")
   cli_alert_info("Checking ds.cox.zphSLMA")
   hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(fit = "coxph_serverside")
   expected_names <- c("table", "var", "transform", "call")
@@ -69,6 +68,7 @@ verify_cox_zphSLMA_object <- function() {
 }
 
 verify_cox_phsummary <- function() {
+  cli_alert_info("Checking ds.coxphSummary")
   hazard_summary <- dsSurvivalClient::ds.coxphSummary(x = "coxph_serverside")
   expected_names <- c("call", "fail", "na.action", "n", "loglik", "nevent", "coefficients",
                       "conf.int", "logtest", "sctest", "rsq", "waldtest", "used.robust", "concordance")
