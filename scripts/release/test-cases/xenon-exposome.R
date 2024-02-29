@@ -1,16 +1,13 @@
 library(dsExposomeClient)
+library(purrr)
 
 assign_exposome_resources <- function(resource_name) {
-  datashield.assign.resource(conns, resource = "xenon-tests/exposome/description", symbol = "description")
-  datashield.assign.resource(conns, resource = "xenon-tests/exposome/exposures", symbol = "exposures")
-  datashield.assign.resource(conns, resource = "xenon-tests/exposome/phenotypes", symbol = "phenotypes")
-  datashield.assign.resource(conns, resource = "xenon-tests/exposome/exposomeSet", symbol = "exposomeSet")
+  resource_path <- paste0("xenon-tests/exposome/", resource_name)
+  datashield.assign.resource(conns, resource = resource_path, symbol = resource_name)
 }
 
-resolve_exposome_resources <- function() { #This is extremely unsatisfying, but I can't work out how to pass a string as an object to `expr`
-  datashield.assign.expr(conns, symbol = "description", expr = quote(as.resource.data.frame(description)))
-  datashield.assign.expr(conns, symbol = "exposures", expr = quote(as.resource.data.frame(exposures)))
-  datashield.assign.expr(conns, symbol = "phenotypes", expr = quote(as.resource.data.frame(phenotypes)))
+resolve_exposome_resources <- function(resource_name) {
+  datashield.assign.expr(conns, symbol = resource_name, expr = as.symbol(paste0("as.resource.data.frame(", resource_name, ")")))
 }
 
 verify_load_exposome_class <- function() {
@@ -146,8 +143,8 @@ xenon_fail_msg <- list(
   clt_dim = "did not return a clientside object with the expected dimensions")
 
 run_exposome_tests <- function(project, conns) {
-  assign_exposome_resources()
-  resolve_exposome_resources()
+  map(c("description", "exposures", "phenotypes", "exposomeSet"), assign_exposome_resources())
+  map(c("description", "exposures", "phenotypes"), resolve_exposome_resources())
   verify_load_exposome_class()
   verify_exposome_variables()
   verify_exposome_summary_names()
