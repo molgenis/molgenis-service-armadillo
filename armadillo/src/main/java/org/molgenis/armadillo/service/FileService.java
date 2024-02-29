@@ -56,7 +56,7 @@ public class FileService {
       long lineRead = 0;
       while ((line = reader.readLine()) != null) {
         if (startLine <= lineRead && lineRead < endLine) {
-          stringBuilder.append(lineRead).append(line).append("\n");
+          stringBuilder.append(line).append("\n");
         }
         if (endLine < lineRead) {
           break;
