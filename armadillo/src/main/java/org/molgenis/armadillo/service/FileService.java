@@ -55,13 +55,13 @@ public class FileService {
 
       long lineRead = 0;
       while ((line = reader.readLine()) != null) {
-        lineRead += 1;
         if (startLine <= lineRead && lineRead < endLine) {
-          stringBuilder.append(line).append("\n");
+          stringBuilder.append(lineRead).append(line).append("\n");
         }
         if (endLine < lineRead) {
           break;
         }
+        lineRead += 1;
       }
     } catch (IOException e) {
       return "Error reading log file on '" + logFilePath + "'";
