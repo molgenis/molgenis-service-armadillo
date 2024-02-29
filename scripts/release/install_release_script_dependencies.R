@@ -32,6 +32,7 @@ packages <- c("diffobj", "getPass", "arrow", "jsonlite", "future",
   "resourcer",
   "MolgenisArmadillo",
   "DSMolgenisArmadillo"
+  "purrr"
 )
 
 install_requirements_from_cran <- function(packages) {
