@@ -40,9 +40,6 @@ watch(
 watch(filterValue, (_newVal, _oldVal) => filteredLines());
 
 async function fetchFile() {
-  console.log("before page_num", file.value?.page_num);
-  console.log("before page_size", file.value?.page_size);
-
   let page_num = -1;
   let page_size = 1000;
 
@@ -50,9 +47,6 @@ async function fetchFile() {
     page_num = file.value.page_num;
     page_size = file.value.page_size;
   }
-
-  console.log("after page_num", page_num);
-  console.log("after page_size", page_size);
 
   resetStates();
   try {
@@ -149,7 +143,7 @@ function navigate(direction: string) {
 <template>
   <div v-if="file">
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-sm-3">
         <button class="btn btn-info me-1" type="button" @click="fetchFile">
           <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
@@ -159,28 +153,19 @@ function navigate(direction: string) {
           ><i class="bi bi-box-arrow-down"></i>Download</a
         >
       </div>
-    </div>
-    <div class="row">
-      <div class="text-secondary fst-italic">
-        Last reload @ server time {{ file.fetched }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="col col-mb-2">
-        <label for="page_size">Number of lines per page</label>
+      <div class="col-sm-1">
         <input
           type="number"
           class="form-control"
           id="page_size"
-          placeholder="Number of lines per page"
+          placeholder="Lines per page"
           v-model="file.page_size"
           v-on:blur="fetchFile"
+          title="Lines per page"
         />
       </div>
-      <div class="col col-mb-3">
-        <label for="page_num"
-          >Page index: &lt; 0 from end ; &ge; 0: from beginning</label
-        >
+      lines per page
+      <div class="col-sm-1">
         <input
           type="number"
           class="form-control"
@@ -188,7 +173,13 @@ function navigate(direction: string) {
           placeholder="page number"
           v-model="file.page_num"
           v-on:change="fetchFile"
+          title="Page: &lt; 0 from end ; &ge; 0: from start"
         />
+      </div>
+    </div>
+    <div class="row">
+      <div class="text-secondary fst-italic">
+        Last reload @ server time {{ file.fetched }}
       </div>
     </div>
     <div class="row">
