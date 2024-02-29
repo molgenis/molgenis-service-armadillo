@@ -590,8 +590,7 @@ verify_lasso_cov_train_output <- function(){
       cli_alert_success(sprintf("%s passed", function_name))
     } else {
       cli_alert_danger(sprintf("%s failed", function_name))
-      print(sprintf("%s %s", function_name, fail_msg))
-      # exit_test(sprintf("%s %s", function_name, message))
+      exit_test(sprintf("%s %s", function_name, message))
     }
 
   }
