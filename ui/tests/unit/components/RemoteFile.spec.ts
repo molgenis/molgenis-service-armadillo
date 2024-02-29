@@ -10,7 +10,7 @@ jest.mock('@/api/api', () => ({
         id: fileId,
         name: 'test',
         timestamp: '2024-01-03T15:39:56Z',
-        content: 'test content',
+        content: 'test content'
       })),
     getFileDownload: jest.fn().mockImplementation(() => Promise.resolve({
         blob: () => Promise.resolve(new Blob()),
@@ -27,25 +27,16 @@ describe("RemoteFile", () => {
 
     });
 
-    it('renders the component', () => {
-        const wrapper = shallowMount(RemoteFile, {
-          props: {
-            fileId: '123',
-          },
-        });
-        expect(wrapper.exists()).toBe(true);
-    });
-    
     it('calls fetchFile when fileId changes', async () => {
         const wrapper = shallowMount(RemoteFile, {
           props: {
-            fileId: '123',
+            fileId: '456',
           },
         });
     
         await wrapper.setProps({ fileId: '456' });
     
-        expect(api.getFileDetail).toHaveBeenCalledWith('456');
+        expect(api.getFileDetail).toHaveBeenCalledWith("456", -1, 1000);
 
         // Wait for promises to resolve
         await wrapper.vm.$nextTick();

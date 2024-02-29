@@ -132,9 +132,13 @@ export async function getFiles(): Promise<RemoteFileInfo[]> {
 }
 
 export async function getFileDetail(
-  file_id: string
+  file_id: string,
+  page_num: number,
+  page_size: number
 ): Promise<RemoteFileDetail> {
-  return get(`/insight/files/${file_id}`);
+  return get(
+    `/insight/files/${file_id}?page_num=${page_num}&page_size=${page_size}`
+  );
 }
 
 export async function getPrincipal(): Promise<Principal> {

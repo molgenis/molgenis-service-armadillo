@@ -26,12 +26,23 @@ public abstract class FileDetails {
   @NotEmpty
   public abstract String getFetched();
 
+  @JsonProperty("page_num")
+  @NotEmpty
+  public abstract int getPageNum();
+
+  @JsonProperty("page_size")
+  @NotEmpty
+  public abstract int getPageSize();
+
   @JsonCreator
   public static FileDetails create(
       @JsonProperty("id") String newId,
       @JsonProperty("name") String newName,
       @JsonProperty("content") String newContent,
-      @JsonProperty("fetched") String newFetched) {
-    return new AutoValue_FileDetails(newId, newName, newContent, newFetched);
+      @JsonProperty("fetched") String newFetched,
+      @JsonProperty("page_num") int newPageNum,
+      @JsonProperty("page_size") int newPageSize) {
+    return new AutoValue_FileDetails(
+        newId, newName, newContent, newFetched, newPageNum, newPageSize);
   }
 }

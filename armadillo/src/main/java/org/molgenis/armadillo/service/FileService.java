@@ -15,20 +15,17 @@ import org.springframework.stereotype.Service;
 @ProfileScope
 public class FileService {
 
-  public String readLogFile(String logFilePath, int page, int pageSize) {
-    StringBuilder stringBuilder = new StringBuilder();
-    String line;
-    try (BufferedReader reader = new BufferedReader(new FileReader(logFilePath))) {
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line + "\n");
-      }
-    } catch (IOException e) {
-      return "Error reading log file on '" + logFilePath + "'";
-    }
-    return stringBuilder.toString();
-  }
-
-  public String readLogFileBiz(String logFilePath, int page, int pageSize) {
+  /**
+   * Read page of lines from given pageNum and pageSize.
+   *
+   * <p>The pageSize and pageNum asked for can fall out of file lines range.
+   *
+   * @param logFilePath file to read from
+   * @param pageNum page num depends on pageSize
+   * @param pageSize number of lines to read
+   * @return lines falling in the asked frame
+   */
+  public String readLogFile(String logFilePath, int pageNum, int pageSize) {
     StringBuilder stringBuilder = new StringBuilder();
     String line;
 
@@ -42,11 +39,11 @@ public class FileService {
         startLine = 0;
         endLine = Long.MAX_VALUE;
       } else {
-        if (page < 0) {
+        if (pageNum < 0) {
           // NOTE: page is negative
-          startLine = totalLines + (long) page * pageSize;
+          startLine = totalLines + (long) pageNum * pageSize;
         } else {
-          startLine = (long) page * pageSize;
+          startLine = (long) pageNum * pageSize;
         }
 
         endLine = startLine + pageSize;
@@ -60,7 +57,7 @@ public class FileService {
       while ((line = reader.readLine()) != null) {
         lineRead += 1;
         if (startLine <= lineRead && lineRead < endLine) {
-          stringBuilder.append(lineRead).append(": ").append(line).append("\n");
+          stringBuilder.append(line).append("\n");
         }
         if (endLine < lineRead) {
           break;

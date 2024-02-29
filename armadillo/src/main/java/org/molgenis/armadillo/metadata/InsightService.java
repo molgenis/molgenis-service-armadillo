@@ -54,19 +54,23 @@ public class InsightService {
     };
   }
 
-  public FileDetails fileDetails(String file_id, int page, int pageSize) {
+  public FileDetails fileDetails(String file_id, int pageNum, int pageSize) {
     return switch (file_id) {
       case LOG_FILE -> FileDetails.create(
           LOG_FILE,
           LOG_FILE_DISPLAY_NAME,
-          this.fileService.readLogFileBiz(logFilePath, page, pageSize),
-          getServerTime() + ": " + fileService.getFileSize(logFilePath));
+          this.fileService.readLogFile(logFilePath, pageNum, pageSize),
+          getServerTime() + ": " + fileService.getFileSize(logFilePath),
+          pageNum,
+          pageSize);
       case AUDIT_FILE -> FileDetails.create(
           AUDIT_FILE,
           AUDIT_FILE_DISPLAY_NAME,
-          this.fileService.readLogFile(auditFilePath, page, pageSize),
-          getServerTime() + ": " + fileService.getFileSize(auditFilePath));
-      default -> FileDetails.create(file_id, file_id, file_id, getServerTime());
+          this.fileService.readLogFile(auditFilePath, pageNum, pageSize),
+          getServerTime() + ": " + fileService.getFileSize(auditFilePath),
+          pageNum,
+          pageSize);
+      default -> FileDetails.create(file_id, file_id, file_id, getServerTime(), -1, -1);
     };
   }
 

@@ -40,17 +40,28 @@ watch(
 watch(filterValue, (_newVal, _oldVal) => filteredLines());
 
 async function fetchFile() {
+  console.log("before page_num", file.value?.page_num);
+  console.log("before page_size", file.value?.page_size);
+
+  let page_num = -1;
+  let page_size = 1000;
+
+  if (file.value) {
+    page_num = file.value.page_num;
+    page_size = file.value.page_size;
+  }
+
+  console.log("after page_num", page_num);
+  console.log("after page_size", page_size);
+
   resetStates();
   try {
-    const res = await getFileDetail(props.fileId);
+    const res = await getFileDetail(props.fileId, page_num, page_size);
     let list = res.content.trim().split("\n");
 
     // we assume JSON lines if starts with {
     if (list.length && list[0].startsWith("{")) {
-      // Just return pretty print?
-      // return JSON.stringify(record.data, null, 2);
-
-      // auditor fields are know
+      // known auditor fields
       const audit = ["timestamp", "principal", "type"];
       const mapper = (k: string, v: string | number) => `${k}: ${v}\n`;
 
@@ -155,27 +166,28 @@ function navigate(direction: string) {
       </div>
     </div>
     <div class="row">
-      <div class="col col-mb-3">
-        <label for="page_size">Number of lines</label>
+      <div class="col col-mb-2">
+        <label for="page_size">Number of lines per page</label>
         <input
           type="number"
           class="form-control"
           id="page_size"
-          placeholder="Page size"
-          min="1000"
-          value="1000"
+          placeholder="Number of lines per page"
+          v-model="file.page_size"
+          v-on:blur="fetchFile"
         />
       </div>
       <div class="col col-mb-3">
-        <label for="page"
+        <label for="page_num"
           >Page index: &lt; 0 from end ; &ge; 0: from beginning</label
         >
         <input
           type="number"
           class="form-control"
-          id="page"
-          placeholder="page"
-          value="-1"
+          id="page_num"
+          placeholder="page number"
+          v-model="file.page_num"
+          v-on:change="fetchFile"
         />
       </div>
     </div>
