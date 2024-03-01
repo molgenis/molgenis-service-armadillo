@@ -2,8 +2,8 @@ library(dsExposomeClient)
 library(purrr)
 
 assign_exposome_resources <- function(resource_name) {
-  resource_path <- paste0("xenon-tests/exposome/", resource_name)
-  datashield.assign.resource(conns, resource = resource_path, symbol = resource_name)
+  exp_resource_path <- paste0("xenon-tests/exposome/", resource_name)
+  datashield.assign.resource(conns, resource = exp_resource_path, symbol = resource_name)
 }
 
 resolve_exposome_resources <- function(resource_name) {
@@ -47,20 +47,21 @@ verify_family_names <- function() {
                 expected = c("Air Pollutants", "Metals", "PBDEs", "Organochlorines", "Bisphenol A", "Water Pollutants",
                  "Built Environment", "Cotinine", "Home Environment", "Phthalates", "Noise", "PFOAs", "Temperature"),
                 fail_msg = xenon_fail_msg$clt_list_names)
+
 }
 
-verify_table_missings_names <- function() {
+verify_table_missings_names <- function(misssing_summary) {
   ds_function_name <- "ds.tableMissings"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  misssing_summary <- ds.tableMissings("exposome_object", set = "exposures")
   verify_output(function_name = ds_function_name, object = names(misssing_summary),
                 expected = c("pooled", "set","output"), fail_msg = list_names_msg)
+
 }
 
-verify_plot_missings_names <- function() {
+verify_plot_missings_names <- function(misssing_summary) {
   ds_function_name <- "ds.plotMissings"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  missing_plot <- ds.plotMissings(expos)
+  missing_plot <- ds.plotMissings(misssing_summary)
   verify_output(function_name = ds_function_name, object = names(missing_plot$pooled),
                 expected = c("data", "layers", "scales", "guides", "mapping", "theme", "coordinates",
                              "facet", "plot_env", "layout", "labels"),
@@ -83,6 +84,7 @@ verify_exposure_histogram_names <- function() {
   verify_output(function_name = ds_function_name, object = names(hist),
                 expected = c("breaks", "counts", "density", "mids", "xname", "equidist"),
                 fail_msg = xenon_fail_msg$clt_list_names)
+
 }
 
 verify_imputation <- function() {
@@ -94,15 +96,14 @@ verify_imputation <- function() {
                 expected = "ExposomeSet", fail_msg = xenon_fail_msg$srv_class)
 }
 
-verify_exwas <- function(ds_function_name) {
+verify_exwas <- function(exwas_results) {
   ds_function_name <- "ds.exwas"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian")
   verify_output(function_name = ds_function_name, object = class(exwas_results),
                 expected = c("list", "dsExWAS_pooled"), fail_msg = xenon_fail_msg$clt_class)
 }
 
-verify_exwas_plot <- function() {
+verify_exwas_plot <- function(exwas_results) {
   ds_function_name <- "ds.exwas"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
   exwas_plot <- ds.plotExwas(exwas_results, type="effect")
@@ -117,6 +118,7 @@ verify_pca_class <- function(ds_function_name) {
   pca_class <- ds.class("ds.exposome_pca.Results")
   verify_output(function_name = ds_function_name, object = as.character(pca_class),
                 expected = "ExposomePCA", fail_msg = xenon_fail_msg$clt_class)
+
 }
 
 verify_pca_plot_class <- function(ds_function_name) {
@@ -135,28 +137,26 @@ verify_exposure_cor_dim <- function(ds_function_name) {
                 expected = as.integer(c(5, 5)), fail_msg = xenon_fail_msg$clt_dim)
 }
 
-xenon_fail_msg <- list(
-  srv_class = "did not create a serverside object with the expected class",
-  clt_class = "did not create a clientside object with the expected class",
-  clt_var = "did not create a clientside object with the expected variable names",
-  clt_list_names = "did not return a clientside list with the expected names",
-  clt_dim = "did not return a clientside object with the expected dimensions")
 
 run_exposome_tests <- function(project, conns) {
-  map(c("description", "exposures", "phenotypes", "exposomeSet"), assign_exposome_resources())
-  map(c("description", "exposures", "phenotypes"), resolve_exposome_resources())
+  map(c("description", "exposures", "phenotypes", "exposomeSet"), assign_exposome_resources)
+  map(c("description", "exposures", "phenotypes"), resolve_exposome_resources)
   verify_load_exposome_class()
   verify_exposome_variables()
   verify_exposome_summary_names()
   verify_family_names()
-  verify_table_missings_names()
-  verify_plot_missings_names()
+  misssing_summary <- ds.tableMissings("exposome_object", set = "exposures")
+  verify_table_missings_names(misssing_summary)
+  verify_plot_missings_names(misssing_summary)
   verify_normality_test_names()
   verify_exposure_histogram_names()
   verify_imputation()
-  verify_exwas()
-  verify_exwas_plot()
+  exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian")
+  verify_exwas(exwas_results)
+  verify_exwas_plot(exwas_results)
   verify_pca_class()
   verify_pca_plot_class()
   verify_exposure_cor_dim()
 }
+
+run_exposome_tests()
