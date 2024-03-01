@@ -867,6 +867,32 @@ compare_list_values(hist$density, density)
 cli_alert_info("Validating histogram mids")
 compare_list_values(hist$mids, mids)
 
+<<<<<<< Updated upstream
+=======
+verify_mediate_class()
+verify_ne_weight_class()
+verify_ne_model_class()
+verify_ne_imp_class()
+verify_ne_lht_class()
+
+cli_alert_info("Testing dsSurvival")
+source("test-cases/xenon-survival.R")
+run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+
+cli_alert_info("Testing dsExposome")
+source("test-cases/xenon-exposome.R")
+run_exposome_tests()
+
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+
+conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+
+prepare_data_for_lasso()
+verify_lasso_cov_train_output()
+
+>>>>>>> Stashed changes
 datashield.logout(conns)
 
 if (ADMIN_MODE) {
