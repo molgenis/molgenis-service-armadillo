@@ -159,8 +159,8 @@ get_from_api_with_header <- function(endpoint, key, auth_type){
 }
 
 # add/edit user using armadillo api
-set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project){
-  args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project, link_project))
+set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project, xenon_tests){
+  args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project, link_project, xenon_tests))
   response <- put_to_api("access/users", admin_pwd, "basic", args)
   if(response$status_code != 204) {
     cli_alert_warning("Altering OIDC user failed, please do this manually")
@@ -906,23 +906,23 @@ cli_h2("Creating linked view on table")
 auth_header <- get_auth_header(auth_type, token)
 link_project <- generate_random_project_name(available_projects)
 armadillo.create_project(link_project)
-srcObj <- "2_1-core-1_0/nonrep"
-linkObj <- "core-variables/nonrep"
-json_body <- jsonlite::toJSON(
-  list(sourceObjectName = srcObj,
-       sourceProject = project1,
-       linkedObject = linkObj,
-       variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
-post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
-response <- POST(post_url,
-                 body=json_body,
-                 encode="json",
-                 config = c(httr::content_type_json(), httr::add_headers(auth_header)))
-if (response$status_code != 204) {
-  exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s, message: %s", link_project, linkObj, project1, srcObj, response$status_code, response$message))
-} else {
-  cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
-}
+# srcObj <- "2_1-core-1_0/nonrep"
+# linkObj <- "core-variables/nonrep"
+# json_body <- jsonlite::toJSON(
+#   list(sourceObjectName = srcObj,
+#        sourceProject = project1,
+#        linkedObject = linkObj,
+#        variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
+# post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
+# response <- POST(post_url,
+#                  body=json_body,
+#                  encode="json",
+#                  config = c(httr::content_type_json(), httr::add_headers(auth_header)))
+# if (response$status_code != 204) {
+#   exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s, message: %s", link_project, linkObj, project1, srcObj, response$status_code, response$message))
+# } else {
+#   cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
+# }
 
 rds_url <- armadillo_url
 if(armadillo_url == "http://localhost:8080/") {
@@ -945,7 +945,7 @@ if(!ADMIN_MODE){
     update_auto <- readLines("stdin", n=1)
   }
   if(update_auto == "y"){
-    set_user(user, admin_pwd, F, project1, omics_project, link_project)
+    set_user(user, admin_pwd, F, project1, omics_project, link_project, "xenon-tests")
   }
   if(update_auto != "y"){
     cat("\nGo to the Users tab")
@@ -982,22 +982,22 @@ datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 
 cli_alert_info("Testing linked table")
 #TODO: replace this by following once implemented in R api:
-#linked_data <- armadillo.load_table(link_project, "core-variables", "nonrep")
-query <- list(table = paste0(link_project, "/core-variables/nonrep"), symbol = "core_nonrep", async = TRUE)
-variables <- c("child_id", "mother_id")
-query$variables <- paste(unlist(variables), collapse = ",")
-response <- httr::POST(
-  handle = handle(armadillo_url),
-  path = "/load-table",
-  query = query,
-  config = httr::add_headers(get_auth_header(auth_type, token))
-)
-
-if (!response$status_code == 201) {
-  exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, project1, srcObj, response$status_code))
-} else {
-  cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, project1, srcObj, paste(variables, collapse = ", ")))
-}
+# linked_data <- armadillo.load_table(link_project, "core-variables", "nonrep")
+# query <- list(table = paste0(link_project, "/core-variables/nonrep"), symbol = "core_nonrep", async = TRUE)
+# variables <- c("child_id", "mother_id")
+# query$variables <- paste(unlist(variables), collapse = ",")
+# response <- httr::POST(
+#   handle = handle(armadillo_url),
+#   path = "/load-table",
+#   query = query,
+#   config = httr::add_headers(get_auth_header(auth_type, token))
+# )
+#
+# if (!response$status_code == 201) {
+#   exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, project1, srcObj, response$status_code))
+# } else {
+#   cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, project1, srcObj, paste(variables, collapse = ", ")))
+# }
 
 cli_alert_info("Verifying connecting to profile possible")
 con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
@@ -1037,12 +1037,16 @@ verify_ne_imp_class()
 verify_ne_lht_class()
 
 cli_alert_info("Testing dsSurvival")
-source("/cicd/scripts/release/xenon-survival.R")
+source("test-cases/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+cli_alert_success("Survival tests passed")
 
+if(ADMIN_MODE == F) { # Resources can't be assigned in admin mode so skip this test in CI
 cli_alert_info("Testing dsExposome")
-source("/cicd/scripts/release/xenon-exposome.R")
+source("test-cases/xenon-exposome.R")
 run_exposome_tests()
+}
+cli_alert_success("Exposome tests passed")
 
 logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
@@ -1113,7 +1117,7 @@ dsDisconnect(con)
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
 if(update_auto == "y"){
-  set_user(user, admin_pwd, T, project1, omics_project, link_project)
+  set_user(user, admin_pwd, T, project1, omics_project, link_project, "xenon-tests")
 } else{
   cat("Make your account admin again")
   wait_for_input()
