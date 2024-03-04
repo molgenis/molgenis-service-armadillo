@@ -104,7 +104,9 @@
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <div
                   class="d-grid gap-2 d-md-flex justify-content-md-end"
-                  @click="openLinkView"
+                  @click="
+                    openLinkView('', '', '', projectId, selectedFolder, '')
+                  "
                 >
                   <div class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Add view from source
@@ -146,7 +148,16 @@
                 }})
                 <button
                   v-if="!createLink"
-                  @click="openLinkView"
+                  @click="
+                    openLinkView(
+                      projectId,
+                      selectedFolder,
+                      selectedFile,
+                      '',
+                      '',
+                      ''
+                    )
+                  "
                   type="button"
                   class="btn btn-primary btn-sm m-1"
                 >
@@ -163,10 +174,12 @@
               </div>
               <div v-if="createLink" class="p-2">
                 <ViewCreator
-                  :projectId="projectId"
-                  :selectedFolder="selectedFolder"
-                  :selectedFile="selectedFile"
-                  :variables="variables"
+                  :sourceProject="linkData['srcProject']"
+                  :sourceFolder="linkData['srcFolder']"
+                  :sourceTable="linkData['srcTable']"
+                  :targetProject="linkData['targetProject']"
+                  :targetFolder="linkData['targetFolder']"
+                  :targetTable="linkData['targetTable']"
                   :onSave="doCreateLinkFile"
                 />
               </div>
@@ -202,7 +215,6 @@ import {
   deleteObject,
   previewObject,
   getFileDetails,
-  getTableVariables,
   createLinkFile,
 } from "@/api/api";
 import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
@@ -308,7 +320,14 @@ export default defineComponent({
       newFolder: "",
       projectContent: {},
       createLink: false,
-      variables: [],
+      linkData: {
+        srcProject: "",
+        srcFolder: "",
+        srcTable: "",
+        targetProject: "",
+        targetFolder: "",
+        targetTable: "",
+      },
     };
   },
   watch: {
@@ -449,18 +468,23 @@ export default defineComponent({
       this.fileToDelete = "";
       this.folderToDeleteFrom = "";
     },
-    openLinkView() {
+    openLinkView(
+      srcProject: string,
+      srcFolder: string,
+      srcTable: string,
+      targetProject: string,
+      targetFolder: string,
+      targetTable: string
+    ) {
       this.createLink = true;
-      getTableVariables(
-        this.projectId,
-        `${this.selectedFolder}%2F${this.selectedFile}`
-      )
-        .then((data: string[]) => {
-          this.variables = data;
-        })
-        .catch((error: any) => {
-          this.errorMessage = `Cannot load variables for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-        });
+      this.linkData = {
+        srcProject: srcProject,
+        srcFolder: srcFolder,
+        srcTable: srcTable,
+        targetProject: targetProject,
+        targetFolder: targetFolder,
+        targetTable: targetTable,
+      };
     },
     proceedDelete(fileAndFolder: string) {
       this.clearRecordToDelete();
@@ -512,6 +536,13 @@ export default defineComponent({
       variables: string[]
     ) {
       const response = createLinkFile(
+        sourceProject,
+        sourceObject,
+        viewProject,
+        viewObject,
+        variables
+      );
+      console.log(
         sourceProject,
         sourceObject,
         viewProject,
