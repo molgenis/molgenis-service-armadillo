@@ -71,7 +71,7 @@ jobs:
           command: apt-get --yes install zip
 
       - setup_remote_docker:
-          version: 19.03.13
+          version: previous
           docker_layer_caching: true
 
       - run:

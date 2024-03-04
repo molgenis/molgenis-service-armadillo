@@ -101,7 +101,7 @@ chmod u+x armadillo-check-update.sh
 
 ### 3.2 Run update script
 
-You can run the script to see whether you can upgrade.
+You can run the following script to download the new Armadillo version.
 
 > The output could help us to help you fix problems.
 
@@ -110,7 +110,7 @@ You can run the script to see whether you can upgrade.
 ./armadillo-check-update.sh 4.x.y
 ```
 
-As a result of running above the Armadillo jar file is downloaded.
+Once the script has completed, you can verify that the Armadillo JAR file has been downloaded by checking the directory:
 
 ```bash
 # See all jar files on your system
@@ -130,8 +130,8 @@ Edit the application.yml:
 ```bash
 nano /etc/armadillo/application.yml
 ```
-Add the following, below `docker-management-enabled: true`:
-`docker-run-in-container: false`
+
+Below the line `docker-management-enabled: true`, ensure to insert the line `docker-run-in-container: false`. Typically, you'll find these configurations at the beginning of the file.
 
 
 ### 4.2 Make backup of system config
@@ -187,7 +187,33 @@ systemctl start armadillo
 systemctl status armadillo
 ```
 
-### 5.4 Check log files
+## 6. Visit the site
+
+Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
+almost finished. 
+
+## 7. Update profiles
+Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`. 
+
+1. Edit the default profile. 
+2. Change the "image" to `datashield/rock-base:latest` and save. 
+3. Start the default profile.
+4. Edit the "xenon" profile.
+5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
+6. Start the xenon profile. 
+
+Everything should be working fine now. You can try and login to your server via the central analysis server, using
+the `DSMolgenisArmadillo` (2.0.5 or up) package to test. 
+
+Enjoy =)
+Team Armadillo
+
+
+## Troubleshooting
+
+Reviewing the log files can provide valuable insights into any issues or activities within the application. If you encounter any errors or unexpected behavior, examining the log files can often help diagnose the problem.
+
+Check log files location
 
 ```bash
 ls -l /var/log/armadillo/
@@ -222,29 +248,6 @@ or
 tail -f /var/log/armadillo/*
 ```
 
-## 6. Visit the site
-
-Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
-almost finished. 
-
-## 7. Update profiles
-Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`. 
-
-1. Edit the default profile. 
-2. Change the "image" to `datashield/rock-base:latest` and save. 
-3. Start the default profile.
-4. Edit the "xenon" profile.
-5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-6. Start the xenon profile. 
-
-Everything should be working fine now. You can try and login to your server via the central analysis server, using
-the `DSMolgenisArmadillo` (2.0.5 or up) package to test. 
-
-Enjoy =)
-Team Armadillo
-
-
-## Troubleshooting
 
 Although we try to be very complete in this manual, if you run into issues, it might be because a setting got changed
 in the application.yml. To check if that's the case, do the following:
