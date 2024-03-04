@@ -1,3 +1,121 @@
+<template>
+  <div v-if="file">
+    <div class="row">
+      <div class="col-sm-3">
+        <button class="btn btn-info me-1" type="button" @click="fetchFile">
+          <i class="bi bi-arrow-clockwise"></i>Reload
+        </button>
+        <a
+          class="btn btn-primary"
+          :href="'/insight/files/' + file.id + '/download'"
+          ><i class="bi bi-box-arrow-down"></i>Download</a
+        >
+      </div>
+      <div class="col-sm-1">
+        <input
+          type="number"
+          class="form-control"
+          id="page_size"
+          placeholder="Lines per page"
+          v-model="file.page_size"
+          v-on:blur="fetchFile"
+          title="Lines per page"
+        />
+      </div>
+      lines per page
+      <div class="col-sm-1">
+        <input
+          type="number"
+          class="form-control"
+          id="page_num"
+          placeholder="page number"
+          v-model="file.page_num"
+          v-on:change="fetchFile"
+          title="Page: &lt; 0 from end ; &ge; 0: from start"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="text-secondary fst-italic">
+        Last reload @ server time {{ file.fetched }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-3">
+        <SearchBar id="searchbox" v-model="filterValue" />
+      </div>
+      <div class="col">
+        <div
+          class="btn-group"
+          role="group"
+          aria-label="navigation"
+          v-if="true || (filterValue && matchedLines.length > 0)"
+        >
+          <button
+            type="button"
+            :disabled="numberOfLines < 1"
+            class="btn btn-primary me-1"
+            @click="navigate('first')"
+          >
+            <i class="bi bi-skip-backward-fill"></i>
+          </button>
+          <button
+            type="button"
+            :disabled="numberOfLines < 1"
+            class="btn btn-primary me-1"
+            @click="navigate('prev')"
+          >
+            <i class="bi bi-skip-start-fill"></i>
+          </button>
+          <button
+            type="button"
+            :disabled="numberOfLines < 1"
+            class="btn btn-primary me-1"
+            @click="navigate('next')"
+          >
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+          <button
+            type="button"
+            :disabled="numberOfLines < 1"
+            class="btn btn-primary"
+            @click="navigate('last')"
+          >
+            <i class="bi bi-skip-forward-fill"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
+          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+        </div>
+        <div v-else class="text-secondary fst-italic">
+          <span>No search results</span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="content">
+          <div class="line" v-for="(line, index) in lines" :key="index">
+            <span
+              class="line-content"
+              :class="{ 'text-danger': isMatchedLine(index) }"
+            >
+              {{ line }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-else>
+    <LoadingSpinner></LoadingSpinner>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, watch } from "vue";
 
@@ -139,124 +257,6 @@ function navigate(direction: string) {
   setTimeout(setFocusOnLine, 20, currentFocus.value);
 }
 </script>
-
-<template>
-  <div v-if="file">
-    <div class="row">
-      <div class="col-sm-3">
-        <button class="btn btn-info me-1" type="button" @click="fetchFile">
-          <i class="bi bi-arrow-clockwise"></i>Reload
-        </button>
-        <a
-          class="btn btn-primary"
-          :href="'/insight/files/' + file.id + '/download'"
-          ><i class="bi bi-box-arrow-down"></i>Download</a
-        >
-      </div>
-      <div class="col-sm-1">
-        <input
-          type="number"
-          class="form-control"
-          id="page_size"
-          placeholder="Lines per page"
-          v-model="file.page_size"
-          v-on:blur="fetchFile"
-          title="Lines per page"
-        />
-      </div>
-      lines per page
-      <div class="col-sm-1">
-        <input
-          type="number"
-          class="form-control"
-          id="page_num"
-          placeholder="page number"
-          v-model="file.page_num"
-          v-on:change="fetchFile"
-          title="Page: &lt; 0 from end ; &ge; 0: from start"
-        />
-      </div>
-    </div>
-    <div class="row">
-      <div class="text-secondary fst-italic">
-        Last reload @ server time {{ file.fetched }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-3">
-        <SearchBar id="searchbox" v-model="filterValue" />
-      </div>
-      <div class="col">
-        <div
-          class="btn-group"
-          role="group"
-          aria-label="navigation"
-          v-if="true || (filterValue && matchedLines.length > 0)"
-        >
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('first')"
-          >
-            <i class="bi bi-skip-backward-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('prev')"
-          >
-            <i class="bi bi-skip-start-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('next')"
-          >
-            <i class="bi bi-skip-end-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary"
-            @click="navigate('last')"
-          >
-            <i class="bi bi-skip-forward-fill"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
-          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
-        </div>
-        <div v-else class="text-secondary fst-italic">
-          <span>No search results</span>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div class="content">
-          <div class="line" v-for="(line, index) in lines" :key="index">
-            <span
-              class="line-content"
-              :class="{ 'text-danger': isMatchedLine(index) }"
-            >
-              {{ line }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div v-else>
-    <LoadingSpinner></LoadingSpinner>
-  </div>
-</template>
 
 <style scoped>
 * {
