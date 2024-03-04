@@ -28,8 +28,13 @@ public class InsightService {
 
   public List<FileInfo> filesInfo() {
     ArrayList<FileInfo> list = new ArrayList<>();
-    list.add(FileInfo.create(AUDIT_FILE, AUDIT_FILE_DISPLAY_NAME));
-    list.add(FileInfo.create(LOG_FILE, LOG_FILE_DISPLAY_NAME));
+    list.add(
+        FileInfo.create(
+            InsightServiceFiles.AUDIT_FILE.getKey(),
+            InsightServiceFiles.AUDIT_FILE.getDisplayName()));
+    list.add(
+        FileInfo.create(
+            InsightServiceFiles.LOG_FILE.getKey(), InsightServiceFiles.LOG_FILE.getDisplayName()));
     return list;
   }
 
@@ -47,31 +52,32 @@ public class InsightService {
   private String auditFilePath;
 
   public String getFileName(String file_id) {
-    return switch (file_id) {
-      case LOG_FILE -> LOG_FILE_NAME;
-      case AUDIT_FILE -> AUDIT_FILE_NAME;
-      default -> file_id;
-    };
+    InsightServiceFiles c = InsightServiceFiles.getConstantByKey(file_id);
+    if (!(c == null)) {
+      return c.getFileName();
+    }
+    return file_id;
   }
 
-  public FileDetails fileDetails(String file_id, int pageNum, int pageSize) {
-    return switch (file_id) {
-      case LOG_FILE -> FileDetails.create(
-          LOG_FILE,
-          LOG_FILE_DISPLAY_NAME,
-          this.fileService.readLogFile(logFilePath, pageNum, pageSize),
-          getServerTime() + ": " + fileService.getFileSize(logFilePath),
-          pageNum,
-          pageSize);
-      case AUDIT_FILE -> FileDetails.create(
-          AUDIT_FILE,
-          AUDIT_FILE_DISPLAY_NAME,
-          this.fileService.readLogFile(auditFilePath, pageNum, pageSize),
+  public FileDetails fileDetails(String file_id, int pageNum, int pageSize, String direction) {
+    InsightServiceFiles c = InsightServiceFiles.getConstantByKey(file_id);
+    // FIXME: can we move this into InsightServiceFiles?
+    if (!(c == null)) {
+      String filePath = auditFilePath;
+      if (file_id.equals("LOG_FILE")) {
+        filePath = logFilePath;
+      }
+      String content = this.fileService.readLogFile(filePath, pageNum, pageSize, direction);
+      return FileDetails.create(
+          c.getKey(),
+          c.getDisplayName(),
+          c.getContentType(),
+          content,
           getServerTime() + ": " + fileService.getFileSize(auditFilePath),
           pageNum,
           pageSize);
-      default -> FileDetails.create(file_id, file_id, file_id, getServerTime(), -1, -1);
-    };
+    }
+    return FileDetails.create(file_id, file_id, "text/plain", file_id, getServerTime(), -1, -1);
   }
 
   public Stream<String> downloadFile(String file_id) {

@@ -25,9 +25,12 @@ public class FileService {
    * @param pageSize number of lines to read
    * @return lines falling in the asked frame
    */
-  public String readLogFile(String logFilePath, int pageNum, int pageSize) {
+  public String readLogFile(String logFilePath, int pageNum, int pageSize, String direction) {
     StringBuilder stringBuilder = new StringBuilder();
     String line;
+    if (direction.equals("end")) {
+      pageNum = -pageNum - 1;
+    }
 
     try (BufferedReader reader = new BufferedReader(new FileReader(logFilePath))) {
       long totalLines = new BufferedReader(new FileReader(logFilePath)).lines().count();

@@ -79,10 +79,11 @@ public class InsightController {
   public FileDetails fileDetails(
       Principal principal,
       @PathVariable String file_id,
-      @RequestParam(name = "page_num", required = false, defaultValue = "-1") int pageNum,
-      @RequestParam(name = "page_size", required = false, defaultValue = "1000") int pageSize) {
+      @RequestParam(name = "page_num", required = false, defaultValue = "0") int pageNum,
+      @RequestParam(name = "page_size", required = false, defaultValue = "1000") int pageSize,
+      @RequestParam(name = "direction", required = false, defaultValue = "end") String direction) {
     return auditor.audit(
-        () -> insightService.fileDetails(file_id, pageNum, pageSize),
+        () -> insightService.fileDetails(file_id, pageNum, pageSize, direction),
         principal,
         FILE_DETAILS,
         Map.of("FILE_ID", file_id));
