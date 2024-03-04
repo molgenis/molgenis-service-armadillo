@@ -11,28 +11,36 @@
           ><i class="bi bi-box-arrow-down"></i>Download</a
         >
       </div>
-      <div class="col-sm-1">
+      <div class="col-sm-9">
+        Page
         <input
           type="number"
-          class="form-control"
-          id="page_size"
-          placeholder="Lines per page"
-          v-model="file.page_size"
-          v-on:blur="fetchFile"
-          title="Lines per page"
-        />
-      </div>
-      lines per page
-      <div class="col-sm-1">
-        <input
-          type="number"
-          class="form-control"
-          id="page_num"
-          placeholder="page number"
           v-model="file.page_num"
           v-on:change="fetchFile"
-          title="Page: &lt; 0 from end ; &ge; 0: from start"
+          min="0"
         />
+        from the
+        <input
+          type="radio"
+          name="end-or-begin"
+          value="end"
+          v-model="fromBeginOrEnd"
+        />
+        start or
+        <input
+          type="radio"
+          name="end-or-begin"
+          value="begin"
+          v-model="fromBeginOrEnd"
+        />
+        end page containing
+        <input
+          type="number"
+          id="page_size"
+          v-model="file.page_size"
+          v-on:blur="fetchFile"
+        />
+        ~ 1000 chars per page
       </div>
     </div>
     <div class="row">
@@ -137,6 +145,8 @@ const props = defineProps({
 
 const file = ref<RemoteFileDetail>();
 const lines = ref<Array<string>>([]);
+const fromBeginOrEnd = ref<string>("end");
+
 const filterValue = ref("");
 const numberOfLines = ref(-1);
 const currentFocus = ref(0);
@@ -158,21 +168,32 @@ watch(
 watch(filterValue, (_newVal, _oldVal) => filteredLines());
 
 async function fetchFile() {
-  let page_num = -1;
+  let page_num = 0;
   let page_size = 1000;
+  let direction = "end";
 
   if (file.value) {
     page_num = file.value.page_num;
     page_size = file.value.page_size;
   }
+  if (fromBeginOrEnd.value) {
+    direction = fromBeginOrEnd.value;
+  }
 
   resetStates();
   try {
-    const res = await getFileDetail(props.fileId, page_num, page_size);
+    const res = await getFileDetail(
+      props.fileId,
+      page_num,
+      page_size,
+      direction
+    );
     let list = res.content.trim().split("\n");
 
-    // we assume JSON lines if starts with {
+    // we assume JSON lines if starts with { are JSONL.
+    // FIXME: Add server content type to RESPONSE
     if (list.length && list[0].startsWith("{")) {
+      // FIXME: make helper function
       // known auditor fields
       const audit = ["timestamp", "principal", "type"];
       const mapper = (k: string, v: string | number) => `${k}: ${v}\n`;

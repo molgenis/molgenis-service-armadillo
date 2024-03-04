@@ -38,7 +38,7 @@ describe("RemoteFile", () => {
     
         await wrapper.setProps({ fileId: '456' });
     
-        expect(api.getFileDetail).toHaveBeenCalledWith("456", -1, 1000);
+        expect(api.getFileDetail).toHaveBeenCalledWith("456", 0, 1000, "end");
 
         await wrapper.vm.$nextTick();
 
