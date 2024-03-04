@@ -19,3 +19,23 @@ export function matchedLineIndices(
     .filter((v) => v > -1);
   return matchedLines;
 }
+
+export function auditJsonLinesToLines(lines: string[]) {
+  // From https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/actuate/audit/AuditEvent.html
+  const auditBaseFields = ["timestamp", "principal", "type"];
+  const mapper = (k: string, v: string | number) => `${k}: ${v}\n`;
+
+  return lines.map((line) => {
+    let html = "";
+    const record = JSON.parse(line);
+    auditBaseFields.forEach((field) => {
+      if (record[field]) {
+        html += mapper(field, record[field]);
+      }
+    });
+
+    return (
+      html + "\n" + mapper("data", "\n" + JSON.stringify(record.data, null, 2))
+    );
+  });
+}

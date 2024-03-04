@@ -23,14 +23,14 @@
         <input
           type="radio"
           name="end-or-begin"
-          value="end"
+          value="start"
           v-model="fromBeginOrEnd"
         />
         start or
         <input
           type="radio"
           name="end-or-begin"
-          value="begin"
+          value="end"
           v-model="fromBeginOrEnd"
         />
         end page containing
@@ -133,7 +133,7 @@ import { RemoteFileDetail } from "@/types/api";
 
 import SearchBar from "@/components/SearchBar.vue";
 
-import { matchedLineIndices } from "@/helpers/insight";
+import { matchedLineIndices, auditJsonLinesToLines } from "@/helpers/insight";
 import LoadingSpinner from "./LoadingSpinner.vue";
 
 const props = defineProps({
@@ -152,6 +152,7 @@ const numberOfLines = ref(-1);
 const currentFocus = ref(0);
 
 function resetStates() {
+  file.value = null;
   lines.value = [];
   filterValue.value = "";
   numberOfLines.value = -1;
@@ -193,31 +194,8 @@ async function fetchFile() {
     // we assume JSON lines if starts with { are JSONL.
     // FIXME: Add server content type to RESPONSE
     if (list.length && list[0].startsWith("{")) {
-      // FIXME: make helper function
-      // known auditor fields
-      const audit = ["timestamp", "principal", "type"];
-      const mapper = (k: string, v: string | number) => `${k}: ${v}\n`;
-
-      list = list.map((line) => {
-        let html = "";
-        const record = JSON.parse(line);
-        let isAudit = false;
-        audit.forEach((field) => {
-          if (record[field]) {
-            isAudit = true;
-            html += mapper(field, record[field]);
-          }
-        });
-        if (isAudit) {
-          return (
-            html +
-            "\n" +
-            mapper("data", "\n" + JSON.stringify(record.data, null, 2))
-          );
-        } else {
-          return JSON.stringify(record.data, null, 2);
-        }
-      });
+      // It is an Audit file
+      list = auditJsonLinesToLines(list);
     }
     lines.value = list;
     file.value = res;
