@@ -9,7 +9,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: eclipse-temurin:17.0.9_9-jdk-jammy
+      - image: eclipse-temurin:previous
 
     working_directory: ~/repo
     resource_class: large
