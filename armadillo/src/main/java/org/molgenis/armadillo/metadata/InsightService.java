@@ -14,11 +14,7 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class InsightService {
   public static final String AUDIT_FILE = "AUDIT_FILE";
-  public static final String AUDIT_FILE_NAME = "armadillo-audit.log";
-  public static final String AUDIT_FILE_DISPLAY_NAME = "Audit file";
   public static final String LOG_FILE = "LOG_FILE";
-  public static final String LOG_FILE_NAME = "armadillo-log.log";
-  public static final String LOG_FILE_DISPLAY_NAME = "Log file";
 
   private final FileService fileService;
 
