@@ -22,8 +22,8 @@ plugins {
     id 'com.palantir.docker' version '0.35.0'
 }
 
-targetCompatibility = '17'
-sourceCompatibility = '17'
+targetCompatibility = '19'
+sourceCompatibility = '19'
 
 println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.previousVersion
 
