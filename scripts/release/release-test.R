@@ -60,21 +60,9 @@ profile_defaults = data.frame(
   blacklist = c("", "")
 )
 
-add_slash_if_not_added <- function(path){
-  if(!endsWith(path, "/")){
-    return(paste0(path, "/"))
-  } else {
-    return(path)
-  }
-}
-
-exit_test <- function(msg){
-  cli_alert_danger(msg)
-  cond = structure(list(message=msg), class=c("exit", "condition"))
-  signalCondition(cond)
-  stop(cond)
-}
-
+cli_alert_info("Loading common functions")
+source("common-functions.R")
+cli_alert_success("Functions loaded")
 #
 # create_basic_header <- function(pwd){
 #   encoded <- base64enc::base64encode(
@@ -189,13 +177,7 @@ exit_test <- function(msg){
 # }
 #
 #
-# check_cohort_exists <- function(cohort){
-#   if(cohort %in% armadillo.list_projects()){
-#     cli_alert_success(paste0(cohort, " exists"))
-#   } else {
-#     exit_test(paste0(cohort, " doesn't exist!"))
-#   }
-# }
+
 #
 # download_test_files <- function(urls, dest){
 #   n_files <- length(urls)
@@ -212,14 +194,6 @@ exit_test <- function(msg){
 #   cli_progress_done()
 # }
 #
-# generate_random_project_name <- function(current_projects) {
-#   random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
-#   if (!random_project %in% current_projects) {
-#     return(random_project)
-#   } else {
-#     generate_random_project_name(current_projects)
-#   }
-# }
 #
 # generate_random_project_seed <- function(current_project_seeds) {
 #   random_seed <- round(runif(1, min = 100000000, max=999999999))
@@ -532,87 +506,31 @@ cli_alert_info("Configuring profiles")
 source("setup-profiles.R")
 cli_alert_success("Profiles configured")
 
+cli_h1("Starting release test")
+source("release-test-info.R")
+
+cli_alert_info("Uploading test data")
+cli_alert_info(sprintf("Login to %s", armadillo_url))
+if(ADMIN_MODE) {
+    armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+} else {
+    armadillo.login(armadillo_url)
+} # Do we need these two log ins?
+
+cli_alert_info("Creating a test project")
+project1 <- generate_random_project_name()
+create_test_project(project1)
+cli_alert_success(paste0(project1, " created"))
+
+cli_alert_info("Uploading test data")  # Add option for survival data?
+source("upload-data.R")
+cli_alert_success("Data uploaded")
 
 
-# cli_h1("Release test")
-# cat(sprintf("
-#                   ,.-----__                       Testing version: %s
-#             ,:::://///,:::-.                      Test server: %s
-#            /:''/////// ``:::`;/|/                 OIDC User: %s
-#           /'   ||||||     :://'`\\                 Admin password set: %s
-#         .' ,   ||||||     `/(  e \\                Directory for test files: %s
-#   -===~__-'\\__X_`````\\_____/~`-._ `.              Profile: %s
-#               ~~        ~~       `~-'             Admin-only mode: %s
-# ", version, armadillo_url, user, admin_pwd != "", dest, profile, ADMIN_MODE))
-#
-# cli_h2("Table upload")
-# cli_alert_info(sprintf("Login to %s", armadillo_url))
-# if(ADMIN_MODE) {
-#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-# } else {
-#     armadillo.login(armadillo_url)
-# }
-# available_projects <- armadillo.list_projects()
-# project1 <- generate_random_project_name(available_projects)
-# available_projects <- c(available_projects, project1)
-# cli_alert_info(sprintf("Creating project [%s]", project1))
-# armadillo.create_project(project1)
-# cli_alert_info(sprintf("Checking if project [%s] exists", project1))
-# check_cohort_exists(project1)
-#
-# cli_alert_info("Reading parquet files for core variables")
-# cli_alert_info("core/nonrep")
-# nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
-# cli_alert_success("core/nonrep read")
-# cli_alert_info("core/yearlyrep")
-# yearlyrep <- arrow::read_parquet(paste0(dest, "core/yearlyrep.parquet"))
-# cli_alert_success("core/yearlyrep read")
-# cli_alert_info("core/monthlyrep")
-# monthlyrep <- arrow::read_parquet(paste0(dest, "core/monthlyrep.parquet"))
-# cli_alert_success("core/monthlyrep read")
-# cli_alert_info("core/trimesterrep")
-# trimesterrep <- arrow::read_parquet(paste0(dest, "core/trimesterrep.parquet"))
-# cli_alert_success("core/trimesterrep read")
-#
-# cli_alert_info("Uploading core test tables")
-# armadillo.upload_table(project1, "2_1-core-1_0", nonrep)
-# armadillo.upload_table(project1, "2_1-core-1_0", yearlyrep)
-# armadillo.upload_table(project1, "2_1-core-1_0", monthlyrep)
-# armadillo.upload_table(project1, "2_1-core-1_0", trimesterrep)
-# cli_alert_success("Uploaded files into core")
-#
-# rm(nonrep, yearlyrep, monthlyrep, trimesterrep)
-#
-# cli_alert_info("Reading parquet files for outcome variables")
-# nonrep <- arrow::read_parquet(paste0(dest, "outcome/nonrep.parquet"))
-# yearlyrep <- arrow::read_parquet(paste0(dest, "outcome/yearlyrep.parquet"))
-#
-# cli_alert_info("Uploading outcome test tables")
-# armadillo.upload_table(project1, "1_1-outcome-1_0", nonrep)
-# armadillo.upload_table(project1, "1_1-outcome-1_0", yearlyrep)
-# cli_alert_success("Uploaded files into outcome")
-#
-# cli_alert_info("Reading parquet files for survival variables")
-# veteran <- arrow::read_parquet(paste0(dest, "survival/veteran.parquet"))
-#
-# cli_alert_info("Logging in as admin user")
-# armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-#
-# cli_alert_info("Uploading survival test table")
-# armadillo.upload_table(project1, "survival", veteran)
-# rm(veteran)
-# cli_alert_success("Uploaded files into survival")
-#
-# cli_alert_info("Checking if colnames of trimesterrep available")
-# trimesterrep <- armadillo.load_table(project1, "2_1-core-1_0", "trimesterrep")
-# cols <- c("row_id","child_id","age_trimester","smk_t","alc_t")
-# if (identical(colnames(trimesterrep), cols)){
-#   cli_alert_success("Colnames correct")
-# } else {
-#   cli_alert_danger(paste0(colnames(trimesterrep), "!=", cols))
-#   exit_test("Colnames incorrect")
-# }
-#
+
+
+
+
 # cli_h2("Manual test UI")
 # cat("\nNow open your testserver in the browser")
 # cat(sprintf("\n\nVerify [%s] is available", project1))
