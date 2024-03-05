@@ -8,14 +8,6 @@ show_version_info <- function(libs){
   cli_end(libs_to_print)
 }
 
-add_slash_if_not_added <- function(path){
-  if(!endsWith(path, "/")){
-    return(paste0(path, "/"))
-  } else {
-    return(path)
-  }
-}
-
 remove_slash_if_added <- function(path){
   if(endsWith(path, "/")){
     return(gsub("/$", "", path))
