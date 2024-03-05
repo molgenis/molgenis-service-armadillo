@@ -577,20 +577,11 @@ cli_alert_success("Options configured")
 
 cli_alert_info("Preparing tables for tests")
 source("download-tables.R")
-cli_alert_info("Tables ready for testing")
+cli_alert_success("Tables ready for testing")
 
-#
-# rda_dir <- file.path(test_file_path, "gse66351_1.rda")
-#
-# if(!file.exists(rda_dir)){
-#   cli_alert_warning("Unable to locate gse66351_1.rda in testing directory, downloading.")
-#   download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", rda_dir)
-# }
-#
-# cli_alert_info("Checking if rda dir exists")
-# if (rda_dir == "" || !file.exists(rda_dir)) {
-#   exit_test(sprintf("File [%s] doesn't exist", rda_dir))
-# }
+cli_alert_info("Preparing resource for tests")
+source("download-resources.R")
+cli_alert_success("Resource ready for testing")
 #
 # app_info <- get_from_api("actuator/info")
 #
