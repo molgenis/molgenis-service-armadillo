@@ -58,6 +58,13 @@ describe("RemoteFile", () => {
         });
         await wrapper.vm.$nextTick();
 
+        expect(wrapper.vm.file).toEqual({
+          id: '123',
+          name: 'test',
+          timestamp: '2024-01-03T15:39:56Z',
+          content: [...lines].join('\n'),
+        });
+
         const searchValue = "somesearchvalue";
         const input: DOMWrapper<HTMLElement> = wrapper.find("#searchbox");
         // console.log(wrapper.html(), 'xxxxx');

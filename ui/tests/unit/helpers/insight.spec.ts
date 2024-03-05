@@ -24,7 +24,7 @@ describe('Matching lines on search string', () => {
 
 })
 
-describe('Prepare audit file', () => {
+describe('Make sure audit file fields are ordered', () => {
     describe('one base line', () => {
         const baseLine = {
             "timestamp":"2024-02-29T07:18:26.494967Z",
