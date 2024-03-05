@@ -1041,12 +1041,14 @@ source("test-cases/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
 cli_alert_success("Survival tests passed")
 
-if(ADMIN_MODE == F) { # Resources can't be assigned in admin mode so skip this test in CI
+if (ADMIN_MODE) {
+   cli_alert_warning("Cannot test working with resources as basic authenticated admin: skipping dsExposome tests")
+} else {
 cli_alert_info("Testing dsExposome")
 source("test-cases/xenon-exposome.R")
 run_exposome_tests()
-}
 cli_alert_success("Exposome tests passed")
+}
 
 logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
@@ -1071,7 +1073,7 @@ if (ADMIN_MODE) {
 
     cli_alert_info("Testing if we see the resource")
     resource_path <- sprintf("%s/ewas/GSE66351_1", omics_project)
-    if(datashield.resources(conns = conns)$testserver == resource_path){
+    if(resource_path %in% datashield.resources(conns = conns)$testserver){
       cli_alert_success("Success")
     } else {
       cli_alert_danger("Failure")
