@@ -2,7 +2,7 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -236,7 +236,7 @@ public class LocalStorageService implements StorageService {
     Path objectPath = getObjectPathSafely(bucketName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));
+          format("Object '%s' doesn't exist in bucket '%s'", objectName, bucketName));
     }
     return objectPath;
   }
