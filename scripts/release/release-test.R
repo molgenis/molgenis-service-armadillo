@@ -68,16 +68,13 @@ add_slash_if_not_added <- function(path){
   }
 }
 
-# exit_test <- function(msg){
-#   cli_alert_danger(msg)
-#   cond = structure(list(message=msg), class=c("exit", "condition"))
-#   signalCondition(cond)
-#   stop(cond)
-# }
-#
-# create_bearer_header <- function(token){
-#   return(paste0("Bearer ", token))
-# }
+exit_test <- function(msg){
+  cli_alert_danger(msg)
+  cond = structure(list(message=msg), class=c("exit", "condition"))
+  signalCondition(cond)
+  stop(cond)
+}
+
 #
 # create_basic_header <- function(pwd){
 #   encoded <- base64enc::base64encode(
@@ -87,18 +84,7 @@ add_slash_if_not_added <- function(path){
 #   return(paste0("Basic ", encoded))
 # }
 #
-# # make authentication header for api calls, basic or bearer based on type
-# get_auth_header <- function(type, key){
-#   header_content <- ""
-#   if(tolower(type) == "bearer"){
-#     header_content <- create_bearer_header(key)
-#   } else if(tolower(type) == "basic") {
-#     header_content <- create_basic_header(key)
-#   } else {
-#     exit_test(sprintf("Type [%s] invalid, choose from 'basic' and 'bearer'"))
-#   }
-#   return(c("Authorization" = header_content))
-# }
+
 #
 # # armadillo api put request
 # put_to_api <- function(endpoint, key, auth_type, body_args){
@@ -144,27 +130,6 @@ add_slash_if_not_added <- function(path){
 #   }
 # }
 #
-# # get request to armadillo api without authentication
-# get_from_api <- function(endpoint) {
-#   cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
-#   response <- GET(paste0(armadillo_url, endpoint))
-#   cat(paste0('get_from_api', ' for ', endpoint, " results ", response$status_code, "\n"))
-#   return(content(response))
-# }
-#
-# # get request to armadillo api with an authheader
-# get_from_api_with_header <- function(endpoint, key, auth_type){
-#   auth_header <- get_auth_header(auth_type, key)
-#   response <- GET(paste0(armadillo_url, endpoint), config = c(httr::add_headers(auth_header)))
-#   if(response$status_code == 403){
-#     msg <- sprintf("Permission denied. Is user [%s] admin?", user)
-#     exit_test(msg)
-#   } else if(response$status_code != 200) {
-#     cli_alert_danger(sprintf("Cannot retrieve data from endpoint [%s]", endpoint))
-#     exit_test(content(response)$message)
-#   }
-#   return(content(response))
-# }
 #
 # # add/edit user using armadillo api
 # set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project){
@@ -223,14 +188,6 @@ add_slash_if_not_added <- function(path){
 #   }
 # }
 #
-# print_list <- function(list){
-#   vals_to_print <- cli_ul()
-#   for (i in 1:length(list)) {
-#     val = list[i]
-#     cli_li(val)
-#   }
-#   cli_end(vals_to_print)
-# }
 #
 # check_cohort_exists <- function(cohort){
 #   if(cohort %in% armadillo.list_projects()){
@@ -345,22 +302,6 @@ add_slash_if_not_added <- function(path){
 #   } else {
 #     exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
 #   }
-# }
-#
-# start_profile_if_not_running <- function(profile_name, key, auth_type) {
-#   response <- get_from_api_with_header(paste0('ds-profiles/', profile_name), key, auth_type)
-#   if (!response$container$status == "RUNNING") {
-#     cli_alert_info(sprintf("Detected profile %s not running", profile_name))
-#     start_profile(profile_name, key, auth_type)
-#   }
-# }
-#
-# create_profile_if_not_available <- function(profile_name, available_profiles, key, auth_type) {
-#   if (!profile_name %in% available_profiles) {
-#     cli_alert_info(sprintf("Unable to locate profile %s, attempting to create.", profile_name))
-#     create_profile(profile_name, key, auth_type)
-#   }
-#   start_profile_if_not_running(profile_name, key, auth_type)
 # }
 #
 # create_dsi_builder <- function(server = "armadillo", url, profile, password = "", token = "", table = "", resource = "") {
@@ -582,60 +523,17 @@ cli_alert_success("Tables ready for testing")
 cli_alert_info("Preparing resource for tests")
 source("download-resources.R")
 cli_alert_success("Resource ready for testing")
-#
-# app_info <- get_from_api("actuator/info")
-#
-# version <- unlist(app_info$build$version)
-#
-# if(ADMIN_MODE){
-#   token <- admin_pwd
-#   auth_type <- "basic"
-# } else {
-#   cli_alert_info("Obtaining TOKEN from '.env.")
-#   token <- Sys.getenv("TOKEN")
-#   if(token == ""){
-#     cli_alert_warning("TOKEN not set, obtaining from armadillo.")
-#     token <- armadillo.get_token(armadillo_url)
-#   }
-#   auth_type <- "bearer"
-# }
-#
-# cat("\nAvailable profiles: \n")
-# profiles <- get_from_api_with_header("profiles", token, auth_type)
-# print_list(unlist(profiles$available))
-#
-# profile = Sys.getenv("PROFILE")
-# if(profile == ""){
-#   cli_alert_warning("Profile not set, defaulting to xenon.")
-#   profile <- "xenon"
-# } else {
-#   cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
-# }
-#
-# cli_alert_info("Checking if profile is prepared for all tests")
-#
-# if (!as_docker_container) {
-#   create_profile_if_not_available(profile, profiles$available, token, auth_type)
-# }
-# profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
-# if (!as_docker_container) {
-#   start_profile_if_not_running("default", token, auth_type)
-# }
-# seed <- unlist(profile_info$options$datashield.seed)
-# whitelist <- unlist(profile_info$packageWhitelist)
-# if(is.null(seed)){
-#   cli_alert_warning(sprintf("Seed of profile [%s] is NULL, please set it in UI profile tab and restart the profile", profile))
-#   wait_for_input()
-# }
-# if(!"resourcer" %in% whitelist){
-#   cli_alert_warning(sprintf("Whitelist of profile [%s] does not contain resourcer, please add it and restart the profile", profile))
-#   wait_for_input()
-# }
-#
-# if(!is.null(seed) && "resourcer" %in% whitelist){
-#   cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
-# }
-#
+
+cli_alert_info("Determining whether to run with password or token")
+source("set-admin-mode.R")
+cli_alert_success("Permissions set")
+
+cli_alert_info("Configuring profiles")
+source("setup-profiles.R")
+cli_alert_success("Profiles configured")
+
+
+
 # cli_h1("Release test")
 # cat(sprintf("
 #                   ,.-----__                       Testing version: %s
