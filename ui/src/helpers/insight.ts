@@ -20,7 +20,7 @@ export function matchedLineIndices(
   return matchedLines;
 }
 
-export function auditJsonLinesToLines(lines: string[]) {
+export function auditJsonLinesToLines(lines: string[]): string[] {
   // From https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/actuate/audit/AuditEvent.html
   const auditBaseFields = ["timestamp", "principal", "type"];
   const mapper = (k: string, v: string | number) => `${k}: ${v}\n`;

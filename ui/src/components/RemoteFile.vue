@@ -189,14 +189,14 @@ async function fetchFile() {
       page_size,
       direction
     );
+
     let list = res.content.trim().split("\n");
 
-    // we assume JSON lines if starts with { are JSONL.
-    // FIXME: Add server content type to RESPONSE
-    if (list.length && list[0].startsWith("{")) {
-      // It is an Audit file
+    if (res.content_type === "application/x-ndjson") {
+      // We assume it is an Audit file for now
       list = auditJsonLinesToLines(list);
     }
+
     lines.value = list;
     file.value = res;
   } catch (error) {
