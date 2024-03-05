@@ -31,7 +31,7 @@ packages <- c("diffobj", "getPass", "arrow", "jsonlite", "future",
   "DSI",
   "resourcer",
   "MolgenisArmadillo",
-  "DSMolgenisArmadillo"
+  "DSMolgenisArmadillo",
   "purrr"
 )
 
