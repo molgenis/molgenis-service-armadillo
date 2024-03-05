@@ -575,17 +575,9 @@ cli_alert_info("Configuring test options")
 source("test-config.R")
 cli_alert_success("Options configured")
 
-default_parquet_path = file.path(service_location, "data", "shared-lifecycle")
-if(!dir.exists(default_parquet_path)){
-cli_alert_info("Downloading tables")
+cli_alert_info("Preparing tables for tests")
 source("download-tables.R")
-cli_alert_success("Tables downloaded")
-} else {
-  dest <- add_slash_if_not_added(default_parquet_path)
-  cli_alert_success("Tables not downloaded: available locally")
-
-}
-
+cli_alert_info("Tables ready for testing")
 
 #
 # rda_dir <- file.path(test_file_path, "gse66351_1.rda")
