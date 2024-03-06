@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.FileInputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +21,9 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.FileDetails;
 import org.molgenis.armadillo.metadata.FileInfo;
 import org.molgenis.armadillo.metadata.InsightService;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -104,13 +105,14 @@ public class InsightController {
   }
 
   public ResponseEntity<Resource> createDownloadFile(String file_id) {
-    Resource file = (Resource) insightService.downloadFile(file_id);
+    FileInputStream file = insightService.downloadFile(file_id);
+    InputStreamResource inputStreamResource = new InputStreamResource(file);
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(
         HttpHeaders.CONTENT_DISPOSITION,
         "attachment; filename=\"" + insightService.getFileName(file_id) + "\"");
-
-    return new ResponseEntity<>(file, headers, HttpStatus.OK);
+    headers.add(HttpHeaders.CONTENT_TYPE, "text/text");
+    return new ResponseEntity<>(inputStreamResource, headers, OK);
   }
 }

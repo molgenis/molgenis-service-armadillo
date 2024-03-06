@@ -1,13 +1,12 @@
 package org.molgenis.armadillo.service;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.springframework.stereotype.Service;
 
@@ -73,13 +72,13 @@ public class FileService {
     return stringBuilder.toString();
   }
 
-  public Stream<String> streamLogFile(String logFilePath) {
+  public FileInputStream streamLogFile(String logFilePath) {
     try {
       Path path = Path.of(logFilePath);
-      return Files.lines(path);
+      return new FileInputStream(path.toFile());
     } catch (IOException e) {
       e.printStackTrace();
-      return Stream.empty();
+      return (FileInputStream) FileInputStream.nullInputStream();
     }
   }
 

@@ -1,10 +1,10 @@
 package org.molgenis.armadillo.metadata;
 
+import java.io.FileInputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import org.molgenis.armadillo.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -83,10 +83,10 @@ public class InsightService {
     return FileDetails.create(file_id, file_id, "text/plain", file_id, getServerTime(), -1, -1);
   }
 
-  public Stream<String> downloadFile(String file_id) {
+  public FileInputStream downloadFile(String file_id) {
     return switch (file_id) {
       case LOG_FILE, AUDIT_FILE -> this.fileService.streamLogFile(getFileName(file_id));
-      default -> Stream.empty();
+      default -> (FileInputStream) FileInputStream.nullInputStream();
     };
   }
 }
