@@ -68,34 +68,6 @@ cli_alert_success("Functions loaded")
 #   }
 # }
 #
-# # theres a bit of noise added in DataSHIELD answers, causing calculations to not always be exactly the same, but close
-# # here we check if they're equal enough
-# almost_equal <- function(val1, val2) {
-#   return(all.equal(val1, val2, tolerance= .Machine$double.eps ^ 0.03))
-# }
-#
-# # compare values in two lists
-# compare_list_values <- function(list1, list2) {
-#   vals_to_print <- cli_ul()
-#   equal <- TRUE
-#   for (i in 1:length(list1)) {
-#     val1 <- list1[i]
-#     val2 <- list2[i]
-#     if(almost_equal(val1, val2) == TRUE){
-#       cli_li(sprintf("%s ~= %s", val1, val2))
-#     } else {
-#       equal <- FALSE
-#       cli_li(sprintf("%s != %s", val1, val2))
-#     }
-#   }
-#   cli_end(vals_to_print)
-#   if(equal){
-#     cli_alert_success("Values equal")
-#   } else {
-#     cli_alert_danger("Values not equal")
-#   }
-# }
-#
 # download_test_files <- function(urls, dest){
 #   n_files <- length(urls)
 #   cli_progress_bar("Downloading testfiles", total = n_files)
@@ -191,51 +163,6 @@ cli_alert_success("Functions loaded")
 #     }
 #   } else {
 #     exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
-#   }
-# }
-#
-
-#
-create_ds_connection <- function(password = "", token = "", profile = "", url) {
-  cli_alert_info("Creating new datashield connection")
-  if (ADMIN_MODE) {
-    cli_alert_info("Creating connection as admin")
-    con <- dsConnect(
-      drv = armadillo(),
-      name = "armadillo",
-      user = "admin",
-      password = password,
-      url = url,
-      profile = profile
-    )
-  } else {
-    cli_alert_info("Creating connection using token")
-    con <- dsConnect(
-      drv = armadillo(),
-      name = "armadillo",
-      token = token,
-      url = url,
-      profile = profile
-    )
-  }
-  return(con)
-}
-#
-# verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_total) {
-#   if(! round(ds_mean[1], 3) == expected_mean){
-#     cli_alert_danger(paste0(ds_mean[1], "!=", expected_mean))
-#     exit_test("EstimatedMean incorrect!")
-#   } else if(ds_mean[2] != 0) {
-#     cli_alert_danger(paste0(ds_mean[2], "!=", 0))
-#     exit_test("Nmissing incorrect!")
-#   } else if(ds_mean[3] != expected_valid_and_total) {
-#     cli_alert_danger(paste0(ds_mean[3], "!=", expected_valid_and_total))
-#     exit_test("Nvalid incorrect!")
-#   } else if(ds_mean[4] != expected_valid_and_total) {
-#     cli_alert_danger(paste0(ds_mean[4], "!=", expected_valid_and_total))
-#     exit_test("Ntotal incorrect!")
-#   } else {
-#     cli_alert_success("Mean values correct")
 #   }
 # }
 #
@@ -458,34 +385,17 @@ cli_h2("Assigning tables as researcher")
 source("test-cases/assigning.R")
 check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
 check_expression_assign(project = project1, object = "nonrep", variable = "coh_country")
-cli_alert_success("Assigning worked")
+cli_alert_success("Assigning works")
 
 # cli_h2("Testing linked table")
 # source("test-cases/test-linked-view.R")
 # cli_alert_success("Linked view worked")
 
+cli_h2("Testing dsBase")
+source("test-cases/ds-base.R")
+verify_ds_base(object = "nonrep", variable = "coh_country")
+cli_alert_success("dsBase works")
 
-#
-# cli_alert_info("Verifying mean function works on core_nonrep$country")
-# ds_mean <- ds.mean("core_nonrep$coh_country", datasources = conns)$Mean
-# cli_alert_info("Verifying mean values")
-# verify_ds_obtained_mean(ds_mean, 431.105, 1000)
-# cli_alert_info("Verifying can create histogram")
-# hist <- ds.histogram(x = "core_nonrep$coh_country", datasources = conns)
-# cli_alert_info("Verifying values in histogram")
-#
-# breaks <- c(35.31138,116.38319,197.45500,278.52680,359.59861,440.67042,521.74222,602.81403,683.88584,764.95764,846.02945)
-# counts <- c(106,101,92,103,106,104,105,101,113,69)
-# density <- c(0.0013074829,0.0012458092,0.0011347965,0.0012704787,0.0013074829,0.0012828134,0.0012951481,0.0012458092,0.0013938261,0.0008510974)
-# mids <- c(75.84729,156.91909,237.99090,319.06271,400.13451,481.20632,562.27813,643.34993,724.42174,805.49355)
-# cli_alert_info("Validating histogram breaks")
-# compare_list_values(hist$breaks, breaks)
-# cli_alert_info("Validating histogram counts")
-# compare_list_values(hist$counts, counts)
-# cli_alert_info("Validating histogram density")
-# compare_list_values(hist$density, density)
-# cli_alert_info("Validating histogram mids")
-# compare_list_values(hist$mids, mids)
 #
 # verify_mediate_class()
 # verify_ne_weight_class()
