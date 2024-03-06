@@ -196,30 +196,30 @@ cli_alert_success("Functions loaded")
 #
 
 #
-# create_ds_connection <- function(password = "", token = "", profile = "", url) {
-#   cli_alert_info("Creating new datashield connection")
-#   if (ADMIN_MODE) {
-#     cli_alert_info("Creating connection as admin")
-#     con <- dsConnect(
-#       drv = armadillo(),
-#       name = "armadillo",
-#       user = "admin",
-#       password = password,
-#       url = url,
-#       profile = profile
-#     )
-#   } else {
-#     cli_alert_info("Creating connection using token")
-#     con <- dsConnect(
-#       drv = armadillo(),
-#       name = "armadillo",
-#       token = token,
-#       url = url,
-#       profile = profile
-#     )
-#   }
-#   return(con)
-# }
+create_ds_connection <- function(password = "", token = "", profile = "", url) {
+  cli_alert_info("Creating new datashield connection")
+  if (ADMIN_MODE) {
+    cli_alert_info("Creating connection as admin")
+    con <- dsConnect(
+      drv = armadillo(),
+      name = "armadillo",
+      user = "admin",
+      password = password,
+      url = url,
+      profile = profile
+    )
+  } else {
+    cli_alert_info("Creating connection using token")
+    con <- dsConnect(
+      drv = armadillo(),
+      name = "armadillo",
+      token = token,
+      url = url,
+      profile = profile
+    )
+  }
+  return(con)
+}
 #
 # verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_total) {
 #   if(! round(ds_mean[1], 3) == expected_mean){
@@ -449,6 +449,11 @@ cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonr
 conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
 cli_alert_success("Logged in")
 
+cli_h2("Verifying connecting to profile possible")
+source("test-cases/verify-profile.R")
+verify_profile(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
+cli_alert_success("Profile works")
+
 cli_h2("Assigning tables as researcher")
 source("test-cases/assigning.R")
 check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
@@ -459,15 +464,7 @@ cli_alert_success("Assigning worked")
 # source("test-cases/test-linked-view.R")
 # cli_alert_success("Linked view worked")
 
-# cli_alert_info("Verifying connecting to profile possible")
-# con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
-# if (con@name == "armadillo") {
-#   cli_alert_success("Succesfully connected")
-# } else {
-#   # FIXME: should we exit?
-#   cli_alert_danger("Connection failed")
-# }
-# dsDisconnect(con)
+
 #
 # cli_alert_info("Verifying mean function works on core_nonrep$country")
 # ds_mean <- ds.mean("core_nonrep$coh_country", datasources = conns)$Mean
