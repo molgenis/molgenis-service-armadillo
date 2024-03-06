@@ -83,8 +83,8 @@ public class FileService {
     }
   }
 
-  public String getFileSize(String file_path) {
-    try (FileChannel fileChannel = FileChannel.open(Paths.get(file_path))) {
+  public String getFileSize(String filePath) {
+    try (FileChannel fileChannel = FileChannel.open(Paths.get(filePath))) {
       return String.valueOf(fileChannel.size());
     } catch (IOException e) {
       return "-1";
