@@ -70,7 +70,7 @@ public class InsightService {
     InsightServiceFiles insightServiceFiles = InsightServiceFiles.getConstantByKey(file_id);
     if (!(insightServiceFiles == null)) {
       String filePath = getFileName(file_id);
-      String content = this.fileService.readLogFile(filePath, pageNum, pageSize, direction);
+      String content = this.fileService.readLogFileBiz(filePath, pageNum, pageSize, direction);
       return FileDetails.create(
           insightServiceFiles.getKey(),
           insightServiceFiles.getDisplayName(),
