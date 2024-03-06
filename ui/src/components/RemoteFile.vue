@@ -8,15 +8,16 @@
         <a
           class="btn btn-primary"
           :href="'/insight/files/' + file.id + '/download'"
-          ><i class="bi bi-box-arrow-down"></i>Download</a
         >
+          <i class="bi bi-box-arrow-down"></i>Download
+        </a>
       </div>
       <div class="col-sm-9 paging">
         Page
         <input
           type="number"
           v-model="file.page_num"
-          v-on:change="fetchFile"
+          @change="fetchFile"
           min="0"
         />
         from the
@@ -25,6 +26,7 @@
           name="end-or-begin"
           value="start"
           v-model="fromBeginOrEnd"
+          @change="fetchFile"
         />
         start or
         <input
@@ -32,15 +34,15 @@
           name="end-or-begin"
           value="end"
           v-model="fromBeginOrEnd"
+          @change="fetchFile"
         />
         end page containing
-        <input
-          type="number"
-          id="page_size"
-          v-model="file.page_size"
-          v-on:blur="fetchFile"
-        />
-        ~ 1000 chars per page
+        <select v-model="file.page_size" @change="fetchFile">
+          <option v-for="option in charsOptions" :key="option" :value="option">
+            {{ option }}
+          </option>
+        </select>
+        ~ chars per page
       </div>
     </div>
     <div class="row stats">
@@ -150,6 +152,7 @@ const fromBeginOrEnd = ref<string>("end");
 const filterValue = ref("");
 const numberOfLines = ref(-1);
 const currentFocus = ref(0);
+const charsOptions = ref([100, 200, 500, 1000, 2000, 5000, 10000]);
 
 function resetStates() {
   file.value = null;
