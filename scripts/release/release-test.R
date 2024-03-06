@@ -58,7 +58,7 @@ profile_defaults = data.frame(
 )
 
 cli_alert_info("Loading common functions")
-source("common-functions.R")
+source("test-cases/common-functions.R")
 cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
@@ -71,6 +71,8 @@ cli_alert_success("Tables ready for testing")
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
+rda_dir <- file.path(test_file_path, "gse66351_1.rda")
+prepare_resources(rda_dir)
 cli_alert_success("Resource ready for testing")
 
 cli_h2("Determining whether to run with password or token")
@@ -104,7 +106,7 @@ cli_alert_success("Data uploaded")
 
 cli_h2("Uploading resource source file")
 source("test-cases/upload-resource.R")
-upload_resource(project1)
+upload_resource(project = project1, rda_dir = rda_dir, url = armadillo_url, token = token, auth_type = auth_type)
 cli_alert_success("Resource source file uploaded")
 
 cli_h2("Creating resource")
@@ -172,6 +174,7 @@ cli_alert_success("dsBase works")
 
 cli_alert_info("Verifying dsMediation")
 source("test-cases/xenon-mediate.R")
+verify_ds_mediation()
 cli_alert_success("dsMediation works")
 
 cli_alert_info("Testing dsSurvival")

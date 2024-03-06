@@ -39,11 +39,11 @@ spin_till_done <- function(spinner){
     }
 }
 
-upload_resource <- function(project) {
+upload_resource <- function(project, rda_dir, url, token, auth_type) {
     rda_file_body <- upload_file(rda_dir)
-    cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, project1))
+    cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
     system.time({
-      post_resource_to_api(project1, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
+      post_resource_to_api(project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
     })
     cli_alert_info("Resource uploaded")
     }
