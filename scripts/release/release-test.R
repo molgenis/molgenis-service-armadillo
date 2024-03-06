@@ -60,6 +60,9 @@ profile_defaults = data.frame(
 cli_alert_info("Loading common functions")
 source("common-functions.R")
 cli_alert_success("Functions loaded")
+
+
+
 #
 # create_basic_header <- function(pwd){
 #   encoded <- base64enc::base64encode(
@@ -80,42 +83,6 @@ cli_alert_success("Functions loaded")
 #   return(response)
 # }
 #
-# spin_till_done <- function(spinner){
-#     # run_spinner is a boolean set on top of this script, it is set to false when loading is done and spinner can stop
-#     if (do_run_spinner) {
-#         Sys.sleep(0.1)
-#     } else {
-#         spinner$finish()
-#     }
-# }
-#
-# run_spinner <- function(spinner) {
-#   lapply(1:1000, function(x) { spinner$spin(); spin_till_done(spinner)})
-# }
-#
-# # post resource to armadillo api
-# post_resource_to_api <- function(project, key, auth_type, file, folder, name){
-#   auth_header <- get_auth_header(auth_type, key)
-#   plan(multisession)
-#   spinner <- make_spinner()
-#   # Do async call
-#   api_call <- future(POST(sprintf("%sstorage/projects/%s/objects", armadillo_url, project),
-#     body=list(file = file, object=paste0(folder,"/", name)),
-#                     config = c(httr::add_headers(auth_header))))
-#
-#   # Run spinner while waiting for response
-#   ansi_with_hidden_cursor(run_spinner(spinner))
-#   # Response will come when ready
-#   response <- value(api_call)
-#   # Set do_run_spinner to false, causing the spinner to stop running, see spin_till_done method
-#   do_run_spinner <- FALSE
-#   if(response$status_code != 204) {
-#     cli_alert_warning(sprintf("Could not upload [%s] to project [%s]", name, project))
-#     exit_test(content(response)$message)
-#   }
-# }
-#
-#
 # # add/edit user using armadillo api
 # set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project){
 #   args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project, link_project))
@@ -126,24 +93,11 @@ cli_alert_success("Functions loaded")
 #   }
 # }
 #
-# wait_for_input <- function(){
-#   if (interactive) {
-#     cat("\nPress any key to continue")
-#     continue <- readLines("stdin", n=1)
-#   }
-#   else {
-#     cat("\n\n")
-#   }
-# }
-#
-#
 # create_dir_if_not_exists <- function(directory){
 #   if (!dir.exists(paste0(dest, directory))) {
 #     dir.create(paste0(dest, directory))
 #   }
 # }
-#
-#
 #
 # # theres a bit of noise added in DataSHIELD answers, causing calculations to not always be exactly the same, but close
 # # here we check if they're equal enough
@@ -509,36 +463,43 @@ if(ADMIN_MODE) {
 } else {
     armadillo.login(armadillo_url)
 } # Do we need these two log ins?
+cli_alert_success("Logged in")
 
 cli_h2("Creating a test project")
 project1 <- generate_random_project_name()
 create_test_project(project1)
 cli_alert_success(paste0(project1, " created"))
 
+cli_h2("Starting manual UI test")
+source("manual-test.R")
+interactive_test(project1)
+cli_alert_success("Manual test complete")
+
 cli_h2("Uploading test data")  # Add option for survival data?
 source("upload-data.R")
 cli_alert_success("Data uploaded")
 
+cli_h2("Uploading resource source file")
+source("test-cases/upload-resource.R")
+upload_resource(project1)
+cli_alert_info("Resource source file uploaded")
+
+cli_h2("Creating resource")
+source("test-cases/create-resource.R")
+resGSE1 <- make_resource(project1)
+
+cli_h2("Uploading resource file")
+armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
+
+cli_h2("Creating linked view on table")
 
 
 
 
 
 
-#
-# cli_h2("Resource upload")
-# omics_project <- generate_random_project_name(available_projects)
-# available_projects <- c(available_projects, omics_project)
-# cli_alert_info(sprintf("Creating project [%s]", omics_project))
-# armadillo.create_project(omics_project)
-# rda_file_body <- upload_file(rda_dir)
-# cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", armadillo_url, omics_project))
-# system.time({
-#   post_resource_to_api(omics_project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda")
-# })
-# cli_alert_info("Creating resource")
-#
-# cli_h2("Creating linked view on table")
+
+# cli_h2()
 # #TODO: replace with R code once that is created and released
 # auth_header <- get_auth_header(auth_type, token)
 # link_project <- generate_random_project_name(available_projects)
@@ -561,19 +522,10 @@ cli_alert_success("Data uploaded")
 #   cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
 # }
 #
-# rds_url <- armadillo_url
-# if(armadillo_url == "http://localhost:8080/") {
-#     rds_url <- "http://host.docker.internal:8080/"
-# }
-#
-# resGSE1 <- resourcer::newResource(
-#   name = "GSE66351_1",
-#   url = sprintf("%sstorage/projects/%s/objects/ewas%sgse66351_1.rda", rds_url, omics_project,"%2F"),
-#   format = "ExpressionSet"
-# )
-# cli_alert_info("Uploading RDS file")
-# armadillo.upload_resource(project = omics_project, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
-#
+
+
+
+
 # cli_alert_info("\nNow you're going to test as researcher")
 # if(!ADMIN_MODE){
 #   update_auto = "y"
