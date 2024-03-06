@@ -36,11 +36,8 @@ library(stringi)
 library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
-
 library(DSMolgenisArmadillo)
-
 library(resourcer)
-
 library(dsMediationClient)
 library(dsMTLClient)
 
@@ -176,9 +173,6 @@ cli_alert_success("Functions loaded")
 #   }
 # }
 #
-#
-
-#
 # download_test_files <- function(urls, dest){
 #   n_files <- length(urls)
 #   cli_progress_bar("Downloading testfiles", total = n_files)
@@ -193,7 +187,6 @@ cli_alert_success("Functions loaded")
 #   }
 #   cli_progress_done()
 # }
-#
 #
 # generate_random_project_seed <- function(current_project_seeds) {
 #   random_seed <- round(runif(1, min = 100000000, max=999999999))
@@ -486,30 +479,30 @@ cli_alert_success("Functions loaded")
 #   }
 
 # here we start the script chronologically
-cli_alert_info("Configuring test options")
+cli_h2("Configuring test options")
 source("test-config.R")
 cli_alert_success("Options configured")
 
-cli_alert_info("Preparing tables for tests")
+cli_h2("Preparing tables for tests")
 source("download-tables.R")
 cli_alert_success("Tables ready for testing")
 
-cli_alert_info("Preparing resource for tests")
+cli_h2("Preparing resource for tests")
 source("download-resources.R")
 cli_alert_success("Resource ready for testing")
 
-cli_alert_info("Determining whether to run with password or token")
+cli_h2("Determining whether to run with password or token")
 source("set-admin-mode.R")
 cli_alert_success("Permissions set")
 
-cli_alert_info("Configuring profiles")
+cli_h2("Configuring profiles")
 source("setup-profiles.R")
 cli_alert_success("Profiles configured")
 
 cli_h1("Starting release test")
 source("release-test-info.R")
 
-cli_alert_info("Uploading test data")
+cli_h2("Logging in as data manager")
 cli_alert_info(sprintf("Login to %s", armadillo_url))
 if(ADMIN_MODE) {
     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
@@ -517,12 +510,12 @@ if(ADMIN_MODE) {
     armadillo.login(armadillo_url)
 } # Do we need these two log ins?
 
-cli_alert_info("Creating a test project")
+cli_h2("Creating a test project")
 project1 <- generate_random_project_name()
 create_test_project(project1)
 cli_alert_success(paste0(project1, " created"))
 
-cli_alert_info("Uploading test data")  # Add option for survival data?
+cli_h2("Uploading test data")  # Add option for survival data?
 source("upload-data.R")
 cli_alert_success("Data uploaded")
 
@@ -531,27 +524,7 @@ cli_alert_success("Data uploaded")
 
 
 
-# cli_h2("Manual test UI")
-# cat("\nNow open your testserver in the browser")
-# cat(sprintf("\n\nVerify [%s] is available", project1))
-# wait_for_input()
-# cat("\nClick on the icon next to the name to go to the project explorer")
-# wait_for_input()
-# cat("\nVerify the 1_1-outcome-1_0 and 2_1-core-1_0 folders are there")
-# wait_for_input()
-# cat("\nVerify core contains nonrep, yearlyrep, monthlyrep and trimesterrep")
-# wait_for_input()
-# cat("\nVerify outcome contains nonrep and yearlyrep")
-# wait_for_input()
-#
-# if (interactive) {
-#   cat("\nWere the manual tests successful? (y/n) ")
-#   success <- readLines("stdin", n=1)
-#   if(success != "y"){
-#     cli_alert_danger("Manual tests failed: problem in UI")
-#     exit_test("Some values incorrect in UI projects view")
-#   }
-# }
+
 #
 # cli_h2("Resource upload")
 # omics_project <- generate_random_project_name(available_projects)
