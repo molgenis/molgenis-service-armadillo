@@ -54,6 +54,20 @@ start_profile_if_not_running <- function(profile_name, key, auth_type) {
   }
 }
 
+start_profile <- function(profile_name, key, auth_type) {
+  auth_header <- get_auth_header(auth_type, key)
+  cli_alert_info(sprintf('Attempting to start profile: %s', profile_name))
+  response <- POST(
+    sprintf("%sds-profiles/%s/start", armadillo_url, profile_name),
+    config = c(httr::add_headers(auth_header))
+    )
+  if (!response$status_code == 204) {
+    exit_test(sprintf("Unable to start profile %s, error code: %s", profile_name, response$status_code))
+  } else {
+    cli_alert_success(sprintf("Successfully started profile: %s", profile_name))
+  }
+}
+
 cat("\nAvailable profiles: \n")
 profiles <- get_from_api_with_header("profiles", token, auth_type)
 print_list(unlist(profiles$available))
