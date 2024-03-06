@@ -37,3 +37,34 @@ check_cohort_exists <- function(cohort){
     exit_test(paste0(cohort, " doesn't exist!"))
   }
 }
+
+create_dsi_builder <- function(server = "armadillo", url, profile, password = "", token = "", table = "", resource = "") {
+  cli_alert_info("Creating new datashield login builder")
+  builder <- DSI::newDSLoginBuilder()
+  if (ADMIN_MODE) {
+    cli_alert_info("Appending information as admin")
+    builder$append(
+      server = server,
+      url = url,
+      profile = profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      user = "admin",
+      password = password,
+      resource = resource
+    )
+  } else {
+    cli_alert_info("Appending information using token")
+    builder$append(
+      server = server,
+      url = url,
+      profile = profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      token = token,
+      resource = resource
+    )
+  }
+  cli_alert_info("Appending information to login builder")
+  return(builder$build())
+}

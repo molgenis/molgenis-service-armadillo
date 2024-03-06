@@ -61,37 +61,6 @@ cli_alert_info("Loading common functions")
 source("common-functions.R")
 cli_alert_success("Functions loaded")
 
-
-
-#
-# create_basic_header <- function(pwd){
-#   encoded <- base64enc::base64encode(
-#     charToRaw(
-#       paste0("admin:", pwd))
-#   )
-#   return(paste0("Basic ", encoded))
-# }
-#
-
-#
-# # armadillo api put request
-# put_to_api <- function(endpoint, key, auth_type, body_args){
-#   auth_header <- get_auth_header(auth_type, key)
-#   body <- jsonlite::toJSON(body_args, auto_unbox=TRUE)
-#   response <- PUT(paste0(armadillo_url, endpoint), body=body, encode="json",
-#                   config = c(httr::content_type_json(), httr::add_headers(auth_header)))
-#   return(response)
-# }
-#
-# # add/edit user using armadillo api
-# set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project){
-#   args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project, link_project))
-#   response <- put_to_api("access/users", admin_pwd, "basic", args)
-#   if(response$status_code != 204) {
-#     cli_alert_warning("Altering OIDC user failed, please do this manually")
-#     update_auto = ""
-#   }
-# }
 #
 # create_dir_if_not_exists <- function(directory){
 #   if (!dir.exists(paste0(dest, directory))) {
@@ -225,36 +194,7 @@ cli_alert_success("Functions loaded")
 #   }
 # }
 #
-# create_dsi_builder <- function(server = "armadillo", url, profile, password = "", token = "", table = "", resource = "") {
-#   cli_alert_info("Creating new datashield login builder")
-#   builder <- DSI::newDSLoginBuilder()
-#   if (ADMIN_MODE) {
-#     cli_alert_info("Appending information as admin")
-#     builder$append(
-#       server = server,
-#       url = url,
-#       profile = profile,
-#       table = table,
-#       driver = "ArmadilloDriver",
-#       user = "admin",
-#       password = password,
-#       resource = resource
-#     )
-#   } else {
-#     cli_alert_info("Appending information using token")
-#     builder$append(
-#       server = server,
-#       url = url,
-#       profile = profile,
-#       table = table,
-#       driver = "ArmadilloDriver",
-#       token = token,
-#       resource = resource
-#     )
-#   }
-#   cli_alert_info("Appending information to login builder")
-#   return(builder$build())
-# }
+
 #
 # create_ds_connection <- function(password = "", token = "", profile = "", url) {
 #   cli_alert_info("Creating new datashield connection")
@@ -479,115 +419,46 @@ cli_h2("Uploading test data")  # Add option for survival data?
 source("upload-data.R")
 cli_alert_success("Data uploaded")
 
-cli_h2("Uploading resource source file")
-source("test-cases/upload-resource.R")
-upload_resource(project1)
-cli_alert_info("Resource source file uploaded")
-
-cli_h2("Creating resource")
-source("test-cases/create-resource.R")
-resGSE1 <- make_resource(project1)
-
-cli_h2("Uploading resource file")
-armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
-
-cli_h2("Creating linked view on table")
-
-
-
-
-
-
-
-# cli_h2()
-# #TODO: replace with R code once that is created and released
-# auth_header <- get_auth_header(auth_type, token)
-# link_project <- generate_random_project_name(available_projects)
-# armadillo.create_project(link_project)
-# srcObj <- "2_1-core-1_0/nonrep"
-# linkObj <- "core-variables/nonrep"
-# json_body <- jsonlite::toJSON(
-#   list(sourceObjectName = srcObj,
-#        sourceProject = project1,
-#        linkedObject = linkObj,
-#        variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
-# post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
-# response <- POST(post_url,
-#                  body=json_body,
-#                  encode="json",
-#                  config = c(httr::content_type_json(), httr::add_headers(auth_header)))
-# if (response$status_code != 204) {
-#   exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s, message: %s", link_project, linkObj, project1, srcObj, response$status_code, response$message))
-# } else {
-#   cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
-# }
+# cli_h2("Uploading resource source file")
+# source("test-cases/upload-resource.R")
+# upload_resource(project1)
+# cli_alert_success("Resource source file uploaded")
 #
+# cli_h2("Creating resource")
+# source("test-cases/create-resource.R")
+# resGSE1 <- make_resource(project1)
+# cli_alert_success("Resource created")
+#
+# cli_h2("Uploading resource file")
+# armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
+# cli_alert_success("Resource uploaded")
+#
+# cli_h2("Creating linked view on table")
+# source("test-cases/create-linked-view.R")
+# cli_alert_success("Linked view created")
 
+cli_alert_info("\nNow you're going to test as researcher")
+cli_h2("Setting researcher permissions")
+source("test-cases/set_researcher_access.R")
+set_researcher_access(required_projects = project1)
+cli_alert_success("Researcher permissions set")
 
+cli_h2("Logging in as a researcher")
+logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
+conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
+cli_alert_success("Logged in")
 
+cli_h2("Assigning tables as researcher")
+source("test-cases/assigning.R")
+check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
+check_expression_assign(project = project1, object = "nonrep", variable = "coh_country")
+cli_alert_success("Assigning worked")
 
-# cli_alert_info("\nNow you're going to test as researcher")
-# if(!ADMIN_MODE){
-#   update_auto = "y"
-#   if(interactive) {
-#     cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
-#     update_auto <- readLines("stdin", n=1)
-#   }
-#   if(update_auto == "y"){
-#     set_user(user, admin_pwd, F, project1, omics_project, link_project)
-#   }
-#   if(update_auto != "y"){
-#     cat("\nGo to the Users tab")
-#     cat(sprintf("\nAdd [%s]' and [%s] to the project column for your account", project1, omics_project))
-#     cat("\nRevoke your admin permisions\n")
-#     cli_alert_warning("Make sure you either have the basic auth admin password or someone available to give you back your permissions")
-#     wait_for_input()
-#   }
-# }
-#
-# cli_h2("Using tables as researcher")
-#
-# cli_alert_info("Creating new builder")
-# cli_alert_info("Building")
-# logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
-# conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
-#
-# cli_alert_info("Assigning table core_nonrep")
-# datashield.assign.table(conns, "core_nonrep", sprintf("%s/2_1-core-1_0/nonrep", project1))
-# datatype <- ds.class(x = "core_nonrep", datasources = conns)
-# expected_type <- list()
-# expected_type$armadillo = "data.frame"
-#
-# if (identical(datatype, expected_type)){
-#     cli_alert_success("Assigned table is dataframe")
-# } else {
-#     cli_alert_danger("Assigned table not of expected type:")
-#     print(datatype)
-# }
-#
-# cli_alert_info("Assigning expression for core_nonrep$coh_country")
-# datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
-#
-# cli_alert_info("Testing linked table")
-# #TODO: replace this by following once implemented in R api:
-# #linked_data <- armadillo.load_table(link_project, "core-variables", "nonrep")
-# query <- list(table = paste0(link_project, "/core-variables/nonrep"), symbol = "core_nonrep", async = TRUE)
-# variables <- c("child_id", "mother_id")
-# query$variables <- paste(unlist(variables), collapse = ",")
-# response <- httr::POST(
-#   handle = handle(armadillo_url),
-#   path = "/load-table",
-#   query = query,
-#   config = httr::add_headers(get_auth_header(auth_type, token))
-# )
-#
-# if (!response$status_code == 201) {
-#   exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, project1, srcObj, response$status_code))
-# } else {
-#   cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, project1, srcObj, paste(variables, collapse = ", ")))
-# }
-#
+# cli_h2("Testing linked table")
+# source("test-cases/test-linked-view.R")
+# cli_alert_success("Linked view worked")
+
 # cli_alert_info("Verifying connecting to profile possible")
 # con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
 # if (con@name == "armadillo") {
