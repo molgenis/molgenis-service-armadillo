@@ -829,6 +829,17 @@ armadillo.upload_table(project1, "1_1-outcome-1_0", nonrep)
 armadillo.upload_table(project1, "1_1-outcome-1_0", yearlyrep)
 cli_alert_success("Uploaded files into outcome")
 
+cli_alert_info("Reading parquet files for survival variables")
+veteran <- arrow::read_parquet(paste0(dest, "survival/veteran.parquet"))
+
+cli_alert_info("Logging in as admin user")
+armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+
+cli_alert_info("Uploading survival test table")
+armadillo.upload_table(project1, "survival", veteran)
+rm(veteran)
+cli_alert_success("Uploaded files into survival")
+
 cli_alert_info("Checking if colnames of trimesterrep available")
 trimesterrep <- armadillo.load_table(project1, "2_1-core-1_0", "trimesterrep")
 cols <- c("row_id","child_id","age_trimester","smk_t","alc_t")
@@ -1007,6 +1018,10 @@ verify_ne_weight_class()
 verify_ne_model_class()
 verify_ne_imp_class()
 verify_ne_lht_class()
+
+cli_alert_info("Testing dsSurvival")
+source("/cicd/scripts/release/xenon-survival.R")
+run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
 
 logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
 logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
