@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.molgenis.armadillo.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -47,29 +48,35 @@ public class InsightService {
   @Value("${audit.log.path:./logs/audit.log}")
   private String auditFilePath;
 
+  /**
+   * Map file_id to injected file paths.
+   *
+   * @param file_id one of injected names above.
+   * @return File path or given file id.
+   */
   public String getFileName(String file_id) {
     InsightServiceFiles c = InsightServiceFiles.getConstantByKey(file_id);
     if (!(c == null)) {
-      return c.getFileName();
+      return switch (file_id) {
+        case LOG_FILE -> logFilePath;
+        case AUDIT_FILE -> auditFilePath;
+        default -> "Unregistered file name mapping: " + file_id;
+      };
     }
     return file_id;
   }
 
   public FileDetails fileDetails(String file_id, int pageNum, int pageSize, String direction) {
-    InsightServiceFiles c = InsightServiceFiles.getConstantByKey(file_id);
-    // FIXME: can we move this into InsightServiceFiles?
-    if (!(c == null)) {
-      String filePath = auditFilePath;
-      if (file_id.equals("LOG_FILE")) {
-        filePath = logFilePath;
-      }
+    InsightServiceFiles insightServiceFiles = InsightServiceFiles.getConstantByKey(file_id);
+    if (!(insightServiceFiles == null)) {
+      String filePath = getFileName(file_id);
       String content = this.fileService.readLogFile(filePath, pageNum, pageSize, direction);
       return FileDetails.create(
-          c.getKey(),
-          c.getDisplayName(),
-          c.getContentType(),
+          insightServiceFiles.getKey(),
+          insightServiceFiles.getDisplayName(),
+          insightServiceFiles.getContentType(),
           content,
-          getServerTime() + ": " + fileService.getFileSize(auditFilePath),
+          getServerTime() + ": " + fileService.getFileSize(filePath),
           pageNum,
           pageSize);
     }
@@ -78,9 +85,53 @@ public class InsightService {
 
   public Stream<String> downloadFile(String file_id) {
     return switch (file_id) {
-      case LOG_FILE -> this.fileService.streamLogFile(logFilePath);
-      case AUDIT_FILE -> this.fileService.streamLogFile(auditFilePath);
+      case LOG_FILE, AUDIT_FILE -> this.fileService.streamLogFile(getFileName(file_id));
       default -> Stream.empty();
     };
+  }
+}
+
+enum InsightServiceFiles {
+  AUDIT_FILE("AUDIT_FILE", MediaType.APPLICATION_NDJSON_VALUE, "Audit file"),
+  LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file");
+
+  private final String key;
+  private final String contentType;
+  private final String displayName;
+
+  InsightServiceFiles(String key, String contentType, String displayName) {
+    this.key = key;
+    this.contentType = contentType;
+    this.displayName = displayName;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public String getContentType() {
+    return contentType;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public static boolean hasKey(String key) {
+    for (InsightServiceFiles constant : InsightServiceFiles.values()) {
+      if (constant.getKey().equals(key)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static InsightServiceFiles getConstantByKey(String key) {
+    for (InsightServiceFiles constant : InsightServiceFiles.values()) {
+      if (constant.getKey().equals(key)) {
+        return constant;
+      }
+    }
+    return null;
   }
 }
