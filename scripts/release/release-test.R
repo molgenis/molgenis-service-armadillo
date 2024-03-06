@@ -115,19 +115,7 @@ cli_alert_success("Functions loaded")
 #   return(response_df)
 # }
 #
-# start_profile <- function(profile_name, key, auth_type) {
-#   auth_header <- get_auth_header(auth_type, key)
-#   cli_alert_info(sprintf('Attempting to start profile: %s', profile_name))
-#   response <- POST(
-#     sprintf("%sds-profiles/%s/start", armadillo_url, profile_name),
-#     config = c(httr::add_headers(auth_header))
-#     )
-#   if (!response$status_code == 204) {
-#     exit_test(sprintf("Unable to start profile %s, error code: %s", profile_name, response$status_code))
-#   } else {
-#     cli_alert_success(sprintf("Successfully started profile: %s", profile_name))
-#   }
-# }
+
 #
 # return_list_without_empty <- function(to_empty_list) {
 #   return(to_empty_list[to_empty_list != ''])
@@ -194,28 +182,28 @@ cli_alert_success("Profiles configured")
 cli_h1("Starting release test")
 source("release-test-info.R")
 
-cli_h2("Logging in as data manager")
-cli_alert_info(sprintf("Login to %s", armadillo_url))
-if(ADMIN_MODE) {
-    armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-} else {
-    armadillo.login(armadillo_url)
-} # Do we need these two log ins?
-cli_alert_success("Logged in")
-
-cli_h2("Creating a test project")
-project1 <- generate_random_project_name()
-create_test_project(project1)
-cli_alert_success(paste0(project1, " created"))
-
-cli_h2("Starting manual UI test")
-source("manual-test.R")
-interactive_test(project1)
-cli_alert_success("Manual test complete")
-
-cli_h2("Uploading test data")  # Add option for survival data?
-source("upload-data.R")
-cli_alert_success("Data uploaded")
+# cli_h2("Logging in as data manager")
+# cli_alert_info(sprintf("Login to %s", armadillo_url))
+# if(ADMIN_MODE) {
+#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+# } else {
+#     armadillo.login(armadillo_url)
+# } # Do we need these two log ins?
+# cli_alert_success("Logged in")
+#
+# cli_h2("Creating a test project")
+# project1 <- generate_random_project_name()
+# create_test_project(project1)
+# cli_alert_success(paste0(project1, " created"))
+#
+# # cli_h2("Starting manual UI test")
+# # source("manual-test.R")
+# # interactive_test(project1)
+# # cli_alert_success("Manual test complete")
+# #
+# cli_h2("Uploading test data")  # Add option for survival data?
+# source("upload-data.R")
+# cli_alert_success("Data uploaded")
 
 # cli_h2("Uploading resource source file")
 # source("test-cases/upload-resource.R")
@@ -235,98 +223,79 @@ cli_alert_success("Data uploaded")
 # source("test-cases/create-linked-view.R")
 # cli_alert_success("Linked view created")
 
-cli_alert_info("\nNow you're going to test as researcher")
-cli_h2("Setting researcher permissions")
-source("test-cases/set_researcher_access.R")
-set_researcher_access(required_projects = project1)
-cli_alert_success("Researcher permissions set")
+# project1 = "cnbeiatwzr"
+#
+# cli_alert_info("\nNow you're going to test as researcher")
+# cli_h2("Setting researcher permissions")
+# source("test-cases/set_researcher_access.R")
+# set_researcher_access(required_projects = project1)
+# cli_alert_success("Researcher permissions set")
+#
+# # cli_h2("Logging in as a researcher")
+# logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+# cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
+# conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
+# cli_alert_success("Logged in")
 
-cli_h2("Logging in as a researcher")
-logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
-conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
-cli_alert_success("Logged in")
-
-cli_h2("Verifying connecting to profile possible")
-source("test-cases/verify-profile.R")
-verify_profile(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
-cli_alert_success("Profile works")
-
-cli_h2("Assigning tables as researcher")
-source("test-cases/assigning.R")
-check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
-check_expression_assign(project = project1, object = "nonrep", variable = "coh_country")
-cli_alert_success("Assigning works")
+# cli_h2("Verifying connecting to profile possible")
+# source("test-cases/verify-profile.R")
+# verify_profile(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
+# cli_alert_success("Profile works")
+#
+# cli_h2("Assigning tables as researcher")
+# source("test-cases/assigning.R")
+# check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
+# check_expression_assign(project = project1, object = "nonrep", variable = "coh_country")
+# cli_alert_success("Assigning works")
 
 # cli_h2("Testing linked table")
 # source("test-cases/test-linked-view.R")
 # cli_alert_success("Linked view worked")
 
-cli_h2("Verifying xenon packages")
-cli_alert_info("Verifying dsBase")
-source("test-cases/ds-base.R")
-verify_ds_base(object = "nonrep", variable = "coh_country")
-cli_alert_success("dsBase works")
-
-cli_alert_info("Verifying dsMediation")
-source("test-cases/xenon-mediate.R")
-cli_alert_success("dsMediation works")
-
-cli_alert_info("Testing dsSurvival")
-source("test-cases/xenon-survival.R")
-run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
-cli_alert_success("dsSurvival works")
-datashield.logout(conns)
-
-cli_alert_info("Testing dsMTL")
-source("test-cases/xenon-mtl.R")
-cli_alert_info("Logging in as two cohorts")
-logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
-conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
-
-verify_ds_mtl()
-cli_alert_success("dsMTL works")
-datashield.logout(conns)
-
-#
+# cli_h2("Testing resources as a researcher")
 # if (ADMIN_MODE) {
 #    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
 # } else if (!"resourcer" %in% profile_info$packageWhitelist) {
 #   cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
 # } else {
 #     cli_h2("Using resources as regular user")
-#
-#     login_data <- create_dsi_builder(server = "testserver", url = armadillo_url, token = token, profile = profile, resource = sprintf("%s/ewas/GSE66351_1", omics_project))
-#     conns <- DSI::datashield.login(logins = login_data, assign = TRUE)
-#
-#     cli_alert_info("Testing if we see the resource")
-#     resource_path <- sprintf("%s/ewas/GSE66351_1", omics_project)
-#     if(datashield.resources(conns = conns)$testserver == resource_path){
-#       cli_alert_success("Success")
-#     } else {
-#       cli_alert_danger("Failure")
-#     }
-#     cli_alert_info("Testing if we can assign resource")
-#     datashield.assign.resource(conns, resource =resource_path, symbol="eSet_0y_EUR")
-#     cli_alert_info("Getting RObject class of resource")
-#     resource_class <- ds.class('eSet_0y_EUR', datasources = conns)
-#     expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
-#     if (length(setdiff(resource_class$testserver, expected)) == 0) {
-#       cli_alert_success("Success")
-#     } else {
-#       cli_alert_danger("Failure")
-#     }
-#     cli_alert_info("Testing if we can assign expression")
-#     tryCatch({
-#       datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
-#     }, error = function(e) {
-#         cli_alert_danger(datashield.errors())
-#     })
+#     cli_h2("Verifying resources")
+#     source("test-cases/verify-resources.R")
+#     verify_resources(project = project1, resource_path = "ewas/GSE66351_1")
 #     datashield.logout(conns)
 # }
+
+# cli_h2("Verifying xenon packages")
+# cli_alert_info("Verifying dsBase")
+# source("test-cases/ds-base.R")
+# verify_ds_base(object = "nonrep", variable = "coh_country")
+# cli_alert_success("dsBase works")
 #
+# cli_alert_info("Verifying dsMediation")
+# source("test-cases/xenon-mediate.R")
+# cli_alert_success("dsMediation works")
+#
+# cli_alert_info("Testing dsSurvival")
+# source("test-cases/xenon-survival.R")
+# run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+# cli_alert_success("dsSurvival works")
+# datashield.logout(conns)
+#
+# cli_alert_info("Testing dsMTL")
+# source("test-cases/xenon-mtl.R")
+# cli_alert_info("Logging in as two cohorts")
+# logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+# logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+# logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+# conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+#
+# verify_ds_mtl()
+# cli_alert_success("dsMTL works")
+# datashield.logout(conns)
+
+
+
+
 # cli_h2("Default profile")
 # cli_alert_info("Verify if default profile works without specifying profile")
 # con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url)
@@ -398,6 +367,8 @@ datashield.logout(conns)
 #   cli_alert_warning("Testing basic authentication skipped, admin password not available")
 # }
 #
+
+
 # cli_h3("Testing Rock profile")
 # cli_alert_info(sprintf("Login to %s", armadillo_url))
 # if(ADMIN_MODE) {
