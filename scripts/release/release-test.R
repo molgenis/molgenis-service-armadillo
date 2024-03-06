@@ -168,49 +168,7 @@ cli_alert_success("Functions loaded")
 #
 
 #
-# prepare_data_for_lasso <- function(){
-#
-#   ds.dataFrameSubset(
-#     V1 = "nonrep$row_id",
-#     V2 = "nonrep$row_id",
-#     Boolean.operator = "==",
-#     df.name = "nonrep",
-#     keep.cols = c(5, 9, 13, 17),
-#     newobj = "x_df")
-#
-#   ds.asDataMatrix("x_df", "x_mat")
-#
-#   ds.dataFrameSubset(
-#     V1 = "nonrep$row_id",
-#     V2 = "nonrep$row_id",
-#     Boolean.operator = "==",
-#     df.name = "nonrep",
-#     keep.cols = c(21),
-#     newobj = "y_df")
-#
-#   ds.asDataMatrix("y_df", "y_mat")
-#
-# }
-#
-# verify_lasso_cov_train_output <- function(){
-#
-#   lasso_results <- ds.LassoCov_Train(
-#     X = "x_mat",
-#     Y = "y_mat",
-#     type = "regress",
-#     lambda = 298.9465,
-#     covar = 1,
-#     nDigits = 4,
-#     datasources = conns)
-#
-#   if(identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))){
-#     cli_alert_success("ds.LassoCov_Train passed")
-#     } else{
-#     cli_alert_danger("ds.LassoCov_Train failed")
-#     exit_test("ds.LassoCov_Train did not return an object with expected names")
-#     }
-#
-#   }
+
 
 # here we start the script chronologically
 cli_h2("Configuring test options")
@@ -304,7 +262,7 @@ cli_alert_success("Assigning works")
 # source("test-cases/test-linked-view.R")
 # cli_alert_success("Linked view worked")
 
-cli_hs("Verifying xenon packages")
+cli_h2("Verifying xenon packages")
 cli_alert_info("Verifying dsBase")
 source("test-cases/ds-base.R")
 verify_ds_base(object = "nonrep", variable = "coh_country")
@@ -314,20 +272,24 @@ cli_alert_info("Verifying dsMediation")
 source("test-cases/xenon-mediate.R")
 cli_alert_success("dsMediation works")
 
-# cli_alert_info("Testing dsSurvival")
-# source("/cicd/scripts/release/xenon-survival.R")
-# run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
-#
-# logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
-#
-# conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
-#
-# prepare_data_for_lasso()
-# verify_lasso_cov_train_output()
-#
-# datashield.logout(conns)
+cli_alert_info("Testing dsSurvival")
+source("test-cases/xenon-survival.R")
+run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+cli_alert_success("dsSurvival works")
+datashield.logout(conns)
+
+cli_alert_info("Testing dsMTL")
+source("test-cases/xenon-mtl.R")
+cli_alert_info("Logging in as two cohorts")
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+
+verify_ds_mtl()
+cli_alert_success("dsMTL works")
+datashield.logout(conns)
+
 #
 # if (ADMIN_MODE) {
 #    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
