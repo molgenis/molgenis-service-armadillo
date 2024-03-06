@@ -62,27 +62,27 @@ source("common-functions.R")
 cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
-source("test-config.R")
+source("test-cases/test-config.R")
 cli_alert_success("Options configured")
 
 cli_h2("Preparing tables for tests")
-source("download-tables.R")
+source("test-cases/download-tables.R")
 cli_alert_success("Tables ready for testing")
 
 cli_h2("Preparing resource for tests")
-source("download-resources.R")
+source("test-cases/download-resources.R")
 cli_alert_success("Resource ready for testing")
 
 cli_h2("Determining whether to run with password or token")
-source("set-admin-mode.R")
+source("test-cases/set-admin-mode.R")
 cli_alert_success("Permissions set")
 
 cli_h2("Configuring profiles")
-source("setup-profiles.R")
+source("test-cases/setup-profiles.R")
 cli_alert_success("Profiles configured")
 
 cli_h1("Starting release test")
-source("release-test-info.R")
+source("test-cases/release-test-info.R")
 
 cli_h2("Logging in as data manager")
 cli_alert_info(sprintf("Login to %s", armadillo_url))
@@ -99,7 +99,7 @@ create_test_project(project1)
 cli_alert_success(paste0(project1, " created"))
 
 cli_h2("Uploading test data")  # Add option for survival data?
-source("upload-data.R")
+source("test-cases/upload-data.R")
 cli_alert_success("Data uploaded")
 
 cli_h2("Uploading resource source file")
@@ -121,7 +121,7 @@ source("test-cases/create-linked-view.R")
 cli_alert_success("Linked view created")
 
 cli_h2("Starting manual UI test")
-source("manual-test.R")
+source("test-cases/manual-test.R")
 interactive_test(project1)
 cli_alert_success("Manual test complete")
 
