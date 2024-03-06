@@ -1,7 +1,7 @@
 <template>
   <div v-if="file">
     <div class="row">
-      <div class="col-sm-3">
+      <div class="col-sm-3 buttons">
         <button class="btn btn-info me-1" type="button" @click="fetchFile">
           <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
@@ -11,7 +11,7 @@
           ><i class="bi bi-box-arrow-down"></i>Download</a
         >
       </div>
-      <div class="col-sm-9">
+      <div class="col-sm-9 paging">
         Page
         <input
           type="number"
@@ -43,16 +43,16 @@
         ~ 1000 chars per page
       </div>
     </div>
-    <div class="row">
+    <div class="row stats">
       <div class="text-secondary fst-italic">
         Last reload @ server time {{ file.fetched }}
       </div>
     </div>
-    <div class="row">
+    <div class="row filtering">
       <div class="col-sm-3">
         <SearchBar id="searchbox" v-model="filterValue" />
       </div>
-      <div class="col">
+      <div class="col search-navigation">
         <div
           class="btn-group"
           role="group"
@@ -166,7 +166,10 @@ watch(
 );
 
 // Watch for changes while searching
-watch(filterValue, (_newVal, _oldVal) => filteredLines());
+watch(filterValue, (_newVal, _oldVal) => {
+  console.log("Filtering");
+  filteredLines();
+});
 
 async function fetchFile() {
   let page_num = 0;
