@@ -1,4 +1,4 @@
-import { DOMWrapper, shallowMount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, mount, shallowMount, VueWrapper } from "@vue/test-utils";
 import RemoteFile from "@/components/RemoteFile.vue";
 import * as _api from "@/api/api";
 
@@ -25,9 +25,6 @@ jest.mock('@/api/api', () => ({
 
 describe("RemoteFile", () => {
     let wrapper: VueWrapper<any>;
-    beforeEach(function () {
-
-    });
 
     it('calls fetchFile when fileId changes', async () => {
         const wrapper = shallowMount(RemoteFile, {
@@ -51,7 +48,10 @@ describe("RemoteFile", () => {
     });
 
     it('filters out value when searching', async () => {
-        wrapper = shallowMount(RemoteFile, {
+        // FIXME: according to https://vuejs.org/guide/scaling-up/testing.html#component-testing
+        // DO NOT test inner workings of you component
+        // so testing search or paging seems a DO NOT to me now.
+          wrapper = mount(RemoteFile, {
           props: {
             fileId: '123',
           },
@@ -65,15 +65,26 @@ describe("RemoteFile", () => {
           content: [...lines].join('\n'),
         });
 
-        const searchValue = "somesearchvalue";
-        const input: DOMWrapper<HTMLElement> = wrapper.find("#searchbox");
-        // console.log(wrapper.html(), 'xxxxx');
+        const searchValue = "Line";
 
-        // FIXME: errors on Error: wrapper.setValue() cannot be called on SEARCH-BAR-STUB
-        // console.log(input.html(), 'xxxxx');
-        // input.setValue(searchValue);
+        const inputElement:HTMLInputElement = wrapper.find('#searchbox').element as HTMLInputElement;
+        
+        inputElement.value = searchValue;
+        inputElement.dispatchEvent(new Event('input'));
 
-        // expect(input.value).toBe(searchValue);
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+
+        console.log(wrapper.html(), 'xxxxx');
+
+        expect(inputElement.value).toBe(searchValue);
+        expect(wrapper.vm.$el).toMatchSnapshot();
         // expect(wrapper.emitted()).toHaveProperty("update:modelValue");
     });
 
