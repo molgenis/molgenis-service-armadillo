@@ -182,28 +182,28 @@ cli_alert_success("Profiles configured")
 cli_h1("Starting release test")
 source("release-test-info.R")
 
-# cli_h2("Logging in as data manager")
-# cli_alert_info(sprintf("Login to %s", armadillo_url))
-# if(ADMIN_MODE) {
-#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-# } else {
-#     armadillo.login(armadillo_url)
-# } # Do we need these two log ins?
-# cli_alert_success("Logged in")
+cli_h2("Logging in as data manager")
+cli_alert_info(sprintf("Login to %s", armadillo_url))
+if(ADMIN_MODE) {
+    armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+} else {
+    armadillo.login(armadillo_url)
+} # Do we need these two log ins?
+cli_alert_success("Logged in")
+
+cli_h2("Creating a test project")
+project1 <- generate_random_project_name()
+create_test_project(project1)
+cli_alert_success(paste0(project1, " created"))
 #
-# cli_h2("Creating a test project")
-# project1 <- generate_random_project_name()
-# create_test_project(project1)
-# cli_alert_success(paste0(project1, " created"))
+# cli_h2("Starting manual UI test")
+# source("manual-test.R")
+# interactive_test(project1)
+# cli_alert_success("Manual test complete")
 #
-# # cli_h2("Starting manual UI test")
-# # source("manual-test.R")
-# # interactive_test(project1)
-# # cli_alert_success("Manual test complete")
-# #
-# cli_h2("Uploading test data")  # Add option for survival data?
-# source("upload-data.R")
-# cli_alert_success("Data uploaded")
+cli_h2("Uploading test data")  # Add option for survival data?
+source("upload-data.R")
+cli_alert_success("Data uploaded")
 
 # cli_h2("Uploading resource source file")
 # source("test-cases/upload-resource.R")
@@ -225,22 +225,22 @@ source("release-test-info.R")
 
 # project1 = "cnbeiatwzr"
 #
-# cli_alert_info("\nNow you're going to test as researcher")
-# cli_h2("Setting researcher permissions")
-# source("test-cases/set_researcher_access.R")
-# set_researcher_access(required_projects = project1)
-# cli_alert_success("Researcher permissions set")
-#
-# # cli_h2("Logging in as a researcher")
-# logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
-# conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
-# cli_alert_success("Logged in")
+cli_alert_info("\nNow you're going to test as researcher")
+cli_h2("Setting researcher permissions")
+source("test-cases/set_researcher_access.R")
+set_researcher_access(required_projects = project1)
+cli_alert_success("Researcher permissions set")
 
-# cli_h2("Verifying connecting to profile possible")
-# source("test-cases/verify-profile.R")
-# verify_profile(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
-# cli_alert_success("Profile works")
+# cli_h2("Logging in as a researcher")
+logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
+conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
+cli_alert_success("Logged in")
+
+cli_h2("Verifying connecting to profiles possible")
+source("test-cases/verify-profile.R")
+verify_profiles(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
+cli_alert_success("Profiles work")
 #
 # cli_h2("Assigning tables as researcher")
 # source("test-cases/assigning.R")
@@ -296,24 +296,8 @@ source("release-test-info.R")
 
 
 
-# cli_h2("Default profile")
-# cli_alert_info("Verify if default profile works without specifying profile")
-# con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url)
-# if (con@name == "armadillo") {
-#   cli_alert_success("Succesfully connected")
-# } else {
-#   cli_alert_danger("Connection failed")
-# }
-# dsDisconnect(con)
-#
-# cli_alert_info("Verify if default profile works when specifying profile")
-# con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = "default")
-# if (con@name == "armadillo") {
-#   cli_alert_success("Succesfully connected")
-# } else {
-#   cli_alert_danger("Connection failed")
-# }
-# dsDisconnect(con)
+
+
 #
 # cli_h2("Removing data as admin")
 # cat("We're now continueing with the datamanager workflow as admin\n")
