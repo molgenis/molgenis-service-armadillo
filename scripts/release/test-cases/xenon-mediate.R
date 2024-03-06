@@ -1,9 +1,9 @@
 verify_mediate_class <- function(){
 
-  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'nonrep',
   newobj = 'med.fit.1a')
 
-  ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex', family = 'gaussian',dataName = 'core_nonrep',
+  ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex', family = 'gaussian',dataName = 'nonrep',
   newobj = 'out.fit.1a')
 
   med_out <- ds.mediate(model.m = 'med.fit.1a', model.y = 'out.fit.1a', treat = "ethn3_m", mediator = "agebirth_m_y",
@@ -20,7 +20,7 @@ verify_mediate_class <- function(){
 }
 
 verify_ne_weight_class <- function(){
-  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'nonrep',
              newobj = 'med.fit.1b')
 
   ds.neWeight(object = 'med.fit.1b', newobj = 'expData')
@@ -57,7 +57,7 @@ verify_ne_model_class <- function(){
 verify_ne_imp_class <- function(){
 
   out.fit.1c <- ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex',
-                           family = 'gaussian', dataName = 'core_nonrep', newobj ='out.fit.1c')
+                           family = 'gaussian', dataName = 'nonrep', newobj ='out.fit.1c')
 
   ds.neImpute(object = 'out.fit.1c', nMed = 1, newobj = 'impData')
 
