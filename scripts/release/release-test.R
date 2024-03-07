@@ -58,7 +58,7 @@ profile_defaults = data.frame(
 )
 
 cli_alert_info("Loading common functions")
-source("test-cases/common-functions.R")
+source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
