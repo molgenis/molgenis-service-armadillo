@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-minio = "*"
+minio = "7.2.5"
 fusionauth-client = "*"
 requests = "*"
 simple-term-menu = "*"
