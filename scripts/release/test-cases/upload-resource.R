@@ -39,7 +39,12 @@ spin_till_done <- function(spinner) {
     }
 }
 
-upload_resource <- function(project, rda_dir, url, token, auth_type) {
+upload_resource <- function(project, rda_dir, url, token, auth_type, skip_test) {
+    test_name <- "upload-resource"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
     rda_file_body <- upload_file(rda_dir)
     cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
     system.time({

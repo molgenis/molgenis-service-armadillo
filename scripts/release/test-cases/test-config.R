@@ -25,6 +25,8 @@ show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
 cli_alert_info("Trying to read config from '.env'")
 readRenviron(".env")
 
+skip_tests = Sys.getenv("SKIP_TESTS")
+
 armadillo_url = Sys.getenv("ARMADILLO_URL")
 if(armadillo_url == ""){
   cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
