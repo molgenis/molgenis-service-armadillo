@@ -1,4 +1,3 @@
-
 cli_alert_info("Testing linked table")
 #TODO: replace this by following once implemented in R api:
 #linked_data <- armadillo.load_table(link_project, "core-variables", "nonrep")

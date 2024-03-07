@@ -1,4 +1,4 @@
-verify_mediate_class <- function(){
+verify_mediate_class <- function() {
 
   ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'nonrep',
   newobj = 'med.fit.1a')
@@ -19,7 +19,7 @@ verify_mediate_class <- function(){
     }
 }
 
-verify_ne_weight_class <- function(){
+verify_ne_weight_class <- function() {
   ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'nonrep',
              newobj = 'med.fit.1b')
 
@@ -36,7 +36,7 @@ verify_ne_weight_class <- function(){
 
 }
 
-verify_ne_model_class <- function(){
+verify_ne_model_class <- function() {
 
   med.out.1b <- ds.neModel(formula = 'preg_dia ~ ethn3_m0 + ethn3_m1 + sex',
                            family = 'gaussian', se = 'robust', expData = 'expData',
@@ -54,7 +54,7 @@ verify_ne_model_class <- function(){
 
 }
 
-verify_ne_imp_class <- function(){
+verify_ne_imp_class <- function() {
 
   out.fit.1c <- ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex',
                            family = 'gaussian', dataName = 'nonrep', newobj ='out.fit.1c')
@@ -72,7 +72,7 @@ verify_ne_imp_class <- function(){
 
 }
 
-verify_ne_lht_class <- function(){
+verify_ne_lht_class <- function() {
 
   lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c('ethn3_m0=0', 'ethn3_m1=0', 'ethn3_m0+ethn3_m1=0'))
 

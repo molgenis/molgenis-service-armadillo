@@ -1,5 +1,5 @@
 # get request to armadillo api with an authheader
-get_from_api_with_header <- function(endpoint, key, auth_type){
+get_from_api_with_header <- function(endpoint, key, auth_type) {
   auth_header <- get_auth_header(auth_type, key)
   response <- GET(paste0(armadillo_url, endpoint), config = c(httr::add_headers(auth_header)))
   if(response$status_code == 403){
@@ -13,7 +13,7 @@ get_from_api_with_header <- function(endpoint, key, auth_type){
 }
 
 # make authentication header for api calls, basic or bearer based on type
-get_auth_header <- function(type, key){
+get_auth_header <- function(type, key) {
   header_content <- ""
   if(tolower(type) == "bearer"){
     header_content <- create_bearer_header(key)
@@ -29,7 +29,7 @@ create_bearer_header <- function(token){
   return(paste0("Bearer ", token))
 }
 
-print_list <- function(list){
+print_list <- function(list) {
   vals_to_print <- cli_ul()
   for (i in 1:length(list)) {
     val = list[i]

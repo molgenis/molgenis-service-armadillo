@@ -13,4 +13,3 @@ make_resource <- function(target_project) {
 
     return(created_resource)
 }
-

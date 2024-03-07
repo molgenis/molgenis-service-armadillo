@@ -1,6 +1,6 @@
 default_parquet_path = file.path(service_location, "data", "shared-lifecycle")
 
-if(!dir.exists(default_parquet_path)){
+if(!dir.exists(default_parquet_path)) {
   cli_alert_info("Downloading tables")
   dest <- add_slash_if_not_added(test_file_path)
   cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", dest))

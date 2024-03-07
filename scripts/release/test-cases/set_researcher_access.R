@@ -9,7 +9,7 @@ set_user <- function(user, admin_pwd, isAdmin, required_projects) {
 }
 
 # # armadillo api put request
-put_to_api <- function(endpoint, key, auth_type, body_args){
+put_to_api <- function(endpoint, key, auth_type, body_args) {
   auth_header <- get_auth_header(auth_type, key)
   body <- jsonlite::toJSON(body_args, auto_unbox=TRUE)
   response <- PUT(paste0(armadillo_url, endpoint), body=body, encode="json",
@@ -17,7 +17,7 @@ put_to_api <- function(endpoint, key, auth_type, body_args){
   return(response)
 }
 
-create_basic_header <- function(pwd){
+create_basic_header <- function(pwd) {
   encoded <- base64enc::base64encode(
     charToRaw(
       paste0("admin:", pwd))

@@ -1,4 +1,4 @@
-prepare_data_for_lasso <- function(){
+prepare_data_for_lasso <- function() {
 
   ds.dataFrameSubset(
     V1 = "nonrep$row_id",
@@ -22,7 +22,7 @@ prepare_data_for_lasso <- function(){
 
 }
 
-verify_lasso_cov_train_output <- function(){
+verify_lasso_cov_train_output <- function() {
 
   lasso_results <- ds.LassoCov_Train(
     X = "x_mat",

@@ -82,7 +82,7 @@ verify_cox_phsummary <- function() {
 
 }
 
-assign_survival_data <- function(project, data_path, conns){
+assign_survival_data <- function(project, data_path, conns) {
   cli_alert_info(sprintf("Assigning table: [%s%s]", project, data_path))
   datashield.assign.table(conns, "survival", sprintf("%s%s", project, data_path))
 

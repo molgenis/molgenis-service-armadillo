@@ -1,4 +1,4 @@
-add_slash_if_not_added <- function(path){
+add_slash_if_not_added <- function(path) {
   if(!endsWith(path, "/")){
     return(paste0(path, "/"))
   } else {
@@ -6,7 +6,7 @@ add_slash_if_not_added <- function(path){
   }
 }
 
-exit_test <- function(msg){
+exit_test <- function(msg) {
   cli_alert_danger(msg)
   cond = structure(list(message=msg), class=c("exit", "condition"))
   signalCondition(cond)
@@ -30,7 +30,7 @@ create_test_project <- function(target_project_name) {
     check_cohort_exists(target_project_name)
     }
 
-check_cohort_exists <- function(cohort){
+check_cohort_exists <- function(cohort) {
   if(cohort %in% armadillo.list_projects()){
     cli_alert_success(paste0(cohort, " exists"))
   } else {
@@ -69,7 +69,7 @@ create_dsi_builder <- function(server = "armadillo", url, profile, password = ""
   return(builder$build())
 }
 
-wait_for_input <- function(){
+wait_for_input <- function() {
   if (interactive) {
     cat("\nPress any key to continue")
     continue <- readLines("stdin", n=1)
@@ -172,6 +172,4 @@ wait_for_input <- function(){
 #     exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
 #   }
 # }
-#
-
 #

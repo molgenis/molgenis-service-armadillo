@@ -1,5 +1,5 @@
 # # log version info of loaded libraries
-show_version_info <- function(libs){
+show_version_info <- function(libs) {
   libs_to_print <- cli_ul()
   for (i in 1:length(libs)) {
     lib = libs[i]
@@ -8,7 +8,7 @@ show_version_info <- function(libs){
   cli_end(libs_to_print)
 }
 
-remove_slash_if_added <- function(path){
+remove_slash_if_added <- function(path) {
   if(endsWith(path, "/")){
     return(gsub("/$", "", path))
   } else {
@@ -73,7 +73,7 @@ if(service_location == ""){
    cli_alert_info(paste0("GIT_CHECKOUT_DIR from '.env' file: ", service_location))
 }
 
-if(!dir.exists(file.path(service_location, "armadillo"))){
+if(!dir.exists(file.path(service_location, "armadillo"))) {
   exit_test("Service location is not in armadillo clone root.")
 }
 
@@ -100,11 +100,11 @@ if(admin_pwd == ""){
 
 user = Sys.getenv("OIDC_EMAIL")
 
-if(user == "" && admin_pwd == ""){
+if(user == "" && admin_pwd == "") {
   exit_test("User and admin password are both not set!")
 }
 
-if(user == ""){
+if(user == "") {
   cli_alert_danger("User not set in .env config!")
   cli_alert_info("Enabling admin mode")
   ADMIN_MODE <- TRUE

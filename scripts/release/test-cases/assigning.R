@@ -1,4 +1,4 @@
-check_tables_assign <- function(project, folder, table){
+check_tables_assign <- function(project, folder, table) {
     cli_alert_info(sprintf("Assigning table %s", table))
     datashield.assign.table(conns, table, sprintf("%s/%s/%s", project, folder, table))
     datatype <- ds.class(x = table, datasources = conns)
@@ -13,12 +13,8 @@ check_tables_assign <- function(project, folder, table){
     }
 }
 
-check_expression_assign <- function(project, object, variable){
+check_expression_assign <- function(project, object, variable) {
     cli_alert_info(sprintf("Assigning expression for %s$%s", object, variable))
     datashield.assign.expr(conns, "x", expr = as.symbol(paste0(object, "$", variable)))
     cli_alert_success("Expression assigned")
 }
-
-
-
-

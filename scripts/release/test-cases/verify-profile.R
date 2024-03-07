@@ -23,7 +23,7 @@ create_ds_connection <- function(password = "", token = "", profile = "", url) {
   return(con)
 }
 
-verify_specific_profile <- function(password, token, url, profile){
+verify_specific_profile <- function(password, token, url, profile) {
     cli_alert_info("Verify connecting to specified profile works")
     con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
     if (con@name == "armadillo") {
@@ -35,7 +35,7 @@ verify_specific_profile <- function(password, token, url, profile){
      dsDisconnect(con)
 }
 
-verify_no_profile_specified <- function(password, token, url){
+verify_no_profile_specified <- function(password, token, url) {
     cli_alert_info("Verify if default profile works without specifying profile")
     con <- create_ds_connection(password = password, token = token, url = url)
     if (con@name == "armadillo") {

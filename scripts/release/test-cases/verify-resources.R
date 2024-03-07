@@ -1,4 +1,4 @@
-verify_see_resource <- function(full_resource_path){
+verify_see_resource <- function(full_resource_path) {
     cli_alert_info("Testing if we see the resource")
     print(full_resource_path)
     print(datashield.resources(conns))
@@ -9,7 +9,7 @@ verify_see_resource <- function(full_resource_path){
     }
 }
 
-verify_assign_resource <- function(full_resource_path){
+verify_assign_resource <- function(full_resource_path) {
     cli_alert_info("Testing if we can assign resource")
     datashield.assign.resource(conns, resource = full_resource_path, symbol = "eSet_0y_EUR")
     cli_alert_info("Getting RObject class of resource")
@@ -31,7 +31,7 @@ verify_assign_resource <- function(full_resource_path){
 #         })
 # } This is failing and the tryCatch is also not working
 
-verify_resources <- function(project, resource_path){
+verify_resources <- function(project, resource_path) {
     full_resource_path = sprintf("%s/%s", project, resource_path)
     verify_see_resource(full_resource_path)
     verify_assign_resource(full_resource_path)

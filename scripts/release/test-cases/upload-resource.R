@@ -1,5 +1,5 @@
 # post resource to armadillo api
-post_resource_to_api <- function(project, key, auth_type, file, folder, name){
+post_resource_to_api <- function(project, key, auth_type, file, folder, name) {
   auth_header <- get_auth_header(auth_type, key)
   plan(multisession)
   spinner <- make_spinner()
@@ -30,7 +30,7 @@ run_spinner <- function(spinner) {
 # cli_alert_info(sprintf("Creating project [%s]", omics_project))
 # armadillo.create_project(omics_project)
 
-spin_till_done <- function(spinner){
+spin_till_done <- function(spinner) {
     # run_spinner is a boolean set on top of this script, it is set to false when loading is done and spinner can stop
     if (do_run_spinner) {
         Sys.sleep(0.1)

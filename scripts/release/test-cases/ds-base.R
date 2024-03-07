@@ -16,7 +16,7 @@ verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_t
   }
 }
 
-verify_ds_hist <- function(object, variable){
+verify_ds_hist <- function(object, variable) {
     hist <- ds.histogram(x = paste0(object, "$", variable), datasources = conns)
     breaks <- c(35.31138,116.38319,197.45500,278.52680,359.59861,440.67042,521.74222,602.81403,683.88584,764.95764,846.02945)
     counts <- c(106,101,92,103,106,104,105,101,113,69)
@@ -60,7 +60,7 @@ almost_equal <- function(val1, val2) {
   return(all.equal(val1, val2, tolerance= .Machine$double.eps ^ 0.03))
 }
 
-verify_ds_base <- function(object, variable){
+verify_ds_base <- function(object, variable) {
     cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
     ds_mean <- ds.mean(paste0(object, "$", variable), datasources = conns)$Mean
     cli_alert_info("Verifying mean values")
@@ -72,9 +72,3 @@ verify_ds_base <- function(object, variable){
     cli_alert_success("ds.histogram returns expected values")
 
 }
-
-
-
-
-
-

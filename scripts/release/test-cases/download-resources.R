@@ -9,4 +9,3 @@ prepare_resources <- function(rda_dir) {
       exit_test(sprintf("File [%s] doesn't exist", rda_dir))
     }
 }
-

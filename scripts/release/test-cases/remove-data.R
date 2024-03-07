@@ -34,8 +34,3 @@ dm_clean_up <- function(user, admin_pwd, required_projects) {
     cli_alert_info("Removing projects")
     map(required_projects, dm_delete_projects)
 }
-
-
-
-
-
