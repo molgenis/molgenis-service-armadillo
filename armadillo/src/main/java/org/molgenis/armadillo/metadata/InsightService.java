@@ -66,6 +66,16 @@ public class InsightService {
     return file_id;
   }
 
+  public String getDownloadName(String file_id) {
+    String requestTime = getServerTime().replace(" ", "T").replace(":", "").replace("-", "");
+
+    InsightServiceFiles c = InsightServiceFiles.getConstantByKey(file_id);
+    if (!(c == null)) {
+      return c.getDownloadName() + "-" + requestTime;
+    }
+    return file_id;
+  }
+
   public FileDetails fileDetails(String file_id, int pageNum, int pageSize, String direction) {
     InsightServiceFiles insightServiceFiles = InsightServiceFiles.getConstantByKey(file_id);
     if (!(insightServiceFiles == null)) {
@@ -92,17 +102,19 @@ public class InsightService {
 }
 
 enum InsightServiceFiles {
-  AUDIT_FILE("AUDIT_FILE", MediaType.APPLICATION_NDJSON_VALUE, "Audit file"),
-  LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file");
+  AUDIT_FILE("AUDIT_FILE", MediaType.APPLICATION_NDJSON_VALUE, "Audit file", "armadillo-audit"),
+  LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file", "armadillo-log");
 
   private final String key;
   private final String contentType;
   private final String displayName;
+  private final String downloadName;
 
-  InsightServiceFiles(String key, String contentType, String displayName) {
+  InsightServiceFiles(String key, String contentType, String displayName, String downloadName) {
     this.key = key;
     this.contentType = contentType;
     this.displayName = displayName;
+    this.downloadName = downloadName;
   }
 
   public String getKey() {
@@ -115,6 +127,10 @@ enum InsightServiceFiles {
 
   public String getDisplayName() {
     return displayName;
+  }
+
+  public String getDownloadName() {
+    return downloadName;
   }
 
   public static boolean hasKey(String key) {

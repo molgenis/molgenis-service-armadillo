@@ -111,7 +111,7 @@ public class InsightController {
     HttpHeaders headers = new HttpHeaders();
     headers.add(
         HttpHeaders.CONTENT_DISPOSITION,
-        "attachment; filename=\"" + insightService.getFileName(file_id) + "\"");
+        "attachment; filename=\"" + insightService.getDownloadName(file_id) + ".txt\"");
     headers.add(HttpHeaders.CONTENT_TYPE, "text/text");
     return new ResponseEntity<>(inputStreamResource, headers, OK);
   }
