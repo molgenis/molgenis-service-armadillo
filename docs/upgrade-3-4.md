@@ -101,7 +101,7 @@ chmod u+x armadillo-check-update.sh
 
 ### 3.2 Run update script
 
-You can run the script to see whether you can upgrade.
+You can run the following script to download the new Armadillo version.
 
 > The output could help us to help you fix problems.
 
@@ -110,7 +110,7 @@ You can run the script to see whether you can upgrade.
 ./armadillo-check-update.sh 4.x.y
 ```
 
-As a result of running above the Armadillo jar file is downloaded.
+Once the script has completed, you can verify that the Armadillo JAR file has been downloaded by checking the directory:
 
 ```bash
 # See all jar files on your system
@@ -119,9 +119,138 @@ ls -ltr /usr/share/armadillo/application/
 
 ## 4. Config the new version
 
-### 4.1 application template
+### 4.1 application.yml
+Download the application template (for reference).
+``` bash
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/application.template.yml
+```
+NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section, but if you have trouble doing that, you could try the following first:
 
-This step is optional, you can try if it works without. 
+Edit the application.yml:
+```bash
+nano /etc/armadillo/application.yml
+```
+
+Below the line `docker-management-enabled: true`, ensure to insert the line `docker-run-in-container: false`. Typically, you'll find these configurations at the beginning of the file.
+
+
+### 4.2 Make backup of system config
+
+```bash
+# Still in the correct directory? (`/root/v4.x.y`)
+pwd
+```
+
+We make a backup into the same `v4.x.y` directory but that is not strictly needed.
+
+```bash
+cp -r /usr/share/armadillo/data/system ./
+```
+
+should result in:
+
+```bash
+ls system/
+# access.json  profiles.json
+```
+
+## 5. Restart application using new version
+
+Armadillo has not yet been updated, follow the following steps to do so:
+
+### 5.1 Link new version
+
+```bash
+systemctl stop armadillo
+```
+
+### 5.2 Link new version
+
+```bash
+# List application files
+ls -l /usr/share/armadillo/application/
+
+# Remove the linked file
+rm /usr/share/armadillo/application/armadillo.jar
+
+# Attach new linked file
+ln -s /usr/share/armadillo/application/armadillo-4.x.y.jar /usr/share/armadillo/application/armadillo.jar
+
+# Check result
+ls -l /usr/share/armadillo/application/
+```
+
+### 5.3 Start again
+
+```bash
+systemctl start armadillo
+systemctl status armadillo
+```
+
+## 6. Visit the site
+
+Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
+almost finished. 
+
+## 7. Update profiles
+Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`. 
+
+1. Edit the default profile. 
+2. Change the "image" to `datashield/rock-base:latest` and save. 
+3. Start the default profile.
+4. Edit the "xenon" profile.
+5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
+6. Start the xenon profile. 
+
+Everything should be working fine now. You can try and login to your server via the central analysis server, using
+the `DSMolgenisArmadillo` (2.0.5 or up) package to test. 
+
+Enjoy =)
+Team Armadillo
+
+
+## Troubleshooting
+
+Reviewing the log files can provide valuable insights into any issues or activities within the application. If you encounter any errors or unexpected behavior, examining the log files can often help diagnose the problem.
+
+Check log files location
+
+```bash
+ls -l /var/log/armadillo/
+```
+
+should look something like:
+
+```bash
+-rw-r--r-- 1 root      root      111224 Jan 30 11:47 armadillo.log
+-rw-r--r-- 1 armadillo armadillo  68872 Jan 30 11:47 audit.log
+-rw-r--r-- 1 root      root        8428 Dec 19 11:57 error.log
+```
+
+If the `error.log` data/time is around current day/time you have to check this file.
+
+```bash
+# See last 100 lines
+tail -n 100 /var/log/armadillo/error.log
+```
+
+Otherwise, you can look into `armadillo.log`:
+
+```bash
+# See last 100 lines
+tail -n 100 /var/log/armadillo/armadillo.log
+```
+
+or
+
+```bash
+# Follow all files for changes (keep open to see activities)
+tail -f /var/log/armadillo/*
+```
+
+
+Although we try to be very complete in this manual, if you run into issues, it might be because a setting got changed
+in the application.yml. To check if that's the case, do the following:
 
 The application settings could have new entries so you may need to check these.
 
@@ -174,98 +303,3 @@ then edit
 ```bash
 nano /etc/armadillo/application.yml
 ```
-
-### 4.2 Make backup of system config
-
-```bash
-# Still in the correct directory? (`/root/v4.x.y`)
-pwd
-```
-
-We make a backup into same `v4.x.y` directory but that is not strickly needed.
-
-```bash
-cp -r /usr/share/armadillo/data/system ./
-```
-
-should result in
-
-```bash
-ls system/
-# access.json  profiles.json
-```
-
-## 5. Restart application using new version
-
-As seen in the list of application jar files the new version is not
-yet activated. You can do two things. Stop the servive manual, change to new jar, start service.
-
-### 5.1 Link new version
-
-```bash
-systemctl stop armadillo
-```
-
-### 5.2 Link new version
-
-```bash
-# List application files
-ls -l /usr/share/armadillo/application/
-
-# Remove the linked file
-rm /usr/share/armadillo/application/armadillo.jar
-
-# Attach new linked file
-ln -s /usr/share/armadillo/application/armadillo-4.x.y.jar /usr/share/armadillo/application/armadillo.jar
-
-# Check result
-ls -l /usr/share/armadillo/application/
-```
-
-### 5.3 Start again
-
-```bash
-systemctl start armadillo
-systemctl status armadillo
-```
-
-### 5.4 Check log files
-
-```bash
-ls -l /var/log/armadillo/
-```
-
-should look something like.
-
-```bash
--rw-r--r-- 1 root      root      111224 Jan 30 11:47 armadillo.log
--rw-r--r-- 1 armadillo armadillo  68872 Jan 30 11:47 audit.log
--rw-r--r-- 1 root      root        8428 Dec 19 11:57 error.log
-```
-
-If the `error.log` data/time is around current day/time you have to check this file.
-
-```bash
-# See last 100 lines
-tail -n 100 /var/log/armadillo/error.log
-```
-
-Otherwise you can look into `armadillo.log` to seek for listening
-
-```bash
-# See last 100 lines
-tail -n 100 /var/log/armadillo/armadillo.log
-```
-
-or
-
-```bash
-# Follow all files for changes (keep open to see activities)
-tail -f /var/log/armadillo/*
-```
-
-## 6. Visit the site
-
-If all went well you now have a new version installed.
-
-Enjoy. (team Armadillo)

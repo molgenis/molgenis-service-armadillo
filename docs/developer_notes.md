@@ -20,5 +20,17 @@ docsify serve ./docs
 ```
 
 ## View
+```
+http://localhost:3000
+```
 
-And view the result on http://localhost:3000
+## Github pages
+
+We have this configured through github pages instead of custom actions:
+
+- https://github.com/molgenis/molgenis-service-armadillo/settings/pages
+
+You can check its status on:
+
+- https://github.com/molgenis/molgenis-service-armadillo/actions
+

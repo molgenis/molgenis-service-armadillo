@@ -41,6 +41,9 @@ library(DSMolgenisArmadillo)
 
 library(resourcer)
 
+library(dsMediationClient)
+library(dsMTLClient)
+
 # set when admin password given + question answered with y
 update_auto = ""
 do_run_spinner <- TRUE
@@ -53,7 +56,7 @@ profile_defaults = data.frame(
   port = c("", ""),
   # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
   # Not adding dsBase since that is always(?) required
-  whitelist = c("resourcer", ""),
+  whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
   blacklist = c("", "")
 )
 
@@ -156,8 +159,8 @@ get_from_api_with_header <- function(endpoint, key, auth_type){
 }
 
 # add/edit user using armadillo api
-set_user <- function(user, admin_pwd, isAdmin, project1, omics_project){
-  args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project))
+set_user <- function(user, admin_pwd, isAdmin, project1, omics_project, link_project){
+  args <- list(email = user, admin = isAdmin, projects= list(project1, omics_project, link_project))
   response <- put_to_api("access/users", admin_pwd, "basic", args)
   if(response$status_code != 204) {
     cli_alert_warning("Altering OIDC user failed, please do this manually")
@@ -449,9 +452,142 @@ verify_ds_obtained_mean <- function(ds_mean, expected_mean, expected_valid_and_t
   }
 }
 
+verify_mediate_class <- function(){
+
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+  newobj = 'med.fit.1a')
+
+  ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex', family = 'gaussian',dataName = 'core_nonrep',
+  newobj = 'out.fit.1a')
+
+  med_out <- ds.mediate(model.m = 'med.fit.1a', model.y = 'out.fit.1a', treat = "ethn3_m", mediator = "agebirth_m_y",
+  boot = FALSE, conf.level = 0.95, robustSE = TRUE, sims = 100, seed = 123, newobj = 'med.out.1a')
+
+  med_class <- ds.class("med.out.1a")
+
+  if(med_class == "mediate"){
+    cli_alert_success("ds.mediate passed")
+  } else{
+    cli_alert_danger("ds.mediate failed")
+    exit_test("ds.mediate did not return the expected class")
+    }
+}
+
+verify_ne_weight_class <- function(){
+  ds.glmSLMA(formula = 'agebirth_m_y ~ ethn3_m + sex', family = 'gaussian', dataName = 'core_nonrep',
+             newobj = 'med.fit.1b')
+
+  ds.neWeight(object = 'med.fit.1b', newobj = 'expData')
+
+  med_class <- ds.class("expData")
+
+  if(identical(med_class$armadillo, c("data.frame", "expData", "weightData"))){
+    cli_alert_success("ds.neWeight passed")
+  } else{
+    cli_alert_danger("ds.neWeight failed")
+    exit_test("ds.neWeight did not return the expected class")
+  }
+
+}
+
+verify_ne_model_class <- function(){
+
+  med.out.1b <- ds.neModel(formula = 'preg_dia ~ ethn3_m0 + ethn3_m1 + sex',
+                           family = 'gaussian', se = 'robust', expData = 'expData',
+                           newobj = 'med.out.1b')
+
+  med_class <- ds.class("med.out.1b")
+
+  if(med_class == "neModel"){
+    cli_alert_success("ds.neModel passed")
+  } else{
+    cli_alert_danger("ds.neModel failed")
+    exit_test("ds.neModel did not return the expected class")
+
+  }
+
+}
+
+verify_ne_imp_class <- function(){
+
+  out.fit.1c <- ds.glmSLMA(formula = 'preg_dia ~ agebirth_m_y + ethn3_m + sex',
+                           family = 'gaussian', dataName = 'core_nonrep', newobj ='out.fit.1c')
+
+  ds.neImpute(object = 'out.fit.1c', nMed = 1, newobj = 'impData')
+
+  med_class <- ds.class("impData")
+
+  if(identical(med_class$armadillo, c("data.frame", "expData", "impData"))){
+    cli_alert_success("ds.neImpute passed")
+  } else{
+    cli_alert_danger("ds.neImpute failed")
+    exit_test("ds.neImpute did not return the expected class")
+  }
+
+}
+
+verify_ne_lht_class <- function(){
+
+  lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c('ethn3_m0=0', 'ethn3_m1=0', 'ethn3_m0+ethn3_m1=0'))
+
+  med_class <- class(lht.out.1b$armadillo)
+
+  if(med_class == "summary.neLht"){
+    cli_alert_success("ds.neLht passed")
+  } else{
+    cli_alert_danger("ds.neLht failed")
+    exit_test("ds.neLht did not return the expected class")
+  }
+
+}
+
+prepare_data_for_lasso <- function(){
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(5, 9, 13, 17),
+    newobj = "x_df")
+
+  ds.asDataMatrix("x_df", "x_mat")
+
+  ds.dataFrameSubset(
+    V1 = "nonrep$row_id",
+    V2 = "nonrep$row_id",
+    Boolean.operator = "==",
+    df.name = "nonrep",
+    keep.cols = c(21),
+    newobj = "y_df")
+
+  ds.asDataMatrix("y_df", "y_mat")
+
+}
+
+verify_lasso_cov_train_output <- function(){
+
+  lasso_results <- ds.LassoCov_Train(
+    X = "x_mat",
+    Y = "y_mat",
+    type = "regress",
+    lambda = 298.9465,
+    covar = 1,
+    nDigits = 4,
+    datasources = conns)
+
+  if(identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))){
+    cli_alert_success("ds.LassoCov_Train passed")
+    } else{
+    cli_alert_danger("ds.LassoCov_Train failed")
+    exit_test("ds.LassoCov_Train did not return an object with expected names")
+    }
+
+  }
+
 # here we start the script chronologically
 cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer"))
+show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
 
 cli_alert_success("Loaded other libraries:")
 show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
@@ -693,6 +829,17 @@ armadillo.upload_table(project1, "1_1-outcome-1_0", nonrep)
 armadillo.upload_table(project1, "1_1-outcome-1_0", yearlyrep)
 cli_alert_success("Uploaded files into outcome")
 
+cli_alert_info("Reading parquet files for survival variables")
+veteran <- arrow::read_parquet(paste0(dest, "survival/veteran.parquet"))
+
+cli_alert_info("Logging in as admin user")
+armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+
+cli_alert_info("Uploading survival test table")
+armadillo.upload_table(project1, "survival", veteran)
+rm(veteran)
+cli_alert_success("Uploaded files into survival")
+
 cli_alert_info("Checking if colnames of trimesterrep available")
 trimesterrep <- armadillo.load_table(project1, "2_1-core-1_0", "trimesterrep")
 cols <- c("row_id","child_id","age_trimester","smk_t","alc_t")
@@ -737,6 +884,28 @@ system.time({
 })
 cli_alert_info("Creating resource")
 
+cli_h2("Creating linked view on table")
+#TODO: replace with R code once that is created and released
+auth_header <- get_auth_header(auth_type, token)
+link_project <- generate_random_project_name(available_projects)
+armadillo.create_project(link_project)
+srcObj <- "2_1-core-1_0/nonrep"
+linkObj <- "core-variables/nonrep"
+json_body <- jsonlite::toJSON(
+  list(sourceObjectName = srcObj,
+       sourceProject = project1,
+       linkedObject = linkObj,
+       variables = "child_id,mother_id,row_id,ethn1_m"), auto_unbox=TRUE)
+post_url <- sprintf("%sstorage/projects/%s/objects/link", armadillo_url, link_project)
+response <- POST(post_url,
+                 body=json_body,
+                 encode="json",
+                 config = c(httr::content_type_json(), httr::add_headers(auth_header)))
+if (response$status_code != 204) {
+  exit_test(sprintf("Unable to create linked object %s/%s from source: %s/%s, status code: %s, message: %s", link_project, linkObj, project1, srcObj, response$status_code, response$message))
+} else {
+  cli_alert_success(sprintf("Successfully created linked object %s/%s from source: %s/%s", link_project, linkObj, project1, srcObj))
+}
 
 rds_url <- armadillo_url
 if(armadillo_url == "http://localhost:8080/") {
@@ -759,7 +928,7 @@ if(!ADMIN_MODE){
     update_auto <- readLines("stdin", n=1)
   }
   if(update_auto == "y"){
-    set_user(user, admin_pwd, F, project1, omics_project)
+    set_user(user, admin_pwd, F, project1, omics_project, link_project)
   }
   if(update_auto != "y"){
     cat("\nGo to the Users tab")
@@ -794,6 +963,25 @@ if (identical(datatype, expected_type)){
 cli_alert_info("Assigning expression for core_nonrep$coh_country")
 datashield.assign.expr(conns, "x", expr=quote(core_nonrep$coh_country))
 
+cli_alert_info("Testing linked table")
+#TODO: replace this by following once implemented in R api:
+#linked_data <- armadillo.load_table(link_project, "core-variables", "nonrep")
+query <- list(table = paste0(link_project, "/core-variables/nonrep"), symbol = "core_nonrep", async = TRUE)
+variables <- c("child_id", "mother_id")
+query$variables <- paste(unlist(variables), collapse = ",")
+response <- httr::POST(
+  handle = handle(armadillo_url),
+  path = "/load-table",
+  query = query,
+  config = httr::add_headers(get_auth_header(auth_type, token))
+)
+
+if (!response$status_code == 201) {
+  exit_test(sprintf("Unable to retrieve linked object %s/%s from source: %s/%s, status code: %s", link_project, linkObj, project1, srcObj, response$status_code))
+} else {
+  cli_alert_success(sprintf("Successfully retrieved linked object %s/%s from source: %s/%s with variables %s", link_project, linkObj, project1, srcObj, paste(variables, collapse = ", ")))
+}
+
 cli_alert_info("Verifying connecting to profile possible")
 con <- create_ds_connection(password = admin_pwd, token = token, url=armadillo_url, profile=profile)
 if (con@name == "armadillo") {
@@ -824,6 +1012,25 @@ cli_alert_info("Validating histogram density")
 compare_list_values(hist$density, density)
 cli_alert_info("Validating histogram mids")
 compare_list_values(hist$mids, mids)
+
+verify_mediate_class()
+verify_ne_weight_class()
+verify_ne_model_class()
+verify_ne_imp_class()
+verify_ne_lht_class()
+
+cli_alert_info("Testing dsSurvival")
+source("/cicd/scripts/release/xenon-survival.R")
+run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
+
+logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
+
+conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
+
+prepare_data_for_lasso()
+verify_lasso_cov_train_output()
 
 datashield.logout(conns)
 
@@ -885,7 +1092,7 @@ dsDisconnect(con)
 cli_h2("Removing data as admin")
 cat("We're now continueing with the datamanager workflow as admin\n")
 if(update_auto == "y"){
-  set_user(user, admin_pwd, T, project1, omics_project)
+  set_user(user, admin_pwd, T, project1, omics_project, link_project)
 } else{
   cat("Make your account admin again")
   wait_for_input()
@@ -896,6 +1103,7 @@ armadillo.delete_table(project1, "2_1-core-1_0", "trimesterrep")
 armadillo.delete_table(project1, "2_1-core-1_0", "monthlyrep")
 armadillo.delete_table(project1, "1_1-outcome-1_0", "nonrep")
 armadillo.delete_table(project1, "1_1-outcome-1_0", "yearlyrep")
+
 cat(sprintf("\nVerify in UI all data from [%s] is gone.", project1))
 wait_for_input()
 armadillo.delete_project(project1)
@@ -903,6 +1111,9 @@ cat(sprintf("\nVerify in UI project [%s] is gone", project1))
 wait_for_input()
 armadillo.delete_project(omics_project)
 cat(sprintf("\nVerify in UI project [%s] is gone", omics_project))
+wait_for_input()
+armadillo.delete_project(link_project)
+cat(sprintf("\nVerify in UI project [%s] is gone", link_project))
 wait_for_input()
 
 project2 <- generate_random_project_name(available_projects)

@@ -63,6 +63,7 @@ public class AuthConfig {
             requests
                 .requestMatchers(
                     "/",
+                    "/_docs/**",
                     "/info",
                     "/index.html",
                     "/logout",

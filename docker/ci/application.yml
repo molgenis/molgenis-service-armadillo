@@ -1,5 +1,4 @@
-# NOTE: when changing this file you must rerun:
-# - docker compose --file docker-compose-local.yml build
+# NOTE these settings should be similar to application.template.yml
 
 armadillo:
   # DO NOT CHANGE
@@ -32,6 +31,9 @@ armadillo:
       package-whitelist:
         - dsBase
         - resourcer
+        - dsMediation
+        - dsMTLBase
+        - dsSurvival
       function-blacklist: [ ]
       options:
         datashield:

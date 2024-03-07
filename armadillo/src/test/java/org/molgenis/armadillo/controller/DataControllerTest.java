@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.MediaType.*;
@@ -18,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.github.dockerjava.api.DockerClient;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -34,9 +37,11 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.rock.RockResult;
@@ -670,13 +675,12 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testLoadTableDoesNotExist() throws Exception {
-    when(armadilloStorage.tableExists("gecko", "core/core-all")).thenReturn(false);
+    when(armadilloStorage.hasObject("gecko", "core/core-all.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("gecko", "core/core-all.parquet")).thenReturn(false);
 
-    var result =
-        mockMvc
-            .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
-            .andReturn();
-    mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
+    mockMvc
+        .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
+        .andExpect(status().isNotFound());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -703,7 +707,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testLoadTable() throws Exception {
-    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
     when(commands.loadTable("D", "project/folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
@@ -734,8 +739,147 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
+  void testLoadTableLinkFile() throws Exception {
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    InputStream isMock = mock(InputStream.class);
+    String project = "project";
+    String sourceProject = "source-project";
+    String sourceObject = "source/object";
+    String linkObject = "folder/table-view";
+    String variables = "childId,rowId,age,weight";
+    when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
+    when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
+    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+        .thenReturn(alfMock);
+    when(alfMock.getSourceObject()).thenReturn(sourceObject);
+    when(alfMock.getSourceProject()).thenReturn(sourceProject);
+    when(alfMock.getVariables()).thenReturn(variables);
+    when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
+    when(commands.loadTable(
+            "D",
+            sourceProject + "/" + sourceObject,
+            new ArrayList<>(Arrays.asList(variables.split(",")))))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(
+            post("/load-table?symbol=D&table=project/folder/table-view&async=false")
+                .session(session))
+        .andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "project",
+                project,
+                "folder",
+                "folder",
+                "table",
+                "table-view")));
+  }
+
+  @Test
+  @WithMockUser
+  void testLoadTableLinkFileWithVars() throws Exception {
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    InputStream isMock = mock(InputStream.class);
+    String project = "project";
+    String sourceProject = "source-project";
+    String sourceObject = "source/object";
+    String linkObject = "folder/table-view";
+    String variables = "childId,rowId,age,weight";
+    ArrayList<String> selectedVariables = new ArrayList<>();
+    selectedVariables.add("age");
+    selectedVariables.add("weight");
+    when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
+    when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
+    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+        .thenReturn(alfMock);
+    when(alfMock.getSourceObject()).thenReturn(sourceObject);
+    when(alfMock.getSourceProject()).thenReturn(sourceProject);
+    when(alfMock.getVariables()).thenReturn(variables);
+    when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
+    when(commands.loadTable("D", sourceProject + "/" + sourceObject, selectedVariables))
+        .thenReturn(completedFuture(null));
+    mockMvc
+        .perform(
+            post("/load-table?symbol=D&table=project/folder/table-view&async=false&variables=age,weight")
+                .session(session))
+        .andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "LOAD_TABLE",
+            Map.of(
+                "symbol",
+                "D",
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "project",
+                project,
+                "folder",
+                "folder",
+                "table",
+                "table-view")));
+  }
+
+  @Test
+  void testGetLinkedVariables() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    String selectedVariables = "my,variable,list";
+    when(alfMock.getVariables()).thenReturn("my,full,complete,extended,variable,list");
+    assertEquals(
+        Arrays.stream(selectedVariables.split(",")).toList(),
+        dataController.getLinkedVariables(alfMock, selectedVariables));
+  }
+
+  @Test
+  void testGetLinkedInvalidVariables() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
+    ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
+    String selectedVariables = "not,my,variable,list";
+    when(alfMock.getVariables()).thenReturn("my,full,complete,extended,variable,list");
+    when(alfMock.getProject()).thenReturn("project");
+    when(alfMock.getLinkObject()).thenReturn("object");
+    try {
+      dataController.getLinkedVariables(alfMock, selectedVariables);
+    } catch (UnknownVariableException e) {
+      assertEquals("Variables '[not]' do not exist in object 'project/object'", e.getMessage());
+    }
+  }
+
+  @Test
+  void testGetVariableList() {
+    DataController dataController =
+        new DataController(
+            commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
+    String variables = "1,b,c";
+    List<String> expected = Arrays.asList("1", "b", "c");
+    assertEquals(expected, dataController.getVariableList(variables));
+  }
+
+  @Test
+  @WithMockUser
   void testLoadTableWithVariables() throws Exception {
-    when(armadilloStorage.tableExists("project", "folder/table")).thenReturn(true);
+    when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
+    when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
     when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 

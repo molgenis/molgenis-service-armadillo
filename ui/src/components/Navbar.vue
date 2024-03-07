@@ -11,6 +11,15 @@
         Armadillo portal <small class="text-secondary">{{ version }}</small>
       </a>
       <form class="d-flex mt-1">
+        <span>
+          <a
+            type="button"
+            class="btn btn-dark"
+            href="/_docs/master/index.html"
+            target="_blank"
+            ><i class="bi bi-book"></i> Docs</a
+          >
+        </span>
         <span class="navbar-text p-2" v-show="username"
           ><i class="bi bi-person-fill"></i> {{ username }}
         </span>
