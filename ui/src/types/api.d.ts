@@ -113,4 +113,4 @@ export type Metric = {
   _display?: boolean;
 };
 
-export type Metrics: Dictionary<Metric>
+export type Metrics = Dictionary<Metric>;
