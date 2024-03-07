@@ -30,9 +30,17 @@ As we now have the option to download the logfile from the application we need t
 
 ## Running tests
 
-```
+```bash
 ./gradlew test
 ```
+
+## Upgrading gradle
+
+```bash
+./gradlew wrapper --gradle-version 8.6
+```
+
+## Tools
 
 We use intellij to develop
 * To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
