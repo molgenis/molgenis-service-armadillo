@@ -115,6 +115,10 @@ configure_test <- function() {
       ADMIN_MODE <- FALSE
       cli_alert_info(paste0("USER from '.env. file: ", user))
     }
-    return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user, admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location))
+
+    dest <- add_slash_if_not_added(test_file_path)
+
+    return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
+    admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest))
     }
 
