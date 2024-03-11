@@ -68,7 +68,7 @@ start_profile <- function(profile_name, key, auth_type) {
   }
 }
 
-setup_profiles <- function(token, auth_type) {
+setup_profiles <- function(token, auth_type, skip_tests) {
 
     test_name <- "setup-profiles"
     if(skip_tests %in% test_name){
