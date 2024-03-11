@@ -139,7 +139,12 @@ configure_test <- function() {
 
     auth_type <- get_auth_type(ADMIN_MODE)
 
+    as_docker_container <- TRUE
+    if (Sys.getenv("AS_DOCKER_CONTAINER") == 'N') {
+    interactive = FALSE
+    }
+
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
-    app_info = app_info, version = version, auth_type = auth_type))
+    app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container))
     }

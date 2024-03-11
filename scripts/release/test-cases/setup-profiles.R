@@ -1,7 +1,7 @@
 # get request to armadillo api with an authheader
-get_from_api_with_header <- function(endpoint, key, auth_type) {
+get_from_api_with_header <- function(endpoint, key, auth_type, url) {
   auth_header <- get_auth_header(auth_type, key)
-  response <- GET(paste0(armadillo_url, endpoint), config = c(httr::add_headers(auth_header)))
+  response <- GET(paste0(url, endpoint), config = c(httr::add_headers(auth_header)))
   if(response$status_code == 403){
     msg <- sprintf("Permission denied. Is user [%s] admin?", user)
     exit_test(msg)
@@ -69,9 +69,9 @@ start_profile <- function(profile_name, key, auth_type) {
 }
 
 
-setup_profiles <- function(token, auth_type, skip_tests) {
+setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests) {
 cat("\nAvailable profiles: \n")
-profiles <- get_from_api_with_header("profiles", token, auth_type)
+profiles <- get_from_api_with_header("profiles", token, auth_type, url)
 print_list(unlist(profiles$available))
 
 profile = Sys.getenv("PROFILE")
@@ -87,7 +87,7 @@ cli_alert_info("Checking if profile is prepared for all tests")
 if (!as_docker_container) {
   create_profile_if_not_available(profile, profiles$available, token, auth_type)
 }
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
+profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type, url)
 if (!as_docker_container) {
   start_profile_if_not_running("default", token, auth_type)
 }
@@ -104,4 +104,5 @@ if(!"resourcer" %in% whitelist){
 
 if(!is.null(seed) && "resourcer" %in% whitelist){
   cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
+}
 }
