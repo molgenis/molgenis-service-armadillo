@@ -1,4 +1,4 @@
-set_admin_or_get_token <- function(admin_pwd, url, skip_tests) {
+set_admin_or_get_token <- function(admin_pwd, url, skip_tests, ADMIN_MODE) {
     test_name <- "set-admin-mode"
     if(skip_tests %in% test_name){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
