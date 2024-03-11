@@ -17,9 +17,9 @@ services:
       AUDIT_LOG_PATH: '/app/logs/audit.log'
       SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
-      - ${PWD}/armadillo/logs:/logs
-      - ${PWD}/armadillo/data:/data
-      - ${PWD}/armadillo/config:/config
+      - ./armadillo/logs:/logs
+      - ./armadillo/data:/data
+      - ./armadillo/config:/config
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:
