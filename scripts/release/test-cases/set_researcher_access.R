@@ -17,14 +17,6 @@ put_to_api <- function(endpoint, key, auth_type, body_args) {
   return(response)
 }
 
-create_basic_header <- function(pwd) {
-  encoded <- base64enc::base64encode(
-    charToRaw(
-      paste0("admin:", pwd))
-  )
-  return(paste0("Basic ", encoded))
-}
-
 set_researcher_access <- function(required_projects) {
     if(!ADMIN_MODE){
       update_auto = "y"

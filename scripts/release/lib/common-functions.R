@@ -79,6 +79,14 @@ wait_for_input <- function() {
   }
 }
 
+create_basic_header <- function(pwd) {
+  encoded <- base64enc::base64encode(
+    charToRaw(
+      paste0("admin:", pwd))
+  )
+  return(paste0("Basic ", encoded))
+}
+
 # FUNCTIONS BELOW IN MAIN SCRIPT BUT DON'T APPEAR TO BE CALLED
 #
 # create_dir_if_not_exists <- function(directory){
