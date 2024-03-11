@@ -1,4 +1,5 @@
-set_admin_or_get_token <- function(skip_tests, url) {
+set_admin_or_get_token <- function(admin_pwd, url, skip_tests) {
+
     test_name <- "set-admin-mode"
     if(skip_tests %in% test_name){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
@@ -6,7 +7,6 @@ set_admin_or_get_token <- function(skip_tests, url) {
 
     if(ADMIN_MODE){
       token <- admin_pwd
-      auth_type <- "basic"
     } else {
       cli_alert_info("Obtaining TOKEN from '.env.")
       token <- Sys.getenv("TOKEN")
@@ -14,8 +14,7 @@ set_admin_or_get_token <- function(skip_tests, url) {
         cli_alert_warning("TOKEN not set, obtaining from armadillo.")
         token <- armadillo.get_token(url)
       }
-      auth_type <- "bearer"
     }
-    return(list(token = token, auth_type = auth_type))
+    return(list(token = token))
     cli_alert_success("Permissions set")
     }

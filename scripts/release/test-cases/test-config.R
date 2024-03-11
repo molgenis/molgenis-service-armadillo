@@ -24,6 +24,15 @@ get_from_api <- function(endpoint, armadillo_url) {
   return(content(response))
 }
 
+get_auth_type <- function(ADMIN_MODE) {
+
+if(ADMIN_MODE){
+    auth_type <- "basic"
+    } else{
+    auth_type <- "bearer"
+    }
+    }
+
 configure_test <- function() {
     cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
     show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
@@ -129,8 +138,35 @@ configure_test <- function() {
     app_info <- get_from_api("actuator/info", armadillo_url)
     version <- unlist(app_info$build$version)
 
+    auth_type <- get_auth_type(ADMIN_MODE)
+
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
-    app_info = app_info, version = version))
+    app_info = app_info, version = version, auth_type = auth_type))
+    }
+
+
+
+
+set_admin_or_get_token <- function(skip_tests, url) {
+    test_name <- "set-admin-mode"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
+    if(ADMIN_MODE){
+      token <- admin_pwd
+      auth_type <- "basic"
+    } else {
+      cli_alert_info("Obtaining TOKEN from '.env.")
+      token <- Sys.getenv("TOKEN")
+      if(token == ""){
+        cli_alert_warning("TOKEN not set, obtaining from armadillo.")
+        token <- armadillo.get_token(url)
+      }
+      auth_type <- "bearer"
+    }
+    return(list(token = token, auth_type = auth_type))
+    cli_alert_success("Permissions set")
     }
 
