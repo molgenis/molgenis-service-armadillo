@@ -1,11 +1,3 @@
-# get request to armadillo api without authentication
-get_from_api <- function(endpoint) {
-  cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
-  response <- GET(paste0(armadillo_url, endpoint))
-  cat(paste0('get_from_api', ' for ', endpoint, " results ", response$status_code, "\n"))
-  return(content(response))
-}
-
 set_admin_or_get_token <- function(skip_tests, url) {
     test_name <- "set-admin-mode"
     if(skip_tests %in% test_name){
