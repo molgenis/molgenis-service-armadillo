@@ -144,7 +144,16 @@ configure_test <- function() {
     interactive = FALSE
     }
 
+    profile = Sys.getenv("PROFILE")
+    if(profile == ""){
+      cli_alert_warning("Profile not set, defaulting to xenon.")
+      profile <- "xenon"
+    } else {
+      cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
+    }
+
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
-    app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container))
+    app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
+    ADMIN_MODE = ADMIN_MODE, profile = profile))
     }

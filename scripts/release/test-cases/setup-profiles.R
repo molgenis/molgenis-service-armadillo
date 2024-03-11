@@ -69,18 +69,10 @@ start_profile <- function(profile_name, key, auth_type) {
 }
 
 
-setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests) {
+setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile) {
 cat("\nAvailable profiles: \n")
 profiles <- get_from_api_with_header("profiles", token, auth_type, url)
 print_list(unlist(profiles$available))
-
-profile = Sys.getenv("PROFILE")
-if(profile == ""){
-  cli_alert_warning("Profile not set, defaulting to xenon.")
-  profile <- "xenon"
-} else {
-  cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
-}
 
 cli_alert_info("Checking if profile is prepared for all tests")
 
