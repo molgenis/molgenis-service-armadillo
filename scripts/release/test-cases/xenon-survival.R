@@ -98,22 +98,3 @@ run_survival_tests <- function(project, data_path, conns) {
   verify_cox_phsummary()
 
 }
-
-demo_url <- "https://armadillo-demo.molgenis.net/"
-demo_token <- armadillo.get_token(demo_url)
-
-builder <- DSI::newDSLoginBuilder()
-
-builder$append(
-  server = "armadillo",
-  url = demo_url,
-  profile = "xenon",
-  driver = "ArmadilloDriver",
-  token = demo_token
-)
-
-logindata <- builder$build()
-conns <- DSI::datashield.login(logins = logindata, assign = F)
-
-datashield.assign.table(conns, "testdata", "xenon-tests/survival/veteran", variables = c("doesnt_exist", "also_not_there"))
-ds.colnames("testdata")

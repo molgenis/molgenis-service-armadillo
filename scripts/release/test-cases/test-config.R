@@ -16,7 +16,6 @@ remove_slash_if_added <- function(path) {
   }
 }
 
-# get request to armadillo api without authentication
 get_from_api <- function(endpoint, armadillo_url) {
   cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
   response <- GET(paste0(armadillo_url, endpoint))

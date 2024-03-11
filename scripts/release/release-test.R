@@ -63,55 +63,54 @@ cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
 source("test-cases/test-config.R")
-test_config <- configure_test()
 cli_alert_success("Options configured")
 
 cli_h2("Preparing tables for tests")
 source("test-cases/download-tables.R")
-download_tables(dest = test_config$dest, service_location = test_config$service_location, skip_tests = test_config$skip_tests)
+cli_alert_success("Tables ready for testing")
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
-prepare_resources(test_file_path = test_config$test_file_path, skip_tests = test_config$skip_tests)
+rda_dir <- file.path(test_file_path, "gse66351_1.rda")
+prepare_resources(rda_dir)
+cli_alert_success("Resource ready for testing")
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
 token <- set_admin_or_get_token(url = test_config$armadillo_url, skip_tests = test_config$skip_test)
+cli_alert_success("Permissions set")
 
-# cli_h2("Configuring profiles")
-# source("test-cases/setup-profiles.R")
-# print(test_config$auth_type)
-# setup_profiles(auth_type = test_config$auth_type, token = test_config$token, skip_tests = test_config$skip_tests)
+cli_h2("Configuring profiles")
+source("test-cases/setup-profiles.R")
+cli_alert_success("Profiles configured")
 
-# cli_h1("Starting release test")
-# source("test-cases/release-test-info.R")
-# release_test_info(configs$version, url = armadillo_url, user = user, admin_pwd = admin_pwd, dest = dest, profile = profile, ADMIN_MODE = ADMIN_MODE)
+cli_h1("Starting release test")
+source("test-cases/release-test-info.R")
 
+cli_h2("Logging in as data manager")
+cli_alert_info(sprintf("Login to %s", armadillo_url))
+if(ADMIN_MODE) {
+    armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+} else {
+    armadillo.login(armadillo_url)
+}
+cli_alert_success("Logged in")
+
+cli_h2("Creating a test project")
+project1 <- generate_random_project_name()
+create_test_project(project1)
+cli_alert_success(paste0(project1, " created"))
+
+# cli_h2("Uploading test data")  # Add option for survival data?
+# source("test-cases/upload-data.R")
+# cli_alert_success("Data uploaded")
+
+cli_h2("Uploading resource source file")
+source("test-cases/upload-resource.R")
+upload_resource(project = project1, rda_dir = rda_dir, url = armadillo_url, token = token, auth_type = auth_type)
+cli_alert_success("Resource source file uploaded")
 #
-# cli_h2("Logging in as data manager")
-# cli_alert_info(sprintf("Login to %s", armadillo_url))
-# if(ADMIN_MODE) {
-#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-# } else {
-#     armadillo.login(armadillo_url)
-# }
-# cli_alert_success("Logged in")
-#
-# cli_h2("Creating a test project")
-# project1 <- generate_random_project_name()
-# create_test_project(project1)
-# cli_alert_success(paste0(project1, " created"))
-#
-# # cli_h2("Uploading test data")  # Add option for survival data?
-# # source("test-cases/upload-data.R")
-# # cli_alert_success("Data uploaded")
-#
-# cli_h2("Uploading resource source file")
-# source("test-cases/upload-resource.R")
-# upload_resource(project = project1, rda_dir = rda_dir, url = armadillo_url, token = token, auth_type = auth_type)
-# cli_alert_success("Resource source file uploaded")
-# #
-# # cli_h2("Creating resource")
+# cli_h2("Creating resource")
 # source("test-cases/create-resource.R")
 # resGSE1 <- make_resource(project1)
 # cli_alert_success("Resource created")
