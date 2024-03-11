@@ -81,13 +81,13 @@ token <- set_admin_or_get_token(url = test_config$armadillo_url, skip_tests = te
 cli_h2("Configuring profiles")
 source("test-cases/setup-profiles.R")
 print(test_config$as_docker_container)
-setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container)
+setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile)
 
-# cli_h1("Starting release test")
-# source("test-cases/release-test-info.R")
-# release_test_info(configs$version, url = armadillo_url, user = user, admin_pwd = admin_pwd, dest = dest, profile = profile, ADMIN_MODE = ADMIN_MODE)
+cli_h1("Starting release test")
+source("test-cases/release-test-info.R")
+print(test_config$profile)
+test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE)
 
-#
 # cli_h2("Logging in as data manager")
 # cli_alert_info(sprintf("Login to %s", armadillo_url))
 # if(ADMIN_MODE) {
