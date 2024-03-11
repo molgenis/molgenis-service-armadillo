@@ -61,6 +61,11 @@ almost_equal <- function(val1, val2) {
 }
 
 verify_ds_base <- function(object, variable) {
+    test_name <- "verify_ds_base"
+    if(skip_test %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
     cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
     ds_mean <- ds.mean(paste0(object, "$", variable), datasources = conns)$Mean
     cli_alert_info("Verifying mean values")
@@ -70,5 +75,4 @@ verify_ds_base <- function(object, variable) {
     cli_alert_info("Verifying can create histogram")
     verify_ds_hist(object, variable)
     cli_alert_success("ds.histogram returns expected values")
-
 }

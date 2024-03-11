@@ -68,38 +68,47 @@ start_profile <- function(profile_name, key, auth_type) {
   }
 }
 
-cat("\nAvailable profiles: \n")
-profiles <- get_from_api_with_header("profiles", token, auth_type)
-print_list(unlist(profiles$available))
+setup_profiles <- function(token, auth_type) {
 
-profile = Sys.getenv("PROFILE")
-if(profile == ""){
-  cli_alert_warning("Profile not set, defaulting to xenon.")
-  profile <- "xenon"
-} else {
-  cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
-}
+    test_name <- "setup-profiles"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
 
-cli_alert_info("Checking if profile is prepared for all tests")
+    cat("\nAvailable profiles: \n")
+    profiles <- get_from_api_with_header("profiles", token, auth_type)
+    print_list(unlist(profiles$available))
 
-if (!as_docker_container) {
-  create_profile_if_not_available(profile, profiles$available, token, auth_type)
-}
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
-if (!as_docker_container) {
-  start_profile_if_not_running("default", token, auth_type)
-}
-seed <- unlist(profile_info$options$datashield.seed)
-whitelist <- unlist(profile_info$packageWhitelist)
-if(is.null(seed)){
-  cli_alert_warning(sprintf("Seed of profile [%s] is NULL, please set it in UI profile tab and restart the profile", profile))
-  wait_for_input()
-}
-if(!"resourcer" %in% whitelist){
-  cli_alert_warning(sprintf("Whitelist of profile [%s] does not contain resourcer, please add it and restart the profile", profile))
-  wait_for_input()
-}
+    profile = Sys.getenv("PROFILE")
+    if(profile == ""){
+      cli_alert_warning("Profile not set, defaulting to xenon.")
+      profile <- "xenon"
+    } else {
+      cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
+    }
 
-if(!is.null(seed) && "resourcer" %in% whitelist){
-  cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
-}
+    cli_alert_info("Checking if profile is prepared for all tests")
+
+    if (!as_docker_container) {
+      create_profile_if_not_available(profile, profiles$available, token, auth_type)
+    }
+    profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type)
+    if (!as_docker_container) {
+      start_profile_if_not_running("default", token, auth_type)
+    }
+    seed <- unlist(profile_info$options$datashield.seed)
+    whitelist <- unlist(profile_info$packageWhitelist)
+    if(is.null(seed)){
+      cli_alert_warning(sprintf("Seed of profile [%s] is NULL, please set it in UI profile tab and restart the profile", profile))
+      wait_for_input()
+    }
+    if(!"resourcer" %in% whitelist){
+      cli_alert_warning(sprintf("Whitelist of profile [%s] does not contain resourcer, please add it and restart the profile", profile))
+      wait_for_input()
+    }
+
+    if(!is.null(seed) && "resourcer" %in% whitelist){
+      cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
+    }
+    cli_alert_success("Profiles configured")
+    }

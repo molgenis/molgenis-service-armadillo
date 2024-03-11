@@ -16,6 +16,14 @@ remove_slash_if_added <- function(path) {
   }
 }
 
+# get request to armadillo api without authentication
+get_from_api <- function(endpoint, armadillo_url) {
+  cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
+  response <- GET(paste0(armadillo_url, endpoint))
+  cat(paste0('get_from_api', ' for ', endpoint, " results ", response$status_code, "\n"))
+  return(content(response))
+}
+
 configure_test <- function() {
     cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
     show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
@@ -118,7 +126,11 @@ configure_test <- function() {
 
     dest <- add_slash_if_not_added(test_file_path)
 
+    app_info <- get_from_api("actuator/info", armadillo_url)
+    version <- unlist(app_info$build$version)
+
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
-    admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest))
+    admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
+    app_info = app_info, version = version))
     }
 
