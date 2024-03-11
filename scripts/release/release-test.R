@@ -76,11 +76,10 @@ prepare_resources(test_file_path = test_config$test_file_path, skip_tests = test
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
-token <- set_admin_or_get_token(url = test_config$armadillo_url, skip_tests = test_config$skip_test)
+token <- set_admin_or_get_token(admin_pwd = test_config$admin_pwd, url = test_config$armadillo_url, skip_tests = test_config$skip_test, ADMIN_MODE = test_config$ADMIN_MODE)
 
 cli_h2("Configuring profiles")
 source("test-cases/setup-profiles.R")
-print(test_config$as_docker_container)
 setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile)
 
 cli_h1("Starting release test")
@@ -88,23 +87,25 @@ source("test-cases/release-test-info.R")
 print(test_config$profile)
 test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE)
 
-# cli_h2("Logging in as data manager")
-# cli_alert_info(sprintf("Login to %s", armadillo_url))
-# if(ADMIN_MODE) {
-#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-# } else {
-#     armadillo.login(armadillo_url)
-# }
-# cli_alert_success("Logged in")
-#
-# cli_h2("Creating a test project")
-# project1 <- generate_random_project_name()
-# create_test_project(project1)
-# cli_alert_success(paste0(project1, " created"))
-#
-# # cli_h2("Uploading test data")  # Add option for survival data?
-# # source("test-cases/upload-data.R")
-# # cli_alert_success("Data uploaded")
+cli_h2("Logging in as data manager")
+cli_alert_info(sprintf("Login to %s", test_config$armadillo_url))
+
+if(ADMIN_MODE) {
+    armadillo.login_basic(test_config$armadillo_url, "admin", test_config$admin_pwd)
+} else {
+    armadillo.login(test_config$armadillo_url)
+}
+cli_alert_success("Logged in")
+
+cli_h2("Creating a test project")
+project1 <- generate_random_project_name()
+create_test_project(project1)
+cli_alert_success(paste0(project1, " created"))
+
+cli_h2("Uploading test data")  # Add option for survival data?
+source("test-cases/upload-data.R")
+upload_test_data(project = project1, dest = test_config$dest)
+cli_alert_success("Data uploaded")
 #
 # cli_h2("Uploading resource source file")
 # source("test-cases/upload-resource.R")
