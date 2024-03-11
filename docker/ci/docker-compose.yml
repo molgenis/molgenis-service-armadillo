@@ -12,10 +12,6 @@ services:
         JAR_FILE: '*.jar'
 
     image: molgenis/molgenis-armadillo:local
-    environment:
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-      SPRING_SECURITY_USER_PASSWORD: 'admin'
     volumes:
       - ./armadillo/logs:/logs
       - ./armadillo/data:/data
