@@ -72,7 +72,7 @@ download_tables(dest = test_config$dest, service_location = test_config$service_
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
-prepare_resources(test_file_path = test_config$test_file_path, skip_tests = test_config$skip_tests)
+prepare_resources(rda_dir = test_config$rda_dir, skip_tests = test_config$skip_tests)
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
@@ -84,7 +84,6 @@ setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = te
 
 cli_h1("Starting release test")
 source("test-cases/release-test-info.R")
-print(test_config$profile)
 test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE)
 
 cli_h2("Logging in as data manager")
@@ -107,11 +106,11 @@ source("test-cases/upload-data.R")
 print(test_config$default_parquet_path)
 upload_test_data(project = project1, dest = test_config$default_parquet_path)
 cli_alert_success("Data uploaded")
-#
-# cli_h2("Uploading resource source file")
-# source("test-cases/upload-resource.R")
-# upload_resource(project = project1, rda_dir = rda_dir, url = armadillo_url, token = token, auth_type = auth_type)
-# cli_alert_success("Resource source file uploaded")
+
+cli_h2("Uploading resource source file")
+source("test-cases/upload-resource.R")
+upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, skip_tests = test_config$skip_tests)
+cli_alert_success("Resource source file uploaded")
 # #
 # # cli_h2("Creating resource")
 # source("test-cases/create-resource.R")

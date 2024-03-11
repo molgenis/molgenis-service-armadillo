@@ -155,8 +155,10 @@ configure_test <- function() {
     default_parquet_path = file.path(service_location, "data", "shared-lifecycle")
     default_parquet_path <- add_slash_if_not_added(default_parquet_path)
 
+    rda_dir <- file.path(test_file_path, "gse66351_1.rda")
+
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
-    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path))
+    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir))
     }
