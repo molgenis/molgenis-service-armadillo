@@ -6,7 +6,9 @@ read_parquet_with_message <- function(file_path, dest) {
     }
 
 upload_test_data <- function(project, dest) {
+
     cli_alert_info("Reading parquet files for core variables")
+    print(dest)
     nonrep <- read_parquet_with_message("core/nonrep", dest)
     yearlyrep <- read_parquet_with_message("core/yearlyrep", dest)
     monthlyrep <- read_parquet_with_message("core/monthlyrep", dest)
@@ -24,7 +26,7 @@ upload_test_data <- function(project, dest) {
     cli_alert_success("Core objects removed")
 
     cli_alert_info("Reading parquet files for outcome variables")
-    nonrep <- read_parquet_with_message("outcome/nonrep")
+    nonrep <- read_parquet_with_message("outcome/nonrep", dest)
     yearlyrep <- read_parquet_with_message("outcome/yearlyrep", dest)
 
     cli_alert_info("Uploading outcome test tables")

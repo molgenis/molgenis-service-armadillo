@@ -68,7 +68,7 @@ cli_alert_success("Options configured")
 
 cli_h2("Preparing tables for tests")
 source("test-cases/download-tables.R")
-download_tables(dest = test_config$dest, service_location = test_config$service_location, skip_tests = test_config$skip_tests)
+download_tables(dest = test_config$dest, service_location = test_config$service_location, skip_tests = test_config$skip_tests, default_parquet_path = test_config$default_parquet_path)
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
@@ -104,7 +104,8 @@ cli_alert_success(paste0(project1, " created"))
 
 cli_h2("Uploading test data")  # Add option for survival data?
 source("test-cases/upload-data.R")
-upload_test_data(project = project1, dest = test_config$dest)
+print(test_config$default_parquet_path)
+upload_test_data(project = project1, dest = test_config$default_parquet_path)
 cli_alert_success("Data uploaded")
 #
 # cli_h2("Uploading resource source file")
