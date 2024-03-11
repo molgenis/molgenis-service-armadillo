@@ -76,13 +76,13 @@ prepare_resources(test_file_path = test_config$test_file_path, skip_tests = test
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
-configs <- set_admin_or_get_token(url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
-#
+token <- set_admin_or_get_token(url = test_config$armadillo_url, skip_tests = test_config$skip_test)
+
 # cli_h2("Configuring profiles")
 # source("test-cases/setup-profiles.R")
-# print(names(configs))
-# setup_profiles(auth_type = configs$auth_type, token = configs$token)
-#
+# print(test_config$auth_type)
+# setup_profiles(auth_type = test_config$auth_type, token = test_config$token, skip_tests = test_config$skip_tests)
+
 # cli_h1("Starting release test")
 # source("test-cases/release-test-info.R")
 # release_test_info(configs$version, url = armadillo_url, user = user, admin_pwd = admin_pwd, dest = dest, profile = profile, ADMIN_MODE = ADMIN_MODE)
