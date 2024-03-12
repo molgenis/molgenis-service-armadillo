@@ -31,37 +31,6 @@ check_cohort_exists <- function(cohort) {
   }
 }
 
-create_dsi_builder <- function(server = "armadillo", url, profile, password = "", token = "", table = "", resource = "") {
-  cli_alert_info("Creating new datashield login builder")
-  builder <- DSI::newDSLoginBuilder()
-  if (ADMIN_MODE) {
-    cli_alert_info("Appending information as admin")
-    builder$append(
-      server = server,
-      url = url,
-      profile = profile,
-      table = table,
-      driver = "ArmadilloDriver",
-      user = "admin",
-      password = password,
-      resource = resource
-    )
-  } else {
-    cli_alert_info("Appending information using token")
-    builder$append(
-      server = server,
-      url = url,
-      profile = profile,
-      table = table,
-      driver = "ArmadilloDriver",
-      token = token,
-      resource = resource
-    )
-  }
-  cli_alert_info("Appending information to login builder")
-  return(builder$build())
-}
-
 wait_for_input <- function(interactive) {
   if (interactive) {
     cat("\nPress any key to continue")
@@ -78,6 +47,16 @@ create_basic_header <- function(pwd) {
       paste0("admin:", pwd))
   )
   return(paste0("Basic ", encoded))
+}
+
+# # add/edit user using armadillo api
+set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
+  args <- list(email = user, admin = isAdmin, projects = required_projects)
+  response <- put_to_api("access/users", admin_pwd, "basic", args, url)
+  if(response$status_code != 204) {
+    cli_alert_warning("Altering OIDC user failed, please do this manually")
+    update_auto = ""
+  }
 }
 
 # FUNCTIONS BELOW IN MAIN SCRIPT BUT DON'T APPEAR TO BE CALLED
