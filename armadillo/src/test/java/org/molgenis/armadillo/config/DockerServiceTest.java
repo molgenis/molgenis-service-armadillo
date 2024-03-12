@@ -144,6 +144,7 @@ class DockerServiceTest {
     var profile1 = ProfileConfig.createDefault();
     var profile2 =
         ProfileConfig.create(
+            false,
             "omics",
             "datashield/armadillo-rserver-omics",
             "localhost",

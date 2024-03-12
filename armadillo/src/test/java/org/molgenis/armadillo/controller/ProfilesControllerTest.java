@@ -38,9 +38,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 class ProfilesControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_PROFILE =
-      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";
+      "{\"autoStart\":true,\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";
   public static final String OMICS_PROFILE =
-      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
+      "{\"autoStart\":true,\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
 
   @Autowired ProfileService profileService;
   @MockBean ArmadilloStorageService armadilloStorage;
@@ -61,6 +61,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .put(
             "default",
             ProfileConfig.create(
+                true,
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 "localhost",
@@ -73,6 +74,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .put(
             "omics",
             ProfileConfig.create(
+                true,
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 "localhost",
@@ -103,7 +105,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .andExpect(
             content()
                 .json(
-                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"]}"));
+                    "{\"autoStart\":true,\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"]}"));
   }
 
   @Test
@@ -111,6 +113,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   void profiles_PUT() throws Exception {
     ProfileConfig profileConfig =
         ProfileConfig.create(
+            false,
             "dummy",
             "dummy/armadillo:2.0.0",
             "localhost",
