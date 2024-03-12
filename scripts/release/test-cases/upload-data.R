@@ -5,7 +5,11 @@ read_parquet_with_message <- function(file_path, dest) {
     return(out)
     }
 
-upload_test_data <- function(project, dest) {
+upload_test_data <- function(project, dest, skip_tests) {
+ test_name <- "remove-data"
+    if(any(skip_tests %in% test_name)){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
 
     cli_alert_info("Reading parquet files for core variables")
     print(dest)
@@ -37,8 +41,8 @@ upload_test_data <- function(project, dest) {
     cli_alert_info("Reading parquet files for survival variables")
     veteran <- read_parquet_with_message("survival/veteran", dest)
 
-    # cli_alert_info("Logging in as admin user")
-    # armadillo.login_basic(armadillo_url, "admin", admin_pwd)
+#     cli_alert_info("Logging in as admin user")
+#     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
 
     cli_alert_info("Uploading survival test table")
     armadillo.upload_table(project, "survival", veteran)

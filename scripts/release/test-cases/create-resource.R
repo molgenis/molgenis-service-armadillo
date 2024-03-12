@@ -1,4 +1,8 @@
-make_resource <- function(target_project, url) {
+make_resource <- function(target_project, url, skip_tests) {
+    test_name <- "make_resource"
+    if(any(skip_tests %in% test_name)){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
 
     rds_url <- url
     if(url == "http://localhost:8080/") {
