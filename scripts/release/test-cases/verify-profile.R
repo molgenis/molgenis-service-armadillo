@@ -1,4 +1,4 @@
-create_ds_connection <- function(password, token, profile, url) {
+create_ds_connection <- function(password, token, profile, url, ADMIN_MODE) {
   cli_alert_info("Creating new datashield connection")
   if (ADMIN_MODE) {
     cli_alert_info("Creating connection as admin")
@@ -23,9 +23,9 @@ create_ds_connection <- function(password, token, profile, url) {
   return(con)
 }
 
-verify_specific_profile <- function(password, token, url, profile) {
+verify_specific_profile <- function(password, token, url, profile, ADMIN_MODE) {
     cli_alert_info("Verify connecting to specified profile works")
-    con <- create_ds_connection(password = admin_pwd, token = token, url = url, profile = profile)
+    con <- create_ds_connection(password = admin_pwd, token = token, url = url, profile = profile, ADMIN_MODE)
     if (con@name == "armadillo") {
       cli_alert_success("Succesfully connected")
     } else {
@@ -35,9 +35,9 @@ verify_specific_profile <- function(password, token, url, profile) {
      dsDisconnect(con)
 }
 
-verify_no_profile_specified <- function(password, token, url) {
+verify_no_profile_specified <- function(password, token, url, ADMIN_MODE) {
     cli_alert_info("Verify if default profile works without specifying profile")
-    con <- create_ds_connection(password = password, token = token, url = url, profile = "")
+    con <- create_ds_connection(password = password, token = token, url = url, profile = "", ADMIN_MODE)
     if (con@name == "armadillo") {
       cli_alert_success("Succesfully connected")
     } else {
@@ -46,9 +46,9 @@ verify_no_profile_specified <- function(password, token, url) {
     dsDisconnect(con)
 }
 
-verify_default_profile <- function(password, token, url) {
+verify_default_profile <- function(password, token, url, ADMIN_MODE) {
     cli_alert_info("Verify if default profile works when specifying profile")
-    con <- create_ds_connection(password = password, token = token, url = url, profile = "default")
+    con <- create_ds_connection(password = password, token = token, url = url, profile = "default", ADMIN_MODE)
     if (con@name == "armadillo") {
       cli_alert_success("Succesfully connected")
     } else {
@@ -57,14 +57,14 @@ verify_default_profile <- function(password, token, url) {
     dsDisconnect(con)
 }
 
-verify_profiles <- function(password, token, url, profile, skip_tests) {
+verify_profiles <- function(password, token, url, profile, ADMIN_MODE, skip_tests) {
     test_name <- "verify-profile"
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 
-    verify_specific_profile(password, token, url, profile)
-    verify_no_profile_specified(password, token, url)
-    verify_default_profile(password, token, url)
+    verify_specific_profile(password, token, url, profile, ADMIN_MODE)
+    verify_no_profile_specified(password, token, url, ADMIN_MODE)
+    verify_default_profile(password, token, url, ADMIN_MODE)
     cli_alert_success("Profiles work")
 }

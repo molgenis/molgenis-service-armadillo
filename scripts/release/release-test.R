@@ -42,20 +42,9 @@ library(dsMediationClient)
 library(dsMTLClient)
 
 # set when admin password given + question answered with y
-update_auto = ""
-do_run_spinner <- TRUE
-ADMIN_MODE <- FALSE
-
-# default profile settings in case a profile is missing
-profile_defaults = data.frame(
-  name = c("xenon", "rock"),
-  container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
-  port = c("", ""),
-  # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
-  # Not adding dsBase since that is always(?) required
-  whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
-  blacklist = c("", "")
-)
+# update_auto = ""
+# do_run_spinner <- TRUE
+# ADMIN_MODE <- FALSE
 
 cli_alert_info("Loading common functions")
 source("lib/common-functions.R")
@@ -89,7 +78,7 @@ test_message <- show_test_info(version = test_config$version, url = test_config$
 cli_h2("Logging in as data manager")
 cli_alert_info(sprintf("Login to %s", test_config$armadillo_url))
 
-if(ADMIN_MODE) {
+if(test_config$ADMIN_MODE) {
     armadillo.login_basic(test_config$armadillo_url, "admin", test_config$admin_pwd)
 } else {
     armadillo.login(test_config$armadillo_url)
@@ -132,16 +121,16 @@ cli_alert_success("Manual test complete")
 cli_alert_info("\nNow you're going to test as researcher")
 cli_h2("Setting researcher permissions")
 source("test-cases/set_researcher_access.R")
-set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, skip_tests = test_config$skip_tests) #Add linked table when working
+set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, update_auto = test_config$update_auto, skip_tests = test_config$skip_tests) #Add linked table when working
 cli_alert_success("Researcher permissions set")
 
 cli_h2("Logging in as a researcher")
 source("test-cases/researcher-login.R")
-conns <- researcher_login(url = test_config$armadillo_url, profile = test_config$profile, admin_pwd = test_config$admin_pwd, token = token, table = "2_1-core-1_0/nonrep", project = project1, object = "nonrep", variables = "coh_country", skip_tests = test_config$skip_tests)
+conns <- researcher_login(url = test_config$armadillo_url, profile = test_config$profile, admin_pwd = test_config$admin_pwd, token = token, table = "2_1-core-1_0/nonrep", project = project1, object = "nonrep", variables = "coh_country", ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
 cli_h2("Verifying connecting to profiles possible")
 source("test-cases/verify-profile.R")
-verify_profiles(password = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, skip_tests = test_config$skip_tests)
+verify_profiles(password = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 cli_alert_success("Profiles work")
 
 cli_h2("Assigning tables as researcher")
