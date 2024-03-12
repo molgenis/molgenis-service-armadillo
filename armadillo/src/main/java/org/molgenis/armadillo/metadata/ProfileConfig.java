@@ -16,6 +16,9 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
+  @JsonProperty("autoStart")
+  public abstract boolean getAutoStart();
+
   @JsonProperty("name")
   @NotEmpty
   public abstract String getName();
@@ -44,6 +47,7 @@ public abstract class ProfileConfig {
 
   @JsonCreator
   public static ProfileConfig create(
+      @JsonProperty("autoStart") boolean newAutoStart,
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("host") String newHost,
@@ -52,6 +56,7 @@ public abstract class ProfileConfig {
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions) {
     return new AutoValue_ProfileConfig(
+        newAutoStart,
         newName,
         newImage,
         newHost != null ? newHost : "localhost",
@@ -64,6 +69,7 @@ public abstract class ProfileConfig {
   @JsonCreator
   public static ProfileConfig createDefault() {
     return create(
+        true,
         "default",
         "datashield/armadillo-rserver",
         "localhost",

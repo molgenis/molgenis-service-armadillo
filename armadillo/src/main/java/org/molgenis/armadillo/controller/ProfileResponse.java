@@ -13,6 +13,8 @@ import org.molgenis.armadillo.profile.ContainerInfo;
 @AutoValue
 @JsonInclude(Include.NON_NULL)
 public abstract class ProfileResponse {
+  public abstract boolean getAutoStart();
+
   public abstract String getName();
 
   @Nullable // only required when docker enabled
@@ -34,6 +36,7 @@ public abstract class ProfileResponse {
 
   public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
+        profileConfig.getAutoStart(),
         profileConfig.getName(),
         profileConfig.getImage(),
         profileConfig.getHost(),

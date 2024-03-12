@@ -10,6 +10,7 @@ import java.util.Set;
  * without setters.
  */
 public class InitialProfileConfig {
+  private boolean autoStart;
   private String name;
   private String image;
   private String host;
@@ -20,7 +21,11 @@ public class InitialProfileConfig {
 
   public ProfileConfig toProfileConfig() {
     return ProfileConfig.create(
-        name, image, host, port, packageWhitelist, functionBlacklist, options);
+        autoStart, name, image, host, port, packageWhitelist, functionBlacklist, options);
+  }
+
+  public void setAutoStart(boolean autoStart) {
+    this.autoStart = autoStart;
   }
 
   public void setName(String name) {

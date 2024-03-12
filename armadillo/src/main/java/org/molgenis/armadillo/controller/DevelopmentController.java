@@ -123,6 +123,7 @@ public class DevelopmentController {
     whitelist.add(pkg);
     ProfileConfig profileConfig =
         ProfileConfig.create(
+            currentConfig.getAutoStart(),
             currentConfig.getName(),
             currentConfig.getImage(),
             currentConfig.getHost(),

@@ -58,6 +58,7 @@ public class ProfileService {
         .put(
             profileName,
             ProfileConfig.create(
+                profileConfig.getAutoStart(),
                 profileName,
                 profileConfig.getImage(),
                 profileConfig.getHost(),
