@@ -13,15 +13,12 @@ set_researcher_access <- function(url, interactive, required_projects, user, adm
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 
-    if(!ADMIN_MODE){
-      update_auto = "y"
+    if(update_auto == "y"){
       if(interactive) {
         cat("\nDo you want to remove admin from OIDC user automatically? (y/n) ")
         update_auto <- readLines("stdin", n=1)
       }
-      if(update_auto == "y"){
-        set_user(user, admin_pwd, F, required_projects, url)
-      }
+      set_user(user, admin_pwd, F, required_projects, url)
       if(update_auto != "y"){
         cat("\nGo to the Users tab")
         cat(sprintf("\nAdd [%s]' and [%s] to the project column for your account", unlist(required_projects)))

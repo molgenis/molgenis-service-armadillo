@@ -159,10 +159,14 @@ configure_test <- function() {
 
     rda_dir <- file.path(test_file_path, "gse66351_1.rda")
 
+    update_auto = ifelse(ADMIN_MODE, "n", "y")
+    print(update_auto)
+
     cli_alert_success("Options configured")
 
     return(list(skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
-    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir))
+    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
+    update_auto = update_auto))
     }
