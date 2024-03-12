@@ -101,4 +101,5 @@ run_survival_tests <- function(project, data_path, skip_tests) {
   verify_cox_phSLMAassign_class()
   verify_cox_zphSLMA_object()
   verify_cox_phsummary()
+  cli_alert_success("dsSurvival works")
 }

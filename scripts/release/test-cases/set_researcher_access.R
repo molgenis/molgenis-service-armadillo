@@ -30,4 +30,5 @@ set_researcher_access <- function(url, interactive, required_projects, user, adm
         wait_for_input(interactive)
       }
       }
+      cli_alert_success("Researcher permissions set")
 }

@@ -51,5 +51,5 @@ upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests)
     system.time({
       post_resource_to_api(project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda", url)
     })
-    cli_alert_info("Resource uploaded")
+    cli_alert_success("Resource source file uploaded")
     }

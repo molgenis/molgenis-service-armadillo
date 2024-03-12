@@ -92,10 +92,10 @@ verify_ds_mediation <- function(skip_tests) {
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
-
     verify_mediate_class()
     verify_ne_weight_class()
     verify_ne_model_class()
     verify_ne_imp_class()
     verify_ne_lht_class()
+    cli_alert_success("dsMediation works")
 }

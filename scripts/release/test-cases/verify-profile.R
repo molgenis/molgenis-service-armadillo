@@ -66,4 +66,5 @@ verify_profiles <- function(password, token, url, profile, skip_tests) {
     verify_specific_profile(password, token, url, profile)
     verify_no_profile_specified(password, token, url)
     verify_default_profile(password, token, url)
+    cli_alert_success("Profiles work")
 }
