@@ -40,6 +40,14 @@ As we now have the option to download the logfile from the application we need t
 ./gradlew wrapper --gradle-version 8.6
 ```
 
+## Check for updates
+
+To get a list of new dependencies run
+
+```bash
+./gradlew dependencyUpdates
+```
+
 ## Tools
 
 We use intellij to develop
