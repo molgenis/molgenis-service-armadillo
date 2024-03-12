@@ -1,4 +1,4 @@
-create_ds_connection <- function(password = "", token = "", profile = "", url) {
+create_ds_connection <- function(password, token, profile, url) {
   cli_alert_info("Creating new datashield connection")
   if (ADMIN_MODE) {
     cli_alert_info("Creating connection as admin")
@@ -25,7 +25,7 @@ create_ds_connection <- function(password = "", token = "", profile = "", url) {
 
 verify_specific_profile <- function(password, token, url, profile) {
     cli_alert_info("Verify connecting to specified profile works")
-    con <- create_ds_connection(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
+    con <- create_ds_connection(password = admin_pwd, token = token, url = url, profile = profile)
     if (con@name == "armadillo") {
       cli_alert_success("Succesfully connected")
     } else {
@@ -37,7 +37,7 @@ verify_specific_profile <- function(password, token, url, profile) {
 
 verify_no_profile_specified <- function(password, token, url) {
     cli_alert_info("Verify if default profile works without specifying profile")
-    con <- create_ds_connection(password = password, token = token, url = url)
+    con <- create_ds_connection(password = password, token = token, url = url, profile = "")
     if (con@name == "armadillo") {
       cli_alert_success("Succesfully connected")
     } else {
