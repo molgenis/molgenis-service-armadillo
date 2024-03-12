@@ -256,6 +256,7 @@ export default defineComponent({
     },
     profilesDataStructure(): TypeObject {
       let columns: TypeObject = {
+        autoStart: "boolean",
         name: "string",
         image: "string",
         host: "string",
@@ -394,6 +395,7 @@ export default defineComponent({
       this.clearUserMessages();
 
       this.profiles.unshift({
+        autoStart: true,
         name: "",
         image: "datashield/rock-base:latest",
         host: "localhost",

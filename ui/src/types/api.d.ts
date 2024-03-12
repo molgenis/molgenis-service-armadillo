@@ -54,6 +54,7 @@ export type Principal = {
 };
 
 export type Profile = {
+  autoStart: boolean;
   name: string;
   image: string;
   host: string;
