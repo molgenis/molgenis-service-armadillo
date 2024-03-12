@@ -53,6 +53,7 @@ describe("Profiles", () => {
         };
 
         default_profile_not_running = {
+            autoStart: true,
             name: "default",
             image: "datashield/rock-base:version",
             host: "localhost",
@@ -78,6 +79,7 @@ describe("Profiles", () => {
 
         singleTestData = [
             {
+                autoStart: true,
                 name: "profile-one",
                 image: "source/some_profile-one:version-one",
                 host: "localhost",
@@ -107,6 +109,7 @@ describe("Profiles", () => {
         });
 
         profileToAdd = {
+            autoStart: true,
             name: "profile-two",
             image: "other_source/profile-two:version-two",
             host: "localhost",
