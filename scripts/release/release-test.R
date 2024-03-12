@@ -80,7 +80,7 @@ token <- set_admin_or_get_token(admin_pwd = test_config$admin_pwd, url = test_co
 
 cli_h2("Configuring profiles")
 source("test-cases/setup-profiles.R")
-setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile)
+profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile, user = test_config$user)
 
 cli_h1("Starting release test")
 source("test-cases/release-test-info.R")
@@ -95,15 +95,14 @@ if(ADMIN_MODE) {
     armadillo.login(test_config$armadillo_url)
 }
 cli_alert_success("Logged in")
-
 cli_h2("Creating a test project")
+source("test-cases/create-test-project.R")
 project1 <- generate_random_project_name()
-create_test_project(project1)
+create_test_project(target_project_name = project1, skip_tests = test_config$skip_tests)
 cli_alert_success(paste0(project1, " created"))
 
 cli_h2("Uploading test data")  # Add option for survival data?
 source("test-cases/upload-data.R")
-print(test_config$default_parquet_path)
 upload_test_data(project = project1, dest = test_config$default_parquet_path)
 cli_alert_success("Data uploaded")
 
@@ -111,91 +110,75 @@ cli_h2("Uploading resource source file")
 source("test-cases/upload-resource.R")
 upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, skip_tests = test_config$skip_tests)
 cli_alert_success("Resource source file uploaded")
-# #
-# # cli_h2("Creating resource")
-# source("test-cases/create-resource.R")
-# resGSE1 <- make_resource(project1)
-# cli_alert_success("Resource created")
-#
-# cli_h2("Uploading resource file")
-# armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
-# cli_alert_success("Resource uploaded")
+
+cli_h2("Creating resource")
+source("test-cases/create-resource.R")
+resGSE1 <- make_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url)
+cli_alert_success("Resource created")
+
+cli_h2("Uploading resource file")
+armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
+cli_alert_success("Resource uploaded")
 #
 # cli_h2("Creating linked view on table")
 # source("test-cases/create-linked-view.R")
 # cli_alert_success("Linked view created")
 #
-# cli_h2("Starting manual UI test")
-# source("test-cases/manual-test.R")
-# interactive_test(project1)
-# cli_alert_success("Manual test complete")
-#
-# cli_alert_info("\nNow you're going to test as researcher")
-# cli_h2("Setting researcher permissions")
-# source("test-cases/set_researcher_access.R")
-# set_researcher_access(required_projects = list(project1)) #Add linked table when working
-# cli_alert_success("Researcher permissions set")
-#
-# cli_h2("Logging in as a researcher")
-# logindata <- create_dsi_builder(url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project1))
-# conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
-# cli_alert_success("Logged in")
-#
-# cli_h2("Verifying connecting to profiles possible")
-# source("test-cases/verify-profile.R")
-# verify_profiles(password = admin_pwd, token = token, url = armadillo_url, profile = profile)
-# cli_alert_success("Profiles work")
-#
-# cli_h2("Assigning tables as researcher")
-# source("test-cases/assigning.R")
-# check_tables_assign(project = project1, folder = "2_1-core-1_0", table = "nonrep")
-# check_expression_assign(project = project1, object = "nonrep", variable = "coh_country")
-# cli_alert_success("Assigning works")
+cli_h2("Starting manual UI test")
+source("test-cases/manual-test.R")
+interactive_test(project1, test_config$interactive, test_config$skip_tests)
+cli_alert_success("Manual test complete")
+
+cli_alert_info("\nNow you're going to test as researcher")
+cli_h2("Setting researcher permissions")
+source("test-cases/set_researcher_access.R")
+set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, skip_tests = test_config$skip_tests) #Add linked table when working
+cli_alert_success("Researcher permissions set")
+
+cli_h2("Logging in as a researcher")
+logindata <- create_dsi_builder(url = test_config$armadillo_url, profile = test_config$profile, password = test_config$admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
+cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", test_config$profile, project1))
+conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
+cli_alert_success("Logged in")
+
+cli_h2("Verifying connecting to profiles possible")
+source("test-cases/verify-profile.R")
+verify_profiles(password = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, skip_tests = test_config$skip_tests)
+cli_alert_success("Profiles work")
+
+cli_h2("Assigning tables as researcher")
+source("test-cases/assigning.R")
+check_assigning(project = project1, folder = "2_1-core-1_0", table = "nonrep", object = "nonrep", variable = "coh_country", skip_tests = test_config$skip_tests)
+cli_alert_success("Assigning works")
 #
 # # cli_h2("Testing linked table")
 # # source("test-cases/test-linked-view.R")
 # # cli_alert_success("Linked view worked")
-#
-# cli_h2("Testing resources as a researcher")
-# if (ADMIN_MODE) {
-#    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
-# } else if (!"resourcer" %in% profile_info$packageWhitelist) {
-#   cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
-# } else {
-#     cli_h2("Using resources as regular user")
-#     cli_h2("Verifying resources")
-#     source("test-cases/verify-resources.R")
-#     verify_resources(project = project1, resource_path = "ewas/GSE66351_1")
-# }
-#
-# cli_h2("Verifying xenon packages")
-# cli_alert_info("Verifying dsBase")
-# source("test-cases/ds-base.R")
-# verify_ds_base(object = "nonrep", variable = "coh_country")
-# cli_alert_success("dsBase works")
-#
-# cli_alert_info("Verifying dsMediation")
-# source("test-cases/xenon-mediate.R")
-# verify_ds_mediation()
-# cli_alert_success("dsMediation works")
-#
-# cli_alert_info("Testing dsSurvival")
-# source("test-cases/xenon-survival.R")
-# run_survival_tests(project = project1, data_path = "/survival/veteran", conns = conns)
-# cli_alert_success("dsSurvival works")
-#
-# cli_alert_info("Testing dsMTL")
-# source("test-cases/xenon-mtl.R")
-#
-# cli_alert_info("Logging in as two cohorts")
-# logindata_1 <- create_dsi_builder(server = "testserver1", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# logindata_2 <- create_dsi_builder(server = "testserver2", url = armadillo_url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-# logindata <- rbind(logindata_1, logindata_2) #This allows us to test two servers (required for dsMTL)
-# conns <- DSI::datashield.login(logins = logindata, assign = T, symbol = "nonrep")
-#
-# verify_ds_mtl()
-# cli_alert_success("dsMTL works")
+
+cli_h2("Testing resources as a researcher")
+source("test-cases/verify-resources.R")
+verify_resources(project = project1, resource_path = "ewas/GSE66351_1", ADMIN_MODE = test_config$ADMIN_MODE, profile_info = profile_info, skip_tests = test_config$skip_tests)
+
+cli_h2("Verifying xenon packages")
+cli_alert_info("Verifying dsBase")
+source("test-cases/ds-base.R")
+verify_ds_base(object = "nonrep", variable = "coh_country", skip_tests = test_config$skip_tests)
+cli_alert_success("dsBase works")
+
+cli_alert_info("Verifying dsMediation")
+source("test-cases/xenon-mediate.R")
+verify_ds_mediation(skip_tests = test_config$skip_tests)
+cli_alert_success("dsMediation works")
+
+cli_alert_info("Testing dsSurvival")
+source("test-cases/xenon-survival.R")
+run_survival_tests(project = project1, data_path = "/survival/veteran", skip_tests = test_config$skip_tests)
+cli_alert_success("dsSurvival works")
+
+cli_alert_info("Testing dsMTL")
+source("test-cases/xenon-mtl.R")
+verify_ds_mtl(skip_tests = test_config$skip_tests)
+cli_alert_success("dsMTL works")
 #
 # cli_h2("Removing data as admin")
 # source("test-cases/remove-data.R") #Add link_project once module works
