@@ -14,7 +14,7 @@ steps:
       sudo update-alternatives --display java
     displayName: list available java versions (for debug purposes)
   - script: |
-      export JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
+      export JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64/
       ./gradlew -version
       ./gradlew build jacocoMergedReport sonarqube -Dsonar.login=$(SONAR_TOKEN) -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dorg.ajoberstar.grgit.auth.username=$(GITHUB_TOKEN) -Dorg.ajoberstar.grgit.auth.password
     displayName: run test, ensure we are using java 21 JAVA_HOME
