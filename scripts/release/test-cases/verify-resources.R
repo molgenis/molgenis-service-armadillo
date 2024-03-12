@@ -37,3 +37,19 @@ verify_resources <- function(project, resource_path) {
     verify_assign_resource(full_resource_path)
 #     verify_assign_expression(conns)
 }
+
+
+verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, skip_tests) {
+    if (ADMIN_MODE) {
+       cli_alert_warning("Cannot test working with resources as basic authenticated admin")
+    } else if (!"resourcer" %in% profile_info$packageWhitelist) {
+      cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
+    } else {
+        cli_h2("Using resources as regular user")
+        cli_h2("Verifying resources")
+        full_resource_path = sprintf("%s/%s", project, resource_path)
+        verify_see_resource(full_resource_path)
+        verify_assign_resource(full_resource_path)
+    #   verify_assign_expression(conns)
+    }
+}
