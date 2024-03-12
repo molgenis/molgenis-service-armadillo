@@ -1,6 +1,6 @@
 interactive_test <- function(project1, interactive, skip_tests) {
     test_name <- "manual-test"
-    if(skip_tests %in% test_name){
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 

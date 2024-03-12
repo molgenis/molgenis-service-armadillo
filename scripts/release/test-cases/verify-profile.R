@@ -59,7 +59,7 @@ verify_default_profile <- function(password, token, url) {
 
 verify_profiles <- function(password, token, url, profile, skip_tests) {
     test_name <- "verify-profile"
-    if(skip_tests %in% test_name){
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 

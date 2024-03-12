@@ -62,7 +62,10 @@ almost_equal <- function(val1, val2) {
 
 verify_ds_base <- function(object, variable, skip_tests) {
     test_name <- "ds-base"
-    if(skip_tests %in% test_name){
+    print(skip_tests)
+    print(test_name)
+    print(skip_tests %in% test_name)
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 

@@ -2,7 +2,7 @@
 
 download_tables <- function(dest, service_location, skip_tests, default_parquet_path) {
     test_name <- "download-tables"
-    if(skip_tests %in% test_name){
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 

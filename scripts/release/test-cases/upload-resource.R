@@ -41,7 +41,8 @@ spin_till_done <- function(spinner) {
 
 upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests) {
     test_name <- "upload-resource"
-    if(skip_tests %in% test_name){
+    print(skip_tests)
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 
