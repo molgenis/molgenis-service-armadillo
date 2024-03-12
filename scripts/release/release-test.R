@@ -84,7 +84,7 @@ profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token,
 
 cli_h1("Starting release test")
 source("test-cases/release-test-info.R")
-test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE)
+test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
 cli_h2("Logging in as data manager")
 cli_alert_info(sprintf("Login to %s", test_config$armadillo_url))
@@ -103,7 +103,7 @@ cli_alert_success(paste0(project1, " created"))
 
 cli_h2("Uploading test data")  # Add option for survival data?
 source("test-cases/upload-data.R")
-upload_test_data(project = project1, dest = test_config$default_parquet_path)
+upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 cli_alert_success("Data uploaded")
 
 cli_h2("Uploading resource source file")
@@ -113,7 +113,7 @@ cli_alert_success("Resource source file uploaded")
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- make_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url)
+resGSE1 <- make_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
 cli_alert_success("Resource created")
 
 cli_h2("Uploading resource file")
@@ -136,10 +136,8 @@ set_researcher_access(url = test_config$armadillo_url, interactive = test_config
 cli_alert_success("Researcher permissions set")
 
 cli_h2("Logging in as a researcher")
-logindata <- create_dsi_builder(url = test_config$armadillo_url, profile = test_config$profile, password = test_config$admin_pwd, token = token, table = sprintf("%s/2_1-core-1_0/nonrep", project1))
-cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", test_config$profile, project1))
-conns <- datashield.login(logins = logindata, symbol = "core_nonrep", variables = c("coh_country"), assign = TRUE)
-cli_alert_success("Logged in")
+source("test-cases/researcher-login.R")
+conns <- researcher_login(url = test_config$armadillo_url, profile = test_config$profile, admin_pwd = test_config$admin_pwd, token = token, table = "2_1-core-1_0/nonrep", project = project1, object = "nonrep", variables = "coh_country", skip_tests = test_config$skip_tests)
 
 cli_h2("Verifying connecting to profiles possible")
 source("test-cases/verify-profile.R")
@@ -179,12 +177,12 @@ cli_alert_info("Testing dsMTL")
 source("test-cases/xenon-mtl.R")
 verify_ds_mtl(skip_tests = test_config$skip_tests)
 cli_alert_success("dsMTL works")
-#
-# cli_h2("Removing data as admin")
-# source("test-cases/remove-data.R") #Add link_project once module works
-# dm_clean_up(user, admin_pwd, required_projects = project1)
-# cli_alert_success("Successfully removed data as admin")
-# datashield.logout(conns)
+
+cli_h2("Removing data as admin")
+source("test-cases/remove-data.R") #Add link_project once module works
+dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
+cli_alert_success("Successfully removed data as admin")
+datashield.logout(conns)
 
 # NOT SURE WHAT THIS DOES OR ADDS TO PREVIOUS TESTS
 # project2 <- generate_random_project_name(available_projects)
