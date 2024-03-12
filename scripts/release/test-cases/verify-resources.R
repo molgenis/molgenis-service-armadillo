@@ -40,6 +40,11 @@ verify_resources <- function(project, resource_path) {
 
 
 verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, skip_tests) {
+    test_name <- "verify-resources"
+    if(any(skip_tests %in% test_name)){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
     if (ADMIN_MODE) {
        cli_alert_warning("Cannot test working with resources as basic authenticated admin")
     } else if (!"resourcer" %in% profile_info$packageWhitelist) {
