@@ -76,14 +76,9 @@ source("test-cases/release-test-info.R")
 test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
 cli_h2("Logging in as data manager")
-cli_alert_info(sprintf("Login to %s", test_config$armadillo_url))
+source("test-cases/dm-login.R")
+dm_login(url = test_config$armadillo_url, ADMIN_MODE = test_config$ADMIN_MODE, admin_pwd = test_config$admin_pwd, skip_tests = test_config$skip_tests)
 
-if(test_config$ADMIN_MODE) {
-    armadillo.login_basic(test_config$armadillo_url, "admin", test_config$admin_pwd)
-} else {
-    armadillo.login(test_config$armadillo_url)
-}
-cli_alert_success("Logged in")
 cli_h2("Creating a test project")
 source("test-cases/create-test-project.R")
 project1 <- generate_random_project_name()
