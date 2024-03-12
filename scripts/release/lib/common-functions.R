@@ -23,13 +23,6 @@ generate_random_project_name <- function() {
   }
 }
 
-create_test_project <- function(target_project_name) {
-    cli_alert_info(sprintf("Creating project [%s]", target_project_name))
-    armadillo.create_project(target_project_name)
-    cli_alert_info(sprintf("Checking if project [%s] exists", target_project_name))
-    check_cohort_exists(target_project_name)
-    }
-
 check_cohort_exists <- function(cohort) {
   if(cohort %in% armadillo.list_projects()){
     cli_alert_success(paste0(cohort, " exists"))
@@ -69,7 +62,7 @@ create_dsi_builder <- function(server = "armadillo", url, profile, password = ""
   return(builder$build())
 }
 
-wait_for_input <- function() {
+wait_for_input <- function(interactive) {
   if (interactive) {
     cat("\nPress any key to continue")
     continue <- readLines("stdin", n=1)
