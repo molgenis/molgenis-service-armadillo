@@ -1,7 +1,7 @@
-make_resource <- function(target_project) {
+make_resource <- function(target_project, url) {
 
-    rds_url <- armadillo_url
-    if(armadillo_url == "http://localhost:8080/") {
+    rds_url <- url
+    if(url == "http://localhost:8080/") {
         rds_url <- "http://host.docker.internal:8080/"
     }
 
