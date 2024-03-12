@@ -29,6 +29,8 @@ spring:
 #          molgenis:
 #            client-id: '...'
 #            client-secret: '...'
+#            authorization-grant-types:
+#              - refresh_token
 #      resourceserver:
 #        jwt:
 #          issuer-uri: 'http://auth.molgenis.org'
