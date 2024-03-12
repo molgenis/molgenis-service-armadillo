@@ -14,6 +14,6 @@ set_admin_or_get_token <- function(admin_pwd, url, skip_tests, ADMIN_MODE) {
         token <- armadillo.get_token(url)
       }
     }
-    return(list(token = token))
+    return(token = token)
     cli_alert_success("Permissions set")
     }
