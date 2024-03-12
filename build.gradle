@@ -155,6 +155,8 @@ task jacocoMergedReport(type: JacocoReport) {
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
         xml.required
+        csv.required = false
+        html.required = false
     }
 }
 
