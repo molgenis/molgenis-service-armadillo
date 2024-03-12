@@ -18,3 +18,14 @@ check_expression_assign <- function(project, object, variable) {
     datashield.assign.expr(conns, "x", expr = as.symbol(paste0(object, "$", variable)))
     cli_alert_success("Expression assigned")
 }
+
+check_assigning <- function(project, folder, table, object, variable, skip_tests) {
+    test_name <- "assigning"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
+    check_tables_assign(project, folder, table)
+    check_expression_assign(project, object, variable)
+    }
+
