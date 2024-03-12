@@ -1,5 +1,5 @@
 # get request to armadillo api with an authheader
-get_from_api_with_header <- function(endpoint, key, auth_type, url) {
+get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
   auth_header <- get_auth_header(auth_type, key)
   response <- GET(paste0(url, endpoint), config = c(httr::add_headers(auth_header)))
   if(response$status_code == 403){
@@ -69,7 +69,7 @@ start_profile <- function(profile_name, key, auth_type) {
 }
 
 
-setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile) {
+setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user) {
 cat("\nAvailable profiles: \n")
 profiles <- get_from_api_with_header("profiles", token, auth_type, url)
 print_list(unlist(profiles$available))
@@ -79,7 +79,7 @@ cli_alert_info("Checking if profile is prepared for all tests")
 if (!as_docker_container) {
   create_profile_if_not_available(profile, profiles$available, token, auth_type)
 }
-profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type, url)
+profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type, url, user)
 if (!as_docker_container) {
   start_profile_if_not_running("default", token, auth_type)
 }
