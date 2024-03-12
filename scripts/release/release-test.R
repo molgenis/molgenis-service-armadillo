@@ -79,30 +79,28 @@ cli_h2("Logging in as data manager")
 source("test-cases/dm-login.R")
 dm_login(url = test_config$armadillo_url, ADMIN_MODE = test_config$ADMIN_MODE, admin_pwd = test_config$admin_pwd, skip_tests = test_config$skip_tests)
 
+cli_h2("Generating a random project name")
+source("test-cases/generate-project.R")
+project1 <- generate_random_project_name(skip_tests = test_config$skip_tests)
+
 cli_h2("Creating a test project")
 source("test-cases/create-test-project.R")
-project1 <- generate_random_project_name()
 create_test_project(target_project_name = project1, skip_tests = test_config$skip_tests)
-cli_alert_success(paste0(project1, " created"))
 
 cli_h2("Uploading test data")  # Add option for survival data?
 source("test-cases/upload-data.R")
 upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
-cli_alert_success("Data uploaded")
 
 cli_h2("Uploading resource source file")
 source("test-cases/upload-resource.R")
 upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, skip_tests = test_config$skip_tests)
-cli_alert_success("Resource source file uploaded")
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
 resGSE1 <- make_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
-cli_alert_success("Resource created")
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
-cli_alert_success("Resource uploaded")
 #
 # cli_h2("Creating linked view on table")
 # source("test-cases/create-linked-view.R")
@@ -111,13 +109,11 @@ cli_alert_success("Resource uploaded")
 cli_h2("Starting manual UI test")
 source("test-cases/manual-test.R")
 interactive_test(project1, test_config$interactive, test_config$skip_tests)
-cli_alert_success("Manual test complete")
 
 cli_alert_info("\nNow you're going to test as researcher")
 cli_h2("Setting researcher permissions")
 source("test-cases/set_researcher_access.R")
 set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, update_auto = test_config$update_auto, skip_tests = test_config$skip_tests) #Add linked table when working
-cli_alert_success("Researcher permissions set")
 
 cli_h2("Logging in as a researcher")
 source("test-cases/researcher-login.R")
@@ -126,12 +122,10 @@ conns <- researcher_login(url = test_config$armadillo_url, profile = test_config
 cli_h2("Verifying connecting to profiles possible")
 source("test-cases/verify-profile.R")
 verify_profiles(password = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
-cli_alert_success("Profiles work")
 
 cli_h2("Assigning tables as researcher")
 source("test-cases/assigning.R")
 check_assigning(project = project1, folder = "2_1-core-1_0", table = "nonrep", object = "nonrep", variable = "coh_country", skip_tests = test_config$skip_tests)
-cli_alert_success("Assigning works")
 #
 # # cli_h2("Testing linked table")
 # # source("test-cases/test-linked-view.R")
@@ -145,27 +139,22 @@ cli_h2("Verifying xenon packages")
 cli_alert_info("Verifying dsBase")
 source("test-cases/ds-base.R")
 verify_ds_base(object = "nonrep", variable = "coh_country", skip_tests = test_config$skip_tests)
-cli_alert_success("dsBase works")
 
 cli_alert_info("Verifying dsMediation")
 source("test-cases/xenon-mediate.R")
 verify_ds_mediation(skip_tests = test_config$skip_tests)
-cli_alert_success("dsMediation works")
 
 cli_alert_info("Testing dsSurvival")
 source("test-cases/xenon-survival.R")
 run_survival_tests(project = project1, data_path = "/survival/veteran", skip_tests = test_config$skip_tests)
-cli_alert_success("dsSurvival works")
 
 cli_alert_info("Testing dsMTL")
 source("test-cases/xenon-mtl.R")
 verify_ds_mtl(skip_tests = test_config$skip_tests)
-cli_alert_success("dsMTL works")
 
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") #Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
-cli_alert_success("Successfully removed data as admin")
 datashield.logout(conns)
 
 # NOT SURE WHAT THIS DOES OR ADDS TO PREVIOUS TESTS

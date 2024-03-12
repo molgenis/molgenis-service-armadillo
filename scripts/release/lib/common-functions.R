@@ -13,16 +13,6 @@ exit_test <- function(msg) {
   stop(cond)
 }
 
-generate_random_project_name <- function() {
-  current_projects <- armadillo.list_projects()
-  random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
-  if (!random_project %in% current_projects) {
-    return(random_project)
-  } else {
-    generate_random_project_name(current_projects)
-  }
-}
-
 check_cohort_exists <- function(cohort) {
   if(cohort %in% armadillo.list_projects()){
     cli_alert_success(paste0(cohort, " exists"))
