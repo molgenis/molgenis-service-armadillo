@@ -60,7 +60,12 @@ almost_equal <- function(val1, val2) {
   return(all.equal(val1, val2, tolerance= .Machine$double.eps ^ 0.03))
 }
 
-verify_ds_base <- function(object, variable) {
+verify_ds_base <- function(object, variable, skip_tests) {
+    test_name <- "ds-base"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
     cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
     ds_mean <- ds.mean(paste0(object, "$", variable), datasources = conns)$Mean
     cli_alert_info("Verifying mean values")

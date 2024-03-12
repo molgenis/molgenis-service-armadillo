@@ -82,19 +82,23 @@ verify_cox_phsummary <- function() {
 
 }
 
-assign_survival_data <- function(project, data_path, conns) {
+assign_survival_data <- function(project, data_path) {
   cli_alert_info(sprintf("Assigning table: [%s%s]", project, data_path))
   datashield.assign.table(conns, "survival", sprintf("%s%s", project, data_path))
 
 }
 
-run_survival_tests <- function(project, data_path, conns) {
-  assign_survival_data(project = project, data_path = data_path, conns = conns)
+run_survival_tests <- function(project, data_path, skip_tests) {
+  test_name <- "xenon-survival"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
+  assign_survival_data(project = project, data_path = data_path)
   create_survival_object()
   verify_survival_class()
   verify_cox_output()
   verify_cox_phSLMAassign_class()
   verify_cox_zphSLMA_object()
   verify_cox_phsummary()
-
 }

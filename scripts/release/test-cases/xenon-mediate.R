@@ -87,7 +87,12 @@ verify_ne_lht_class <- function() {
 
 }
 
-verify_ds_mediation <- function() {
+verify_ds_mediation <- function(skip_tests) {
+  test_name <- "xenon-mediate"
+    if(skip_tests %in% test_name){
+    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+    }
+
     verify_mediate_class()
     verify_ne_weight_class()
     verify_ne_model_class()
