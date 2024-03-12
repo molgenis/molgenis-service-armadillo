@@ -1,3 +1,4 @@
+library(stringr)
 # # log version info of loaded libraries
 show_version_info <- function(libs) {
   libs_to_print <- cli_ul()
@@ -42,7 +43,8 @@ configure_test <- function() {
     cli_alert_info("Trying to read config from '.env'")
     readRenviron(".env")
 
-    skip_tests = Sys.getenv("SKIP_TESTS")
+    skip_tests <- Sys.getenv("SKIP_TESTS")
+    skip_tests <- str_split(skip_tests, ",")[[1]]
 
     armadillo_url = Sys.getenv("ARMADILLO_URL")
     if(armadillo_url == ""){
