@@ -26,14 +26,22 @@ it here makes is useable in CI (as an exercise for now).
 
 ## Test as a UI developer
 
-From the terminal:
-- `cd ui/`
-- make sure you have `yarn` installed. See below for some caveats.
-- `yarn test --watch`
+From within the UI directory run:
+
+```bash
+.gradle/yarn/yarn-v1.22.19/bin/yarn test --watch
+```
 
 Do your develop stuff and watch your test fail or succeed on the go. That is:
 - change files in `src/**`
 - change files in `tests/unit/**`
+
+### Testing references
+
+- https://vuejs.org/guide/scaling-up/testing.html
+- https://jestjs.io/docs/testing-frameworks
+- https://alexjover.com/blog/write-the-first-vue-js-component-unit-test-in-jest/
+  - https://leanpub.com/testingvuejscomponentswithjest
 
 ## Run the UI locally
 
