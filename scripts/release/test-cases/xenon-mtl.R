@@ -40,9 +40,7 @@ verify_lasso_cov_train_output <- function() {
 
 verify_ds_mtl <- function(skip_tests) {
     test_name <- "xenon-mtl"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
     prepare_data_for_lasso()
     verify_lasso_cov_train_output()
     cli_alert_success("dsMTL works")

@@ -1,8 +1,6 @@
 create_test_project <- function(target_project_name, skip_tests) {
     test_name <- "create-test-project"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     cli_alert_info(sprintf("Creating project [%s]", target_project_name))
     armadillo.create_project(target_project_name)

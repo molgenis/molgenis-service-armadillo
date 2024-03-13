@@ -9,9 +9,7 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
 
 set_researcher_access <- function(url, interactive, required_projects, user, admin_pwd, update_auto, skip_tests) {
     test_name <- "set_researcher_access"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     if(update_auto == "y"){
       if(interactive) {

@@ -1,8 +1,6 @@
 interactive_test <- function(project1, interactive, skip_tests) {
     test_name <- "manual-test"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     cat("\nNow open your testserver in the browser")
     cat(sprintf("\n\nVerify [%s] is available", project1))

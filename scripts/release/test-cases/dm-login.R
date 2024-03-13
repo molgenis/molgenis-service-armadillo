@@ -1,8 +1,6 @@
 dm_login <- function(url, ADMIN_MODE, admin_pwd, skip_tests) {
     test_name <- "dm_login"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     cli_alert_info(sprintf("Login to %s", url))
     if(test_config$ADMIN_MODE) {

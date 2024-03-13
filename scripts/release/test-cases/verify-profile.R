@@ -59,9 +59,7 @@ verify_default_profile <- function(password, token, url, ADMIN_MODE) {
 
 verify_profiles <- function(token, url, profile, ADMIN_MODE, admin_pwd, skip_tests) {
     test_name <- "verify-profile"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     verify_specific_profile(admin_pwd, token, url, profile, ADMIN_MODE)
     verify_no_profile_specified(admin_pwd, token, url, ADMIN_MODE)

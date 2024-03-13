@@ -58,6 +58,14 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   return(response)
 }
 
+do_skip_test <- function(test_name, skip_tests) {
+  if(any(skip_tests %in% test_name)){
+    cli_alert_info(sprintf("Test '%s' skipped", test_name))
+    return(TRUE)
+  }
+  return(FALSE)
+}
+
 # FUNCTIONS BELOW IN MAIN SCRIPT BUT DON'T APPEAR TO BE CALLED
 #
 # create_dir_if_not_exists <- function(directory){

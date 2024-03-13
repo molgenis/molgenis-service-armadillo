@@ -1,4 +1,7 @@
 prepare_resources <- function(rda_dir, skip_tests) {
+    test_name <- "prepare_resources"
+    if(do_skip_test(test_name, skip_tests)) {return()}
+
     test_name <- "prepare-resources"
      if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))

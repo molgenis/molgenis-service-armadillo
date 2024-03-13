@@ -42,14 +42,11 @@ spin_till_done <- function(spinner) {
 
 upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests) {
     test_name <- "upload-resource"
-    print(skip_tests)
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
     rda_file_body <- upload_file(rda_dir)
     cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
     system.time({
       post_resource_to_api(project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda", url)
     })
-    cli_alert_success("Resource source file uploaded")
+    cli_alert_success(stringf("%s passed", test_name))
     }

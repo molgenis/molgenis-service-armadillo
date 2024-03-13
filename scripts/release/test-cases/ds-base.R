@@ -62,12 +62,7 @@ almost_equal <- function(val1, val2) {
 
 verify_ds_base <- function(object, variable, skip_tests) {
     test_name <- "ds-base"
-    print(skip_tests)
-    print(test_name)
-    print(skip_tests %in% test_name)
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
     ds_mean <- ds.mean(paste0(object, "$", variable), datasources = conns)$Mean

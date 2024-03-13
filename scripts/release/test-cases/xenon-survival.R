@@ -89,17 +89,15 @@ assign_survival_data <- function(project, data_path) {
 }
 
 run_survival_tests <- function(project, data_path, skip_tests) {
-  test_name <- "xenon-survival"
-    if(any(skip_tests %in% test_name)){
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    test_name <- "xenon-survival"
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
-  assign_survival_data(project = project, data_path = data_path)
-  create_survival_object()
-  verify_survival_class()
-  verify_cox_output()
-  verify_cox_phSLMAassign_class()
-  verify_cox_zphSLMA_object()
-  verify_cox_phsummary()
-  cli_alert_success("dsSurvival works")
-  }
+    assign_survival_data(project = project, data_path = data_path)
+    create_survival_object()
+    verify_survival_class()
+    verify_cox_output()
+    verify_cox_phSLMAassign_class()
+    verify_cox_zphSLMA_object()
+    verify_cox_phsummary()
+    cli_alert_success("dsSurvival works")
+    }

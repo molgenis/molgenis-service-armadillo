@@ -31,9 +31,7 @@ create_dsi_builder <- function(server = "armadillo", url, profile, password = ""
 
 researcher_login <- function(url, profile, admin_pwd, token, table, project, object, variables, ADMIN_MODE, skip_tests) {
     test_name <- "researcher_login"
-    if(any(skip_tests %in% test_name)) {
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
-    }
+    if(do_skip_test(test_name, skip_tests)) {return()}
 
     logindata <- create_dsi_builder(url = url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/%s", project, table), ADMIN_MODE = ADMIN_MODE)
     cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project))
