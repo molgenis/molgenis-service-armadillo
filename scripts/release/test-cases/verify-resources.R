@@ -22,24 +22,17 @@ verify_assign_resource <- function(full_resource_path) {
     }
 }
 
-# verify_assign_expression <- function() {
-#     cli_alert_info("Testing if we can assign expression")
-#     tryCatch({
-#       datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
-#     }, error = function(e) {
-#         cli_alert_danger(datashield.errors())
-#         })
-# } This is failing and the tryCatch is also not working
-
-verify_resources <- function(project, resource_path) {
-    full_resource_path = sprintf("%s/%s", project, resource_path)
-    verify_see_resource(full_resource_path)
-    verify_assign_resource(full_resource_path)
-#     verify_assign_expression(conns)
+verify_assign_expression <- function() {
+    cli_alert_info("Testing if we can assign expression")
+    tryCatch({
+      datashield.assign.expr(conns, symbol = "methy_0y_EUR",expr = quote(as.resource.object(eSet_0y_EUR)))
+    }, error = function(e) {
+        cli_alert_danger(datashield.errors())
+        })
 }
 
-
 verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, skip_tests) {
+
     test_name <- "verify-resources"
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
@@ -55,6 +48,6 @@ verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, s
         full_resource_path = sprintf("%s/%s", project, resource_path)
         verify_see_resource(full_resource_path)
         verify_assign_resource(full_resource_path)
-    #   verify_assign_expression(conns)
+#         verify_assign_expression()
     }
 }
