@@ -1,3 +1,5 @@
+# TODO: issue #670
+#
 # cli_h2()
 # #TODO: replace with R code once that is created and released
 # auth_header <- get_auth_header(auth_type, token)
