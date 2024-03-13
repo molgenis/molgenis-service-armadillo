@@ -160,7 +160,6 @@ configure_test <- function() {
     rda_dir <- file.path(test_file_path, "gse66351_1.rda")
 
     update_auto = ifelse(ADMIN_MODE, "n", "y")
-    print(update_auto)
 
     cli_alert_success("Options configured")
 
