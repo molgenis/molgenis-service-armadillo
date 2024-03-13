@@ -1,5 +1,5 @@
-make_resource <- function(target_project, url, skip_tests) {
-    test_name <- "make_resource"
+create_resource <- function(target_project, url, skip_tests) {
+    test_name <- "create_resource"
     if(do_skip_test(test_name, skip_tests)) {return()}
 
     rds_url <- url
