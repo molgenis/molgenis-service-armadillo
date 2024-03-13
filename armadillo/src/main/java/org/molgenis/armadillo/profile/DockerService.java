@@ -23,6 +23,7 @@ import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.security.RunAs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +50,22 @@ public class DockerService {
   public DockerService(DockerClient dockerClient, ProfileService profileService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
+  }
+
+  public void doAutoStart() {
+    profileService.getAll().stream()
+        .filter(ProfileConfig::getAutoStart)
+        .forEach(
+            profileConfig -> {
+              long delay = 5 * 1000;
+              RunAs.runAsSystem(() -> this.startProfile(profileConfig.getName()));
+              try {
+                System.out.println("SLEEPING ".repeat(10));
+                Thread.sleep(delay);
+              } catch (InterruptedException e) {
+                System.out.println("SLEEP ".repeat(10) + "exception");
+              }
+            });
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
