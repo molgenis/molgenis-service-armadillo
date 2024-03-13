@@ -1,5 +1,5 @@
 show_test_info <- function(version, url, user, admin_pwd, dest, profile, ADMIN_MODE, skip_tests) {
-    test_name <- "researcher_login"
+    test_name <- "show_test_info"
     if(do_skip_test(test_name, skip_tests)) {return()}
 
     if(admin_pwd != ""){
