@@ -6,7 +6,7 @@ read_parquet_with_message <- function(file_path, dest) {
     }
 
 upload_test_data <- function(project, dest, skip_tests) {
- test_name <- "remove-data"
+ test_name <- "upload-data"
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
