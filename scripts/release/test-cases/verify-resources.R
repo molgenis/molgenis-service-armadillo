@@ -32,7 +32,6 @@ verify_assign_expression <- function() {
 }
 
 verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, skip_tests) {
-
     test_name <- "verify-resources"
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))

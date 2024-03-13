@@ -41,11 +41,6 @@ library(resourcer)
 library(dsMediationClient)
 library(dsMTLClient)
 
-# set when admin password given + question answered with y
-# update_auto = ""
-# do_run_spinner <- TRUE
-# ADMIN_MODE <- FALSE
-
 cli_alert_info("Loading common functions")
 source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
@@ -121,7 +116,7 @@ conns <- researcher_login(url = test_config$armadillo_url, profile = test_config
 
 cli_h2("Verifying connecting to profiles possible")
 source("test-cases/verify-profile.R")
-verify_profiles(password = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
+verify_profiles(admin_pwd = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
 cli_h2("Assigning tables as researcher")
 source("test-cases/assigning.R")

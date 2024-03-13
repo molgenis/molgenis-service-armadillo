@@ -32,6 +32,7 @@ run_spinner <- function(spinner) {
 
 spin_till_done <- function(spinner) {
     # run_spinner is a boolean set on top of this script, it is set to false when loading is done and spinner can stop
+    do_run_spinner <- TRUE
     if (do_run_spinner) {
         Sys.sleep(0.1)
     } else {
@@ -45,7 +46,6 @@ upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests)
     if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
-
     rda_file_body <- upload_file(rda_dir)
     cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
     system.time({
