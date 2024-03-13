@@ -10,6 +10,7 @@ dist
 ### STORAGE ###
 data/user-*
 data/system
+data/testing
 
 HELP.md
 target/
@@ -32,8 +33,7 @@ target/
 *.iws
 *.iml
 *.ipr
-*.env
-/data
+
 
 ### NetBeans ###
 /nbproject/private/
