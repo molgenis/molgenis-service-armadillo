@@ -43,5 +43,5 @@ verify_ds_mtl <- function(skip_tests) {
     if(do_skip_test(test_name, skip_tests)) {return()}
     prepare_data_for_lasso()
     verify_lasso_cov_train_output()
-    cli_alert_success("dsMTL works")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

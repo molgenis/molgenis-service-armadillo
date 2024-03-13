@@ -8,5 +8,5 @@ dm_login <- function(url, ADMIN_MODE, admin_pwd, skip_tests) {
     } else {
         armadillo.login(url)
     }
-    cli_alert_success("Logged in")
+    cli_alert_success(sprintf("%s passed!", test_name))
     }

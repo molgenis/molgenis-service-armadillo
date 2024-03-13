@@ -47,4 +47,5 @@ verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, s
         verify_assign_resource(full_resource_path)
 #       verify_assign_expression() FIX ME: ISSUE #699
     }
+        cli_alert_success(sprintf("%s passed!", test_name))
 }

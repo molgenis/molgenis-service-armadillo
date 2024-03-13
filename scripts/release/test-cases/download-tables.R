@@ -23,5 +23,5 @@ download_tables <- function(dest, service_location, skip_tests, default_parquet_
     } else {
       cli_alert_success("Tables not downloaded: available locally")
     }
-    cli_alert_success("Tables ready for testing")
+    cli_alert_success(sprintf("%s passed!", test_name))
     }

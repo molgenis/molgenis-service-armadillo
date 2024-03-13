@@ -37,5 +37,5 @@ dm_clean_up <- function(user, admin_pwd, required_projects, interactive, update_
     dm_delete_tables()
     cli_alert_info("Removing projects")
     map(required_projects, ~dm_delete_projects(.x, interactive))
-    cli_alert_success("Successfully removed data as admin")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

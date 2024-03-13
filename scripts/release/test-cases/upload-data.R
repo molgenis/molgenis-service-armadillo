@@ -56,5 +56,5 @@ upload_test_data <- function(project, dest, skip_tests) {
       cli_alert_danger(paste0(colnames(trimesterrep), "!=", cols))
       exit_test("Colnames incorrect")
     }
-    cli_alert_success("Data uploaded")
+    cli_alert_success(sprintf("%s passed!", test_name))
     }

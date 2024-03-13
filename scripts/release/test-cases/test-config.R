@@ -34,6 +34,7 @@ if(ADMIN_MODE){
     }
 
 configure_test <- function() {
+    test_name <- "test-config"
     cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
     show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
 
@@ -161,7 +162,7 @@ configure_test <- function() {
 
     update_auto = ifelse(ADMIN_MODE, "n", "y")
 
-    cli_alert_success("Options configured")
+    cli_alert_success(sprintf("%s passed!", test_name))
 
     # default profile settings in case a profile is missing: seems to be used only by functions that are no longer used
 #     profile_defaults = data.frame(

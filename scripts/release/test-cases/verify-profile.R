@@ -64,5 +64,5 @@ verify_profiles <- function(token, url, profile, ADMIN_MODE, admin_pwd, skip_tes
     verify_specific_profile(admin_pwd, token, url, profile, ADMIN_MODE)
     verify_no_profile_specified(admin_pwd, token, url, ADMIN_MODE)
     verify_default_profile(admin_pwd, token, url, ADMIN_MODE)
-    cli_alert_success("Profiles work")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

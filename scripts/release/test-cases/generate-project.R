@@ -9,4 +9,5 @@ generate_random_project_name <- function(skip_tests) {
   } else {
     generate_random_project_name(current_projects)
   }
+  cli_alert_success(sprintf("%s passed!", test_name))
 }

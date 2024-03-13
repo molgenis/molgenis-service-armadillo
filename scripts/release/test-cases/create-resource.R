@@ -12,6 +12,6 @@ make_resource <- function(target_project, url, skip_tests) {
       url = sprintf("%sstorage/projects/%s/objects/ewas%sgse66351_1.rda", rds_url, target_project,"%2F"),
       format = "ExpressionSet"
     )
-    cli_alert_success("Resource created")
+    cli_alert_success(sprintf("%s passed!", test_name))
     return(created_resource)
 }

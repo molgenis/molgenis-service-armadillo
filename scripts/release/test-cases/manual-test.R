@@ -22,5 +22,5 @@ interactive_test <- function(project1, interactive, skip_tests) {
         exit_test("Some values incorrect in UI projects view")
       }
     }
-    cli_alert_success("Manual test complete")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

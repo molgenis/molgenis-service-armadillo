@@ -24,5 +24,5 @@ check_assigning <- function(project, folder, table, object, variable, skip_tests
     if(do_skip_test(test_name, skip_tests)) {return()}
     check_tables_assign(project, folder, table)
     check_expression_assign(project, object, variable)
-    cli_alert_success("Assigning works")
+    cli_alert_success(sprintf("%s passed!", test_name))
     }

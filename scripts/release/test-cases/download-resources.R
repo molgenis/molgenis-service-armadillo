@@ -16,5 +16,5 @@ prepare_resources <- function(rda_dir, skip_tests) {
     if (rda_dir == "" || !file.exists(rda_dir)) {
       exit_test(sprintf("File [%s] doesn't exist", rda_dir))
     }
-    cli_alert_success("Resource ready for testing")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

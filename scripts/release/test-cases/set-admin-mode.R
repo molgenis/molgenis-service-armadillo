@@ -13,5 +13,5 @@ set_admin_or_get_token <- function(admin_pwd, url, skip_tests, ADMIN_MODE) {
       }
     }
     return(token = token)
-    cli_alert_success("Permissions set")
+    cli_alert_success(sprintf("%s passed!", test_name))
     }

@@ -97,7 +97,7 @@ setup_profiles <- function(token, auth_type, url, as_docker_container, skip_test
     }
 
     if(!is.null(seed) && "resourcer" %in% whitelist){
-      cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
+    cli_alert_success(sprintf("%s passed!", test_name))
     }
     return(profile_info)
 }

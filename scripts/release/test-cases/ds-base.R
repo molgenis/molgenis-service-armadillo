@@ -73,5 +73,5 @@ verify_ds_base <- function(object, variable, skip_tests) {
     cli_alert_info("Verifying can create histogram")
     verify_ds_hist(object, variable)
     cli_alert_success("ds.histogram returns expected values")
-    cli_alert_success("dsBase works")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

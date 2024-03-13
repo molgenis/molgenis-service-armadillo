@@ -95,5 +95,5 @@ verify_ds_mediation <- function(skip_tests) {
     verify_ne_model_class()
     verify_ne_imp_class()
     verify_ne_lht_class()
-    cli_alert_success("dsMediation works")
+    cli_alert_success(sprintf("%s passed!", test_name))
 }

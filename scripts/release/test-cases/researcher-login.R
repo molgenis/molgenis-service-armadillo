@@ -36,6 +36,6 @@ researcher_login <- function(url, profile, admin_pwd, token, table, project, obj
     logindata <- create_dsi_builder(url = url, profile = profile, password = admin_pwd, token = token, table = sprintf("%s/%s", project, table), ADMIN_MODE = ADMIN_MODE)
     cli_alert_info(sprintf("Login with profile [%s] and table: [%s/2_1-core-1_0/nonrep]", profile, project))
     conns <- datashield.login(logins = logindata, symbol = object, variables = variables, assign = TRUE)
-    cli_alert_success("Logged in")
+    cli_alert_success(sprintf("%s passed!", test_name))
     return(conns)
     }
