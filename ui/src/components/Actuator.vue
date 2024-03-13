@@ -50,8 +50,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in actuator">
-                <td>{{ item.key }}</td>
+              <tr v-for="(item, key) in actuator" :key="key">
+                <td>{{ key }}</td>
                 <td v-if="item.templated">{{ item.href }}</td>
                 <td v-if="!item.templated">
                   <a :href="item.href" target="_new">{{ item.href }}</a>
@@ -71,11 +71,11 @@ import { getActuator, getMetricsAll } from "@/api/api";
 import { ref, watch } from "vue";
 import { Metrics, HalLinks } from "@/types/api";
 import { ObjectWithStringKey } from "@/types/types";
+import { objectDeepCopy } from "@/helpers/utils";
 
 import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
-import { objectDeepCopy } from "@/helpers/utils";
 
 const actuator = ref<HalLinks>();
 const metrics = ref<Metrics>([]);
@@ -85,6 +85,7 @@ const loadActuator = async () => {
   let result = (await getActuator())["_links"];
   let list = [];
   for (let key in result) {
+    // Add key to each item for further usage
     const item = result[key];
     item["key"] = key;
     list.push(result[key]);

@@ -111,46 +111,33 @@ export async function getVersion() {
  * Fetch all metric values on one go using the list.
  */
 export async function getMetricsAll(): Promise<Metrics> {
-  try {
-    const metrics = await getMetrics();
-    const paths = Object.keys(metrics);
+  const paths = await getMetrics();
+  const metrics: Metrics = {};
 
-    await Promise.all(
-      paths.map(async (path) => {
-        const response = await getMetric(path);
-        metrics[path] = response;
-        return { path: response };
-      })
-    );
+  await Promise.all(
+    paths.map(async (path) => {
+      const response = await getMetric(path);
+      metrics[path] = response;
+      return { path: response };
+    })
+  );
 
-    return metrics;
-  } catch (error) {
-    console.error("Error:", error);
-    return [];
-  }
+  return metrics;
 }
 
 /**
  * Get list of metric IDs in as dictionary keys.
  */
-async function getMetrics(): Promise<Metrics | {}> {
+async function getMetrics(): Promise<string[]> {
   const path = "/actuator/metrics";
   return await get(path)
     .then((data) => {
       // Check if the data has 'names' property
       if (data.hasOwnProperty("names")) {
-        let result: { [name: string]: Metric | null } = {};
-
-        // Process each name
-        data.names.forEach((name: string) => {
-          result[name] = null;
-        });
-
-        // console.log(tree);
-        return JSON.parse(JSON.stringify(result));
+        return data.names;
       } else {
         console.log("No names found in the data");
-        return {};
+        return [];
       }
     })
     .catch((error) => {
@@ -166,16 +153,11 @@ async function getMetrics(): Promise<Metrics | {}> {
  *
  * Example: a.b.c
  */
-async function getMetric(id: string): Promise<Metric | {}> {
+async function getMetric(id: string): Promise<Metric> {
   const path = `/actuator/metrics/${id}`;
-  return await get(path)
-    .then((data) => {
-      return objectDeepCopy<Metric>(data);
-    })
-    .catch((error) => {
-      console.error(`Error fetching ${path}`, error);
-      return {};
-    });
+  return get(path).then((data) => {
+    return objectDeepCopy<Metric>(data);
+  });
 }
 
 export async function deleteUser(email: string) {

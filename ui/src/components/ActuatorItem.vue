@@ -1,6 +1,6 @@
 <template>
-  <tr v-if="data._display" v-for="(v, k) in data.measurements">
-    <td scope="col">{{ k }}</td>
+  <tr v-if="data._display" v-for="(v, key) in data.measurements" :key="key">
+    <td scope="col">{{ key }}</td>
     <td :title="data.description">
       <span>
         {{ data.name }}
@@ -27,28 +27,6 @@
 </template>
 
 <script setup lang="ts">
-/*
-{
-   "name": "application.ready.time",
-   "description": "Time taken for the application to be ready to service requests",
-   "baseUnit": "seconds",
-   "measurements": [
-      {
-         "statistic": "VALUE",
-         "value": 2.649
-      }
-   ],
-   "availableTags": [
-      {
-         "tag": "main.application.class",
-         "values": [
-            "org.molgenis.armadillo.ArmadilloServiceApplication"
-         ]
-      }
-   ]
-}
-*/
-
 const props = defineProps({
   name: {
     type: String,
