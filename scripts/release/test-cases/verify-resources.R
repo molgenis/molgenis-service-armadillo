@@ -47,6 +47,6 @@ verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, s
         full_resource_path = sprintf("%s/%s", project, resource_path)
         verify_see_resource(full_resource_path)
         verify_assign_resource(full_resource_path)
-#         verify_assign_expression()
+#       verify_assign_expression() FIX ME: ISSUE #699
     }
 }
