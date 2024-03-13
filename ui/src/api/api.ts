@@ -1,5 +1,5 @@
 import { ApiError } from "@/helpers/errors";
-import { sanitizeObject } from "@/helpers/utils";
+import { objectDeepCopy, sanitizeObject } from "@/helpers/utils";
 import {
   Principal,
   Profile,
@@ -8,7 +8,11 @@ import {
   Auth,
   RemoteFileInfo,
   RemoteFileDetail,
+  Metric,
+  HalResponse,
+  Metrics,
 } from "@/types/api";
+
 import { ObjectWithStringKey, StringArray } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -88,7 +92,7 @@ export async function handleResponse(response: Response) {
   }
 }
 
-export async function getActuator() {
+export async function getActuator(): Promise<HalResponse> {
   let result = await get("/actuator");
   return result;
 }
@@ -101,6 +105,59 @@ export async function getActuatorItem(item: string) {
 export async function getVersion() {
   let result = await get("/actuator/info");
   return result.build.version;
+}
+
+/**
+ * Fetch all metric values on one go using the list.
+ */
+export async function getMetricsAll(): Promise<Metrics> {
+  const paths = await getMetrics();
+  const metrics: Metrics = {};
+
+  await Promise.all(
+    paths.map(async (path) => {
+      const response = await getMetric(path);
+      metrics[path] = response;
+      return { path: response };
+    })
+  );
+
+  return metrics;
+}
+
+/**
+ * Get list of metric IDs in as dictionary keys.
+ */
+async function getMetrics(): Promise<string[]> {
+  const path = "/actuator/metrics";
+  return await get(path)
+    .then((data) => {
+      // Check if the data has 'names' property
+      if (data.hasOwnProperty("names")) {
+        return data.names;
+      } else {
+        console.log("No names found in the data");
+        return [];
+      }
+    })
+    .catch((error) => {
+      console.error(`Error fetching ${path}`, error);
+      return {};
+    });
+}
+
+/**
+ * Fetches give Metric ID.
+ *
+ * @path: dot separated string
+ *
+ * Example: a.b.c
+ */
+async function getMetric(id: string): Promise<Metric> {
+  const path = `/actuator/metrics/${id}`;
+  return get(path).then((data) => {
+    return objectDeepCopy<Metric>(data);
+  });
 }
 
 export async function deleteUser(email: string) {

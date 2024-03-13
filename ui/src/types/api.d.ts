@@ -1,4 +1,4 @@
-import { StringArray } from "@/types/types";
+import { Dictionary, StringArray } from "@/types/types";
 
 export type Project = {
   name: string;
@@ -73,3 +73,46 @@ export type Profile = {
 };
 
 export type Auth = { user: string; pwd: string };
+
+/**
+ * Types for /actuator response
+ *
+ * Seems HAL API
+ */
+interface ActuatorLink {
+  href: string;
+  templated?: boolean;
+}
+
+interface HalLinks {
+  [key: string]: ActuatorLink;
+}
+
+export interface HalResponse {
+  _links: HalLinks;
+}
+
+/**
+ * Types for /actuator/metric response.
+ */
+type Measurement = {
+  statistic: string;
+  value: number;
+};
+
+type AvailableTag = {
+  tag: string;
+  values: string[];
+};
+
+export type Metric = {
+  name: string;
+  description: string;
+  baseUnit: string;
+  measurements: Measurement[];
+  availableTags: AvailableTag[];
+  searchWords?: string;
+  _display?: boolean;
+};
+
+export type Metrics = Dictionary<Metric>;
