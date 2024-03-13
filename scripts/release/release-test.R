@@ -67,7 +67,7 @@ source("test-cases/setup-profiles.R")
 profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile, user = test_config$user)
 
 cli_h1("Starting release test")
-source("test-cases/release-test-info.R")
+source("lib/release-test-info.R")
 test_message <- show_test_info(version = test_config$version, url = test_config$armadillo_url, user = test_config$user, admin_pwd = test_config$admin_pwd, dest = test_config$dest, profile = test_config$profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
 cli_h2("Logging in as data manager")
@@ -92,7 +92,7 @@ upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_co
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- make_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
+resGSE1 <- create_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
