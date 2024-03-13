@@ -15,6 +15,8 @@ export type RemoteFileDetail = {
   name: string;
   fetched: string;
   content: string;
+  page_num: number;
+  page_size: number;
 };
 
 export type User = {
