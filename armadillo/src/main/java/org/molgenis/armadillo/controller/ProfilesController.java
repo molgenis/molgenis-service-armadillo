@@ -149,7 +149,13 @@ public class ProfilesController {
   @ResponseStatus(NO_CONTENT)
   public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
     auditor.audit(
-        () -> profiles.upsert(profileConfig),
+        () -> {
+          profiles.upsert(profileConfig);
+          // FIXME: cannot call here (Caused by:
+          // com.github.dockerjava.api.exception.ConflictException: Status 409: {"message":"removal
+          // of container xenon is already in progress"})
+          // dockerService.doAutoStart();
+        },
         principal,
         UPSERT_PROFILE,
         Map.of(PROFILE, profileConfig));

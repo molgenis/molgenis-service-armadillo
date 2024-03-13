@@ -19,6 +19,8 @@ public class ProfileAutoStartListener implements ApplicationListener<ContextRefr
 
   @Override
   public void onApplicationEvent(ContextRefreshedEvent event) {
+    // FIXME: cannot call from here (security context not set)
+    // dockerService.doAutoStart();
     long delay = 5 * 1000;
     Map<String, ContainerInfo> allProfiles =
         RunAs.runAsSystem(() -> dockerService.getAllProfileStatuses());
