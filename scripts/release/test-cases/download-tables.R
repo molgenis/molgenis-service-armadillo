@@ -1,5 +1,3 @@
-
-
 download_tables <- function(dest, service_location, skip_tests, default_parquet_path) {
     test_name <- "download-tables"
     if(any(skip_tests %in% test_name)){

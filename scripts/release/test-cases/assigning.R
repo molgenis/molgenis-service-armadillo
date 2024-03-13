@@ -28,4 +28,3 @@ check_assigning <- function(project, folder, table, object, variable, skip_tests
     check_expression_assign(project, object, variable)
     cli_alert_success("Assigning works")
     }
-

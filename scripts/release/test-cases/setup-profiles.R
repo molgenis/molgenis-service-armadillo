@@ -71,7 +71,7 @@ start_profile <- function(profile_name, key, auth_type) {
 
 setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user) {
     test_name <- "setup-profiles"
-     if(any(skip_tests %in% test_name)){
+    if(any(skip_tests %in% test_name)){
     return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
     }
 
@@ -102,4 +102,14 @@ setup_profiles <- function(token, auth_type, url, as_docker_container, skip_test
       cli_alert_success(sprintf("Profile [%s] okay for testing", profile))
     }
     return(profile_info)
+}
+
+project = "test"
+table = "2_1-core-1_0/nonrep"
+sprintf("%s/%s", table, project)
+
+skip_tests = c("upload-resource", "xenon-mediate", "xenon-mtl", "xenon-survival")
+test_name <- "upload-resource"
+if(any(skip_tests %in% test_name)){
+  return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
 }
