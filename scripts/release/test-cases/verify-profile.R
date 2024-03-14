@@ -29,8 +29,7 @@ verify_specific_profile <- function(password, token, url, profile, ADMIN_MODE) {
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
   } else {
-    # FIXME: should we exit?
-    cli_alert_danger("Connection failed")
+    exit_test("Connection to specific profile failed")
   }
   dsDisconnect(con)
 }
