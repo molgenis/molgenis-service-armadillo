@@ -1,41 +1,43 @@
-# get request to armadillo api with an authheader
-get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
-  auth_header <- get_auth_header(auth_type, key)
-  response <- GET(paste0(url, endpoint), config = c(httr::add_headers(auth_header)))
-  if (response$status_code == 403) {
-    msg <- sprintf("Permission denied. Is user [%s] admin?", user)
-    exit_test(msg)
-  } else if (response$status_code != 200) {
-    cli_alert_danger(sprintf("Cannot retrieve data from endpoint [%s]", endpoint))
-    exit_test(content(response)$message)
-  }
-  return(content(response))
-}
-
-# make authentication header for api calls, basic or bearer based on type
-get_auth_header <- function(type, key) {
-  header_content <- ""
-  if (tolower(type) == "bearer") {
-    header_content <- create_bearer_header(key)
-  } else if (tolower(type) == "basic") {
-    header_content <- create_basic_header(key)
+create_profile <- function(profile_name, key, auth_type) {
+  if (profile_name %in% profile_defaults$name) {
+    cli_alert_info(sprintf("Creating profile: %s", profile_name))
+    profile_default <- profile_defaults[profile_defaults$name == profile_name,]
+    current_profiles <- obtain_existing_profile_information(key, auth_type)
+    new_profile_seed <- generate_random_project_seed(current_profiles$seed)
+    whitelist <- as.list(stri_split_fixed(paste("dsBase", profile_default$whitelist, sep = ","), ",")[[1]])
+    blacklist <- as.list(stri_split_fixed(profile_default$blacklist, ",")[[1]])
+    port <- profile_default$port
+    if (port == "") {
+      port <- generate_project_port(current_profiles$port)
+    }
+    args <- list(
+      name = profile_name,
+      image = profile_default$container,
+      host = "localhost",
+      port = port,
+      packageWhitelist = return_list_without_empty(whitelist),
+      functionBlacklist = return_list_without_empty(blacklist),
+      options = list(datashield.seed = new_profile_seed)
+    )
+    response <- put_to_api('ds-profiles', key, auth_type, body_args = args)
+    if (response$status_code == 204) {
+      cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
+      start_profile(profile_name, key, auth_type)
+    } else {
+      exit_test(sprintf("Unable to create profile: %s , errored %s", profile_name, response$status_code))
+    }
   } else {
-    exit_test(sprintf("Type [%s] invalid, choose from 'basic' and 'bearer'"))
+    exit_test(sprintf("Unable to create profile: %s , unknown profile", profile_name))
   }
-  return(c("Authorization" = header_content))
 }
 
-create_bearer_header <- function(token) {
-  return(paste0("Bearer ", token))
-}
-
-print_list <- function(list) {
-  vals_to_print <- cli_ul()
-  for (i in 1:length(list)) {
-    val <- list[i]
-    cli_li(val)
+generate_random_project_seed <- function(current_project_seeds) {
+  random_seed <- round(runif(1, min = 100000000, max=999999999))
+  if (!random_seed %in% current_project_seeds) {
+    return(random_seed)
+  } else {
+    generate_random_project_seed(current_project_seeds)
   }
-  cli_end(vals_to_print)
 }
 
 create_profile_if_not_available <- function(profile_name, available_profiles, key, auth_type) {

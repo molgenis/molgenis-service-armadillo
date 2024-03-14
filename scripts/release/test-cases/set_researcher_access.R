@@ -1,14 +1,3 @@
-# # armadillo api put request
-put_to_api <- function(endpoint, key, auth_type, body_args, url) {
-  auth_header <- get_auth_header(auth_type, key)
-  body <- jsonlite::toJSON(body_args, auto_unbox = TRUE)
-  response <- PUT(paste0(url, endpoint),
-    body = body, encode = "json",
-    config = c(httr::content_type_json(), httr::add_headers(auth_header))
-  )
-  return(response)
-}
-
 set_researcher_access <- function(url, interactive, required_projects, user, admin_pwd, update_auto, skip_tests) {
   test_name <- "set_researcher_access"
   if (do_skip_test(test_name, skip_tests)) {

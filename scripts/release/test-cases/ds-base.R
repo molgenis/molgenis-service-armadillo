@@ -32,34 +32,6 @@ verify_ds_hist <- function(object, variable) {
   compare_list_values(hist$mids, mids)
 }
 
-# # compare values in two lists
-compare_list_values <- function(list1, list2) {
-  vals_to_print <- cli_ul()
-  equal <- TRUE
-  for (i in 1:length(list1)) {
-    val1 <- list1[i]
-    val2 <- list2[i]
-    if (almost_equal(val1, val2) == TRUE) {
-      cli_li(sprintf("%s ~= %s", val1, val2))
-    } else {
-      equal <- FALSE
-      cli_li(sprintf("%s != %s", val1, val2))
-    }
-  }
-  cli_end(vals_to_print)
-  if (equal) {
-    cli_alert_success("Values equal")
-  } else {
-    cli_alert_danger("Values not equal")
-  }
-}
-
-# theres a bit of noise added in DataSHIELD answers, causing calculations to not always be exactly the same, but close
-# here we check if they're equal enough
-almost_equal <- function(val1, val2) {
-  return(all.equal(val1, val2, tolerance = .Machine$double.eps^0.03))
-}
-
 verify_ds_base <- function(object, variable, skip_tests) {
   test_name <- "ds-base"
   if (do_skip_test(test_name, skip_tests)) {

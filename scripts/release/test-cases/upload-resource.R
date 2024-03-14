@@ -21,19 +21,6 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name, ur
   }
 }
 
-run_spinner <- function(spinner) {
-  lapply(1:1000, function(x) {
-    spinner$spin()
-    spin_till_done(spinner)
-  })
-}
-
-# omics_project <- generate_random_project_name(available_projects)
-# available_projects <- c(available_projects, omics_project)
-
-# cli_alert_info(sprintf("Creating project [%s]", omics_project))
-# armadillo.create_project(omics_project)
-
 spin_till_done <- function(spinner) {
   # run_spinner is a boolean set on top of this script, it is set to false when loading is done and spinner can stop
   do_run_spinner <- TRUE

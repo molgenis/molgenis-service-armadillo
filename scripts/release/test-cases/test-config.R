@@ -9,36 +9,13 @@ show_version_info <- function(libs) {
   cli_end(libs_to_print)
 }
 
-remove_slash_if_added <- function(path) {
-  if (endsWith(path, "/")) {
-    return(gsub("/$", "", path))
-  } else {
-    return(path)
-  }
-}
-
-get_from_api <- function(endpoint, armadillo_url) {
-  cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
-  response <- GET(paste0(armadillo_url, endpoint))
-  cat(paste0("get_from_api", " for ", endpoint, " results ", response$status_code, "\n"))
-  return(content(response))
-}
-
-get_auth_type <- function(ADMIN_MODE) {
-  if (ADMIN_MODE) {
-    auth_type <- "basic"
-  } else {
-    auth_type <- "bearer"
-  }
-}
-
 configure_test <- function() {
   test_name <- "test-config"
   cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-  show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsMediationClient", "dsMTLClient"))
+  show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"))
 
   cli_alert_success("Loaded other libraries:")
-  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future"))
+  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr"))
 
   cli_alert_info("Trying to read config from '.env'")
   readRenviron(".env")

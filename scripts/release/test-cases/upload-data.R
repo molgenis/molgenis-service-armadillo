@@ -1,10 +1,3 @@
-read_parquet_with_message <- function(file_path, dest) {
-  cli_alert_info(file_path)
-  out <- arrow::read_parquet(paste0(dest, paste0(file_path, ".parquet")))
-  cli_alert_success(paste0(file_path, " read"))
-  return(out)
-}
-
 upload_test_data <- function(project, dest, skip_tests) {
   test_name <- "upload-data"
   if (do_skip_test(test_name, skip_tests)) {
