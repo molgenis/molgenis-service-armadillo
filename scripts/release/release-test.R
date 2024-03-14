@@ -38,8 +38,6 @@ library(DSI)
 library(dsBaseClient)
 library(DSMolgenisArmadillo)
 library(resourcer)
-library(dsMediationClient)
-library(dsMTLClient)
 
 cli_alert_info("Loading common functions")
 source("lib/common-functions.R")
@@ -75,7 +73,6 @@ source("test-cases/dm-login.R")
 dm_login(url = test_config$armadillo_url, ADMIN_MODE = test_config$ADMIN_MODE, admin_pwd = test_config$admin_pwd, skip_tests = test_config$skip_tests)
 
 cli_h2("Generating a random project name")
-source("test-cases/generate-project.R")
 project1 <- generate_random_project_name(skip_tests = test_config$skip_tests)
 
 cli_h2("Creating a test project")
@@ -96,11 +93,7 @@ resGSE1 <- create_resource(target_project = "u4mdd7wtwp", url = test_config$arma
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
-#
-# cli_h2("Creating linked view on table")
-# source("test-cases/create-linked-view.R")
-# cli_alert_success("Linked view created")
-#
+
 cli_h2("Starting manual UI test")
 source("test-cases/manual-test.R")
 interactive_test(project1, test_config$interactive, test_config$skip_tests)
@@ -121,10 +114,6 @@ verify_profiles(admin_pwd = test_config$admin_pwd, token = token, url = test_con
 cli_h2("Assigning tables as researcher")
 source("test-cases/assigning.R")
 check_assigning(project = project1, folder = "2_1-core-1_0", table = "nonrep", object = "nonrep", variable = "coh_country", skip_tests = test_config$skip_tests)
-#
-# # cli_h2("Testing linked table")
-# # source("test-cases/test-linked-view.R")
-# # cli_alert_success("Linked view worked")
 
 cli_h2("Testing resources as a researcher")
 source("test-cases/verify-resources.R")
