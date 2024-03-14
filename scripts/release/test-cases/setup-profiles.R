@@ -1,3 +1,30 @@
+generate_project_port <- function(current_project_ports) {
+  starting_port <- 6312
+  while (starting_port %in% current_project_ports) {
+    starting_port = starting_port + 1
+  }
+  return(starting_port)
+}
+
+obtain_existing_profile_information <- function(key, auth_type) {
+  responses <- get_from_api_with_header('ds-profiles', key, auth_type)
+  response_df <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c("name", "container", "port", "seed", "online"))))
+  for (response in responses) {
+    if("datashield.seed" %in% names(response$options)) {
+      datashield_seed <- response$options$datashield.seed
+    } else {
+      datashield_seed <- NA
+    }
+
+    response_df[nrow(response_df) + 1,] = c(response$name, response$image, response$port, datashield_seed, response$container$status)
+  }
+  return(response_df)
+}
+
+return_list_without_empty <- function(to_empty_list) {
+  return(to_empty_list[to_empty_list != ''])
+}
+
 create_profile <- function(profile_name, key, auth_type) {
   if (profile_name %in% profile_defaults$name) {
     cli_alert_info(sprintf("Creating profile: %s", profile_name))
