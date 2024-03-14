@@ -69,7 +69,7 @@ start_profile <- function(profile_name, key, auth_type) {
 }
 
 
-setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user) {
+setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user, interactive) {
   test_name <- "setup-profiles"
   if (do_skip_test(test_name, skip_tests)) {
     return()
@@ -91,11 +91,11 @@ setup_profiles <- function(token, auth_type, url, as_docker_container, skip_test
   whitelist <- unlist(profile_info$packageWhitelist)
   if (is.null(seed)) {
     cli_alert_warning(sprintf("Seed of profile [%s] is NULL, please set it in UI profile tab and restart the profile", profile))
-    wait_for_input()
+    wait_for_input(interactive)
   }
   if (!"resourcer" %in% whitelist) {
     cli_alert_warning(sprintf("Whitelist of profile [%s] does not contain resourcer, please add it and restart the profile", profile))
-    wait_for_input()
+    wait_for_input(interactive)
   }
 
   if (!is.null(seed) && "resourcer" %in% whitelist) {
