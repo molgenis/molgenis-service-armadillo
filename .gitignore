@@ -54,3 +54,6 @@ build/
 /application.yaml
 /application.properties
 .Rproj.user
+
+# Rstudio
+molgenis-service-armadillo.Rproj
