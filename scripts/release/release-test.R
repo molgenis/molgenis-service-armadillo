@@ -82,7 +82,7 @@ cli_h2("Creating a test project")
 source("test-cases/create-test-project.R")
 create_test_project(target_project_name = project1, skip_tests = test_config$skip_tests)
 
-cli_h2("Uploading test data")  # Add option for survival data?
+cli_h2("Uploading test data") # Add option for survival data?
 source("test-cases/upload-data.R")
 upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 
@@ -108,7 +108,7 @@ interactive_test(project1, test_config$interactive, test_config$skip_tests)
 cli_alert_info("\nNow you're going to test as researcher")
 cli_h2("Setting researcher permissions")
 source("test-cases/set_researcher_access.R")
-set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, update_auto = test_config$update_auto, skip_tests = test_config$skip_tests) #Add linked table when working
+set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, update_auto = test_config$update_auto, skip_tests = test_config$skip_tests) # Add linked table when working
 
 cli_h2("Logging in as a researcher")
 source("test-cases/researcher-login.R")
@@ -148,7 +148,7 @@ source("test-cases/xenon-mtl.R")
 verify_ds_mtl(skip_tests = test_config$skip_tests)
 
 cli_h2("Removing data as admin")
-source("test-cases/remove-data.R") #Add link_project once module works
+source("test-cases/remove-data.R") # Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
 datashield.logout(conns)
 

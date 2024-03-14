@@ -1,5 +1,5 @@
 add_slash_if_not_added <- function(path) {
-  if(!endsWith(path, "/")){
+  if (!endsWith(path, "/")) {
     return(paste0(path, "/"))
   } else {
     return(path)
@@ -8,13 +8,13 @@ add_slash_if_not_added <- function(path) {
 
 exit_test <- function(msg) {
   cli_alert_danger(msg)
-  cond = structure(list(message=msg), class=c("exit", "condition"))
+  cond <- structure(list(message = msg), class = c("exit", "condition"))
   signalCondition(cond)
   stop(cond)
 }
 
 check_cohort_exists <- function(cohort) {
-  if(cohort %in% armadillo.list_projects()){
+  if (cohort %in% armadillo.list_projects()) {
     cli_alert_success(paste0(cohort, " exists"))
   } else {
     exit_test(paste0(cohort, " doesn't exist!"))
@@ -24,9 +24,8 @@ check_cohort_exists <- function(cohort) {
 wait_for_input <- function(interactive) {
   if (interactive) {
     cat("\nPress any key to continue")
-    continue <- readLines("stdin", n=1)
-  }
-  else {
+    continue <- readLines("stdin", n = 1)
+  } else {
     cat("\n\n")
   }
 }
@@ -34,7 +33,8 @@ wait_for_input <- function(interactive) {
 create_basic_header <- function(pwd) {
   encoded <- base64enc::base64encode(
     charToRaw(
-      paste0("admin:", pwd))
+      paste0("admin:", pwd)
+    )
   )
   return(paste0("Basic ", encoded))
 }
@@ -43,23 +43,25 @@ create_basic_header <- function(pwd) {
 set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
   args <- list(email = user, admin = isAdmin, projects = required_projects)
   response <- put_to_api("access/users", admin_pwd, "basic", args, url)
-  if(response$status_code != 204) {
+  if (response$status_code != 204) {
     cli_alert_warning("Altering OIDC user failed, please do this manually")
-    update_auto = ""
+    update_auto <- ""
   }
 }
 
 # # armadillo api put request
 put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   auth_header <- get_auth_header(auth_type, key)
-  body <- jsonlite::toJSON(body_args, auto_unbox=TRUE)
-  response <- PUT(paste0(url, endpoint), body=body, encode="json",
-                  config = c(httr::content_type_json(), httr::add_headers(auth_header)))
+  body <- jsonlite::toJSON(body_args, auto_unbox = TRUE)
+  response <- PUT(paste0(url, endpoint),
+    body = body, encode = "json",
+    config = c(httr::content_type_json(), httr::add_headers(auth_header))
+  )
   return(response)
 }
 
 do_skip_test <- function(test_name, skip_tests) {
-  if(any(skip_tests %in% test_name)){
+  if (any(skip_tests %in% test_name)) {
     cli_alert_info(sprintf("Test '%s' skipped", test_name))
     return(TRUE)
   }
