@@ -1,3 +1,5 @@
+library(dsMTLClient)
+
 prepare_data_for_lasso <- function() {
   ds.dataFrameSubset(
     V1 = "nonrep$row_id",

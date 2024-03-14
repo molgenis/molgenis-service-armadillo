@@ -32,7 +32,9 @@ packages <- c(
   "DSI",
   "resourcer",
   "MolgenisArmadillo",
-  "DSMolgenisArmadillo"
+  "DSMolgenisArmadillo", 
+  "purrr", 
+  "stringr"
 )
 
 install_requirements_from_cran <- function(packages) {

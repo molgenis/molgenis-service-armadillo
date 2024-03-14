@@ -1,3 +1,5 @@
+library(dsMediationClient)
+
 verify_mediate_class <- function() {
   ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex", family = "gaussian", dataName = "nonrep",
