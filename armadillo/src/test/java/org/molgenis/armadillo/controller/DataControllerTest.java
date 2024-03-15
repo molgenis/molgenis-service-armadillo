@@ -749,7 +749,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     String variables = "childId,rowId,age,weight";
     when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
     when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
-    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+    when(armadilloStorage.storageService.createArmadilloLinkFileFromStream(
+            isMock, project, linkObject))
         .thenReturn(alfMock);
     when(alfMock.getSourceObject()).thenReturn(sourceObject);
     when(alfMock.getSourceProject()).thenReturn(sourceProject);
@@ -801,7 +802,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     selectedVariables.add("weight");
     when(armadilloStorage.hasObject(project, linkObject + LINK_FILE)).thenReturn(true);
     when(armadilloStorage.loadObject(project, linkObject + LINK_FILE)).thenReturn(isMock);
-    when(armadilloStorage.createArmadilloLinkFileFromStream(isMock, project, linkObject))
+    when(armadilloStorage.storageService.createArmadilloLinkFileFromStream(
+            isMock, project, linkObject))
         .thenReturn(alfMock);
     when(alfMock.getSourceObject()).thenReturn(sourceObject);
     when(alfMock.getSourceProject()).thenReturn(sourceProject);

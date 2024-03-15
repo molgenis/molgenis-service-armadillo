@@ -35,4 +35,7 @@ public interface StorageService {
   void delete(String bucketName, String objectName);
 
   public Path getPathIfObjectExists(String bucketName, String objectName);
+
+  public ArmadilloLinkFile createArmadilloLinkFileFromStream(
+      InputStream armadilloLinkFileStream, String project, String objectName);
 }

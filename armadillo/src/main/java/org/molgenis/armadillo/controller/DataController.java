@@ -523,7 +523,8 @@ public class DataController {
       Boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =
-        storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
+        storage.storageService.createArmadilloLinkFileFromStream(
+            armadilloLinkFileStream, project, objectName);
     String sourceProject = linkFile.getSourceProject();
     String sourceObject = linkFile.getSourceObject();
     if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {

@@ -198,7 +198,7 @@ public class LocalStorageService implements StorageService {
       } else if (objectPathString.endsWith(LINK_FILE)) {
         InputStream armadilloLinkFileStream = load(bucketName, objectName);
         ArmadilloLinkFile linkFile =
-            new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
+            createArmadilloLinkFileFromStream(armadilloLinkFileStream, bucketName, objectName);
         Path srcObjectPath =
             getPathIfObjectExists(
                 SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
@@ -269,5 +269,11 @@ public class LocalStorageService implements StorageService {
     } catch (Exception e) {
       throw new StorageException(e);
     }
+  }
+
+  @Override
+  public ArmadilloLinkFile createArmadilloLinkFileFromStream(
+      InputStream armadilloLinkFileStream, String project, String objectName) {
+    return new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
   }
 }

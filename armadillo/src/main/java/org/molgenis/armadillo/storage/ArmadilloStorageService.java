@@ -34,7 +34,7 @@ public class ArmadilloStorageService {
   public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
-  private final StorageService storageService;
+  public final StorageService storageService;
 
   public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
@@ -107,11 +107,6 @@ public class ArmadilloStorageService {
     InputStream is = armadilloLinkFile.toStream();
     storageService.save(
         is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
-  }
-
-  public ArmadilloLinkFile createArmadilloLinkFileFromStream(
-      InputStream armadilloLinkFileStream, String project, String objectName) {
-    return new ArmadilloLinkFile(armadilloLinkFileStream, project, objectName);
   }
 
   public ArmadilloLinkFile createLinkFileFromSource(
