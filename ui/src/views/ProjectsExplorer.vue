@@ -59,31 +59,11 @@
                   :preselectedItem="selectedFolder"
                   :selectionColor="selectedFile ? 'secondary' : 'primary'"
                 ></ListGroup>
-                <div
-                  class="input-group input-group-sm m-1 p-1 pe-2"
+                <FolderInput
                   v-if="createNewFolder"
-                >
-                  <input
-                    type="text"
-                    class="form-control folder-name"
-                    placeholder="Folder name"
-                    v-model="newFolder"
-                  />
-                  <button
-                    class="btn btn-sm btn-success"
-                    type="button"
-                    @click="addNewFolder"
-                  >
-                    <i class="bi bi-check-lg"></i>
-                  </button>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    type="button"
-                    @click="cancelNewFolder"
-                  >
-                    <i class="bi bi-x-lg"></i>
-                  </button>
-                </div>
+                  :addNewFolder="addNewFolder"
+                  :cancelNewFolder="cancelNewFolder"
+                ></FolderInput>
               </div>
               <div class="col-6 p-0 m-0">
                 <ListGroup
@@ -210,6 +190,7 @@ import ListGroup from "@/components/ListGroup.vue";
 import ViewCreator from "@/components/ViewCreator.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import FolderInput from "@/components/FolderInput.vue";
 import {
   getProject,
   deleteObject,
@@ -232,6 +213,7 @@ export default defineComponent({
     ButtonGroup,
     ConfirmationDialog,
     FeedbackMessage,
+    FolderInput,
     ListGroup,
     LoadingSpinner,
     FileUpload,
@@ -317,7 +299,6 @@ export default defineComponent({
       dataSizeRows: 0,
       dataSizeColumns: 0,
       createNewFolder: false,
-      newFolder: "",
       projectContent: {},
       createLink: false,
       linkData: {
@@ -351,6 +332,8 @@ export default defineComponent({
             this.clearFilePreview();
             this.loading_preview = false;
           });
+      } else if (this.selectedFile.endsWith(".alf")) {
+        console.log(this.linkData);
       }
       getFileDetails(
         this.projectId,
@@ -426,11 +409,11 @@ export default defineComponent({
     setCreateNewFolder() {
       this.createNewFolder = true;
     },
-    addNewFolder() {
-      if (this.newFolder) {
-        if (!this.newFolder.includes("/")) {
-          this.project.push(this.newFolder.toLocaleLowerCase() + "/");
-          this.successMessage = `Succesfully created folder: [${this.newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
+    addNewFolder(folderName: string) {
+      if (folderName) {
+        if (!folderName.includes("/")) {
+          this.project.push(folderName.toLocaleLowerCase() + "/");
+          this.successMessage = `Succesfully created folder: [${folderName.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
           this.setProjectContent();
           this.cancelNewFolder();
         } else {
@@ -458,7 +441,7 @@ export default defineComponent({
       return item === this.selectedFolder;
     },
     isNonTableType(item: string) {
-      return !item.endsWith(".parquet");
+      return !item.endsWith(".parquet") && !item.endsWith(".alf");
     },
     deleteSelectedFile() {
       this.fileToDelete = this.selectedFile;
@@ -536,13 +519,6 @@ export default defineComponent({
       variables: string[]
     ) {
       const response = createLinkFile(
-        sourceProject,
-        sourceObject,
-        viewProject,
-        viewObject,
-        variables
-      );
-      console.log(
         sourceProject,
         sourceObject,
         viewProject,

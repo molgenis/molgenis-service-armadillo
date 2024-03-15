@@ -43,7 +43,6 @@ export type ProjectsExplorerData = {
   dataSizeColumns: number;
   createNewFolder: boolean;
   loading_preview: boolean;
-  newFolder: string;
   projectContent: Record<string, string[]>;
   createLink: boolean;
   variables: string[];
