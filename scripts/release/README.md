@@ -29,3 +29,7 @@ To prevent all the questions:
 - copy the `dev.dist.env` to `.env`
 - fill in some or all parts
 - toggle the `interactive` to `n` or `y` to let the script wait for manual checks.
+
+### CICD 
+- Note CICD only runs test as admin as we cannot connect to an OIDC account.
+- Using `armadillo.get_token` will run locally but fail at CICD.

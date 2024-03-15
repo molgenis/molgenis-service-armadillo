@@ -11,15 +11,11 @@ services:
       args:
         JAR_FILE: '*.jar'
 
-    image: molgenis/molgenis-armadillo:latest
-    environment:
-      LOGGING_CONFIG: 'classpath:logback-file.xml'
-      AUDIT_LOG_PATH: '/app/logs/audit.log'
-      SPRING_SECURITY_USER_PASSWORD: 'admin'
+    image: molgenis/molgenis-armadillo:local
     volumes:
-      - ${PWD}/armadillo/logs:/logs
-      - ${PWD}/armadillo/data:/data
-      - ${PWD}/armadillo/config:/config
+      - ./armadillo/logs:/logs
+      - ./armadillo/data:/data
+      - ./armadillo/config:/config
       - /var/run/docker.sock:/var/run/docker.sock
 
   default:

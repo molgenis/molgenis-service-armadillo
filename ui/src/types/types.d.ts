@@ -28,6 +28,10 @@ export type TypeString =
   | "object";
 export type StringArray = string[];
 
+interface Dictionary<T> {
+  [key: string]: T;
+}
+
 // Maybe later expand with float/int/enum/character
 export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {

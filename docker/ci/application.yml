@@ -1,5 +1,4 @@
-# NOTE: when changing this file you must rerun:
-# - docker compose --file docker-compose-local.yml build
+# NOTE these settings should be similar to application.template.yml
 
 armadillo:
   # DO NOT CHANGE
@@ -32,6 +31,9 @@ armadillo:
       package-whitelist:
         - dsBase
         - resourcer
+        - dsMediation
+        - dsMTLBase
+        - dsSurvival
       function-blacklist: [ ]
       options:
         datashield:
@@ -82,6 +84,11 @@ spring:
 storage:
   ## to change location of the data storage
   root-dir: /data
+
+# Match with Dockerfile volume /logs
+audit.log.path: '/logs/audit.log'
+
+stdout.log.path: '/logs/armadillo.log'
 
 logging:
   level:
