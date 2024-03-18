@@ -36,30 +36,14 @@
           ]"
           :clickCallbacks="[setCreateNewFolder, deleteSelectedFile]"
         ></ButtonGroup>
-        <div
-          class="input-group input-group-sm m-1 p-1 pe-2"
-          v-if="createNewFolder"
-        >
-          <input
-            type="text"
-            class="form-control folder-name"
-            placeholder="Folder name"
-            v-model="newFolder"
-          />
-          <button
-            class="btn btn-sm btn-success"
-            type="button"
-            @click="addNewFolder(newFolder)"
-          >
-            <i class="bi bi-check-lg"></i>
-          </button>
-          <button
-            class="btn btn-sm btn-danger"
-            type="button"
-            @click="cancelNewFolder"
-          >
-            <i class="bi bi-x-lg"></i>
-          </button>
+        <div class="row">
+          <div class="col-3">
+            <FolderInput
+              v-if="createNewFolder"
+              :addNewFolder="addNewFolder"
+              :cancelNewFolder="cancelNewFolder"
+            ></FolderInput>
+          </div>
         </div>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
@@ -135,6 +119,7 @@
 <script lang="ts">
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
+import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
@@ -164,6 +149,7 @@ export default defineComponent({
     LoadingSpinner,
     FileUpload,
     FileExplorer,
+    FolderInput,
     SimpleTable,
   },
   setup() {
@@ -300,11 +286,11 @@ export default defineComponent({
     setCreateNewFolder() {
       this.createNewFolder = true;
     },
-    addNewFolder(newFolder: string) {
-      if (newFolder) {
-        if (!this.newFolder.includes("/")) {
-          this.project.push(newFolder.toLocaleLowerCase() + "/");
-          this.successMessage = `Succesfully created folder: [${newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
+    addNewFolder(folderName: string) {
+      if (folderName) {
+        if (!folderName.includes("/")) {
+          this.project.push(folderName.toLocaleLowerCase() + "/");
+          this.successMessage = `Succesfully created folder: [${folderName.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
           this.setProjectContent();
           this.cancelNewFolder();
         } else {
