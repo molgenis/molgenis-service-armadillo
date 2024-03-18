@@ -69,6 +69,8 @@ jacocoTestReport {
         xml.required
     }
     dependsOn test
+    dependsOn spotlessApply
+
 }
 
 spotless {
