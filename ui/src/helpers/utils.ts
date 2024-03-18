@@ -158,3 +158,11 @@ export function isEmptyObject(obj: Object) {
 export function objectDeepCopy<T>(input: T): T {
   return JSON.parse(JSON.stringify(input));
 }
+
+export function isTableType(item: string): boolean {
+  return item.endsWith(".parquet");
+}
+
+export function isNonTableType(item: string): boolean {
+  return !isTableType(item);
+}

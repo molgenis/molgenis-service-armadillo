@@ -49,6 +49,8 @@ export type ProjectsExplorerData = {
   loading_preview: boolean;
   newFolder: string;
   projectContent: Record<string, string[]>;
+  selectedFile: string;
+  selectedFolder: string;
 };
 
 export type ProjectsData = {

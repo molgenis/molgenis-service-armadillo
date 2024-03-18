@@ -36,70 +36,45 @@
           ]"
           :clickCallbacks="[setCreateNewFolder, deleteSelectedFile]"
         ></ButtonGroup>
+        <div
+          class="input-group input-group-sm m-1 p-1 pe-2"
+          v-if="createNewFolder"
+        >
+          <input
+            type="text"
+            class="form-control folder-name"
+            placeholder="Folder name"
+            v-model="newFolder"
+          />
+          <button
+            class="btn btn-sm btn-success"
+            type="button"
+            @click="addNewFolder(newFolder)"
+          >
+            <i class="bi bi-check-lg"></i>
+          </button>
+          <button
+            class="btn btn-sm btn-danger"
+            type="button"
+            @click="cancelNewFolder"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
           <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
           <div class="col-6" v-else>
-            <div class="row">
-              <div
-                class="col-12 fst-italic"
-                v-if="
-                  projectFolders.length === 0 && !createNewFolder && !loading
-                "
-              >
-                Create a folder to get started
-              </div>
-              <div class="col-6 p-0 m-0">
-                <ListGroup
-                  ref="folderComponent"
-                  :listContent="getSortedFolders()"
-                  rowIcon="folder"
-                  rowIconAlt="folder2-open"
-                  :altIconCondition="showSelectedFolderIcon"
-                  :preselectedItem="selectedFolder"
-                  :selectionColor="selectedFile ? 'secondary' : 'primary'"
-                ></ListGroup>
-                <div
-                  class="input-group input-group-sm m-1 p-1 pe-2"
-                  v-if="createNewFolder"
-                >
-                  <input
-                    type="text"
-                    class="form-control folder-name"
-                    placeholder="Folder name"
-                    v-model="newFolder"
-                  />
-                  <button
-                    class="btn btn-sm btn-success"
-                    type="button"
-                    @click="addNewFolder"
-                  >
-                    <i class="bi bi-check-lg"></i>
-                  </button>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    type="button"
-                    @click="cancelNewFolder"
-                  >
-                    <i class="bi bi-x-lg"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="col-6 p-0 m-0">
-                <ListGroup
-                  v-show="selectedFolder !== ''"
-                  ref="fileComponent"
-                  :listContent="getSortedFiles()"
-                  rowIcon="table"
-                  rowIconAlt="file-earmark"
-                  :altIconCondition="isNonTableType"
-                  selectionColor="primary"
-                ></ListGroup>
-              </div>
-            </div>
+            <FileExplorer
+              v-if="!loading"
+              :projectContent="projectContent"
+              :addNewFolder="addNewFolder"
+              @selectFolder="selectedFolder = $event"
+              @selectFile="selectedFile = $event"
+            />
             <div class="row mt-3">
               <div class="col-6">
-                <!-- Placeholder for file upload for uploading complete project in future-->
+                <!-- Placeholder for file upload for uploading complete project in future -->
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <FileUpload
@@ -169,11 +144,12 @@ import {
   previewObject,
   getFileDetails,
 } from "@/api/api";
-import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
+import { isEmptyObject, isTableType, isNonTableType } from "@/helpers/utils";
 import { defineComponent, onMounted, Ref, ref, watch } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
+import FileExplorer from "@/components/FileExplorer.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 
@@ -187,48 +163,18 @@ export default defineComponent({
     ListGroup,
     LoadingSpinner,
     FileUpload,
+    FileExplorer,
     SimpleTable,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
     const projectId: Ref<string> = ref("");
-    const folderComponent: Ref = ref({});
-    const fileComponent: Ref = ref({});
-    const selectedFolder = ref("");
-    const selectedFile = ref("");
     const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     const route = useRoute();
     const previewParam = ref();
-    watch(
-      () => route.params.folderId,
-      (newVal) => {
-        selectedFolder.value = newVal as string;
-      }
-    );
     onMounted(() => {
       loadProject(undefined);
-      if (route.params.folderId) {
-        selectedFolder.value = route.params.folderId as string;
-      }
-      watch(
-        () => folderComponent.value?.selectedItem,
-        (newVal) => {
-          if (newVal != undefined) {
-            selectedFolder.value = newVal;
-          }
-        }
-      );
-      watch(
-        () => fileComponent.value?.selectedItem,
-        (newVal) => {
-          if (newVal) {
-            selectedFile.value = newVal;
-          } else {
-            selectedFile.value = "";
-          }
-        }
-      );
     });
     const loadProject = async (idParam: string | undefined) => {
       if (idParam === undefined) {
@@ -247,15 +193,13 @@ export default defineComponent({
       projectId,
       loadProject,
       errorMessage,
-      folderComponent,
-      fileComponent,
-      selectedFolder,
-      selectedFile,
       previewParam,
     };
   },
   data(): ProjectsExplorerData {
     return {
+      selectedFile: "",
+      selectedFolder: "",
       fileToDelete: "",
       folderToDeleteFrom: "",
       projectToEdit: "",
@@ -273,11 +217,8 @@ export default defineComponent({
     };
   },
   watch: {
-    selectedFolder() {
-      this.selectedFile = "";
-    },
     selectedFile() {
-      if (this.selectedFile.endsWith(".parquet")) {
+      if (this.isTableType(this.selectedFile)) {
         this.loading_preview = true;
         previewObject(
           this.projectId,
@@ -320,21 +261,13 @@ export default defineComponent({
     },
   },
   methods: {
+    isTableType,
+    isNonTableType,
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
     },
     clearFilePreview() {
       this.filePreview = [{}];
-    },
-    getSortedFolders(): StringArray {
-      return sortAlphabetically(this.projectFolders) as StringArray;
-    },
-    getSortedFiles() {
-      return this.projectContent[this.selectedFolder]
-        ? (sortAlphabetically(
-            this.projectContent[this.selectedFolder]
-          ) as StringArray)
-        : [];
     },
     setProjectContent() {
       let content: Record<string, StringArray> = {};
@@ -367,11 +300,11 @@ export default defineComponent({
     setCreateNewFolder() {
       this.createNewFolder = true;
     },
-    addNewFolder() {
-      if (this.newFolder) {
+    addNewFolder(newFolder: string) {
+      if (newFolder) {
         if (!this.newFolder.includes("/")) {
-          this.project.push(this.newFolder.toLocaleLowerCase() + "/");
-          this.successMessage = `Succesfully created folder: [${this.newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
+          this.project.push(newFolder.toLocaleLowerCase() + "/");
+          this.successMessage = `Succesfully created folder: [${newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
           this.setProjectContent();
           this.cancelNewFolder();
         } else {
@@ -397,9 +330,6 @@ export default defineComponent({
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
-    },
-    isNonTableType(item: string) {
-      return !item.endsWith(".parquet");
     },
     deleteSelectedFile() {
       this.fileToDelete = this.selectedFile;
