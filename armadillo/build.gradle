@@ -16,6 +16,8 @@ repositories {
     }
 }
 
+bootJar.enabled = false
+
 dependencies {
     //internal
     implementation project(':r')
@@ -68,13 +70,6 @@ dependencies {
     annotationProcessor "com.google.auto.value:auto-value:1.10.4"
 }
 
-jacocoTestReport {
-    reports {
-        xml.required
-    }
-    dependsOn test
-}
-
 test {
     useJUnitPlatform()
     maxParallelForks = Runtime.runtime.availableProcessors() / 2
@@ -92,10 +87,17 @@ test {
     finalizedBy jacocoTestReport
 }
 
+jacocoTestReport {
+    reports {
+        xml.required
+    }
+    dependsOn test
+}
+
 spotless {
     java {
         googleJavaFormat('1.15.0')
     }
 }
+
 build.dependsOn spotlessApply
-bootJar.enabled = false
