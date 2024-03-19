@@ -11,6 +11,8 @@ import {
   sanitizeObject,
   isEmptyObject,
   shortenFileName,
+  isTableType,
+  isNonTableType
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -211,6 +213,26 @@ describe("utils", () => {
     it("should return false if object is not empty", () => {
       const actual = isEmptyObject({ key: "value" });
       expect(actual).toBe(false);
+    });
+  });
+  describe("isTableType", () => {
+    it("should return true if item has parquet extension", () => {
+      const actual = isTableType("test.parquet");
+      expect(actual).toBe(true);
+    });
+    it("should return false if item doesnt have parquet extension", () => {
+      const actual = isTableType("test.somethingelse");
+      expect(actual).toBe(false);
+    });
+  });
+  describe("isNonTableType", () => {
+    it("should return false if item has parquet extension", () => {
+      const actual = isNonTableType("test.parquet");
+      expect(actual).toBe(false);
+    });
+    it("should return true if item doesnt have parquet extension", () => {
+      const actual = isNonTableType("test.somethingelse");
+      expect(actual).toBe(true);
     });
   });
 });

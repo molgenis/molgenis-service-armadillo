@@ -91,21 +91,6 @@ describe("ProjectsExplorer", () => {
         );
     });
 
-    test("sorts folders", () => {
-        expect(wrapper.vm.getSortedFolders()).toEqual(["folder-a-one", "folder-b-two", "folder-c-three", "folder-d-four"]);
-    });
-
-    test("sorts files", () => {
-        wrapper.vm.selectedFolder = "folder-a-one";
-        expect(wrapper.vm.getSortedFiles()).toEqual(["file1.parquet", "file2.parquet", "filea.parquet", "fileb.parquet"]);
-        wrapper.vm.selectedFolder = "folder-b-two";
-        expect(wrapper.vm.getSortedFiles()).toEqual(["file1.parquet", "file2.parquet"]);
-        wrapper.vm.selectedFolder = "folder-c-three";
-        expect(wrapper.vm.getSortedFiles()).toEqual(["file1.parquet"]);
-        wrapper.vm.selectedFolder = "folder-d-four";
-        expect(wrapper.vm.getSortedFiles()).toEqual(["file1.parquet", "file2.parquet"]);
-    });
-
     test("ask if preview is empty and setting empty", () => {
         expect(wrapper.vm.askIfPreviewIsEmpty()).toBe(true);
         wrapper.vm.filePreview = [{"some-file": "foobar"}];
@@ -118,20 +103,18 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.createNewFolder).toBe(false);
         wrapper.vm.setCreateNewFolder();
         expect(wrapper.vm.createNewFolder).toBe(true);
-        wrapper.vm.newFolder = "FOLDER-e-five";
-        wrapper.vm.addNewFolder();
-        expect(wrapper.vm.getSortedFolders()).toContain("folder-e-five");
+        wrapper.vm.addNewFolder("FOLDER-e-five");
+        expect(Object.keys(wrapper.vm.projectContent)).toContain("folder-e-five");
     });
 
     test("error creating folder containing /", () => {
         expect(wrapper.vm.errorMessage).toBe("");
         wrapper.vm.setCreateNewFolder();
-        wrapper.vm.newFolder = "folder/five";
-        wrapper.vm.addNewFolder();
+        wrapper.vm.addNewFolder("folder/five");
         expect(wrapper.vm.errorMessage).toBe("Folder name cannot contain /");
     });
 
-    test("error creating folder containing /", () => {
+    test("error creating empty folder", () => {
         expect(wrapper.vm.errorMessage).toBe("");
         wrapper.vm.setCreateNewFolder();
         wrapper.vm.addNewFolder();
@@ -140,14 +123,10 @@ describe("ProjectsExplorer", () => {
 
     test("cancel creating a new folder", () => {
         expect(wrapper.vm.createNewFolder).toBe(false);
-        expect(wrapper.vm.newFolder).toBe("");
         wrapper.vm.setCreateNewFolder();
-        wrapper.vm.newFolder = "some-folder";
         expect(wrapper.vm.createNewFolder).toBe(true);
-        expect(wrapper.vm.newFolder).toBe("some-folder");
         wrapper.vm.cancelNewFolder();
         expect(wrapper.vm.createNewFolder).toBe(false);
-        expect(wrapper.vm.newFolder).toBe("");
     });
 
     test("success message uploading a file", () => {
@@ -156,17 +135,16 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.successMessage).toBe("Successfully uploaded file [some-new-file.extension] into directory [folder-d-four] of project: [some-project]");
     });
 
-    test("non table type", () => {
-        expect(wrapper.vm.isNonTableType("some-file.parquet")).toBe(false);
-        expect(wrapper.vm.isNonTableType("some-file.csv.gz")).toBe(true);
-        expect(wrapper.vm.isNonTableType("some-file.rda")).toBe(true);
-        expect(wrapper.vm.isNonTableType("some-file")).toBe(true);
-    });
-
     test("setting and clearing file to delete", () => {
+        api.previewObject.mockImplementation(() => {
+            return Promise.resolve([{}]);
+        });
+        api.getFileDetails.mockImplementation(() => {
+            return Promise.resolve({});
+        });
+        // Important: selectedFolder before selectedFile, since watcher for selectedFolder resets selectedFile to ""
         expect(wrapper.vm.fileToDelete).toBe("");
         expect(wrapper.vm.folderToDeleteFrom).toBe("");
-        // Important: selectedFolder before selectedFile, since watcher for selectedFolder resets selectedFile to ""
         wrapper.vm.selectedFolder = "folder-d-four";
         wrapper.vm.selectedFile = "file1.parquet";
         wrapper.vm.deleteSelectedFile();
@@ -178,8 +156,14 @@ describe("ProjectsExplorer", () => {
     });
 
     test("successfully proceed deleting file", async () => {
+        api.previewObject.mockImplementation(() => {
+            return Promise.resolve([{}]);
+        });
+        api.getFileDetails.mockImplementation(() => {
+            return Promise.resolve({});
+        });
         api.deleteObject.mockImplementation(() => {
-            return Promise.resolve({})
+            return Promise.resolve({});
         });
         wrapper.vm.selectedFolder = "folder-d-four";
         wrapper.vm.selectedFile = "file2.parquet";
@@ -189,6 +173,9 @@ describe("ProjectsExplorer", () => {
     });
 
     test("error proceed deleting file", async () => {
+        api.getFileDetails.mockImplementation(() => {
+            return Promise.resolve({});
+        });
         const error = new Error("fail");
         api.deleteObject.mockImplementation(() => {
             return Promise.reject(error)
@@ -200,36 +187,30 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.errorMessage).toBe(`${error}`);
     });
 
-    test("successfully reloads project", async () => {
-        let new_data = [
-            "some-project/other-folder/one-some.file",
-            "some-project/other-folder/one-some.file"
-        ];
-        expect(wrapper.vm.getSortedFolders()).toEqual(["folder-a-one", "folder-b-two", "folder-c-three", "folder-d-four"]);
-        api.getProject.mockImplementation(() => {
-            return Promise.resolve(new_data)
-        });
-        await wrapper.vm.reloadProject();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        expect(wrapper.vm.getSortedFolders()).toEqual(["other-folder"]);
-    });
-
     test("error reloading project", async () => {
         const error = new Error("fail");
         api.getProject.mockImplementation(() => {
-            return Promise.reject(error)
+            return Promise.reject(error);
         });
         await wrapper.vm.reloadProject();
         expect(wrapper.vm.errorMessage).toBe("Could not load project: Error: fail.");
     });
 
     test("reloads project with call to callback", async () => {
+        api.getFileDetails.mockImplementation(() => {
+            return Promise.resolve({});
+        });
+        api.getProject.mockImplementationOnce(() => {
+            return Promise.resolve(testData);
+        });
+        expect(wrapper.vm.loading).toBe(false);
         const someFunction = jest.fn();
         await wrapper.vm.reloadProject(someFunction);
+        expect(wrapper.vm.loading).toBe(true);
         await wrapper.vm.$nextTick();
         await wrapper.vm.$nextTick();
-        expect(someFunction).toBeCalled();
+        expect(someFunction).toHaveBeenCalled();
+        expect(wrapper.vm.loading).toBe(false);
     });
 
     test("show error message with string", () => {
