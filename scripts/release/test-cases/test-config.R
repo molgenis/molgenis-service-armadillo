@@ -1,4 +1,5 @@
 library(stringr)
+library(tibble)
 # # log version info of loaded libraries
 show_version_info <- function(libs) {
   libs_to_print <- cli_ul()
@@ -135,8 +136,16 @@ configure_test <- function() {
   default_parquet_path <- add_slash_if_not_added(default_parquet_path)
 
   rda_dir <- file.path(test_file_path, "gse66351_1.rda")
-
+  rda_url = "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
+  
+  exposome_ref <- tribble(
+    ~path, ~url,
+    file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv",
+    file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv",
+    file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv",
+    file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata"
+  )
 
   cli_alert_success(sprintf("%s passed!", test_name))
 
@@ -150,12 +159,14 @@ configure_test <- function() {
         whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
         blacklist = c("", "")
       )
+      
+    options(timeout=300)
 
   return(list(
     skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
     ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
-    update_auto = update_auto, profile_defaults = profile_defaults
+    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url, exposome_ref = exposome_ref
   ))
 }
