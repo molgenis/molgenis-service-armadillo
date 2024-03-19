@@ -175,7 +175,6 @@ get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
   return(content(response))
 }
 
-
 # make authentication header for api calls, basic or bearer based on type
 get_auth_header <- function(type, key) {
   header_content <- ""
@@ -193,7 +192,6 @@ create_bearer_header <- function(token) {
   return(paste0("Bearer ", token))
 }
 
-
 print_list <- function(list) {
   vals_to_print <- cli_ul()
   for (i in 1:length(list)) {
@@ -201,4 +199,14 @@ print_list <- function(list) {
     cli_li(val)
   }
   cli_end(vals_to_print)
+}
+
+verify_output <- function(function_name = NULL, object = NULL, expected = NULL, fail_msg = NULL){
+  if(identical(object, expected)) {
+    cli_alert_success(sprintf("%s passed", function_name))
+  } else {
+    cli_alert_danger(sprintf("%s failed", function_name))
+    exit_test(sprintf("%s %s", function_name, message))
+  }
+  
 }

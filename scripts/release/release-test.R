@@ -102,7 +102,6 @@ cli_alert_info("\nNow you're going to test as researcher")
 cli_h2("Setting researcher permissions")
 source("test-cases/set_researcher_access.R")
 set_researcher_access(url = test_config$armadillo_url, interactive = test_config$interactive, required_projects = list(project1), user = test_config$user, admin_pwd = test_config$admin_pwd, update_auto = test_config$update_auto, skip_tests = test_config$skip_tests) # Add linked table when working
->>>>>>> e2d65cf7fcaf97c20ebfb4b766dd7d008ed43e1d
 
 cli_h2("Logging in as a researcher")
 source("test-cases/researcher-login.R")
@@ -136,6 +135,10 @@ run_survival_tests(project = project1, data_path = "/survival/veteran", skip_tes
 cli_alert_info("Testing dsMTL")
 source("test-cases/xenon-mtl.R")
 verify_ds_mtl(skip_tests = test_config$skip_tests)
+
+cli_alert_info("Testing dsExposome")
+source("test-cases/xenon-exposome.R")
+run_exposome_tests(project = project1, ADMIN_MODE = test_config$ADMIN_MODE, profile_info = test_config$profile_info, skip_tests = test_config$skip_tests)
 
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") # Add link_project once module works

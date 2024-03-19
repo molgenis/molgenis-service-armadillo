@@ -1,6 +1,16 @@
 library(dsExposomeClient)
 library(purrr)
 
+set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
+  if (update_auto == "y") {
+    set_user(user, admin_pwd, T, required_projects, url)
+    cli_alert_info("Admin reset")
+  } else {
+    cli_alert_info("Make your account admin again")
+    wait_for_input(interactive)
+  }
+}
+
 assign_exposome_resources <- function(resource_name) {
   exp_resource_path <- paste0("xenon-tests/exposome/", resource_name)
   datashield.assign.resource(conns, resource = exp_resource_path, symbol = resource_name)
@@ -137,7 +147,16 @@ verify_exposure_cor_dim <- function(ds_function_name) {
                 expected = as.integer(c(5, 5)), fail_msg = xenon_fail_msg$clt_dim)
 }
 
-run_exposome_tests <- function(project, conns) {
+run_exposome_tests <- function(project, ADMIN_MODE, profile_info, skip_tests) {
+  test_name <- "xenon-exposome"
+  if (do_skip_test(test_name, skip_tests)) {
+    return()
+  }
+  if (ADMIN_MODE) {
+    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
+  } else if (!"resourcer" %in% profile_info$packageWhitelist) {
+    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
+  } else {
   map(c("description", "exposures", "phenotypes", "exposomeSet"), assign_exposome_resources)
   map(c("description", "exposures", "phenotypes"), resolve_exposome_resources)
   verify_load_exposome_class()
@@ -157,4 +176,5 @@ run_exposome_tests <- function(project, conns) {
 #   verify_pca_class()
 #   verify_pca_plot_class()
   verify_exposure_cor_dim()
+  }
 }
