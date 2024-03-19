@@ -19,20 +19,22 @@ cat("
 
 ")
 cat("Installing dependencies for release test\n")
-if(!"cli" %in% installed.packages()) {
+if (!"cli" %in% installed.packages()) {
   install.packages("cli", repos = "http://cran.us.r-project.org")
 }
 library(cli)
 cli_alert_info("Installing packages")
 
-packages <- c("diffobj", "getPass", "arrow", "jsonlite", "future",
+packages <- c(
+  "diffobj", "getPass", "arrow", "jsonlite", "future",
   "RCurl",
   "devtools",
   "DSI",
   "resourcer",
   "MolgenisArmadillo",
-  "DSMolgenisArmadillo",
-  "purrr"
+  "DSMolgenisArmadillo", 
+  "purrr", 
+  "stringr"
 )
 
 install_requirements_from_cran <- function(packages) {
@@ -40,11 +42,11 @@ install_requirements_from_cran <- function(packages) {
   cli_progress_bar("Installing packages", total = n_requirements)
   for (i in 1:n_requirements) {
     pkg <- packages[i]
-    if (pkg %in% installed.packages()){
+    if (pkg %in% installed.packages()) {
       cli_alert_info(sprintf("Package [%s] already installed, skipping.", pkg))
-    } else{
+    } else {
       cli_alert_info(paste0("Installing ", pkg))
-      install.packages(pkg, repos = "http://cran.us.r-project.org", quiet=TRUE)
+      install.packages(pkg, repos = "http://cran.us.r-project.org", quiet = TRUE)
     }
     cli_progress_update()
   }
@@ -61,5 +63,5 @@ install_github("https://github.com/transbioZI/dsMTLClient", ref = "0.9.9")
 install_github("neelsoumya/dsSurvivalClient") # There is no version for this package
 install_github("isglobal-brge/dsExposomeClient", ref = "2.0.8")
 
-#check if all packages are installed
+# check if all packages are installed
 cli_alert_success("All packages are installed")
