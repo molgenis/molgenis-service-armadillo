@@ -144,9 +144,8 @@ docker {
 dockerPrepare.dependsOn bootJar
 
 //merge test reports
-test.dependsOn subprojects.test
 task jacocoMergedReport(type: JacocoReport) {
-    dependsOn test
+    dependsOn subprojects.test
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
