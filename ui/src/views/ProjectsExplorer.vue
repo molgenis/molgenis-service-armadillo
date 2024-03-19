@@ -92,7 +92,6 @@
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
-                <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
                   `${dataSizeRows}x${dataSizeColumns}`
                 }})
