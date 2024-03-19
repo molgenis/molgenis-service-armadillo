@@ -198,7 +198,6 @@ export default defineComponent({
       dataSizeRows: 0,
       dataSizeColumns: 0,
       createNewFolder: false,
-      newFolder: "",
       projectContent: {},
     };
   },
@@ -302,7 +301,6 @@ export default defineComponent({
     },
     cancelNewFolder() {
       this.createNewFolder = false;
-      this.newFolder = "";
     },
     onUploadSuccess({
       object,
