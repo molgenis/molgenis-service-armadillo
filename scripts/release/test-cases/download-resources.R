@@ -11,7 +11,7 @@ prepare_resources <- function(resource_path, url, skip_tests) {
   
   if (!file.exists(resource_path)) {
     cli_alert_warning(sprintf("Unable to locate %s, downloading.", resource_path))
-    download.file("https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda", resource_path)
+    download.file(url, resource_path)
   }
   
   cli_alert_info("Checking if rda dir exists")
