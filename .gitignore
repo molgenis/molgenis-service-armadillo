@@ -10,9 +10,11 @@ dist
 ### STORAGE ###
 data/user-*
 data/system
+
 # Ignore all projects but life-cycle
 data/shared-*
 !data/shared-lifecycle
+data/testing
 
 HELP.md
 target/
@@ -36,6 +38,7 @@ target/
 *.iml
 *.ipr
 
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -55,3 +58,6 @@ build/
 /application.yaml
 /application.properties
 .Rproj.user
+
+# R files
+.Rhistory
