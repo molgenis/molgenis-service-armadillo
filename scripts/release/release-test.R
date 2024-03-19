@@ -54,7 +54,7 @@ download_tables(dest = test_config$dest, service_location = test_config$service_
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
-prepare_resources(resource_path = test_config$rda_dir, skip_tests = test_config$skip_tests)
+prepare_resources(resource_path = test_config$rda_dir, url = test_config$rda_url, skip_tests = test_config$skip_tests)
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
@@ -89,7 +89,7 @@ upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_co
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- create_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
+resGSE1 <- create_resource(target_project = project1, url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
@@ -138,7 +138,11 @@ verify_ds_mtl(skip_tests = test_config$skip_tests)
 
 cli_alert_info("Testing dsExposome")
 source("test-cases/xenon-exposome.R")
-run_exposome_tests(project = project1, ADMIN_MODE = test_config$ADMIN_MODE, profile_info = test_config$profile_info, skip_tests = test_config$skip_tests)
+run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
+                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
+                   exposome_ref = test_config$exposome_ref, skip_tests = test_config$skip_tests, 
+                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
+                   update_auto = test_config$update_auto)
 
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") # Add link_project once module works
