@@ -1,15 +1,9 @@
 library(dsExposomeClient)
 library(purrr)
+library(tibble)
 
-set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
-  if (update_auto == "y") {
-    set_user(user, admin_pwd, T, required_projects, url)
-    cli_alert_info("Admin reset")
-  } else {
-    cli_alert_info("Make your account admin again")
-    wait_for_input(interactive)
-  }
-}
+source("test-cases/download-resources.R")
+source("test-cases/upload-resource.R")
 
 assign_exposome_resources <- function(resource_name) {
   exp_resource_path <- paste0("xenon-tests/exposome/", resource_name)
@@ -147,7 +141,26 @@ verify_exposure_cor_dim <- function(ds_function_name) {
                 expected = as.integer(c(5, 5)), fail_msg = xenon_fail_msg$clt_dim)
 }
 
-run_exposome_tests <- function(project, ADMIN_MODE, profile_info, skip_tests) {
+download_exposome_resources <- function(exposome_ref, skip_tests){
+  exposome_ref %>%
+    pmap(function(path, url){
+      prepare_resources(resource_path = path, url = url, skip_tests = skip_tests)
+      })
+}
+
+upload_exposome_resources <- function(user, admin_pwd, interactive, update_auto, project, exposome_ref, url, token, auth_type, skip_tests){
+  
+  set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
+  
+  exposome_ref %>%
+    pmap(function(path, ...){
+      upload_resource(project = project, rda_dir = path, url = url, token = token, auth_type = auth_type, skip_tests = NULL)   
+    })
+    
+  }
+    
+run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, exposome_ref, skip_tests, 
+                               user, admin_pwd, interactive, update_auto) {
   test_name <- "xenon-exposome"
   if (do_skip_test(test_name, skip_tests)) {
     return()
@@ -157,6 +170,14 @@ run_exposome_tests <- function(project, ADMIN_MODE, profile_info, skip_tests) {
   } else if (!"resourcer" %in% profile_info$packageWhitelist) {
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
   } else {
+   
+  download_exposome_resources(exposome_ref = exposome_ref, skip_tests = NULL)
+  upload_exposome_resources(user = user, admin_pwd = admin_pwd, project = project, 
+                            interactive = interactive, update_auto = update_auto, exposome_ref = exposome_ref, 
+                            url = url, token = token, auth_type = auth_type, skip_tests = NULL)
+  
+  ## Need to generalise upload resource and any other resource functions
+    
   map(c("description", "exposures", "phenotypes", "exposomeSet"), assign_exposome_resources)
   map(c("description", "exposures", "phenotypes"), resolve_exposome_resources)
   verify_load_exposome_class()
