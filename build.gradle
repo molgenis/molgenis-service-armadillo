@@ -156,13 +156,17 @@ task jacocoMergedReport(type: JacocoReport) {
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
-        xml.required
+        xml.required = true
+        csv.required = false
+        html.required = false
     }
 }
 
 //push to sonarqube
 sonarqube {
     properties {
+        // Uncomment when upgrading to sonar 5.x
+        // property 'sonar.gradle.skipCompile', 'true'
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
