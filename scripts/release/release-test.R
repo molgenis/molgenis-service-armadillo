@@ -141,31 +141,10 @@ source("test-cases/remove-data.R") # Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
 datashield.logout(conns)
 
-# NOT SURE WHAT THIS DOES OR ADDS TO PREVIOUS TESTS
-# project2 <- generate_random_project_name(available_projects)
-# available_projects <- c(available_projects, project2)
-# if(admin_pwd != "") {
-#   cli_h2("Basic authentication")
-#   cli_alert_info("Logging in as admin user")
-#   armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-#   cli_alert_info(sprintf("Creating project [%s]", project2))
-#   armadillo.create_project(project2)
-#   nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
-#   cli_alert_info(sprintf("Uploading file to [%s]", project2))
-#   armadillo.upload_table(project2, "2_1-core-1_0", nonrep)
-#   rm(nonrep)
-#   check_cohort_exists(project2)
-#   table <- sprintf("%s/2_1-core-1_0/nonrep", project2)
-#   if(table %in% armadillo.list_tables(project2)){
-#     cli_alert_success(paste0(table, " exists"))
-#   } else {
-#     exit_test(paste0(table, " doesn't exist"))
-#   }
-#   cli_alert_info(sprintf("Deleting [%s]", project2))
-#   armadillo.delete_project(project2)
-# } else {
-#   cli_alert_warning("Testing basic authentication skipped, admin password not available")
-# }
-#
+cli_h2("Testing basic authentification")
+source("test-cases/basic-auth.R")
+print(test_config$dest)
+verify_basic_auth(url = test_config$armadillo_url, admin_pwd = test_config$admin_pwd, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
+
 cli_alert_info("Testing done")
 cli_alert_info("Please test rest of UI manually, if impacted this release")
