@@ -3,7 +3,7 @@ plugins {
     id 'io.spring.dependency-management'
     id "jacoco"
     id "java"
-    id "com.diffplug.spotless" version "6.15.0"
+    id "com.diffplug.spotless" version "6.25.0"
 }
 
 repositories {
@@ -29,7 +29,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-jose'
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.12.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework:spring-aspects'
@@ -46,19 +46,19 @@ dependencies {
     implementation 'org.rosuda.REngine:Rserve:1.8.1'
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
     implementation 'com.google.auto.value:auto-value-annotations:1.10.4'
-    implementation 'org.obiba.datashield:ds4j-core:2.0.0'
-    implementation 'org.obiba.datashield:ds4j-r:2.0.0'
-    implementation 'com.github.docker-java:docker-java:3.3.4'
-    implementation 'com.github.docker-java:docker-java-transport-zerodep:3.3.4'
-    implementation 'net.logstash.logback:logstash-logback-encoder:7.2'
-    implementation 'org.apache.parquet:parquet-hadoop:1.12.3'
+    implementation 'org.obiba.datashield:ds4j-core:2.1.0'
+    implementation 'org.obiba.datashield:ds4j-r:2.1.0'
+    implementation 'com.github.docker-java:docker-java:3.3.6'
+    implementation 'com.github.docker-java:docker-java-transport-zerodep:3.3.6'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+    implementation 'org.apache.parquet:parquet-hadoop:1.13.1'
     implementation 'org.apache.hadoop:hadoop-client:3.3.6'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
 
     //Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips
     //https://github.com/docker-java/docker-java/issues/1876 -->
-    implementation 'com.kohlschutter.junixsocket:junixsocket-common:2.3.3'
-    implementation 'com.kohlschutter.junixsocket:junixsocket-native-common:2.3.3'
+    implementation 'com.kohlschutter.junixsocket:junixsocket-common:2.9.0'
+    implementation 'com.kohlschutter.junixsocket:junixsocket-native-common:2.9.0'
 
     //test outside spring
     testImplementation 'com.c4-soft.springaddons:spring-security-oauth2-test-webmvc-addons:4.5.1'
