@@ -29,6 +29,9 @@ To prevent all the questions:
 - copy the `dev.dist.env` to `.env`
 - fill in some or all parts
 - toggle the `interactive` to `n` or `y` to let the script wait for manual checks.
+- Specify tests you want to skip by adding them to the SKIP_TESTS in the .env file.
+Specify the name of the R script to skip without the .R extension, separated by 
+commas with no spaces. Eg: SKIP_TESTS = upload-resource,xenon-mediate
 
 ### CICD 
 - Note CICD only runs test as admin as we cannot connect to an OIDC account.
