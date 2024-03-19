@@ -14,6 +14,7 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.RestartPolicy;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
@@ -158,7 +159,10 @@ public class DockerService {
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       cmd.withExposedPorts(exposed)
-          .withHostConfig(new HostConfig().withPortBindings(portBindings))
+          .withHostConfig(
+              new HostConfig()
+                  .withPortBindings(portBindings)
+                  .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
           .withName(profileConfig.getName())
           .withEnv("DEBUG=FALSE")
           .exec();
