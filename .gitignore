@@ -10,6 +10,9 @@ dist
 ### STORAGE ###
 data/user-*
 data/system
+# Ignore all projects but life-cycle
+data/shared-*
+!data/shared-lifecycle
 
 HELP.md
 target/

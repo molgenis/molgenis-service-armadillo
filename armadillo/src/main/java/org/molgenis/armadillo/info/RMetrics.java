@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class RMetrics {
 
   @Bean
-  MeterBinder rProcesses(ProfileService profileService, RProcessEndpoint processes) {
+  MeterBinder rProcesses(ProfileService profileService, RProcessEndpoint rProcessEndpoint) {
 
     return registry ->
         runAsSystem(
@@ -24,7 +24,7 @@ public class RMetrics {
                         environment ->
                             Gauge.builder(
                                     "rserve.processes.current",
-                                    () -> processes.countRServeProcesses(environment))
+                                    () -> rProcessEndpoint.countRServeProcesses(environment))
                                 .tag("environment", environment)
                                 .description(
                                     "Current number of RServe processes on the R environment")
