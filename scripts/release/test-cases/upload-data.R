@@ -34,9 +34,6 @@ upload_test_data <- function(project, dest, skip_tests) {
   cli_alert_info("Reading parquet files for survival variables")
   veteran <- read_parquet_with_message("survival/veteran", dest)
 
-  #     cli_alert_info("Logging in as admin user")
-  #     armadillo.login_basic(armadillo_url, "admin", admin_pwd)
-
   cli_alert_info("Uploading survival test table")
   armadillo.upload_table(project, "survival", veteran)
   rm(veteran)
