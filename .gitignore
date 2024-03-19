@@ -55,5 +55,5 @@ build/
 /application.properties
 .Rproj.user
 
-# Rstudio
-molgenis-service-armadillo.Rproj
+# R files
+.Rhistory
