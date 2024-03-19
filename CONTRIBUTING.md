@@ -30,9 +30,42 @@ As we now have the option to download the logfile from the application we need t
 
 ## Running tests
 
-```
+```bash
 ./gradlew test
 ```
+
+## Upgrade plugins
+
+Use the commands listed below.
+
+```bash
+./gradlew useLatestVersions
+./gradlew useLatestVersionsCheck
+```
+
+Some plugins need manually editing the build files.
+
+To help find the right `build.gradle` use the command below with your keyword.
+
+```bash
+find . -type f -name "build.gradle" -exec echo {} \; -exec grep YOUR_KEY_WORD {}  \;
+```
+
+## Upgrading gradle
+
+```bash
+./gradlew wrapper --gradle-version 8.6
+```
+
+## Check for updates
+
+To get a list of new dependencies run
+
+```bash
+./gradlew dependencyUpdates
+```
+
+## Tools
 
 We use intellij to develop
 * To run or debug in intellij, right click on armadillo/src/main/java/org.molgenis.armdadillo/ArmadilloServiceAppliction and choose 'Run/Debug Armadillo...'
