@@ -25,7 +25,7 @@ return_list_without_empty <- function(to_empty_list) {
   return(to_empty_list[to_empty_list != ''])
 }
 
-create_profile <- function(profile_name, key, auth_type) {
+create_profile <- function(profile_name, key, auth_type, profile_defaults) {
   if (profile_name %in% profile_defaults$name) {
     cli_alert_info(sprintf("Creating profile: %s", profile_name))
     profile_default <- profile_defaults[profile_defaults$name == profile_name,]
@@ -67,10 +67,10 @@ generate_random_project_seed <- function(current_project_seeds) {
   }
 }
 
-create_profile_if_not_available <- function(profile_name, available_profiles, key, auth_type) {
+create_profile_if_not_available <- function(profile_name, available_profiles, key, auth_type, profile_defaults) {
   if (!profile_name %in% available_profiles) {
     cli_alert_info(sprintf("Unable to locate profile %s, attempting to create.", profile_name))
-    create_profile(profile_name, key, auth_type)
+    create_profile(profile_name, key, auth_type, profile_defaults)
   }
   start_profile_if_not_running(profile_name, key, auth_type)
 }
@@ -98,7 +98,7 @@ start_profile <- function(profile_name, key, auth_type) {
 }
 
 
-setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user, interactive) {
+setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user, interactive, profile_defaults) {
   test_name <- "setup-profiles"
   if (do_skip_test(test_name, skip_tests)) {
     return()
@@ -110,7 +110,7 @@ setup_profiles <- function(token, auth_type, url, as_docker_container, skip_test
   cli_alert_info("Checking if profile is prepared for all tests")
 
   if (!as_docker_container) {
-    create_profile_if_not_available(profile, profiles$available, token, auth_type)
+    create_profile_if_not_available(profile, profiles$available, token, auth_type, profile_defaults)
   }
   profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type, url, user)
   if (!as_docker_container) {

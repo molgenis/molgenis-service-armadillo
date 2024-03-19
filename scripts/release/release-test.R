@@ -62,7 +62,7 @@ token <- set_admin_or_get_token(admin_pwd = test_config$admin_pwd, url = test_co
 
 cli_h2("Configuring profiles")
 source("test-cases/setup-profiles.R")
-profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile, user = test_config$user, interactive = test_config$interactive)
+profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = test_config$profile, user = test_config$user, interactive = test_config$interactive, profile_defaults = test_config$profile_defaults)
 
 cli_h1("Starting release test")
 source("lib/release-test-info.R")
