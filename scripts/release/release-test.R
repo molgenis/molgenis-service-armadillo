@@ -79,7 +79,7 @@ cli_h2("Creating a test project")
 source("test-cases/create-test-project.R")
 create_test_project(target_project_name = project1, skip_tests = test_config$skip_tests)
 
-cli_h2("Uploading test data") # Add option for survival data?
+cli_h2("Uploading test data")
 source("test-cases/upload-data.R")
 upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 

@@ -31,8 +31,10 @@ upload_test_data <- function(project, dest, skip_tests) {
   armadillo.upload_table(project, "1_1-outcome-1_0", yearlyrep)
   cli_alert_success("Uploaded files into outcome")
 
+  if (!any(skip_tests %in% test_name)) {
   cli_alert_info("Reading parquet files for survival variables")
   veteran <- read_parquet_with_message("survival/veteran", dest)
+  }
 
   cli_alert_info("Uploading survival test table")
   armadillo.upload_table(project, "survival", veteran)
