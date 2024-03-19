@@ -54,7 +54,7 @@ download_tables(dest = test_config$dest, service_location = test_config$service_
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
-prepare_resources(rda_dir = test_config$rda_dir, skip_tests = test_config$skip_tests)
+prepare_resources(resource_path = test_config$rda_dir, skip_tests = test_config$skip_tests)
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
