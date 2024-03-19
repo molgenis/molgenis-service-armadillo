@@ -117,7 +117,7 @@ check_assigning(project = project1, folder = "2_1-core-1_0", table = "nonrep", o
 
 cli_h2("Testing resources as a researcher")
 source("test-cases/verify-resources.R")
-verify_resources(project = project1, resource_path = "ewas/GSE66351_1", ADMIN_MODE = test_config$ADMIN_MODE, profile_info = profile_info, skip_tests = test_config$skip_tests)
+verify_resources(project = project1, resource_path = "ewas/GSE66351_1", ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, skip_tests = test_config$skip_tests)
 
 cli_h2("Verifying xenon packages")
 cli_alert_info("Verifying dsBase")
