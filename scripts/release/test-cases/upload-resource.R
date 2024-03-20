@@ -31,7 +31,7 @@ spin_till_done <- function(spinner) {
   }
 }
 
-upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests) {
+upload_resource <- function(project, rda_dir, url, token, folder, file_name, resource_name, auth_type, skip_tests) {
   test_name <- "upload-resource"
   if (do_skip_test(test_name, skip_tests)) {
     return()
@@ -39,7 +39,7 @@ upload_resource <- function(project, rda_dir, url, token, auth_type, skip_tests)
   rda_file_body <- upload_file(rda_dir)
   cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
   system.time({
-    post_resource_to_api(project, token, auth_type, rda_file_body, "ewas", "gse66351_1.rda", url)
+    post_resource_to_api(project, token, auth_type, rda_file_body, folder, file_name, url)
   })
   cli_alert_success(sprintf("%s passed!", test_name))
 }
