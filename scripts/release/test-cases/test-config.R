@@ -136,31 +136,31 @@ configure_test <- function() {
   default_parquet_path <- add_slash_if_not_added(default_parquet_path)
 
   rda_dir <- file.path(test_file_path, "gse66351_1.rda")
-  rda_url = "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
+  rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
-  
+
   exposome_ref <- tribble(
-    ~path, ~url,
-    file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv",
-    file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv",
-    file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv",
-    file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata"
+    ~file_name, ~path, ~url, ~object_name, ~format,
+    "exposures.csv", file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+    "description.csv", file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+    "phenotypes.csv", file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+    "exposomeSet.RData", file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
   )
 
   cli_alert_success(sprintf("%s passed!", test_name))
 
   # default profile settings in case a profile is missing
-      profile_defaults = data.frame(
-        name = c("xenon", "rock"),
-        container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
-        port = c("", ""),
-        # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
-        # Not adding dsBase since that is always(?) required
-        whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
-        blacklist = c("", "")
-      )
-      
-    options(timeout=300)
+  profile_defaults <- data.frame(
+    name = c("xenon", "rock"),
+    container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
+    port = c("", ""),
+    # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
+    # Not adding dsBase since that is always(?) required
+    whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
+    blacklist = c("", "")
+  )
+
+  options(timeout = 300)
 
   return(list(
     skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
