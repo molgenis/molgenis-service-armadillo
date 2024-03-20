@@ -1,34 +1,34 @@
 generate_project_port <- function(current_project_ports) {
   starting_port <- 6312
   while (starting_port %in% current_project_ports) {
-    starting_port = starting_port + 1
+    starting_port <- starting_port + 1
   }
   return(starting_port)
 }
 
 obtain_existing_profile_information <- function(key, auth_type) {
-  responses <- get_from_api_with_header('ds-profiles', key, auth_type)
-  response_df <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c("name", "container", "port", "seed", "online"))))
+  responses <- get_from_api_with_header("ds-profiles", key, auth_type)
+  response_df <- data.frame(matrix(ncol = 5, nrow = 0, dimnames = list(NULL, c("name", "container", "port", "seed", "online"))))
   for (response in responses) {
-    if("datashield.seed" %in% names(response$options)) {
+    if ("datashield.seed" %in% names(response$options)) {
       datashield_seed <- response$options$datashield.seed
     } else {
       datashield_seed <- NA
     }
 
-    response_df[nrow(response_df) + 1,] = c(response$name, response$image, response$port, datashield_seed, response$container$status)
+    response_df[nrow(response_df) + 1, ] <- c(response$name, response$image, response$port, datashield_seed, response$container$status)
   }
   return(response_df)
 }
 
 return_list_without_empty <- function(to_empty_list) {
-  return(to_empty_list[to_empty_list != ''])
+  return(to_empty_list[to_empty_list != ""])
 }
 
 create_profile <- function(profile_name, key, auth_type, profile_defaults) {
   if (profile_name %in% profile_defaults$name) {
     cli_alert_info(sprintf("Creating profile: %s", profile_name))
-    profile_default <- profile_defaults[profile_defaults$name == profile_name,]
+    profile_default <- profile_defaults[profile_defaults$name == profile_name, ]
     current_profiles <- obtain_existing_profile_information(key, auth_type)
     new_profile_seed <- generate_random_project_seed(current_profiles$seed)
     whitelist <- as.list(stri_split_fixed(paste("dsBase", profile_default$whitelist, sep = ","), ",")[[1]])
@@ -46,7 +46,7 @@ create_profile <- function(profile_name, key, auth_type, profile_defaults) {
       functionBlacklist = return_list_without_empty(blacklist),
       options = list(datashield.seed = new_profile_seed)
     )
-    response <- put_to_api('ds-profiles', key, auth_type, body_args = args)
+    response <- put_to_api("ds-profiles", key, auth_type, body_args = args)
     if (response$status_code == 204) {
       cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
       start_profile(profile_name, key, auth_type)
@@ -59,7 +59,7 @@ create_profile <- function(profile_name, key, auth_type, profile_defaults) {
 }
 
 generate_random_project_seed <- function(current_project_seeds) {
-  random_seed <- round(runif(1, min = 100000000, max=999999999))
+  random_seed <- round(runif(1, min = 100000000, max = 999999999))
   if (!random_seed %in% current_project_seeds) {
     return(random_seed)
   } else {
