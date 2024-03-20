@@ -34,7 +34,7 @@ verify_assign_expression <- function() {
   )
 }
 
-verify_resources <- function(project, resource_path, ADMIN_MODE, profile_info, skip_tests) {
+verify_resources <- function(project, resource_path, ADMIN_MODE, profile, profile_info, skip_tests) {
   test_name <- "verify-resources"
   if (do_skip_test(test_name, skip_tests)) {
     return()
