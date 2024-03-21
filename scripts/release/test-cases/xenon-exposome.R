@@ -203,6 +203,14 @@ resolve_exposome_resources <- function(resource_names) {
     map(~ datashield.assign.expr(conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }
 
+exposome_ref <- tribble(
+  ~file_name, ~path, ~url, ~object_name, ~format,
+  "exposures.csv", file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.csv", file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.csv", file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposomeSet.RData", file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
+)
+
 run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, exposome_ref, skip_tests,
                                user, admin_pwd, interactive, update_auto) {
   test_name <- "xenon-exposome"
