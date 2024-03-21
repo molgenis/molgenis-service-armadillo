@@ -164,10 +164,10 @@ verify_exposure_cor_dim <- function(ds_function_name) {
 
 exposome_ref <- tribble(
   ~file_name, ~path, ~url, ~object_name, ~format,
-  "exposures.csv", file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
-  "description.csv", file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
-  "phenotypes.csv", file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
-  "exposomeSet.RData", file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
+  "exposures.csv", file.path(test_config$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.csv", file.path(test_config$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.csv", file.path(test_config$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposomeSet.RData", file.path(test_config$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
 )
 
 run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, exposome_ref, skip_tests,
@@ -182,19 +182,14 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
   } else {
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
-
-    download_many_sources(exposome_ref = exposome_ref, skip_tests = NULL)
-
-    upload_many_sources(project = project, exposome_ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
-
-    exposome_resources <- create_many_resources(exposome_ref = exposome_ref, project = project, url = url, skip_tests = NULL)
-
-    upload_many_resources(project = project, resource = exposome_resources, exposome_ref = exposome_ref)
-
-    assign_many_resources(project = project, exposome_ref = exposome_ref)
-
-    resolve_exposome_resources(resource_names = c("description", "exposures", "phenotypes"))
-
+    
+    download_many_sources(ref = exposome_ref, skip_tests = NULL)
+    upload_many_sources(project = project, ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
+    exposome_resources <- create_many_resources(ref = exposome_ref, project = project, url = url, skip_tests = NULL)
+    upload_many_resources(project = project, resource = exposome_resources, ref = exposome_ref)
+    assign_many_resources(project = project, ref = exposome_ref)
+    resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
+    
     verify_load_exposome_class()
     verify_exposome_variables()
     verify_exposome_summary_names()
