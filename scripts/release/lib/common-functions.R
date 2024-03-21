@@ -231,28 +231,28 @@ download_many_sources <- function(ref, skip_tests) {
 upload_many_sources <- function(project, ref, url, token, auth_type, folder, file_name, skip_tests) {
   ref %>%
     pmap(function(path, file_name, ...) {
-      upload_resource(project = project, rda_dir = path, url = url, token = token, folder = "exposome", file_name = file_name, auth_type = auth_type, skip_tests = NULL)
+      upload_resource(project = project, rda_dir = path, url = url, token = token, folder = folder, file_name = file_name, auth_type = auth_type, skip_tests = NULL)
     })
 }
 
-create_many_resources <- function(ref, project, url, skip_tests) {
+create_many_resources <- function(ref, project, folder, url, skip_tests) {
   ref %>%
     pmap(function(object_name, format, file_name, ...) {
-      create_resource(target_project = project, url = url, folder = "exposome", format = format, file_name = file_name, resource_name = object_name, skip_tests)
+      create_resource(target_project = project, url = url, folder = folder, format = format, file_name = file_name, resource_name = object_name, skip_tests)
     })
 }
 
-upload_many_resources <- function(project, resource, ref) {
+upload_many_resources <- function(project, resource, folder, ref) {
   list(resource = resource, name = ref$object_name) %>%
     pmap(function(resource, name) {
-      armadillo.upload_resource(project = project, folder = "exposome", resource = resource, name = name)
+      armadillo.upload_resource(project = project, folder = folder, resource = resource, name = name)
     })
 }
 
-assign_many_resources <- function(project, ref) {
+assign_many_resources <- function(project, folder, ref) {
   ref$object_name %>%
     map(function(x) {
-      exp_resource_path <- paste0(project, "/exposome/", x)
+      exp_resource_path <- paste0(project, "/", folder, "/", x)
       datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
     })
 }
