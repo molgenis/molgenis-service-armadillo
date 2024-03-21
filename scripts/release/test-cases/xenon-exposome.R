@@ -162,46 +162,13 @@ verify_exposure_cor_dim <- function(ds_function_name) {
   )
 }
 
-download_exposome_sources <- function(exposome_ref, skip_tests) {
-  exposome_ref %>%
-    pmap(function(path, url, ...) {
-      prepare_resources(resource_path = path, url = url, skip_tests = skip_tests)
-    })
-}
-
-upload_exposome_sources <- function(project, exposome_ref, url, token, auth_type, folder, file_name, skip_tests) {
-  exposome_ref %>%
-    pmap(function(path, file_name, ...) {
-      upload_resource(project = project, rda_dir = path, url = url, token = token, folder = "exposome", file_name = file_name, auth_type = auth_type, skip_tests = NULL)
-    })
-}
-
-create_exposome_resources <- function(exposome_ref, project, url, skip_tests) {
-  exposome_ref %>%
-    pmap(function(object_name, format, file_name, ...) {
-      create_resource(target_project = project, url = url, folder = "exposome", format = format, file_name = file_name, resource_name = object_name, skip_tests)
-    })
-}
-
-upload_exposome_resources <- function(project, resource, exposome_ref) {
-  list(resource = resource, name = exposome_ref$object_name) %>%
-    pmap(function(resource, name) {
-      armadillo.upload_resource(project = project, folder = "exposome", resource = resource, name = name)
-    })
-}
-
-assign_exposome_resources <- function(project, exposome_ref) {
-  exposome_ref$object_name %>%
-    map(function(x) {
-      exp_resource_path <- paste0(project, "/exposome/", x)
-      datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
-    })
-}
-
-resolve_exposome_resources <- function(resource_names) {
-  resource_names %>%
-    map(~ datashield.assign.expr(conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
-}
+exposome_ref <- tribble(
+  ~file_name, ~path, ~url, ~object_name, ~format,
+  "exposures.csv", file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.csv", file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.csv", file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposomeSet.RData", file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
+)
 
 run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, exposome_ref, skip_tests,
                                user, admin_pwd, interactive, update_auto) {
@@ -216,15 +183,15 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
   } else {
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
 
-    download_exposome_sources(exposome_ref = exposome_ref, skip_tests = NULL)
+    download_many_sources(exposome_ref = exposome_ref, skip_tests = NULL)
 
-    upload_exposome_sources(project = project, exposome_ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
+    upload_many_sources(project = project, exposome_ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
 
-    exposome_resources <- create_exposome_resources(exposome_ref = exposome_ref, project = project, url = url, skip_tests = NULL)
+    exposome_resources <- create_many_resources(exposome_ref = exposome_ref, project = project, url = url, skip_tests = NULL)
 
-    upload_exposome_resources(project = project, resource = exposome_resources, exposome_ref = exposome_ref)
+    upload_many_resources(project = project, resource = exposome_resources, exposome_ref = exposome_ref)
 
-    assign_exposome_resources(project = project, exposome_ref = exposome_ref)
+    assign_many_resources(project = project, exposome_ref = exposome_ref)
 
     resolve_exposome_resources(resource_names = c("description", "exposures", "phenotypes"))
 

@@ -89,7 +89,7 @@ upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_co
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- create_resource(target_project = "85x8b3w74h", url = test_config$armadillo_url, folder = "ewas", file_name = "gse66351_1.rda", resource_name = "GSE66351_1", format = "ExpressionSet", skip_tests = test_config$skip_tests)
+resGSE1 <- create_resource(target_project = project1, url = test_config$armadillo_url, folder = "ewas", file_name = "gse66351_1.rda", resource_name = "GSE66351_1", format = "ExpressionSet", skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
@@ -140,7 +140,7 @@ cli_alert_info("Testing dsExposome")
 source("test-cases/xenon-exposome.R")
 run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
                    ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
-                   exposome_ref = test_config$exposome_ref, skip_tests = test_config$skip_tests, 
+                   exposome_ref = exposome_ref, skip_tests = test_config$skip_tests, 
                    user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
                    update_auto = test_config$update_auto)
 
