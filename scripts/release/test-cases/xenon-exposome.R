@@ -170,7 +170,7 @@ exposome_ref <- tribble(
   "exposomeSet.RData", file.path(test_config$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
 )
 
-run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, exposome_ref, skip_tests,
+run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, ref, skip_tests,
                                user, admin_pwd, interactive, update_auto) {
   test_name <- "xenon-exposome"
   if (do_skip_test(test_name, skip_tests)) {
@@ -184,10 +184,10 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
     
     download_many_sources(ref = exposome_ref, skip_tests = NULL)
-    upload_many_sources(project = project, ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
-    exposome_resources <- create_many_resources(ref = exposome_ref, project = project, url = url, skip_tests = NULL)
-    upload_many_resources(project = project, resource = exposome_resources, ref = exposome_ref)
-    assign_many_resources(project = project, ref = exposome_ref)
+    upload_many_sources(project = project, ref = exposome_ref, url = url, folder = "exposome", token = token, auth_type = auth_type, skip_tests = NULL)
+    exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome", project = project, url = url, skip_tests = NULL)
+    upload_many_resources(project = project, resource = exposome_resources, folder = "exposome", ref = exposome_ref)
+    assign_many_resources(project = project, folder = "exposome", ref = exposome_ref)
     resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
     
     verify_load_exposome_class()
@@ -208,4 +208,5 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     # verify_pca_class() See above
     # verify_pca_plot_class() See above
   }
+  cli_alert_success(sprintf("%s passed!", test_name))
 }
