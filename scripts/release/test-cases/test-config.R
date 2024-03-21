@@ -139,14 +139,6 @@ configure_test <- function() {
   rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
 
-  exposome_ref <- tribble(
-    ~file_name, ~path, ~url, ~object_name, ~format,
-    "exposures.csv", file.path(test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
-    "description.csv", file.path(test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
-    "phenotypes.csv", file.path(test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
-    "exposomeSet.RData", file.path(test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
-  )
-
   cli_alert_success(sprintf("%s passed!", test_name))
 
   # default profile settings in case a profile is missing
@@ -167,6 +159,6 @@ configure_test <- function() {
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
     ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
-    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url, exposome_ref = exposome_ref
+    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
   ))
 }
