@@ -19,26 +19,57 @@ builder$append(
 logindata <- builder$build()
 conns <- DSI::datashield.login(logins = logindata, assign = F)
 
-gwas_path <- "/Users/tcadman/Library/Mobile Documents/com~apple~CloudDocs/work/repos/molgenis-service-armadillo/data/testing/chr1.gds"
-gwas_1 <- "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/chr1_maf_filtered_small.vcf.gz?raw=true"
+
+# 
+# 
+# set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
+# 
+
+####################################################################################################
+# Get resources  
+####################################################################################################
+
+## ---- GWAS ---------------------------------------------------------------------------------------
+gwas_arm_path <- "/Users/tcadman/Library/Mobile Documents/com~apple~CloudDocs/work/repos/molgenis-service-armadillo/data/testing/chr1.gds"
+gwas_source_path <- "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/chr1_maf_filtered_small.vcf.gz?raw=true"
+
+prepare_resources(resource_path = gwas_arm_path, url = gwas_source_path, skip_tests = NULL)
+
+upload_resource(
+  project = "ybsya5rgb4", rda_dir = gwas_arm_path, url = test_config$armadillo_url, 
+  token = demo_token, folder = "omics", file_name = "chr1.gds", 
+  auth_type = test_config$auth_type, skip_tests = NULL)
+
+omics_resources <- create_resource(
+  target_project = "ybsya5rgb4", url = test_config$armadillo_url, 
+  folder = "omics", file_name = "chr1.gds", resource_name = "chr1", 
+  format = "VCF2GDS", skip_tests = NULL)
+
+armadillo.upload_resource(project = "ybsya5rgb4", folder = "omics", resource = omics_resources, name = "chr1")
+# armadillo.delete_resource(project = "ybsya5rgb4", folder = "omics", name = "chr1")
+
+## ---- EGA phenotypes -----------------------------------------------------------------------------
+ega_arm_path <- "/Users/tcadman/Library/Mobile Documents/com~apple~CloudDocs/work/repos/molgenis-service-armadillo/data/testing/ega_phenotypes"
+ega_source_path <- "https://opal-demo.obiba.org/ui/index.html#!project;name=GWAS;tab=RESOURCES;path=GWAS.ega_phenotypes:~:text=URL-,https%3A//github.com/isglobal%2Dbrge/brge_data_large/blob/master/inst/extdata/GWAS_example/ega_synthetic_data_phenotypes_treated_with_nas.tsv%3Fraw%3Dtrue,-Format"
+
+prepare_resources(resource_path = ega_arm_path, url = ega_source_path, skip_tests = NULL)
+
+upload_resource(
+  project = "ybsya5rgb4", rda_dir = ega_arm_path, url = test_config$armadillo_url, 
+  token = demo_token, folder = "omics", file_name = "ega_phenotypes.tsv", 
+  auth_type = test_config$auth_type, skip_tests = NULL)
+
+DSI::datashield.assign.resource(conns, "pheno", "GWAS.ega_phenotypes")
+DSI::datashield.assign.expr(conns = conns, symbol = "pheno_object",
+                            expr = quote(as.resource.data.frame(pheno)))
 
 
-set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
-
-prepare_resources(resource_path = gwas_path, url = gwas_1, skip_tests = NULL)
-upload_resource(project = "ybsya5rgb4", rda_dir = gwas_path, url = test_config$armadillo_url, token = demo_token, folder = "omics", file_name = "chr1.gds", auth_type = test_config$auth_type, skip_tests = NULL)
-
-test_chr <- create_resource(target_project = "ybsya5rgb4", url = test_config$armadillo_url, folder = "omics", file_name = "chr1.gds", resource_name = "chr1", format = "VCF2GDS", skip_tests = NULL)
-
-armadillo.upload_resource(project = "ybsya5rgb4", folder = "omics", resource = test_chr, name = "chr1")
-
-exp_resource_path <- paste0("ybsya5rgb4", "/omics/", "chr1")
-datashield.assign.resource(conns, resource = exp_resource_path, symbol = "chr1")
+datashield.assign.resource(conns, resource = "ybsya5rgb4/omics/chr1", symbol = "chr1")
 
 DSI::datashield.assign.expr(conns = conns, symbol = "gds1_object",expr = as.symbol(paste0("as.resource.object(chr1)")))
 
 
-
+armadillo.load_resource()
 
 
 upload_exposome_sources(project = project, exposome_ref = exposome_ref, url = url, token = token, auth_type = auth_type, skip_tests = NULL)
