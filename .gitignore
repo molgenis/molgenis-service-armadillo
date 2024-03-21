@@ -58,7 +58,3 @@ build/
 /application.yaml
 /application.properties
 .Rproj.user
-
-# R files
-.Rhistory
-.RData
