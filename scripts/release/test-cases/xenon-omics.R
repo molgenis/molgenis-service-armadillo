@@ -40,11 +40,8 @@ run_omics_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile,
   } else if (!"resourcer" %in% profile_info$packageWhitelist) {
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
   } else {
-    set_dm_permissions(
-      user = user, admin_pwd = admin_pwd, required_projects = list(project),
-      interactive = interactive, update_auto = update_auto, url = url
-    )
-
+    set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
+    
     download_many_sources(ref = omics_ref, skip_tests = NULL)
 
     upload_many_sources(
