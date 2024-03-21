@@ -89,7 +89,7 @@ upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_co
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- create_resource(target_project = "85x8b3w74h", url = test_config$armadillo_url, folder = "ewas", file_name = "gse66351_1.rda", resource_name = "GSE66351_1", format = "ExpressionSet", skip_tests = test_config$skip_tests)
+resGSE1 <- create_resource(target_project = project1, url = test_config$armadillo_url, folder = "ewas", file_name = "gse66351_1.rda", resource_name = "GSE66351_1", format = "ExpressionSet", skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
