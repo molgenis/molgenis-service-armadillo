@@ -223,7 +223,7 @@ public class LocalStorageService implements StorageService {
     Path objectPath = getObjectPathSafely(bucketName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));
+          format("Object '%s' doesn't exist in bucket '%s'", objectName, bucketName));
     }
     return objectPath;
   }
