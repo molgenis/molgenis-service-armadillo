@@ -221,36 +221,36 @@ set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, 
   }
 }
 
-download_many_sources <- function(exposome_ref, skip_tests) {
-  exposome_ref %>%
+download_many_sources <- function(ref, skip_tests) {
+  ref %>%
     pmap(function(path, url, ...) {
       prepare_resources(resource_path = path, url = url, skip_tests = skip_tests)
     })
 }
 
-upload_many_sources <- function(project, exposome_ref, url, token, auth_type, folder, file_name, skip_tests) {
-  exposome_ref %>%
+upload_many_sources <- function(project, ref, url, token, auth_type, folder, file_name, skip_tests) {
+  ref %>%
     pmap(function(path, file_name, ...) {
       upload_resource(project = project, rda_dir = path, url = url, token = token, folder = "exposome", file_name = file_name, auth_type = auth_type, skip_tests = NULL)
     })
 }
 
-create_many_resources <- function(exposome_ref, project, url, skip_tests) {
-  exposome_ref %>%
+create_many_resources <- function(ref, project, url, skip_tests) {
+  ref %>%
     pmap(function(object_name, format, file_name, ...) {
       create_resource(target_project = project, url = url, folder = "exposome", format = format, file_name = file_name, resource_name = object_name, skip_tests)
     })
 }
 
-upload_many_resources <- function(project, resource, exposome_ref) {
-  list(resource = resource, name = exposome_ref$object_name) %>%
+upload_many_resources <- function(project, resource, ref) {
+  list(resource = resource, name = ref$object_name) %>%
     pmap(function(resource, name) {
       armadillo.upload_resource(project = project, folder = "exposome", resource = resource, name = name)
     })
 }
 
-assign_many_resources <- function(project, exposome_ref) {
-  exposome_ref$object_name %>%
+assign_many_resources <- function(project, ref) {
+  ref$object_name %>%
     map(function(x) {
       exp_resource_path <- paste0(project, "/exposome/", x)
       datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
