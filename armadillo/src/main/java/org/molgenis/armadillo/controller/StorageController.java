@@ -353,4 +353,23 @@ public class StorageController {
       throw new FileProcessingException();
     }
   }
+
+  @Operation(summary = "Retrieve columns of parquet file")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Preview success"),
+        @ApiResponse(responseCode = "404", description = "Object does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(
+      path = "/projects/{project}/objects/{object}/variables",
+      produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<String> getVariables(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> storage.getVariables(project, object),
+        principal,
+        PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
 }

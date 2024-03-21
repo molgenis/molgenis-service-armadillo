@@ -287,7 +287,7 @@ class LocalStorageServiceTest {
     when(objectPathMock.toString()).thenReturn(bucket + " " + object);
     when(Files.size(objectPathMock)).thenReturn(10485760L);
     when(ParquetUtils.retrieveDimensions(objectPathMock)).thenReturn(objectDimensions);
-    FileInfo expected = new FileInfo(object, "10 MB", "232000", "120");
+    FileInfo expected = new FileInfo(object, "10 MB", "232000", "120", null, new String[] {});
     assertEquals(expected, localStorageService.getInfo(bucket, object));
     mockedPaths.close();
     mockedFiles.close();
@@ -315,7 +315,7 @@ class LocalStorageServiceTest {
     when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
     when(objectPathMock.toString()).thenReturn(bucket + " " + object);
     when(Files.size(objectPathMock)).thenReturn(10737418240L);
-    FileInfo expected = new FileInfo(object, "10 GB", null, null);
+    FileInfo expected = new FileInfo(object, "10 GB", null, null, null, new String[] {});
     assertEquals(expected, localStorageService.getInfo(bucket, object));
     mockedPaths.close();
     mockedFiles.close();

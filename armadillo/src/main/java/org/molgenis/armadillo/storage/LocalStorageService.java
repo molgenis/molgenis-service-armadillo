@@ -2,7 +2,7 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -186,17 +186,47 @@ public class LocalStorageService implements StorageService {
       String objectPathString = objectPath.toString().toLowerCase();
       long fileSize = Files.size(objectPath);
       String fileSizeWithUnit = getFileSizeInUnit(fileSize);
-      if (objectPathString.endsWith(".parquet")) {
+      if (objectPathString.endsWith(PARQUET)) {
         Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
         return new FileInfo(
             objectName,
             fileSizeWithUnit,
             tableDimensions.get("rows"),
-            tableDimensions.get("columns"));
+            tableDimensions.get("columns"),
+            null,
+            new String[] {});
+      } else if (objectPathString.endsWith(LINK_FILE)) {
+        InputStream armadilloLinkFileStream = load(bucketName, objectName);
+        ArmadilloLinkFile linkFile =
+            new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
+        Path srcObjectPath =
+            getPathIfObjectExists(
+                SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+        Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(srcObjectPath);
+        return new FileInfo(
+            objectName,
+            fileSizeWithUnit,
+            tableDimensions.get("rows"),
+            tableDimensions.get("columns"),
+            linkFile.getSourceProject() + "/" + linkFile.getSourceObject(),
+            linkFile.getVariables().split(","));
       } else {
         return FileInfo.of(objectName, fileSizeWithUnit);
       }
     } catch (IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public List<String> getVariables(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      return ParquetUtils.getColumns(objectPath);
+    } catch (Exception e) {
       throw new StorageException(e);
     }
   }

@@ -462,7 +462,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @Test
   void getObjectInfo() throws Exception {
     when(storage.getInfo("lifecycle", "test.parquet"))
-        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30"));
+        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30", null, new String[] {}));
 
     mockMvc
         .perform(get("/storage/projects/lifecycle/objects/test.parquet/info").session(session))

@@ -283,6 +283,12 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
+  public List<String> getVariables(String project, String object) {
+    throwIfUnknown(project, object);
+    return storageService.getVariables(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
   public FileInfo getInfo(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getInfo(SHARED_PREFIX + project, object);
