@@ -140,7 +140,15 @@ cli_alert_info("Testing dsExposome")
 source("test-cases/xenon-exposome.R")
 run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
                    ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
-                   exposome_ref = exposome_ref, skip_tests = test_config$skip_tests, 
+                   ref = exposome_ref, skip_tests = test_config$skip_tests, 
+                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
+                   update_auto = test_config$update_auto)
+
+cli_alert_info("Testing dsOmics")
+source("test-cases/xenon-omics.R")
+run_omics_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
+                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
+                   ref = omics_ref, skip_tests = test_config$skip_tests, 
                    user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
                    update_auto = test_config$update_auto)
 
