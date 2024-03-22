@@ -56,19 +56,19 @@ verify_family_names <- function() {
   )
 }
 
-verify_table_missings_names <- function(misssing_summary) {
+verify_table_missings_names <- function(missing_summary) {
   ds_function_name <- "ds.tableMissings"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
   verify_output(
-    function_name = ds_function_name, object = names(misssing_summary),
+    function_name = ds_function_name, object = names(missing_summary),
     expected = c("pooled", "set", "output"), fail_msg = list_names_msg
   )
 }
 
-verify_plot_missings_names <- function(misssing_summary) {
+verify_plot_missings_names <- function(missing_summary) {
   ds_function_name <- "ds.plotMissings"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  missing_plot <- ds.plotMissings(misssing_summary)
+  missing_plot <- ds.plotMissings(missing_summary)
   verify_output(
     function_name = ds_function_name, object = names(missing_plot$pooled),
     expected = c(
@@ -194,9 +194,9 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     verify_exposome_variables()
     verify_exposome_summary_names()
     verify_family_names()
-    misssing_summary <- ds.tableMissings("exposome_object", set = "exposures")
-    verify_table_missings_names(misssing_summary)
-    verify_plot_missings_names(misssing_summary)
+    missing_summary <- ds.tableMissings("exposome_object", set = "exposures")
+    verify_table_missings_names(missing_summary)
+    verify_plot_missings_names(missing_summary)
     verify_normality_test_names()
     verify_exposure_histogram_names()
     verify_imputation()
