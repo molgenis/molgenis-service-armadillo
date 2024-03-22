@@ -175,7 +175,6 @@ get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
   return(content(response))
 }
 
-
 # make authentication header for api calls, basic or bearer based on type
 get_auth_header <- function(type, key) {
   header_content <- ""
@@ -193,7 +192,6 @@ create_bearer_header <- function(token) {
   return(paste0("Bearer ", token))
 }
 
-
 print_list <- function(list) {
   vals_to_print <- cli_ul()
   for (i in 1:length(list)) {
@@ -201,4 +199,65 @@ print_list <- function(list) {
     cli_li(val)
   }
   cli_end(vals_to_print)
+}
+
+verify_output <- function(function_name = NULL, object = NULL, expected = NULL, fail_msg = NULL){
+  if(identical(object, expected)) {
+    cli_alert_success(sprintf("%s passed", function_name))
+  } else {
+    cli_alert_danger(sprintf("%s failed", function_name))
+    exit_test(sprintf("%s %s", function_name, message))
+  }
+  
+}
+
+set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
+  if (update_auto == "y") {
+    set_user(user, admin_pwd, T, required_projects, url)
+    cli_alert_info("Admin reset")
+  } else {
+    cli_alert_info("Make your account admin again")
+    wait_for_input(interactive)
+  }
+}
+
+download_many_sources <- function(ref, skip_tests) {
+  ref %>%
+    pmap(function(path, url, ...) {
+      prepare_resources(resource_path = path, url = url, skip_tests = skip_tests)
+    })
+}
+
+upload_many_sources <- function(project, ref, url, token, auth_type, folder, file_name, skip_tests) {
+  ref %>%
+    pmap(function(path, file_name, ...) {
+      upload_resource(project = project, rda_dir = path, url = url, token = token, folder = folder, file_name = file_name, auth_type = auth_type, skip_tests = NULL)
+    })
+}
+
+create_many_resources <- function(ref, project, folder, url, skip_tests) {
+  ref %>%
+    pmap(function(object_name, format, file_name, ...) {
+      create_resource(target_project = project, url = url, folder = folder, format = format, file_name = file_name, resource_name = object_name, skip_tests)
+    })
+}
+
+upload_many_resources <- function(project, resource, folder, ref) {
+  list(resource = resource, name = ref$object_name) %>%
+    pmap(function(resource, name) {
+      armadillo.upload_resource(project = project, folder = folder, resource = resource, name = name)
+    })
+}
+
+assign_many_resources <- function(project, folder, ref) {
+  ref$object_name %>%
+    map(function(x) {
+      exp_resource_path <- paste0(project, "/", folder, "/", x)
+      datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
+    })
+}
+
+resolve_many_resources <- function(resource_names) {
+  resource_names %>%
+    map(~ datashield.assign.expr(conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }

@@ -1,3 +1,5 @@
 .env
 Rplots.pdf
 molgenis-service-armadillo.Rproj
+.RData
+.Rhistory

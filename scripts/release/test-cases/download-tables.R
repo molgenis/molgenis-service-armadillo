@@ -1,10 +1,10 @@
-create_dir_if_not_exists <- function(directory){
+create_dir_if_not_exists <- function(directory) {
   if (!dir.exists(paste0(dest, directory))) {
     dir.create(paste0(dest, directory))
   }
 }
 
-download_test_files <- function(urls, dest){
+download_test_files <- function(urls, dest) {
   n_files <- length(urls)
   cli_progress_bar("Downloading testfiles", total = n_files)
   for (i in 1:n_files) {
@@ -13,7 +13,7 @@ download_test_files <- function(urls, dest){
     folder <- splitted[length(splitted) - 1]
     filename <- splitted[length(splitted)]
     cli_alert_info(paste0("Downloading ", filename))
-    download.file(download_url, paste0(dest, folder, "/", filename), quiet=TRUE)
+    download.file(download_url, paste0(dest, folder, "/", filename), quiet = TRUE)
     cli_progress_update()
   }
   cli_progress_done()

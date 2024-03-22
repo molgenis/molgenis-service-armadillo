@@ -54,7 +54,7 @@ download_tables(dest = test_config$dest, service_location = test_config$service_
 
 cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
-prepare_resources(rda_dir = test_config$rda_dir, skip_tests = test_config$skip_tests)
+prepare_resources(resource_path = test_config$rda_dir, url = test_config$rda_url, skip_tests = test_config$skip_tests)
 
 cli_h2("Determining whether to run with password or token")
 source("test-cases/set-admin-mode.R")
@@ -85,11 +85,11 @@ upload_test_data(project = project1, dest = test_config$default_parquet_path, sk
 
 cli_h2("Uploading resource source file")
 source("test-cases/upload-resource.R")
-upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, skip_tests = test_config$skip_tests)
+upload_resource(project = project1, rda_dir = test_config$rda_dir, url = test_config$armadillo_url, token = token, folder = "ewas", file_name = "gse66351_1.rda", auth_type = test_config$auth_type, skip_tests = test_config$skip_tests)
 
 cli_h2("Creating resource")
 source("test-cases/create-resource.R")
-resGSE1 <- create_resource(target_project = "u4mdd7wtwp", url = test_config$armadillo_url, skip_tests = test_config$skip_tests)
+resGSE1 <- create_resource(target_project = project1, url = test_config$armadillo_url, folder = "ewas", file_name = "gse66351_1.rda", resource_name = "GSE66351_1", format = "ExpressionSet", skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource file")
 armadillo.upload_resource(project = project1, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
@@ -136,6 +136,14 @@ cli_alert_info("Testing dsMTL")
 source("test-cases/xenon-mtl.R")
 verify_ds_mtl(skip_tests = test_config$skip_tests)
 
+cli_alert_info("Testing dsExposome")
+source("test-cases/xenon-exposome.R")
+run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
+                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
+                   ref = exposome_ref, skip_tests = test_config$skip_tests, 
+                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
+                   update_auto = test_config$update_auto)
+
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") # Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
@@ -143,7 +151,6 @@ datashield.logout(conns)
 
 cli_h2("Testing basic authentification")
 source("test-cases/basic-auth.R")
-print(test_config$dest)
 verify_basic_auth(url = test_config$armadillo_url, admin_pwd = test_config$admin_pwd, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 
 cli_alert_info("Testing done")
