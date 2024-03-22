@@ -10,7 +10,6 @@ post_resource_to_api <- function(project, key, auth_type, file, folder, name, ur
   ))
 
   # Run spinner while waiting for response
-  ansi_with_hidden_cursor(run_spinner(spinner))
   # Response will come when ready
   response <- value(api_call)
   # Set do_run_spinner to false, causing the spinner to stop running, see spin_till_done method
