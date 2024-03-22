@@ -1,5 +1,6 @@
 library(dsOmicsClient)
 library(purrr)
+library(tibble)
 gwas_prepare_data <- function() {
   lapply(1:2, function(x) {
     ds.GenotypeData(

@@ -34,7 +34,8 @@ packages <- c(
   "MolgenisArmadillo",
   "DSMolgenisArmadillo", 
   "purrr", 
-  "stringr"
+  "stringr",
+  "tibble"
 )
 
 install_requirements_from_cran <- function(packages) {

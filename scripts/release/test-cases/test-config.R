@@ -16,7 +16,7 @@ configure_test <- function() {
   show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"))
 
   cli_alert_success("Loaded other libraries:")
-  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr"))
+  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr", "tibble"))
 
   cli_alert_info("Trying to read config from '.env'")
   readRenviron(".env")
