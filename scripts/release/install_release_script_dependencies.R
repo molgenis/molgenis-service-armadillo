@@ -62,6 +62,8 @@ install_github("datashield/dsMediationClient", ref = "0.0.3")
 install_github("https://github.com/transbioZI/dsMTLClient", ref = "0.9.9")
 install_github("neelsoumya/dsSurvivalClient") # There is no version for this package
 install_github("isglobal-brge/dsExposomeClient", ref = "2.0.8")
+install_github('isglobal-brge/dsOmicsClient', ref = "1.0.18")
+
 
 # check if all packages are installed
 cli_alert_success("All packages are installed")
