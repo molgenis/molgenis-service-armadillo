@@ -29,10 +29,16 @@ public class LocalStorageService implements StorageService {
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);
     if (!dir.isDirectory()) {
-      throw new StorageException(
-          format(
-              "Unable to start LocalStorageService - %s: %s is not a directory",
-              ROOT_DIR_PROPERTY, dir.getAbsolutePath()));
+      if (!Files.exists(Path.of(rootDir))) {
+        try {
+          Files.createDirectories(Path.of(rootDir));
+        } catch (IOException e) {
+          throw new StorageException(
+              format(
+                  "Unable to start LocalStorageService - %s: %s is not a directory",
+                  ROOT_DIR_PROPERTY, dir.getAbsolutePath()));
+        }
+      }
     }
 
     this.rootDir = rootDir;
