@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h3>Properties</h3>
     <table class="table">
       <thead>
         <tr>
@@ -34,8 +35,11 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  name: "PropertiesEditor",
   data() {
     return {
       items: [
@@ -59,5 +63,5 @@ export default {
       this.editIndex = -1;
     },
   },
-};
+});
 </script>
