@@ -194,7 +194,8 @@ jobs:
             docker compose down
             docker images ls
             docker compose rm
-          - run: |
+
+      - run: |
         echo "PR number: ${CIRCLE_PULL_REQUEST##*/}"
 
       - run:
