@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2 class="mt-3">Users</h2>
+    <PropertiesEditor />
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
@@ -124,6 +125,7 @@ import SearchBar from "@/components/SearchBar.vue";
 import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import PropertiesEditor from "@/components/PropertiesEditor.vue";
 
 import { deleteUser, getUsers, putUser, getProjects } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
@@ -145,6 +147,7 @@ export default defineComponent({
     LoadingSpinner,
     SearchBar,
     Table,
+    PropertiesEditor,
   },
   setup() {
     const users: Ref<User[]> = ref([]);

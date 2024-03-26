@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class InsightService {
   public static final String AUDIT_FILE = "AUDIT_FILE";
   public static final String LOG_FILE = "LOG_FILE";
+  public static final String CONFIG_FILE = "CONFIG_FILE";
 
   private final FileService fileService;
 
@@ -32,6 +33,11 @@ public class InsightService {
     list.add(
         FileInfo.create(
             InsightServiceFiles.LOG_FILE.getKey(), InsightServiceFiles.LOG_FILE.getDisplayName()));
+    list.add(
+        FileInfo.create(
+            InsightServiceFiles.CONFIG_FILE.getKey(),
+            InsightServiceFiles.CONFIG_FILE.getDisplayName()));
+
     return list;
   }
 
@@ -48,6 +54,8 @@ public class InsightService {
   @Value("${audit.log.path:./logs/audit.log}")
   private String auditFilePath;
 
+  public static final String configFilePath = "./config.properties";
+
   /**
    * Map file_id to injected file paths.
    *
@@ -60,6 +68,7 @@ public class InsightService {
       return switch (file_id) {
         case LOG_FILE -> logFilePath;
         case AUDIT_FILE -> auditFilePath;
+        case CONFIG_FILE -> configFilePath;
         default -> "Unregistered file name mapping: " + file_id;
       };
     }
@@ -95,7 +104,8 @@ public class InsightService {
 
   public FileInputStream downloadFile(String file_id) {
     return switch (file_id) {
-      case LOG_FILE, AUDIT_FILE -> this.fileService.streamLogFile(getFileName(file_id));
+      case LOG_FILE, AUDIT_FILE, CONFIG_FILE -> this.fileService.streamLogFile(
+          getFileName(file_id));
       default -> (FileInputStream) FileInputStream.nullInputStream();
     };
   }
@@ -103,7 +113,8 @@ public class InsightService {
 
 enum InsightServiceFiles {
   AUDIT_FILE("AUDIT_FILE", MediaType.APPLICATION_NDJSON_VALUE, "Audit file", "armadillo-audit"),
-  LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file", "armadillo-log");
+  LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file", "armadillo-log"),
+  CONFIG_FILE("CONFIG_FILE", MediaType.TEXT_PLAIN_VALUE, "Config file", "armadillo-log");
 
   private final String key;
   private final String contentType;
