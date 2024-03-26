@@ -261,3 +261,10 @@ resolve_many_resources <- function(resource_names) {
   resource_names %>%
     map(~ datashield.assign.expr(conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }
+
+xenon_fail_msg <- list(
+  srv_class = "did not create a serverside object with the expected class",
+  clt_class = "did not create a clientside object with the expected class",
+  clt_var = "did not create a clientside object with the expected variable names",
+  clt_list_names = "did not return a clientside list with the expected names",
+  clt_dim = "did not return a clientside object with the expected dimensions")
