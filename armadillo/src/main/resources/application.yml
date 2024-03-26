@@ -54,6 +54,8 @@ spring:
       password: admin
       roles:
         - SU
+  config:
+    import: optional:file:./config.properties
 
 management:
   endpoints:
