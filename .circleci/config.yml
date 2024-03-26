@@ -6,33 +6,6 @@
 #
 version: 2.1
 
-
-# Parameters for github Actions
-parameters:
-  GHA_Actor:
-    type: string
-    default: ""
-  GHA_Event:
-    type: string
-    default: ""
-  GHA_Action:
-    type: string
-    default: ""
-  GHA_Meta:
-    type: string
-    default: ""
-
-definitions:
-  build_config: &build_config
-    docker:
-    - image: molgenis/ci-build:1.2.3
-    working_directory: ~/repo
-    resource_class: large
-    environment:
-      JVM_OPTS: -Xmx3200m
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-      TERM: dumb
-
 jobs:
   build:
     docker:
