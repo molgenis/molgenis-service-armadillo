@@ -14,15 +14,12 @@ fi
 echo "Using repositorie $REPO" 
 
 # delete if exists
-if [ ! -z "$DELETE" ]
-then
-  kubectl delete namespace $NAME || true
-fi
 # Create certs from environement
 echo ${CERTDEVMOLGENIS_KEY} | base64 --decode >> /tmp/cert_key 
 echo ${CERTDEVMOLGENIS_PEM} | base64 --decode >> /tmp/cert_pem
 
 # wait for deletion to complete
+kubectl delete namespace $NAME || true
 sleep 15s
 kubectl create namespace $NAME
 kubectl create secret tls "dev.molgenis.org" --key /tmp/cert_key --cert /tmp/cert_pem -n ${NAME}
