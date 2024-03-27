@@ -38,29 +38,29 @@ jobs:
             pwd
             echo "$CIRCLE_WORKING_DIRECTORY"
 
-      - run:
-          name: update package manager
-          command: apt-get update
+      #- run:
+      #    name: update package manager
+      #    command: apt-get update
 
-      - run:
-          name: add packages for docker cli install
-          command: apt-get -y install gnupg lsb-release curl
+      #- run:
+      #    name: add packages for docker cli install
+      #    command: apt-get -y install gnupg lsb-release curl
 
-      - run:
-          name: update packages again
-          command: apt-get update
+      #- run:
+      #    name: update packages again
+      #    command: apt-get update
 
-      - run:
-          name: set repo keys for docker packages
-          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      #- run:
+      #    name: set repo keys for docker packages
+      #    command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-      - run:
-          name: add repo for docker packages
-          command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      #- run:
+      #    name: add repo for docker packages
+      #    command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-      - run:
-          name: update package manager again
-          command: apt-get update
+      #- run:
+      #    name: update package manager again
+      #    command: apt-get update
 
       - run:
           name: Install Docker client
@@ -110,16 +110,16 @@ jobs:
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
 
-      - run:
-          name: Install azure tools
-          command: |
-            curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-            curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-            echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' |  tee /etc/apt/sources.list.d/kubernetes.list
-            curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
-            apt update
-            apt-get install -y kubectl helm
+      #- run:
+      #    name: Install azure tools
+      #    command: |
+      #      curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+      #      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      #      echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' |  tee /etc/apt/sources.list.d/kubernetes.list
+      #      curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+      #      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+      #      apt update
+      #      apt-get install -y kubectl helm
 
       - run:
           name: build, test, push docker
