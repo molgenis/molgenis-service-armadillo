@@ -134,6 +134,11 @@ if (version.toString().endsWith('-SNAPSHOT')) {
     imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
     tagName = "${project.version.toString()}-${ext.hash}"
 }
+task ci(type: WriteProperties) {
+    outputFile file('build/ci.properties')
+    property 'TAG_NAME', tagName
+}
+
 docker {
     name imageName
     tags 'latest', tagName
