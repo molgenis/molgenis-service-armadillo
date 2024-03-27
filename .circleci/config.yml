@@ -89,7 +89,7 @@ jobs:
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew docker
+            ./gradlew docker ci
             ./docker/bin/prepare.bash ci
 
       - store_artifacts:
