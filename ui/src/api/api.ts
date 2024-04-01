@@ -160,6 +160,14 @@ async function getMetric(id: string): Promise<Metric> {
   });
 }
 
+export async function getProperties() {
+  return get("/settings/properties");
+}
+
+export async function updateProperties(properties: ObjectWithStringKey) {
+  return await put("/settings/properties", properties);
+}
+
 export async function deleteUser(email: string) {
   return delete_("/access/users", email);
 }

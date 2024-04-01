@@ -114,7 +114,7 @@ public class InsightService {
 enum InsightServiceFiles {
   AUDIT_FILE("AUDIT_FILE", MediaType.APPLICATION_NDJSON_VALUE, "Audit file", "armadillo-audit"),
   LOG_FILE("LOG_FILE", MediaType.TEXT_PLAIN_VALUE, "Log file", "armadillo-log"),
-  CONFIG_FILE("CONFIG_FILE", MediaType.TEXT_PLAIN_VALUE, "Config file", "armadillo-log");
+  CONFIG_FILE("CONFIG_FILE", MediaType.TEXT_PLAIN_VALUE, "Config file", "config.properties");
 
   private final String key;
   private final String contentType;
