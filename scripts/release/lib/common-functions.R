@@ -206,7 +206,7 @@ verify_output <- function(function_name = NULL, object = NULL, expected = NULL, 
     cli_alert_success(sprintf("%s passed", function_name))
   } else {
     cli_alert_danger(sprintf("%s failed", function_name))
-    exit_test(sprintf("%s %s", function_name, message))
+    exit_test(sprintf("%s %s", function_name, fail_msg))
   }
   
 }
