@@ -29,7 +29,7 @@ check_cohort_exists <- function(cohort) {
   }
 }
 
-wait_for_input <- function(interactive) {f
+wait_for_input <- function(interactive) {
   if (interactive) {
     cat("\nPress any key to continue")
     continue <- readLines("stdin", n = 1)
@@ -253,13 +253,7 @@ assign_many_resources <- function(project, folder, ref) {
   ref$object_name %>%
     map(function(x) {
       exp_resource_path <- paste0(project, "/", folder, "/", x)
-      tryCatch({
-        datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
-      }, error= function (e) {
-        print(e)
-        datashield.errors()
-        exit_test("Assigning resources failed")
-      })
+      datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
     })
 }
 

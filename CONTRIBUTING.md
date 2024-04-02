@@ -34,6 +34,23 @@ As we now have the option to download the logfile from the application we need t
 ./gradlew test
 ```
 
+## Upgrade plugins
+
+Use the commands listed below.
+
+```bash
+./gradlew useLatestVersions
+./gradlew useLatestVersionsCheck
+```
+
+Some plugins need manually editing the build files.
+
+To help find the right `build.gradle` use the command below with your keyword.
+
+```bash
+find . -type f -name "build.gradle" -exec echo {} \; -exec grep YOUR_KEY_WORD {}  \;
+```
+
 ## Upgrading gradle
 
 ```bash

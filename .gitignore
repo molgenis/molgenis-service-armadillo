@@ -10,9 +10,11 @@ dist
 ### STORAGE ###
 data/user-*
 data/system
+
 # Ignore all projects but life-cycle
 data/shared-*
 !data/shared-lifecycle
+data/testing
 
 HELP.md
 target/
@@ -35,6 +37,7 @@ target/
 *.iws
 *.iml
 *.ipr
+
 
 ### NetBeans ###
 /nbproject/private/
