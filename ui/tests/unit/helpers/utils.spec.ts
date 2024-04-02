@@ -12,7 +12,8 @@ import {
   isEmptyObject,
   shortenFileName,
   isTableType,
-  isNonTableType
+  isNonTableType,
+  getRestructuredProject
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -235,4 +236,26 @@ describe("utils", () => {
       expect(actual).toBe(true);
     });
   });
+  describe("getRestructuredProject", () => {
+    it("should return restructured project object", ()=> {
+     const testProject = [
+       "lifecycle/.DS_Store",
+       "lifecycle/core/yearlyrep.parquet",
+       "lifecycle/core/trimesterrep.parquet",
+       "lifecycle/core/monthlyrep.parquet",
+       "lifecycle/core/nonrep.parquet",
+       "lifecycle/outcome/yearlyrep.parquet",
+       "lifecycle/outcome/nonrep.parquet",
+       "lifecycle/survival/veteran.parquet"
+     ];
+     const projectId = "lifecycle";
+     const actual = getRestructuredProject(testProject, projectId);
+     const expected = {
+       "core": ["yearlyrep.parquet", "trimesterrep.parquet", "monthlyrep.parquet", "nonrep.parquet"],
+       "outcome": ["yearlyrep.parquet", "nonrep.parquet"],
+       "survival": ["veteran.parquet"]
+     }
+     expect(actual).toEqual(expected);
+    })
+   });
 });

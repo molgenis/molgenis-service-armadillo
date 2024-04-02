@@ -21,12 +21,14 @@
               Source folder:
             </label>
             <div class="col-sm-9">
-              <input
-                type="string"
-                class="form-control"
-                id="inputViewFolder"
-                v-model="srcFolder"
-              />
+              <select class="form-select" v-model="srcFolder">
+                <option
+                  :value="option"
+                  v-for="option in Object.keys(projectData)"
+                >
+                  {{ option }}
+                </option>
+              </select>
             </div>
           </div>
           <div class="row mb-3">
@@ -34,12 +36,15 @@
               Source table:
             </label>
             <div class="col-sm-9">
-              <input
-                type="string"
-                class="form-control"
-                id="inputViewTable"
-                v-model="srcTable"
-              />
+              <select class="form-select" v-model="srcTable">
+                <option
+                  :value="option"
+                  v-for="option in projectData[srcFolder]"
+                  v-if="srcFolder != ''"
+                >
+                  {{ option }}
+                </option>
+              </select>
             </div>
           </div>
         </form>
@@ -112,7 +117,8 @@
   </div>
 </template>
 <script lang="ts">
-import { getProjects, getTableVariables } from "@/api/api";
+import { getProjects, getTableVariables, getProject } from "@/api/api";
+import { getRestructuredProject } from "@/helpers/utils";
 import { Project } from "@/types/api";
 import { StringArray } from "@/types/types";
 import { Ref, defineComponent, onMounted, ref } from "vue";
@@ -182,6 +188,7 @@ export default defineComponent({
   },
   data() {
     return {
+      projectData: [],
       vwTable: this.viewTable ? this.viewTable : "",
       vwProject: this.viewProject ? this.viewProject : "",
       vwFolder: this.viewFolder ? this.viewFolder : "",
@@ -189,6 +196,24 @@ export default defineComponent({
       srcProject: this.sourceProject ? this.sourceProject : "",
       srcFolder: this.sourceFolder ? this.sourceFolder : "",
     };
+  },
+  methods: {
+    async getProjectContent(project: string) {
+      await getProject(project)
+        .then((data) => {
+          this.projectData = getRestructuredProject(data, project);
+        })
+        .catch((error: any) => {
+          this.errorMessage = `Cannot load project for [${[
+            project,
+          ]}]. Because: ${error}.`;
+        });
+    },
+  },
+  watch: {
+    srcProject() {
+      this.getProjectContent(this.srcProject);
+    },
   },
   computed: {
     linkedObject(): string {

@@ -50,6 +50,7 @@ export type ProjectsExplorerData = {
   projectContent: Record<string, string[]>;
   selectedFile: string;
   selectedFolder: string;
+  showViewEditor: boolean;
 };
 
 export type ProjectsData = {

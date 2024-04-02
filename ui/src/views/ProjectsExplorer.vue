@@ -69,10 +69,46 @@
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
                 ></FileUpload>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <button
+                    class="btn btn-primary me-md-2"
+                    style="width: 100%"
+                    type="button"
+                    @click="showViewEditor = true"
+                  >
+                    <i class="bi bi-box-arrow-in-up-right"></i> Select table to
+                    link from ...
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+          <div class="col-6 p-3 border" v-if="showViewEditor == true">
+            <div class="row">
+              <div class="col">
+                <h3>Create view on data</h3>
+              </div>
+              <div class="col d-grid d-md-flex justify-content-md-end">
+                <button
+                  @click="showViewEditor = false"
+                  type="button"
+                  class="btn btn-danger btn-sm m-1"
+                >
+                  <i class="bi bi-x"></i> Cancel
+                </button>
+              </div>
+            </div>
+            <ViewEditor
+              sourceFolder=""
+              sourceTable=""
+              sourceProject=""
+              viewTable=""
+              viewProject=""
+              viewFolder=""
+            ></ViewEditor>
+          </div>
           <div
+            v-else
             class="col-6"
             :style="{
               visibility: selectedFile && selectedFolder ? 'visible' : 'hidden',
@@ -128,14 +164,20 @@ import {
   previewObject,
   getFileDetails,
 } from "@/api/api";
-import { isEmptyObject, isTableType, isNonTableType } from "@/helpers/utils";
-import { defineComponent, onMounted, Ref, ref, watch } from "vue";
+import {
+  isEmptyObject,
+  isTableType,
+  isNonTableType,
+  getRestructuredProject,
+} from "@/helpers/utils";
+import { defineComponent, onMounted, Ref, ref } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import FileExplorer from "@/components/FileExplorer.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import ViewEditor from "@/components/ViewEditor.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -150,6 +192,7 @@ export default defineComponent({
     FileExplorer,
     FolderInput,
     SimpleTable,
+    ViewEditor,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
@@ -198,6 +241,7 @@ export default defineComponent({
       dataSizeColumns: 0,
       createNewFolder: false,
       projectContent: {},
+      showViewEditor: false,
     };
   },
   watch: {
@@ -254,32 +298,10 @@ export default defineComponent({
       this.filePreview = [{}];
     },
     setProjectContent() {
-      let content: Record<string, StringArray> = {};
-      this.project.forEach((item) => {
-        /** scrub the project folder from the name */
-        const itemInProjectFolder = item.replace(`${this.projectId}/`, "");
-        if (itemInProjectFolder.length && itemInProjectFolder[0] === ".") {
-          return; /** if item starts with a . */
-        }
-
-        /** Check if it is in a subfolder */
-        if (itemInProjectFolder.includes("/")) {
-          const splittedItem = itemInProjectFolder.split("/");
-          const folder = splittedItem[0];
-          const folderItem = splittedItem[1];
-
-          /** add to the content structure */
-          if (content[folder]) {
-            content[folder] = content[folder].concat(folderItem);
-          } else {
-            content[folder] = [folderItem];
-            if (folderItem === "") {
-              content[folder] = [];
-            }
-          }
-        }
-      });
-      this.projectContent = content;
+      this.projectContent = getRestructuredProject(
+        this.project,
+        this.projectId
+      );
     },
     setCreateNewFolder() {
       this.createNewFolder = true;
