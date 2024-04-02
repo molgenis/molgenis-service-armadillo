@@ -10,8 +10,12 @@
             </label>
             <div class="col-sm-9">
               <select class="form-select" v-model="srcProject">
-                <option :value="option.name" v-for="option in projects">
-                  {{ option.name }}
+                <option
+                  :value="project.name"
+                  v-for="project in projects"
+                  :key="project"
+                >
+                  {{ project.name }}
                 </option>
               </select>
             </div>
@@ -23,10 +27,11 @@
             <div class="col-sm-9">
               <select class="form-select" v-model="srcFolder">
                 <option
-                  :value="option"
-                  v-for="option in Object.keys(projectData)"
+                  :value="folder"
+                  v-for="folder in Object.keys(projectData)"
+                  :key="folder"
                 >
-                  {{ option }}
+                  {{ folder }}
                 </option>
               </select>
             </div>
@@ -38,11 +43,14 @@
             <div class="col-sm-9">
               <select class="form-select" v-model="srcTable">
                 <option
-                  :value="option"
-                  v-for="option in projectData[srcFolder]"
+                  :value="table"
+                  v-for="table in projectData[srcFolder].filter(
+                    (file: string) => file.endsWith('.parquet')
+                  )"
+                  :key="table"
                   v-if="srcFolder != ''"
                 >
-                  {{ option }}
+                  {{ table }}
                 </option>
               </select>
             </div>
@@ -120,7 +128,7 @@
 import { getProjects, getTableVariables, getProject } from "@/api/api";
 import { getRestructuredProject } from "@/helpers/utils";
 import { Project } from "@/types/api";
-import { StringArray } from "@/types/types";
+import { StringArray, ViewEditorData } from "@/types/types";
 import { Ref, defineComponent, onMounted, ref } from "vue";
 
 export default defineComponent({
@@ -186,7 +194,7 @@ export default defineComponent({
       errorMessage,
     };
   },
-  data() {
+  data(): ViewEditorData {
     return {
       projectData: [],
       vwTable: this.viewTable ? this.viewTable : "",

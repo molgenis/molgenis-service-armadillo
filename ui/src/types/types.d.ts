@@ -112,3 +112,13 @@ export type ProfilesData = {
     DOCKER_OFFLINE: statusMappingType;
   };
 };
+
+export type ViewEditorData = {
+  projectData: StringArray;
+  vwTable: string;
+  vwProject: string;
+  vwFolder: string;
+  srcTable: string;
+  srcProject: string;
+  srcFolder: string;
+};
