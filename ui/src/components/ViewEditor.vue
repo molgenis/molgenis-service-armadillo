@@ -203,6 +203,7 @@ export default defineComponent({
       srcTable: this.sourceTable ? this.sourceTable : "",
       srcProject: this.sourceProject ? this.sourceProject : "",
       srcFolder: this.sourceFolder ? this.sourceFolder : "",
+      srcVars: [],
     };
   },
   methods: {
@@ -217,10 +218,28 @@ export default defineComponent({
           ]}]. Because: ${error}.`;
         });
     },
+    async getVariables(project: string, folder: string, file: string) {
+      await getTableVariables(project, folder + "%2F" + file)
+        .then((response) => {
+          this.srcVars = response;
+        })
+        .catch((error) => {
+          this.errorMessage = `Cannot retrieve variables for [${
+            this.srcFolder + "/" + this.srcTable
+          }] of project [${this.srcProject}], because: ${error}`;
+        });
+    },
   },
   watch: {
     srcProject() {
+      this.srcFolder = "";
       this.getProjectContent(this.srcProject);
+    },
+    srcFolder() {
+      this.srcTable = "";
+    },
+    srcTable() {
+      this.getVariables(this.srcProject, this.srcFolder, this.srcTable);
     },
   },
   computed: {

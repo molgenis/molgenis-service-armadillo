@@ -121,4 +121,5 @@ export type ViewEditorData = {
   srcTable: string;
   srcProject: string;
   srcFolder: string;
+  srcVars: StringArray;
 };
