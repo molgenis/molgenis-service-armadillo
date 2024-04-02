@@ -170,7 +170,7 @@ export function isNonTableType(item: string): boolean {
 export function getRestructuredProject(
   projectContent: StringArray,
   projectId: string
-) {
+): Record<string, StringArray> {
   let content: Record<string, StringArray> = {};
   projectContent.forEach((item) => {
     /** scrub the project folder from the name */

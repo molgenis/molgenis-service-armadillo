@@ -114,7 +114,7 @@ export type ProfilesData = {
 };
 
 export type ViewEditorData = {
-  projectData: StringArray;
+  projectData: Record<string, StringArray>;
   vwTable: string;
   vwProject: string;
   vwFolder: string;

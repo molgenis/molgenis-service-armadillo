@@ -129,7 +129,7 @@ import { getProjects, getTableVariables, getProject } from "@/api/api";
 import { getRestructuredProject } from "@/helpers/utils";
 import { Project } from "@/types/api";
 import { StringArray, ViewEditorData } from "@/types/types";
-import { Ref, defineComponent, onMounted, ref } from "vue";
+import { PropType, Ref, defineComponent, onMounted, ref } from "vue";
 
 export default defineComponent({
   name: "ViewEditor",
@@ -142,7 +142,7 @@ export default defineComponent({
     viewFolder: String,
     projects: {
       default: [],
-      type: Array,
+      type: Array as PropType<StringArray>,
     },
     onSave: {
       default: () => {},
@@ -196,7 +196,7 @@ export default defineComponent({
   },
   data(): ViewEditorData {
     return {
-      projectData: [],
+      projectData: {},
       vwTable: this.viewTable ? this.viewTable : "",
       vwProject: this.viewProject ? this.viewProject : "",
       vwFolder: this.viewFolder ? this.viewFolder : "",
