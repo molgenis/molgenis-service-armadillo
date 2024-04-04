@@ -103,8 +103,8 @@
               sourceTable=""
               sourceProject=""
               viewTable=""
-              viewProject=""
-              viewFolder=""
+              :viewProject="projectId"
+              :viewFolder="selectedFolder"
             ></ViewEditor>
           </div>
           <div
