@@ -58,9 +58,9 @@
         </form>
       </div>
       <div class="row">
-        <!-- <div class="col-12" v-if="variables && variables.length > 0">
-          <VariableSelector :variables="variables" />
-        </div> -->
+        <div class="col-12" v-if="srcVars.length > 0">
+          <VariableSelector :variables="srcVars" />
+        </div>
       </div>
       <div class="row mt-3">
         <div class="fw-bold">View table information</div>
@@ -130,9 +130,13 @@ import { getRestructuredProject } from "@/helpers/utils";
 import { Project } from "@/types/api";
 import { StringArray, ViewEditorData } from "@/types/types";
 import { PropType, Ref, defineComponent, onMounted, ref } from "vue";
+import VariableSelector from "@/components/VariableSelector.vue";
 
 export default defineComponent({
   name: "ViewEditor",
+  components: {
+    VariableSelector,
+  },
   props: {
     sourceFolder: String,
     sourceTable: String,
