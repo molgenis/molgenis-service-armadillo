@@ -198,3 +198,11 @@ export function getRestructuredProject(
   });
   return content;
 }
+
+export function getTablesFromListOfFiles(
+  listOfFiles: StringArray
+): StringArray {
+  return listOfFiles
+    ? listOfFiles.filter((file: string) => file.endsWith(".parquet"))
+    : [];
+}

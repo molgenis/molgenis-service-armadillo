@@ -9,15 +9,10 @@
               Source project:
             </label>
             <div class="col-sm-9">
-              <select class="form-select" v-model="srcProject">
-                <option
-                  :value="project.name"
-                  v-for="project in projects"
-                  :key="project"
-                >
-                  {{ project.name }}
-                </option>
-              </select>
+              <Dropdown
+                :options="projects.map((project) => project.name)"
+                @update="updateSrcProject"
+              ></Dropdown>
             </div>
           </div>
           <div class="row mb-3">
@@ -25,15 +20,10 @@
               Source folder:
             </label>
             <div class="col-sm-9">
-              <select class="form-select" v-model="srcFolder">
-                <option
-                  :value="folder"
-                  v-for="folder in Object.keys(projectData)"
-                  :key="folder"
-                >
-                  {{ folder }}
-                </option>
-              </select>
+              <Dropdown
+                :options="Object.keys(projectData)"
+                @update="updateSrcFolder"
+              ></Dropdown>
             </div>
           </div>
           <div class="row mb-3">
@@ -41,18 +31,10 @@
               Source table:
             </label>
             <div class="col-sm-9">
-              <select class="form-select" v-model="srcTable">
-                <option
-                  :value="table"
-                  v-for="table in projectData[srcFolder].filter(
-                    (file: string) => file.endsWith('.parquet')
-                  )"
-                  :key="table"
-                  v-if="srcFolder != ''"
-                >
-                  {{ table }}
-                </option>
-              </select>
+              <Dropdown
+                :options="getTablesFromListOfFiles(projectData[srcFolder])"
+                @update="updateSrcTable"
+              ></Dropdown>
             </div>
           </div>
         </form>
@@ -128,16 +110,21 @@
 </template>
 <script lang="ts">
 import { getProjects, getTableVariables, getProject } from "@/api/api";
-import { getRestructuredProject } from "@/helpers/utils";
+import {
+  getRestructuredProject,
+  getTablesFromListOfFiles,
+} from "@/helpers/utils";
 import { Project } from "@/types/api";
 import { StringArray, ViewEditorData } from "@/types/types";
 import { PropType, Ref, defineComponent, onMounted, ref } from "vue";
 import VariableSelector from "@/components/VariableSelector.vue";
+import Dropdown from "@/components/Dropdown.vue";
 
 export default defineComponent({
   name: "ViewEditor",
   components: {
     VariableSelector,
+    Dropdown,
   },
   props: {
     sourceFolder: String,
@@ -148,7 +135,7 @@ export default defineComponent({
     viewFolder: String,
     projects: {
       default: [],
-      type: Array as PropType<StringArray>,
+      type: Array as PropType<Project[]>,
     },
     onSave: {
       default: () => {},
@@ -213,6 +200,7 @@ export default defineComponent({
     };
   },
   methods: {
+    getTablesFromListOfFiles,
     async getProjectContent(project: string) {
       await getProject(project)
         .then((data) => {
@@ -234,6 +222,15 @@ export default defineComponent({
             this.srcFolder + "/" + this.srcTable
           }] of project [${this.srcProject}], because: ${error}`;
         });
+    },
+    updateSrcProject(event: Event) {
+      this.srcProject = event.toString();
+    },
+    updateSrcFolder(event: Event) {
+      this.srcFolder = event.toString();
+    },
+    updateSrcTable(event: Event) {
+      this.srcTable = event.toString();
     },
   },
   watch: {

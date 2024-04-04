@@ -86,7 +86,7 @@
           <div class="col-6 p-3 border" v-if="showViewEditor == true">
             <div class="row">
               <div class="col">
-                <h3>Create view on data</h3>
+                <h3>Create view on table</h3>
               </div>
               <div class="col d-grid d-md-flex justify-content-md-end">
                 <button

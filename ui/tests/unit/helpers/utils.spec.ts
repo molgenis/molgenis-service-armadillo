@@ -13,7 +13,8 @@ import {
   shortenFileName,
   isTableType,
   isNonTableType,
-  getRestructuredProject
+  getRestructuredProject,
+  getTablesFromListOfFiles
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -258,4 +259,11 @@ describe("utils", () => {
      expect(actual).toEqual(expected);
     })
    });
+
+   describe("getTablesFromListOfFiles", () => {
+    it("should return a list of only parquetfiles from the supplied array with filenames", () => {
+      const actual = getTablesFromListOfFiles(["aap.parquet", "test.csv", "test.parquet", "test.xlsx"]);
+      expect(actual).toEqual(["aap.parquet", "test.parquet"]);
+    });
+  });
 });
