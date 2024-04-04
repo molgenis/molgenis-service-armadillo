@@ -77,6 +77,7 @@
                   type="string"
                   class="form-control"
                   id="inputViewProject"
+                  :disabled="viewProject !== undefined"
                   v-model="vwProject"
                 />
               </div>
@@ -90,6 +91,7 @@
                   type="string"
                   class="form-control"
                   id="inputViewFolder"
+                  :disabled="viewFolder !== undefined"
                   v-model="vwFolder"
                 />
               </div>
