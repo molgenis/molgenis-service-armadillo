@@ -405,6 +405,7 @@ export default defineComponent({
       response
         .then(() => {
           this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
+          this.reloadProject();
           this.showViewEditor = false;
         })
         .catch((error) => {
