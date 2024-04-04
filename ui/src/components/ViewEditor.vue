@@ -99,7 +99,7 @@
           class="btn btn-primary"
           type="button"
           @click="
-            onSave(srcProject, srcProject, vwProject, viewFolder, variables)
+            onSave(srcProject, sourceObject, vwProject, linkedObject, srcVars)
           "
         >
           <i class="bi bi-floppy-fill"></i> Save

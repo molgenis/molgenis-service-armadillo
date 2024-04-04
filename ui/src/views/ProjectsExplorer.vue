@@ -105,6 +105,7 @@
               viewTable=""
               :viewProject="projectId"
               :viewFolder="selectedFolder"
+              :onSave="doCreateLinkFile"
             ></ViewEditor>
           </div>
           <div
@@ -163,6 +164,7 @@ import {
   deleteObject,
   previewObject,
   getFileDetails,
+  createLinkFile,
 } from "@/api/api";
 import {
   isEmptyObject,
@@ -385,6 +387,29 @@ export default defineComponent({
     },
     showErrorMessage(error: string) {
       this.errorMessage = error;
+    },
+    doCreateLinkFile(
+      sourceProject: string,
+      sourceObject: string,
+      viewProject: string,
+      viewObject: string,
+      variables: string[]
+    ) {
+      const response = createLinkFile(
+        sourceProject,
+        sourceObject,
+        viewProject,
+        viewObject,
+        variables
+      );
+      response
+        .then(() => {
+          this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
+          this.showViewEditor = false;
+        })
+        .catch((error) => {
+          this.errorMessage = `${error}`;
+        });
     },
   },
 });
