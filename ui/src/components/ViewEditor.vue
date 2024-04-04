@@ -51,9 +51,9 @@
         <div class="col">
           <form>
             <div class="row mb-3">
-              <label for="inputViewProject" class="col-sm-3 col-form-label"
-                >Project:</label
-              >
+              <label for="inputViewProject" class="col-sm-3 col-form-label">
+                Project:
+              </label>
               <div class="col-sm-9">
                 <input
                   type="string"
@@ -79,9 +79,9 @@
               </div>
             </div>
             <div class="row mb-3">
-              <label for="inputViewTable" class="col-sm-3 col-form-label"
-                >Table:</label
-              >
+              <label for="inputViewTable" class="col-sm-3 col-form-label">
+                Table:
+              </label>
               <div class="col-sm-9">
                 <input
                   type="string"
