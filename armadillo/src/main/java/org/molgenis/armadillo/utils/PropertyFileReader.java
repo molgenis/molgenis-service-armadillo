@@ -1,17 +1,54 @@
 package org.molgenis.armadillo.utils;
 
 import com.google.gson.Gson;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.google.gson.reflect.TypeToken;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class PropertyFileReader {
+
+  public String getTemplateString() throws IOException {
+    return loadFromClasspath("config.template.properties");
+  }
+
+  public String getUserString() throws IOException {
+    return loadFromFileSystem("./config.properties");
+  }
+
+  public String loadFromClasspath(String classpathLocation) throws IOException {
+    return readFile(classpathLocation);
+    //    Resource resource = new ClassPathResource(classpathLocation);
+    //    ClassLoader.getResourceAsStream(classpathLocation);
+    //    if (!resource.exists()) {
+    //      throw new IOException("File not found in classpath: " + classpathLocation);
+    //    }
+    //    Path path = resource.getFile().toPath();
+    //    return new String(Files.readAllBytes(path));
+  }
+
+  public String loadFromFileSystem(String filePath) throws IOException {
+    Path path = Paths.get(filePath);
+    if (!Files.exists(path)) {
+      throw new IOException("File not found in file system: " + filePath);
+    }
+    return new String(Files.readAllBytes(path));
+  }
+
+  public void writeFile(String content) {
+    try (PrintWriter out = new PrintWriter("./config.properties")) {
+      out.println(content);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+  }
 
   public String readFile(String filePath) throws IOException, IllegalArgumentException {
     StringBuilder contentBuilder = new StringBuilder();
@@ -47,6 +84,12 @@ public class PropertyFileReader {
     Gson gson = new Gson();
 
     return gson.toJson(list);
+  }
+
+  public List<Map<String, String>> fromJson(String json) {
+    Gson gson = new Gson();
+    Type type = new TypeToken<List<Map<String, String>>>() {}.getType();
+    return gson.fromJson(json, type);
   }
 
   public List<Map<String, String>> parseProperties(String content) {

@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "settings", description = "API to manage DataSHIELD profiles")
 @RestController
@@ -45,7 +44,7 @@ public class SettingsController {
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "File stored successfully",
+            description = "Settings stored successfully",
             content = @Content(schema = @Schema(implementation = FileDetails.class))),
         @ApiResponse(
             responseCode = "401",
@@ -54,18 +53,16 @@ public class SettingsController {
       })
   @PutMapping(
       path = "properties",
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(CREATED)
-  public FileDetails storeFile(
-      Principal principal, @RequestParam(value = "file", required = true) MultipartFile file)
-      throws IOException {
-    return auditor.audit(
-        () -> settingsService.storeSettings(file),
+  public void storeSettings(Principal principal, @RequestBody String settings) throws IOException {
+    auditor.audit(
+        () -> settingsService.storeSettings(settings),
         principal,
         DOWNLOAD_FILE,
         //            STORE_FILE,
-        Map.of("FILE_NAME", file.getOriginalFilename()));
+        Map.of("FILE_NAME", "Upsert"));
   }
 
   @Operation(summary = "Retrieve properties")
