@@ -9,7 +9,6 @@
 <script lang="ts">
 import { StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
-//import { StringArray } from "@/types/types";
 
 export default defineComponent({
   name: "Dropdown",

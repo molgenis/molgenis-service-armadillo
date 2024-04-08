@@ -9,7 +9,15 @@
               Source project:
             </label>
             <div class="col-sm-9">
+              <input
+                v-if="sourceProject"
+                type="string"
+                class="form-control"
+                disabled
+                v-model="srcProject"
+              />
               <Dropdown
+                v-else
                 :options="projects.map((project) => project.name)"
                 @update="updateSrcProject"
               ></Dropdown>
@@ -20,7 +28,15 @@
               Source folder:
             </label>
             <div class="col-sm-9">
+              <input
+                v-if="sourceFolder"
+                type="string"
+                class="form-control"
+                disabled
+                v-model="srcFolder"
+              />
               <Dropdown
+                v-else
                 :options="Object.keys(projectData)"
                 @update="updateSrcFolder"
               ></Dropdown>
@@ -31,7 +47,15 @@
               Source table:
             </label>
             <div class="col-sm-9">
+              <input
+                v-if="sourceTable"
+                type="string"
+                class="form-control"
+                disabled
+                v-model="srcTable"
+              />
               <Dropdown
+                v-else
                 :options="getTablesFromListOfFiles(projectData[srcFolder])"
                 @update="updateSrcTable"
               ></Dropdown>
@@ -40,8 +64,8 @@
         </form>
       </div>
       <div class="row">
-        <div class="col-12" v-if="srcVars.length > 0">
-          <VariableSelector :variables="srcVars" />
+        <div class="col-12" v-if="variables.length > 0">
+          <VariableSelector :variables="variables" />
         </div>
       </div>
       <div class="row mt-3">
@@ -56,12 +80,17 @@
               </label>
               <div class="col-sm-9">
                 <input
+                  v-if="viewProject"
                   type="string"
                   class="form-control"
-                  id="inputViewProject"
-                  :disabled="viewProject !== undefined"
+                  disabled
                   v-model="vwProject"
                 />
+                <Dropdown
+                  v-else
+                  :options="projects.map((project) => project.name)"
+                  @update="updateVwProject"
+                ></Dropdown>
               </div>
             </div>
             <div class="row mb-3">
@@ -72,7 +101,6 @@
                 <input
                   type="string"
                   class="form-control"
-                  id="inputViewFolder"
                   :disabled="viewFolder !== undefined"
                   v-model="vwFolder"
                 />
@@ -83,12 +111,7 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <input
-                  type="string"
-                  class="form-control"
-                  id="inputViewTable"
-                  v-model="vwTable"
-                />
+                <input type="string" class="form-control" v-model="vwTable" />
               </div>
             </div>
           </form>
@@ -99,7 +122,7 @@
           class="btn btn-primary"
           type="button"
           @click="
-            onSave(srcProject, sourceObject, vwProject, linkedObject, srcVars)
+            onSave(srcProject, sourceObject, vwProject, linkedObject, variables)
           "
         >
           <i class="bi bi-floppy-fill"></i> Save
@@ -167,6 +190,9 @@ export default defineComponent({
       );
     };
     const fetchVariables = async () => {
+      //wtf is this? does it even work?
+      console.log("fetching");
+      console.log("variables set: ", isSrcTableSet());
       if (isSrcTableSet()) {
         await getTableVariables(
           props.sourceProject as string,
@@ -174,6 +200,7 @@ export default defineComponent({
         )
           .then((data) => {
             variables.value = data;
+            console.log(variables.value);
           })
           .catch((error: any) => {
             errorMessage.value = `Cannot load variables for [${props.sourceFolder}/${props.sourceTable}] of project [${props.sourceProject}]. Because: ${error}.`;
@@ -196,7 +223,6 @@ export default defineComponent({
       srcTable: this.sourceTable ? this.sourceTable : "",
       srcProject: this.sourceProject ? this.sourceProject : "",
       srcFolder: this.sourceFolder ? this.sourceFolder : "",
-      srcVars: [],
     };
   },
   methods: {
@@ -215,7 +241,7 @@ export default defineComponent({
     async getVariables(project: string, folder: string, file: string) {
       await getTableVariables(project, folder + "%2F" + file)
         .then((response) => {
-          this.srcVars = response;
+          this.variables = response;
         })
         .catch((error) => {
           this.errorMessage = `Cannot retrieve variables for [${
@@ -225,6 +251,9 @@ export default defineComponent({
     },
     updateSrcProject(event: Event) {
       this.srcProject = event.toString();
+    },
+    updateVwProject(event: Event) {
+      this.vwProject = event.toString();
     },
     updateSrcFolder(event: Event) {
       this.srcFolder = event.toString();

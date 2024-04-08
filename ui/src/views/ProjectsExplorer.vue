@@ -74,7 +74,7 @@
                     class="btn btn-primary me-md-2"
                     style="width: 100%"
                     type="button"
-                    @click="showViewEditor = true"
+                    @click="createLinkFromTarget = true"
                   >
                     <i class="bi bi-box-arrow-in-up-right"></i> Select table to
                     link from ...
@@ -83,14 +83,14 @@
               </div>
             </div>
           </div>
-          <div class="col-6 p-3 border" v-if="showViewEditor == true">
+          <div class="col-6 p-3 border" v-if="createLinkFromTarget === true">
             <div class="row">
               <div class="col">
                 <h3>Create view on table</h3>
               </div>
               <div class="col d-grid d-md-flex justify-content-md-end">
                 <button
-                  @click="showViewEditor = false"
+                  @click="createLinkFromTarget = false"
                   type="button"
                   class="btn btn-danger btn-sm m-1"
                 >
@@ -99,10 +99,7 @@
               </div>
             </div>
             <ViewEditor
-              sourceFolder=""
-              sourceTable=""
-              sourceProject=""
-              viewTable=""
+              v-if="createLinkFromTarget === true"
               :viewProject="projectId"
               :viewFolder="selectedFolder"
               :onSave="doCreateLinkFile"
@@ -132,8 +129,32 @@
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
                   `${dataSizeRows}x${dataSizeColumns}`
                 }})
+                <button
+                  v-if="!createLinkFromSrc"
+                  @click="createLinkFromSrc = true"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                >
+                  <i class="bi bi-box-arrow-in-up-right"></i> Create view
+                </button>
+                <button
+                  v-else
+                  @click="createLinkFromSrc = false"
+                  type="button"
+                  class="btn btn-danger btn-sm m-1"
+                >
+                  <i class="bi bi-x"></i> Cancel view
+                </button>
               </div>
+              <ViewEditor
+                v-if="createLinkFromSrc === true"
+                :sourceFolder="selectedFolder"
+                :sourceTable="selectedFile"
+                :sourceProject="projectId"
+                :onSave="doCreateLinkFile"
+              ></ViewEditor>
               <SimpleTable
+                v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="dataSizeRows"
@@ -243,7 +264,8 @@ export default defineComponent({
       dataSizeColumns: 0,
       createNewFolder: false,
       projectContent: {},
-      showViewEditor: false,
+      createLinkFromTarget: false,
+      createLinkFromSrc: false,
     };
   },
   watch: {
@@ -406,7 +428,8 @@ export default defineComponent({
         .then(() => {
           this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
           this.reloadProject();
-          this.showViewEditor = false;
+          this.createLinkFromTarget = false;
+          this.createLinkFromSrc = false;
         })
         .catch((error) => {
           this.errorMessage = `${error}`;

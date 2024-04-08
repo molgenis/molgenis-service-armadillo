@@ -50,7 +50,8 @@ export type ProjectsExplorerData = {
   projectContent: Record<string, string[]>;
   selectedFile: string;
   selectedFolder: string;
-  showViewEditor: boolean;
+  createLinkFromTarget: boolean;
+  createLinkFromSrc: boolean;
 };
 
 export type ProjectsData = {
@@ -121,5 +122,4 @@ export type ViewEditorData = {
   srcTable: string;
   srcProject: string;
   srcFolder: string;
-  srcVars: StringArray;
 };
