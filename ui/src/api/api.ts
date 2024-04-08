@@ -46,6 +46,17 @@ export async function put(url: string, body: ObjectWithStringKey) {
   return handleResponse(response);
 }
 
+// FIXME: why can't I send list of object/key/values
+export async function putRaw(url: string, body: any) {
+  const requestOptions = {
+    method: "PUT",
+    headers: APISettings.headers,
+    body: JSON.stringify(body),
+  };
+  const response = await fetch(url, requestOptions);
+  return handleResponse(response);
+}
+
 export async function post(url: string) {
   const requestOptions = {
     method: "POST",
@@ -164,8 +175,8 @@ export async function getProperties() {
   return get("/settings/properties");
 }
 
-export async function updateProperties(properties: ObjectWithStringKey) {
-  return await put("/settings/properties", properties);
+export async function updateProperties(properties: Array<Object>) {
+  return await putRaw("/settings/properties", properties);
 }
 
 export async function deleteUser(email: string) {
