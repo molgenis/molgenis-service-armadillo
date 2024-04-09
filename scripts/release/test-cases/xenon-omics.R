@@ -18,7 +18,7 @@ verify_meta_gwas <- function(gwas_results) {
   gwas_dim <- dim(gwas_results)
   verify_output(
     function_name = "ds.metaGWAS", object = gwas_dim,
-    expected = as.integer(c(139608, 10)),
+    expected = as.integer(c(144785, 10)),
     fail_msg = xenon_fail_msg$clt_dim
   )
 }
