@@ -1,7 +1,52 @@
 <template>
   <div>
     <h2 class="mt-3">Users</h2>
+
     <PropertiesEditor />
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#settingsModal"
+    >
+      Settings
+    </button>
+    <div
+      class="modal-xl fade"
+      id="settingsModal"
+      tabindex="-1"
+      aria-labelledby="settingsModal"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Settings</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <PropertiesEditor />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
@@ -126,6 +171,7 @@ import Table from "@/components/Table.vue";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import PropertiesEditor from "@/components/PropertiesEditor.vue";
+import Overlay from "@/components/Overlay.vue";
 
 import { deleteUser, getUsers, putUser, getProjects } from "@/api/api";
 import { sortAlphabetically, stringIncludesOtherString } from "@/helpers/utils";
@@ -148,6 +194,7 @@ export default defineComponent({
     SearchBar,
     Table,
     PropertiesEditor,
+    Overlay,
   },
   setup() {
     const users: Ref<User[]> = ref([]);
