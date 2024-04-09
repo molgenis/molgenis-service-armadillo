@@ -270,6 +270,7 @@ export default defineComponent({
   },
   watch: {
     selectedFile() {
+      this.resetCreateLinkFile();
       if (this.isTableType(this.selectedFile)) {
         this.loading_preview = true;
         previewObject(
@@ -329,6 +330,10 @@ export default defineComponent({
     },
     setCreateNewFolder() {
       this.createNewFolder = true;
+    },
+    resetCreateLinkFile() {
+      this.createLinkFromSrc = false;
+      this.createLinkFromTarget = false;
     },
     addNewFolder(folderName: string) {
       if (folderName) {
@@ -428,8 +433,7 @@ export default defineComponent({
         .then(() => {
           this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
           this.reloadProject();
-          this.createLinkFromTarget = false;
-          this.createLinkFromSrc = false;
+          this.resetCreateLinkFile();
         })
         .catch((error) => {
           this.errorMessage = `${error}`;
