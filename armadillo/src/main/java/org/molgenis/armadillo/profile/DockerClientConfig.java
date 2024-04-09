@@ -7,7 +7,6 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
-import jakarta.ws.rs.ProcessingException;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,14 +32,18 @@ public class DockerClientConfig {
             .connectionTimeout(Duration.ofSeconds(30))
             .responseTimeout(Duration.ofSeconds(45))
             .build();
-    DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-
+    DockerClient dockerClient = null;
     try {
+      dockerClient = DockerClientImpl.getInstance(config, httpClient);
       dockerClient.infoCmd().exec();
-    } catch (ProcessingException e) {
+    } catch (Exception e) {
       LOG.warn(
           "Docker management is enabled but Armadillo could not connect to it. Either "
               + "Docker is offline or it is not configured correctly.");
+      // FIXME: should we exit?
+      //      System.exit(-1);
+      // FIXME: if we do not throw application runs but profiles page errors
+      //      throw new RuntimeException("Shutdown");
     }
     return dockerClient;
   }
