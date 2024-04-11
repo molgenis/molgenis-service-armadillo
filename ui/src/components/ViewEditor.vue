@@ -190,9 +190,6 @@ export default defineComponent({
       );
     };
     const fetchVariables = async () => {
-      //wtf is this? does it even work?
-      console.log("fetching");
-      console.log("variables set: ", isSrcTableSet());
       if (isSrcTableSet()) {
         await getTableVariables(
           props.sourceProject as string,
@@ -200,7 +197,6 @@ export default defineComponent({
         )
           .then((data) => {
             variables.value = data;
-            console.log(variables.value);
           })
           .catch((error: any) => {
             errorMessage.value = `Cannot load variables for [${props.sourceFolder}/${props.sourceTable}] of project [${props.sourceProject}]. Because: ${error}.`;
