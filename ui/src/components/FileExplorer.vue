@@ -53,7 +53,7 @@ export default defineComponent({
   components: {
     ListGroup,
   },
-  setup(props, { emit }) {
+  setup(_props, { emit }) {
     const folderComponent: Ref = ref({});
     const fileComponent: Ref = ref({});
     const selectedFolder = ref("");
