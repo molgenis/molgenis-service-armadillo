@@ -106,5 +106,16 @@ describe("FileExplorer", () => {
         ]);
     });
 
+    test("showSelectedFolderIcon shows folder icon when folder is selected", () => {
+        const folder = "my-folder";
+        wrapper.vm.selectedFolder = folder;
+        expect(wrapper.vm.showSelectedFolderIcon(folder)).toEqual(true);
+    });
+
+    test("showSelectedFolderIcon doesnt show folder icon when folder is not selected", () => {
+        const folder = "my-folder";
+        wrapper.vm.selectedFolder = "another-folder";
+        expect(wrapper.vm.showSelectedFolderIcon(folder)).toEqual(false);
+    });
 
 });

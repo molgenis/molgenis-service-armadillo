@@ -224,4 +224,32 @@ describe("ProjectsExplorer", () => {
         wrapper.vm.showErrorMessage("A very random UploadFile error string");
         expect(wrapper.vm.errorMessage).toBe("A very random UploadFile error string");
     });
+
+    test("set createLinkFromSrc to false", () => {
+        wrapper.vm.createLinkFromSrc = true;
+        wrapper.vm.resetCreateLinkFile();
+        expect(wrapper.vm.createLinkFromSrc).toBe(false);
+    });
+
+    test("set createLinkFromTarget to false", () => {
+        wrapper.vm.createLinkFromTarget = true;
+        wrapper.vm.resetCreateLinkFile();
+        expect(wrapper.vm.createLinkFromTarget).toBe(false);
+    });
+
+    test("createLinkFile calls api to update linkfile", async () => {
+        const createLinkFileMock = jest.fn();
+        api.createLinkFile.mockImplementation(() => {
+            createLinkFileMock();
+            return Promise.resolve({});
+        });
+        wrapper.vm.doCreateLinkFile(
+            "source-project",
+            "src-folder/src-obj",
+            "view-project",
+            "view-folder/vw-obj",
+            ["var1","var2","var3"]
+        );
+        expect(createLinkFileMock).toHaveBeenCalled();
+    });
 });
