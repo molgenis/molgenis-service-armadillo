@@ -14,12 +14,12 @@ Make a note of the version as you will use this below.
 
 ## 1. Check your profile types
 
-Check the new profiles:
+Check if the new profiles are compatible with your needs, these profile names can be edited later on in the manual:
 
 - `datashield/rock-base:latest`
 - `datashield/rock-dolomite-xenon:latest`
 
-are compatible with your needs. See also DataSHIELD [profiles](https://www.datashield.org/help/standard-profiles-and-plaforms)
+See also DataSHIELD [profiles](https://www.datashield.org/help/standard-profiles-and-plaforms)
 
 ## 2. Check server space
 
@@ -37,8 +37,9 @@ If you have 15 GB or more available, you can continue. If you have less availabl
 
 First:
 
-- stop all profiles through Armadillo UI.
-- while at it change the image names to their rock images as mentioned above.
+- Stop all profiles through Armadillo UI.
+- While at it change the image names to their rock images as mentioned in step 1.
+  You may choose to skip this step, considering it's reiterated in step 7.
 
 Now that the profiles are not running you can delete the old versions of their docker images.
 
@@ -120,11 +121,7 @@ ls -ltr /usr/share/armadillo/application/
 ## 4. Config the new version
 
 ### 4.1 application.yml
-Download the application template (for reference).
-``` bash
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/application.template.yml
-```
-NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section, but if you have trouble doing that, you could try the following first:
+NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section. You can try the following first:
 
 Edit the application.yml:
 ```bash
@@ -158,7 +155,7 @@ ls system/
 
 Armadillo has not yet been updated, follow the following steps to do so:
 
-### 5.1 Link new version
+### 5.1 Stop Armadillo
 
 ```bash
 systemctl stop armadillo
@@ -173,7 +170,7 @@ ls -l /usr/share/armadillo/application/
 # Remove the linked file
 rm /usr/share/armadillo/application/armadillo.jar
 
-# Attach new linked file
+# Attach new linked file and dont forget to change the version number v4.x.y
 ln -s /usr/share/armadillo/application/armadillo-4.x.y.jar /usr/share/armadillo/application/armadillo.jar
 
 # Check result
@@ -193,7 +190,8 @@ Go to your armadillo website. Is the version in the left top corner updated? Thi
 almost finished. 
 
 ## 7. Update profiles
-Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`. 
+Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`.
+Any other profiles can be removed.
 
 1. Edit the default profile. 
 2. Change the "image" to `datashield/rock-base:latest` and save. 
@@ -210,7 +208,7 @@ Team Armadillo
 
 
 ## Troubleshooting
-
+#### Logs
 Reviewing the log files can provide valuable insights into any issues or activities within the application. If you encounter any errors or unexpected behavior, examining the log files can often help diagnose the problem.
 
 Check log files location
@@ -249,10 +247,13 @@ tail -f /var/log/armadillo/*
 ```
 
 
+#### Compare application.yml
 Although we try to be very complete in this manual, if you run into issues, it might be because a setting got changed
 in the application.yml. To check if that's the case, do the following:
 
 The application settings could have new entries so you may need to check these.
+
+Download the application template (for reference).
 
 ```bash
 # Change the version number v4.x.y
