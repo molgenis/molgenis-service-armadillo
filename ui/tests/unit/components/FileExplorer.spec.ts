@@ -118,4 +118,17 @@ describe("FileExplorer", () => {
         expect(wrapper.vm.showSelectedFolderIcon(folder)).toEqual(false);
     });
 
+    test("setCreateNewFolder sets createNewFolder to true", () => {
+        wrapper.vm.createNewFolder = false;
+        wrapper.vm.setCreateNewFolder();
+        expect(wrapper.vm.createNewFolder).toEqual(true);
+    });
+
+    test("cancelNewFolder sets createNewFolder to false and empties newFolder", () => {
+        wrapper.vm.createNewFolder = true;
+        wrapper.vm.newFolder = "my-folder"
+        wrapper.vm.cancelNewFolder();
+        expect(wrapper.vm.createNewFolder).toEqual(false);
+        expect(wrapper.vm.newFolder).toEqual("");
+    });
 });
