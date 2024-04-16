@@ -195,8 +195,15 @@ jobs:
             docker images ls
             docker compose rm
 
+orbs:
+  codecov: codecov/codecov@4.0.1
 
 workflows:
   build-deploy:
     jobs:
       - build
+  upload-to-codecov:
+    jobs:
+      - node/test:
+          post-steps:
+            - codecov/upload
