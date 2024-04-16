@@ -204,5 +204,6 @@ workflows:
       - build
   upload-to-codecov:
     jobs:
-      - checkout
-      - codecov/upload
+      - node/test:
+          post-steps:
+            - codecov/upload
