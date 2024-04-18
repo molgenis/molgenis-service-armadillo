@@ -357,7 +357,7 @@ public class StorageController {
   @Operation(summary = "Retrieve columns of parquet file")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Preview success"),
+        @ApiResponse(responseCode = "200", description = "Return variables"),
         @ApiResponse(responseCode = "404", description = "Object does not exist"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
@@ -369,7 +369,7 @@ public class StorageController {
     return auditor.audit(
         () -> storage.getVariables(project, object),
         principal,
-        PREVIEW_OBJECT,
+        GET_VARIABLES,
         Map.of(PROJECT, project, OBJECT, object));
   }
 }
