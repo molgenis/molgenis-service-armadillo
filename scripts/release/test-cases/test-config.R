@@ -23,7 +23,7 @@ configure_test <- function() {
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- str_split(skip_tests, ",")[[1]]
-
+  
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
     cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
@@ -34,6 +34,11 @@ configure_test <- function() {
   } else {
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
   }
+  
+  if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "xenon-omics")){
+    skip_tests <- c(skip_tests, "xenon-omics")
+  }
+  
 
   interactive <- TRUE
   if (Sys.getenv("INTERACTIVE") == "N") {
