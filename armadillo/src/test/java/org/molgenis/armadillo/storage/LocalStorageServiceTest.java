@@ -321,4 +321,30 @@ class LocalStorageServiceTest {
     mockedFiles.close();
     mockedParquetUtils.close();
   }
+
+  @Test
+  void testGetVariables() {
+    String bucket = "bucket";
+    String object = "table.parquet";
+    localStorageService.save(
+        new ByteArrayInputStream("test".getBytes()), bucket, object, MediaType.TEXT_PLAIN);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    localStorageService.getVariables(bucket, object);
+    Path path = localStorageService.getObjectPathSafely(bucket, object);
+    mockedParquetUtils.verify(() -> ParquetUtils.getColumns(path));
+    mockedParquetUtils.close();
+  }
+
+  @Test
+  void tesPreview() {
+    String bucket = "bucket";
+    String object = "table.parquet";
+    localStorageService.save(
+        new ByteArrayInputStream("test".getBytes()), bucket, object, MediaType.TEXT_PLAIN);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    localStorageService.preview(bucket, object, 10, 10);
+    Path path = localStorageService.getObjectPathSafely(bucket, object);
+    mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10));
+    mockedParquetUtils.close();
+  }
 }
