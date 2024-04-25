@@ -10,6 +10,10 @@ public record FileInfo(
     return new FileInfo(name, size, null, null, null, new String[] {});
   }
 
+  public static FileInfo of(String name, String size, String rows, String columns) {
+    return new FileInfo(name, size, rows, columns, null, new String[] {});
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

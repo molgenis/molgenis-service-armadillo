@@ -188,34 +188,40 @@ public class LocalStorageService implements StorageService {
       String fileSizeWithUnit = getFileSizeInUnit(fileSize);
       if (objectPathString.endsWith(PARQUET)) {
         Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
-        return new FileInfo(
+        return FileInfo.of(
             objectName,
             fileSizeWithUnit,
             tableDimensions.get("rows"),
-            tableDimensions.get("columns"),
-            null,
-            new String[] {});
+            tableDimensions.get("columns"));
       } else if (objectPathString.endsWith(LINK_FILE)) {
-        InputStream armadilloLinkFileStream = load(bucketName, objectName);
-        ArmadilloLinkFile linkFile =
-            new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
-        Path srcObjectPath =
-            getPathIfObjectExists(
-                SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
-        Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(srcObjectPath);
-        return new FileInfo(
-            objectName,
-            fileSizeWithUnit,
-            tableDimensions.get("rows"),
-            tableDimensions.get("columns"),
-            linkFile.getSourceProject() + "/" + linkFile.getSourceObject(),
-            linkFile.getVariables().split(","));
+        return getFileInfoForLinkFile(bucketName, objectName, fileSizeWithUnit);
       } else {
         return FileInfo.of(objectName, fileSizeWithUnit);
       }
     } catch (IOException e) {
       throw new StorageException(e);
     }
+  }
+
+  private ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
+    InputStream armadilloLinkFileStream = load(bucketName, objectName);
+    return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
+  }
+
+  private FileInfo getFileInfoForLinkFile(
+      String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
+    ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+    Path srcObjectPath =
+        getPathIfObjectExists(
+            SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+    Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(srcObjectPath);
+    return new FileInfo(
+        objectName,
+        fileSizeWithUnit,
+        tableDimensions.get("rows"),
+        tableDimensions.get("columns"),
+        linkFile.getSourceProject() + "/" + linkFile.getSourceObject(),
+        linkFile.getVariables().split(","));
   }
 
   @Override
