@@ -25,14 +25,14 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
-
+  @Autowired LocalStorageService localStorageService;
   public static final String SOME_OBJECT_PATH =
       "object/some/path"; // n.b. can be subfolders you see?
   public static final String SOME_PROJECT = "project";
-  LocalStorageService localStorageService;
 
   @BeforeEach
   void beforeEach() throws IOException {
@@ -336,7 +336,7 @@ class LocalStorageServiceTest {
   }
 
   @Test
-  void tesPreview() {
+  void testPreview() {
     String bucket = "bucket";
     String object = "table.parquet";
     localStorageService.save(
