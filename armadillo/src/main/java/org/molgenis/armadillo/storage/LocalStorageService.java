@@ -245,7 +245,19 @@ public class LocalStorageService implements StorageService {
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
-      return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
+      if (objectPath.toString().endsWith(PARQUET)) {
+        return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit, new String[0]);
+      } else if (objectPath.toString().endsWith(LINK_FILE)) {
+        ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+        String srcProject = linkFile.getSourceProject();
+        String srcObject = linkFile.getSourceObject();
+        String[] variables = linkFile.getVariables().split(",");
+        Path srcObjectPath = getPathIfObjectExists(SHARED_PREFIX + srcProject, srcObject + PARQUET);
+        return ParquetUtils.previewRecords(srcObjectPath, rowLimit, columnLimit, variables);
+      } else {
+        throw new StorageException(
+            format("Preview not supported for: %s/%s", bucketName, objectName));
+      }
     } catch (Exception e) {
       throw new StorageException(e);
     }

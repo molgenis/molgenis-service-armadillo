@@ -14,7 +14,7 @@ public class ParquetUtilsTest {
   @Test
   public void testParquetPreview() throws IOException, URISyntaxException {
     Path path = Path.of(this.getClass().getClassLoader().getResource("patient.parquet").toURI());
-    List<Map<String, String>> preview = ParquetUtils.previewRecords(path, 10, 10);
+    List<Map<String, String>> preview = ParquetUtils.previewRecords(path, 10, 10, new String[0]);
     assertEquals("Patient1", preview.get(0).get("name"));
   }
 
