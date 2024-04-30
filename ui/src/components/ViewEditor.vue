@@ -65,7 +65,7 @@
       </div>
       <div class="row">
         <div class="col-12" v-if="variables.length > 0">
-          <VariableSelector :variables="variables" />
+          <VariableSelector :variables="variables" ref="variableSelector" />
         </div>
       </div>
       <div class="row mt-3">
@@ -122,7 +122,13 @@
           class="btn btn-primary"
           type="button"
           @click="
-            onSave(srcProject, sourceObject, vwProject, linkedObject, variables)
+            onSave(
+              srcProject,
+              sourceObject,
+              vwProject,
+              linkedObject,
+              $refs.variableSelector.selectedVariables
+            )
           "
         >
           <i class="bi bi-floppy-fill"></i> Save
@@ -156,6 +162,7 @@ export default defineComponent({
     viewTable: String,
     viewProject: String,
     viewFolder: String,
+    preselectedVars: Array,
     projects: {
       default: [],
       type: Array as PropType<Project[]>,
