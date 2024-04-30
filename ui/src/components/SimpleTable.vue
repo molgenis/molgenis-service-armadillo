@@ -39,7 +39,6 @@
 import { ListOfObjectsWithStringKey, StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
 import { isIntArray, transformTable, truncate } from "@/helpers/utils";
-import { timingSafeEqual } from "crypto";
 
 export default defineComponent({
   name: "SimpleTable",
