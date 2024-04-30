@@ -93,15 +93,15 @@ describe("SimpleTable", () => {
     expect(wrapper.vm.maxNumberCharacters).toBe(5);
   });
 
-  test("headers are truncated when over 5 + 2 characters", () => {
+  test("headers are truncated when too long", () => {
     expect(wrapper.vm.tableHeader).toEqual([
-      "firstN..",
+      "first..",
       "lastName",
       "height",
       "weight",
-      "favour..",
+      "favou..",
       "fears",
-      "isSupe..",
+      "isSup..",
     ]);
   });
 

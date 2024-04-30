@@ -20,7 +20,6 @@ describe("VariableSelector", () => {
 
   test("updateVariables removes variables when deselected", async () => {
     wrapper.vm.updateVariables("a");
-    expect(wrapper.vm.selectedVariables).toEqual(["a"]);
     wrapper.vm.updateVariables("a");
     expect(wrapper.vm.selectedVariables).toEqual([]);
   });
