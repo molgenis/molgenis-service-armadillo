@@ -14,22 +14,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.SYSTEM;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.validateProjectName;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.List;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.Workspace;
@@ -631,7 +634,7 @@ class ArmadilloStorageServiceTest {
   void testCreateLinkedObjectUnavailableVars() throws IOException {
     String obj = "folder/my_link";
     String srcObj = "1_0_release_1_1/gecko";
-    mockExistingObject(SHARED_GECKO, srcObj + ".parquet");
+    mockExistingObject(SHARED_GECKO, srcObj + PARQUET);
     when(storageService.listBuckets()).thenReturn(List.of(SHARED_GECKO, SHARED_DIABETES));
     when(storageService.getUnavailableVariables(SHARED_GECKO, srcObj, "a,b,c,x,y,z"))
         .thenReturn(List.of("x,y,z"));
@@ -682,5 +685,59 @@ class ArmadilloStorageServiceTest {
 
   private void verifyNoObjectLoaded() {
     verify(storageService, never()).load(any(String.class), any(String.class));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetFileSizeIfObjectExists() throws IOException {
+    MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
+    Long size = 12345L;
+    String srcObj = "1_0_release_1_1/gecko";
+    mockExistingObject(SHARED_GECKO, srcObj + PARQUET);
+    Path pathMock = mock(Path.class);
+    when(storageService.getPathIfObjectExists(SHARED_GECKO, srcObj)).thenReturn(pathMock);
+    when(Files.size(pathMock)).thenReturn(size);
+    Long actual = armadilloStorage.getFileSizeIfObjectExists(SHARED_GECKO, srcObj);
+    assertEquals(size, actual);
+    mockedFiles.close();
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetPreview() {
+    List<Map<String, String>> previewObj = new ArrayList<>();
+    Map<String, String> row = new LinkedHashMap<>();
+    row.put("field", "a");
+    previewObj.add(row);
+    String srcObj = "1_0_release_1_1/gecko";
+    mockExistingObject(SHARED_GECKO, srcObj + PARQUET);
+    when(armadilloStorage.hasObject("gecko", srcObj)).thenReturn(Boolean.TRUE);
+    when(storageService.preview(SHARED_GECKO, srcObj, 10, 10)).thenReturn(previewObj);
+    List<Map<String, String>> actual = armadilloStorage.getPreview("gecko", srcObj);
+    assertEquals(previewObj, actual);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetVariables() {
+    List<String> variables = Arrays.asList("foo", "bar");
+    String srcObj = "1_0_release_1_1/gecko";
+    mockExistingObject(SHARED_GECKO, srcObj + PARQUET);
+    when(armadilloStorage.hasObject("gecko", srcObj)).thenReturn(Boolean.TRUE);
+    when(storageService.getVariables(SHARED_GECKO, srcObj)).thenReturn(variables);
+    List<String> actual = armadilloStorage.getVariables("gecko", srcObj);
+    assertEquals(variables, actual);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetInfo() {
+    FileInfo info = mock(FileInfo.class);
+    String srcObj = "1_0_release_1_1/gecko";
+    mockExistingObject(SHARED_GECKO, srcObj + PARQUET);
+    when(armadilloStorage.hasObject("gecko", srcObj)).thenReturn(Boolean.TRUE);
+    when(storageService.getInfo(SHARED_GECKO, srcObj)).thenReturn(info);
+    FileInfo actual = armadilloStorage.getInfo("gecko", srcObj);
+    assertEquals(info, actual);
   }
 }

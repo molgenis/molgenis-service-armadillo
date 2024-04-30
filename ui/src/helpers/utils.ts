@@ -158,3 +158,51 @@ export function isEmptyObject(obj: Object) {
 export function objectDeepCopy<T>(input: T): T {
   return JSON.parse(JSON.stringify(input));
 }
+
+export function isTableType(item: string): boolean {
+  return item.endsWith(".parquet");
+}
+
+export function isNonTableType(item: string): boolean {
+  return !isTableType(item);
+}
+
+export function getRestructuredProject(
+  projectContent: StringArray,
+  projectId: string
+): Record<string, StringArray> {
+  let content: Record<string, StringArray> = {};
+  projectContent.forEach((item) => {
+    /** scrub the project folder from the name */
+    const itemInProjectFolder = item.replace(`${projectId}/`, "");
+    if (itemInProjectFolder.length && itemInProjectFolder[0] === ".") {
+      return; /** if item starts with a . */
+    }
+
+    /** Check if it is in a subfolder */
+    if (itemInProjectFolder.includes("/")) {
+      const splittedItem = itemInProjectFolder.split("/");
+      const folder = splittedItem[0];
+      const folderItem = splittedItem[1];
+
+      /** add to the content structure */
+      if (content[folder]) {
+        content[folder] = content[folder].concat(folderItem);
+      } else {
+        content[folder] = [folderItem];
+        if (folderItem === "") {
+          content[folder] = [];
+        }
+      }
+    }
+  });
+  return content;
+}
+
+export function getTablesFromListOfFiles(
+  listOfFiles: StringArray
+): StringArray {
+  return listOfFiles
+    ? listOfFiles.filter((file: string) => file.endsWith(".parquet"))
+    : [];
+}

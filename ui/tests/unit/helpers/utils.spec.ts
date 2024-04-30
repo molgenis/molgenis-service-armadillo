@@ -11,6 +11,10 @@ import {
   sanitizeObject,
   isEmptyObject,
   shortenFileName,
+  isTableType,
+  isNonTableType,
+  getRestructuredProject,
+  getTablesFromListOfFiles
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -211,6 +215,55 @@ describe("utils", () => {
     it("should return false if object is not empty", () => {
       const actual = isEmptyObject({ key: "value" });
       expect(actual).toBe(false);
+    });
+  });
+  describe("isTableType", () => {
+    it("should return true if item has parquet extension", () => {
+      const actual = isTableType("test.parquet");
+      expect(actual).toBe(true);
+    });
+    it("should return false if item doesnt have parquet extension", () => {
+      const actual = isTableType("test.somethingelse");
+      expect(actual).toBe(false);
+    });
+  });
+  describe("isNonTableType", () => {
+    it("should return false if item has parquet extension", () => {
+      const actual = isNonTableType("test.parquet");
+      expect(actual).toBe(false);
+    });
+    it("should return true if item doesnt have parquet extension", () => {
+      const actual = isNonTableType("test.somethingelse");
+      expect(actual).toBe(true);
+    });
+  });
+  describe("getRestructuredProject", () => {
+    it("should return restructured project object", ()=> {
+     const testProject = [
+       "lifecycle/.DS_Store",
+       "lifecycle/core/yearlyrep.parquet",
+       "lifecycle/core/trimesterrep.parquet",
+       "lifecycle/core/monthlyrep.parquet",
+       "lifecycle/core/nonrep.parquet",
+       "lifecycle/outcome/yearlyrep.parquet",
+       "lifecycle/outcome/nonrep.parquet",
+       "lifecycle/survival/veteran.parquet"
+     ];
+     const projectId = "lifecycle";
+     const actual = getRestructuredProject(testProject, projectId);
+     const expected = {
+       "core": ["yearlyrep.parquet", "trimesterrep.parquet", "monthlyrep.parquet", "nonrep.parquet"],
+       "outcome": ["yearlyrep.parquet", "nonrep.parquet"],
+       "survival": ["veteran.parquet"]
+     }
+     expect(actual).toEqual(expected);
+    })
+   });
+
+   describe("getTablesFromListOfFiles", () => {
+    it("should return a list of only parquetfiles from the supplied array with filenames", () => {
+      const actual = getTablesFromListOfFiles(["aap.parquet", "test.csv", "test.parquet", "test.xlsx"]);
+      expect(actual).toEqual(["aap.parquet", "test.parquet"]);
     });
   });
 });

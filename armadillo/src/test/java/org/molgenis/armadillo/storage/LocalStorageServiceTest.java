@@ -25,14 +25,14 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 class LocalStorageServiceTest {
-
+  @Autowired LocalStorageService localStorageService;
   public static final String SOME_OBJECT_PATH =
       "object/some/path"; // n.b. can be subfolders you see?
   public static final String SOME_PROJECT = "project";
-  LocalStorageService localStorageService;
 
   @BeforeEach
   void beforeEach() throws IOException {
@@ -287,7 +287,7 @@ class LocalStorageServiceTest {
     when(objectPathMock.toString()).thenReturn(bucket + " " + object);
     when(Files.size(objectPathMock)).thenReturn(10485760L);
     when(ParquetUtils.retrieveDimensions(objectPathMock)).thenReturn(objectDimensions);
-    FileInfo expected = new FileInfo(object, "10 MB", "232000", "120");
+    FileInfo expected = new FileInfo(object, "10 MB", "232000", "120", null, new String[] {});
     assertEquals(expected, localStorageService.getInfo(bucket, object));
     mockedPaths.close();
     mockedFiles.close();
@@ -315,10 +315,36 @@ class LocalStorageServiceTest {
     when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
     when(objectPathMock.toString()).thenReturn(bucket + " " + object);
     when(Files.size(objectPathMock)).thenReturn(10737418240L);
-    FileInfo expected = new FileInfo(object, "10 GB", null, null);
+    FileInfo expected = new FileInfo(object, "10 GB", null, null, null, new String[] {});
     assertEquals(expected, localStorageService.getInfo(bucket, object));
     mockedPaths.close();
     mockedFiles.close();
+    mockedParquetUtils.close();
+  }
+
+  @Test
+  void testGetVariables() {
+    String bucket = "bucket";
+    String object = "table.parquet";
+    localStorageService.save(
+        new ByteArrayInputStream("test".getBytes()), bucket, object, MediaType.TEXT_PLAIN);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    localStorageService.getVariables(bucket, object);
+    Path path = localStorageService.getObjectPathSafely(bucket, object);
+    mockedParquetUtils.verify(() -> ParquetUtils.getColumns(path));
+    mockedParquetUtils.close();
+  }
+
+  @Test
+  void testPreview() {
+    String bucket = "bucket";
+    String object = "table.parquet";
+    localStorageService.save(
+        new ByteArrayInputStream("test".getBytes()), bucket, object, MediaType.TEXT_PLAIN);
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+    localStorageService.preview(bucket, object, 10, 10);
+    Path path = localStorageService.getObjectPathSafely(bucket, object);
+    mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10));
     mockedParquetUtils.close();
   }
 }

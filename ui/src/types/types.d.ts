@@ -47,8 +47,11 @@ export type ProjectsExplorerData = {
   dataSizeColumns: number;
   createNewFolder: boolean;
   loading_preview: boolean;
-  newFolder: string;
   projectContent: Record<string, string[]>;
+  selectedFile: string;
+  selectedFolder: string;
+  createLinkFromTarget: boolean;
+  createLinkFromSrc: boolean;
 };
 
 export type ProjectsData = {
@@ -109,4 +112,14 @@ export type ProfilesData = {
     RUNNING: statusMappingType;
     DOCKER_OFFLINE: statusMappingType;
   };
+};
+
+export type ViewEditorData = {
+  projectData: Record<string, StringArray>;
+  vwTable: string;
+  vwProject: string;
+  vwFolder: string;
+  srcTable: string;
+  srcProject: string;
+  srcFolder: string;
 };

@@ -37,7 +37,7 @@ public class ArmadilloLinkFile {
     this.project = project;
   }
 
-  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
+  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkProject, String linkObject) {
     this.linkObject = linkObject;
     this.project = linkProject;
     JsonObject json;

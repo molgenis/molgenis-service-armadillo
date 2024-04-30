@@ -63,7 +63,7 @@ public class ArmadilloLinkFileTest {
         "\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     try {
-      new ArmadilloLinkFile(inputStream, linkObj, linkProject);
+      new ArmadilloLinkFile(inputStream, linkProject, linkObj);
     } catch (JsonParseException e) {
       String message = format("Cannot load [%s/%s] because JSON is invalid", linkProject, linkObj);
       assertEquals(message, e.getMessage());
@@ -76,7 +76,7 @@ public class ArmadilloLinkFileTest {
         "{\"sourceObj\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     try {
-      new ArmadilloLinkFile(inputStream, linkObj, linkProject);
+      new ArmadilloLinkFile(inputStream, linkProject, linkObj);
     } catch (NullPointerException e) {
       String message = format("Source object is missing from [%s/%s]", linkProject, linkObj);
       assertEquals(message, e.getMessage());
@@ -89,7 +89,7 @@ public class ArmadilloLinkFileTest {
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProj\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     try {
-      new ArmadilloLinkFile(inputStream, linkObj, linkProject);
+      new ArmadilloLinkFile(inputStream, linkProject, linkObj);
     } catch (NullPointerException e) {
       String message = format("Source project is missing from [%s/%s]", linkProject, linkObj);
       assertEquals(message, e.getMessage());
@@ -102,7 +102,7 @@ public class ArmadilloLinkFileTest {
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variabls\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     try {
-      new ArmadilloLinkFile(inputStream, linkObj, linkProject);
+      new ArmadilloLinkFile(inputStream, linkProject, linkObj);
     } catch (NullPointerException e) {
       String message = format("Variables are not defined on [%s/%s]", linkProject, linkObj);
       assertEquals(message, e.getMessage());
