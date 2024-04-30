@@ -27,26 +27,35 @@ public class ParquetUtils {
       List<String> columns = getColumnsFromSchema(schema);
 
       for (int i = 0; i < rowLimit; i++) {
-        SimpleGroup group = (SimpleGroup) recordReader.read();
-        Map<String, String> row = new LinkedHashMap<>();
-        AtomicInteger colCount = new AtomicInteger();
-        columns.forEach(
-            column -> {
-              if (colCount.get() < columnLimit) {
-                if (variables.length == 0 || Arrays.stream(variables).toList().contains(column)) {
-                  colCount.getAndIncrement();
-                  try {
-                    row.put(column, group.getValueToString(schema.getFieldIndex(column), 0));
-                  } catch (Exception e) {
-                    row.put(column, "NA");
-                  }
-                }
-              }
-            });
-        result.add(row);
+        result.add(getPreviewRow(recordReader, schema, columns, columnLimit, variables));
       }
     }
     return result;
+  }
+
+  private static Map<String, String> getPreviewRow(
+      RecordReader<Group> recordReader,
+      MessageType schema,
+      List<String> columns,
+      int columnLimit,
+      String[] variables) {
+    AtomicInteger colCount = new AtomicInteger();
+    SimpleGroup group = (SimpleGroup) recordReader.read();
+    Map<String, String> row = new LinkedHashMap<>();
+    columns.forEach(
+        column -> {
+          if (colCount.get() < columnLimit) {
+            if (variables.length == 0 || Arrays.stream(variables).toList().contains(column)) {
+              colCount.getAndIncrement();
+              try {
+                row.put(column, group.getValueToString(schema.getFieldIndex(column), 0));
+              } catch (Exception e) {
+                row.put(column, "NA");
+              }
+            }
+          }
+        });
+    return row;
   }
 
   private static List<String> getColumnsFromSchema(MessageType schema) {
