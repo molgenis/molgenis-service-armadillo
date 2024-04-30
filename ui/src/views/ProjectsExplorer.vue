@@ -25,7 +25,7 @@
               <i class="bi bi-arrow-left text-light"></i>
             </router-link>
           </button>
-          Project: {{ $route.params.projectId }}
+          Project: {{ route.params.projectId }}
         </h2>
         <ButtonGroup
           :buttonIcons="['folder-plus', 'trash-fill']"
