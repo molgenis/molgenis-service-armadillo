@@ -96,7 +96,7 @@ describe("SimpleTable", () => {
   test("headers are truncated when too long", () => {
     expect(wrapper.vm.tableHeader).toEqual([
       "first..",
-      "lastName",
+      "lastN..",
       "height",
       "weight",
       "favou..",

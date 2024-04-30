@@ -19,11 +19,10 @@ describe("VariableSelector", () => {
   });
 
   test("updateVariables removes variables when deselected", async () => {
-    wrapper.vm.updateVariables("a");
+    wrapper.vm.selectedVariables = ["a"];
     wrapper.vm.updateVariables("a");
     expect(wrapper.vm.selectedVariables).toEqual([]);
   });
-
 
   test("getFilteredVariables returns variables that match search terms", async () => {
     wrapper.vm.searchString = "test";
