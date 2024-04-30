@@ -167,6 +167,10 @@ export function isNonTableType(item: string): boolean {
   return !isTableType(item);
 }
 
+export function isLinkFileType(item: string): boolean {
+  return item.endsWith(".alf");
+}
+
 export function getRestructuredProject(
   projectContent: StringArray,
   projectId: string
