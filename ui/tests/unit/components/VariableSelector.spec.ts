@@ -18,6 +18,14 @@ describe("VariableSelector", () => {
     expect(wrapper.vm.selectedVariables).toEqual(["a", "b"]);
   });
 
+  test("updateVariables removes variables when deselected", async () => {
+    wrapper.vm.updateVariables("a");
+    expect(wrapper.vm.selectedVariables).toEqual(["a"]);
+    wrapper.vm.updateVariables("a");
+    expect(wrapper.vm.selectedVariables).toEqual([]);
+  });
+
+
   test("getFilteredVariables returns variables that match search terms", async () => {
     wrapper.vm.searchString = "test";
     expect(wrapper.vm.getFilteredVariables()).toEqual(["teststring", "test"]);

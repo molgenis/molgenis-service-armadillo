@@ -63,7 +63,10 @@ export default {
   },
   methods: {
     updateVariables(variable: string) {
-      if (!this.selectedVariables.includes(variable)) {
+      if (this.selectedVariables.includes(variable)) {
+        const index = this.selectedVariables.indexOf(variable);
+        this.selectedVariables.splice(index, 1);
+      } else {
         this.selectedVariables.push(variable);
       }
     },
