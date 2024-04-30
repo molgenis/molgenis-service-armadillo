@@ -147,7 +147,7 @@
                   <i class="bi bi-box-arrow-in-up-right"></i> Create view
                 </button>
                 <button
-                  v-else-if="isLinkFileType(selectedFile)"
+                  v-else-if="!editView && isLinkFileType(selectedFile)"
                   @click="editView = true"
                   type="button"
                   class="btn btn-primary btn-sm m-1"
@@ -156,11 +156,11 @@
                 </button>
                 <button
                   v-else
-                  @click="createLinkFromSrc = false"
+                  @click="cancelView()"
                   type="button"
                   class="btn btn-danger btn-sm m-1"
                 >
-                  <i class="bi bi-x"></i> Cancel view
+                  <i class="bi bi-x"></i> Cancel
                 </button>
               </div>
               <ViewEditor
@@ -358,6 +358,10 @@ export default defineComponent({
     isNonTableType,
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
+    },
+    cancelView() {
+      this.createLinkFromSrc = false;
+      this.editView = false;
     },
     clearFilePreview() {
       this.filePreview = [{}];
