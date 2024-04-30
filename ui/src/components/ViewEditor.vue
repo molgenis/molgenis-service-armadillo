@@ -65,7 +65,11 @@
       </div>
       <div class="row">
         <div class="col-12" v-if="variables.length > 0">
-          <VariableSelector :variables="variables" ref="variableSelector" />
+          <VariableSelector
+            :variables="variables"
+            :preselectedVariables="preselectedVariables"
+            ref="variableSelector"
+          />
         </div>
       </div>
       <div class="row mt-3">
@@ -111,7 +115,12 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <input type="string" class="form-control" v-model="vwTable" />
+                <input
+                  type="string"
+                  class="form-control"
+                  :disabled="isEditMode"
+                  v-model="vwTable"
+                />
               </div>
             </div>
           </form>
@@ -162,7 +171,10 @@ export default defineComponent({
     viewTable: String,
     viewProject: String,
     viewFolder: String,
-    preselectedVars: Array,
+    preselectedVariables: {
+      default: [],
+      type: Array as PropType<string[]>,
+    },
     projects: {
       default: [],
       type: Array as PropType<Project[]>,
@@ -283,6 +295,18 @@ export default defineComponent({
     },
     sourceObject(): string {
       return `${this.srcFolder}/${this.srcTable?.replace(".parquet", "")}`;
+    },
+    isEditMode(): boolean {
+      // when all items are preselected, we are in edit mode
+      return (
+        this.sourceFolder !== undefined &&
+        this.sourceProject !== undefined &&
+        this.sourceTable !== undefined &&
+        this.viewFolder !== undefined &&
+        this.viewProject !== undefined &&
+        this.viewTable !== undefined &&
+        this.preselectedVariables.length > 0
+      );
     },
   },
 });

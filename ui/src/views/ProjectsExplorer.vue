@@ -147,7 +147,15 @@
                   <i class="bi bi-box-arrow-in-up-right"></i> Create view
                 </button>
                 <button
-                  v-else-if="!isLinkFileType(selectedFile)"
+                  v-else-if="isLinkFileType(selectedFile)"
+                  @click="editView = true"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                >
+                  <i class="bi bi-box-arrow-in-up-right"></i> Edit view
+                </button>
+                <button
+                  v-else
                   @click="createLinkFromSrc = false"
                   type="button"
                   class="btn btn-danger btn-sm m-1"
@@ -160,6 +168,17 @@
                 :sourceFolder="selectedFolder"
                 :sourceTable="selectedFile"
                 :sourceProject="projectId"
+                :onSave="doCreateLinkFile"
+              ></ViewEditor>
+              <ViewEditor
+                v-if="editView === true"
+                :sourceFolder="fileInfo.sourceLink.split('/')[1]"
+                :sourceTable="fileInfo.sourceLink.split('/')[2] + '.parquet'"
+                :sourceProject="fileInfo.sourceLink.split('/')[0]"
+                :preselectedVariables="fileInfo.variables"
+                :viewProject="projectId"
+                :viewFolder="selectedFolder"
+                :viewTable="selectedFile"
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
               <SimpleTable
@@ -259,6 +278,7 @@ export default defineComponent({
   },
   data(): ProjectsExplorerData {
     return {
+      editView: false,
       selectedFile: "",
       selectedFolder: "",
       fileToDelete: "",
@@ -276,6 +296,7 @@ export default defineComponent({
         dataSizeRows: 0,
         dataSizeColumns: 0,
         sourceLink: "",
+        variables: [] as StringArray,
       },
       createLinkFromTarget: false,
       createLinkFromSrc: false,
@@ -312,6 +333,7 @@ export default defineComponent({
           this.fileInfo.dataSizeRows = parseInt(data["rows"]);
           this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
           this.fileInfo.sourceLink = data["sourceLink"];
+          this.fileInfo.variables = data["variables"];
         })
         .catch((error) => {
           this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
@@ -409,7 +431,6 @@ export default defineComponent({
             }
             this.setProjectContent();
           });
-
           this.successMessage = `Successfully deleted file [${file}] from directory [${folder}] of project: [${this.projectId}]`;
         })
         .catch((error) => {
@@ -433,7 +454,7 @@ export default defineComponent({
     showErrorMessage(error: string) {
       this.errorMessage = error;
     },
-    doCreateLinkFile(
+    createNewLinkFile(
       sourceProject: string,
       sourceObject: string,
       viewProject: string,
@@ -450,12 +471,70 @@ export default defineComponent({
       response
         .then(() => {
           this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
-          this.reloadProject();
           this.resetCreateLinkFile();
+          this.reloadProject();
+          this.selectedFolder = "";
+          this.selectedFile = "";
         })
         .catch((error) => {
           this.errorMessage = `${error}`;
         });
+    },
+    doCreateLinkFile(
+      sourceProject: string,
+      sourceObject: string,
+      viewProject: string,
+      viewObject: string,
+      variables: string[]
+    ) {
+      if (this.editView) {
+        // first check is saving will work
+        const tmpResponse = createLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject + ".tmp",
+          variables
+        );
+        tmpResponse
+          .then(() => {
+            const deleteResponse = deleteObject(
+              viewProject,
+              viewObject.replace("/", "%2F")
+            );
+            deleteResponse
+              .then(() => {
+                this.createNewLinkFile(
+                  sourceProject,
+                  sourceObject,
+                  viewProject,
+                  viewObject.replace(".alf", ""),
+                  variables
+                );
+                deleteObject(
+                  viewProject,
+                  viewObject.replace("/", "%2F") + ".tmp.alf"
+                );
+                this.editView = false;
+              })
+              .catch((error) => {
+                this.errorMessage = `${error}`;
+              });
+            this.reloadProject();
+            this.resetCreateLinkFile();
+          })
+          .catch((error) => {
+            this.errorMessage = `${error}`;
+          });
+      } else {
+        this.createNewLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject,
+          variables
+        );
+      }
     },
   },
 });

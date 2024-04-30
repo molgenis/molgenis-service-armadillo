@@ -35,6 +35,7 @@ interface Dictionary<T> {
 // Maybe later expand with float/int/enum/character
 export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {
+  editView: boolean;
   fileToDelete: string;
   folderToDeleteFrom: string;
   projectToEdit: string;
@@ -47,6 +48,7 @@ export type ProjectsExplorerData = {
     dataSizeRows: number;
     dataSizeColumns: number;
     sourceLink: string;
+    variables: Array<string>;
   };
   createNewFolder: boolean;
   loading_preview: boolean;

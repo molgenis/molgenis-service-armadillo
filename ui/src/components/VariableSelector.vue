@@ -42,8 +42,9 @@
 
 <script lang="ts">
 import SearchBar from "@/components/SearchBar.vue";
-import { defineComponent } from "vue";
+import { PropType, defineComponent } from "vue";
 import { stringIncludesOtherString } from "@/helpers/utils";
+import { StringArray } from "@/types/types";
 
 export default defineComponent({
   name: "VariableSelector",
@@ -52,13 +53,17 @@ export default defineComponent({
       default: [],
       type: Array,
     },
+    preselectedVariables: {
+      default: [] as PropType<StringArray>,
+      type: Array,
+    },
   },
   components: {
     SearchBar,
   },
   data(): { selectedVariables: string[]; searchString: string } {
     return {
-      selectedVariables: [],
+      selectedVariables: this.preselectedVariables as StringArray,
       searchString: "",
     };
   },
