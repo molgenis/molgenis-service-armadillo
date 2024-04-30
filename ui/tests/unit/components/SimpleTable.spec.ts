@@ -88,9 +88,9 @@ describe("SimpleTable", () => {
 
   test("max number of characters", () => {
     // tablekeys length = 7
-    // 20 * 7 - (10 / 7 - 1 ) * 50 = 118.57
-    // ceil(600 / 118.57) = 6
-    expect(wrapper.vm.maxNumberCharacters).toBe(6);
+    // 7 * 16 = 112
+    // floor(600 / 112) = 5.4
+    expect(wrapper.vm.maxNumberCharacters).toBe(5);
   });
 
   test("headers are truncated when over 5 + 2 characters", () => {
