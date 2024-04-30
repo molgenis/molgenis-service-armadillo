@@ -42,9 +42,10 @@
 
 <script lang="ts">
 import SearchBar from "@/components/SearchBar.vue";
+import { defineComponent } from "vue";
 import { stringIncludesOtherString } from "@/helpers/utils";
 
-export default {
+export default defineComponent({
   name: "VariableSelector",
   props: {
     variables: {
@@ -83,7 +84,7 @@ export default {
       return variables as string[];
     },
   },
-};
+});
 </script>
 <style :scoped>
 .variable-select {
