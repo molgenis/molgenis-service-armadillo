@@ -127,7 +127,7 @@
               sourceObject,
               vwProject,
               linkedObject,
-              $refs.variableSelector.selectedVariables
+              ($refs.variableSelector as any).selectedVariables
             )
           "
         >
