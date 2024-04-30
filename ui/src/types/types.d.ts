@@ -42,9 +42,12 @@ export type ProjectsExplorerData = {
   loading: boolean;
   successMessage: string;
   filePreview: Array<any>;
-  fileSize: string;
-  dataSizeRows: number;
-  dataSizeColumns: number;
+  fileInfo: {
+    fileSize: string;
+    dataSizeRows: number;
+    dataSizeColumns: number;
+    sourceLink: string;
+  };
   createNewFolder: boolean;
   loading_preview: boolean;
   projectContent: Record<string, string[]>;

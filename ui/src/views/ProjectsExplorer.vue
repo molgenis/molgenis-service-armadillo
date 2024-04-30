@@ -124,15 +124,20 @@
               "
             >
               <div class="fst-italic">
-                No preview available for: {{ selectedFile }} ({{ fileSize }})
+                No preview available for: {{ selectedFile }} ({{
+                  fileInfo.fileSize
+                }})
               </div>
             </div>
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
-                  `${dataSizeRows}x${dataSizeColumns}`
+                  `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
                 }})
+                <div v-if="isLinkFileType(selectedFile)">
+                  Linked from: {{ fileInfo.sourceLink }}
+                </div>
                 <button
                   v-if="!createLinkFromSrc && isTableType(selectedFile)"
                   @click="createLinkFromSrc = true"
@@ -161,8 +166,8 @@
                 v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
-                :n-rows="dataSizeRows"
-                :n-cols="dataSizeColumns"
+                :n-rows="fileInfo.dataSizeRows"
+                :n-cols="fileInfo.dataSizeColumns"
               ></SimpleTable>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
@@ -264,11 +269,14 @@ export default defineComponent({
       loading_preview: false,
       successMessage: "",
       filePreview: [{}],
-      fileSize: "",
-      dataSizeRows: 0,
-      dataSizeColumns: 0,
       createNewFolder: false,
       projectContent: {},
+      fileInfo: {
+        fileSize: "",
+        dataSizeRows: 0,
+        dataSizeColumns: 0,
+        sourceLink: "",
+      },
       createLinkFromTarget: false,
       createLinkFromSrc: false,
     };
@@ -300,9 +308,10 @@ export default defineComponent({
         `${this.selectedFolder}%2F${this.selectedFile}`
       )
         .then((data) => {
-          this.fileSize = data["size"];
-          this.dataSizeRows = data["rows"];
-          this.dataSizeColumns = data["columns"];
+          this.fileInfo.fileSize = data["size"];
+          this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+          this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+          this.fileInfo.sourceLink = data["sourceLink"];
         })
         .catch((error) => {
           this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
