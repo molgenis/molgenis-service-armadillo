@@ -304,9 +304,6 @@ export default defineComponent({
     };
   },
   watch: {
-    createLinkFromTarget() {
-      console.log("set!", this.createLinkFromTarget);
-    },
     selectedFile() {
       if (
         this.projectId !== "" &&
@@ -512,12 +509,10 @@ export default defineComponent({
       this.selectedFile = file;
     },
     setCreateLinkFromTarget() {
-      console.log("creating from target", this.createLinkFromTarget);
       this.selectedFile = "";
       this.editView = false;
       this.resetFileInfo();
       this.createLinkFromTarget = true;
-      console.log("set", this.createLinkFromTarget);
     },
     resetFileInfo() {
       this.fileInfo = {
