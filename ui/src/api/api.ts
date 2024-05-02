@@ -1,5 +1,9 @@
 import { ApiError } from "@/helpers/errors";
-import { objectDeepCopy, sanitizeObject } from "@/helpers/utils";
+import {
+  encodeUriComponent,
+  objectDeepCopy,
+  sanitizeObject,
+} from "@/helpers/utils";
 import {
   Principal,
   Profile,
@@ -219,7 +223,10 @@ export async function getProject(projectId: string): Promise<StringArray> {
 }
 
 export async function deleteObject(project: string, name: string) {
-  return delete_("/storage/projects/" + project + "/objects", name);
+  return delete_(
+    "/storage/projects/" + project + "/objects",
+    encodeUriComponent(name)
+  );
 }
 
 export async function getProfiles(): Promise<Profile[]> {
@@ -254,7 +261,11 @@ export async function uploadIntoProject(
 }
 
 export async function previewObject(projectId: string, object: string) {
-  return get(`/storage/projects/${projectId}/objects/${object}/preview`);
+  return get(
+    `/storage/projects/${projectId}/objects/${encodeUriComponent(
+      object
+    )}/preview`
+  );
 }
 
 export async function logout() {
@@ -275,14 +286,20 @@ export async function authenticate(auth: Auth) {
 }
 
 export async function getFileDetails(project: string, object: string) {
-  return get(`/storage/projects/${project}/objects/${object}/info`);
+  return get(
+    `/storage/projects/${project}/objects/${encodeUriComponent(object)}/info`
+  );
 }
 
 export async function getTableVariables(
   project: string,
   object: string
 ): Promise<string[]> {
-  return get(`/storage/projects/${project}/objects/${object}/variables`);
+  return get(
+    `/storage/projects/${project}/objects/${encodeUriComponent(
+      object
+    )}/variables`
+  );
 }
 
 export async function createLinkFile(
