@@ -212,7 +212,7 @@ export default defineComponent({
       if (isSrcTableSet()) {
         await getTableVariables(
           props.sourceProject as string,
-          `${props.sourceFolder}%2F${props.sourceTable}`
+          `${props.sourceFolder}/${props.sourceTable}`
         )
           .then((data) => {
             variables.value = data;
@@ -254,7 +254,7 @@ export default defineComponent({
         });
     },
     async getVariables(project: string, folder: string, file: string) {
-      await getTableVariables(project, folder + "%2F" + file)
+      await getTableVariables(project, folder + "/" + file)
         .then((response) => {
           this.variables = response;
         })

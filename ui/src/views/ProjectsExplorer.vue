@@ -312,7 +312,7 @@ export default defineComponent({
         this.loading_preview = true;
         previewObject(
           this.projectId,
-          `${this.selectedFolder}%2F${this.selectedFile}`
+          `${this.selectedFolder}/${this.selectedFile}`
         )
           .then((data) => {
             this.filePreview = data;
@@ -326,7 +326,7 @@ export default defineComponent({
       }
       getFileDetails(
         this.projectId,
-        `${this.selectedFolder}%2F${this.selectedFile}`
+        `${this.selectedFolder}/${this.selectedFile}`
       )
         .then((data) => {
           this.fileInfo.fileSize = data["size"];
@@ -424,7 +424,7 @@ export default defineComponent({
       const folder = splittedFileAndFolder[0];
       const response = deleteObject(
         this.projectId,
-        `${this.selectedFolder}%2F${this.selectedFile}`
+        `${this.selectedFolder}/${this.selectedFile}`
       );
       response
         .then(() => {
@@ -511,10 +511,7 @@ export default defineComponent({
         );
         tmpResponse
           .then(() => {
-            const deleteResponse = deleteObject(
-              viewProject,
-              viewObject.replace("/", "%2F")
-            );
+            const deleteResponse = deleteObject(viewProject, viewObject);
             deleteResponse
               .then(() => {
                 this.createNewLinkFile(
@@ -524,10 +521,7 @@ export default defineComponent({
                   viewObject.replace(".alf", ""),
                   variables
                 );
-                deleteObject(
-                  viewProject,
-                  viewObject.replace("/", "%2F") + ".tmp.alf"
-                );
+                deleteObject(viewProject, viewObject + ".tmp.alf");
                 this.editView = false;
                 this.router.push(
                   `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
