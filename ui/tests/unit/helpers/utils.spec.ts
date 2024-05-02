@@ -15,7 +15,8 @@ import {
   isNonTableType,
   getRestructuredProject,
   getTablesFromListOfFiles,
-  isLinkFileType
+  isLinkFileType,
+  encodeUriComponent
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -277,6 +278,13 @@ describe("utils", () => {
     it("should return a list of only parquetfiles from the supplied array with filenames", () => {
       const actual = getTablesFromListOfFiles(["aap.parquet", "test.csv", "test.parquet", "test.xlsx"]);
       expect(actual).toEqual(["aap.parquet", "test.parquet"]);
+    });
+  });
+
+  describe("encodeUriComponent", () => {
+    it("should encode / and -", () => {
+      const actual = encodeUriComponent("project-id/folder/file-version1.parquet");
+      expect(actual).toEqual("project%2Did%2Ffolder%2Ffile%2Dversion1.parquet");
     });
   });
 });

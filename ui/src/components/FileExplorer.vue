@@ -25,6 +25,7 @@
         rowIcon="table"
         rowIconAlt="file-earmark"
         :altIconCondition="isNonTableType"
+        :preselectedItem="selectedFile"
         selectionColor="primary"
       ></ListGroup>
     </div>
@@ -66,9 +67,18 @@ export default defineComponent({
         selectedFolder.value = newVal as string;
       }
     );
+    watch(
+      () => route.params.fileId,
+      (newVal) => {
+        selectedFile.value = newVal as string;
+      }
+    );
     onMounted(() => {
       if (route.params.folderId) {
         selectedFolder.value = route.params.folderId as string;
+        if (route.params.fileId) {
+          selectedFile.value = route.params.fileId as string;
+        }
       }
       watch(
         () => folderComponent.value?.selectedItem,
