@@ -254,7 +254,11 @@ export async function uploadIntoProject(
 }
 
 export async function previewObject(projectId: string, object: string) {
-  return get(`/storage/projects/${projectId}/objects/${object}/preview`);
+  return get(
+    `/storage/projects/${encodeURIComponent(
+      projectId
+    )}/objects/${encodeURIComponent(object)}/preview`
+  );
 }
 
 export async function logout() {
