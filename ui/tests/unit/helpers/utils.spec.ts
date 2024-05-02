@@ -14,7 +14,8 @@ import {
   isTableType,
   isNonTableType,
   getRestructuredProject,
-  getTablesFromListOfFiles
+  getTablesFromListOfFiles,
+  isLinkFileType
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -227,6 +228,18 @@ describe("utils", () => {
       expect(actual).toBe(false);
     });
   });
+
+  describe("isLinkFileType", () => {
+    it("should return true if item has parquet extension", () => {
+      const actual = isLinkFileType("test.alf");
+      expect(actual).toBe(true);
+    });
+    it("should return false if item doesnt have parquet extension", () => {
+      const actual = isLinkFileType("test.somethingelse");
+      expect(actual).toBe(false);
+    });
+  }); 
+
   describe("isNonTableType", () => {
     it("should return false if item has parquet extension", () => {
       const actual = isNonTableType("test.parquet");

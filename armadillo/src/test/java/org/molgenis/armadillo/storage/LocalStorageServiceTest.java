@@ -344,7 +344,7 @@ class LocalStorageServiceTest {
     MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
     localStorageService.preview(bucket, object, 10, 10);
     Path path = localStorageService.getObjectPathSafely(bucket, object);
-    mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10));
+    mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10, new String[0]));
     mockedParquetUtils.close();
   }
 }

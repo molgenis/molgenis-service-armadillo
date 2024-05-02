@@ -118,7 +118,11 @@
               v-if="loading_preview"
               class="pt-3 mt-3"
             ></LoadingSpinner>
-            <div v-if="isNonTableType(selectedFile)">
+            <div
+              v-if="
+                isNonTableType(selectedFile) && !isLinkFileType(selectedFile)
+              "
+            >
               <div class="fst-italic">
                 No preview available for: {{ selectedFile }} ({{ fileSize }})
               </div>
@@ -130,7 +134,7 @@
                   `${dataSizeRows}x${dataSizeColumns}`
                 }})
                 <button
-                  v-if="!createLinkFromSrc"
+                  v-if="!createLinkFromSrc && isTableType(selectedFile)"
                   @click="createLinkFromSrc = true"
                   type="button"
                   class="btn btn-primary btn-sm m-1"
@@ -138,7 +142,7 @@
                   <i class="bi bi-box-arrow-in-up-right"></i> Create view
                 </button>
                 <button
-                  v-else
+                  v-else-if="!isLinkFileType(selectedFile)"
                   @click="createLinkFromSrc = false"
                   type="button"
                   class="btn btn-danger btn-sm m-1"
@@ -189,6 +193,7 @@ import {
 } from "@/api/api";
 import {
   isEmptyObject,
+  isLinkFileType,
   isTableType,
   isNonTableType,
   getRestructuredProject,
@@ -271,7 +276,10 @@ export default defineComponent({
   watch: {
     selectedFile() {
       this.resetCreateLinkFile();
-      if (this.isTableType(this.selectedFile)) {
+      if (
+        this.isTableType(this.selectedFile) ||
+        this.isLinkFileType(this.selectedFile)
+      ) {
         this.loading_preview = true;
         previewObject(
           this.projectId,
@@ -315,6 +323,7 @@ export default defineComponent({
   },
   methods: {
     isTableType,
+    isLinkFileType,
     isNonTableType,
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
