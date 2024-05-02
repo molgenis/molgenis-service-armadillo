@@ -42,13 +42,19 @@
 
 <script lang="ts">
 import SearchBar from "@/components/SearchBar.vue";
+import { PropType, defineComponent } from "vue";
 import { stringIncludesOtherString } from "@/helpers/utils";
+import { StringArray } from "@/types/types";
 
-export default {
+export default defineComponent({
   name: "VariableSelector",
   props: {
     variables: {
       default: [],
+      type: Array,
+    },
+    preselectedVariables: {
+      default: [] as PropType<StringArray>,
       type: Array,
     },
   },
@@ -57,13 +63,16 @@ export default {
   },
   data(): { selectedVariables: string[]; searchString: string } {
     return {
-      selectedVariables: [],
+      selectedVariables: this.preselectedVariables as StringArray,
       searchString: "",
     };
   },
   methods: {
     updateVariables(variable: string) {
-      if (!this.selectedVariables.includes(variable)) {
+      if (this.selectedVariables.includes(variable)) {
+        const index = this.selectedVariables.indexOf(variable);
+        this.selectedVariables.splice(index, 1);
+      } else {
         this.selectedVariables.push(variable);
       }
     },
@@ -80,7 +89,7 @@ export default {
       return variables as string[];
     },
   },
-};
+});
 </script>
 <style :scoped>
 .variable-select {

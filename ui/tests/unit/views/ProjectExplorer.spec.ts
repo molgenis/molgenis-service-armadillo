@@ -237,6 +237,14 @@ describe("ProjectsExplorer", () => {
         expect(wrapper.vm.createLinkFromTarget).toBe(false);
     });
 
+    test("set createLinkFromSrc and editView to false", () => {
+        wrapper.vm.createLinkFromSrc = true;
+        wrapper.vm.editView = true;
+        wrapper.vm.cancelView();
+        expect(wrapper.vm.createLinkFromSrc).toBe(false);
+        expect(wrapper.vm.editView).toBe(false);
+    });
+    
     test("createLinkFile calls api to update linkfile", async () => {
         const createLinkFileMock = jest.fn();
         api.createLinkFile.mockImplementation(() => {
