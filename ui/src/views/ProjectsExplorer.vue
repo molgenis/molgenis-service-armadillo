@@ -74,7 +74,7 @@
                     class="btn btn-primary me-md-2"
                     style="width: 100%"
                     type="button"
-                    @click="createLinkFromTarget = true"
+                    @click="setCreateLinkFromTarget"
                   >
                     <i class="bi bi-box-arrow-in-up-right"></i> Select table to
                     link from ...
@@ -99,10 +99,10 @@
               </div>
             </div>
             <ViewEditor
-              v-if="createLinkFromTarget === true"
               :viewProject="projectId"
               :viewFolder="selectedFolder"
               :onSave="doCreateLinkFile"
+              :preselectedVariables="[]"
             ></ViewEditor>
           </div>
           <div
@@ -169,6 +169,7 @@
                 :sourceTable="selectedFile"
                 :sourceProject="projectId"
                 :onSave="doCreateLinkFile"
+                :preselectedVariables="[]"
               ></ViewEditor>
               <ViewEditor
                 v-else-if="editView === true"
@@ -303,41 +304,50 @@ export default defineComponent({
     };
   },
   watch: {
+    createLinkFromTarget() {
+      console.log("set!", this.createLinkFromTarget);
+    },
     selectedFile() {
-      this.resetCreateLinkFile();
       if (
-        this.isTableType(this.selectedFile) ||
-        this.isLinkFileType(this.selectedFile)
+        this.projectId !== "" &&
+        this.selectedFolder !== "" &&
+        this.selectedFile !== ""
       ) {
-        this.loading_preview = true;
-        previewObject(
+        this.resetCreateLinkFile();
+        if (
+          this.isTableType(this.selectedFile) ||
+          this.isLinkFileType(this.selectedFile)
+        ) {
+          this.loading_preview = true;
+          previewObject(
+            this.projectId,
+            `${this.selectedFolder}/${this.selectedFile}`
+          )
+            .then((data) => {
+              this.filePreview = data;
+              this.loading_preview = false;
+            })
+            .catch((error) => {
+              this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+              this.clearFilePreview();
+              this.loading_preview = false;
+            });
+        }
+        getFileDetails(
           this.projectId,
           `${this.selectedFolder}/${this.selectedFile}`
         )
           .then((data) => {
-            this.filePreview = data;
-            this.loading_preview = false;
+            this.fileInfo.fileSize = data["size"];
+            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+            this.fileInfo.sourceLink = data["sourceLink"];
+            this.fileInfo.variables = data["variables"];
           })
           .catch((error) => {
-            this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-            this.clearFilePreview();
-            this.loading_preview = false;
+            this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
           });
       }
-      getFileDetails(
-        this.projectId,
-        `${this.selectedFolder}/${this.selectedFile}`
-      )
-        .then((data) => {
-          this.fileInfo.fileSize = data["size"];
-          this.fileInfo.dataSizeRows = parseInt(data["rows"]);
-          this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
-          this.fileInfo.sourceLink = data["sourceLink"];
-          this.fileInfo.variables = data["variables"];
-        })
-        .catch((error) => {
-          this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-        });
     },
     project() {
       this.setProjectContent();
@@ -465,33 +475,58 @@ export default defineComponent({
       viewObject: string,
       variables: string[]
     ) {
-      const response = createLinkFile(
-        sourceProject,
-        sourceObject,
-        viewProject,
-        viewObject,
-        variables
-      );
-      response
-        .then(() => {
-          this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
-          this.resetCreateLinkFile();
-          this.reloadProject();
-          this.selectedFolder = "";
-          this.selectedFile = "";
-        })
-        .catch((error) => {
-          this.errorMessage = `${error}`;
-        });
+      if (
+        sourceProject !== "" &&
+        sourceObject !== "" &&
+        viewProject !== "" &&
+        viewObject !== "" &&
+        variables.length !== 0
+      ) {
+        const response = createLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject,
+          variables
+        );
+        response
+          .then(() => {
+            this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
+            this.resetCreateLinkFile();
+            this.reloadProject();
+            this.selectedFolder = "";
+            this.selectedFile = "";
+          })
+          .catch((error) => {
+            this.errorMessage = `${error}`;
+          });
+      } else {
+        this.errorMessage =
+          "Cannot save, ensure all fields are filled in properly";
+      }
     },
     onSelectFolder(folder: string) {
       this.selectedFolder = folder;
     },
     onSelectFile(file: string) {
       this.selectedFile = file;
-      this.router.push(
-        `/projects-explorer/${this.projectId}/${this.selectedFolder}/${file}`
-      );
+    },
+    setCreateLinkFromTarget() {
+      console.log("creating from target", this.createLinkFromTarget);
+      this.selectedFile = "";
+      this.editView = false;
+      this.resetFileInfo();
+      this.createLinkFromTarget = true;
+      console.log("set", this.createLinkFromTarget);
+    },
+    resetFileInfo() {
+      this.fileInfo = {
+        fileSize: "",
+        dataSizeRows: 0,
+        dataSizeColumns: 0,
+        sourceLink: "",
+        variables: [] as StringArray,
+      };
     },
     doCreateLinkFile(
       sourceProject: string,
@@ -523,9 +558,11 @@ export default defineComponent({
                 );
                 deleteObject(viewProject, viewObject + ".tmp.alf");
                 this.editView = false;
-                this.router.push(
-                  `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
-                );
+                if (this.projectId !== "" && this.selectedFolder !== "") {
+                  this.router.push(
+                    `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
+                  );
+                }
               })
               .catch((error) => {
                 this.errorMessage = `${error}`;

@@ -1,5 +1,9 @@
 import { ApiError } from "@/helpers/errors";
-import { objectDeepCopy, sanitizeObject } from "@/helpers/utils";
+import {
+  encodeUriComponent,
+  objectDeepCopy,
+  sanitizeObject,
+} from "@/helpers/utils";
 import {
   Principal,
   Profile,
@@ -214,16 +218,14 @@ export async function getPrincipal(): Promise<Principal> {
 }
 
 export async function getProject(projectId: string): Promise<StringArray> {
-  const project = get(
-    `/storage/projects/${encodeURIComponent(projectId)}/objects`
-  );
+  const project = get(`/storage/projects/${projectId}/objects`);
   return project;
 }
 
 export async function deleteObject(project: string, name: string) {
   return delete_(
-    "/storage/projects/" + encodeURIComponent(project) + "/objects",
-    name
+    "/storage/projects/" + project + "/objects",
+    encodeUriComponent(name)
   );
 }
 
@@ -255,17 +257,14 @@ export async function uploadIntoProject(
   let formData = new FormData();
   formData.append("file", fileToUpload);
   formData.append("object", `${object}/${fileToUpload.name}`);
-  return postFormData(
-    `/storage/projects/${encodeURIComponent(project)}/objects`,
-    formData
-  );
+  return postFormData(`/storage/projects/${project}/objects`, formData);
 }
 
 export async function previewObject(projectId: string, object: string) {
   return get(
-    `/storage/projects/${encodeURIComponent(
-      projectId
-    )}/objects/${encodeURIComponent(object)}/preview`
+    `/storage/projects/${projectId}/objects/${encodeUriComponent(
+      object
+    )}/preview`
   );
 }
 
@@ -288,9 +287,7 @@ export async function authenticate(auth: Auth) {
 
 export async function getFileDetails(project: string, object: string) {
   return get(
-    `/storage/projects/${encodeURIComponent(
-      project
-    )}/objects/${encodeURIComponent(object)}/info`
+    `/storage/projects/${project}/objects/${encodeUriComponent(object)}/info`
   );
 }
 
@@ -299,9 +296,9 @@ export async function getTableVariables(
   object: string
 ): Promise<string[]> {
   return get(
-    `/storage/projects/${encodeURIComponent(
-      project
-    )}/objects/${encodeURIComponent(object)}/variables`
+    `/storage/projects/${project}/objects/${encodeUriComponent(
+      object
+    )}/variables`
   );
 }
 
@@ -319,8 +316,5 @@ export async function createLinkFile(
     linkedObject: viewObject,
     variables: variables,
   };
-  return postJson(
-    `/storage/projects/${encodeURIComponent(viewProject)}/objects/link`,
-    data
-  );
+  return postJson(`/storage/projects/${viewProject}/objects/link`, data);
 }

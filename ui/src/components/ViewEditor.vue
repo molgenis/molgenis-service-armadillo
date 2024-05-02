@@ -203,16 +203,19 @@ export default defineComponent({
 
     const isSrcTableSet = () => {
       return (
-        props.sourceTable != "" &&
-        props.sourceFolder != "" &&
-        props.sourceProject != ""
+        props.sourceTable !== "" &&
+        props.sourceFolder !== "" &&
+        props.sourceProject !== "" &&
+        props.sourceTable !== undefined &&
+        props.sourceFolder !== undefined &&
+        props.sourceProject !== undefined
       );
     };
     const fetchVariables = async () => {
       if (isSrcTableSet()) {
         await getTableVariables(
           props.sourceProject as string,
-          `${props.sourceFolder}/${props.sourceTable}`
+          `${props.sourceFolder}%2F${props.sourceTable}`
         )
           .then((data) => {
             variables.value = data;
@@ -254,7 +257,8 @@ export default defineComponent({
         });
     },
     async getVariables(project: string, folder: string, file: string) {
-      await getTableVariables(project, folder + "/" + file)
+      console.log(project, folder, file);
+      await getTableVariables(project, folder + "%2F" + file)
         .then((response) => {
           this.variables = response;
         })
