@@ -53,8 +53,8 @@
               v-if="!loading"
               :projectContent="projectContent"
               :addNewFolder="addNewFolder"
-              @selectFolder="selectedFolder = $event"
-              @selectFile="selectedFile = $event"
+              @selectFolder="onSelectFolder($event)"
+              @selectFile="onSelectFile($event)"
             />
             <div class="row mt-3">
               <div class="col-6">
@@ -484,6 +484,15 @@ export default defineComponent({
           this.errorMessage = `${error}`;
         });
     },
+    onSelectFolder(folder: string) {
+      this.selectedFolder = folder;
+    },
+    onSelectFile(file: string) {
+      this.selectedFile = file;
+      this.router.push(
+        `/projects-explorer/${this.projectId}/${this.selectedFolder}/${file}`
+      );
+    },
     doCreateLinkFile(
       sourceProject: string,
       sourceObject: string,
@@ -520,6 +529,9 @@ export default defineComponent({
                   viewObject.replace("/", "%2F") + ".tmp.alf"
                 );
                 this.editView = false;
+                this.router.push(
+                  `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
+                );
               })
               .catch((error) => {
                 this.errorMessage = `${error}`;
