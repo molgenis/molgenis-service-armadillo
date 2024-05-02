@@ -62,9 +62,22 @@ export default defineComponent({
   },
   computed: {
     maxNumberCharacters() {
+      // don't question the logic, it's a formula that figures out how many characters fit in each header label
+      // but if you do question it:
+      // maxWidth/200 spreads out nicely for 10 columns, to get 200 when the length of columns is 10, we do it times 20 (20 * l)
+      // for 5 columns, this leaves a lot of whitespace. There maxWidth/50, rather than 100, fits better.
+      // therefore, we need to substract 50 from the 20 * l if the number of columns is 5 and 0 if the number of columns is 1
+      // to get that: (10 / l - 1) * 50, that's what we substract from the 20 * l
+      // example (l = 10):
+      // 20 * 10 = 200
+      // 10 / 10 - 1 = 0 -> 0 * 50 = 0
+      // 200 - 0 = 200
+      // example (l = 5):
+      // 20 * 5 = 100
+      // 10 / 5 - 1 = 1 -> 1 * 50 = 50
+      // 100 - 50 = 50
       const l = this.tableKeys.length;
-      // max width divided by number of characters * fontsize to evenly spread headers
-      return Math.floor(this.maxWidth / (l * 16));
+      return Math.ceil(this.maxWidth / (20 * l - (10 / l - 1) * 50));
     },
     dataToPreview() {
       // converting ints to in, otherwise the id numbers look awkward

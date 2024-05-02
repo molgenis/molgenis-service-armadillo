@@ -65,11 +65,7 @@
       </div>
       <div class="row">
         <div class="col-12" v-if="variables.length > 0">
-          <VariableSelector
-            :variables="variables"
-            :preselectedVariables="preselectedVariables"
-            ref="variableSelector"
-          />
+          <VariableSelector :variables="variables" />
         </div>
       </div>
       <div class="row mt-3">
@@ -115,12 +111,7 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <input
-                  type="string"
-                  class="form-control"
-                  :disabled="isEditMode"
-                  v-model="vwTable"
-                />
+                <input type="string" class="form-control" v-model="vwTable" />
               </div>
             </div>
           </form>
@@ -131,13 +122,7 @@
           class="btn btn-primary"
           type="button"
           @click="
-            onSave(
-              srcProject,
-              sourceObject,
-              vwProject,
-              linkedObject,
-              ($refs.variableSelector as any).selectedVariables
-            )
+            onSave(srcProject, sourceObject, vwProject, linkedObject, variables)
           "
         >
           <i class="bi bi-floppy-fill"></i> Save
@@ -171,10 +156,6 @@ export default defineComponent({
     viewTable: String,
     viewProject: String,
     viewFolder: String,
-    preselectedVariables: {
-      default: [],
-      type: Array as PropType<string[]>,
-    },
     projects: {
       default: [],
       type: Array as PropType<Project[]>,
@@ -203,12 +184,9 @@ export default defineComponent({
 
     const isSrcTableSet = () => {
       return (
-        props.sourceTable !== "" &&
-        props.sourceFolder !== "" &&
-        props.sourceProject !== "" &&
-        props.sourceTable !== undefined &&
-        props.sourceFolder !== undefined &&
-        props.sourceProject !== undefined
+        props.sourceTable != "" &&
+        props.sourceFolder != "" &&
+        props.sourceProject != ""
       );
     };
     const fetchVariables = async () => {
@@ -257,7 +235,6 @@ export default defineComponent({
         });
     },
     async getVariables(project: string, folder: string, file: string) {
-      console.log(project, folder, file);
       await getTableVariables(project, folder + "%2F" + file)
         .then((response) => {
           this.variables = response;
@@ -299,18 +276,6 @@ export default defineComponent({
     },
     sourceObject(): string {
       return `${this.srcFolder}/${this.srcTable?.replace(".parquet", "")}`;
-    },
-    isEditMode(): boolean {
-      // when all items are preselected, we are in edit mode
-      return (
-        this.sourceFolder !== undefined &&
-        this.sourceProject !== undefined &&
-        this.sourceTable !== undefined &&
-        this.viewFolder !== undefined &&
-        this.viewProject !== undefined &&
-        this.viewTable !== undefined &&
-        this.preselectedVariables.length > 0
-      );
     },
   },
 });
