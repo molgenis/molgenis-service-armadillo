@@ -210,7 +210,3 @@ export function getTablesFromListOfFiles(
     ? listOfFiles.filter((file: string) => file.endsWith(".parquet"))
     : [];
 }
-
-export function encodeUriComponent(component: string) {
-  return component.replaceAll("/", "%2F").replaceAll("-", "%2D");
-}

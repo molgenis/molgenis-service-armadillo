@@ -20,7 +20,8 @@ public class ParquetUtils {
   public static List<Map<String, String>> previewRecords(
       Path path, int rowLimit, int columnLimit, String[] variables) throws IOException {
     List<Map<String, String>> result = new ArrayList<>();
-    try (ParquetFileReader reader = getFileReader(path)) {
+    LocalInputFile file = new LocalInputFile(path);
+    try (ParquetFileReader reader = ParquetFileReader.open(file)) {
       MessageType schema = getSchemaFromReader(reader);
       RecordReader<Group> recordReader = getRecordReader(schema, reader);
       List<String> columns = getColumnsFromSchema(schema);
@@ -72,13 +73,9 @@ public class ParquetUtils {
     return columnIO.getRecordReader(store, new GroupRecordConverter(schema));
   }
 
-  private static ParquetFileReader getFileReader(Path path) throws IOException {
-    LocalInputFile file = new LocalInputFile(path);
-    return ParquetFileReader.open(file);
-  }
-
   public static List<String> getColumns(Path path) throws IOException {
-    try (ParquetFileReader reader = getFileReader(path)) {
+    LocalInputFile file = new LocalInputFile(path);
+    try (ParquetFileReader reader = ParquetFileReader.open(file)) {
       var schema = getSchemaFromReader(reader);
       return getColumnsFromSchema(schema);
     } catch (IOException e) {
@@ -87,7 +84,8 @@ public class ParquetUtils {
   }
 
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {
-    try (ParquetFileReader reader = getFileReader(path)) {
+    LocalInputFile file = new LocalInputFile(path);
+    try (ParquetFileReader reader = ParquetFileReader.open(file)) {
       MessageType schema = getSchemaFromReader(reader);
       int numberOfColumns = schema.getFields().size();
       long numberOfRows = reader.getRecordCount();
