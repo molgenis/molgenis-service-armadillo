@@ -171,7 +171,7 @@
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
               <ViewEditor
-                v-if="editView === true"
+                v-else-if="editView === true"
                 :sourceFolder="fileInfo.sourceLink.split('/')[1]"
                 :sourceTable="fileInfo.sourceLink.split('/')[2] + '.parquet'"
                 :sourceProject="fileInfo.sourceLink.split('/')[0]"
