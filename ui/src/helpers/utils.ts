@@ -214,3 +214,24 @@ export function getTablesFromListOfFiles(
 export function encodeUriComponent(component: string) {
   return component.replaceAll("/", "%2F").replaceAll("-", "%2D");
 }
+
+export function diskSpaceExceedsLimit(diskSpace: number): boolean {
+  return diskSpace < 2147483648;
+}
+
+/**
+ * Convert given bytes to 2 digits precision round exponent version string.
+ * @param bytes number
+ */
+export function convertBytes(bytes: number): string {
+  console.log(bytes);
+  const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
+  let unitIndex = 0;
+  console.log(bytes);
+  while (bytes >= 1024 && unitIndex < units.length - 1) {
+    bytes /= 1024;
+    unitIndex++;
+  }
+
+  return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+}

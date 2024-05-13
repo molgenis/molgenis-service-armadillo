@@ -10,6 +10,9 @@
       <div class="container">
         <div class="row mt-2">
           <div class="col" v-if="username">
+            <Alert v-if="diskNearFull" type="warning" :dismissible="false">
+              {{ diskSpaceMessage }}
+            </Alert>
             <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
           </div>
           <Login @loginEvent="reloadUser" v-else />
@@ -23,10 +26,12 @@
 import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
+import Alert from "@/components/Alert.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
-import { getPrincipal, getVersion, logout } from "@/api/api";
+import { getPrincipal, getVersion, logout, getFreeDiskSpace } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
+import { diskSpaceExceedsLimit, convertBytes } from "@/helpers/utils";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -34,16 +39,19 @@ export default defineComponent({
     Navbar,
     Tabs,
     Login,
+    Alert,
   },
   setup() {
     const isAuthenticated: Ref<boolean> = ref(false);
     const username: Ref<string> = ref("");
     const version: Ref<string> = ref("");
     const router = useRouter();
+    const diskSpace: Ref<string> = ref("");
 
     onMounted(() => {
       loadUser();
       loadVersion();
+      loadFreeDiskSpace();
     });
 
     const loadUser = async () => {
@@ -67,13 +75,16 @@ export default defineComponent({
     const loadVersion = async () => {
       version.value = await getVersion();
     };
-
+    const loadFreeDiskSpace = async () => {
+      diskSpace.value = await getFreeDiskSpace();
+    };
     return {
       username,
       isAuthenticated,
       version,
       loadUser,
       loadVersion,
+      diskSpace,
     };
   },
   data() {
@@ -87,6 +98,17 @@ export default defineComponent({
         "brilliance",
       ],
     };
+  },
+  computed: {
+    diskNearFull() {
+      return diskSpaceExceedsLimit(this.diskSpace);
+    },
+    diskSpaceMessage() {
+      console.log(this.diskSpace);
+      return `Disk space low (${
+        this.diskSpace === "" ? "" : convertBytes(this.diskSpace)
+      } remaining). Saving workspaces may not be possible and users risk losing workspace data. Either allocate more space or remove saved workspaces.`;
+    },
   },
   methods: {
     logoutUser() {
