@@ -31,7 +31,7 @@ import { defineComponent, onMounted, ref, Ref } from "vue";
 import { getPrincipal, getVersion, logout, getFreeDiskSpace } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
-import { diskSpaceExceedsLimit, convertBytes } from "@/helpers/utils";
+import { diskSpaceBelowThreshold, convertBytes } from "@/helpers/utils";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -101,10 +101,9 @@ export default defineComponent({
   },
   computed: {
     diskNearFull() {
-      return diskSpaceExceedsLimit(this.diskSpace);
+      return diskSpaceBelowThreshold(this.diskSpace);
     },
     diskSpaceMessage() {
-      console.log(this.diskSpace);
       return `Disk space low (${
         this.diskSpace === "" ? "" : convertBytes(this.diskSpace)
       } remaining). Saving workspaces may not be possible and users risk losing workspace data. Either allocate more space or remove saved workspaces.`;

@@ -215,7 +215,7 @@ export function encodeUriComponent(component: string) {
   return component.replaceAll("/", "%2F").replaceAll("-", "%2D");
 }
 
-export function diskSpaceExceedsLimit(diskSpace: number): boolean {
+export function diskSpaceBelowThreshold(diskSpace: number): boolean {
   return diskSpace < 2147483648;
 }
 
@@ -224,10 +224,8 @@ export function diskSpaceExceedsLimit(diskSpace: number): boolean {
  * @param bytes number
  */
 export function convertBytes(bytes: number): string {
-  console.log(bytes);
   const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
   let unitIndex = 0;
-  console.log(bytes);
   while (bytes >= 1024 && unitIndex < units.length - 1) {
     bytes /= 1024;
     unitIndex++;
