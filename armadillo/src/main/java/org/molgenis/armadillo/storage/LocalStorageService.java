@@ -219,7 +219,7 @@ public class LocalStorageService implements StorageService {
         objectName,
         fileSizeWithUnit,
         tableDimensions.get("rows"),
-        tableDimensions.get("columns"),
+        String.valueOf(linkFile.getNumberOfVariables()),
         linkFile.getSourceProject() + "/" + linkFile.getSourceObject(),
         linkFile.getVariables().split(","));
   }

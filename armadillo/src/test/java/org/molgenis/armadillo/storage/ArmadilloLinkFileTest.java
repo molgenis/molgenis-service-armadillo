@@ -41,6 +41,12 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
+  public void testGetNumberOfVariables() {
+    Integer actual = alf.getNumberOfVariables();
+    assertEquals(3, actual);
+  }
+
+  @Test
   public void testLoadFromStream() {
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     JsonObject actual = alf.loadFromStream(inputStream);

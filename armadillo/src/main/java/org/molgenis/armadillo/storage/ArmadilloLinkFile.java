@@ -118,6 +118,10 @@ public class ArmadilloLinkFile {
     return this.project;
   }
 
+  public Integer getNumberOfVariables() {
+    return getVariables().split(",").length;
+  }
+
   public JsonObject loadFromStream(InputStream inputStream) {
     return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
   }
