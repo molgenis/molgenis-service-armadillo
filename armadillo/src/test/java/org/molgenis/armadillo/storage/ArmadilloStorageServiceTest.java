@@ -510,6 +510,20 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
+  void testSaveWorkspaceReturnsErrorWhenTooBig() throws IOException {
+    when(storageService.getSizeOfInputStream(is)).thenReturn(123456789123456789L);
+    assertThrows(
+        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+  }
+
+  @Test
+  void testSaveWorkspaceReturnsErrorWhenCantDetermineSize() throws IOException {
+    when(storageService.getSizeOfInputStream(is)).thenThrow(IOException.class);
+    assertThrows(
+        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+  }
+
+  @Test
   void testSaveWorkspaceChecksBucketName() {
     when(principal.getName()).thenReturn("Henk");
 

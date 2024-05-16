@@ -34,5 +34,7 @@ public interface StorageService {
 
   void delete(String bucketName, String objectName);
 
-  public Path getPathIfObjectExists(String bucketName, String objectName);
+  Path getPathIfObjectExists(String bucketName, String objectName);
+
+  long getSizeOfInputStream(InputStream is) throws IOException;
 }

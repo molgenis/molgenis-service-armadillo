@@ -7,6 +7,7 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -224,8 +225,22 @@ public class ArmadilloStorageService {
   }
 
   public void saveWorkspace(InputStream is, Principal principal, String id) {
-    storageService.save(
-        is, getUserBucketName(principal), getWorkspaceObjectName(id), APPLICATION_OCTET_STREAM);
+    // Load root dir
+    File drive = new File("/");
+    long usableSpace = drive.getUsableSpace();
+    try {
+      long fileSize = storageService.getSizeOfInputStream(is);
+      if (usableSpace > fileSize * 2L) {
+        storageService.save(
+            is, getUserBucketName(principal), getWorkspaceObjectName(id), APPLICATION_OCTET_STREAM);
+      } else {
+        throw new StorageException(
+            "Can't save workspace: not enough space left on device. Please contact the administrator.");
+      }
+    } catch (IOException e) {
+      throw new StorageException(
+          "Can't save workspace: size can't be determined. Please try again and if the problem persists, contact the administrator.");
+    }
   }
 
   public void removeWorkspace(Principal principal, String id) {
