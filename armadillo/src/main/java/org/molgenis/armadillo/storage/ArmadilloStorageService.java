@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
@@ -231,11 +232,21 @@ public class ArmadilloStorageService {
     try {
       long fileSize = storageService.getSizeOfInputStream(is);
       if (usableSpace > fileSize * 2L) {
-        storageService.save(
-            is, getUserBucketName(principal), getWorkspaceObjectName(id), APPLICATION_OCTET_STREAM);
+        try {
+          storageService.save(
+              is,
+              getUserBucketName(principal),
+              getWorkspaceObjectName(id),
+              APPLICATION_OCTET_STREAM);
+        } catch (StorageException e) {
+          throw new StorageException(e);
+        }
+
       } else {
         throw new StorageException(
-            "Can't save workspace: not enough space left on device. Please contact the administrator.");
+            format(
+                "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
+                getHumanReadableByteCount(fileSize)));
       }
     } catch (IOException e) {
       throw new StorageException(
