@@ -218,10 +218,6 @@ public class LocalStorageService implements StorageService {
       }
     } catch (IOException e) {
       throw new StorageException("Cannot retrieve size of file.");
-    } finally {
-      if (is != null) {
-        is.close();
-      }
     }
     return size;
   }
