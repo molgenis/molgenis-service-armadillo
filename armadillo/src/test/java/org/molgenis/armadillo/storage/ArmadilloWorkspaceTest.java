@@ -14,7 +14,7 @@ import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloWorkspaceTest {
   @Test
-  public void testGetFileName() {
+  void testGetFileName() {
     InputStream stubInputStream =
         IOUtils.toInputStream("some test data for my input stream", "UTF-8");
     ArmadilloWorkspace workspace = new ArmadilloWorkspace(stubInputStream);
