@@ -208,18 +208,8 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
   }
 
-  public long getSizeOfInputStream(InputStream is) throws IOException {
-    long size = 0;
-    int chunk;
-    try {
-      byte[] buffer = new byte[1024];
-      while ((chunk = is.read(buffer)) != -1) {
-        size += chunk;
-      }
-    } catch (IOException e) {
-      throw new StorageException("Cannot retrieve size of file.");
-    }
-    return size;
+  public ArmadilloWorkspace getWorkSpace(InputStream is) {
+    return new ArmadilloWorkspace(is);
   }
 
   private FileInfo getFileInfoForLinkFile(

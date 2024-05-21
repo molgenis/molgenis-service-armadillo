@@ -8,9 +8,7 @@ import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByte
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -229,28 +227,24 @@ public class ArmadilloStorageService {
     // Load root dir
     File drive = new File("/");
     long usableSpace = drive.getUsableSpace();
-    try {
-      long fileSize = storageService.getSizeOfInputStream(is);
-      if (usableSpace > fileSize * 2L) {
-        try {
-          storageService.save(
-              is,
-              getUserBucketName(principal),
-              getWorkspaceObjectName(id),
-              APPLICATION_OCTET_STREAM);
-        } catch (StorageException e) {
-          throw new StorageException(e);
-        }
 
-      } else {
-        throw new StorageException(
-            format(
-                "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
-                getHumanReadableByteCount(fileSize)));
+    ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
+    long fileSize = workspace.getSize();
+    if (usableSpace > fileSize * 2L) {
+      try {
+        storageService.save(
+            workspace.createInputStream(),
+            getUserBucketName(principal),
+            getWorkspaceObjectName(id),
+            APPLICATION_OCTET_STREAM);
+      } catch (StorageException e) {
+        throw new StorageException(e);
       }
-    } catch (IOException e) {
+    } else {
       throw new StorageException(
-          "Can't save workspace: size can't be determined. Please try again and if the problem persists, contact the administrator.");
+          format(
+              "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
+              getHumanReadableByteCount(fileSize)));
     }
   }
 

@@ -11,7 +11,6 @@ import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByte
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +20,6 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -349,21 +347,6 @@ class LocalStorageServiceTest {
     Path path = localStorageService.getObjectPathSafely(bucket, object);
     mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10, new String[0]));
     mockedParquetUtils.close();
-  }
-
-  @Test
-  void testGetSizeOfInputStream() throws IOException {
-    InputStream stubInputStream =
-        IOUtils.toInputStream("some test data for my input stream", "UTF-8");
-    long size = localStorageService.getSizeOfInputStream(stubInputStream);
-    assertEquals(34, size);
-  }
-
-  @Test
-  void testGetSizeOfInputStreamThrowsError() throws IOException {
-    InputStream isMock = mock(InputStream.class);
-    when(isMock.read(any(byte[].class))).thenThrow(IOException.class);
-    assertThrows(StorageException.class, () -> localStorageService.getSizeOfInputStream(isMock));
   }
 
   @Test

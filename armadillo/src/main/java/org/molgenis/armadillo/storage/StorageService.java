@@ -39,8 +39,6 @@ public interface StorageService {
 
   Path getPathIfObjectExists(String bucketName, String objectName);
 
-  long getSizeOfInputStream(InputStream is) throws IOException;
-
   static String getHumanReadableByteCount(long bytes) {
     long absB = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
     if (absB < 1024) {
@@ -56,4 +54,6 @@ public interface StorageService {
     Locale.setDefault(Locale.US);
     return String.format("%.1f %cB", value / 1024.0, ci.current());
   }
+
+  ArmadilloWorkspace getWorkSpace(InputStream is);
 }

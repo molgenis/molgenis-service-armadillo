@@ -10,10 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -502,23 +499,21 @@ class ArmadilloStorageServiceTest {
 
   @Test
   void testSaveWorkspace() {
+    ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
+    ByteArrayInputStream isMock = mock(ByteArrayInputStream.class);
     when(principal.getName()).thenReturn("henk");
-
+    when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
+    when(workspaceMock.getSize()).thenReturn(12345L);
+    when(workspaceMock.createInputStream()).thenReturn(isMock);
     armadilloStorage.saveWorkspace(is, principal, "test");
-
-    verify(storageService).save(is, "user-henk", "test.RData", APPLICATION_OCTET_STREAM);
+    verify(storageService).save(isMock, "user-henk", "test.RData", APPLICATION_OCTET_STREAM);
   }
 
   @Test
-  void testSaveWorkspaceReturnsErrorWhenTooBig() throws IOException {
-    when(storageService.getSizeOfInputStream(is)).thenReturn(123456789123456789L);
-    assertThrows(
-        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
-  }
-
-  @Test
-  void testSaveWorkspaceReturnsErrorWhenCantDetermineSize() throws IOException {
-    when(storageService.getSizeOfInputStream(is)).thenThrow(IOException.class);
+  void testSaveWorkspaceReturnsErrorWhenTooBig() {
+    ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
+    when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
+    when(workspaceMock.getSize()).thenReturn(123456789123456789L);
     assertThrows(
         StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
   }
