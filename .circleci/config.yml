@@ -147,6 +147,11 @@ jobs:
               export $( cat build/ci.properties | xargs )
               bash ci/set_kubectl_config-azure.sh
               bash ci/create_or_update_k8s-azure.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}" ${TAG_NAME} DELETE
+              curl -d "token=${SLACK_TOKEN}" \
+              -d "text=*<${CIRCLE_PULL_REQUEST}|Circle-CI » Armadillo » Armadillo-Service » PR-${CIRCLE_PULL_REQUEST##*/} #${CIRCLE_BUILD_NUM}>*
+              PR Preview available on https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org" \
+              -d "channel=C0639V5KTCY" \
+              -X POST https://slack.com/api/chat.postMessage
             fi
 
       - run:
