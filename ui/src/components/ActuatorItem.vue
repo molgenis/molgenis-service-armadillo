@@ -27,30 +27,18 @@
 </template>
 
 <script setup lang="ts">
+import { convertBytes } from "@/helpers/utils";
 const props = defineProps({
   name: {
     type: String,
     required: true,
+  },
+  methods: {
+    convertBytes,
   },
   data: {
     type: Object,
     required: true,
   },
 });
-
-/**
- * Convert given bytes to 2 digits precision round exponent version string.
- * @param bytes number
- */
-function convertBytes(bytes: number): string {
-  const units = ["bytes", "KB", "MB", "GB", "TB", "EB"];
-  let unitIndex = 0;
-
-  while (bytes >= 1024 && unitIndex < units.length - 1) {
-    bytes /= 1024;
-    unitIndex++;
-  }
-
-  return `${bytes.toFixed(2)} ${units[unitIndex]}`;
-}
 </script>

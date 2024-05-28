@@ -11,6 +11,14 @@ import {
   sanitizeObject,
   isEmptyObject,
   shortenFileName,
+  isTableType,
+  isNonTableType,
+  getRestructuredProject,
+  getTablesFromListOfFiles,
+  isLinkFileType,
+  encodeUriComponent,
+  convertBytes,
+  diskSpaceBelowThreshold
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -213,4 +221,114 @@ describe("utils", () => {
       expect(actual).toBe(false);
     });
   });
+  describe("isTableType", () => {
+    it("should return true if item has parquet extension", () => {
+      const actual = isTableType("test.parquet");
+      expect(actual).toBe(true);
+    });
+    it("should return false if item doesnt have parquet extension", () => {
+      const actual = isTableType("test.somethingelse");
+      expect(actual).toBe(false);
+    });
+  });
+
+  describe("isLinkFileType", () => {
+    it("should return true if item has parquet extension", () => {
+      const actual = isLinkFileType("test.alf");
+      expect(actual).toBe(true);
+    });
+    it("should return false if item doesnt have parquet extension", () => {
+      const actual = isLinkFileType("test.somethingelse");
+      expect(actual).toBe(false);
+    });
+  }); 
+
+  describe("isNonTableType", () => {
+    it("should return false if item has parquet extension", () => {
+      const actual = isNonTableType("test.parquet");
+      expect(actual).toBe(false);
+    });
+    it("should return true if item doesnt have parquet extension", () => {
+      const actual = isNonTableType("test.somethingelse");
+      expect(actual).toBe(true);
+    });
+  });
+  describe("getRestructuredProject", () => {
+    it("should return restructured project object", ()=> {
+     const testProject = [
+       "lifecycle/.DS_Store",
+       "lifecycle/core/yearlyrep.parquet",
+       "lifecycle/core/trimesterrep.parquet",
+       "lifecycle/core/monthlyrep.parquet",
+       "lifecycle/core/nonrep.parquet",
+       "lifecycle/outcome/yearlyrep.parquet",
+       "lifecycle/outcome/nonrep.parquet",
+       "lifecycle/survival/veteran.parquet"
+     ];
+     const projectId = "lifecycle";
+     const actual = getRestructuredProject(testProject, projectId);
+     const expected = {
+       "core": ["yearlyrep.parquet", "trimesterrep.parquet", "monthlyrep.parquet", "nonrep.parquet"],
+       "outcome": ["yearlyrep.parquet", "nonrep.parquet"],
+       "survival": ["veteran.parquet"]
+     }
+     expect(actual).toEqual(expected);
+    })
+   });
+
+   describe("getTablesFromListOfFiles", () => {
+    it("should return a list of only parquetfiles from the supplied array with filenames", () => {
+      const actual = getTablesFromListOfFiles(["aap.parquet", "test.csv", "test.parquet", "test.xlsx"]);
+      expect(actual).toEqual(["aap.parquet", "test.parquet"]);
+    });
+  });
+
+  describe("encodeUriComponent", () => {
+    it("should encode / and -", () => {
+      const actual = encodeUriComponent("project-id/folder/file-version1.parquet");
+      expect(actual).toEqual("project%2Did%2Ffolder%2Ffile%2Dversion1.parquet");
+    });
+  });
 });
+
+  describe("convertBytes", () => {
+    it("bytes", () => {
+      const actual = convertBytes(999)
+      expect(actual).toEqual("999.00 bytes")
+    })
+    it("KB", () => {
+      const actual = convertBytes(99999)
+      expect(actual).toEqual("97.66 KB")
+    })
+    it("MB", () => {
+      const actual = convertBytes(9999999)
+      expect(actual).toEqual("9.54 MB")
+    })
+    it("GB", () => {
+      const actual = convertBytes(9999999999)
+      expect(actual).toEqual("9.31 GB")
+    })
+    it("TB", () => {
+      const actual = convertBytes(9999999999999)
+      expect(actual).toEqual("9.09 TB")
+    })
+    it("EB", () => {
+      const actual = convertBytes(9999999999999999)
+      expect(actual).toEqual("8.88 EB")
+    })
+  });
+
+
+  describe("diskSpaceBelowThreshold", () => {
+    it("Return true", () => {
+      const actual = diskSpaceBelowThreshold(214748364);
+      expect(actual).toEqual(true);
+    });
+    it("Return false", () => {
+      const actual = diskSpaceBelowThreshold(9214748364);
+      expect(actual).toEqual(false);
+    });
+  });
+  
+
+

@@ -10,6 +10,7 @@
     <slot></slot>
     <button
       v-on:click="$emit('clear')"
+      v-if="dismissible"
       type="button"
       class="btn-close"
       aria-label="Close"
@@ -25,6 +26,10 @@ export default defineComponent({
   name: "Alert",
   props: {
     type: String as PropType<BootstrapType>,
+    dismissible: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: ["clear"],
 });
