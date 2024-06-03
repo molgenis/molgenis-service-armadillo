@@ -20,7 +20,7 @@ cat("
 ")
 cat("Installing dependencies for release test\n")
 if (!"cli" %in% installed.packages()) {
-  install.packages("cli", repos = "http://cran.us.r-project.org")
+  install.packages("cli", repos = "https://cloud.r-project.org/")
 }
 library(cli)
 cli_alert_info("Installing packages")
@@ -47,7 +47,7 @@ install_requirements_from_cran <- function(packages) {
       cli_alert_info(sprintf("Package [%s] already installed, skipping.", pkg))
     } else {
       cli_alert_info(paste0("Installing ", pkg))
-      install.packages(pkg, repos = "http://cran.us.r-project.org", quiet = TRUE)
+      install.packages(pkg, repos = "https://cloud.r-project.org/", quiet = TRUE)
     }
     cli_progress_update()
   }
