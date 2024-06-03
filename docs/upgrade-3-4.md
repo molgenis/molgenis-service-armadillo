@@ -4,7 +4,7 @@
 
 The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock profiles.
 
-Additionally, when working with an armadillo 4 instance, researchers should update their `DSMolgenisArmadillo` to 2.0.5 (this version is compatible with armadillo 3 as well).
+Additionally, when working with an armadillo 4 instance, researchers should update `DSMolgenisArmadillo` to version 2.0.5 (this version is compatible with armadillo 3 as well).
 
 ## Get latest version
 
@@ -35,11 +35,7 @@ If you have 15 GB or more available, you can continue. If you have less availabl
 
 ### 2.2 Check docker images
 
-First:
-
-- Stop all profiles through Armadillo UI.
-- While at it change the image names to their rock images as mentioned in step 1.
-  You may choose to skip this step, considering it's reiterated in step 7.
+First stop all profiles through the Armadillo UI.
 
 Now that the profiles are not running you can delete the old versions of their docker images.
 
@@ -121,7 +117,7 @@ ls -ltr /usr/share/armadillo/application/
 ## 4. Config the new version
 
 ### 4.1 application.yml
-NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo would be by fetching the template and filling it in with your configuration using the information in the troubleshooting section. You can try the following first:
+NOTE: To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo is by fetching the template and filling it in with your configuration using the information in the troubleshooting section. You can try the following first:
 
 Edit the application.yml:
 ```bash
@@ -177,14 +173,14 @@ ln -s /usr/share/armadillo/application/armadillo-4.x.y.jar /usr/share/armadillo/
 ls -l /usr/share/armadillo/application/
 ```
 
-### 5.3 Start again
+### 5.3 Restart Armadillo
 
 ```bash
 systemctl start armadillo
 systemctl status armadillo
 ```
 
-## 6. Visit the site
+## 6. Log on to the UI
 
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
 almost finished. 
@@ -200,7 +196,7 @@ Any other profiles can be removed.
 5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
 6. Start the xenon profile. 
 
-Everything should be working fine now. You can try and login to your server via the central analysis server, using
+Everything should now be working correctly. You can try and login to your server via the central analysis server, using
 the `DSMolgenisArmadillo` (2.0.5 or up) package to test. 
 
 Enjoy =)
@@ -248,12 +244,8 @@ tail -f /var/log/armadillo/*
 
 
 #### Compare application.yml
-Although we try to be very complete in this manual, if you run into issues, it might be because a setting got changed
-in the application.yml. To check if that's the case, do the following:
-
-The application settings could have new entries so you may need to check these.
-
-Download the application template (for reference).
+Although we try to be very complete in this manual, if you run into issues, it might be because a setting was changed
+in the application.yml. You can check if application settings has any new entries by first downloading the application template (for reference).
 
 ```bash
 # Change the version number v4.x.y
