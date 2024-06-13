@@ -136,7 +136,7 @@ echo "Armadillo Installed under systemd"
 
 setup_armadillo_config() {
   SEED=$(tr -cd '[:digit:]' < /dev/urandom | fold -w 9 | head -n 1)
-  wget -q -O /etc/armadillo/application.yml "$ARMADILLO_RAW_URL/v$ARMADILLO_VERSION/scripts/install/conf/application.yml"
+  wget -q -O /etc/armadillo/application.yml "$ARMADILLO_RAW_URL/$ARMADILLO_VERSION/scripts/install/conf/application.yml"
   
   
   if [ ! "$ADMINUSER" ]; then 
