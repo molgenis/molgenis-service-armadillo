@@ -11,7 +11,7 @@ RUN install2.r --skipinstalled --repo https://cloud.r-project.org devtools diffo
 
 RUN install2.r --skipinstalled --repo https://cloud.r-project.org arrow future RCurl cli
 
-RUN install2.r --skipinstalled --repo https://cloud.r-project.org DSI resourcer MolgenisArmadillo DSMolgenisArmadillo
+RUN install2.r --repo https://cloud.r-project.org DSI resourcer MolgenisArmadillo DSMolgenisArmadillo
 
 RUN mkdir -p /cicd/armadillo/scripts/release
 
