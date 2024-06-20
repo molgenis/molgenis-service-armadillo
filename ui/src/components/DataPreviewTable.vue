@@ -41,7 +41,7 @@ import { defineComponent, PropType } from "vue";
 import { isIntArray, transformTable, truncate } from "@/helpers/utils";
 
 export default defineComponent({
-  name: "SimpleTable",
+  name: "DataPreviewTable",
   props: {
     data: {
       type: Array as PropType<{ [key: string]: string }[]>,
