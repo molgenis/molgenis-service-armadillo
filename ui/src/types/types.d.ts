@@ -57,6 +57,7 @@ export type ProjectsExplorerData = {
   selectedFolder: string;
   createLinkFromTarget: boolean;
   createLinkFromSrc: boolean;
+  columnNames: Array<string>;
 };
 
 export type ProjectsData = {

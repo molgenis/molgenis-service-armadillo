@@ -187,8 +187,12 @@
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
-                :n-cols="fileInfo.dataSizeColumns"
               ></DataPreviewTable>
+              <ColumnNamesPreview
+                :columnNames="columnNames"
+                :buttonName="'+ ' + (columnNames.length - 10) + ' variables: '"
+              >
+              </ColumnNamesPreview>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">
@@ -209,12 +213,14 @@ import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import ColumnNamesPreview from "@/components/ColumnNamesPreview.vue";
 import {
   getProject,
   deleteObject,
   previewObject,
   getFileDetails,
   createLinkFile,
+  getTableVariables,
 } from "@/api/api";
 import {
   isEmptyObject,
@@ -246,6 +252,7 @@ export default defineComponent({
     FolderInput,
     DataPreviewTable,
     ViewEditor,
+    ColumnNamesPreview,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
@@ -301,6 +308,7 @@ export default defineComponent({
       },
       createLinkFromTarget: false,
       createLinkFromSrc: false,
+      columnNames: [],
     };
   },
   watch: {
@@ -328,6 +336,16 @@ export default defineComponent({
               this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
               this.clearFilePreview();
               this.loading_preview = false;
+            });
+          getTableVariables(
+            this.projectId,
+            `${this.selectedFolder}/${this.selectedFile}`
+          )
+            .then((data) => {
+              this.columnNames = data;
+            })
+            .catch((error) => {
+              this.errorMessage = `Cannot load column names for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
             });
         }
         getFileDetails(
