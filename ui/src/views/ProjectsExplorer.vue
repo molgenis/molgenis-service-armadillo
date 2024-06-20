@@ -182,13 +182,13 @@
                 :viewTable="selectedFile"
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
-              <SimpleTable
+              <DataPreviewTable
                 v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
                 :n-cols="fileInfo.dataSizeColumns"
-              ></SimpleTable>
+              ></DataPreviewTable>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">
@@ -228,7 +228,7 @@ import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import FileExplorer from "@/components/FileExplorer.vue";
-import SimpleTable from "@/components/SimpleTable.vue";
+import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import ViewEditor from "@/components/ViewEditor.vue";
 
@@ -244,7 +244,7 @@ export default defineComponent({
     FileUpload,
     FileExplorer,
     FolderInput,
-    SimpleTable,
+    DataPreviewTable,
     ViewEditor,
   },
   setup() {
