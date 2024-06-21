@@ -32,8 +32,8 @@ packages <- c(
   "DSI",
   "resourcer",
   "MolgenisArmadillo",
-  "DSMolgenisArmadillo", 
-  "purrr", 
+  "DSMolgenisArmadillo",
+  "purrr",
   "stringr",
   "tibble"
 )
@@ -43,14 +43,10 @@ install_requirements_from_cran <- function(packages) {
   cli_progress_bar("Installing packages", total = n_requirements)
   for (i in 1:n_requirements) {
     pkg <- packages[i]
-    if (pkg %in% installed.packages()) {
-      cli_alert_info(sprintf("Package [%s] already installed, skipping.", pkg))
-    } else {
       cli_alert_info(paste0("Installing ", pkg))
       install.packages(pkg, repos = "https://cloud.r-project.org/", quiet = TRUE)
     }
     cli_progress_update()
-  }
   cli_progress_done()
 }
 install_requirements_from_cran(packages)
