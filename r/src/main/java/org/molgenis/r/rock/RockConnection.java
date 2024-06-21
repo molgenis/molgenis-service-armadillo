@@ -17,6 +17,7 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -24,65 +25,86 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class RockConnection implements RServerConnection {
 
   private static final Logger logger = LoggerFactory.getLogger(RockConnection.class);
+  public static final String FILE_DOWNLOAD_FAILED = "File download failed: ";
+  public static final MediaType MEDIATYPE_APPLICATION_RSCRIPT =
+      MediaType.valueOf("application/x-rscript");
+  private static final String UPLOAD_FAILED = "File upload failed: ";
+  private static final String UPLOAD_ENDPOINT = "/_upload";
+  private static final String EVAL_ENDPOINT = "/_eval";
+  public static final String DOWNLOAD_ENDPOINT = "/_download";
+  private static final String PATH = "path";
+  private static final String OVERWRITE = "overwrite";
+  private static final String FILE = "file";
 
   private String rockSessionId;
 
   private final RockApplication application;
+  private final RestClient restClient;
 
   public RockConnection(RockApplication application) throws RServerException {
     this.application = application;
+    this.restClient = getRestClient();
     openSession();
   }
 
   @Override
-  public RServerResult eval(String expr, boolean serialized) throws RServerException {
-    RestTemplate restTemplate = new RestTemplate();
-    HttpHeaders headers = createHeaders();
-    headers.setContentType(MediaType.valueOf("application/x-rscript"));
-
-    String serverUrl = getRSessionResourceUrl("/_eval");
+  public RServerResult eval(String expr, boolean serialized) {
+    String serverUrl = getRSessionResourceUrl(EVAL_ENDPOINT);
     if (serialized) {
-      // accept application/octet-stream
-      headers.setAccept(
-          Lists.newArrayList(MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON));
-      ResponseEntity<byte[]> response =
-          restTemplate.exchange(
-              serverUrl, HttpMethod.POST, new HttpEntity<>(expr, headers), byte[].class);
-      return new RockResult(response.getBody());
+      RestClient.RequestBodySpec request =
+          createRequestForPost(serverUrl, expr, MEDIATYPE_APPLICATION_RSCRIPT);
+      byte[] responseBody =
+          request
+              .headers(
+                  httpHeaders -> {
+                    httpHeaders.setAccept(
+                        Lists.newArrayList(
+                            MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON));
+                  })
+              .retrieve()
+              .body(byte[].class);
+      return new RockResult(responseBody);
     } else {
+      RestTemplate restTemplate = new RestTemplate();
+      HttpHeaders headers = createHeaders();
+      headers.setContentType(MEDIATYPE_APPLICATION_RSCRIPT);
       headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
       ResponseEntity<String> response =
           restTemplate.exchange(
               serverUrl, HttpMethod.POST, new HttpEntity<>(expr, headers), String.class);
       String jsonSource = response.getBody();
       return new RockResult(jsonSource);
+      //        RestClient.RequestBodySpec request = createRequestForPost(serverUrl, expr,
+      // MEDIATYPE_APPLICATION_RSCRIPT);
+      //        String responseBody = request.headers(httpHeaders -> {
+      //        httpHeaders.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+      //      }).retrieve().body(String.class);
+      //        return new RockResult(responseBody);
     }
   }
 
   @Override
   public void writeFile(String fileName, InputStream in) throws RServerException {
     try {
-      HttpHeaders headers = createHeaders();
-      headers.setContentType(MediaType.MULTIPART_FORM_DATA);
       MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-      body.add("file", new MultiPartInputStreamResource(in, fileName));
-      HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+      body.add(FILE, new MultiPartInputStreamResource(in, fileName));
 
-      String serverUrl = getRSessionResourceUrl("/_upload");
+      String serverUrl = getRSessionResourceUrl(UPLOAD_ENDPOINT);
       UriComponentsBuilder builder =
           UriComponentsBuilder.fromHttpUrl(serverUrl)
-              .queryParam("path", fileName)
-              .queryParam("overwrite", true);
+              .queryParam(PATH, fileName)
+              .queryParam(OVERWRITE, true);
 
-      RestTemplate restTemplate = new RestTemplate();
-      ResponseEntity<String> response =
-          restTemplate.postForEntity(builder.toUriString(), requestEntity, String.class);
+      ResponseEntity<Void> response =
+          postToRestClient(builder.toUriString(), body, MediaType.MULTIPART_FORM_DATA)
+              .toBodilessEntity();
+
       if (!response.getStatusCode().is2xxSuccessful()) {
         logger.error("File upload to {} failed: {}", serverUrl, response.getStatusCode());
-        throw new RockServerException("File upload failed: " + response.getStatusCode());
+        throw new RockServerException(UPLOAD_FAILED + response.getStatusCode());
       }
     } catch (RestClientException e) {
-      throw new RockServerException("File upload failed", e);
+      throw new RockServerException(UPLOAD_FAILED, e);
     }
   }
 
@@ -93,9 +115,15 @@ public class RockConnection implements RServerConnection {
       HttpHeaders headers = createHeaders();
       headers.setAccept(Collections.singletonList(MediaType.ALL));
 
-      String serverUrl = getRSessionResourceUrl("/_download");
+      String serverUrl = getRSessionResourceUrl(DOWNLOAD_ENDPOINT);
+
       UriComponentsBuilder builder =
-          UriComponentsBuilder.fromHttpUrl(serverUrl).queryParam("path", fileName);
+          UriComponentsBuilder.fromHttpUrl(serverUrl).queryParam(PATH, fileName);
+      //      RestClient.ResponseSpec response = restClient.get()
+      //              .uri(builder.build().toUri())
+      //              .headers(httpHeaders -> {
+      //                headers.setAccept(Collections.singletonList(MediaType.ALL));
+      //              }).retrieve();
 
       RestTemplate restTemplate = new RestTemplate();
       restTemplate.execute(
@@ -103,18 +131,17 @@ public class RockConnection implements RServerConnection {
           HttpMethod.GET,
           request -> request.getHeaders().putAll(headers),
           (ResponseExtractor<Void>)
-              response -> {
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                  logger.error(
-                      "File download from {} failed: {}", serverUrl, response.getStatusCode());
-                  throw new RuntimeException("File download failed: " + response.getStatusText());
+              resp -> {
+                if (!resp.getStatusCode().is2xxSuccessful()) {
+                  logger.error("File download from {} failed: {}", serverUrl, resp.getStatusCode());
+                  throw new RuntimeException(FILE_DOWNLOAD_FAILED + resp.getStatusText());
                 } else {
-                  inputStreamConsumer.accept(response.getBody());
+                  inputStreamConsumer.accept(resp.getBody());
                 }
                 return null;
               });
     } catch (RestClientException e) {
-      throw new RockServerException("File download failed", e);
+      throw new RockServerException(FILE_DOWNLOAD_FAILED, e);
     }
   }
 
@@ -141,14 +168,13 @@ public class RockConnection implements RServerConnection {
 
   private void openSession() throws RServerException {
     try {
-      RestTemplate restTemplate = new RestTemplate();
-      ResponseEntity<RockSessionInfo> response =
-          restTemplate.exchange(
-              getRSessionsResourceUrl(),
-              HttpMethod.POST,
-              new HttpEntity<>(createHeaders()),
-              RockSessionInfo.class);
-      RockSessionInfo info = response.getBody();
+      RockSessionInfo info =
+          postToRestClient(
+                  getRSessionsResourceUrl(),
+                  new LinkedMultiValueMap<>(),
+                  MediaType.APPLICATION_JSON)
+              .body(RockSessionInfo.class);
+      assert info != null;
       this.rockSessionId = info.getId();
     } catch (RestClientException e) {
       throw new RockServerException("Failure when opening a Rock R session", e);
@@ -163,15 +189,41 @@ public class RockConnection implements RServerConnection {
     return String.format("%s/r/session/%s%s", application.getUrl(), rockSessionId, path);
   }
 
+  private String getAuthHeader() {
+    String auth = application.getUser() + ":" + application.getPassword();
+    byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+    return "Basic " + new String(encodedAuth);
+  }
+
   private HttpHeaders createHeaders() {
     return new HttpHeaders() {
       {
-        String auth = application.getUser() + ":" + application.getPassword();
-        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
-        String authHeader = "Basic " + new String(encodedAuth);
-        add("Authorization", authHeader);
+        add("Authorization", getAuthHeader());
       }
     };
+  }
+
+  private RestClient getRestClient() {
+    String serverUrl = getRSessionResourceUrl(UPLOAD_ENDPOINT);
+    String authHeader = getAuthHeader();
+    return RestClient.builder()
+        .baseUrl(serverUrl)
+        .defaultHeaders(
+            httpHeaders -> {
+              httpHeaders.setBasicAuth(authHeader);
+              httpHeaders.set(HttpHeaders.AUTHORIZATION, authHeader);
+            })
+        .build();
+  }
+
+  private RestClient.RequestBodySpec createRequestForPost(
+      String uriString, Object body, MediaType contentType) {
+    return restClient.post().uri(uriString).contentType(contentType).body(body);
+  }
+
+  private RestClient.ResponseSpec postToRestClient(
+      String uriString, Object body, MediaType contentType) {
+    return createRequestForPost(uriString, body, contentType).retrieve();
   }
 
   private static class MultiPartInputStreamResource extends InputStreamResource {
