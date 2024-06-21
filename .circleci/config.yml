@@ -139,6 +139,19 @@ jobs:
           command: |
             echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
             cd $CIRCLE_WORKING_DIRECTORY
+            
+            Rscript -e 'install.packages(c(
+              "diffobj", "getPass", "arrow", "jsonlite", "future",
+              "RCurl",
+              "devtools",
+              "DSI",
+              "resourcer",
+              "MolgenisArmadillo",
+              "DSMolgenisArmadillo",
+              "purrr",
+              "stringr",
+              "tibble"
+              ), repos = "https://cloud.r-project.org/")'
 
             # Somehow build/docker/armadillo-compose is deleted so redo
             ./docker/bin/prepare.bash ci

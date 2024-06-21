@@ -25,33 +25,33 @@ if (!"cli" %in% installed.packages()) {
 library(cli)
 cli_alert_info("Installing packages")
 
-packages <- c(
-  "diffobj", "getPass", "arrow", "jsonlite", "future",
-  "RCurl",
-  "devtools",
-  "DSI",
-  "resourcer",
-  "MolgenisArmadillo",
-  "DSMolgenisArmadillo",
-  "purrr",
-  "stringr",
-  "tibble"
-)
+# packages <- c(
+#   "diffobj", "getPass", "arrow", "jsonlite", "future",
+#   "RCurl",
+#   "devtools",
+#   "DSI",
+#   "resourcer",
+#   "MolgenisArmadillo",
+#   "DSMolgenisArmadillo",
+#   "purrr",
+#   "stringr",
+#   "tibble"
+# )
+#
+# install_requirements_from_cran <- function(packages) {
+#   n_requirements <- length(packages)
+#   cli_progress_bar("Installing packages", total = n_requirements)
+#   for (i in 1:n_requirements) {
+#     pkg <- packages[i]
+#       cli_alert_info(paste0("Installing ", pkg))
+#       install.packages(pkg, repos = "https://cloud.r-project.org/", quiet = TRUE)
+#     }
+#     cli_progress_update()
+#   cli_progress_done()
+# }
+# install_requirements_from_cran(packages)
 
-install_requirements_from_cran <- function(packages) {
-  n_requirements <- length(packages)
-  cli_progress_bar("Installing packages", total = n_requirements)
-  for (i in 1:n_requirements) {
-    pkg <- packages[i]
-      cli_alert_info(paste0("Installing ", pkg))
-      install.packages(pkg, repos = "https://cloud.r-project.org/", quiet = TRUE)
-    }
-    cli_progress_update()
-  cli_progress_done()
-}
-install_requirements_from_cran(packages)
-
-warnings()
+# warnings()
 
 library("devtools")
 install_github("datashield/dsBaseClient")
