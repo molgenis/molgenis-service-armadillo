@@ -37,6 +37,7 @@ library(stringi)
 library(MolgenisArmadillo)
 library(DSI)
 library(dsBaseClient)
+install.packages("DSMolgenisArmadillo")
 library(DSMolgenisArmadillo)
 library(resourcer)
 
