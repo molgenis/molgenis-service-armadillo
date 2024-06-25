@@ -20,7 +20,7 @@ This layer is likely responsible for data persistence.
 
 ## security
 
-This layer is likely responsible for authentication and authorization.
+This layer is likely responsible for authentication and authorisation.
 
 ## exceptions
 

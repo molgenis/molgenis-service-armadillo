@@ -14,6 +14,7 @@ cat("
  | | \\ \\  __/ |  __/ (_| \\__ \\  __/ | ||  __/\\__ \\ |_
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
 ")
+print(sessionInfo())
 # for logging nicely and showing loading spinner
 library(cli)
 cli_h1("Setup")
