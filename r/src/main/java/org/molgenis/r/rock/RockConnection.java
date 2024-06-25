@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.function.Consumer;
@@ -12,14 +13,14 @@ import org.molgenis.r.RServerException;
 import org.molgenis.r.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
+import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class RockConnection implements RServerConnection {
@@ -65,21 +66,17 @@ public class RockConnection implements RServerConnection {
               .body(byte[].class);
       return new RockResult(responseBody);
     } else {
-      RestTemplate restTemplate = new RestTemplate();
-      HttpHeaders headers = createHeaders();
-      headers.setContentType(MEDIATYPE_APPLICATION_RSCRIPT);
-      headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
-      ResponseEntity<String> response =
-          restTemplate.exchange(
-              serverUrl, HttpMethod.POST, new HttpEntity<>(expr, headers), String.class);
-      String jsonSource = response.getBody();
-      return new RockResult(jsonSource);
-      //        RestClient.RequestBodySpec request = createRequestForPost(serverUrl, expr,
-      // MEDIATYPE_APPLICATION_RSCRIPT);
-      //        String responseBody = request.headers(httpHeaders -> {
-      //        httpHeaders.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
-      //      }).retrieve().body(String.class);
-      //        return new RockResult(responseBody);
+      RestClient.RequestBodySpec request =
+          createRequestForPost(serverUrl, expr, MEDIATYPE_APPLICATION_RSCRIPT);
+      RestClient.ResponseSpec resp =
+          request
+              .headers(
+                  httpHeaders -> {
+                    httpHeaders.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+                  })
+              .retrieve();
+      String responseBody = resp.body(String.class);
+      return new RockResult(responseBody);
     }
   }
 
@@ -119,24 +116,17 @@ public class RockConnection implements RServerConnection {
 
       UriComponentsBuilder builder =
           UriComponentsBuilder.fromHttpUrl(serverUrl).queryParam(PATH, fileName);
-      //      RestClient.ResponseSpec response = restClient.get()
-      //              .uri(builder.build().toUri())
-      //              .headers(httpHeaders -> {
-      //                headers.setAccept(Collections.singletonList(MediaType.ALL));
-      //              }).retrieve();
-
-      RestTemplate restTemplate = new RestTemplate();
-      restTemplate.execute(
-          builder.build().toUri(),
-          HttpMethod.GET,
-          request -> request.getHeaders().putAll(headers),
-          (ResponseExtractor<Void>)
-              resp -> {
-                if (!resp.getStatusCode().is2xxSuccessful()) {
-                  logger.error("File download from {} failed: {}", serverUrl, resp.getStatusCode());
-                  throw new RuntimeException(FILE_DOWNLOAD_FAILED + resp.getStatusText());
+      restClient
+          .get()
+          .uri(builder.build().toUri())
+          .exchange(
+              (request, response) -> {
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                  logger.error(
+                      "File download from {} failed: {}", serverUrl, response.getStatusCode());
+                  throw new RuntimeException(FILE_DOWNLOAD_FAILED + response.getStatusText());
                 } else {
-                  inputStreamConsumer.accept(resp.getBody());
+                  inputStreamConsumer.accept(response.getBody());
                 }
                 return null;
               });
@@ -150,12 +140,7 @@ public class RockConnection implements RServerConnection {
     if (Strings.isNullOrEmpty(rockSessionId)) return true;
 
     try {
-      RestTemplate restTemplate = new RestTemplate();
-      restTemplate.exchange(
-          getRSessionResourceUrl(""),
-          HttpMethod.DELETE,
-          new HttpEntity<>(createHeaders()),
-          Void.class);
+      restClient.delete().uri(getRSessionResourceUrl("")).retrieve().toBodilessEntity();
       this.rockSessionId = null;
       return true;
     } catch (RestClientException e) {
@@ -206,8 +191,13 @@ public class RockConnection implements RServerConnection {
   private RestClient getRestClient() {
     String serverUrl = getRSessionResourceUrl(UPLOAD_ENDPOINT);
     String authHeader = getAuthHeader();
+    ClientHttpRequestFactorySettings settings =
+        ClientHttpRequestFactorySettings.DEFAULTS
+            .withConnectTimeout(Duration.ofSeconds(300L))
+            .withReadTimeout(Duration.ofSeconds(900L));
     return RestClient.builder()
         .baseUrl(serverUrl)
+        .requestFactory(ClientHttpRequestFactories.get(settings))
         .defaultHeaders(
             httpHeaders -> {
               httpHeaders.setBasicAuth(authHeader);
