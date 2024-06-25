@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.function.Consumer;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerException;
@@ -109,9 +108,6 @@ public class RockConnection implements RServerConnection {
   public void readFile(String fileName, Consumer<InputStream> inputStreamConsumer)
       throws RServerException {
     try {
-      HttpHeaders headers = createHeaders();
-      headers.setAccept(Collections.singletonList(MediaType.ALL));
-
       String serverUrl = getRSessionResourceUrl(DOWNLOAD_ENDPOINT);
 
       UriComponentsBuilder builder =
@@ -178,14 +174,6 @@ public class RockConnection implements RServerConnection {
     String auth = application.getUser() + ":" + application.getPassword();
     byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
     return "Basic " + new String(encodedAuth);
-  }
-
-  private HttpHeaders createHeaders() {
-    return new HttpHeaders() {
-      {
-        add("Authorization", getAuthHeader());
-      }
-    };
   }
 
   private RestClient getRestClient() {
