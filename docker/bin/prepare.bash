@@ -68,6 +68,18 @@ cp -r "$PROJECT_DIR/scripts/release/lib" "$BIN_DIR/" || exit 1
 cp "$PROJECT_DIR/scripts/release/install_release_script_dependencies.R" "$BIN_DIR/" || exit 1
 cp "$TARGET_DIR/armadillo-ready.bash" "$BIN_DIR/" || exit 1
 cp "$TARGET_DIR/ci.env" "$BIN_DIR/.env" || exit 1
+Rscript -e 'install.packages(c(
+              "diffobj", "getPass", "arrow", "jsonlite", "future",
+              "RCurl",
+              "devtools",
+              "DSI",
+              "resourcer",
+              "MolgenisArmadillo",
+              "DSMolgenisArmadillo",
+              "purrr",
+              "stringr",
+              "tibble"
+              ), repos = "https://cloud.r-project.org/")'
 
 cp "$TARGET_DIR/Dockerfile" "$CICD_DIR/"
 cd "$CICD_DIR" || exit 1
