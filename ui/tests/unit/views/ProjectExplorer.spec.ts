@@ -142,6 +142,9 @@ describe("ProjectsExplorer", () => {
         api.getFileDetails.mockImplementation(() => {
             return Promise.resolve({});
         });
+        api.getTableVariables.mockImplementation(() => {
+            return Promise.resolve({});
+        });
         // Important: selectedFolder before selectedFile, since watcher for selectedFolder resets selectedFile to ""
         expect(wrapper.vm.fileToDelete).toBe("");
         expect(wrapper.vm.folderToDeleteFrom).toBe("");
