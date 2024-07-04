@@ -19,6 +19,7 @@ print(sessionInfo())
 library(cli)
 cli_h1("Setup")
 cli_alert_info("Loading libraries")
+library(DSI)
 # for password prompt
 library(getPass)
 # for reading parquet files
