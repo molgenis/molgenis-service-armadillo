@@ -19,12 +19,6 @@ print(sessionInfo())
 library(cli)
 cli_h1("Setup")
 cli_alert_info("Loading libraries")
-# library(devtools)
-# install.packages("DSMolgenisArmadillo")
-# install.packages("DSI")
-# library(DSI)
-# install_github("datashield/DSI", ref = "1.6.0")
-# install_github("transbioZI/dsMTLClient")
 # for password prompt
 library(getPass)
 # for reading parquet files
