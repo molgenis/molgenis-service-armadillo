@@ -4,11 +4,11 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -224,28 +224,8 @@ public class ArmadilloStorageService {
   }
 
   public void saveWorkspace(InputStream is, Principal principal, String id) {
-    // Load root dir
-    File drive = new File("/");
-    long usableSpace = drive.getUsableSpace();
-
-    ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
-    long fileSize = workspace.getSize();
-    if (usableSpace > fileSize * 2L) {
-      try {
-        storageService.save(
-            workspace.createInputStream(),
-            getUserBucketName(principal),
-            getWorkspaceObjectName(id),
-            APPLICATION_OCTET_STREAM);
-      } catch (StorageException e) {
-        throw new StorageException(e);
-      }
-    } else {
-      throw new StorageException(
-          format(
-              "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
-              getHumanReadableByteCount(fileSize)));
-    }
+    storageService.save(
+        is, getUserBucketName(principal), getWorkspaceObjectName(id), APPLICATION_OCTET_STREAM);
   }
 
   public void removeWorkspace(Principal principal, String id) {
