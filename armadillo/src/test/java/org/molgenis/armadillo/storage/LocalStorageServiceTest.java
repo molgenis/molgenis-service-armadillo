@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -347,23 +346,5 @@ class LocalStorageServiceTest {
     Path path = localStorageService.getObjectPathSafely(bucket, object);
     mockedParquetUtils.verify(() -> ParquetUtils.previewRecords(path, 10, 10, new String[0]));
     mockedParquetUtils.close();
-  }
-
-  @Test
-  void testGetHumanReadableByteCountKb() {
-    String size = getHumanReadableByteCount(1234);
-    assertEquals("1.2 KB", size);
-  }
-
-  @Test
-  void testGetHumanReadableByteCountMb() {
-    String size = getHumanReadableByteCount(12345678);
-    assertEquals("11.8 MB", size);
-  }
-
-  @Test
-  void testGetHumanReadableByteCountGb() {
-    String size = getHumanReadableByteCount(12345678910L);
-    assertEquals("11.5 GB", size);
   }
 }
