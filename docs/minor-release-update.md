@@ -10,11 +10,11 @@ For the latest 4.y.z release check https://github.com/molgenis/molgenis-service-
 
 ### 1. Stop docker containers
 
-First, stop all profiles using the Armadillo UI.
+First, log in to the Armadillo UI and navigate to the Profiles tab. Now, click 'Stop' for each profile listed.
 
 Next, stop any unnecessary containers.
 
-The commands are indicative so change as needed.
+The commands provided are indicative, so adjust them as needed.
 
 ```bash
 # should return empty list (i.e. default, xenon, rock)
@@ -26,7 +26,7 @@ docker container stop <id>
 
 ## 2. Download required files
 
-Make a note of the version number ie. `v4.1.3` as you need to download some files from the terminal using the updatescript.
+Make a note of the version number ie. `v4.7.1` as you need to download some files from the terminal using the update script.
 
 ### 2.1 Update script
 
@@ -129,7 +129,7 @@ systemctl status armadillo
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
 almost finished. 
 
-## 6. start profiles
+## 6. Start profiles
 
 Login into the website and go to the profiles tab. Now you can start all the profiles again.
 
