@@ -4,7 +4,7 @@
 
 ## Check latest version
 
-For the latest 4.y release check https://github.com/molgenis/molgenis-service-armadillo/releases/latest. This will redirect to a v4.y.z page.
+For the latest 4.y.z release check https://github.com/molgenis/molgenis-service-armadillo/releases/latest. This will redirect to a v4.y.z page.
 
 # Updating Armadillo
 
