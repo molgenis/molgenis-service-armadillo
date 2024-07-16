@@ -2,7 +2,7 @@
 
 > Note: This manual is intended for minor version updates within the latest major release. For example, you can use it to update from version 4.1 to 4.7.1. For upgrading to a new major version, please refer to the specific manuals dedicated to major version upgrades.
 
-## Get latest version
+## Check latest version
 
 For the latest 4.y release check https://github.com/molgenis/molgenis-service-armadillo/releases/latest. This will redirect to a v4.y.z page.
 
@@ -10,9 +10,9 @@ For the latest 4.y release check https://github.com/molgenis/molgenis-service-ar
 
 ### 1 Stop docker containers
 
-First stop all profiles through the Armadillo UI.
+First, stop all profiles using the Armadillo UI.
 
-Also stop all the not unneeded containers.
+Next, stop any unnecessary containers.
 
 The command are indicative so change as needed.
 
@@ -128,7 +128,7 @@ systemctl status armadillo
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
 almost finished. 
 
-## 6 Update profiles
+## 6 start profiles
 
 Login into the website and go to the profiles tab. Now you can start all the profiles again.
 
