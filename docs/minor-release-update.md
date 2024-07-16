@@ -8,7 +8,7 @@ For the latest 4.y release check https://github.com/molgenis/molgenis-service-ar
 
 # Updating Armadillo
 
-### 1 Stop docker containers
+### 1. Stop docker containers
 
 First, stop all profiles using the Armadillo UI.
 
@@ -70,7 +70,7 @@ Once the script has completed, you can verify that the Armadillo JAR file has be
 ls -ltr /usr/share/armadillo/application/
 ```
 
-### 3 Make backup of system config
+### 3. Make backup of system config
 
 ```bash
 # Still in the correct directory? (`/root/v4.y.z`)
@@ -90,7 +90,7 @@ ls system/
 # access.json  profiles.json
 ```
 
-## 4 Restart application using new version
+## 4. Restart application using new version
 
 Armadillo has not yet been updated, follow the following steps to do so:
 
@@ -123,12 +123,12 @@ systemctl start armadillo
 systemctl status armadillo
 ```
 
-## 5 Log on to the UI
+## 5. Log on to the UI
 
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
 almost finished. 
 
-## 6 start profiles
+## 6. start profiles
 
 Login into the website and go to the profiles tab. Now you can start all the profiles again.
 
