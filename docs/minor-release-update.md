@@ -14,7 +14,7 @@ First, stop all profiles using the Armadillo UI.
 
 Next, stop any unnecessary containers.
 
-The command are indicative so change as needed.
+The commands are indicative so change as needed.
 
 ```bash
 # should return empty list (i.e. default, xenon, rock)
