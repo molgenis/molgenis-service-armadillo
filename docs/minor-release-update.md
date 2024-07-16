@@ -34,7 +34,8 @@ You need to be root user.
 
 ```bash
 cd /root
-# Change the versions number v4.y.z
+
+# Make sure to change the versions number v4.y.z
 mkdir v4.y.z
 cd v4.y.z
 
