@@ -8,9 +8,11 @@ For the latest 4.y release check https://github.com/molgenis/molgenis-service-ar
 
 # Updating Armadillo
 
-### 1 Stop docker images
+### 1 Stop docker containers
 
 First stop all profiles through the Armadillo UI.
+
+Also stop all the not unneeded containers.
 
 The command are indicative so change as needed.
 
@@ -20,12 +22,13 @@ docker container list
 
 # remove containers not needed
 docker container stop <id>
+```
 
-## 3. Download required files
+## 2. Download required files
 
 Make a note of the version number ie. `v4.1.3` as you need to download some files from the terminal using the updatescript.
 
-### 3.1 Update script
+### 2.1 Update script
 
 You need to be root user.
 
@@ -49,7 +52,7 @@ Make the script runnable
 chmod u+x armadillo-check-update.sh
 ```
 
-### 3.2 Run update script
+### 2.2 Run update script
 
 You can run the following script to download the new Armadillo version.
 
@@ -67,7 +70,7 @@ Once the script has completed, you can verify that the Armadillo JAR file has be
 ls -ltr /usr/share/armadillo/application/
 ```
 
-### 4.2 Make backup of system config
+### 3 Make backup of system config
 
 ```bash
 # Still in the correct directory? (`/root/v4.y.z`)
@@ -87,17 +90,17 @@ ls system/
 # access.json  profiles.json
 ```
 
-## 5. Restart application using new version
+## 4 Restart application using new version
 
 Armadillo has not yet been updated, follow the following steps to do so:
 
-### 5.1 Stop Armadillo
+### 4.1 Stop Armadillo
 
 ```bash
 systemctl stop armadillo
 ```
 
-### 5.2 Link new version
+### 4.2 Link new version
 
 ```bash
 # List application files
@@ -113,19 +116,19 @@ ln -s /usr/share/armadillo/application/armadillo-4.y.z.jar /usr/share/armadillo/
 ls -l /usr/share/armadillo/application/
 ```
 
-### 5.3 Restart Armadillo
+### 4.3 Restart Armadillo
 
 ```bash
 systemctl start armadillo
 systemctl status armadillo
 ```
 
-## 6. Log on to the UI
+## 5 Log on to the UI
 
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful. We're
 almost finished. 
 
-## 7. Update profiles
+## 6 Update profiles
 
 Login into the website and go to the profiles tab. Now you can start all the profiles again.
 
