@@ -1,4 +1,4 @@
-# Minor Version Upgrade Manual: Procedures for x.y Releases
+# Minor Version Upgrade Manual: Procedures for y.z Releases
 
 > Note: This manual is intended for minor version updates within the latest major release. For example, you can use it to update from version 4.1 to 4.7.1. For upgrading to a new major version, please refer to the specific manuals dedicated to major version upgrades.
 
