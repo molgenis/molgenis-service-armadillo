@@ -1,5 +1,5 @@
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import SimpleTable from "@/components/SimpleTable.vue";
+import DataPreviewTable from "@/components/DataPreviewTable.vue";
 
 function getListOfColumnValues(
   data: {
@@ -18,7 +18,7 @@ function getListOfColumnValues(
   });
 }
 
-describe("SimpleTable", () => {
+describe("DataPreviewTable", () => {
   const data = [
     {
       firstName: "Bofke",
