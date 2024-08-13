@@ -28,4 +28,15 @@ public class ArmadilloWorkspaceTest {
     when(isMock.read(any(byte[].class))).thenThrow(IOException.class);
     assertThrows(StorageException.class, () -> new ArmadilloWorkspace(isMock));
   }
+
+  @Test
+  void testGetByteOfInputStreamThrowsMemoryError() throws IOException {
+    InputStream isMock = mock(InputStream.class);
+    when(isMock.read(any(byte[].class))).thenThrow(OutOfMemoryError.class);
+    try {
+      new ArmadilloWorkspace(isMock);
+    } catch(StorageException e) {
+      assertEquals(ArmadilloWorkspace.workspaceTooBigError, e.getMessage());
+    }
+  }
 }

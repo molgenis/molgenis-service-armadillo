@@ -519,6 +519,16 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
+  void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
+    when(storageService.getWorkSpace(is)).thenThrow(new StorageException(ArmadilloWorkspace.workspaceTooBigError));
+    try {
+      armadilloStorage.saveWorkspace(is, principal, "test");
+    } catch (StorageException e) {
+      assertEquals("Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+    }
+  }
+
+  @Test
   void testSaveWorkspaceChecksBucketName() {
     ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
     when(principal.getName()).thenReturn("Henk");
