@@ -223,6 +223,17 @@ public class ArmadilloStorageService {
         .build();
   }
 
+  private void trySaveWorkspace (ArmadilloWorkspace workspace, Principal principal, String id) {
+    try {
+      storageService.save(
+              workspace.createInputStream(),
+              getUserBucketName(principal),
+              getWorkspaceObjectName(id),
+              APPLICATION_OCTET_STREAM);
+    } catch (StorageException e) {
+      throw new StorageException(e);
+    }
+  }
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");
@@ -231,15 +242,7 @@ public class ArmadilloStorageService {
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
       long fileSize = workspace.getSize();
       if (usableSpace > fileSize * 2L) {
-        try {
-          storageService.save(
-                  workspace.createInputStream(),
-                  getUserBucketName(principal),
-                  getWorkspaceObjectName(id),
-                  APPLICATION_OCTET_STREAM);
-        } catch (StorageException e) {
-          throw new StorageException(e);
-        }
+        trySaveWorkspace(workspace, principal, id);
       } else {
         throw new StorageException(
                 format(
