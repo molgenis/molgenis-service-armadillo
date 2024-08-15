@@ -1,14 +1,13 @@
 package org.molgenis.armadillo.storage;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloWorkspace {
   byte[] content;
-  public static String workspaceTooBigError = "Unable to load workspace. Maximum supported workspace size is 2GB";
+  public static final String workspaceTooBigError = "Unable to load workspace. Maximum supported workspace size is 2GB";
 
   public ArmadilloWorkspace(InputStream is) {
     content = toByteArray(is);
