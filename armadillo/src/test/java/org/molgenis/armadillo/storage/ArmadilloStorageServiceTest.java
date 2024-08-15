@@ -520,7 +520,7 @@ class ArmadilloStorageServiceTest {
 
   @Test
   void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
-    when(storageService.getWorkSpace(is)).thenThrow(new StorageException(ArmadilloWorkspace.workspaceTooBigError));
+    when(storageService.getWorkSpace(is)).thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
     try {
       armadilloStorage.saveWorkspace(is, principal, "test");
     } catch (StorageException e) {

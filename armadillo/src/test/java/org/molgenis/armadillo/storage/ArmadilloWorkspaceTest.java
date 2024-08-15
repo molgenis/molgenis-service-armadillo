@@ -36,7 +36,7 @@ public class ArmadilloWorkspaceTest {
     try {
       new ArmadilloWorkspace(isMock);
     } catch(StorageException e) {
-      assertEquals(ArmadilloWorkspace.workspaceTooBigError, e.getMessage());
+      assertEquals(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR, e.getMessage());
     }
   }
 }
