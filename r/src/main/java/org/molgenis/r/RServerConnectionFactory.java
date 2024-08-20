@@ -48,7 +48,7 @@ public class RServerConnectionFactory implements RConnectionFactory {
 
   @Override
   public RServerConnection tryCreateConnection() {
-    String url = "http://" + environment.getHost() + ":" + environment.getPort();
+    String url = "http://localhost:8085";
     RockStatusCode rockStatus = doHead(url);
     if (rockStatus == RockStatusCode.SERVER_DOWN) {
       logger.warn("Container for '" + url + "'  is down");

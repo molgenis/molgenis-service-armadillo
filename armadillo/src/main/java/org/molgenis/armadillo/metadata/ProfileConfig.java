@@ -77,7 +77,7 @@ public abstract class ProfileConfig {
     var props = new EnvironmentConfigProps();
     props.setName(getName());
     props.setHost(getHost());
-    props.setPort(getPort());
+    props.setPort(8085);
     return props;
   }
 }

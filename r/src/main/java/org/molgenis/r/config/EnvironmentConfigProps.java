@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 public class EnvironmentConfigProps {
   @NotEmpty private String name;
   @NotEmpty private String host = "localhost";
-  @Positive private int port = 6311;
+  @Positive private int port = 8085;
 
   public String getHost() {
     return host;
