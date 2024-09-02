@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 rocker/verse:4.1.1
+FROM --platform=linux/amd64 rocker/verse:4.4.1
 
 LABEL maintainer="Clemens Tolboom <molgenis@umcg.nl>"
 LABEL version="0.0.1"
