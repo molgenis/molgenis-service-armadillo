@@ -189,9 +189,9 @@
                 :n-rows="fileInfo.dataSizeRows"
               ></DataPreviewTable>
               <ColumnNamesPreview
-                v-if="columnNames.length > 10"
+                v-if="!editView"
                 :columnNames="columnNames"
-                :buttonName="'+ ' + (columnNames.length - 10) + ' variables: '"
+                :buttonName="columnNames.length > 10 ? '+ ' + (columnNames.length - 10) + ' variables: ' : columnNames.length + ' variables: '"
               >
               </ColumnNamesPreview>
             </div>
