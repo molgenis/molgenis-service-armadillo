@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
-@PreAuthorize("hasRole('ROLE_SU')")
 public class ProfileService {
 
   private final ProfilesLoader loader;
@@ -35,15 +34,18 @@ public class ProfileService {
    * Initialization separated from constructor so that it can be called in WebMvc tests
    * <strong>after</strong> mocks have been initialized.
    */
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void initialize() {
     settings = loader.load();
     bootstrap();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public List<ProfileConfig> getAll() {
     return new ArrayList<>(settings.getProfiles().values());
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public ProfileConfig getByName(String profileName) {
     if (!settings.getProfiles().containsKey(profileName)) {
       throw new UnknownProfileException(profileName);
@@ -51,6 +53,7 @@ public class ProfileService {
     return settings.getProfiles().get(profileName);
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void upsert(ProfileConfig profileConfig) {
     String profileName = profileConfig.getName();
     settings
@@ -70,12 +73,14 @@ public class ProfileService {
     save();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(String profileName, String pack) {
     getByName(profileName).getPackageWhitelist().add(pack);
     flushProfileBeans(profileName);
     save();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void delete(String profileName) {
     if (profileName.equals(DEFAULT)) {
       throw new DefaultProfileDeleteException();
@@ -86,14 +91,17 @@ public class ProfileService {
     save();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   private void flushProfileBeans(String profileName) {
     profileScope.removeAllProfileBeans(profileName);
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   private void save() {
     settings = loader.save(settings);
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   private void bootstrap() {
     if (settings == null) {
       return;

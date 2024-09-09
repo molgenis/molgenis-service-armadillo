@@ -15,6 +15,8 @@ import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.stereotype.Component;
 
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
+
 @Component
 @Endpoint(id = "rserveProcesses")
 public class RProcessEndpoint {
@@ -40,18 +42,20 @@ public class RProcessEndpoint {
   }
 
   <T> T doWithConnection(String environmentName, Function<RServerConnection, T> action) {
-    var environment =
-        profileService.getAll().stream()
-            .filter(it -> environmentName.equals(it.getName()))
-            .map(ProfileConfig::toEnvironmentConfigProps)
-            .findFirst()
-            .orElseThrow();
-    RServerConnection connection = connect(environment);
-    try {
-      return action.apply(connection);
-    } finally {
-      connection.close();
-    }
+    return runAsSystem(() -> {
+      var environment =
+              profileService.getAll().stream()
+                      .filter(it -> environmentName.equals(it.getName()))
+                      .map(ProfileConfig::toEnvironmentConfigProps)
+                      .findFirst()
+                      .orElseThrow();
+      RServerConnection connection = connect(environment);
+      try {
+        return action.apply(connection);
+      } finally {
+        connection.close();
+      }
+    });
   }
 
   RServerConnection connect(EnvironmentConfigProps environment) {
