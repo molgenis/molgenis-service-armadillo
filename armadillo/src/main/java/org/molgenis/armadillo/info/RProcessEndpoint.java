@@ -42,20 +42,18 @@ public class RProcessEndpoint {
   }
 
   <T> T doWithConnection(String environmentName, Function<RServerConnection, T> action) {
-    return runAsSystem(() -> {
-      var environment =
-              profileService.getAll().stream()
-                      .filter(it -> environmentName.equals(it.getName()))
-                      .map(ProfileConfig::toEnvironmentConfigProps)
-                      .findFirst()
-                      .orElseThrow();
-      RServerConnection connection = connect(environment);
-      try {
-        return action.apply(connection);
-      } finally {
-        connection.close();
-      }
-    });
+    var environment =
+            runAsSystem(profileService::getAll).stream()
+            .filter(it -> environmentName.equals(it.getName()))
+            .map(ProfileConfig::toEnvironmentConfigProps)
+            .findFirst()
+            .orElseThrow();
+    RServerConnection connection = connect(environment);
+    try {
+      return action.apply(connection);
+    } finally {
+      connection.close();
+    }
   }
 
   RServerConnection connect(EnvironmentConfigProps environment) {
