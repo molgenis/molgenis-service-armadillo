@@ -21,7 +21,7 @@ We use gradle to build:
 ./gradlew run
 ```
 
-As we now have the option to download the logfile from the application we need to have one to begin with!
+As we now have the option to download the logfile from the application we need to have one to begin with:
 
 ```bash
 # Leave out the -a to overwrite instead of append
@@ -90,7 +90,7 @@ We have several components
 
 ## Releasing
 
-Releases are done whenever the versionnumber gets bumped. For more information see the `Commit messages and versioning (Major, Minor, Patch updates)` section below.
+Releases are done whenever the version number gets bumped. For more information see the `Commit messages and versioning (Major, Minor, Patch updates)` section below.
 
 We use mooltiverse [Nyx](https://mooltiverse.github.io/nyx/guide/user/introduction/how-nyx-works/) for changelog and publishing to github.
 
@@ -102,7 +102,7 @@ Use `./gradlew nyxMake` to see what is build in [build/distributions](./build/di
 
 Versionnumbers are updated according to [Semantic versioning](https://semver.org/), using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). 
 
-Please be aware that only new releases will be done when one of the above prefixes is used. 
+Please be aware that new releases will only be done when one of the above prefixes is used. 
 
 Other prefixes do not indicate user-facing changes and will therefore not result in a version bump, consequently not resulting in a new (pre) release. 
 
@@ -131,8 +131,8 @@ git log --pretty=format:"%s" | cut -d: -f1 | sort | uniq -c | sort -n
 
 ## Continuous integration
 
-- we test on each PR and merges on master
-- we build docker compose set for CI testing and demo purposes.
+- We test on each PR and merges on master
+- We build docker compose set for CI testing and demo purposes.
   - [CI testing](./docker/ci/README.md)
   - Demo zip file is a delivery you as artifact
   - Master build have a armadillo-compose.zip for download

@@ -208,6 +208,10 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
   }
 
+  public ArmadilloWorkspace getWorkSpace(InputStream is) {
+    return new ArmadilloWorkspace(is);
+  }
+
   private FileInfo getFileInfoForLinkFile(
       String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);

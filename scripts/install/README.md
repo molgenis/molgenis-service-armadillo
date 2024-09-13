@@ -11,6 +11,6 @@ This is the developer guide for the installation scripts
 
 ## FAQ for devs
 
-- running `/etc/cron.weekly/armadillo-check-update` manually does not work
-- running `/usr/share/armadillo/application/armadillo-check-update.sh` does
+- Running `/etc/cron.weekly/armadillo-check-update` manually does not work
+- Running `/usr/share/armadillo/application/armadillo-check-update.sh` does
 - By adding the setup command into a file it is easier to (re)run it with `--cleanup`

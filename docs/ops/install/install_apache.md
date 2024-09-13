@@ -1,10 +1,6 @@
 # Apache
 
-> We do however not provide any support regarding this configuration.
-
-It is possible to run Molgenis Armadillo using Apache.
-
-Below are some hints found.
+It is possible to run Molgenis Armadillo using Apache, however we do not provide support with this configuration.
 
 ## Encoding
 
@@ -13,8 +9,6 @@ Apache requires some additional configuration to get the `/storage/projects/{pro
 - tables cannot be assigned
 - subsets cannot be created
 - resources cannot be used.
-
-This basically means Armadillo is not usable. 
 
 ## Tell Armadillo about https
 

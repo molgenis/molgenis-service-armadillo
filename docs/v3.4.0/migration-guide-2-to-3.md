@@ -119,7 +119,6 @@ storage:
 MinIO has precedence over local file storage, so keep that in mind when you have both configured.
 
 ## Migrating users and data
-
 Since users and permissions are now managed in Armadillo instead of the authentication server, this
 information needs to be migrated. And if you choose to host the data on the local file system
 instead of a MinIO server, the data needs to be migrated as well. For both scenarios we have migration

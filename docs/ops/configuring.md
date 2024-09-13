@@ -13,14 +13,9 @@ connected institutions, ideally using a federated AAI such as LifeScience AAI.
 
 ### Configure DataSHIELD profiles
 To analyse data, users must choose a datashield profile. Armadillo owners can use the web user interface to configure new profiles. Assuming you
-installed docker you can also start/stop these images. Alternatively you can use docker-compose for that.
-
-There are DataSHIELD packages for [standard statistical analysis](https://github.com/datashield/dsBaseClient)
-, [exposome studies](https://github.com/isglobal-brge/dsExposomeClient)
-, [survival studies](https://github.com/neelsoumya/dsSurvivalClient)
-, [microbiome studies](https://github.com/StuartWheater/dsMicrobiomeClient)
-and [analysis tools for studies that are using large genetic datasets](https://github.com/isglobal-brge/dsomicsclient)
-. These packages can all be installed in the Armadillo suite.
+installed docker you can also start/stop these images. Alternatively you can use docker-compose for that. We
+recommend selecting one of the
+[DataSHIELD standard profiles](https://www.datashield.org/help/standard-profiles-and-plaforms).
 
 ### End users can use Armadillo as any other DataSHIELD server
 A researcher connects from an [R client](https://molgenis.github.io/molgenis-r-datashield) to one or multiple Armadillo servers. The data is
