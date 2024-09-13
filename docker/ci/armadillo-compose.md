@@ -2,7 +2,7 @@
 
 To use this zip content you need to
 - have Docker (desktop) installed
-- being able to run `docker compose` from the terminal
+- be able to run `docker compose` from the terminal
 - cd into the `docker-compose` directory
 
 ## Start
@@ -31,7 +31,7 @@ docker compose up
 
 This will show all messages from all running images. To stop you need to use `CTRL-C` or use the stop step below.
 
-If you don't want to see these `docker compose up --detach`
+If you don't want to see these messages `docker compose up --detach`
 
 ## Login
 

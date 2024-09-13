@@ -37,7 +37,7 @@ public class ArmadilloLinkFile {
     this.project = project;
   }
 
-  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkObject, String linkProject) {
+  public ArmadilloLinkFile(InputStream armadilloLinkStream, String linkProject, String linkObject) {
     this.linkObject = linkObject;
     this.project = linkProject;
     JsonObject json;
@@ -116,6 +116,10 @@ public class ArmadilloLinkFile {
 
   public String getProject() {
     return this.project;
+  }
+
+  public Integer getNumberOfVariables() {
+    return getVariables().split(",").length;
   }
 
   public JsonObject loadFromStream(InputStream inputStream) {

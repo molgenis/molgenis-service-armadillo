@@ -227,7 +227,7 @@ chown armadillo:armadillo -R data
 ```
 
 #### 7. Optionally, acquire a permission set from MOLGENIS team
-If you previously run central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
+If you previously ran central authorisation server with MOLGENIS team they can provide you with procedure to load pre-existing permissions.
 They will use:
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v3.4.0/scripts/migrate-auth.py

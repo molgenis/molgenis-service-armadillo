@@ -2,7 +2,7 @@ package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -186,17 +186,57 @@ public class LocalStorageService implements StorageService {
       String objectPathString = objectPath.toString().toLowerCase();
       long fileSize = Files.size(objectPath);
       String fileSizeWithUnit = getFileSizeInUnit(fileSize);
-      if (objectPathString.endsWith(".parquet")) {
+      if (objectPathString.endsWith(PARQUET)) {
         Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(objectPath);
-        return new FileInfo(
+        return FileInfo.of(
             objectName,
             fileSizeWithUnit,
             tableDimensions.get("rows"),
             tableDimensions.get("columns"));
+      } else if (objectPathString.endsWith(LINK_FILE)) {
+        return getFileInfoForLinkFile(bucketName, objectName, fileSizeWithUnit);
       } else {
         return FileInfo.of(objectName, fileSizeWithUnit);
       }
     } catch (IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  private ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
+    InputStream armadilloLinkFileStream = load(bucketName, objectName);
+    return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
+  }
+
+  public ArmadilloWorkspace getWorkSpace(InputStream is) {
+    return new ArmadilloWorkspace(is);
+  }
+
+  private FileInfo getFileInfoForLinkFile(
+      String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
+    ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+    Path srcObjectPath =
+        getPathIfObjectExists(
+            SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+    Map<String, String> tableDimensions = ParquetUtils.retrieveDimensions(srcObjectPath);
+    return new FileInfo(
+        objectName,
+        fileSizeWithUnit,
+        tableDimensions.get("rows"),
+        String.valueOf(linkFile.getNumberOfVariables()),
+        linkFile.getSourceProject() + "/" + linkFile.getSourceObject(),
+        linkFile.getVariables().split(","));
+  }
+
+  @Override
+  public List<String> getVariables(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      return ParquetUtils.getColumns(objectPath);
+    } catch (Exception e) {
       throw new StorageException(e);
     }
   }
@@ -209,7 +249,19 @@ public class LocalStorageService implements StorageService {
       Objects.requireNonNull(objectName);
 
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
-      return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit);
+      if (objectPath.toString().endsWith(PARQUET)) {
+        return ParquetUtils.previewRecords(objectPath, rowLimit, columnLimit, new String[0]);
+      } else if (objectPath.toString().endsWith(LINK_FILE)) {
+        ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+        String srcProject = linkFile.getSourceProject();
+        String srcObject = linkFile.getSourceObject();
+        String[] variables = linkFile.getVariables().split(",");
+        Path srcObjectPath = getPathIfObjectExists(SHARED_PREFIX + srcProject, srcObject + PARQUET);
+        return ParquetUtils.previewRecords(srcObjectPath, rowLimit, columnLimit, variables);
+      } else {
+        throw new StorageException(
+            format("Preview not supported for: %s/%s", bucketName, objectName));
+      }
     } catch (Exception e) {
       throw new StorageException(e);
     }
@@ -223,7 +275,7 @@ public class LocalStorageService implements StorageService {
     Path objectPath = getObjectPathSafely(bucketName, objectName);
     if (!Files.exists(objectPath)) {
       throw new StorageException(
-          format("Object '%s' doesn't exist in bucket '%s'", bucketName, objectName));
+          format("Object '%s' doesn't exist in bucket '%s'", objectName, bucketName));
     }
     return objectPath;
   }
