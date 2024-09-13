@@ -25,7 +25,7 @@
               <i class="bi bi-arrow-left text-light"></i>
             </router-link>
           </button>
-          Project: {{ $route.params.projectId }}
+          Project: {{ route.params.projectId }}
         </h2>
         <ButtonGroup
           :buttonIcons="['folder-plus', 'trash-fill']"
@@ -36,70 +36,29 @@
           ]"
           :clickCallbacks="[setCreateNewFolder, deleteSelectedFile]"
         ></ButtonGroup>
+        <div class="row">
+          <div class="col-3">
+            <FolderInput
+              v-if="createNewFolder"
+              :addNewFolder="addNewFolder"
+              :cancelNewFolder="cancelNewFolder"
+            ></FolderInput>
+          </div>
+        </div>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
           <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
           <div class="col-6" v-else>
-            <div class="row">
-              <div
-                class="col-12 fst-italic"
-                v-if="
-                  projectFolders.length === 0 && !createNewFolder && !loading
-                "
-              >
-                Create a folder to get started
-              </div>
-              <div class="col-6 p-0 m-0">
-                <ListGroup
-                  ref="folderComponent"
-                  :listContent="getSortedFolders()"
-                  rowIcon="folder"
-                  rowIconAlt="folder2-open"
-                  :altIconCondition="showSelectedFolderIcon"
-                  :preselectedItem="selectedFolder"
-                  :selectionColor="selectedFile ? 'secondary' : 'primary'"
-                ></ListGroup>
-                <div
-                  class="input-group input-group-sm m-1 p-1 pe-2"
-                  v-if="createNewFolder"
-                >
-                  <input
-                    type="text"
-                    class="form-control folder-name"
-                    placeholder="Folder name"
-                    v-model="newFolder"
-                  />
-                  <button
-                    class="btn btn-sm btn-success"
-                    type="button"
-                    @click="addNewFolder"
-                  >
-                    <i class="bi bi-check-lg"></i>
-                  </button>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    type="button"
-                    @click="cancelNewFolder"
-                  >
-                    <i class="bi bi-x-lg"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="col-6 p-0 m-0">
-                <ListGroup
-                  v-show="selectedFolder !== ''"
-                  ref="fileComponent"
-                  :listContent="getSortedFiles()"
-                  rowIcon="table"
-                  rowIconAlt="file-earmark"
-                  :altIconCondition="isNonTableType"
-                  selectionColor="primary"
-                ></ListGroup>
-              </div>
-            </div>
+            <FileExplorer
+              v-if="!loading"
+              :projectContent="projectContent"
+              :addNewFolder="addNewFolder"
+              @selectFolder="onSelectFolder($event)"
+              @selectFile="onSelectFile($event)"
+            />
             <div class="row mt-3">
               <div class="col-6">
-                <!-- Placeholder for file upload for uploading complete project in future-->
+                <!-- Placeholder for file upload for uploading complete project in future -->
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <FileUpload
@@ -110,10 +69,44 @@
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
                 ></FileUpload>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <button
+                    class="btn btn-primary me-md-2"
+                    style="width: 100%"
+                    type="button"
+                    @click="setCreateLinkFromTarget"
+                  >
+                    <i class="bi bi-box-arrow-in-up-right"></i> Select table to
+                    link from ...
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+          <div class="col-6 p-3 border" v-if="createLinkFromTarget === true">
+            <div class="row">
+              <div class="col">
+                <h3>Create view on table</h3>
+              </div>
+              <div class="col d-grid d-md-flex justify-content-md-end">
+                <button
+                  @click="createLinkFromTarget = false"
+                  type="button"
+                  class="btn btn-danger btn-sm m-1"
+                >
+                  <i class="bi bi-x"></i> Cancel
+                </button>
+              </div>
+            </div>
+            <ViewEditor
+              :viewProject="projectId"
+              :viewFolder="selectedFolder"
+              :onSave="doCreateLinkFile"
+              :preselectedVariables="[]"
+            ></ViewEditor>
+          </div>
           <div
+            v-else
             class="col-6"
             :style="{
               visibility: selectedFile && selectedFolder ? 'visible' : 'hidden',
@@ -125,24 +118,76 @@
               v-if="loading_preview"
               class="pt-3 mt-3"
             ></LoadingSpinner>
-            <div v-if="isNonTableType(selectedFile)">
+            <div
+              v-if="
+                isNonTableType(selectedFile) && !isLinkFileType(selectedFile)
+              "
+            >
               <div class="fst-italic">
-                No preview available for: {{ selectedFile }} ({{ fileSize }})
+                No preview available for: {{ selectedFile }} ({{
+                  fileInfo.fileSize
+                }})
               </div>
             </div>
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
                 Preview:
-                <!-- {{ `${selectedFile.replace(".parquet", "")} (108x1500)` }} -->
                 {{ `${selectedFile.replace(".parquet", "")}` }} ({{
-                  `${dataSizeRows}x${dataSizeColumns}`
+                  `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
                 }})
+                <div v-if="isLinkFileType(selectedFile)">
+                  Linked from: {{ fileInfo.sourceLink }}
+                </div>
+                <button
+                  v-if="!createLinkFromSrc && isTableType(selectedFile)"
+                  @click="createLinkFromSrc = true"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                >
+                  <i class="bi bi-box-arrow-in-up-right"></i> Create view
+                </button>
+                <button
+                  v-else-if="!editView && isLinkFileType(selectedFile)"
+                  @click="editView = true"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                >
+                  <i class="bi bi-box-arrow-in-up-right"></i> Edit view
+                </button>
+                <button
+                  v-else
+                  @click="cancelView()"
+                  type="button"
+                  class="btn btn-danger btn-sm m-1"
+                >
+                  <i class="bi bi-x"></i> Cancel
+                </button>
               </div>
+              <ViewEditor
+                v-if="createLinkFromSrc === true"
+                :sourceFolder="selectedFolder"
+                :sourceTable="selectedFile"
+                :sourceProject="projectId"
+                :onSave="doCreateLinkFile"
+                :preselectedVariables="[]"
+              ></ViewEditor>
+              <ViewEditor
+                v-else-if="editView === true"
+                :sourceFolder="fileInfo.sourceLink.split('/')[1]"
+                :sourceTable="fileInfo.sourceLink.split('/')[2] + '.parquet'"
+                :sourceProject="fileInfo.sourceLink.split('/')[0]"
+                :preselectedVariables="fileInfo.variables"
+                :viewProject="projectId"
+                :viewFolder="selectedFolder"
+                :viewTable="selectedFile"
+                :onSave="doCreateLinkFile"
+              ></ViewEditor>
               <SimpleTable
+                v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
-                :n-rows="dataSizeRows"
-                :n-cols="dataSizeColumns"
+                :n-rows="fileInfo.dataSizeRows"
+                :n-cols="fileInfo.dataSizeColumns"
               ></SimpleTable>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
@@ -160,6 +205,7 @@
 <script lang="ts">
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
+import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
@@ -168,14 +214,23 @@ import {
   deleteObject,
   previewObject,
   getFileDetails,
+  createLinkFile,
 } from "@/api/api";
-import { isEmptyObject, sortAlphabetically } from "@/helpers/utils";
-import { defineComponent, onMounted, Ref, ref, watch } from "vue";
+import {
+  isEmptyObject,
+  isLinkFileType,
+  isTableType,
+  isNonTableType,
+  getRestructuredProject,
+} from "@/helpers/utils";
+import { defineComponent, onMounted, Ref, ref } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
+import FileExplorer from "@/components/FileExplorer.vue";
 import SimpleTable from "@/components/SimpleTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import ViewEditor from "@/components/ViewEditor.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -187,48 +242,20 @@ export default defineComponent({
     ListGroup,
     LoadingSpinner,
     FileUpload,
+    FileExplorer,
+    FolderInput,
     SimpleTable,
+    ViewEditor,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
     const projectId: Ref<string> = ref("");
-    const folderComponent: Ref = ref({});
-    const fileComponent: Ref = ref({});
-    const selectedFolder = ref("");
-    const selectedFile = ref("");
     const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     const route = useRoute();
     const previewParam = ref();
-    watch(
-      () => route.params.folderId,
-      (newVal) => {
-        selectedFolder.value = newVal as string;
-      }
-    );
     onMounted(() => {
       loadProject(undefined);
-      if (route.params.folderId) {
-        selectedFolder.value = route.params.folderId as string;
-      }
-      watch(
-        () => folderComponent.value?.selectedItem,
-        (newVal) => {
-          if (newVal != undefined) {
-            selectedFolder.value = newVal;
-          }
-        }
-      );
-      watch(
-        () => fileComponent.value?.selectedItem,
-        (newVal) => {
-          if (newVal) {
-            selectedFile.value = newVal;
-          } else {
-            selectedFile.value = "";
-          }
-        }
-      );
     });
     const loadProject = async (idParam: string | undefined) => {
       if (idParam === undefined) {
@@ -247,15 +274,14 @@ export default defineComponent({
       projectId,
       loadProject,
       errorMessage,
-      folderComponent,
-      fileComponent,
-      selectedFolder,
-      selectedFile,
       previewParam,
     };
   },
   data(): ProjectsExplorerData {
     return {
+      editView: false,
+      selectedFile: "",
+      selectedFolder: "",
       fileToDelete: "",
       folderToDeleteFrom: "",
       projectToEdit: "",
@@ -264,47 +290,61 @@ export default defineComponent({
       loading_preview: false,
       successMessage: "",
       filePreview: [{}],
-      fileSize: "",
-      dataSizeRows: 0,
-      dataSizeColumns: 0,
       createNewFolder: false,
-      newFolder: "",
       projectContent: {},
+      fileInfo: {
+        fileSize: "",
+        dataSizeRows: 0,
+        dataSizeColumns: 0,
+        sourceLink: "",
+        variables: [] as StringArray,
+      },
+      createLinkFromTarget: false,
+      createLinkFromSrc: false,
     };
   },
   watch: {
-    selectedFolder() {
-      this.selectedFile = "";
-    },
     selectedFile() {
-      if (this.selectedFile.endsWith(".parquet")) {
-        this.loading_preview = true;
-        previewObject(
+      if (
+        this.projectId !== "" &&
+        this.selectedFolder !== "" &&
+        this.selectedFile !== ""
+      ) {
+        this.resetCreateLinkFile();
+        if (
+          this.isTableType(this.selectedFile) ||
+          this.isLinkFileType(this.selectedFile)
+        ) {
+          this.loading_preview = true;
+          previewObject(
+            this.projectId,
+            `${this.selectedFolder}/${this.selectedFile}`
+          )
+            .then((data) => {
+              this.filePreview = data;
+              this.loading_preview = false;
+            })
+            .catch((error) => {
+              this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+              this.clearFilePreview();
+              this.loading_preview = false;
+            });
+        }
+        getFileDetails(
           this.projectId,
-          `${this.selectedFolder}%2F${this.selectedFile}`
+          `${this.selectedFolder}/${this.selectedFile}`
         )
           .then((data) => {
-            this.filePreview = data;
-            this.loading_preview = false;
+            this.fileInfo.fileSize = data["size"];
+            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+            this.fileInfo.sourceLink = data["sourceLink"];
+            this.fileInfo.variables = data["variables"];
           })
           .catch((error) => {
-            this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-            this.clearFilePreview();
-            this.loading_preview = false;
+            this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
           });
       }
-      getFileDetails(
-        this.projectId,
-        `${this.selectedFolder}%2F${this.selectedFile}`
-      )
-        .then((data) => {
-          this.fileSize = data["size"];
-          this.dataSizeRows = data["rows"];
-          this.dataSizeColumns = data["columns"];
-        })
-        .catch((error) => {
-          this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-        });
     },
     project() {
       this.setProjectContent();
@@ -320,58 +360,37 @@ export default defineComponent({
     },
   },
   methods: {
+    isTableType,
+    isLinkFileType,
+    isNonTableType,
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
+    },
+    cancelView() {
+      this.createLinkFromSrc = false;
+      this.editView = false;
     },
     clearFilePreview() {
       this.filePreview = [{}];
     },
-    getSortedFolders(): StringArray {
-      return sortAlphabetically(this.projectFolders) as StringArray;
-    },
-    getSortedFiles() {
-      return this.projectContent[this.selectedFolder]
-        ? (sortAlphabetically(
-            this.projectContent[this.selectedFolder]
-          ) as StringArray)
-        : [];
-    },
     setProjectContent() {
-      let content: Record<string, StringArray> = {};
-      this.project.forEach((item) => {
-        /** scrub the project folder from the name */
-        const itemInProjectFolder = item.replace(`${this.projectId}/`, "");
-        if (itemInProjectFolder.length && itemInProjectFolder[0] === ".") {
-          return; /** if item starts with a . */
-        }
-
-        /** Check if it is in a subfolder */
-        if (itemInProjectFolder.includes("/")) {
-          const splittedItem = itemInProjectFolder.split("/");
-          const folder = splittedItem[0];
-          const folderItem = splittedItem[1];
-
-          /** add to the content structure */
-          if (content[folder]) {
-            content[folder] = content[folder].concat(folderItem);
-          } else {
-            content[folder] = [folderItem];
-            if (folderItem === "") {
-              content[folder] = [];
-            }
-          }
-        }
-      });
-      this.projectContent = content;
+      this.projectContent = getRestructuredProject(
+        this.project,
+        this.projectId
+      );
     },
     setCreateNewFolder() {
       this.createNewFolder = true;
     },
-    addNewFolder() {
-      if (this.newFolder) {
-        if (!this.newFolder.includes("/")) {
-          this.project.push(this.newFolder.toLocaleLowerCase() + "/");
-          this.successMessage = `Succesfully created folder: [${this.newFolder.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
+    resetCreateLinkFile() {
+      this.createLinkFromSrc = false;
+      this.createLinkFromTarget = false;
+    },
+    addNewFolder(folderName: string) {
+      if (folderName) {
+        if (!folderName.includes("/")) {
+          this.project.push(folderName.toLocaleLowerCase() + "/");
+          this.successMessage = `Succesfully created folder: [${folderName.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
           this.setProjectContent();
           this.cancelNewFolder();
         } else {
@@ -383,7 +402,6 @@ export default defineComponent({
     },
     cancelNewFolder() {
       this.createNewFolder = false;
-      this.newFolder = "";
     },
     onUploadSuccess({
       object,
@@ -397,9 +415,6 @@ export default defineComponent({
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
-    },
-    isNonTableType(item: string) {
-      return !item.endsWith(".parquet");
     },
     deleteSelectedFile() {
       this.fileToDelete = this.selectedFile;
@@ -416,7 +431,7 @@ export default defineComponent({
       const folder = splittedFileAndFolder[0];
       const response = deleteObject(
         this.projectId,
-        `${this.selectedFolder}%2F${this.selectedFile}`
+        `${this.selectedFolder}/${this.selectedFile}`
       );
       response
         .then(() => {
@@ -427,7 +442,6 @@ export default defineComponent({
             }
             this.setProjectContent();
           });
-
           this.successMessage = `Successfully deleted file [${file}] from directory [${folder}] of project: [${this.projectId}]`;
         })
         .catch((error) => {
@@ -450,6 +464,119 @@ export default defineComponent({
     },
     showErrorMessage(error: string) {
       this.errorMessage = error;
+    },
+    createNewLinkFile(
+      sourceProject: string,
+      sourceObject: string,
+      viewProject: string,
+      viewObject: string,
+      variables: string[]
+    ) {
+      if (
+        sourceProject !== "" &&
+        sourceObject !== "" &&
+        viewProject !== "" &&
+        viewObject !== "" &&
+        variables.length !== 0
+      ) {
+        const response = createLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject,
+          variables
+        );
+        response
+          .then(() => {
+            this.successMessage = `Successfully created view from [${sourceProject}/${sourceObject}] in [${viewProject}/${viewObject}]`;
+            this.resetCreateLinkFile();
+            this.reloadProject();
+            this.selectedFolder = "";
+            this.selectedFile = "";
+          })
+          .catch((error) => {
+            this.errorMessage = `${error}`;
+          });
+      } else {
+        this.errorMessage =
+          "Cannot save, ensure all fields are filled in properly";
+      }
+    },
+    onSelectFolder(folder: string) {
+      this.selectedFolder = folder;
+    },
+    onSelectFile(file: string) {
+      this.selectedFile = file;
+    },
+    setCreateLinkFromTarget() {
+      this.selectedFile = "";
+      this.editView = false;
+      this.resetFileInfo();
+      this.createLinkFromTarget = true;
+    },
+    resetFileInfo() {
+      this.fileInfo = {
+        fileSize: "",
+        dataSizeRows: 0,
+        dataSizeColumns: 0,
+        sourceLink: "",
+        variables: [] as StringArray,
+      };
+    },
+    doCreateLinkFile(
+      sourceProject: string,
+      sourceObject: string,
+      viewProject: string,
+      viewObject: string,
+      variables: string[]
+    ) {
+      if (this.editView) {
+        // first check is saving will work
+        const tmpResponse = createLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject + ".tmp",
+          variables
+        );
+        tmpResponse
+          .then(() => {
+            const deleteResponse = deleteObject(viewProject, viewObject);
+            deleteResponse
+              .then(() => {
+                this.createNewLinkFile(
+                  sourceProject,
+                  sourceObject,
+                  viewProject,
+                  viewObject.replace(".alf", ""),
+                  variables
+                );
+                deleteObject(viewProject, viewObject + ".tmp.alf");
+                this.editView = false;
+                if (this.projectId !== "" && this.selectedFolder !== "") {
+                  this.router.push(
+                    `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
+                  );
+                }
+              })
+              .catch((error) => {
+                this.errorMessage = `${error}`;
+              });
+            this.reloadProject();
+            this.resetCreateLinkFile();
+          })
+          .catch((error) => {
+            this.errorMessage = `${error}`;
+          });
+      } else {
+        this.createNewLinkFile(
+          sourceProject,
+          sourceObject,
+          viewProject,
+          viewObject,
+          variables
+        );
+      }
     },
   },
 });
