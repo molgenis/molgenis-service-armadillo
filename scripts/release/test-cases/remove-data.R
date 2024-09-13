@@ -1,15 +1,5 @@
 library(purrr)
 
-set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
-  if (update_auto == "y") {
-    set_user(user, admin_pwd, T, required_projects, url)
-    cli_alert_info("Admin reset")
-  } else {
-    cli_alert_info("Make your account admin again")
-    wait_for_input(interactive)
-  }
-}
-
 dm_delete_tables <- function() {
   armadillo.delete_table(project1, "2_1-core-1_0", "nonrep")
   armadillo.delete_table(project1, "2_1-core-1_0", "yearlyrep")

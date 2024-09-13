@@ -2,7 +2,7 @@
 
 Use MOLGENIS/Armadillo to make data available for privacy protecting federated analysis using [DataSHIELD](https://datashield.org) protocol. Armadillo
 service provides the following features:
-* **manage data projects**. Projects can either hold tabular data in the efficient 'parquet' format or any other file use DataSHIELD
+* **manage data projects**. Projects can either hold tabular data in the efficient 'parquet' format or any other file using the DataSHIELD
   'resources' framework.
 * **grant users access permission**. We use a central OIDC service like KeyCloak or FusionAuth in combination with a trused identity provider like
   Life Sciences AAI to authenticate users.

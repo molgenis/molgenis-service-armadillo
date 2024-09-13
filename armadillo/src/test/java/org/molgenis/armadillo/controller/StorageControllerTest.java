@@ -462,7 +462,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @Test
   void getObjectInfo() throws Exception {
     when(storage.getInfo("lifecycle", "test.parquet"))
-        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30"));
+        .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30", null, new String[] {}));
 
     mockMvc
         .perform(get("/storage/projects/lifecycle/objects/test.parquet/info").session(session))
@@ -506,6 +506,26 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                     "Project 'lifecycle' has no object 'test.parquet'",
                     "type",
                     "org.molgenis.armadillo.exceptions.UnknownObjectException"))));
+  }
+
+  @Test
+  void getVariables() throws Exception {
+    when(storage.getVariables("my-project", "my-table.parquet"))
+        .thenReturn(List.of("col1", "col2", "col3"));
+
+    mockMvc
+        .perform(
+            get("/storage/projects/my-project/objects/my-table.parquet/variables").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json("[\"col1\", \"col2\", \"col3\"]"));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            GET_VARIABLES,
+            mockSuAuditMap(Map.of(PROJECT, "my-project", OBJECT, "my-table.parquet"))));
   }
 
   private Map<String, Object> mockSuAuditMap() {

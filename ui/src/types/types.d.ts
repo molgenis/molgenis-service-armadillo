@@ -35,6 +35,7 @@ interface Dictionary<T> {
 // Maybe later expand with float/int/enum/character
 export type TypeObject = Record<string, TypeString>;
 export type ProjectsExplorerData = {
+  editView: boolean;
   fileToDelete: string;
   folderToDeleteFrom: string;
   projectToEdit: string;
@@ -42,13 +43,20 @@ export type ProjectsExplorerData = {
   loading: boolean;
   successMessage: string;
   filePreview: Array<any>;
-  fileSize: string;
-  dataSizeRows: number;
-  dataSizeColumns: number;
+  fileInfo: {
+    fileSize: string;
+    dataSizeRows: number;
+    dataSizeColumns: number;
+    sourceLink: string;
+    variables: Array<string>;
+  };
   createNewFolder: boolean;
   loading_preview: boolean;
-  newFolder: string;
   projectContent: Record<string, string[]>;
+  selectedFile: string;
+  selectedFolder: string;
+  createLinkFromTarget: boolean;
+  createLinkFromSrc: boolean;
 };
 
 export type ProjectsData = {
@@ -109,4 +117,14 @@ export type ProfilesData = {
     RUNNING: statusMappingType;
     DOCKER_OFFLINE: statusMappingType;
   };
+};
+
+export type ViewEditorData = {
+  projectData: Record<string, StringArray>;
+  vwTable: string;
+  vwProject: string;
+  vwFolder: string;
+  srcTable: string;
+  srcProject: string;
+  srcFolder: string;
 };

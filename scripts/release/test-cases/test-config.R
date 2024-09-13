@@ -1,4 +1,5 @@
 library(stringr)
+library(tibble)
 # # log version info of loaded libraries
 show_version_info <- function(libs) {
   libs_to_print <- cli_ul()
@@ -15,14 +16,14 @@ configure_test <- function() {
   show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"))
 
   cli_alert_success("Loaded other libraries:")
-  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr"))
+  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr", "tibble"))
 
   cli_alert_info("Trying to read config from '.env'")
   readRenviron(".env")
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- str_split(skip_tests, ",")[[1]]
-
+  
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
     cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
@@ -33,6 +34,11 @@ configure_test <- function() {
   } else {
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
   }
+  
+  if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "xenon-omics")){
+    skip_tests <- c(skip_tests, "xenon-omics")
+  }
+  
 
   interactive <- TRUE
   if (Sys.getenv("INTERACTIVE") == "N") {
@@ -135,27 +141,29 @@ configure_test <- function() {
   default_parquet_path <- add_slash_if_not_added(default_parquet_path)
 
   rda_dir <- file.path(test_file_path, "gse66351_1.rda")
-
+  rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
 
   cli_alert_success(sprintf("%s passed!", test_name))
 
   # default profile settings in case a profile is missing
-      profile_defaults = data.frame(
-        name = c("xenon", "rock"),
-        container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
-        port = c("", ""),
-        # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
-        # Not adding dsBase since that is always(?) required
-        whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
-        blacklist = c("", "")
-      )
+  profile_defaults <- data.frame(
+    name = c("xenon", "rock"),
+    container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
+    port = c("", ""),
+    # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
+    # Not adding dsBase since that is always(?) required
+    whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
+    blacklist = c("", "")
+  )
+
+  options(timeout = 300)
 
   return(list(
     skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
     ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
-    update_auto = update_auto, profile_defaults = profile_defaults
+    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
   ))
 }
