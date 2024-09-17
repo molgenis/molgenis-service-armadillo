@@ -1,8 +1,8 @@
 # Release testing
 ## Prerequisites
-- Testserver with release candidate available
+- Test server with release candidate available
 - OIDC user with admin permissions on testserver
-- Following libraries installed in R:
+- The following libraries installed in R:
   - cli
   - getPass
   - arrow

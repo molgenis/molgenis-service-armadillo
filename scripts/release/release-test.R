@@ -14,10 +14,12 @@ cat("
  | | \\ \\  __/ |  __/ (_| \\__ \\  __/ | ||  __/\\__ \\ |_
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
 ")
+print(sessionInfo())
 # for logging nicely and showing loading spinner
 library(cli)
 cli_h1("Setup")
 cli_alert_info("Loading libraries")
+library(DSI)
 # for password prompt
 library(getPass)
 # for reading parquet files
@@ -34,7 +36,6 @@ library(RCurl)
 library(stringi)
 # armadillo/datashield libraries needed for testing
 library(MolgenisArmadillo)
-library(DSI)
 library(dsBaseClient)
 library(DSMolgenisArmadillo)
 library(resourcer)
@@ -138,18 +139,18 @@ verify_ds_mtl(skip_tests = test_config$skip_tests)
 
 cli_alert_info("Testing dsExposome")
 source("test-cases/xenon-exposome.R")
-run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
-                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
-                   ref = exposome_ref, skip_tests = test_config$skip_tests, 
-                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
+run_exposome_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type,
+                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info,
+                   ref = exposome_ref, skip_tests = test_config$skip_tests,
+                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive,
                    update_auto = test_config$update_auto)
 
 cli_alert_info("Testing dsOmics")
 source("test-cases/xenon-omics.R")
-run_omics_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type, 
-                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info, 
-                   ref = omics_ref, skip_tests = test_config$skip_tests, 
-                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive, 
+run_omics_tests(project = project1, url = test_config$armadillo_url, token = token, auth_type = test_config$auth_type,
+                   ADMIN_MODE = test_config$ADMIN_MODE, profile = test_config$profile, profile_info = profile_info,
+                   ref = omics_ref, skip_tests = test_config$skip_tests,
+                   user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive,
                    update_auto = test_config$update_auto)
 
 cli_h2("Removing data as admin")

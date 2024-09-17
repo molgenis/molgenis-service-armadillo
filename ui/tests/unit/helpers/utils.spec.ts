@@ -16,7 +16,9 @@ import {
   getRestructuredProject,
   getTablesFromListOfFiles,
   isLinkFileType,
-  encodeUriComponent
+  encodeUriComponent,
+  convertBytes,
+  diskSpaceBelowThreshold
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -288,3 +290,45 @@ describe("utils", () => {
     });
   });
 });
+
+  describe("convertBytes", () => {
+    it("bytes", () => {
+      const actual = convertBytes(999)
+      expect(actual).toEqual("999.00 bytes")
+    })
+    it("KB", () => {
+      const actual = convertBytes(99999)
+      expect(actual).toEqual("97.66 KB")
+    })
+    it("MB", () => {
+      const actual = convertBytes(9999999)
+      expect(actual).toEqual("9.54 MB")
+    })
+    it("GB", () => {
+      const actual = convertBytes(9999999999)
+      expect(actual).toEqual("9.31 GB")
+    })
+    it("TB", () => {
+      const actual = convertBytes(9999999999999)
+      expect(actual).toEqual("9.09 TB")
+    })
+    it("EB", () => {
+      const actual = convertBytes(9999999999999999)
+      expect(actual).toEqual("8.88 EB")
+    })
+  });
+
+
+  describe("diskSpaceBelowThreshold", () => {
+    it("Return true", () => {
+      const actual = diskSpaceBelowThreshold(214748364);
+      expect(actual).toEqual(true);
+    });
+    it("Return false", () => {
+      const actual = diskSpaceBelowThreshold(9214748364);
+      expect(actual).toEqual(false);
+    });
+  });
+  
+
+

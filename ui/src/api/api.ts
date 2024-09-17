@@ -318,3 +318,9 @@ export async function createLinkFile(
   };
   return postJson(`/storage/projects/${viewProject}/objects/link`, data);
 }
+
+export async function getFreeDiskSpace() {
+  return get("/actuator/metrics/disk.free").then((data) => {
+    return data.measurements[0].value;
+  });
+}
