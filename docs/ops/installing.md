@@ -47,6 +47,12 @@ The values needed are:
 
 You need a SSL certificate to configuring the front-end proxy and make the browser use **https** before putting data on the server.
 
+If SELinux is enabled, run the following command to ensure that the application can connect to required services:
+
+```bash
+setsebool -P httpd_can_network_connect on
+```
+
 ## Installing Armadillo as service
 
 We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets restarted when the server is rebooted. You might be able to reproduce also on CentOS (using yum instead of apt).
