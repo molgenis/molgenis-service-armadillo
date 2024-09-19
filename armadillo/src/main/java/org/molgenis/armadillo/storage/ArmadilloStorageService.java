@@ -223,28 +223,34 @@ public class ArmadilloStorageService {
         .build();
   }
 
+  private void trySaveWorkspace (ArmadilloWorkspace workspace, Principal principal, String id) {
+    try {
+      storageService.save(
+              workspace.createInputStream(),
+              getUserBucketName(principal),
+              getWorkspaceObjectName(id),
+              APPLICATION_OCTET_STREAM);
+    } catch (StorageException e) {
+      throw new StorageException(e);
+    }
+  }
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");
     long usableSpace = drive.getUsableSpace();
-
-    ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
-    long fileSize = workspace.getSize();
-    if (usableSpace > fileSize * 2L) {
-      try {
-        storageService.save(
-            workspace.createInputStream(),
-            getUserBucketName(principal),
-            getWorkspaceObjectName(id),
-            APPLICATION_OCTET_STREAM);
-      } catch (StorageException e) {
-        throw new StorageException(e);
+    try {
+      ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
+      long fileSize = workspace.getSize();
+      if (usableSpace > fileSize * 2L) {
+        trySaveWorkspace(workspace, principal, id);
+      } else {
+        throw new StorageException(
+                format(
+                        "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
+                        getHumanReadableByteCount(fileSize)));
       }
-    } else {
-      throw new StorageException(
-          format(
-              "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
-              getHumanReadableByteCount(fileSize)));
+    } catch (StorageException e) {
+      throw new StorageException(e.getMessage().replace("load", "save"));
     }
   }
 
