@@ -46,7 +46,7 @@ dependencies {
     //other
     implementation 'org.rosuda.REngine:REngine:2.1.0'
     implementation 'org.rosuda.REngine:Rserve:1.8.1'
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.23'
     implementation 'com.google.auto.value:auto-value-annotations:1.10.4'
     implementation 'org.obiba.datashield:ds4j-core:2.1.0'
     implementation 'org.obiba.datashield:ds4j-r:2.1.0'
