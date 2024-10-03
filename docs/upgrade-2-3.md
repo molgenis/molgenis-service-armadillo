@@ -1,6 +1,6 @@
 ### Migrate Armadillo 2 to Armadillo 3
 
-Migrating from Armadillo 2 to Armadillo 3 can be done in 2 variants, a full migration including [projects, users and data](#migrate-projects-users-and-data) or [just projects and their users](#migrate-projects-and-their-users).
+Migrating from Armadillo 2 to Armadillo 3 can be done in two variants, a full migration including [projects, users and data](#migrate-projects-users-and-data) or [just projects and their users](#migrate-projects-and-their-users).
 Both options require Python (version 3.8) and additional python libraries, described in [Getting started](#getting-started).
 
 ### Getting started
@@ -60,7 +60,7 @@ If you get a purple message asking to update, accept and install everything.
 Restart of server is recommended after this.
 
 N.B. Note that the commands in this manual are for Ubuntu, on other linux systems, 
-the `apt` command needs to be replaced with another one.
+the `apt` command needs to be replaced with the correct one.
 
 #### 4. Stop all docker images for Armadillo 2
 List all docker images
@@ -101,14 +101,14 @@ Don't forget to set a proper admin password (use a generator), domain, clientid 
 secret can be found on the lifecycle auth server in the configuration for your server. If you don't have permissions to
 receive this, you can ask the support team to get it for you.
 
-Open armadillo in the browser and try to login using basicauth to check if the server is running properly. If it's not
+Open armadillo in the browser and try to login using basicauth to check if the server is running properly. If it is not
 running at all, try:
 ```
 systemctl start armadillo
 ```
 
 #### 6. Export data from Armadillo 2 into armadillo 3
-Look up the user/password in the application.yml of the old armadillo. They're called MinIO access key and  minio
+Look up the user/password in the application.yml of the old armadillo. They are called MinIO access key and  minio
 secret key.
 ```
 cat /root/armadillo2-backup/application-armadillo2.yml
@@ -139,7 +139,7 @@ chown armadillo:armadillo -R data
 Check if armadillo is running by going to the URL of your server in the browser, login and navigate to the projects tab.
 
 #### 8. Optionally, acquire a permission set from MOLGENIS team
-If you previously run central authorisation server with MOLGENIS team, they can provide you with procedure to load 
+If you previously ran a central authorisation server with MOLGENIS team, they can provide you with procedure to load 
 pre-existing permissions. They will use:
 ```
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-auth.py
@@ -168,7 +168,7 @@ server {
 }
 ```
 Note that the `https://` is missing in the server_name part.
-NOTE: if port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you shouldn't comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config. 
+NOTE: if port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you should not comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config. 
 
 Remove the console, auth and storage file from: `/etc/nginx/sites-enabled/` and `/etc/nginx/sites-available/. 
 
@@ -219,7 +219,7 @@ To export users from an Armadillo 2 server, one must use the [export-users.py](h
 
 **Again, note that `export-users.py` will prompt to supply the API key for the `-f / --fusion-auth` server once all arguments are valid!**
 
-Empty projects (without users) will also be exported as empty TSV (containing only the header). This is a feature that `import-users.py`, the next step, is able to function with.
+Empty projects (without users) will also be exported as an empty TSV (containing only the header). This is a feature that `import-users.py`, the next step, is able to function with.
 
 Also note that some projects might change in name, as Armadillo 3 is stricter with naming projects.
 

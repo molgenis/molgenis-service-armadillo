@@ -16,14 +16,14 @@ configure_test <- function() {
   show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"))
 
   cli_alert_success("Loaded other libraries:")
-  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr"))
+  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr", "tibble"))
 
   cli_alert_info("Trying to read config from '.env'")
   readRenviron(".env")
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- str_split(skip_tests, ",")[[1]]
-
+  
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
     cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
@@ -34,6 +34,11 @@ configure_test <- function() {
   } else {
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
   }
+  
+  if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "xenon-omics")){
+    skip_tests <- c(skip_tests, "xenon-omics")
+  }
+  
 
   interactive <- TRUE
   if (Sys.getenv("INTERACTIVE") == "N") {

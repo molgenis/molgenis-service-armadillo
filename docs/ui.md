@@ -1,8 +1,7 @@
 # Armadillo User Interface
 
-Since Armadillo version 3, a lot has changed compared to its previous version. One of these changes is the addition of
-a user interface, or UI for short. This UI will be replacing the MinIO file storage and the permission management page,
-as well as adding several new features that will be extended upon.
+A key addition from Armadillo version 3 onwards is the addition of a user interface, or UI for short. This UI replaces the MinIO file storage and permission management page,
+as well as adding several new features that will be extended upon in future releases.
 
 ## Table of contents
 
@@ -36,7 +35,7 @@ following error:
 If you receive this error, contact someone in your institute that is already able to login without an error, or if you
 don't have anyone available, send an email to MOLGENIS Support (molgenis-support@umcg.nl).
 
-To grant a user superuser permissions simply search for that user in the `Users` tab of the UI, and tick off the
+To grant a user superuser permissions simply search for that user in the `Users` tab of the UI, and tick the
 _admin_ checkbox for that user:
 
 ![Grant user superuser rights](img/ui/admin.png)
@@ -59,23 +58,18 @@ The row will be opened in edit mode:
 
 ![Edit a specific row on the projects page](img/ui/edit-project.png)
 
-The edit mode can be recognized by it's blue background color and you have the option to add new users to your project
+The edit mode can be recognized by its blue background color and you have the option to add new users to your project
 by clicking on the + button <img src="img/ui/plus.png"  width="15" height="15"> of the users column. Then, you can either
 select an existing user from the dropdown, or add the email address of a new user.
 
 ![Add an existing user to a project or enter the email address of the new user](img/ui/edit-projects-add-user.png)
 
 In case of adding a user in this screen, a warning will be shown to prevent email addresses with typographical errors from being added to
-your system. To illustrate this, imagine you have the user `j.doe@example.com` in your users table. You want to give
-them permissions for a certain project, but you mistakingly type the email address as `j.die@example.com`. A warning message will pop up
-asking you whether you really want to add a new user. You will probably think "that's weird, j.doe
-already exists, right?", hopefully this will help noticing the incorrect email address. You will probably cancel 
-adding the user and instead select the existing user, as you intended to. Keep in mind that, just as the warning message
-suggests, the user will only be added if you save the row you are editing in the projects.
+your system. For example, if you have the address `j.doe@example.com` in your users table but attempt to add `j.die@example.com` a warning message will be displayed asking if you want to add a new user.
 
 ![Warning message to remind you to save the project in order to finalize adding a new user](img/ui/add-user-warning.png)
 
-It is not possible to edit the name of your project; this was done intentionally in order to ensure tables, resources,
+It is not possible to edit the name of your project; this is intentional in order to ensure tables, resources,
 users, and permissions are transferred to the new project name correctly.
 
 Click on the checkmark <img src="img/ui/check.png"  width="25" height="25"> to save the edited row and the X 
@@ -112,8 +106,7 @@ file.
 
 ![Armadillo upload a file](img/ui/upload-a-file.png)
 
-After selecting the file, click on _upload_ to upload it. Depending on the size of the file it can take a second,
-generally it is a fast process.
+After selecting the file, click on _upload_ to upload it. This usually only takes a few seconds but will take longer in your uploading a large file.
 
 It is also possible to create new folders. To do so, click the "add folder" button 
 <img src="img/ui/add-folder-button.png"  width="30" height="30"> just below the project name. An input dialog will be
@@ -122,25 +115,22 @@ presented:
 ![Armadillo add a folder](img/ui/add-folder.png)
 
 Fill in the name you want to use and click on the checkmark button 
-<img src="img/ui/check.png"  width="25" height="25">. Please keep in mind that, just as the success message suggests,
-the folder will only be saved if you put data in it. Select the new folder to select files to upload.
+<img src="img/ui/check.png"  width="25" height="25">. Please keep in mind that the folder will only be saved if you put data into it. Select the new folder to select files to upload.
 
 ### Resources <a name="resources"></a>
 
-In theory, all files can be uploaded into the projects. The only filetypes that allowed for a preview are `.parquet`
-files. Other files that can be uploaded are treated as _resources_. Resource filetypes usually are `.rda` files or
-`.Rdata` files.
+All file types can be uploaded into Armadillo, however previews will only be available for `.parquet` files. Other files that can be uploaded are treated as _resources_. Resource filetypes usually are `.rda` files or `.Rdata` files.
 
 To be able to use these resources as a researcher, first an `.rds` file must be generated. How to create these files, is
 described [here](https://molgenis.github.io/molgenis-r-armadillo/articles/create_resources.html).
 
-The URL of your resources is build up as follows:
+The URL of your resources should consist of:
 
 ```r
 {your url}/storage/projects/{project name}/objects/{name of the folder}%2F{the resource file}
 ```
 
-Here's an example, with some example parameters:
+Here is an example, with some example parameters:
 
 ```r
 url = "https://armadillo3.demo.molgenis.net"
@@ -157,15 +147,15 @@ https://armadillo3.demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66
 
 ## Users <a name="users"></a>
 
-The `Users` page works just as the `Projects` page. You can search users by entering (part of) their email address or name
+The `Users` page works just as the `Projects` page. You can search users by entering (a part of) the email address or name
 of the user into the search box:
 
 ![Search for a user in the Users page](img/ui/admin.png)
 
 ### Editing users <a name="edit-users"></a>
 
-Users can be edited, **except** for their email addresses. A reason for this is that when a user's email address changes, that user is possibly not
-working for the same institution any longer and therefore might not be allowed to access the data anymore.
+Users can be edited, **except** for their email addresses. This is because when user's email address changes, that user is possibly no longer
+working for the same institution and therefore might not be allowed to access the data anymore.
 
 ![Editing a user on the Users page](img/ui/edit-user.png)
 
@@ -174,28 +164,27 @@ In edit mode, the row will turn blue. Projects can be added by clicking on the +
 
 <img src="img/ui/add-project-to-user.png"  width="350">
 
-You can add a new project by simply typing it and clicking the checkmark button 
-<img src="img/ui/check.png"  width="25" height="25">. You will be prompted a warning message, asking you to confirm to
-add a new project, once the user is saved.
+You can add a new project by typing it and clicking the checkmark button 
+<img src="img/ui/check.png"  width="25" height="25">. You will be prompted with a warning message, asking you to confirm if you want to
+add a new project.
 
-Alternatively, you can select an existing project by using the search box or scrolling through the presented list, and selecting the desired project.
+Alternatively, you can select an existing project by using the search box or scrolling through the presented list.
 
 ### Adding users <a name="add-users"></a>
 
-By clicking on the plus button <img src="img/ui/add.png"  width="25" height="25"> on top op the table, a new user can be
+By clicking on the plus button <img src="img/ui/add.png"  width="25" height="25"> on the top of the table, a new user can be
 added. The row with the new user will turn blue in edit mode.
 
 <img src="img/ui/add-user.png"  width="650">
 
-Users can be added before they have logged in previously. These users can be added to projects, this will grant them
-permission to use the data from those projects upon their first login. However, to be able to login to the UI, users have to be admin or superuser. 
-Researchers should not be set to be admin. 
+Users can be added before they have logged in previously. These users can be added to projects, which will grant them
+permission to use the data from those projects upon their first login. Researchers should not be set as admin. 
 
-## Profiles <a name="profiles"></a>
+## Analysis Profiles <a name="profiles"></a>
 
 ![Armadillo Profiles page](img/ui/profiles.png)
 
-Since the release of Armadillo 3.0.0, it is possible to create and manage profiles in the user interface, rather than
+Since the release of Armadillo 3.0.0, it is possible to create and manage analysis profiles in the user interface, rather than
 asking system administrators to manage these profiles. You can start <img src="img/ui/start-profile.png"  width="35">
 and stop <img src="img/ui/stop-profile.png"  width="35"> profiles.
 
@@ -204,11 +193,11 @@ downloaded and installed before it can be started.
 
 ![Stopping a profile](img/ui/loading-stop-profile.png)
 
-If you switch to the other screens while either starting or stopping a profile, the profiles page will not show the
-loading information anymore. It is however still loading, and when it's done, if you reload the page, you will see that
+If you switch to another screen whilst either starting or stopping a profile, the profiles page will no longer show the
+loading information. It is however still loading, and when it's done, if you reload the page, you will see that
 your profile started or stopped successfully.
 
-Just like in the other screens, you can add profiles with the add-button 
+As in the other screens, you can add profiles with the add-button 
 <img src="img/ui/add.png"  width="25" height="25">. 
 
 ![Add a profile](img/ui/add-profile.png)
@@ -217,13 +206,13 @@ By default, some fields will be set. Please update them to install the correct p
 
 Possible images can be found on [dockerhub](https://hub.docker.com/search?q=datashield%2Farmadillo-rserver). We
 recommend selecting one of the
-[DataSHIELD standard profiles](https://www.datashield.org/help/standard-profiles-and-plaforms). The image name of those
+[DataSHIELD standard profiles](https://wiki.datashield.org/en/opmanag/standard-profiles-and-platforms). The image name of those
 profiles can be found on the dockerhub link above.
 
 Although the default `port` setting should find an available port, please keep in mind that the port has to be unique,
-otherwise you cannot start your profile and will receive and error message.
+otherwise you cannot start your profile and will receive an error message.
 
-R packages can be whitelisted by adding them to the `package whitelist` column so researchers can use them. If you want
-to whitelist a package, you need to make sure it is installed on the image you selected. Additionally, it's possible to
-blacklist certain R functions in the `blacklist function` column. This can be interesting to use when certain functions
+R packages can be whitelisted by adding them to the `package whitelist` column so researchers can use them. 'Whitelisting' a package allows analysts to use it. If you want
+to whitelist a package, you need to make sure it is installed on the image you selected. Additionally, it is possible to
+blacklist certain R functions in the `blacklist function` column. This can be useful if certain functions
 are not allowed to be used on certain data or within certain cohorts. 

@@ -9,7 +9,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: eclipse-temurin:17.0.10_7-jdk-jammy
+      - image: eclipse-temurin:17.0.12_7-jdk-jammy
 
     working_directory: ~/repo
     resource_class: large
@@ -127,7 +127,9 @@ jobs:
                 test \
                 jacocoMergedReport \
                 sonar \
+                --no-daemon \
                   -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
+                  -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password \
                   -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
                 dockerPush
             fi
