@@ -217,7 +217,40 @@ jobs:
             docker images ls
             docker compose rm
 
+  delete-helm-preview:
+    environment:
+      GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
+    
+    docker:
+      - image: molgenis/ci-build:1.2.3 
+
+    working_directory: ~/repo
+    resource_class: large
+
+    steps:
+    - checkout
+    - run:
+        name: delete preview on azure
+        command: |
+          export $( cat build/ci.properties | xargs )
+          bash ci/set_kubectl_config-azure.sh
+          kubectl delete namespace preview-emx2-pr-${GHA_PREVIEW_NR} || true
+
 workflows:
+  version: 2
   build-deploy:
+    unless:
+      equal: ["delete-pr-preview", << pipeline.parameters.GHA_Action >>]
     jobs:
       - build
+        branches:
+          ignore: master
+  
+  delete_preview:
+    when:
+      equal: [ "delete-pr-preview", << pipeline.parameters.GHA_Action >> ]
+    jobs:
+    - delete-helm-preview
+    
+
+
