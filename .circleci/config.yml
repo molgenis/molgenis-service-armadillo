@@ -141,7 +141,7 @@ jobs:
             fi
 
       - run:
-          name: deploy preview to azure
+          name: deploy preview to Azure
           command: |
             if [ "${CIRCLE_BRANCH}" != "master" ]; then
               export $( cat build/ci.properties | xargs )
