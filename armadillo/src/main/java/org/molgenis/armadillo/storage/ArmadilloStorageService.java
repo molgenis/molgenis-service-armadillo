@@ -90,7 +90,7 @@ public class ArmadilloStorageService {
       String linkName,
       String linkProject,
       String variables)
-      throws IOException {
+      throws IOException, StorageException {
     throwIfUnknown(sourceProject, sourceObject + PARQUET);
     throwIfUnknown(linkProject);
     throwIfDuplicate(linkProject, linkName + LINK_FILE);
@@ -102,11 +102,15 @@ public class ArmadilloStorageService {
       throw new UnknownVariableException(
           sourceProject, sourceObject, unavailableVariables.toString());
     }
-    ArmadilloLinkFile armadilloLinkFile =
-        createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
-    InputStream is = armadilloLinkFile.toStream();
-    storageService.save(
-        is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
+    try {
+      ArmadilloLinkFile armadilloLinkFile =
+              createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
+      InputStream is = armadilloLinkFile.toStream();
+      storageService.save(
+              is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidObjectNameException(linkName);
+    }
   }
 
   public ArmadilloLinkFile createArmadilloLinkFileFromStream(
@@ -223,17 +227,18 @@ public class ArmadilloStorageService {
         .build();
   }
 
-  private void trySaveWorkspace (ArmadilloWorkspace workspace, Principal principal, String id) {
+  private void trySaveWorkspace(ArmadilloWorkspace workspace, Principal principal, String id) {
     try {
       storageService.save(
-              workspace.createInputStream(),
-              getUserBucketName(principal),
-              getWorkspaceObjectName(id),
-              APPLICATION_OCTET_STREAM);
+          workspace.createInputStream(),
+          getUserBucketName(principal),
+          getWorkspaceObjectName(id),
+          APPLICATION_OCTET_STREAM);
     } catch (StorageException e) {
       throw new StorageException(e);
     }
   }
+
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");

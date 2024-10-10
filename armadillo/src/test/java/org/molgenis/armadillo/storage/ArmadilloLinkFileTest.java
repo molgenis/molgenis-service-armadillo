@@ -1,7 +1,8 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.molgenis.armadillo.storage.ArmadilloLinkFile.isValidLinkObject;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -100,6 +101,30 @@ public class ArmadilloLinkFileTest {
       String message = format("Source project is missing from [%s/%s]", linkProject, linkObj);
       assertEquals(message, e.getMessage());
     }
+  }
+
+  @Test
+  public void testIsValidLinkObjectTooManySlashes() {
+    String tooManySlashes = "/this/is/too/many";
+    assertFalse(isValidLinkObject(tooManySlashes));
+  }
+
+  @Test
+  public void testIsValidLinkObjectEndsWithSlash() {
+    String endsWithSlash = "endswith/";
+    assertFalse(isValidLinkObject(endsWithSlash));
+  }
+
+  @Test
+  public void testIsValidLinkObjectNotEnoughSlashes() {
+    String noSlash = "no slash";
+    assertFalse(isValidLinkObject(noSlash));
+  }
+
+  @Test
+  public void testIsValidLinkObjectSucceeds() {
+    String object = "folder/file";
+    assertTrue(isValidLinkObject(object));
   }
 
   @Test
