@@ -230,10 +230,10 @@ public class ArmadilloStorageService {
   private void trySaveWorkspace(ArmadilloWorkspace workspace, Principal principal, String id) {
     try {
       storageService.save(
-        workspace.createInputStream(),
-        getUserBucketName(principal),
-        getWorkspaceObjectName(id),
-        APPLICATION_OCTET_STREAM);
+              workspace.createInputStream(),
+              getUserBucketName(principal),
+              getWorkspaceObjectName(id),
+              APPLICATION_OCTET_STREAM);
     } catch (StorageException e) {
       throw new StorageException(e);
     }
