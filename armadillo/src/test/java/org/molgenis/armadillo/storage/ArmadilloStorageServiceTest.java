@@ -613,6 +613,18 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "SU")
+  void testCreateLinkedObjecInvalidLinkObj() {
+    mockExistingObject(SHARED_GECKO, "1_0_release_1_1/gecko.parquet");
+    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
+    assertThrows(
+            InvalidObjectNameException.class,
+            () ->
+                    armadilloStorage.createLinkedObject(
+                            "gecko", "1_0_release_1_1/gecko", "my_link", "diabetes", "a,b,c"));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
   void testCreateLinkedObjectUnknownSrcProject() {
     when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES));
     assertThrows(
