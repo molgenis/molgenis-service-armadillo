@@ -30,7 +30,8 @@ public class ArmadilloLinkFile {
       String variables,
       String linkObject,
       String project) {
-    if (!isValidLinkObject(linkObject)) {
+    Boolean linkObjectIsValid = isValidLinkObject(linkObject);
+    if (!linkObjectIsValid) {
       throw new IllegalArgumentException(format("Invalid link object: %s", linkObject));
     }
     this.linkObject = linkObject;

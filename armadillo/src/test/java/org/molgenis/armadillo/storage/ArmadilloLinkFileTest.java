@@ -25,12 +25,12 @@ public class ArmadilloLinkFileTest {
     try {
       new ArmadilloLinkFile(srcProject, srcObj, vars, "broken", linkProject);
     } catch (IllegalArgumentException e) {
-      assertEquals(e.getMessage(), "Invalid link object: broken");
+      assertEquals("Invalid link object: broken", e.getMessage());
     }
   }
 
   @Test
-  public void testBuildJson() {
+  void testBuildJson() {
     JsonObject actual = alf.buildJson();
     assertEquals(srcObj, actual.get("sourceObject").getAsString());
     assertEquals(srcProject, actual.get("sourceProject").getAsString());
@@ -38,32 +38,32 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testToString() {
+  void testToString() {
     String actual = alf.toString();
     assertEquals(testData, actual);
   }
 
   @Test
-  public void testGetFileName() {
+  void testGetFileName() {
     String actual = alf.getFileName();
     assertEquals("folder/link-obj.alf", actual);
   }
 
   @Test
-  public void testGetNumberOfVariables() {
+  void testGetNumberOfVariables() {
     Integer actual = alf.getNumberOfVariables();
     assertEquals(3, actual);
   }
 
   @Test
-  public void testLoadFromStream() {
+  void testLoadFromStream() {
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     JsonObject actual = alf.loadFromStream(inputStream);
     assertEquals(testData, actual.toString());
   }
 
   @Test
-  public void testLoadLinkFileFromStream() {
+  void testLoadLinkFileFromStream() {
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     ArmadilloLinkFile alfFromStream = new ArmadilloLinkFile(inputStream, linkObj, linkProject);
     JsonObject jsonFromStream = alfFromStream.buildJson();
@@ -73,7 +73,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidJson() {
+  void testLoadLinkFileFromStreamInvalidJson() {
     String testData =
         "\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -86,7 +86,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidObj() {
+  void testLoadLinkFileFromStreamInvalidObj() {
     String testData =
         "{\"sourceObj\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -99,7 +99,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidProject() {
+  void testLoadLinkFileFromStreamInvalidProject() {
     String testData =
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProj\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -112,31 +112,31 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testIsValidLinkObjectTooManySlashes() {
+  void testIsValidLinkObjectTooManySlashes() {
     String tooManySlashes = "/this/is/too/many";
     assertFalse(isValidLinkObject(tooManySlashes));
   }
 
   @Test
-  public void testIsValidLinkObjectEndsWithSlash() {
+  void testIsValidLinkObjectEndsWithSlash() {
     String endsWithSlash = "endswith/";
     assertFalse(isValidLinkObject(endsWithSlash));
   }
 
   @Test
-  public void testIsValidLinkObjectNotEnoughSlashes() {
+  void testIsValidLinkObjectNotEnoughSlashes() {
     String noSlash = "no slash";
     assertFalse(isValidLinkObject(noSlash));
   }
 
   @Test
-  public void testIsValidLinkObjectSucceeds() {
+  void testIsValidLinkObjectSucceeds() {
     String object = "folder/file";
     assertTrue(isValidLinkObject(object));
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidVariables() {
+  void testLoadLinkFileFromStreamInvalidVariables() {
     String testData =
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variabls\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
