@@ -21,6 +21,14 @@ public class ArmadilloLinkFileTest {
   String linkProject = "view-project";
   ArmadilloLinkFile alf = new ArmadilloLinkFile(srcProject, srcObj, vars, linkObj, linkProject);
 
+  @Test void testThrowsIllegalArgumentExceptionWhenInvalidLinkObject() {
+    try {
+      new ArmadilloLinkFile(srcProject, srcObj, vars, "broken", linkProject);
+    } catch (IllegalArgumentException e) {
+      assertEquals(e.getMessage(), "Invalid link object: broken");
+    }
+  }
+
   @Test
   public void testBuildJson() {
     JsonObject actual = alf.buildJson();
