@@ -16,15 +16,12 @@
                 disabled
                 v-model="srcProject"
               />
-              <Dropdown
-                v-else
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source project to link from " :validationCondition="srcProject === ''">
+                <Dropdown
                 :options="projects.map((project) => project.name)"
                 @update="updateSrcProject"
-                :class="formValidated && !srcProject ? 'invalid-field' : ''"
-              ></Dropdown>
-              <div v-if="formValidated && !srcProject" class="feedback">
-                Please select a source project to link from 
-              </div>
+                ></Dropdown>
+              </FormValidation>
             </div>
           </div>
           <div class="row mb-3">
@@ -39,15 +36,12 @@
                 disabled
                 v-model="srcFolder"
               />
-              <Dropdown
-                v-else
-                :options="Object.keys(projectData)"
-                @update="updateSrcFolder"
-                :class="formValidated && !srcFolder ? 'invalid-field' : ''"
-              ></Dropdown>
-              <div v-if="formValidated && !srcFolder" class="feedback">
-                Please select a source folder to link from 
-              </div>
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source folder to link from " :validationCondition="srcFolder === ''">
+                <Dropdown
+                  :options="Object.keys(projectData)"
+                  @update="updateSrcFolder"
+                ></Dropdown>
+              </FormValidation>
             </div>
           </div>
           <div class="row mb-3">
@@ -62,30 +56,29 @@
                 disabled
                 v-model="srcTable"
               />
-              <Dropdown
-                v-else
-                :options="getTablesFromListOfFiles(projectData[srcFolder])"
-                @update="updateSrcTable"
-                :class="formValidated && !srcTable ? 'invalid-field' : ''"
-              ></Dropdown>
-              <div v-if="formValidated && !srcTable" class="feedback">
-                Please select a source table to link from
-              </div>
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source table to link from" :validationCondition="srcTable === ''">
+                <Dropdown
+                  :options="getTablesFromListOfFiles(projectData[srcFolder])"
+                  @update="updateSrcTable"
+                ></Dropdown>
+              </FormValidation>
             </div>
           </div>
         </form>
       </div>
       <div class="row">
         <div class="col-12" v-if="variables.length > 0">
-          <VariableSelector
-            :variables="variables"
-            :preselectedVariables="preselectedVariables"
-            ref="variableSelector"
-            :class="formValidated && ($refs.variableSelector as any).selectedVariables.length === 0 ? 'invalid-field' : ''"
-          />
-          <div v-if="formValidated && ($refs.variableSelector as any).selectedVariables.length === 0" class="feedback">
-            Please select at least one variable
-          </div>
+          <FormValidation
+          class="p-3"
+          :isValidated="formValidated" 
+          invalidMessage="Please select at least one variable" 
+          :validationCondition="($refs.variableSelector as any).selectedVariables.length === 0">
+            <VariableSelector
+              :variables="variables"
+              :preselectedVariables="preselectedVariables"
+              ref="variableSelector"
+            />
+          </FormValidation>
         </div>
       </div>
       <div class="row mt-3">
@@ -106,16 +99,13 @@
                   disabled
                   v-model="vwProject"
                 />
-                <Dropdown
-                  v-else
-                  :options="projects.map((project) => project.name)"
-                  @update="updateVwProject"
-                   :class="formValidated && !vwProject ? 'invalid-field' : ''"
-                  required
-                ></Dropdown>
-                <div v-if="formValidated && !vwProject" class="feedback">
-                  Please select a project
-                </div>
+                <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a project name" :validationCondition="vwProject === ''">
+                  <Dropdown
+                    :options="projects.map((project) => project.name)"
+                    @update="updateVwProject"
+                    required
+                  ></Dropdown>
+                </FormValidation>
               </div>
             </div>
             <div class="row mb-3">
@@ -123,17 +113,15 @@
                 Folder:
               </label>
               <div class="col-sm-9">
-                <input
-                  type="string"
-                  class="form-control"
-                  :disabled="viewFolder !== undefined"
-                  v-model="vwFolder"
-                  :class="formValidated && !vwFolder ? 'invalid-field' : ''"
-                  required
-                />
-                <div v-if="formValidated && !vwFolder" class="feedback">
-                  Please enter a folder name
-                </div>
+                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a folder name" :validationCondition="vwFolder === ''">
+                  <input
+                    type="string"
+                    class="form-control"
+                    :disabled="viewFolder !== undefined"
+                    v-model="vwFolder"
+                    required
+                  />
+                </FormValidation>
               </div>
             </div>
             <div class="row mb-3">
@@ -141,17 +129,14 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <input
-                  type="string"
-                  class="form-control"
-                  :disabled="isEditMode"
-                   :class="formValidated && !vwTable ? 'invalid-field' : ''"
-                  v-model="vwTable"
-                  required
-                />
-                <div v-if="formValidated && !vwTable" class="feedback">
-                  Please enter a table name
-                </div>
+                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a table name" :validationCondition="vwTable === ''">
+                  <input
+                    type="string"
+                    class="form-control"
+                    :disabled="isEditMode"
+                    v-model="vwTable"
+                  />
+                </FormValidation>
               </div>
             </div>
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -180,12 +165,14 @@ import { StringArray, ViewEditorData } from "@/types/types";
 import { PropType, Ref, defineComponent, onMounted, ref } from "vue";
 import VariableSelector from "@/components/VariableSelector.vue";
 import Dropdown from "@/components/Dropdown.vue";
+import FormValidation from "@/components/FormValidation.vue";
 
 export default defineComponent({
   name: "ViewEditor",
   components: {
     VariableSelector,
     Dropdown,
+    FormValidation
   },
   props: {
     sourceFolder: String,
@@ -292,15 +279,18 @@ export default defineComponent({
         });
     },
     updateSrcProject(event: Event) {
+      this.formValidated = false;
       this.srcProject = event.toString();
     },
     updateVwProject(event: Event) {
       this.vwProject = event.toString();
     },
     updateSrcFolder(event: Event) {
+      this.formValidated = false;
       this.srcFolder = event.toString();
     },
     updateSrcTable(event: Event) {
+      this.formValidated = false;
       this.srcTable = event.toString();
     },
     saveIfValid(){
@@ -351,18 +341,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.invalid-field {
-  border: 1px;
-  border-color: rgb(220, 53, 69);
-  border-style: solid;
-}
-
-.feedback {
-  color:  rgb(220, 53, 69);
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-</style>
