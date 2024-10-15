@@ -6,10 +6,40 @@
 #
 version: 2.1
 
+parameters:
+  GHA_Actor:
+    type: string
+    default: ""
+  GHA_Event:
+    type: string
+    default: ""
+  GHA_Action:
+    type: string
+    default: ""
+  GHA_Meta:
+    type: string
+    default: ""
+
+orbs:
+  slack: circleci/slack@4.4.4
+
+definitions:
+  build_config: &build_config
+    docker:
+    - image: molgenis/ci-build:1.2.3
+    working_directory: ~/repo
+    resource_class: large
+    environment:
+      JVM_OPTS: -Xmx3200m
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+      TERM: dumb
+
+  
+
 jobs:
   build:
     docker:
-      - image: eclipse-temurin:17.0.12_7-jdk-jammy
+      - image: molgenis/ci-build:1.2.3 
 
     working_directory: ~/repo
     resource_class: large
@@ -39,30 +69,6 @@ jobs:
             echo "$CIRCLE_WORKING_DIRECTORY"
 
       - run:
-          name: update package manager
-          command: apt-get update
-
-      - run:
-          name: add packages for docker cli install
-          command: apt-get -y install gnupg lsb-release curl
-
-      - run:
-          name: update packages again
-          command: apt-get update
-
-      - run:
-          name: set repo keys for docker packages
-          command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-      - run:
-          name: add repo for docker packages
-          command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-      - run:
-          name: update package manager again
-          command: apt-get update
-
-      - run:
           name: Install Docker client
           command: apt-get -y install docker-ce docker-ce-cli containerd.io
 
@@ -89,7 +95,7 @@ jobs:
       - run:
           name: Build Armadillo and R CICD image
           command: |
-            ./gradlew docker
+            ./gradlew docker ci
             ./docker/bin/prepare.bash ci
 
       - store_artifacts:
@@ -132,6 +138,20 @@ jobs:
                   -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password \
                   -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
                 dockerPush
+            fi
+
+      - run:
+          name: deploy preview to Azure
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              export $( cat build/ci.properties | xargs )
+              bash ci/set_kubectl_config-azure.sh
+              bash ci/create_or_update_k8s-azure.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}" ${TAG_NAME} DELETE
+              curl -d "token=${SLACK_TOKEN}" \
+              -d "text=*<${CIRCLE_PULL_REQUEST}|Circle-CI » Armadillo » Armadillo-Service » PR-${CIRCLE_PULL_REQUEST##*/} #${CIRCLE_BUILD_NUM}>*
+              PR Preview available on https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org" \
+              -d "channel=C0639V5KTCY" \
+              -X POST https://slack.com/api/chat.postMessage
             fi
 
       - run:
@@ -197,8 +217,41 @@ jobs:
             docker images ls
             docker compose rm
 
+  delete-helm-preview:
+    environment:
+      GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
+    
+    docker:
+      - image: molgenis/ci-build:1.2.3 
+
+    working_directory: ~/repo
+    resource_class: large
+
+    steps:
+    - checkout
+    - run:
+        name: delete preview on azure
+        command: |
+          export $( cat build/ci.properties | xargs )
+          bash ci/set_kubectl_config-azure.sh
+          kubectl delete namespace preview-emx2-pr-${GHA_PREVIEW_NR} || true
 
 workflows:
+  version: 2
   build-deploy:
+    unless:
+      equal: ["delete-pr-preview", << pipeline.parameters.GHA_Action >>]
     jobs:
-      - build
+    - build:
+      filters:
+        branches:
+          ignore: master
+  
+  delete_preview:
+    when:
+      equal: [ "delete-pr-preview", << pipeline.parameters.GHA_Action >> ]
+    jobs:
+    - delete-helm-preview
+    
+
+
