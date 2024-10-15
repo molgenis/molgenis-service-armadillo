@@ -206,7 +206,7 @@ By default, some fields will be set. Please update them to install the correct p
 
 Possible images can be found on [dockerhub](https://hub.docker.com/search?q=datashield%2Farmadillo-rserver). We
 recommend selecting one of the
-[DataSHIELD standard profiles](https://www.datashield.org/help/standard-profiles-and-plaforms). The image name of those
+[DataSHIELD standard profiles](https://wiki.datashield.org/en/opmanag/standard-profiles-and-platforms). The image name of those
 profiles can be found on the dockerhub link above.
 
 Although the default `port` setting should find an available port, please keep in mind that the port has to be unique,
