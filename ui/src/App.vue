@@ -17,7 +17,7 @@
               You are logged in, but you don't have permission to access the Armadillo user interface.
               <div>
                 Don't worry, you can still do your research using the R client.
-                If you believe you should have access, please contact an administrator.
+                If you believe you should have permission to access this user interface, please contact an administrator.
               </div>
             </Alert>
             {{ errorMessage }}
