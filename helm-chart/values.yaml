@@ -13,7 +13,7 @@ config:
     spring:
       security:
         user:
-          password: fith5gaexaiH0noojo 
+          password: fith5gaexaiH0noojo
     profiles:
       - name: default 
         image: datashield/rock-base:latest
@@ -42,21 +42,21 @@ config:
           datashield:
             # the seed can only be 9 digits
             seed: 342325352
-      oauth2:
-        client:
-          provider:
-            molgenis:
-              issuer-uri: https://lifecycle-auth.molgenis.org 
-          registration:
-            molgenis:
-              redirect-uri: 'localhost'
-              client-id: clientid
-              client-secret: client-sd
-        resourceserver:
-          jwt:
-            issuer-uri: https://lifecycle-auth.molgenis.org 
-          opaquetoken:
-            client-id: clientid
+      #oauth2:
+      #  client:
+      #    provider:
+      #      molgenis:
+      #        issuer-uri: 'https://lifecycle-auth.molgenis.org'
+      #    registration:
+      #      molgenis:
+      #        redirect-uri: 'localhost'
+      #        client-id: clientid
+      #        client-secret: client-sd
+      #  resourceserver:
+      #    jwt:
+      #      issuer-uri: 'https://lifecycle-auth.molgenis.org'
+      #    opaquetoken:
+      #      client-id: clientid
 
 
 
