@@ -13,7 +13,15 @@
             <Alert v-if="diskNearFull" type="warning" :dismissible="false">
               {{ diskSpaceMessage }}
             </Alert>
-            <Tabs v-if="username" :menu="tabs" :icons="tabIcons" />
+            <Alert v-if="isUnauthorised" type="warning" :dismissible="false">
+              You are logged in, but you don't have permission to access the Armadillo user interface.
+              <div>
+                Don't worry, you can still do your research using the R client.
+                If you believe you should have permission to access this user interface, please contact an administrator.
+              </div>
+            </Alert>
+            {{ errorMessage }}
+            <Tabs v-if="username && !isUnauthorised" :menu="tabs" :icons="tabIcons" />
           </div>
           <Login @loginEvent="reloadUser" v-else />
         </div>
@@ -28,7 +36,7 @@ import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
-import { getPrincipal, getVersion, logout, getFreeDiskSpace } from "@/api/api";
+import { getPrincipal, getVersion, logout, getFreeDiskSpace, getPermissions } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
 import { diskSpaceBelowThreshold, convertBytes } from "@/helpers/utils";
@@ -43,6 +51,7 @@ export default defineComponent({
   },
   setup() {
     const isAuthenticated: Ref<boolean> = ref(false);
+    const isUnauthorised: Ref<boolean> = ref(false);
     const username: Ref<string> = ref("");
     const version: Ref<string> = ref("");
     const router = useRouter();
@@ -64,6 +73,12 @@ export default defineComponent({
             principal.principal.attributes.email
               ? principal.principal.attributes.email
               : principal.name;
+          getPermissions().catch((error: ApiError) => {
+            if (error.cause == 403) {
+              isUnauthorised.value = true;
+            }
+          })
+              
         })
         .catch((error: ApiError) => {
           if (error.cause === 401) {
@@ -81,6 +96,7 @@ export default defineComponent({
     return {
       username,
       isAuthenticated,
+      isUnauthorised,
       version,
       loadUser,
       loadVersion,
