@@ -13,7 +13,7 @@ config:
     spring:
       security:
         user:
-          password: Follow-The-Sun-In-Wh1ch-W4y-The-W1nd-Bl0ws 
+          password: fith5gaexaiH0noojo 
     profiles:
       - name: default 
         image: datashield/rock-base:latest
