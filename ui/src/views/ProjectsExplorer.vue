@@ -131,10 +131,12 @@
             </div>
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
-                Preview:
-                {{ `${selectedFile.replace(".parquet", "")}` }} ({{
-                  `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
-                }})
+                <span v-if="!createLinkFromSrc">
+                  Preview:
+                  {{ `${selectedFile.replace(".parquet", "")}` }} ({{
+                    `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
+                  }})
+                </span>
                 <div v-if="isLinkFileType(selectedFile)">
                   Linked from: {{ fileInfo.sourceLink }}
                 </div>
@@ -189,7 +191,7 @@
                 :n-rows="fileInfo.dataSizeRows"
               ></DataPreviewTable>
               <ColumnNamesPreview
-                v-if="!editView"
+                v-if="!editView && !createLinkFromSrc"
                 :columnNames="columnNames"
                 :buttonName="columnNames.length > 10 ? '+ ' + (columnNames.length - 10) + ' variables: ' : columnNames.length + ' variables: '"
               >
