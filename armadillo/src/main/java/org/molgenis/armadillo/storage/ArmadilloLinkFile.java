@@ -75,7 +75,8 @@ public class ArmadilloLinkFile {
   }
 
   static Boolean isValidLinkObject(String linkObject) {
-    if (linkObject.endsWith("/")) {
+    // If object name ends or starts with / it means folder or filename is empty
+    if (linkObject.endsWith("/") || linkObject.startsWith("/")) {
       return false;
     }
     int count = 0;

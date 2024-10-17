@@ -124,6 +124,12 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
+  void testIsValidLinkObjectStartsWithSlash() {
+    String startsWithSlash = "/startswith";
+    assertFalse(isValidLinkObject(startsWithSlash));
+  }
+
+  @Test
   void testIsValidLinkObjectNotEnoughSlashes() {
     String noSlash = "no slash";
     assertFalse(isValidLinkObject(noSlash));
