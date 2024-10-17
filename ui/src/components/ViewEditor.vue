@@ -72,7 +72,7 @@
           class="p-3"
           :isValidated="formValidated" 
           invalidMessage="Please select at least one variable" 
-          :validationCondition="($refs.variableSelector as any).selectedVariables.length === 0">
+          :validationCondition="selectedLinkVariables === 0">
             <VariableSelector
               :variables="variables"
               :preselectedVariables="preselectedVariables"
@@ -325,6 +325,9 @@ export default defineComponent({
     },
     sourceObject(): string {
       return `${this.srcFolder}/${this.srcTable?.replace(".parquet", "")}`;
+    },
+    selectedLinkVariables() {
+      this.$refs.variableSelector && (this.$refs.variableSelector as any).selectedVariables ? (this.$refs.variableSelector as any).selectedVariables.length : [];
     },
     isEditMode(): boolean {
       // when all items are preselected, we are in edit mode
