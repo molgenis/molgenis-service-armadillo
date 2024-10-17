@@ -38,6 +38,29 @@ config:
           datashield:
             # the seed can only be 9 digits
             seed: 342325352
+    security:
+      user:
+        name: admin
+        password: Follow-The-Sun-In-Wh1ch-W4y-The-W1nd-Bl0ws 
+        roles:
+          - SU
+    oauth2:
+      client:
+        provider:
+          molgenis:
+            issuer-uri: https://lifecycle-auth.molgenis.org 
+        registration:
+          molgenis:
+            redirect-uri: 'localhost'
+            client-id: clientid
+            client-secret: client-sd
+      resourceserver:
+        jwt:
+          issuer-uri: https://lifecycle-auth.molgenis.org 
+        opaquetoken:
+          client-id: clientid
+
+
 
 
 image:
