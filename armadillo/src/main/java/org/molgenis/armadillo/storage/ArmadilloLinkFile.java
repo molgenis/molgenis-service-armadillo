@@ -30,6 +30,10 @@ public class ArmadilloLinkFile {
       String variables,
       String linkObject,
       String project) {
+    Boolean linkObjectIsValid = isValidLinkObject(linkObject);
+    if (!linkObjectIsValid) {
+      throw new IllegalArgumentException(format("Invalid link object: %s", linkObject));
+    }
     this.linkObject = linkObject;
     this.sourceProject = sourceProject;
     this.sourceObject = sourceObject;
@@ -68,6 +72,23 @@ public class ArmadilloLinkFile {
       throw new NullPointerException(
           format("Variables are not defined on [%s/%s]", project, linkObject));
     }
+  }
+
+  static Boolean isValidLinkObject(String linkObject) {
+    // If object name ends or starts with / it means folder or filename is empty
+    if (linkObject.endsWith("/") || linkObject.startsWith("/")) {
+      return false;
+    }
+    int count = 0;
+    for (int i = 0; i < linkObject.length(); i++) {
+      if (linkObject.charAt(i) == '/') {
+        count++;
+        if (count > 1) {
+          return false;
+        }
+      }
+    }
+    return count == 1;
   }
 
   public String getSourceProject() {
