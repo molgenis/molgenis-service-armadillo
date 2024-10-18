@@ -16,7 +16,7 @@
                 disabled
                 v-model="srcProject"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source project to link from " :validationCondition="srcProject === ''">
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source project to link from " :validationCondition="isEmpty(srcProject)">
                 <Dropdown
                 :options="projects.map((project) => project.name)"
                 @update="updateSrcProject"
@@ -36,7 +36,7 @@
                 disabled
                 v-model="srcFolder"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source folder to link from " :validationCondition="srcFolder === ''">
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source folder to link from " :validationCondition="isEmpty(srcFolder)">
                 <Dropdown
                   :options="Object.keys(projectData)"
                   @update="updateSrcFolder"
@@ -56,7 +56,7 @@
                 disabled
                 v-model="srcTable"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source table to link from" :validationCondition="srcTable === ''">
+              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source table to link from" :validationCondition="isEmpty(srcTable)">
                 <Dropdown
                   :options="getTablesFromListOfFiles(projectData[srcFolder])"
                   @update="updateSrcTable"
@@ -72,7 +72,7 @@
           class="p-3"
           :isValidated="formValidated" 
           invalidMessage="Please select at least one variable" 
-          :validationCondition="getSelectedVariables().length === 0">
+          :validationCondition="isEmpty(getSelectedVariables())">
             <VariableSelector
               :variables="variables"
               :preselectedVariables="preselectedVariables"
@@ -99,7 +99,7 @@
                   disabled
                   v-model="vwProject"
                 />
-                <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a project name" :validationCondition="vwProject === ''">
+                <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a project name" :validationCondition="isEmpty(vwProject)">
                   <Dropdown
                     :options="projects.map((project) => project.name)"
                     @update="updateVwProject"
@@ -113,7 +113,7 @@
                 Folder:
               </label>
               <div class="col-sm-9">
-                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a folder name" :validationCondition="vwFolder === ''">
+                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a folder name" :validationCondition="isEmpty(vwFolder)">
                   <input
                     type="string"
                     class="form-control"
@@ -129,7 +129,7 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a table name" :validationCondition="vwTable === ''">
+                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a table name" :validationCondition="isEmpty(vwTable)">
                   <input
                     type="string"
                     class="form-control"
@@ -159,6 +159,7 @@ import { getProjects, getTableVariables, getProject } from "@/api/api";
 import {
   getRestructuredProject,
   getTablesFromListOfFiles,
+  isEmpty,
 } from "@/helpers/utils";
 import { Project } from "@/types/api";
 import { StringArray, ViewEditorData } from "@/types/types";
@@ -213,12 +214,9 @@ export default defineComponent({
 
     const isSrcTableSet = () => {
       return (
-        props.sourceTable !== "" &&
-        props.sourceFolder !== "" &&
-        props.sourceProject !== "" &&
-        props.sourceTable !== undefined &&
-        props.sourceFolder !== undefined &&
-        props.sourceProject !== undefined
+        !isEmpty(props.sourceTable) &&
+        !isEmpty(props.sourceFolder) &&
+        !isEmpty(props.sourceProject)
       );
     };
     const fetchVariables = async () => {
@@ -256,6 +254,7 @@ export default defineComponent({
   },
   methods: {
     getTablesFromListOfFiles,
+    isEmpty,
     async getProjectContent(project: string) {
       await getProject(project)
         .then((data) => {
@@ -297,7 +296,7 @@ export default defineComponent({
       return this.$refs.variableSelector && (this.$refs.variableSelector as any).selectedVariables ? (this.$refs.variableSelector as any).selectedVariables : [];
     },
     saveIfValid(fileInfoSet: boolean, selectedVariables: StringArray) {
-      if(fileInfoSet && selectedVariables.length !== 0){
+      if(fileInfoSet && !isEmpty(selectedVariables)){
         this.onSave(
                     this.srcProject,
                     this.sourceObject,
@@ -324,8 +323,14 @@ export default defineComponent({
   },
   computed: {
     allFileInformationProvided(): boolean {
-      return (this.vwTable !== "" && this.vwFolder !== "" && this.vwProject !== "" && 
-      this.srcProject !== "" && this.srcFolder !== "" && this.srcTable !== "");
+      return (
+        !isEmpty(this.vwTable) &&
+        !isEmpty(this.vwFolder) &&
+        !isEmpty(this.vwProject) &&
+        !isEmpty(this.srcProject) &&
+        !isEmpty(this.srcFolder) &&
+        !isEmpty(this.srcTable));
+    
     },
     linkedObject(): string {
       return `${this.vwFolder}/${this.vwTable}`;
@@ -336,13 +341,13 @@ export default defineComponent({
     isEditMode(): boolean {
       // when all items are preselected, we are in edit mode
       return (
-        this.sourceFolder !== undefined &&
-        this.sourceProject !== undefined &&
-        this.sourceTable !== undefined &&
-        this.viewFolder !== undefined &&
-        this.viewProject !== undefined &&
-        this.viewTable !== undefined &&
-        this.preselectedVariables.length > 0
+        !isEmpty(this.sourceFolder) &&
+        !isEmpty(this.sourceProject) &&
+        !isEmpty(this.sourceTable) &&
+        !isEmpty(this.viewFolder) &&
+        !isEmpty(this.viewProject) &&
+        !isEmpty(this.viewTable) &&
+        !isEmpty(this.preselectedVariables)
       );
     },
   },

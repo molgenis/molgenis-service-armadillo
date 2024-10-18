@@ -219,6 +219,21 @@ export function diskSpaceBelowThreshold(diskSpace: number): boolean {
   return diskSpace < 2147483648;
 }
 
+export function isEmpty(variable: any): boolean {
+  // function will return true if empty string, empty object or empty array, else false
+  if (variable === undefined || variable === null || variable === '') {
+    return true;
+  } else if(typeof(variable) === 'object') {
+    if (Array.isArray(variable)) {
+      return variable.length === 0;
+    } else {
+      return isEmptyObject(variable);
+    }
+  } else {
+    return false;
+  }
+}
+
 /**
  * Convert given bytes to 2 digits precision round exponent version string.
  * @param bytes number
