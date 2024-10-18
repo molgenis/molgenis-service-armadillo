@@ -72,7 +72,7 @@
           class="p-3"
           :isValidated="formValidated" 
           invalidMessage="Please select at least one variable" 
-          :validationCondition="$refs.variableSelector && ($refs.variableSelector as any).selectedVariables ? ($refs.variableSelector as any).selectedVariables.length == 0 : true">
+          :validationCondition="getSelectedVariables().length === 0">
             <VariableSelector
               :variables="variables"
               :preselectedVariables="preselectedVariables"
@@ -143,7 +143,7 @@
               <button
                 class="btn btn-primary"
                 type="submit"
-                @click.prevent="saveIfValid"
+                @click.prevent="saveIfValid(allFileInformationProvided, getSelectedVariables())"
               >
                 <i class="bi bi-floppy-fill"></i> Save
               </button>
@@ -293,14 +293,17 @@ export default defineComponent({
       this.formValidated = false;
       this.srcTable = event.toString();
     },
-    saveIfValid(){
-      if(this.vwTable && this.vwFolder && this.vwProject){
+    getSelectedVariables() {
+      return this.$refs.variableSelector && (this.$refs.variableSelector as any).selectedVariables ? (this.$refs.variableSelector as any).selectedVariables : [];
+    },
+    saveIfValid(fileInfoSet: boolean, selectedVariables: StringArray) {
+      if(fileInfoSet && selectedVariables.length !== 0){
         this.onSave(
                     this.srcProject,
                     this.sourceObject,
                     this.vwProject,
                     this.linkedObject,
-                    (this.$refs.variableSelector as any).selectedVariables
+                    selectedVariables
                   )
       } else {
         this.formValidated = true;
@@ -320,6 +323,10 @@ export default defineComponent({
     },
   },
   computed: {
+    allFileInformationProvided(): boolean {
+      return (this.vwTable !== "" && this.vwFolder !== "" && this.vwProject !== "" && 
+      this.srcProject !== "" && this.srcFolder !== "" && this.srcTable !== "");
+    },
     linkedObject(): string {
       return `${this.vwFolder}/${this.vwTable}`;
     },
