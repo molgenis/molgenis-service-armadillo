@@ -31,9 +31,9 @@ helm upgrade --install ${NAME} ./helm-chart --namespace ${NAME} \
 --set ingress.tls[0].host=${NAME}.dev.molgenis.org \
 --set ingress.tls[0].secretName=dev.molgenis.org \
 --set config.spring.security.user.password=${ADMINPASS} \
-#--set config.armadillo.oauth2.client.registration.molgenis.redirect-uri=${NAME}.dev.molgenis.org/login/oauth2/code/molgenis \
-#--set config.armadillo.oauth2.client.registration.molgenis.client-id=${OIDC_CLIENTID} \
-#--set config.armadillo.oauth2.client.registration.molgenis.client-secret=${OIDC_CLIENTSECRET} \
+--set config.spring.oauth2.client.registration.molgenis.redirect-uri=${NAME}.dev.molgenis.org/login/oauth2/code/molgenis \
+--set config.spring.oauth2.client.registration.molgenis.client-id=${OIDC_CLIENTID} \
+--set config.spring.oauth2.client.registration.molgenis.client-secret=${OIDC_CLIENTSECRET} \
 --set image.tag=${TAG_NAME} \
 --set image.pullPolicy=Always \
 
