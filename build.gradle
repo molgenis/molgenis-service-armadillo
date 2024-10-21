@@ -168,13 +168,13 @@ task jacocoMergedReport(type: JacocoReport) {
 }
 
 //push to sonarqube
-sonarqube {
+sonar {
     properties {
         // Uncomment when upgrading to sonar 5.x
         // property 'sonar.gradle.skipCompile', 'true'
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
-        property 'sonar.sources', 'ui,armadillo/src/main/java'
+        property 'sonar.sources', 'ui,armadillo'
         property 'sonar.javascript.lcov.reportPaths', 'ui/coverage/lcov.info'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
     }
