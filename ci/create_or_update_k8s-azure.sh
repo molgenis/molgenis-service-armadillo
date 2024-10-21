@@ -33,7 +33,7 @@ helm upgrade --install ${NAME} ./helm-chart --namespace ${NAME} \
 --set config.spring.security.user.password=${ADMINPASS} \
 --set config.spring.security.oauth2.client.registration.molgenis.redirect-uri=https://${NAME}.dev.molgenis.org/login/oauth2/code/molgenis \
 --set config.spring.security.oauth2.client.registration.molgenis.client-id=${OIDC_CLIENTID} \
---set config.spring.security.oauth2.client.registration.molgenis.client-sd=${OIDC_CLIENTSECRET} \
+--set config.spring.security.oauth2.client.registration.molgenis.client-secret=${OIDC_CLIENTSECRET} \
 --set config.spring.security.oauth2.resourceserver.opaquetoken.client-id=${OIDC_CLIENTID} \
 --set image.tag=${TAG_NAME} \
 --set image.pullPolicy=Always \
