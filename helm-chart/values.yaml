@@ -10,10 +10,6 @@ config:
     docker-management-enabled: false
     docker-run-in-container: true
     container-prefix: 'dev-'
-    spring:
-      security:
-        user:
-          password: fith5gaexaiH0noojo
     profiles:
       - name: default 
         image: datashield/rock-base:latest
@@ -42,6 +38,10 @@ config:
           datashield:
             # the seed can only be 9 digits
             seed: 342325352
+  spring:
+    security:
+      user:
+        password: fith5gaexaiH0noojo
       #oauth2:
       #  client:
       #    provider:
