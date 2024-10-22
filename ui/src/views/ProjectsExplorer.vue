@@ -341,25 +341,7 @@ export default defineComponent({
               this.loading_preview = false;
             });
 
-          getFileDetails(
-          this.projectId,
-          `${this.selectedObject}`
-        )
-          .then((data) => {
-            this.fileInfo.fileSize = data["size"];
-            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
-            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
-            this.fileInfo.sourceLink = data["sourceLink"];
-            this.fileInfo.variables = data["variables"];
-            if (isLinkFileType(this.selectedFile)) {
-              this.columnNames = this.fileInfo.variables
-            } else {
-              this.getTableColumnNames( this.projectId, `${this.selectedObject}`)
-            }
-          })
-          .catch((error) => {
-            this.errorMessage = `Cannot load details for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
-          });  
+          this.setFileDetails();
         }
       }
     },
@@ -383,10 +365,32 @@ export default defineComponent({
     isTableType,
     isLinkFileType,
     isNonTableType,
+    setFileDetails() {
+      getFileDetails(
+          this.projectId,
+          `${this.selectedObject}`
+        )
+          .then((data) => {
+            this.fileInfo.fileSize = data["size"];
+            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+            this.fileInfo.sourceLink = data["sourceLink"];
+            this.fileInfo.variables = data["variables"];
+            if (isLinkFileType(this.selectedFile)) {
+              this.columnNames = this.fileInfo.variables
+            } else {
+              this.setTableColumnNames( this.projectId, `${this.selectedObject}`)
+            }
+          })
+          .catch((error) => {
+            this.errorMessage = `Cannot load details for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+          });  
+    },
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
     },
     cancelView() {
+      this.setFileDetails();
       this.createLinkFromSrc = false;
       this.editView = false;
     },
@@ -420,7 +424,7 @@ export default defineComponent({
         this.errorMessage = "Folder name cannot be empty";
       }
     },
-    getTableColumnNames (project: string, object: string) {
+    setTableColumnNames (project: string, object: string) {
       getTableVariables(
         project,
         object
