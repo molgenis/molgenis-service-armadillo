@@ -328,6 +328,11 @@ describe("utils", () => {
       const actual = diskSpaceBelowThreshold(9214748364);
       expect(actual).toEqual(false);
     });
+
+    it("Return false", () => {
+      const actual = diskSpaceBelowThreshold(NaN);
+      expect(actual).toEqual(false);
+    });
   });
 
   describe("isEmpty", () => {
@@ -374,6 +379,11 @@ describe("utils", () => {
     it("Returns false when number", () => {
       const actual = isEmpty(0);
       expect(actual).toEqual(false);
+    });
+
+    it("Returns true when NaN", () => {
+      const actual = isEmpty(NaN);
+      expect(actual).toEqual(true);
     });
   });
 });
