@@ -39,7 +39,7 @@ import { defineComponent, onMounted, ref, Ref } from "vue";
 import { getPrincipal, getVersion, logout, getFreeDiskSpace, getPermissions } from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
-import { diskSpaceBelowThreshold, convertBytes } from "@/helpers/utils";
+import { diskSpaceBelowThreshold, convertBytes, isEmpty } from "@/helpers/utils";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -55,7 +55,7 @@ export default defineComponent({
     const username: Ref<string> = ref("");
     const version: Ref<string> = ref("");
     const router = useRouter();
-    const diskSpace: Ref<string> = ref("");
+    const diskSpace: Ref<number> = ref(NaN);
 
     onMounted(() => {
       loadUser();
@@ -121,7 +121,7 @@ export default defineComponent({
     },
     diskSpaceMessage() {
       return `Disk space low (${
-        this.diskSpace === "" ? "" : convertBytes(this.diskSpace)
+        isEmpty(this.diskSpace) ? "" : convertBytes(this.diskSpace)
       } remaining). Saving workspaces may not be possible and users risk losing workspace data. Either allocate more space or remove saved workspaces.`;
     },
   },

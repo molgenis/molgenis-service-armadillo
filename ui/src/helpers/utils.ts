@@ -216,12 +216,12 @@ export function encodeUriComponent(component: string) {
 }
 
 export function diskSpaceBelowThreshold(diskSpace: number): boolean {
-  return diskSpace < 2147483648;
+  return !isEmpty(diskSpace)? diskSpace < 2147483648 : false;
 }
 
 export function isEmpty(variable: any): boolean {
   // function will return true if empty string, empty object or empty array, else false
-  if (variable === undefined || variable === null || variable === '') {
+  if (variable === undefined || variable === null || variable === '' || Number.isNaN(variable)) {
     return true;
   } else if(typeof(variable) === 'object') {
     if (Array.isArray(variable)) {
