@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.*;
 import org.molgenis.r.config.EnvironmentConfigProps;
 import org.molgenis.r.rock.RockConnectionFactory;
+import org.molgenis.r.rserve.RserveConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,22 +49,31 @@ public class RServerConnectionFactory implements RConnectionFactory {
 
   @Override
   public RServerConnection tryCreateConnection() {
-    String url = "http://" + environment.getHost() + ":" + environment.getPort();
-    RockStatusCode rockStatus = doHead(url);
-    if (rockStatus == RockStatusCode.SERVER_DOWN) {
-      logger.warn("Container for '" + url + "'  is down");
-    } else if (rockStatus == RockStatusCode.SERVER_NOT_READY) {
-      logger.warn("Container for '" + url + "' is not ready");
-    } else if (rockStatus == RockStatusCode.OK) {
-      logger.info("Container for '" + url + "' is running");
-    } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE_CODE) {
-      logger.info("Unexpected response code on " + url);
-    } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE) {
-      logger.info("Unexpected response on " + url);
-    } else if (rockStatus == RockStatusCode.UNEXPECTED_URL) {
-      logger.warn("MalformedURLException on " + url);
+    try {
+      if (environment.getImage().contains("rock")) {
+        String url = "http://" + environment.getHost() + ":" + environment.getPort();
+        RockStatusCode rockStatus = doHead(url);
+        if (rockStatus == RockStatusCode.SERVER_DOWN) {
+          logger.warn("Container for '" + url + "'  is down");
+        } else if (rockStatus == RockStatusCode.SERVER_NOT_READY) {
+          logger.warn("Container for '" + url + "' is not ready");
+        } else if (rockStatus == RockStatusCode.OK) {
+          logger.info("Container for '" + url + "' is running");
+        } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE_CODE) {
+          logger.info("Unexpected response code on " + url);
+        } else if (rockStatus == RockStatusCode.UNEXPECTED_RESPONSE) {
+          logger.info("Unexpected response on " + url);
+        } else if (rockStatus == RockStatusCode.UNEXPECTED_URL) {
+          logger.warn("MalformedURLException on " + url);
+        }
+        return new RockConnectionFactory(environment).tryCreateConnection();
+      } else {
+        return new RserveConnectionFactory(environment).tryCreateConnection();
+      }
+    } catch (Exception e) {
+      logger.info("Not a Rock server [{}], trying Rserve...", e.getMessage(), e);
+      return new RserveConnectionFactory(environment).tryCreateConnection();
     }
-    return new RockConnectionFactory(environment).tryCreateConnection();
   }
 }
 

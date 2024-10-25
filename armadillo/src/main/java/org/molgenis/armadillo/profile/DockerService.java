@@ -153,7 +153,8 @@ public class DockerService {
       throw new MissingImageException(profileConfig.getImage());
     }
 
-    int imageExposed = 8085;
+    // if rock is in the image name, it's rock
+    int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
