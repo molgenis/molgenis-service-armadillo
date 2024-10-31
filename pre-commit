@@ -16,3 +16,34 @@ for file in $stagedFiles; do
     git add $file
   fi
 done
+
+# update github PR template with link to preview URL
+# Get number of PR
+commit_hash=$(git rev-parse HEAD)
+gh_api_url=https://api.github.com/search/issues?q=sha:$commit_hash
+gh_pr_number=$(curl -s $gh_api_url | jq '.items[0].number')
+
+if [-z "$gh_pr_number"]
+then
+  exit 0
+fi
+
+# Check if pr number already contains current number
+if grep -q $gh_pr_number ./.github/PULL_REQUEST_TEMPLATE.md; then
+    exit 0
+fi
+
+echo creating new pr template 📝
+
+# Write text to the pr template file
+cat > ./.github/PULL_REQUEST_TEMPLATE.md <<- EOM
+how to test 🧪:
+- explain here what to do to test this (or point to unit tests)
+
+todo 🛠️:
+- [ ] updated docs in case of new feature
+- [ ] added tests
+
+Once built, this PR can be previewed on:
+https://preview-armadillo-pr-${gh_pr_number}.dev.molgenis.org/
+EOM
