@@ -17,7 +17,7 @@
         <!-- for each value in row -->
         <td v-for="(value, key, index) in row" :key="key">
           <span v-if="value.toString().length > tableHeader[index].length">
-            {{ value.toString().slice(0, tableHeader[index].length - 2 ) }}..
+            {{ value.toString().slice(0, tableHeader[index].length - 2) }}..
           </span>
           <span v-else>
             {{ value }}

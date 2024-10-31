@@ -16,10 +16,15 @@
                 disabled
                 v-model="srcProject"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source project to link from " :validationCondition="isEmpty(srcProject)">
+              <FormValidation
+                v-else
+                :isValidated="formValidated"
+                invalidMessage="Please select a source project to link from "
+                :validationCondition="isEmpty(srcProject)"
+              >
                 <Dropdown
-                :options="projects.map((project) => project.name)"
-                @update="updateSrcProject"
+                  :options="projects.map((project) => project.name)"
+                  @update="updateSrcProject"
                 ></Dropdown>
               </FormValidation>
             </div>
@@ -36,7 +41,12 @@
                 disabled
                 v-model="srcFolder"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source folder to link from " :validationCondition="isEmpty(srcFolder)">
+              <FormValidation
+                v-else
+                :isValidated="formValidated"
+                invalidMessage="Please select a source folder to link from "
+                :validationCondition="isEmpty(srcFolder)"
+              >
                 <Dropdown
                   :options="Object.keys(projectData)"
                   @update="updateSrcFolder"
@@ -56,7 +66,12 @@
                 disabled
                 v-model="srcTable"
               />
-              <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a source table to link from" :validationCondition="isEmpty(srcTable)">
+              <FormValidation
+                v-else
+                :isValidated="formValidated"
+                invalidMessage="Please select a source table to link from"
+                :validationCondition="isEmpty(srcTable)"
+              >
                 <Dropdown
                   :options="getTablesFromListOfFiles(projectData[srcFolder])"
                   @update="updateSrcTable"
@@ -69,10 +84,11 @@
       <div class="row">
         <div class="col-12" v-if="variables.length > 0">
           <FormValidation
-          class="p-3"
-          :isValidated="formValidated" 
-          invalidMessage="Please select at least one variable" 
-          :validationCondition="isEmpty(getSelectedVariables())">
+            class="p-3"
+            :isValidated="formValidated"
+            invalidMessage="Please select at least one variable"
+            :validationCondition="isEmpty(getSelectedVariables())"
+          >
             <VariableSelector
               :variables="variables"
               :preselectedVariables="preselectedVariables"
@@ -99,7 +115,12 @@
                   disabled
                   v-model="vwProject"
                 />
-                <FormValidation v-else :isValidated="formValidated" invalidMessage="Please select a project name" :validationCondition="isEmpty(vwProject)">
+                <FormValidation
+                  v-else
+                  :isValidated="formValidated"
+                  invalidMessage="Please select a project name"
+                  :validationCondition="isEmpty(vwProject)"
+                >
                   <Dropdown
                     :options="projects.map((project) => project.name)"
                     @update="updateVwProject"
@@ -113,7 +134,11 @@
                 Folder:
               </label>
               <div class="col-sm-9">
-                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a folder name" :validationCondition="isEmpty(vwFolder)">
+                <FormValidation
+                  :isValidated="formValidated"
+                  invalidMessage="Please enter a folder name"
+                  :validationCondition="isEmpty(vwFolder)"
+                >
                   <input
                     type="string"
                     class="form-control"
@@ -129,7 +154,11 @@
                 Table:
               </label>
               <div class="col-sm-9">
-                <FormValidation :isValidated="formValidated" invalidMessage="Please enter a table name" :validationCondition="isEmpty(vwTable)">
+                <FormValidation
+                  :isValidated="formValidated"
+                  invalidMessage="Please enter a table name"
+                  :validationCondition="isEmpty(vwTable)"
+                >
                   <input
                     type="string"
                     class="form-control"
@@ -143,7 +172,12 @@
               <button
                 class="btn btn-primary"
                 type="submit"
-                @click.prevent="saveIfValid(allFileInformationProvided, getSelectedVariables())"
+                @click.prevent="
+                  saveIfValid(
+                    allFileInformationProvided,
+                    getSelectedVariables()
+                  )
+                "
               >
                 <i class="bi bi-floppy-fill"></i> Save
               </button>
@@ -173,7 +207,7 @@ export default defineComponent({
   components: {
     VariableSelector,
     Dropdown,
-    FormValidation
+    FormValidation,
   },
   props: {
     sourceFolder: String,
@@ -293,21 +327,24 @@ export default defineComponent({
       this.srcTable = event.toString();
     },
     getSelectedVariables() {
-      return this.$refs.variableSelector && (this.$refs.variableSelector as any).selectedVariables ? (this.$refs.variableSelector as any).selectedVariables : [];
+      return this.$refs.variableSelector &&
+        (this.$refs.variableSelector as any).selectedVariables
+        ? (this.$refs.variableSelector as any).selectedVariables
+        : [];
     },
     saveIfValid(fileInfoSet: boolean, selectedVariables: StringArray) {
-      if(fileInfoSet && !isEmpty(selectedVariables)){
+      if (fileInfoSet && !isEmpty(selectedVariables)) {
         this.onSave(
-                    this.srcProject,
-                    this.sourceObject,
-                    this.vwProject,
-                    this.linkedObject,
-                    selectedVariables
-                  )
+          this.srcProject,
+          this.sourceObject,
+          this.vwProject,
+          this.linkedObject,
+          selectedVariables
+        );
       } else {
         this.formValidated = true;
       }
-    }
+    },
   },
   watch: {
     srcProject() {
@@ -329,8 +366,8 @@ export default defineComponent({
         !isEmpty(this.vwProject) &&
         !isEmpty(this.srcProject) &&
         !isEmpty(this.srcFolder) &&
-        !isEmpty(this.srcTable));
-    
+        !isEmpty(this.srcTable)
+      );
     },
     linkedObject(): string {
       return `${this.vwFolder}/${this.vwTable}`;
