@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProfileScope implements Scope {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProfileScope.class);
+
   /** Contains all profile scoped beans for all profiles */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
 

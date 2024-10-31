@@ -35,7 +35,7 @@ public class ArmadilloWorkspaceTest {
     when(isMock.read(any(byte[].class))).thenThrow(OutOfMemoryError.class);
     try {
       new ArmadilloWorkspace(isMock);
-    } catch(StorageException e) {
+    } catch (StorageException e) {
       assertEquals(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR, e.getMessage());
     }
   }

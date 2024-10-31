@@ -104,10 +104,10 @@ public class ArmadilloStorageService {
     }
     try {
       ArmadilloLinkFile armadilloLinkFile =
-              createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
+          createLinkFileFromSource(sourceProject, sourceObject, variables, linkName, linkProject);
       InputStream is = armadilloLinkFile.toStream();
       storageService.save(
-              is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
+          is, SHARED_PREFIX + linkProject, armadilloLinkFile.getFileName(), APPLICATION_JSON);
     } catch (IllegalArgumentException e) {
       throw new InvalidObjectNameException(linkName);
     }
@@ -230,14 +230,15 @@ public class ArmadilloStorageService {
   private void trySaveWorkspace(ArmadilloWorkspace workspace, Principal principal, String id) {
     try {
       storageService.save(
-              workspace.createInputStream(),
-              getUserBucketName(principal),
-              getWorkspaceObjectName(id),
-              APPLICATION_OCTET_STREAM);
+          workspace.createInputStream(),
+          getUserBucketName(principal),
+          getWorkspaceObjectName(id),
+          APPLICATION_OCTET_STREAM);
     } catch (StorageException e) {
       throw new StorageException(e);
     }
   }
+
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");
@@ -249,9 +250,9 @@ public class ArmadilloStorageService {
         trySaveWorkspace(workspace, principal, id);
       } else {
         throw new StorageException(
-                format(
-                        "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
-                        getHumanReadableByteCount(fileSize)));
+            format(
+                "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
+                getHumanReadableByteCount(fileSize)));
       }
     } catch (StorageException e) {
       throw new StorageException(e.getMessage().replace("load", "save"));
