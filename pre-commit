@@ -1,23 +1,6 @@
 #!/bin/sh
-# from https://medium.com/@mmessell/apply-spotless-formatting-with-git-pre-commit-hook-1c484ea68c34
-# this will be installed during gradle build into .git/hooks/pre-commit
-
-echo '[git hook] executing gradle spotlessApply and format before commit'
-
-# find the changes
-stagedFiles=$(git diff --staged --name-only)
-
-# run the spotlessCheck with the gradle wrapper
-./gradlew :armadillo:spotlessApply :r:spotlessApply :ui:format --daemon
-
-# add the reformatted files
-for file in $stagedFiles; do
-  if test -f "$file"; then
-    git add $file
-  fi
-done
-
 # update github PR template with link to preview URL
+echo '[git hook] adding preview link to pr template'
 # Get number of PR
 commit_hash=$(git rev-parse HEAD)
 gh_api_url=https://api.github.com/search/issues?q=sha:$commit_hash
@@ -51,3 +34,22 @@ https://preview-armadillo-pr-${gh_pr_number}.dev.molgenis.org/
 EOM
 
 echo $(git status)
+
+
+# from https://medium.com/@mmessell/apply-spotless-formatting-with-git-pre-commit-hook-1c484ea68c34
+# this will be installed during gradle build into .git/hooks/pre-commit
+
+echo '[git hook] executing gradle spotlessApply and format before commit'
+
+# find the changes
+stagedFiles=$(git diff --staged --name-only)
+
+# run the spotlessCheck with the gradle wrapper
+./gradlew :armadillo:spotlessApply :r:spotlessApply :ui:format --daemon
+
+# add the reformatted files
+for file in $stagedFiles; do
+  if test -f "$file"; then
+    git add $file
+  fi
+done
