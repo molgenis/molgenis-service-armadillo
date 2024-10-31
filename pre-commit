@@ -5,13 +5,14 @@ echo '[git hook] adding preview link to pr template'
 commit_hash=$(git rev-parse HEAD)
 gh_api_url=https://api.github.com/search/issues?q=sha:$commit_hash
 gh_pr_number=$(curl -s $gh_api_url | jq '.items[0].number')
-echo $(gh_pr_number)
 
 if [-z "$gh_pr_number"]
 then
   echo 'PR empty'
   exit 0
 fi
+
+echo $(gh_pr_number)
 
 # Check if pr number already contains current number
 if grep -q $gh_pr_number ./.github/PULL_REQUEST_TEMPLATE.md; then
