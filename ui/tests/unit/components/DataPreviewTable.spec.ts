@@ -1,5 +1,5 @@
-import { shallowMount, VueWrapper } from "@vue/test-utils";
-import SimpleTable from "@/components/SimpleTable.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import DataPreviewTable from "@/components/DataPreviewTable.vue";
 
 function getListOfColumnValues(
   data: {
@@ -18,7 +18,7 @@ function getListOfColumnValues(
   });
 }
 
-describe("SimpleTable", () => {
+describe("DataPreviewTable", () => {
   const data = [
     {
       firstName: "Bofke",
@@ -68,7 +68,7 @@ describe("SimpleTable", () => {
   ];
   let wrapper: VueWrapper<any>;
   beforeEach(function () {
-    wrapper = shallowMount(SimpleTable, {
+    wrapper = mount(DataPreviewTable, {
       props: {
         data: data,
         maxWidth: 600,
@@ -81,9 +81,9 @@ describe("SimpleTable", () => {
   test("displays data", () => {
     expect(wrapper.html()).toContain("Bofke");
     expect(wrapper.html()).toContain("Jane");
-    expect(wrapper.html()).toContain("clowns, spiders");
-    expect(wrapper.html()).toContain("kryptonite");
-    expect(wrapper.html()).toContain("failure");
+    expect(wrapper.html()).toContain("clo..");
+    expect(wrapper.html()).toContain("kry..");
+    expect(wrapper.html()).toContain("fai..");
   });
 
   test("max number of characters", () => {

@@ -1,3 +1,4 @@
+
 import { Project, User } from "./api";
 
 export type StringObject = Record<string, string | Array<string>>;
@@ -57,6 +58,7 @@ export type ProjectsExplorerData = {
   selectedFolder: string;
   createLinkFromTarget: boolean;
   createLinkFromSrc: boolean;
+  columnNames: Array<string>;
 };
 
 export type ProjectsData = {
@@ -127,4 +129,5 @@ export type ViewEditorData = {
   srcTable: string;
   srcProject: string;
   srcFolder: string;
+  formValidated: boolean;
 };

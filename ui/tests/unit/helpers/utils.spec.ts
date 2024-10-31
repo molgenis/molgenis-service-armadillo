@@ -18,7 +18,8 @@ import {
   isLinkFileType,
   encodeUriComponent,
   convertBytes,
-  diskSpaceBelowThreshold
+  diskSpaceBelowThreshold,
+  isEmpty
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -289,7 +290,6 @@ describe("utils", () => {
       expect(actual).toEqual("project%2Did%2Ffolder%2Ffile%2Dversion1.parquet");
     });
   });
-});
 
   describe("convertBytes", () => {
     it("bytes", () => {
@@ -328,7 +328,64 @@ describe("utils", () => {
       const actual = diskSpaceBelowThreshold(9214748364);
       expect(actual).toEqual(false);
     });
+
+    it("Return false", () => {
+      const actual = diskSpaceBelowThreshold(NaN);
+      expect(actual).toEqual(false);
+    });
   });
+
+  describe("isEmpty", () => {
+    it("Returns true when undefined", () => {
+      const actual = isEmpty(undefined);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when null", () => {
+      const actual = isEmpty(null);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty string", () => {
+      const actual = isEmpty('');
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty array", () => {
+      const actual = isEmpty([]);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty object", () => {
+      const actual = isEmpty({});
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns false when array with element", () => {
+      const actual = isEmpty(['element']);
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when object with element", () => {
+      const actual = isEmpty({"el": undefined});
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when string with content", () => {
+      const actual = isEmpty("el");
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when number", () => {
+      const actual = isEmpty(0);
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns true when NaN", () => {
+      const actual = isEmpty(NaN);
+      expect(actual).toEqual(true);
+    });
+  });
+});
+
   
-
-

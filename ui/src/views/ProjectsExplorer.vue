@@ -131,10 +131,12 @@
             </div>
             <div v-else-if="!loading_preview && !askIfPreviewIsEmpty()">
               <div class="text-end fst-italic">
-                Preview:
-                {{ `${selectedFile.replace(".parquet", "")}` }} ({{
-                  `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
-                }})
+                <span v-if="!createLinkFromSrc">
+                  Preview:
+                  {{ `${selectedFile.replace(".parquet", "")}` }} ({{
+                    `${fileInfo.dataSizeRows}x${fileInfo.dataSizeColumns}`
+                  }})
+                </span>
                 <div v-if="isLinkFileType(selectedFile)">
                   Linked from: {{ fileInfo.sourceLink }}
                 </div>
@@ -182,13 +184,18 @@
                 :viewTable="selectedFile"
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
-              <SimpleTable
+              <DataPreviewTable
                 v-else
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
-                :n-cols="fileInfo.dataSizeColumns"
-              ></SimpleTable>
+              ></DataPreviewTable>
+              <ColumnNamesPreview
+                v-if="!editView && !createLinkFromSrc"
+                :columnNames="columnNames"
+                :buttonName="columnNames.length > 10 ? '+ ' + (columnNames.length - 10) + ' variables: ' : columnNames.length + ' variables: '"
+              >
+              </ColumnNamesPreview>
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">
@@ -209,12 +216,14 @@ import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import ColumnNamesPreview from "@/components/ColumnNamesPreview.vue";
 import {
   getProject,
   deleteObject,
   previewObject,
   getFileDetails,
   createLinkFile,
+  getTableVariables,
 } from "@/api/api";
 import {
   isEmptyObject,
@@ -228,7 +237,7 @@ import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
 import FileUpload from "@/components/FileUpload.vue";
 import FileExplorer from "@/components/FileExplorer.vue";
-import SimpleTable from "@/components/SimpleTable.vue";
+import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import ViewEditor from "@/components/ViewEditor.vue";
 
@@ -244,8 +253,9 @@ export default defineComponent({
     FileUpload,
     FileExplorer,
     FolderInput,
-    SimpleTable,
+    DataPreviewTable,
     ViewEditor,
+    ColumnNamesPreview,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
@@ -301,6 +311,7 @@ export default defineComponent({
       },
       createLinkFromTarget: false,
       createLinkFromSrc: false,
+      columnNames: [],
     };
   },
   watch: {
@@ -318,32 +329,20 @@ export default defineComponent({
           this.loading_preview = true;
           previewObject(
             this.projectId,
-            `${this.selectedFolder}/${this.selectedFile}`
+            `${this.selectedObject}`
           )
             .then((data) => {
               this.filePreview = data;
               this.loading_preview = false;
             })
             .catch((error) => {
-              this.errorMessage = `Cannot load preview for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
+              this.errorMessage = `Cannot load preview for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
               this.clearFilePreview();
               this.loading_preview = false;
             });
+
+          this.setFileDetails();
         }
-        getFileDetails(
-          this.projectId,
-          `${this.selectedFolder}/${this.selectedFile}`
-        )
-          .then((data) => {
-            this.fileInfo.fileSize = data["size"];
-            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
-            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
-            this.fileInfo.sourceLink = data["sourceLink"];
-            this.fileInfo.variables = data["variables"];
-          })
-          .catch((error) => {
-            this.errorMessage = `Cannot load details for [${this.selectedFolder}/${this.selectedFile}] of project [${this.projectId}]. Because: ${error}.`;
-          });
       }
     },
     project() {
@@ -358,15 +357,40 @@ export default defineComponent({
     projectFolders(): StringArray {
       return Object.keys(this.projectContent) as StringArray;
     },
+    selectedObject(): String {
+      return `${this.selectedFolder}/${this.selectedFile}`
+    }
   },
   methods: {
     isTableType,
     isLinkFileType,
     isNonTableType,
+    setFileDetails() {
+      getFileDetails(
+          this.projectId,
+          `${this.selectedObject}`
+        )
+          .then((data) => {
+            this.fileInfo.fileSize = data["size"];
+            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+            this.fileInfo.sourceLink = data["sourceLink"];
+            this.fileInfo.variables = data["variables"];
+            if (isLinkFileType(this.selectedFile)) {
+              this.columnNames = this.fileInfo.variables
+            } else {
+              this.setTableColumnNames( this.projectId, `${this.selectedObject}`)
+            }
+          })
+          .catch((error) => {
+            this.errorMessage = `Cannot load details for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+          });  
+    },
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
     },
     cancelView() {
+      this.setFileDetails();
       this.createLinkFromSrc = false;
       this.editView = false;
     },
@@ -400,6 +424,18 @@ export default defineComponent({
         this.errorMessage = "Folder name cannot be empty";
       }
     },
+    setTableColumnNames (project: string, object: string) {
+      getTableVariables(
+        project,
+        object
+      )
+        .then((data) => {
+          this.columnNames = data; 
+        })
+        .catch((error) => {
+          this.errorMessage = `Cannot load column names for [${object}] of project [${project}]. Because: ${error}.`;
+        });
+    },
     cancelNewFolder() {
       this.createNewFolder = false;
     },
@@ -431,7 +467,7 @@ export default defineComponent({
       const folder = splittedFileAndFolder[0];
       const response = deleteObject(
         this.projectId,
-        `${this.selectedFolder}/${this.selectedFile}`
+        `${this.selectedObject}`
       );
       response
         .then(() => {
@@ -555,7 +591,7 @@ export default defineComponent({
                 this.editView = false;
                 if (this.projectId !== "" && this.selectedFolder !== "") {
                   this.router.push(
-                    `/projects-explorer/${this.projectId}/${this.selectedFolder}/${this.selectedFile}`
+                    `/projects-explorer/${this.projectId}/${this.selectedObject}`
                   );
                 }
               })

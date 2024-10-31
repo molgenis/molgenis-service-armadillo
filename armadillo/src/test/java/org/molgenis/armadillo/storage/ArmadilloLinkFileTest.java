@@ -1,7 +1,8 @@
 package org.molgenis.armadillo.storage;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.molgenis.armadillo.storage.ArmadilloLinkFile.isValidLinkObject;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -20,8 +21,16 @@ public class ArmadilloLinkFileTest {
   String linkProject = "view-project";
   ArmadilloLinkFile alf = new ArmadilloLinkFile(srcProject, srcObj, vars, linkObj, linkProject);
 
+  @Test void testThrowsIllegalArgumentExceptionWhenInvalidLinkObject() {
+    try {
+      new ArmadilloLinkFile(srcProject, srcObj, vars, "broken", linkProject);
+    } catch (IllegalArgumentException e) {
+      assertEquals("Invalid link object: broken", e.getMessage());
+    }
+  }
+
   @Test
-  public void testBuildJson() {
+  void testBuildJson() {
     JsonObject actual = alf.buildJson();
     assertEquals(srcObj, actual.get("sourceObject").getAsString());
     assertEquals(srcProject, actual.get("sourceProject").getAsString());
@@ -29,32 +38,32 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testToString() {
+  void testToString() {
     String actual = alf.toString();
     assertEquals(testData, actual);
   }
 
   @Test
-  public void testGetFileName() {
+  void testGetFileName() {
     String actual = alf.getFileName();
     assertEquals("folder/link-obj.alf", actual);
   }
 
   @Test
-  public void testGetNumberOfVariables() {
+  void testGetNumberOfVariables() {
     Integer actual = alf.getNumberOfVariables();
     assertEquals(3, actual);
   }
 
   @Test
-  public void testLoadFromStream() {
+  void testLoadFromStream() {
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     JsonObject actual = alf.loadFromStream(inputStream);
     assertEquals(testData, actual.toString());
   }
 
   @Test
-  public void testLoadLinkFileFromStream() {
+  void testLoadLinkFileFromStream() {
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
     ArmadilloLinkFile alfFromStream = new ArmadilloLinkFile(inputStream, linkObj, linkProject);
     JsonObject jsonFromStream = alfFromStream.buildJson();
@@ -64,7 +73,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidJson() {
+  void testLoadLinkFileFromStreamInvalidJson() {
     String testData =
         "\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -77,7 +86,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidObj() {
+  void testLoadLinkFileFromStreamInvalidObj() {
     String testData =
         "{\"sourceObj\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -90,7 +99,7 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidProject() {
+  void testLoadLinkFileFromStreamInvalidProject() {
     String testData =
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProj\":\"src-project\",\"variables\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());
@@ -103,7 +112,37 @@ public class ArmadilloLinkFileTest {
   }
 
   @Test
-  public void testLoadLinkFileFromStreamInvalidVariables() {
+  void testIsValidLinkObjectTooManySlashes() {
+    String tooManySlashes = "/this/is/too/many";
+    assertFalse(isValidLinkObject(tooManySlashes));
+  }
+
+  @Test
+  void testIsValidLinkObjectEndsWithSlash() {
+    String endsWithSlash = "endswith/";
+    assertFalse(isValidLinkObject(endsWithSlash));
+  }
+
+  @Test
+  void testIsValidLinkObjectStartsWithSlash() {
+    String startsWithSlash = "/startswith";
+    assertFalse(isValidLinkObject(startsWithSlash));
+  }
+
+  @Test
+  void testIsValidLinkObjectNotEnoughSlashes() {
+    String noSlash = "no slash";
+    assertFalse(isValidLinkObject(noSlash));
+  }
+
+  @Test
+  void testIsValidLinkObjectSucceeds() {
+    String object = "folder/file";
+    assertTrue(isValidLinkObject(object));
+  }
+
+  @Test
+  void testLoadLinkFileFromStreamInvalidVariables() {
     String testData =
         "{\"sourceObject\":\"folder/src-obj\",\"sourceProject\":\"src-project\",\"variabls\":\"var1,var2,var3\"}";
     InputStream inputStream = new ByteArrayInputStream(testData.getBytes());

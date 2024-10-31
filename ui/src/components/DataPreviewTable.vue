@@ -9,26 +9,19 @@
         <th scope="col" v-for="key in tableHeader" :key="key">
           {{ key }}
         </th>
-        <!-- Not required if there are not at least 11 columns -->
-        <th v-if="nCols > 10" scope="col">...</th>
       </tr>
     </thead>
     <tbody class="table-group-divider">
       <!-- for each row-->
       <tr v-for="(row, index) in dataToPreview" :key="index">
         <!-- for each value in row -->
-        <td v-for="(value, key) in row" :key="key">
-          {{ value }}
-        </td>
-        <!-- Will display the "+ x more" if 11 or more columns are present, else hides the column entirely -->
-        <td rowspan="10" v-if="index === 0 && nCols > 10" class="fst-italic">
-          {{ `+ ${nCols - 10} more` }}
-        </td>
-      </tr>
-      <tr class="text-end fst-italic">
-        <!-- Same goes for rows, only display when there are at least 11 or more rows -->
-        <td colspan="11" v-if="nRows > 10">
-          {{ `+ ${nRows - 10} more rows` }}
+        <td v-for="(value, key, index) in row" :key="key">
+          <span v-if="value.toString().length > tableHeader[index].length">
+            {{ value.toString().slice(0, tableHeader[index].length - 2 ) }}..
+          </span>
+          <span v-else>
+            {{ value }}
+          </span>
         </td>
       </tr>
     </tbody>
@@ -41,7 +34,7 @@ import { defineComponent, PropType } from "vue";
 import { isIntArray, transformTable, truncate } from "@/helpers/utils";
 
 export default defineComponent({
-  name: "SimpleTable",
+  name: "DataPreviewTable",
   props: {
     data: {
       type: Array as PropType<{ [key: string]: string }[]>,
@@ -52,10 +45,6 @@ export default defineComponent({
       required: true,
     },
     nRows: {
-      type: Number,
-      required: true,
-    },
-    nCols: {
       type: Number,
       required: true,
     },
