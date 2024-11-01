@@ -1,4 +1,3 @@
-
 import { Project, User } from "./api";
 
 export type StringObject = Record<string, string | Array<string>>;

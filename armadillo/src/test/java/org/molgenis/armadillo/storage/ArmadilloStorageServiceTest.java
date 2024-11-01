@@ -520,11 +520,13 @@ class ArmadilloStorageServiceTest {
 
   @Test
   void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
-    when(storageService.getWorkSpace(is)).thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
+    when(storageService.getWorkSpace(is))
+        .thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
     try {
       armadilloStorage.saveWorkspace(is, principal, "test");
     } catch (StorageException e) {
-      assertEquals("Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+      assertEquals(
+          "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
     }
   }
 
@@ -617,10 +619,10 @@ class ArmadilloStorageServiceTest {
     mockExistingObject(SHARED_GECKO, "1_0_release_1_1/gecko.parquet");
     when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
     assertThrows(
-            InvalidObjectNameException.class,
-            () ->
-                    armadilloStorage.createLinkedObject(
-                            "gecko", "1_0_release_1_1/gecko", "my_link", "diabetes", "a,b,c"));
+        InvalidObjectNameException.class,
+        () ->
+            armadilloStorage.createLinkedObject(
+                "gecko", "1_0_release_1_1/gecko", "my_link", "diabetes", "a,b,c"));
   }
 
   @Test

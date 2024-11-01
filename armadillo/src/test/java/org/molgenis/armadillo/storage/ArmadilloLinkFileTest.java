@@ -21,7 +21,8 @@ public class ArmadilloLinkFileTest {
   String linkProject = "view-project";
   ArmadilloLinkFile alf = new ArmadilloLinkFile(srcProject, srcObj, vars, linkObj, linkProject);
 
-  @Test void testThrowsIllegalArgumentExceptionWhenInvalidLinkObject() {
+  @Test
+  void testThrowsIllegalArgumentExceptionWhenInvalidLinkObject() {
     try {
       new ArmadilloLinkFile(srcProject, srcObj, vars, "broken", linkProject);
     } catch (IllegalArgumentException e) {

@@ -17,7 +17,11 @@ import {
   Metrics,
 } from "@/types/api";
 
-import { ObjectWithStringKey, StringArray, ListOfObjectsWithStringKey } from "@/types/types";
+import {
+  ObjectWithStringKey,
+  StringArray,
+  ListOfObjectsWithStringKey,
+} from "@/types/types";
 import { APISettings } from "./config";
 
 export async function get(url: string, auth: Auth | undefined = undefined) {
@@ -199,7 +203,7 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export function getPermissions(): Promise<ListOfObjectsWithStringKey> {
-  return get("/access/permissions")
+  return get("/access/permissions");
 }
 
 export async function getFiles(): Promise<RemoteFileInfo[]> {

@@ -14,14 +14,20 @@
               {{ diskSpaceMessage }}
             </Alert>
             <Alert v-if="isUnauthorised" type="warning" :dismissible="false">
-              You are logged in, but you don't have permission to access the Armadillo user interface.
+              You are logged in, but you don't have permission to access the
+              Armadillo user interface.
               <div>
                 Don't worry, you can still do your research using the R client.
-                If you believe you should have permission to access this user interface, please contact an administrator.
+                If you believe you should have permission to access this user
+                interface, please contact an administrator.
               </div>
             </Alert>
             {{ errorMessage }}
-            <Tabs v-if="username && !isUnauthorised" :menu="tabs" :icons="tabIcons" />
+            <Tabs
+              v-if="username && !isUnauthorised"
+              :menu="tabs"
+              :icons="tabIcons"
+            />
           </div>
           <Login @loginEvent="reloadUser" v-else />
         </div>
@@ -36,10 +42,20 @@ import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
-import { getPrincipal, getVersion, logout, getFreeDiskSpace, getPermissions } from "@/api/api";
+import {
+  getPrincipal,
+  getVersion,
+  logout,
+  getFreeDiskSpace,
+  getPermissions,
+} from "@/api/api";
 import { useRouter } from "vue-router";
 import { ApiError } from "@/helpers/errors";
-import { diskSpaceBelowThreshold, convertBytes, isEmpty } from "@/helpers/utils";
+import {
+  diskSpaceBelowThreshold,
+  convertBytes,
+  isEmpty,
+} from "@/helpers/utils";
 
 export default defineComponent({
   name: "ArmadilloPortal",
@@ -77,8 +93,7 @@ export default defineComponent({
             if (error.cause == 403) {
               isUnauthorised.value = true;
             }
-          })
-              
+          });
         })
         .catch((error: ApiError) => {
           if (error.cause === 401) {
