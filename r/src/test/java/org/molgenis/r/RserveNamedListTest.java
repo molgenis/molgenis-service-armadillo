@@ -1,7 +1,6 @@
 package org.molgenis.r;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,18 @@ class RserveNamedListTest {
   REXPString colnames = new REXPString(new String[] {"Package", "Version"});
   RList dimnames = new RList(new REXP[] {rownames, colnames});
 
+  static Stream<Arguments> intsProvider() {
+    return Stream.of(
+        Arguments.of(0, Optional.of(0)), Arguments.of(REXPInteger.NA, Optional.empty()));
+  }
+
+  static Stream<Arguments> logicalsProvider() {
+    return Stream.of(
+        Arguments.of(REXPLogical.TRUE, Optional.of(true)),
+        Arguments.of(REXPLogical.FALSE, Optional.of(false)),
+        Arguments.of(REXPLogical.NA, Optional.<Boolean>empty()));
+  }
+
   @Test
   void parseTibbleTransposesTheDataStructure() throws RServerException {
     RList rList =
@@ -36,7 +47,7 @@ class RserveNamedListTest {
   }
 
   @Test
-  void parseTibbleSkipsNAValues() {
+  void testParseTibbleSkipsNAValues() {
     RList rList =
         new RList(
             List.of(
@@ -49,7 +60,7 @@ class RserveNamedListTest {
   }
 
   @Test
-  void parseTibbleSkipsNullValues() {
+  void testParseTibbleSkipsNullValues() {
     RList rList =
         new RList(
             List.of(
@@ -63,22 +74,15 @@ class RserveNamedListTest {
 
   @ParameterizedTest
   @MethodSource("logicalsProvider")
-  void getValueAtIndexParsesLogicals(byte value, Optional<Boolean> expected) {
+  void testGetValueAtIndexParsesLogicals(byte value, Optional<Boolean> expected) {
     RList rList = new RList(List.of(new REXPLogical(new byte[] {value})), new String[] {"id"});
     var parsed = new RserveNamedList(rList).asRows();
     assertEquals(expected.orElse(null), parsed.get(0).get("id"));
   }
 
-  static Stream<Arguments> logicalsProvider() {
-    return Stream.of(
-        Arguments.of(REXPLogical.TRUE, Optional.of(true)),
-        Arguments.of(REXPLogical.FALSE, Optional.of(false)),
-        Arguments.of(REXPLogical.NA, Optional.<Boolean>empty()));
-  }
-
   @ParameterizedTest
   @MethodSource("doublesProvider")
-  void getValueAtIndexParsesDoubles(Double value, Optional<Double> expected) {
+  void testGetValueAtIndexParsesDoubles(Double value, Optional<Double> expected) {
     RList rList = new RList(List.of(new REXPDouble(new double[] {value})), new String[] {"id"});
     var parsed = new RserveNamedList(rList).asRows();
     assertEquals(expected.orElse(null), parsed.get(0).get("id"));
@@ -91,22 +95,59 @@ class RserveNamedListTest {
 
   @ParameterizedTest
   @MethodSource("intsProvider")
-  void getValueAtIndexParsesIntegers(int value, Optional<Integer> expected) {
+  void testGetValueAtIndexParsesIntegers(int value, Optional<Integer> expected) {
     RList rList = new RList(List.of(new REXPInteger(new int[] {value})), new String[] {"id"});
     var parsed = new RserveNamedList(rList).asRows();
     assertEquals(expected.orElse(null), parsed.get(0).get("id"));
   }
 
-  static Stream<Arguments> intsProvider() {
-    return Stream.of(
-        Arguments.of(0, Optional.of(0)), Arguments.of(REXPInteger.NA, Optional.empty()));
-  }
-
   @Test
-  void getValueAtIndexSkipsTheUnknown() throws REXPMismatchException {
+  void testGetValueAtIndexSkipsTheUnknown() throws REXPMismatchException {
     var vector = new REXPGenericVector(dimnames);
     RList rList = new RList(List.of(vector), new String[] {"id"});
     var parsed = new RserveNamedList(rList).asRows();
     assertNull(parsed.get(0).get("id"));
+  }
+
+  @Test
+  void testRserveNamedList() {
+    assertDoesNotThrow(() -> new RserveNamedList(new REXP()));
+  }
+
+  @Test
+  void testIsEmpty() {
+    RList rList = new RList();
+    assertTrue(new RserveNamedList(rList).isEmpty());
+  }
+
+  @Test
+  void testSize() {
+    RList rList =
+        new RList(
+            List.of(
+                new REXPString(new String[] {"id1", "id2"}),
+                new REXPString(new String[] {null, "label2"})),
+            new String[] {"id", "label"});
+    RserveNamedList list = new RserveNamedList(rList);
+    assertEquals(2, list.size());
+  }
+
+  @Test
+  void testContainsKey() {
+    RList rList =
+        new RList(
+            List.of(
+                new REXPString(new String[] {"id1", "id2"}),
+                new REXPString(new String[] {null, "label2"})),
+            new String[] {"id", "label"});
+    RserveNamedList list = new RserveNamedList(rList);
+    assertTrue(list.containsKey("id"));
+  }
+
+  @Test
+  void asRowsEmptyNames() throws RServerException {
+    RList rList = new RList();
+    var parsed = new RserveNamedList(rList);
+    assertTrue(parsed.isEmpty());
   }
 }
