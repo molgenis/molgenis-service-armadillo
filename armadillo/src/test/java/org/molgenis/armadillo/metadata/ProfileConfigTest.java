@@ -30,4 +30,18 @@ public class ProfileConfigTest {
             "myName", null, "localhost", 6311, new HashSet<>(), new HashSet<>(), new HashMap<>());
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
+
+  @Test
+  public void testCreateEmptyHost() {
+    ProfileConfig config =
+        create("myName", null, null, 6311, new HashSet<>(), new HashSet<>(), new HashMap<>());
+    assertEquals("localhost", config.getHost());
+  }
+
+  @Test
+  public void testCreateEmptyOptions() {
+    ProfileConfig config =
+        create("myName", null, null, 6311, new HashSet<>(), new HashSet<>(), null);
+    assertEquals("java.util.ImmutableCollections$MapN", config.getOptions().getClass().getName());
+  }
 }
