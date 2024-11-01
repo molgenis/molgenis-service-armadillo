@@ -148,7 +148,7 @@ public class DockerService {
     startContainer(containerName);
   }
 
-  private void installImage(ProfileConfig profileConfig) {
+  void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
     }
