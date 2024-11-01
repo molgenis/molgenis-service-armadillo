@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,7 +22,9 @@ import org.molgenis.r.RServerException;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RProcess;
 import org.molgenis.r.model.RProcess.Status;
-import org.molgenis.r.rock.RockResult;
+import org.molgenis.r.rserve.RserveResult;
+import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPMismatchException;
 import org.skyscreamer.jsonassert.JSONParser;
 
@@ -57,19 +58,10 @@ class ProcessServiceImplTest {
   }
 
   @Test
-  @Disabled
   void testCountRserveProcesses() throws REXPMismatchException, RServerException {
-    // we need [{"n":3}] from RockResult which has no String parser containing a list
     JSONArray result = (JSONArray) JSONParser.parseJSON("[{\"n\":3}]");
-
-    /*
-     * FIXME this gives:
-     * org.mockito.exceptions.misusing.WrongTypeOfReturnValue:
-     * RockResult cannot be returned by toString()
-     * oString() should return String
-     */
     when(rExecutorService.execute(COUNT_RSERVE_PROCESSES_COMMAND, rConnection))
-        .thenReturn(new RockResult(result));
+        .thenReturn(new RserveResult(new REXPList(new REXPInteger(3), "n")));
     assertEquals(3, processService.countRserveProcesses(rConnection));
   }
 
