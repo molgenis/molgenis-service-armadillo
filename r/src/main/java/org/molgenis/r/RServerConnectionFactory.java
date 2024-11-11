@@ -66,26 +66,25 @@ public class RServerConnectionFactory implements RConnectionFactory {
     }
   }
 
+  Boolean isWarningStatus(RockStatusCode rockStatusCode) {
+    return rockStatusCode == RockStatusCode.SERVER_DOWN
+        || rockStatusCode == RockStatusCode.SERVER_NOT_READY
+        || rockStatusCode == RockStatusCode.UNEXPECTED_URL;
+  }
+
   @Override
   public RServerConnection tryCreateConnection() {
-    try {
-      if (environment.getImage().contains("rock")) {
-        String url = "http://" + environment.getHost() + ":" + environment.getPort();
-        RockStatusCode rockStatus = doHead(url);
-        String statusMessage = getMessageFromStatus(rockStatus, url);
-        if (rockStatus == RockStatusCode.SERVER_DOWN
-            || rockStatus == RockStatusCode.SERVER_NOT_READY
-            || rockStatus == RockStatusCode.UNEXPECTED_URL) {
-          logger.warn(statusMessage);
-        } else if (!Objects.equals(statusMessage, "")) {
-          logger.info(statusMessage);
-        }
-        return new RockConnectionFactory(environment).tryCreateConnection();
-      } else {
-        return new RserveConnectionFactory(environment).tryCreateConnection();
+    if (environment.getImage().contains("rock")) {
+      String url = "http://" + environment.getHost() + ":" + environment.getPort();
+      RockStatusCode rockStatus = doHead(url);
+      String statusMessage = getMessageFromStatus(rockStatus, url);
+      if (isWarningStatus(rockStatus)) {
+        logger.warn(statusMessage);
+      } else if (!Objects.equals(statusMessage, "")) {
+        logger.info(statusMessage);
       }
-    } catch (Exception e) {
-      logger.info("Not a Rock server [{}], trying Rserve...", e.getMessage(), e);
+      return new RockConnectionFactory(environment).tryCreateConnection();
+    } else {
       return new RserveConnectionFactory(environment).tryCreateConnection();
     }
   }
