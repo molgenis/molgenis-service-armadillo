@@ -103,8 +103,4 @@ enum RockStatusCode {
   RockStatusCode(int code) {
     this.code = code;
   }
-
-  public int getCode() {
-    return this.code;
-  }
 }
