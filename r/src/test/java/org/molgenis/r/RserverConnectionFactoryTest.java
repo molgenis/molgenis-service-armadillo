@@ -1,6 +1,6 @@
 package org.molgenis.r;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -51,5 +51,41 @@ public class RserverConnectionFactoryTest {
     String actual = connectionFactory.getMessageFromStatus(RockStatusCode.UNEXPECTED_URL, url);
     String expected = "MalformedURLException on " + url;
     assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testIsWarningStatusServerDown() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.SERVER_DOWN);
+    assertTrue(isWarning);
+  }
+
+  @Test
+  public void testIsWarningStatusServerNotReady() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.SERVER_NOT_READY);
+    assertTrue(isWarning);
+  }
+
+  @Test
+  public void testIsWarningStatusServerUnexpectedUrl() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.UNEXPECTED_URL);
+    assertTrue(isWarning);
+  }
+
+  @Test
+  public void testIsWarningStatusServerOk() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.OK);
+    assertFalse(isWarning);
+  }
+
+  @Test
+  public void testIsWarningStatusServerUnexpectedResponse() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.UNEXPECTED_RESPONSE);
+    assertFalse(isWarning);
+  }
+
+  @Test
+  public void testIsWarningStatusServerUnexpectedResponseCode() {
+    Boolean isWarning = connectionFactory.isWarningStatus(RockStatusCode.UNEXPECTED_RESPONSE_CODE);
+    assertFalse(isWarning);
   }
 }
