@@ -95,7 +95,7 @@ public class DockerService {
    */
   String asContainerName(String profileName) {
     if (!inContainer) {
-      LOG.warn("NO ".repeat(100) + " " + profileName);
+      LOG.warn("Profile not running in docker container: " + profileName);
       return profileName;
     }
 
@@ -104,7 +104,7 @@ public class DockerService {
       return profileName;
     }
 
-    LOG.warn("YES ".repeat(100) + " " + profileName);
+    LOG.warn("Profile running in docker container: " + profileName);
     return containerPrefix + profileName + "-1";
   }
 
