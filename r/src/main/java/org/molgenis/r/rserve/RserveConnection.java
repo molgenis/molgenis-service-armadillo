@@ -87,7 +87,7 @@ public class RserveConnection implements RServerConnection {
   // Private methods
   //
 
-  private REXP evalREXP(String expr) throws RServerException {
+  REXP evalREXP(String expr) throws RServerException {
     try {
       REXP rexp = connection.eval(expr);
       if (rexp.inherits("try-error")) {
