@@ -1,9 +1,8 @@
-package org.molgenis.armadillo.config;
+package org.molgenis.armadillo.profile;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,8 +28,6 @@ import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
-import org.molgenis.armadillo.profile.ContainerInfo;
-import org.molgenis.armadillo.profile.DockerService;
 
 @ExtendWith(MockitoExtension.class)
 class DockerServiceTest {
@@ -123,6 +120,23 @@ class DockerServiceTest {
     when(profileService.getByName("default")).thenReturn(profileConfig);
 
     assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
+  }
+
+  @Test
+  void testInstallImageNull() {
+    ProfileConfig profileConfig = mock(ProfileConfig.class);
+    when(profileConfig.getImage()).thenReturn(null);
+    assertThrows(MissingImageException.class, () -> dockerService.installImage(profileConfig));
+  }
+
+  @Test
+  void testInstallImage() {
+    ProfileConfig profileConfig = mock(ProfileConfig.class);
+    String image = "datashield/rock-something-something:latest";
+    when(profileConfig.getImage()).thenReturn(image);
+    when(profileConfig.getPort()).thenReturn(6311);
+    assertDoesNotThrow(() -> dockerService.installImage(profileConfig));
+    verify(dockerClient).createContainerCmd(image);
   }
 
   @SuppressWarnings("ConstantConditions")
