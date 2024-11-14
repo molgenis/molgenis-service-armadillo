@@ -1,0 +1,18 @@
+site_name: Molgenis Armadillo Docs
+repo_name: Molgenis Armadillo
+repo_url: https://github.com/molgenis/molgenis-service-armadillo
+theme: readthedocs
+extra_css:
+  - css/style.css
+nav:
+  - "Quick Start" : pages/quick_start.md
+  - "About us": pages/about_us.md
+  - "Basic Concepts": pages/basic_concepts.md
+  - "Basic Usage": pages/basic_usage.md
+  - "Example Usage": pages/examples_usage.md
+  - "Advanced Usage": pages/advanced_usage.md
+  - "Install, Setup and Management": pages/install_management.md
+  - "Developer guides": pages/dev_guides.md
+  - "License": pages/license.md
+  - "FAQ": pages/faq.md
+  - "Troubleshooting": pages/troubleshooting.md

@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400&family=IBM+Plex+Sans:wght@0,400;0,700&display=swap');
+body {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+h1,h2,h3, h4 {
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+h1 {
+    font-size: 82px;
+}
+
+h2 {
+    font-size: 64px;
+}
+
+h3 {
+    font-size: 32px;
+}
+
+h4 {
+    font-size: 24px;
+}
+
+h5 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+h5 {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+.wy-side-nav-search {
+    background-color: #017FFD;
+}
+
+.wy-nav-side {
+    background: #005EC4;
+}
+
+.wy-nav-side a {
+    color: #FAFAFA;
+}
+
+body > div.rst-versions {
+    background: #017FFD;
+}
+
+.wy-side-nav-search  .icon.icon-home {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 32px;
+}
+
+blockquote {
+    font-size: 26px;
+    font-family: "IBM Plex Mono", sans-serif;
+    font-weight: 300;
+    font-style: italic;
+}
+
+.rst-content pre code {
+    font-size: 16px;
+}
+.rst-content code {
+    font-family: "IBM Plex Mono", sans-serif;
+}
