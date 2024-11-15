@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400&family=IBM+Plex+Sans:wght@0,400;0,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap');
+
 body {
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 400;
@@ -32,11 +33,10 @@ h5 {
     font-weight: 700;
 }
 
-h5 {
+h6 {
     font-size: 14px;
     font-weight: 700;
 }
-
 
 .wy-side-nav-search {
     background-color: #017FFD;
