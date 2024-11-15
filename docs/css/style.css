@@ -1,11 +1,38 @@
+/*Apply MOLGENIS Styleguide to docs theme*/
+/*Import fonts*/
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap');
 
+/*Background image from: */
+body > div.wy-grid-for-nav > section {
+    /*Photo by energepic.com: https://www.pexels.com/photo/close-up-photo-of-monitor-159888/*/
+    background-image: url("../img/pexels-energepic-com-27411-159888.jpg");
+    background-size: cover;
+}
+
+/*Add background color with opacity for docs itself and set text colour to molgenis-white*/
+body > div.wy-grid-for-nav > section > div {
+    background-color:rgba(0, 0, 0, 0.8);
+    color: #FAFAFA;
+}
+
+/*Make lines thicker*/
+hr {
+    border-top: 4.5px solid #fafafa;
+}
+
+/*Change link colour to match molgenis styleguide*/
+a {
+    color: #017FFD;
+}
+
+/*Set font for all text*/
 body {
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 400;
     font-style: normal;
 }
 
+/*Set font and sizes for headings*/
 h1,h2,h3, h4 {
     font-family: "Bebas Neue", sans-serif;
     font-weight: 400;
@@ -38,27 +65,27 @@ h6 {
     font-weight: 700;
 }
 
+/*Set background colour to top part of the navbar (search bar)*/
 .wy-side-nav-search {
     background-color: #017FFD;
 }
 
+/*Set background colour to rest of the navbar*/
 .wy-nav-side {
     background: #005EC4;
 }
-
+/*Set text colour for navs*/
 .wy-nav-side a {
     color: #FAFAFA;
 }
 
-body > div.rst-versions {
-    background: #017FFD;
-}
-
+/*Set font and increase fontsize for title in navbar*/
 .wy-side-nav-search  .icon.icon-home {
     font-family: "Bebas Neue", sans-serif;
     font-size: 32px;
 }
 
+/*Style blockquote as in styleguide*/
 blockquote {
     font-size: 26px;
     font-family: "IBM Plex Mono", sans-serif;
@@ -66,9 +93,25 @@ blockquote {
     font-style: italic;
 }
 
+/*Style code blocks*/
 .rst-content pre code {
     font-size: 16px;
 }
 .rst-content code {
     font-family: "IBM Plex Mono", sans-serif;
+}
+
+/*Style selected menu item*/
+body > div.wy-grid-for-nav > nav > div > div.wy-menu.wy-menu-vertical > ul.current > li > a {
+    border: transparent;
+    background-color: #353535;
+    color: #fafafa;
+    border-left-color: #017FFD;
+    border-left-style: solid;
+    border-left-width: 4.5px;
+}
+
+/*Style sub menu items*/
+body > div.wy-grid-for-nav > nav > div > div.wy-menu.wy-menu-vertical > ul.current > li {
+    background-color: #D4ECFF;
 }
