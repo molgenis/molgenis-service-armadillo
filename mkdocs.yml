@@ -16,3 +16,8 @@ nav:
   - "License": pages/license.md
   - "FAQ": pages/faq.md
   - "Troubleshooting": pages/troubleshooting.md
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
