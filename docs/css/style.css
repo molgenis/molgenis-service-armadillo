@@ -12,15 +12,18 @@ body > div.md-container > main {
     background-repeat: no-repeat;
 }
 
+/* Container for main text*/
 body > div.md-container > main > div {
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.85);
 }
 
+/* Left menu colours*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary{
     background-color:  #353535;
     color: #fafafa;
 }
 
+/* Selected item left menu*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a {
     border: transparent;
     background-color: #353535;
@@ -31,6 +34,7 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > n
     font-weight: 700;
 }
 
+/* Padding left to of selected text in left menu*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a > span {
     padding-left: 0.5em;
 }
@@ -46,27 +50,40 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > n
     line-height: normal;
 }
 
+/* Text colour of title in left menu*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary > div > div > nav > label {
     color: #fafafa;
 }
 
+/* Text colour of title in right menu*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > label {
-    color: #353535;
+    /*color: #353535;*/
+    color: #fafafa;
 }
+/* Styling right menu*/
 body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary {
-    background-color: #d4ecff;
-    color: #353535;
+    /*background-color: #d4ecff;*/
+    /*color: #353535;*/
+    background-color: #005EC4;
+    color: #fafafa;
 }
 
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a{
+    color: #FAFAFA;
+}
+
+/* Menu styling */
 .md-sidebar {
-    background-color: #005EC4;
-    padding: 1.2rem;
+    padding: 0.8rem;
     height: 100%;
 }
 
+/* Move text up so it touches top navbar*/
 .md-main__inner {
     margin-top: 0;
 }
+
 /*Set font for all text*/
 body {
     font-family: "IBM Plex Sans", sans-serif;
@@ -84,7 +101,10 @@ body {
 .md-typeset  h1 {
     color: black;
     font-size: 82px;
-    margin: 0;
+    border-bottom-color: black;
+    border-bottom-style: solid;
+    border-bottom-width: 4.5px;
+    margin-bottom: 0.5em;
 }
 
 .md-typeset h2 {
@@ -130,6 +150,15 @@ blockquote {
     font-family: "IBM Plex Mono", sans-serif;
 }
 
+/* Top navbar*/
 body > header.md-header {
-    background-color: #005EC4;
+    background-color: #017FFD;
+}
+
+.md-header__button.md-logo img {
+    height: 2.5em;
+}
+
+.md-typeset a {
+    color: #017FFD;
 }
