@@ -1,9 +1,13 @@
 site_name: Molgenis Armadillo Docs
 repo_name: Molgenis Armadillo
 repo_url: https://github.com/molgenis/molgenis-service-armadillo
-theme: readthedocs
+theme:
+  name: material
+  favicon: img/favicon.ico
+  logo: img/armadillo-logo.png
 extra_css:
   - css/style.css
+#  - css/molgenis-readthedocs.css
 nav:
   - "Basic Concepts": pages/basic_concepts.md
   - "Quick Start" : pages/quick_start.md
