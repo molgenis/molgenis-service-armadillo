@@ -6,18 +6,24 @@
 body > div.wy-grid-for-nav > section {
     /*Photo by energepic.com: https://www.pexels.com/photo/close-up-photo-of-monitor-159888/*/
     background-image: url("../img/pexels-energepic-com-27411-159888.jpg");
-    background-size: cover;
+    background-size: auto;
+    background-position: left;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 /*Add background color with opacity for docs itself and set text colour to molgenis-white*/
 body > div.wy-grid-for-nav > section > div {
-    background-color:rgba(0, 0, 0, 0.8);
-    color: #FAFAFA;
+    background-color:rgba(255, 255, 255, .9);
 }
 
+/*Set menu colour for mobile*/
+body > div.wy-grid-for-nav > section > nav {
+    background-color: #017FFD;
+}
 /*Make lines thicker*/
 hr {
-    border-top: 4.5px solid #fafafa;
+    border-top: 4.5px solid #353535;
 }
 
 /*Change link colour to match molgenis styleguide*/
