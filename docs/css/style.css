@@ -3,7 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap');
 
 /*Background image from: */
-body > div.wy-grid-for-nav > section {
+body > div.md-container > main {
     /*Photo by energepic.com: https://www.pexels.com/photo/close-up-photo-of-monitor-159888/*/
     background-image: url("../img/pexels-energepic-com-27411-159888.jpg");
     background-size: auto;
@@ -12,83 +12,106 @@ body > div.wy-grid-for-nav > section {
     background-repeat: no-repeat;
 }
 
-/*Add background color with opacity for docs itself and set text colour to molgenis-white*/
-body > div.wy-grid-for-nav > section > div {
-    background-color:rgba(255, 255, 255, .9);
+body > div.md-container > main > div {
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
-/*Set menu colour for mobile*/
-body > div.wy-grid-for-nav > section > nav {
-    background-color: #017FFD;
-}
-/*Make lines thicker*/
-hr {
-    border-top: 4.5px solid #353535;
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary{
+    background-color:  #353535;
+    color: #fafafa;
 }
 
-/*Change link colour to match molgenis styleguide*/
-a {
-    color: #017FFD;
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a {
+    border: transparent;
+    background-color: #353535;
+    color: #fafafa;
+    border-left-color: #017FFD;
+    border-left-style: solid;
+    border-left-width: 4.5px;
+    font-weight: 700;
 }
 
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a > span {
+    padding-left: 0.5em;
+}
+
+/* Label in menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > label {
+    background-color: inherit;
+    box-shadow: none;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.7em;
+    line-height: normal;
+}
+
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary > div > div > nav > label {
+    color: #fafafa;
+}
+
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > label {
+    color: #353535;
+}
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary {
+    background-color: #d4ecff;
+    color: #353535;
+}
+
+.md-sidebar {
+    background-color: #005EC4;
+    padding: 1.2rem;
+    height: 100%;
+}
+
+.md-main__inner {
+    margin-top: 0;
+}
 /*Set font for all text*/
 body {
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 400;
+    font-size: 16px;
     font-style: normal;
 }
-
-/*Set font and sizes for headings*/
-h1,h2,h3, h4 {
+    /*Set font and sizes for headings*/
+.md-typeset h1, h2, h3, h4 {
     font-family: "Bebas Neue", sans-serif;
     font-weight: 400;
     font-style: normal;
 }
 
-h1 {
+.md-typeset  h1 {
+    color: black;
     font-size: 82px;
+    margin: 0;
 }
 
-h2 {
+.md-typeset h2 {
     font-size: 64px;
+    margin: 0;
 }
 
-h3 {
+.md-typeset h3 {
     font-size: 32px;
+    margin: 0;
 }
 
-h4 {
+.md-typeset h4 {
     font-size: 24px;
+    margin: 0;
 }
 
-h5 {
+.md-typeset h5 {
     font-size: 16px;
     font-weight: 700;
+    margin: 0;
 }
 
-h6 {
+.md-typeset h6 {
     font-size: 14px;
     font-weight: 700;
-}
-
-/*Set background colour to top part of the navbar (search bar)*/
-.wy-side-nav-search {
-    background-color: #017FFD;
-}
-
-/*Set background colour to rest of the navbar*/
-.wy-nav-side {
-    background: #005EC4;
-}
-/*Set text colour for navs*/
-.wy-nav-side a {
-    color: #FAFAFA;
-}
-
-/*Set font and increase fontsize for title in navbar*/
-.wy-side-nav-search  .icon.icon-home {
-    font-family: "Bebas Neue", sans-serif;
-    font-size: 32px;
+    margin: 0;
 }
 
 /*Style blockquote as in styleguide*/
@@ -107,17 +130,6 @@ blockquote {
     font-family: "IBM Plex Mono", sans-serif;
 }
 
-/*Style selected menu item*/
-body > div.wy-grid-for-nav > nav > div > div.wy-menu.wy-menu-vertical > ul.current > li > a {
-    border: transparent;
-    background-color: #353535;
-    color: #fafafa;
-    border-left-color: #017FFD;
-    border-left-style: solid;
-    border-left-width: 4.5px;
-}
-
-/*Style sub menu items*/
-body > div.wy-grid-for-nav > nav > div > div.wy-menu.wy-menu-vertical > ul.current > li {
-    background-color: #D4ECFF;
+body > header.md-header {
+    background-color: #005EC4;
 }
