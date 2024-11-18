@@ -4,7 +4,7 @@
 
 /*Background image from: */
 body > div.md-container > main {
-    /*Photo by energepic.com: https://www.pexels.com/photo/close-up-photo-of-monitor-159888/*/
+    /*Photo by energepic.com: https://www.pexels.com/photo/close-up-photo-of-monitor-159888!*/
     background-image: url("../img/pexels-energepic-com-27411-159888.jpg");
     background-size: auto;
     background-position: left;
@@ -32,8 +32,10 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > n
     font-weight: 700;
 }
 
-/* Padding left to of selected text in left menu*/
-body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a > span {
+/* Padding for selected items in menus */
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a > span,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a.md-nav__link--active > span,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > nav > ul > li > a.md-nav__link--active > span{
     padding-left: 0.5em;
 }
 
@@ -63,20 +65,20 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary {
     color: #fafafa;
 }
 
-body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li,
-body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a{
-    color: #FAFAFA;
+/* Set active styling for right menu */
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a.md-nav__link--active,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > nav > ul > li > a.md-nav__link--active{
+    color: #D4ECFF;
+    border-left-color: #D4ECFF;
+    border-left-style: solid;
+    border-left-width: 4.5px;
+    font-weight: 700;
 }
 
 /* Menu styling */
 .md-sidebar {
     padding: 0.8rem;
     height: 100%;
-}
-
-/* Move text up so it touches top navbar*/
-.md-main__inner {
-    margin-top: 0;
 }
 
 /*Set font for all text*/
@@ -86,7 +88,7 @@ body {
     font-size: 16px;
     font-style: normal;
 }
-    /*Set font and sizes for headings*/
+/*Set font and sizes for headings*/
 .md-typeset h1, h2, h3, h4 {
     font-family: "Bebas Neue", sans-serif;
     font-weight: 400;
@@ -148,6 +150,9 @@ blockquote {
 /* Top navbar*/
 body > header.md-header {
     background-color: #017FFD;
+    /* this is a negative margin because if we set the top one to be 0, the right navbar stops
+    working properly with active links*/
+    margin-bottom: -1.5rem;
 }
 
 .md-header__button.md-logo img {

@@ -7,7 +7,6 @@ theme:
   logo: img/armadillo-logo.png
 extra_css:
   - css/style.css
-#  - css/molgenis-readthedocs.css
 nav:
   - "Basic Concepts": pages/basic_concepts.md
   - "Quick Start" : pages/quick_start.md
