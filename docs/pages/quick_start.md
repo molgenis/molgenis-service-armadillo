@@ -23,8 +23,10 @@ To get to know more about the UI, visit the [Usage examples page](examples_usage
 
 Please note that the user interface is admin only. Users without admin permissions, will get the following message:
 
-<img src="../../img/ui-non-admin-message.png" 
-alt=You are logged in, but you don't have permission to access the Armadillo user interface." style="max-width:700px;"/>
+![Warning message for non admin users](../img/ui-non-admin-message.png){ width="700" }
+/// caption
+You are logged in but you don't have permission to access the Armadillo user interface.
+///
 
 ### Armadillo R client
 Data can also be managed using the Armadillo R client. The following code block is an example of how to create a project
@@ -46,10 +48,13 @@ armadillo.upload_table("project", "folder", iris)
 ```
 
 Data is organised in projects. These projects can be compared to folders on the filesystem of your computer. 
-Users can be granted access to specific projects. Within those projects, data has to be organised in folders. 
-A typical project structure looks like this:
+Users can be granted access to specific projects. Within those projects, data has to be organised in folders.
 
-<img src="../../img/project-file-structure.png" alt="project-file-structure.png" style="width:500px;"/>
+![Project file structure](../img/project-file-structure.png){ width="500" }
+/// caption
+A typical project structure looks like this.
+///
+
 
 ### DsUpload
 [DsUpload](https://lifecycle-project.github.io/ds-upload/) is an R package that aids data managers in the data uploading
