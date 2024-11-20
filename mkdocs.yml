@@ -7,6 +7,7 @@ theme:
   logo: img/armadillo-logo.png
   features:
     - content.code.copy
+    - content.tooltips
 extra_css:
   - css/style.css
 nav:
@@ -38,4 +39,6 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - abbr
