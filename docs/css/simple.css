@@ -19,7 +19,7 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > n
     color: #fafafa;
     border-left-color: #005EC4;
     border-left-style: solid;
-    border-left-width: 4.5px;
+    border-left-width: 5px;
     font-weight: 700;
 }
 
@@ -62,7 +62,7 @@ body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > di
     color: #D4ECFF;
     border-left-color: #D4ECFF;
     border-left-style: solid;
-    border-left-width: 4.5px;
+    border-left-width: 5px;
     font-weight: 700;
 }
 
@@ -91,7 +91,7 @@ body {
     font-size: 82px;
     border-top-color: #017FFD;
     border-top-style: solid;
-    border-top-width: 4.5px;
+    border-top-width: 5px;
     padding-top: 0.5em;
     margin-bottom: 0;
 }
@@ -124,11 +124,20 @@ body {
 }
 
 /*Style blockquote as in styleguide*/
-blockquote {
-    font-size: 26px;
+.md-typeset blockquote  {
+    color: #353535;
+    font-size: 20px;
     font-family: "IBM Plex Mono", sans-serif;
     font-weight: 300;
     font-style: italic;
+    width: 80%;
+    margin-left: 10%;
+    padding: 1rem;
+    background-color: #D4ECFF;
+    border-left-color: #353535;
+}
+[dir=ltr] .md-typeset blockquote {
+    border-left-color: #005EC4;
 }
 
 /*Style code blocks*/
@@ -168,4 +177,46 @@ body > header.md-header {
     /* this is a negative margin because if we set the top one to be 0, the right navbar stops
     working properly with active links*/
     margin-bottom: -1.5rem;
+}
+
+.intro {
+    font-size: 18px;
+    font-family: "IBM Plex Mono", sans-serif;
+    background-color: #017FFD!important;
+    color: #fafafa!important;
+    font-weight: bold;
+    padding: 2rem 3rem 3rem 2rem;
+    margin-left: -1.2rem;
+    margin-right: -1.2rem;
+    margin-top: -1.2rem;
+}
+
+.before-intro {
+    color: #017FFD;
+    padding: 2.2rem;
+    margin-left: -1.2rem;
+    margin-right: -1.2rem;
+    margin-top: -2.5rem;
+    background-color: #017FFD!important;
+}
+
+h1.intro {
+    font-weight: 300;
+    background-color: #017FFD!important;
+    color: #fafafa!important;
+    border-color: #FAFAFA;
+    margin: -1.2rem;
+    padding-bottom: 1rem;
+}
+
+.armadillo-intro-logo {
+    margin-top: -15rem;
+    display: block;
+    margin-left: auto;
+}
+
+.md-typeset h3.armadillo-question {
+    color: #353535;
+    margin-top: 2.5rem;
+    margin-left: 10%;
 }
