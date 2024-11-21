@@ -18,8 +18,9 @@ Data management can be done in different ways: the Armadillo User Interface, the
 ### User interface
 In the armadillo user interface, data managers can login and manage users, projects, profiles and see logs from there.
 The user interface is especially useful for managing users and viewing logs. 
-To get to know more about the UI, visit the [Usage examples page](examples_usage.md).
-![ui-projects.png](../img/ui-projects.png)
+To get to know more about the UI, visit the [usage examples page](examples_usage.md).
+
+![ui-projects.png](../img/ui-projects.png){ width="1000" }
 
 Please note that the user interface is admin only. Users without admin permissions, will get the following message:
 
