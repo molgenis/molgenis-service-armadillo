@@ -9,7 +9,7 @@ theme:
     - content.code.copy
     - content.tooltips
 extra_css:
-  - css/style.css
+  - css/simple.css
 nav:
   - "Basic Concepts": pages/basic_concepts.md
   - "Quick Start" : pages/quick_start.md
