@@ -209,14 +209,20 @@ h1.intro {
     padding-bottom: 1rem;
 }
 
-.armadillo-intro-logo {
-    margin-top: -15rem;
-    display: block;
-    margin-left: auto;
+.md-typeset img[align]:only-child.armadillo-intro-logo {
+    margin-top: 3rem;
+    max-width: 35%;
 }
 
 .md-typeset h3.armadillo-question {
     color: #353535;
     margin-top: 2.5rem;
     margin-left: 10%;
+}
+
+.blue-line {
+    color: white;
+    border-bottom-color: #017FFD;
+    border-bottom-width: 5px;
+    border-bottom-style: solid;
 }
