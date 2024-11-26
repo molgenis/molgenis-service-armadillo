@@ -226,3 +226,7 @@ h1.intro {
     border-bottom-width: 5px;
     border-bottom-style: solid;
 }
+
+.md-typeset .tabbed-labels>label {
+    font-size: 0.8rem;
+}
