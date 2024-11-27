@@ -1,4 +1,4 @@
-# Basic Usage index
+# Basic Usage
 
 Depending on your [role](../quick_start.md#quick-start) you have different options to interact with MOLGENIS Armadillo.
 

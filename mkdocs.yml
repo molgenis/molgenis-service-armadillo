@@ -24,10 +24,15 @@ nav:
     - "dsUpload & dsDictionaries": pages/basic_usage/dsupload_dsdictionaries.md
     - "dsLite": pages/basic_usage/dslite.md
     - "Authentication Server": pages/basic_usage/auth.md
-  #- "Basic Usage": pages/basic_usage.md
   - "Example Usage": pages/examples_usage.md
   - "Advanced Usage": pages/advanced_usage.md
-  - "Install, Setup and Management": pages/install_management.md
+  - Install, Setup and Management:
+    - pages/install_management/index.md
+    - "Armadillo Installation": pages/install_management/armadillo_install.md
+    - "Armadillo Management": pages/install_management/armadillo_management.md
+    - "Armadillo Minor Release Update": pages/install_management/armadillo_minor_release_update.md
+    - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md
+    - "Migrate Armadillo 3 to 4": pages/install_management/armadillo_migrate_3_to_4.md
   - "Developer guides": pages/dev_guides.md
   - "License": pages/license.md
   - "FAQ": pages/faq.md
