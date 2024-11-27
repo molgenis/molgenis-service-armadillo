@@ -32,3 +32,5 @@ __snapshots__/
 !.yarn/releases
 !.yarn/plugins
 .pnp.*
+
+coverage
