@@ -1,7 +1,7 @@
 # Developer Guidelines
 The Armadillo and DataSHIELD community both are very welcoming to anyone who wants to contribute in any sort of form.
 One way of doing that is by helping with the development of Armadillo. To help you get started, we've put together some
-information to get you started and help you get familiarised with our code and way of working. 
+information to get you started and help you get familiarised with our code and way of working.
 
 === ":fontawesome-solid-circle-info: General information"
 
@@ -38,9 +38,15 @@ information to get you started and help you get familiarised with our code and w
     3. Describe what your PR does shortly and how to test it.
 
     <h2>Armadillo API and Swagger</h2>
-    Armadillo can be controlled using it's REST API. To see and test all available endpoints, you can visit its
-    swaggerpage. This page can be found on /swagger-ui/index.html of each Armadillo instance. An example can be found
-    on [our demo server](https://armadillo-demo.molgenis.net/swagger-ui/index.html).
+    Armadillo can be controlled using its REST API. To see and test all available endpoints, you can visit Armadillo's
+    swaggerpage. Swagger is a very useful tool for exactly this purpose. The page can be found on 
+    `/swagger-ui/index.html` of each Armadillo instance. If you want to see an example of our swagger page, you can 
+    visit it on [our demo server](https://armadillo-demo.molgenis.net/swagger-ui/index.html). 
+    
+    ![swagger.png](../img/swagger.png){ width="700" }
+    ///caption
+    Example of an endpoint tested our using our swagger page.
+    ///
 
 === ":fontawesome-brands-java: Java"
 
@@ -88,7 +94,7 @@ information to get you started and help you get familiarised with our code and w
     For testing without having to installing Java you can run using docker:
 
     1. Install [docker-compose](https://docs.docker.com/compose/install/)
-    2. Download this [docker-compose.yml](https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/heads/master/docker-compose.yml).
+    2. Download this [docker-compose.yml](docker-compose.yml).
     3. Execute `docker-compose up`
     4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
 
@@ -123,8 +129,22 @@ information to get you started and help you get familiarised with our code and w
     used DataSHIELD packages. This test script is used before each release to ensure Armadillo's quality. The script
     also runs partly (without OIDC) in our continuous integration test on each pull request, as well as the unittests.
 
+    <h2>host.docker.internal error</h2>
+    This error is returned only in development environments, when working on an unsupported operating system and running
+    a profile that has the `resourcer` R package whitelisted. The only way to fix this error, is by temporarily altering
+    the Armadillo source code in the 
+    [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/profile/DockerService.java)
+    Go to the `install_image` method to where `createContainerCmd` is called:
+    ```java
+    cmd.withExposedPorts(exposed)
+    ...
+    .exec()
+    ```
+    Simply add `.withExtraHosts("host.docker.internal:host-gateway"))` before the `.exec()`. To ensure the code is
+    properly updated, we suggest rebuilding the code before restarting Armadillo. If you already had the profile 
+    running, you will need to restart that as well.
 === ":material-vuejs: JavaScript/VueJS"
-    
+
     The user interface (UI) of MOLGENIS Armadillo is written in JavaScript, using VueJS as framework. We use `yarn` to 
     compile the code and develop in VSCode. Our setup is as follows:
     
