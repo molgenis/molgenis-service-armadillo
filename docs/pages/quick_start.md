@@ -64,7 +64,7 @@ process. Data uploaded using this package has to fit the
 [dsDictionaries](ttps://github.com/lifecycle-project/ds-dictionaries/blob/master/README.md) format. 
 
 ## System Operator
-System Operators are the people who install the software (Molgenis Armadillo) on the server. Installing is a quick and straightforward process, for full details please view the [Install Guide](install_management.md). 
+System Operators are the people who install the software (Molgenis Armadillo) on the server. Installing is a quick and straightforward process, for full details please view the [Install Guide](../pages/install_management/index.md).
 
 ## Researcher
 As a reseracher you will need to arrange access to each Armadillo (or Opal) server that holds the data you want to analyse. 
