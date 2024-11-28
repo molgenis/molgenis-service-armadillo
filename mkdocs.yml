@@ -3,6 +3,18 @@ repo_name: Molgenis Armadillo
 repo_url: https://github.com/molgenis/molgenis-service-armadillo
 theme:
   name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   favicon: img/favicon.ico
   logo: img/armadillo-logo.png
   features:
@@ -16,23 +28,23 @@ nav:
   - "Quick Start" : pages/quick_start.md
   - "About us": pages/about_us.md
   - Basic Usage:
-    - pages/basic_usage/index.md
-    - "Armadillo User Interface": pages/basic_usage/armadillo_ui.md
-    - "Central Analysis Server (CAS)": pages/basic_usage/central_analysis_server.md
-    - "DSMolgenisArmadillo": pages/basic_usage/ds_molgenis_armadillo.md
-    - "MolgenisArmadillo": pages/basic_usage/molgenis_armadillo.md
-    - "dsUpload & dsDictionaries": pages/basic_usage/dsupload_dsdictionaries.md
-    - "dsLite": pages/basic_usage/dslite.md
-    - "Authentication Server": pages/basic_usage/auth.md
+      - pages/basic_usage/index.md
+      - "Armadillo User Interface": pages/basic_usage/armadillo_ui.md
+      - "Central Analysis Server (CAS)": pages/basic_usage/central_analysis_server.md
+      - "DSMolgenisArmadillo": pages/basic_usage/ds_molgenis_armadillo.md
+      - "MolgenisArmadillo": pages/basic_usage/molgenis_armadillo.md
+      - "dsUpload & dsDictionaries": pages/basic_usage/dsupload_dsdictionaries.md
+      - "dsLite": pages/basic_usage/dslite.md
+      - "Authentication Server": pages/basic_usage/auth.md
   - "Example Usage": pages/examples_usage.md
   - "Advanced Usage": pages/advanced_usage.md
   - Install, Setup and Management:
-    - pages/install_management/index.md
-    - "Armadillo Installation": pages/install_management/armadillo_install.md
-    - "Armadillo Management": pages/install_management/armadillo_management.md
-    - "Armadillo Minor Release Update": pages/install_management/armadillo_minor_release_update.md
-    - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md
-    - "Migrate Armadillo 3 to 4": pages/install_management/armadillo_migrate_3_to_4.md
+      - pages/install_management/index.md
+      - "Armadillo Installation": pages/install_management/armadillo_install.md
+      - "Armadillo Management": pages/install_management/armadillo_management.md
+      - "Armadillo Minor Release Update": pages/install_management/armadillo_minor_release_update.md
+      - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md
+      - "Migrate Armadillo 3 to 4": pages/install_management/armadillo_migrate_3_to_4.md
   - "Developer guides": pages/dev_guides.md
   - "License": pages/license.md
   - "FAQ": pages/faq.md
