@@ -8,14 +8,6 @@ Armadillo is a data portal that allows data stewards to share datasets on a serv
 and researchers to analyse these data and those shared on other servers using
 the DataSHIELD analysis tools.<br/><br/>
 {.intro}
-
-
-.
-{.blue-line}
-<h3 class="armadillo-question">Why is it called Armadillo?</h3>
-> The word Armadillo is Spanish and means "little armored one". MOLGENIS Armadillo is a compact solution that implements 
+> <b>Why is it called Armadillo?</b><br/>
+> - The word Armadillo is Spanish and means "little armored one". MOLGENIS Armadillo is a compact solution that implements 
 > the DataSHIELD infrastructure, hence the name.
-
-<br/>
-.
-{.blue-line}
