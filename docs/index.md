@@ -10,4 +10,4 @@ the DataSHIELD analysis tools.<br/><br/>
 {.intro}
 > <b>Why is it called Armadillo?</b><br/>
 > - The word Armadillo is Spanish and means "little armored one". MOLGENIS Armadillo is a compact solution that implements 
-> the DataSHIELD infrastructure, hence the name.
+> the DataSHIELD infrastructure.
