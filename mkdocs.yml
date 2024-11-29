@@ -48,7 +48,7 @@ nav:
   - "Developer guides": pages/dev_guides.md
   - "License": pages/license.md
   - "FAQ": pages/faq.md
-  - "Troubleshooting": pages/troubleshooting.md
+#  - "Troubleshooting": pages/troubleshooting.md
   - "Contact": pages/contact.md
 markdown_extensions:
   - attr_list
