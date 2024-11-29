@@ -5,13 +5,19 @@ theme:
   name: material
   palette:
     # Palette toggle for light mode
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
 
     # Palette toggle for dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -36,8 +42,8 @@ nav:
       - "dsUpload & dsDictionaries": pages/basic_usage/dsupload_dsdictionaries.md
       - "dsLite": pages/basic_usage/dslite.md
       - "Authentication Server": pages/basic_usage/auth.md
-  - "Example Usage": pages/examples_usage.md
-  - "Advanced Usage": pages/advanced_usage.md
+#  - "Example Usage": pages/examples_usage.md
+#  - "Advanced Usage": pages/advanced_usage.md
   - Install, Setup and Management:
       - pages/install_management/index.md
       - "Armadillo Installation": pages/install_management/armadillo_install.md
