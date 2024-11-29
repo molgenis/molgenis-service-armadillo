@@ -209,8 +209,8 @@ body > header.md-header {
 h1.intro {
     font-weight: 300;
     background-color: light-dark(#017FFD, #353535)!important;
-    color:  light-dark(#fafafa, #5DFFAC);!important;
-    border-color: light-dark(#fafafa, #5DFFAC);;
+    color:  light-dark(#fafafa, #5DFFAC)!important;
+    border-color: light-dark(#fafafa, #5DFFAC);
     margin: -1.2rem;
     padding-bottom: 1rem;
 }
