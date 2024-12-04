@@ -1,8 +1,9 @@
-site_name: Molgenis Armadillo Docs
-repo_name: Molgenis Armadillo
+site_name: MOLGENIS Armadillo Docs
+repo_name: MOLGENIS Armadillo
 repo_url: https://github.com/molgenis/molgenis-service-armadillo
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -27,8 +28,16 @@ theme:
     - content.code.copy
     - content.tooltips
     - navigation.indexes
+    - navigation.footer
 extra_css:
   - css/simple.css
+copyright: When using MOLGENIS Armadillo, don't forget to cite us https://doi.org/10.1093/bioinformatics/btae726
+extra:
+  social:
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/molgenis
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/molgenis
 nav:
   - "Basic Concepts": pages/basic_concepts.md
   - "Quick Start" : pages/quick_start.md
