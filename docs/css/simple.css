@@ -1,0 +1,250 @@
+/*Apply MOLGENIS Styleguide to docs theme*/
+/*Import fonts*/
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap');
+
+/* Set colours for default theme (light) */
+:root {
+    --md-primary-fg-color:        #017FFD;
+    --md-primary-fg-inverse-color: #FAFAFA;
+    --md-primary-fg-color--light: #FFFFFF;
+    --md-primary-fg-color--dark:  #353535;
+    --md-accent-fg-color: #005EC4;
+    --md-accent-fg-color--light: #353535;
+    --md-accent-fg-inverse-color--light: #D4ECFF;
+    --md-accent-bg-color--light: #D4ECFF;
+    --md-primary-bg-color: #FAFAFA;
+    --md-primary-bg-inverse-color: #017FFD;
+}
+
+/* Set colours for dark theme */
+[data-md-color-scheme="slate"] {
+    --md-primary-fg-color: #5DFFAC;
+    --md-accent-fg-color: #00BD55;
+    --md-accent-bg-color--light: #5C5C5C;
+    --md-accent-fg-inverse-color--light: #D1FAE5;
+    --md-accent-fg-color--light: #D1FAE5;
+    --md-primary-bg-color: #353535;
+    --md-primary-fg-inverse-color: #5DFFAC;
+    --md-primary-bg-inverse-color: #353535;
+}
+/* Container for main text*/
+body > div.md-container > main > div > div.md-content {
+    background-color: var(--md-primary-bg-color);
+}
+
+/* Left menu colours*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary{
+    color: var(--md-primary-fg-inverse-color);
+    background-color: var(--md-primary-bg-inverse-color);
+}
+
+/* Selected item left menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a {
+    border: transparent;
+    color: var(--md-primary-fg-inverse-color);
+    border-left-color: var(--md-accent-fg-color);
+    border-left-style: solid;
+    border-left-width: 5px;
+    font-weight: 700;
+}
+
+/* Padding for selected items in menus */
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > ul > li.md-nav__item.md-nav__item--active > a > span,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a.md-nav__link--active > span,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > nav > ul > li > a.md-nav__link--active > span{
+    padding-left: 0.5em;
+}
+
+/* Hover colour in menu*/
+.md-nav__link[href]:hover {
+    color: var(--md-accent-fg-color);
+}
+/* Active colour of secondary menu item*/
+.md-nav__item .md-nav__link--active, .md-nav__item .md-nav__link--active code {
+    color: var(--md-accent-fg-color--light);
+}
+
+/* Label in menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar > div > div > nav > label {
+    background-color: inherit;
+    box-shadow: none;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.7em;
+    line-height: normal;
+}
+
+/* Text colour of title in left menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary > div > div > nav > label {
+    color: var(--md-primary-fg-inverse-color);
+}
+
+/* Text colour of title in right menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > label {
+    color: var(--md-primary-fg-inverse-color);
+}
+/* Styling right menu*/
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary {
+    background-color: var(--md-primary-bg-inverse-color);
+    color: var(--md-primary-fg-inverse-color);
+}
+
+/* Set active styling for right menu */
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > a.md-nav__link--active,
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--secondary > div > div > nav > ul > li > nav > ul > li > a.md-nav__link--active {
+    color: var(--md-accent-fg-inverse-color--light);
+    border-left-color: var(--md-accent-fg-inverse-color--light);
+    border-left-style: solid;
+    border-left-width: 5px;
+    font-weight: 700;
+}
+
+/* Menu styling */
+.md-sidebar {
+    padding: 0.8rem;
+    height: 100%;
+}
+
+/*Set font for all text*/
+body {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    font-style: normal;
+}
+/*Set font and sizes for headings*/
+.md-typeset h1, h2, h3, h4 {
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--md-primary-fg-color);
+}
+
+.md-typeset  h1 {
+    font-size: 82px;
+    border-top-color: var(--md-primary-fg-color);
+    border-top-style: solid;
+    border-top-width: 5px;
+    padding-top: 0.5em;
+    margin-bottom: 0;
+}
+
+.md-typeset h2 {
+    font-size: 64px;
+    margin: 0;
+}
+
+.md-typeset h3 {
+    font-size: 32px;
+    margin: 0;
+}
+
+.md-typeset h4 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.md-typeset h5 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.md-typeset h6 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/*Style blockquote as in styleguide*/
+.md-typeset blockquote  {
+    color: var(--md-accent-fg-color--light);
+    font-size: 14px;
+    font-family: "IBM Plex Mono", sans-serif;
+    font-weight: 300;
+    font-style: italic;
+    padding: 0.1rem 1rem 0.1rem;
+    background-color: var(--md-accent-bg-color--light);
+}
+[dir=ltr] .md-typeset blockquote {
+    border-left-color: var(--md-accent-fg-color);
+}
+
+/*Style code blocks*/
+.rst-content pre code {
+    font-size: 16px;
+}
+.rst-content code {
+    font-family: "IBM Plex Mono", sans-serif;
+}
+
+.md-header__button.md-logo img {
+    height: 2.5em;
+}
+
+.md-typeset a {
+    color: var(--md-primary-fg-color);
+}
+
+.md-main__inner {
+    max-width: 100%;
+}
+
+.md-grid {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Top navbar*/
+body > header.md-header {
+    background-color: var(--md-primary-fg-color--dark);
+    color:  var(--md-primary-fg-color--light);
+    /* this is a negative margin because if we set the top one to be 0, the right navbar stops
+    working properly with active links*/
+    margin-bottom: -1.5rem;
+}
+
+.intro {
+    font-size: 18px;
+    font-family: "IBM Plex Mono", sans-serif;
+    background-color: var(--md-primary-bg-inverse-color)!important;
+    color: var(--md-primary-fg-inverse-color)!important;
+    font-weight: bold;
+    padding: 2rem 3rem 2rem 2rem;
+    margin-left: -1.2rem;
+    margin-right: -1.2rem;
+    margin-top: -1.2rem;
+}
+
+.before-intro {
+    color: var(--md-primary-bg-inverse-color);
+    padding: 2.2rem;
+    margin-left: -1.2rem;
+    margin-right: -1.2rem;
+    margin-top: -2.5rem;
+    background-color: var(--md-primary-bg-inverse-color)!important;
+}
+
+h1.intro {
+    font-weight: 300;
+    background-color: var(--md-primary-bg-inverse-color)!important;
+    color: var(--md-primary-fg-inverse-color)!important;
+    border-color: var(--md-primary-fg-inverse-color);
+    margin: -1.2rem;
+    padding-bottom: 1rem;
+}
+
+.md-typeset img[align]:only-child.armadillo-intro-logo {
+    margin-top: 3rem;
+    max-width: 35%;
+}
+
+.md-typeset .tabbed-labels>label {
+    font-size: 0.8rem;
+}
+
+body > div.md-container > main > div > div.md-content:has(.intro) {
+    background-color: var(--md-primary-bg-inverse-color);
+}
