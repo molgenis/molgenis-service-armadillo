@@ -15,6 +15,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.*;
@@ -200,6 +201,26 @@ public class ArmadilloStorageService {
         .flatMap(List::stream)
         .map(ArmadilloStorageService::toWorkspace)
         .toList();
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public Map<String, List<Workspace>> listUserWorkspaces() {
+    List<String> availableUsers =
+        storageService.listBuckets().stream()
+            .filter((user) -> user.startsWith(USER_PREFIX))
+            .toList();
+    // How to get username from weird id thingy without principal?
+    // can we store weird number thingy?
+    // Do we maybe have it saved already?
+    // Where does it come from?
+    return availableUsers.stream()
+        .collect(
+            Collectors.toMap(
+                userFolder -> userFolder,
+                userFolder ->
+                    storageService.listObjects(userFolder).stream()
+                        .map(ArmadilloStorageService::toWorkspace)
+                        .collect(Collectors.toList())));
   }
 
   public InputStream loadWorkspace(Principal principal, String id) {
