@@ -58,3 +58,4 @@ build/
 /application.yaml
 /application.properties
 .Rproj.user
+site/
