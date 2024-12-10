@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -763,5 +764,117 @@ class ArmadilloStorageServiceTest {
     when(storageService.getInfo(SHARED_GECKO, srcObj)).thenReturn(info);
     FileInfo actual = armadilloStorage.getInfo("gecko", srcObj);
     assertEquals(info, actual);
+  }
+
+  // Test: User has ROLE_SU, and storage service returns expected data
+  @Test
+  @WithMockUser(roles = "SU") // Simulating a user with ROLE_SU
+  void testListAllUserWorkspaces() {
+    ObjectMetadata ws1Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
+
+    when(ws1Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws2Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws3Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+
+    when(ws1Mock.name()).thenReturn("workspace1.RData");
+    when(ws2Mock.name()).thenReturn("workspace2.RData");
+    when(ws3Mock.name()).thenReturn("workspace3.RData");
+
+    when(ws1Mock.size()).thenReturn(1234L);
+    when(ws2Mock.size()).thenReturn(1235L);
+    when(ws3Mock.size()).thenReturn(1236L);
+
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1", "user-bucket2");
+    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock);
+    List<ObjectMetadata> mockObjects2 = singletonList(ws3Mock);
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects1);
+    when(storageService.listObjects("user-bucket2")).thenReturn(mockObjects2);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.size()); // Expecting 2 users/buckets
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.containsKey("user-bucket2"));
+
+    List<Workspace> user1Workspaces = result.get("user-bucket1");
+    assertNotNull(user1Workspaces);
+    assertEquals(2, user1Workspaces.size()); // Expect 2 workspaces for user1
+
+    List<Workspace> user2Workspaces = result.get("user-bucket2");
+    assertNotNull(user2Workspaces);
+    assertEquals(1, user2Workspaces.size()); // Expect 1 workspace for user2
+  }
+
+  // Test: User without ROLE_SU should not access the method
+  @Test
+  @WithMockUser(roles = "RESEARCHER") // Simulating a user without the correct role
+  void testListUserWorkspacesWithUnauthorizedUser() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When & Then: Expecting an access denied exception due to lack of proper role
+    assertThrows(
+        AccessDeniedException.class,
+        () -> {
+          armadilloStorage.listAllUserWorkspaces();
+        });
+  }
+
+  // Test: No buckets available
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoBuckets() {
+    // Given
+    List<String> mockBuckets = Collections.emptyList();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty()); // Expecting an empty map
+  }
+
+  // Test: Single bucket with no workspaces
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoWorkspacesInBucket() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+    List<ObjectMetadata> mockObjects = new ArrayList<>();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size()); // 1 bucket should be present
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.get("user-bucket1").isEmpty()); // Expecting an empty list for workspaces
   }
 }
