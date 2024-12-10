@@ -271,27 +271,31 @@ public class ArmadilloStorageService {
           "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
           oldBucketName,
           newBucketName);
-      // move all data of old bucket to new one
       List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
       existingWorkspaces.forEach(
           (ws) -> {
-            // define workspace from ObjectMetaData
-            String workspaceName = ws.name();
-
-            if (workspaceName.endsWith(RDATA_EXT)) {
-              InputStream wsIs = storageService.load(getOldUserBucketName(principal), ws.name());
-              ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
-              try {
-                LOGGER.info("Moving workspace: [{}]", ws.name());
-                trySaveWorkspace(armadilloWorkspace, principal, ws.name().replace(RDATA_EXT, ""));
-                LOGGER.info("Workspace: [{}] moved to: [{}]", ws.name(), newBucketName);
-              } catch (Exception e) {
-                // Log when we can't migrate workspace
-                LOGGER.warn(
-                    "Can't migrate workspace: [{}], because: {}", ws.name(), e.getMessage());
-              }
+            if (ws.name().endsWith(RDATA_EXT)) {
+              moveWorkspace(ws, principal, oldBucketName, newBucketName);
             }
           });
+    }
+  }
+
+  void moveWorkspace(
+      ObjectMetadata workspaceMetaData,
+      Principal principal,
+      String oldBucketName,
+      String newBucketName) {
+    String workspaceName = workspaceMetaData.name();
+    InputStream wsIs = storageService.load(oldBucketName, workspaceName);
+    ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
+    try {
+      LOGGER.info("Moving workspace: [{}]", workspaceName);
+      trySaveWorkspace(armadilloWorkspace, principal, workspaceName.replace(RDATA_EXT, ""));
+      LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
+    } catch (Exception e) {
+      // Log when we can't migrate workspace
+      LOGGER.warn("Can't migrate workspace: [{}], because: {}", workspaceName, e.getMessage());
     }
   }
 
