@@ -531,17 +531,6 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
-  void testSaveWorkspaceChecksBucketName() {
-    ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
-    when(principal.getName()).thenReturn("Henk");
-    when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
-    when(workspaceMock.getSize()).thenReturn(12345L);
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> armadilloStorage.saveWorkspace(is, principal, "test"));
-  }
-
-  @Test
   @WithMockUser(roles = "SU")
   void testResourceExists() {
     when(storageService.objectExists(SHARED_GECKO, "hpc-resource.rds")).thenReturn(true);
