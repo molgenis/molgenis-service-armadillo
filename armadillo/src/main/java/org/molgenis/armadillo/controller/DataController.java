@@ -406,6 +406,13 @@ public class DataController {
         () -> storage.listWorkspaces(principal), principal, GET_USER_WORKSPACES, Map.of());
   }
 
+  @Operation(summary = "Get all workspaces")
+  @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
+  public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
+    return auditEventPublisher.audit(
+        storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
+  }
+
   @Operation(
       summary = "Delete user workspace",
       responses = {

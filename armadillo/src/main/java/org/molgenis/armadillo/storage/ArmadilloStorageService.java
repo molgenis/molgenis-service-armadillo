@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUserIdentifierFromPrincipal;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -15,10 +16,13 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.Workspace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,7 +38,10 @@ public class ArmadilloStorageService {
   public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
+  public static final String RDATA_EXT = ".RData";
   private final StorageService storageService;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
   public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
@@ -202,21 +209,37 @@ public class ArmadilloStorageService {
         .toList();
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public Map<String, List<Workspace>> listAllUserWorkspaces() {
+    List<String> availableUsers =
+        storageService.listBuckets().stream()
+            .filter((user) -> user.startsWith(USER_PREFIX))
+            .toList();
+    return availableUsers.stream()
+        .collect(
+            Collectors.toMap(
+                userFolder -> userFolder,
+                userFolder ->
+                    storageService.listObjects(userFolder).stream()
+                        .map(ArmadilloStorageService::toWorkspace)
+                        .collect(Collectors.toList())));
+  }
+
   public InputStream loadWorkspace(Principal principal, String id) {
     return storageService.load(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
   private static String getWorkspaceObjectName(String id) {
-    return id + ".RData";
+    return id + RDATA_EXT;
+  }
+
+  private static String getOldUserBucketName(Principal principal) {
+    return USER_PREFIX + principal.getName();
   }
 
   private static String getUserBucketName(Principal principal) {
-    String bucketName = USER_PREFIX + principal.getName();
-    if (!bucketName.matches(BUCKET_REGEX)) {
-      throw new IllegalArgumentException(
-          "Cannot create valid S3 bucket for username " + principal.getName());
-    }
-    return bucketName;
+    String userIdentifier = getUserIdentifierFromPrincipal(principal);
+    return USER_PREFIX + userIdentifier;
   }
 
   private static Workspace toWorkspace(ObjectMetadata item) {
@@ -239,12 +262,51 @@ public class ArmadilloStorageService {
     }
   }
 
+  public void moveWorkspacesIfInOldBucket(Principal principal) {
+    String oldBucketName = getOldUserBucketName(principal);
+    String newBucketName = getUserBucketName(principal);
+    // only move workspaces from old bucket to new if there is no new bucket yet, we don't want to
+    if (storageService.bucketExists(oldBucketName) && !storageService.bucketExists(newBucketName)) {
+      LOGGER.info(
+          "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
+          oldBucketName,
+          newBucketName);
+      List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
+      existingWorkspaces.forEach(
+          (ws) -> {
+            if (ws.name().endsWith(RDATA_EXT)) {
+              moveWorkspace(ws, principal, oldBucketName, newBucketName);
+            }
+          });
+    }
+  }
+
+  void moveWorkspace(
+      ObjectMetadata workspaceMetaData,
+      Principal principal,
+      String oldBucketName,
+      String newBucketName) {
+    String workspaceName = workspaceMetaData.name();
+    InputStream wsIs = storageService.load(oldBucketName, workspaceName);
+    ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
+    try {
+      LOGGER.info("Moving workspace: [{}]", workspaceName);
+      trySaveWorkspace(armadilloWorkspace, principal, workspaceName.replace(RDATA_EXT, ""));
+      LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
+    } catch (Exception e) {
+      // Log when we can't migrate workspace
+      LOGGER.warn("Can't migrate workspace: [{}], because: {}", workspaceName, e.getMessage());
+    }
+  }
+
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");
     long usableSpace = drive.getUsableSpace();
     try {
+      moveWorkspacesIfInOldBucket(principal);
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
+
       long fileSize = workspace.getSize();
       if (usableSpace > fileSize * 2L) {
         trySaveWorkspace(workspace, principal, id);

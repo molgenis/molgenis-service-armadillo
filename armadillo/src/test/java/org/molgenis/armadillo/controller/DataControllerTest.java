@@ -38,7 +38,6 @@ import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
-import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.storage.ArmadilloLinkFile;
@@ -1047,9 +1046,6 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testGetWorkspaces() throws Exception {
-    when(armadilloStorage.listWorkspaces(any(Principal.class)))
-        .thenReturn(List.of(mock(Workspace.class)));
-
     mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -1057,6 +1053,20 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             instant,
             "user",
             "GET_USER_WORKSPACES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetAllWorkspaces() throws Exception {
+
+    mockMvc.perform(get("/all-workspaces").session(session)).andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_ALL_USER_WORKSPACES",
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
   }
 
