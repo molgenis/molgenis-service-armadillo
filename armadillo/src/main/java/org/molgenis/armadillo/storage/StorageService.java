@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 public interface StorageService {
   boolean objectExists(String bucket, String objectName);
 
+  boolean bucketExists(String bucket);
+
   List<String> getUnavailableVariables(String bucketName, String objectName, String variables)
       throws IOException;
 

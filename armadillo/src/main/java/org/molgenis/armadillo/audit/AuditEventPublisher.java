@@ -7,6 +7,7 @@ import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.slf4j.MDC;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,11 +15,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -119,29 +115,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
-    var user = getUser(principal);
+    var user = UserInformationRetriever.getUserIdentifierFromPrincipal(principal);
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
-  }
-
-  static String getUser(Object principal) {
-    if (principal == null) {
-      return ANONYMOUS;
-    } else if (principal instanceof OAuth2AuthenticationToken token) {
-      return token.getPrincipal().getAttribute(EMAIL);
-    } else if (principal instanceof JwtAuthenticationToken token) {
-      return token.getTokenAttributes().get(EMAIL).toString();
-    } else if (principal instanceof DefaultOAuth2User user) {
-      return user.getAttributes().get(EMAIL).toString();
-    } else if (principal instanceof Jwt jwt) {
-      return jwt.getClaims().get(EMAIL).toString();
-    } else if (principal instanceof User user) {
-      return user.getUsername();
-    } else if (principal instanceof Principal p) {
-      return p.getName();
-    } else {
-      return principal.toString();
-    }
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {

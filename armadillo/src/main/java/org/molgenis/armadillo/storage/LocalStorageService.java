@@ -56,8 +56,7 @@ public class LocalStorageService implements StorageService {
 
     try {
       // check bucket
-      Path dir = Paths.get(rootDir, bucketName);
-      if (!Files.exists(dir)) {
+      if (!bucketExists(bucketName)) {
         return false;
       }
       // check object
@@ -66,6 +65,12 @@ public class LocalStorageService implements StorageService {
     } catch (Exception e) {
       throw new StorageException(e);
     }
+  }
+
+  public boolean bucketExists(String bucketName) {
+    // check bucket
+    Path dir = Paths.get(rootDir, bucketName);
+    return Files.exists(dir);
   }
 
   @Override
