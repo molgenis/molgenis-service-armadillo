@@ -38,6 +38,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_ASSIGN_METHODS = "GET_ASSIGN_METHODS";
   public static final String GET_AGGREGATE_METHODS = "GET_AGGREGATE_METHODS";
   public static final String GET_USER_WORKSPACES = "GET_USER_WORKSPACES";
+  public static final String GET_ALL_USER_WORKSPACES = "GET_ALL_USER_WORKSPACES";
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";

@@ -210,7 +210,7 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU')")
-  public Map<String, List<Workspace>> listUserWorkspaces() {
+  public Map<String, List<Workspace>> listAllUserWorkspaces() {
     List<String> availableUsers =
         storageService.listBuckets().stream()
             .filter((user) -> user.startsWith(USER_PREFIX))

@@ -410,7 +410,7 @@ public class DataController {
   @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
   public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
     return auditEventPublisher.audit(
-        storage::listUserWorkspaces, principal, GET_USER_WORKSPACES, Map.of());
+        storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
   }
 
   @Operation(
