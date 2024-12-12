@@ -38,6 +38,14 @@ class UserInformationRetrieverTest {
   }
 
   @Test
+  void testGetObject() {
+    var principal = mock(Object.class);
+    when(principal.toString()).thenReturn("object");
+
+    Assertions.assertEquals("object", getUserIdentifierFromPrincipal(principal));
+  }
+
+  @Test
   void testJwtToken() {
     var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
     when(principal.getTokenAttributes().get("email")).thenReturn("tommy@molgenis.nl");
