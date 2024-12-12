@@ -229,7 +229,7 @@ public class ArmadilloStorageService {
     return storageService.load(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
-  private static String getWorkspaceObjectName(String id) {
+  static String getWorkspaceObjectName(String id) {
     return id + RDATA_EXT;
   }
 
@@ -237,7 +237,7 @@ public class ArmadilloStorageService {
     return USER_PREFIX + principal.getName();
   }
 
-  private static String getUserBucketName(Principal principal) {
+  static String getUserBucketName(Principal principal) {
     String userIdentifier = getUserIdentifierFromPrincipal(principal);
     return USER_PREFIX + userIdentifier;
   }
@@ -274,28 +274,10 @@ public class ArmadilloStorageService {
       List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
       existingWorkspaces.forEach(
           (ws) -> {
-            if (ws.name().endsWith(RDATA_EXT)) {
-              moveWorkspace(ws, principal, oldBucketName, newBucketName);
+            if (ws.name().toLowerCase().endsWith(RDATA_EXT.toLowerCase())) {
+              storageService.moveWorkspace(ws, principal, oldBucketName, newBucketName);
             }
           });
-    }
-  }
-
-  void moveWorkspace(
-      ObjectMetadata workspaceMetaData,
-      Principal principal,
-      String oldBucketName,
-      String newBucketName) {
-    String workspaceName = workspaceMetaData.name();
-    InputStream wsIs = storageService.load(oldBucketName, workspaceName);
-    ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
-    try {
-      LOGGER.info("Moving workspace: [{}]", workspaceName);
-      trySaveWorkspace(armadilloWorkspace, principal, workspaceName.replace(RDATA_EXT, ""));
-      LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
-    } catch (Exception e) {
-      // Log when we can't migrate workspace
-      LOGGER.warn("Can't migrate workspace: [{}], because: {}", workspaceName, e.getMessage());
     }
   }
 

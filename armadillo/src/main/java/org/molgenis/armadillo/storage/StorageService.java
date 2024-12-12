@@ -3,6 +3,7 @@ package org.molgenis.armadillo.storage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.security.Principal;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.List;
@@ -58,4 +59,10 @@ public interface StorageService {
   }
 
   ArmadilloWorkspace getWorkSpace(InputStream is);
+
+  void moveWorkspace(
+      ObjectMetadata workspaceMetaData,
+      Principal principal,
+      String oldBucketName,
+      String newBucketName);
 }
