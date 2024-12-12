@@ -229,14 +229,11 @@ public class LocalStorageService implements StorageService {
     ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
     try {
       LOGGER.info("Moving workspace: [{}]", workspaceName);
-
       save(
           armadilloWorkspace.createInputStream(),
           getUserBucketName(principal),
           getWorkspaceObjectName(workspaceName.replace(RDATA_EXT, "")),
           APPLICATION_OCTET_STREAM);
-
-      //      trySaveWorkspace(armadilloWorkspace, principal, workspaceName.replace(RDATA_EXT, ""));
       LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
     } catch (Exception e) {
       // Log when we can't migrate workspace
