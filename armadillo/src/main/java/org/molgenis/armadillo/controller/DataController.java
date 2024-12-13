@@ -420,13 +420,7 @@ public class DataController {
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(
-      @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          String id,
-      Principal principal) {
+  public void removeWorkspace(@PathVariable String id, Principal principal) {
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspace(principal, id);
@@ -440,13 +434,7 @@ public class DataController {
   @DeleteMapping(value = "/workspaces/{user}/{id}")
   @ResponseStatus(OK)
   public void removeUserWorkspace(
-      @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          String user,
-      String id,
-      Principal principal) {
+      @PathVariable String user, @PathVariable String id, Principal principal) {
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspaceByStringUserId(user, id);
