@@ -406,6 +406,13 @@ public class DataController {
         () -> storage.listWorkspaces(principal), principal, GET_USER_WORKSPACES, Map.of());
   }
 
+  @Operation(summary = "Get all workspaces")
+  @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
+  public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
+    return auditEventPublisher.audit(
+        storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
+  }
+
   @Operation(
       summary = "Delete user workspace",
       responses = {
@@ -413,13 +420,7 @@ public class DataController {
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(
-      @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          String id,
-      Principal principal) {
+  public void removeWorkspace(@PathVariable String id, Principal principal) {
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspace(principal, id);
@@ -428,6 +429,20 @@ public class DataController {
         principal,
         DELETE_USER_WORKSPACE,
         Map.of(ID, id));
+  }
+
+  @DeleteMapping(value = "/workspaces/{user}/{id}")
+  @ResponseStatus(OK)
+  public void removeUserWorkspace(
+      @PathVariable String user, @PathVariable String id, Principal principal) {
+    auditEventPublisher.audit(
+        () -> {
+          storage.removeWorkspaceByStringUserId(user, id);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(ID, id, USER, user));
   }
 
   @Operation(summary = "Save user workspace")

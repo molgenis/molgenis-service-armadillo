@@ -3,6 +3,7 @@ package org.molgenis.armadillo.storage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.security.Principal;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.springframework.http.MediaType;
 
 public interface StorageService {
   boolean objectExists(String bucket, String objectName);
+
+  boolean bucketExists(String bucket);
 
   List<String> getUnavailableVariables(String bucketName, String objectName, String variables)
       throws IOException;
@@ -56,4 +59,10 @@ public interface StorageService {
   }
 
   ArmadilloWorkspace getWorkSpace(InputStream is);
+
+  void moveWorkspace(
+      ObjectMetadata workspaceMetaData,
+      Principal principal,
+      String oldBucketName,
+      String newBucketName);
 }
