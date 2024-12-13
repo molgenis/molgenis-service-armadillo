@@ -437,6 +437,26 @@ public class DataController {
         Map.of(ID, id));
   }
 
+  @DeleteMapping(value = "/workspaces/{user}/{id}")
+  @ResponseStatus(OK)
+  public void removeUserWorkspace(
+      @PathVariable
+          @Pattern(
+              regexp = WORKSPACE_ID_FORMAT_REGEX,
+              message = "Please use only letters, numbers, dashes or underscores")
+          String user,
+      String id,
+      Principal principal) {
+    auditEventPublisher.audit(
+        () -> {
+          storage.removeWorkspaceByStringUserId(user, id);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(ID, id, USER, user));
+  }
+
   @Operation(summary = "Save user workspace")
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)

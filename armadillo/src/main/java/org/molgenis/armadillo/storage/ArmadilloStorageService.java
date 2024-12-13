@@ -307,6 +307,10 @@ public class ArmadilloStorageService {
     storageService.delete(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
+  public void removeWorkspaceByStringUserId(String userId, String id) {
+    storageService.delete(USER_PREFIX + userId, getWorkspaceObjectName(id));
+  }
+
   public void saveSystemFile(InputStream is, String name, MediaType mediaType) {
     storageService.save(is, SYSTEM, name, mediaType);
   }
