@@ -1,4 +1,5 @@
 site_name: MOLGENIS Armadillo Docs
+site_url: https://molgenis.github.io/molgenis-service-armadillo/
 repo_name: MOLGENIS Armadillo
 repo_url: https://github.com/molgenis/molgenis-service-armadillo
 theme:
