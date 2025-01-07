@@ -432,12 +432,16 @@ public class DataController {
   }
 
   @DeleteMapping(value = "/workspaces/{user}/{id}")
-  @ResponseStatus(OK)
+  @ResponseStatus(NO_CONTENT)
   public void removeUserWorkspace(
       @PathVariable String user, @PathVariable String id, Principal principal) {
+    if (user.contains("@")) {
+      user = user.replace("@", "__at__");
+    }
+    String finalUser = user;
     auditEventPublisher.audit(
         () -> {
-          storage.removeWorkspaceByStringUserId(user, id);
+          storage.removeWorkspaceByStringUserId(finalUser, id);
           return null;
         },
         principal,
