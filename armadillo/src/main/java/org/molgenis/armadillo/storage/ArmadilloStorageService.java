@@ -238,7 +238,7 @@ public class ArmadilloStorageService {
   }
 
   static String getUserBucketName(Principal principal) {
-    String userIdentifier = getUserIdentifierFromPrincipal(principal);
+    String userIdentifier = getUserIdentifierFromPrincipal(principal).replace("@", "__at__");
     return USER_PREFIX + userIdentifier;
   }
 
