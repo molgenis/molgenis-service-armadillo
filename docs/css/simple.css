@@ -248,3 +248,17 @@ h1.intro {
 body > div.md-container > main > div > div.md-content:has(.intro) {
     background-color: var(--md-primary-bg-inverse-color);
 }
+
+.md-nav--primary .md-nav__item--active>.md-nav__link {
+    color: var(--md-accent-fg-color--light)!important;
+}
+
+.md-nav.md-nav--primary, .md-nav__item {
+    background-color: var(--md-primary-bg-inverse-color);
+    color: var(--md-primary-fg-inverse-color);
+}
+
+.md-nav__source {
+    background-color: var(--md-primary-bg-inverse-color);
+    color: var(--md-primary-fg-inverse-color);
+}
