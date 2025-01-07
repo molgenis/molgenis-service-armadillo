@@ -1,7 +1,7 @@
 .
 {.before-intro}
 
-![Image title](/img/armadillo-logo-border.png){ align=right .armadillo-intro-logo}
+![Armadillo logo](img/armadillo-logo-border.png){ align=right .armadillo-intro-logo}
 <h1 class="intro">MOLGENIS Armadillo</h1>
 A simple, user-friendly, open source solution for implementing federated analysis.<br/><br/><br/>
 Armadillo is a data portal that allows data stewards to share datasets on a server,
