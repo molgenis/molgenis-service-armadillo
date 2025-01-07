@@ -262,3 +262,8 @@ body > div.md-container > main > div > div.md-content:has(.intro) {
     background-color: var(--md-primary-bg-inverse-color);
     color: var(--md-primary-fg-inverse-color);
 }
+
+body > div.md-container > main > div > div.md-sidebar.md-sidebar--primary > div > div > nav > label > a > img {
+    margin: auto;
+    padding: 0.2rem;
+}
