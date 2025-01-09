@@ -12,6 +12,8 @@ import java.util.Map;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
+  public String getRootDir();
+
   boolean objectExists(String bucket, String objectName);
 
   boolean bucketExists(String bucket);

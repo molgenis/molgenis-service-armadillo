@@ -26,7 +26,11 @@ public class LocalStorageService implements StorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
-  final String rootDir;
+  public final String rootDir;
+
+  public String getRootDir() {
+    return rootDir;
+  }
 
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);
@@ -231,13 +235,14 @@ public class LocalStorageService implements StorageService {
       LOGGER.info("Moving workspace: [{}]", workspaceName);
       save(
           armadilloWorkspace.createInputStream(),
-          getUserBucketName(principal),
-          getWorkspaceObjectName(workspaceName.replace(RDATA_EXT, "")),
+          newBucketName,
+          workspaceName,
           APPLICATION_OCTET_STREAM);
       LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
     } catch (Exception e) {
       // Log when we can't migrate workspace
       LOGGER.warn("Can't migrate workspace: [{}], because: {}", workspaceName, e.getMessage());
+      throw new StorageException(e);
     }
   }
 

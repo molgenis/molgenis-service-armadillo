@@ -10,9 +10,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -266,6 +269,7 @@ public class ArmadilloStorageService {
     String oldBucketName = getOldUserBucketName(principal);
     String newBucketName = getUserBucketName(principal);
     // only move workspaces from old bucket to new if there is no new bucket yet, we don't want to
+    List<String> migrationStatus = new ArrayList<>();
     if (storageService.bucketExists(oldBucketName) && !storageService.bucketExists(newBucketName)) {
       LOGGER.info(
           "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
@@ -274,10 +278,41 @@ public class ArmadilloStorageService {
       List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
       existingWorkspaces.forEach(
           (ws) -> {
+            String message = "";
             if (ws.name().toLowerCase().endsWith(RDATA_EXT.toLowerCase())) {
-              storageService.moveWorkspace(ws, principal, oldBucketName, newBucketName);
+              try {
+                storageService.moveWorkspace(ws, principal, oldBucketName, newBucketName);
+                message =
+                    format(
+                        "Successfully migrated workspace [%s] from [%s] to [%s]",
+                        ws.name(), oldBucketName, newBucketName);
+              } catch (StorageException e) {
+                message =
+                    format(
+                        "Can't migrate workspace [%s] from [%s] to [%s], because [%s]. Workspace needs to be moved manually.",
+                        ws.name(), oldBucketName, newBucketName, e.getMessage());
+              } finally {
+                migrationStatus.add(message);
+              }
             }
           });
+      try {
+        writeMigrationFile(migrationStatus, newBucketName);
+      } catch (FileNotFoundException e) {
+        LOGGER.warn("Can't write migration status file for user [{}].", newBucketName);
+      }
+    }
+  }
+
+  private void writeMigrationFile(List<String> migrationStatus, String bucketName)
+      throws FileNotFoundException {
+    Path bucketPath =
+        Paths.get(storageService.getRootDir(), bucketName).toAbsolutePath().normalize();
+    Path path = Paths.get(bucketPath + "/migration-status.txt");
+    try {
+      Files.write(path, migrationStatus, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      LOGGER.warn("Cannot write migration file to [{}] because: [{}]", path, e.getMessage());
     }
   }
 
