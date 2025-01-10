@@ -50,6 +50,7 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.obiba.datashield.r.expr.v2.ParseException;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -86,6 +87,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @MockBean private DSEnvironmentCache environments;
   @Mock private RockResult rexp;
   @Mock private DSEnvironment assignEnvironment;
+  @Autowired private DataController dataController;
 
   @Test
   @WithMockUser
@@ -358,6 +360,31 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             "henk",
             "DELETE_USER_WORKSPACE",
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"), "id", "test")));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testDeleteWorkspaceOfUser() throws Exception {
+    mockMvc
+        .perform(delete("/workspaces/henk@email.com/test").session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).removeWorkspaceByStringUserId("henk__at__email.com", "test");
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "DELETE_USER_WORKSPACE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "id",
+                "test",
+                "user",
+                "henk@email.com")));
   }
 
   @Test
@@ -1085,5 +1112,11 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     expected.put("folder", "somethingElse");
     expected.put("RESOURCE", "Blaat");
     assertEquals(matchedData, expected);
+  }
+
+  @Test
+  void testGetSafeUserNameForFile() {
+    String user = "username@email.com";
+    assertEquals("username__at__email.com", dataController.getSafeUsernameForFileSystem(user));
   }
 }

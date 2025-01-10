@@ -435,10 +435,7 @@ public class DataController {
   @ResponseStatus(NO_CONTENT)
   public void removeUserWorkspace(
       @PathVariable String user, @PathVariable String id, Principal principal) {
-    if (user.contains("@")) {
-      user = user.replace("@", "__at__");
-    }
-    String finalUser = user;
+    String finalUser = getSafeUsernameForFileSystem(user);
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspaceByStringUserId(finalUser, id);
@@ -530,6 +527,15 @@ public class DataController {
     return variableList.size() == 0
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
+  }
+
+  String getSafeUsernameForFileSystem(String user) {
+    // replaces the @ in email addresses because when we use it as name of a folder, not all
+    // filesystems might like it
+    if (user.contains("@")) {
+      user = user.replace("@", "__at__");
+    }
+    return user;
   }
 
   private CompletableFuture<ResponseEntity<Void>> loadTableFromLinkFile(
