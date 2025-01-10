@@ -56,7 +56,7 @@ class ArmadilloStorageServiceTest {
   private static final String USER_ID = "very-random-id";
   private static final String USER_EMAIL = "user@email.com";
   private static final String OLD_BUCKET = "user-very-random-id";
-  private static final String NEW_BUCKET = "user-user@email.com";
+  private static final String NEW_BUCKET = "user-user__at__email.com";
 
   @MockBean StorageService storageService;
   @Mock Principal principal;
@@ -521,19 +521,31 @@ class ArmadilloStorageServiceTest {
     ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
     when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
     when(workspaceMock.getSize()).thenReturn(123456789123456789L);
-    assertThrows(
-        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      assertThrows(
+          StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    }
   }
 
   @Test
   void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
     when(storageService.getWorkSpace(is))
         .thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
-    try {
-      armadilloStorage.saveWorkspace(is, principal, "test");
-    } catch (StorageException e) {
-      assertEquals(
-          "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      try {
+        armadilloStorage.saveWorkspace(is, principal, "test");
+      } catch (StorageException e) {
+        assertEquals(
+            "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+      }
     }
   }
 
@@ -894,15 +906,18 @@ class ArmadilloStorageServiceTest {
     when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
     when(principal.getName()).thenReturn(USER_ID);
     when(item.name()).thenReturn("workspace1.RData");
+    when(storageService.getRootDir()).thenReturn("/mock/root");
 
-    try (MockedStatic<UserInformationRetriever> infoRetriever =
-        Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
-      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-      verify(storageService, times(1))
-          .moveWorkspace(eq(item), eq(principal), eq(OLD_BUCKET), eq(NEW_BUCKET));
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      try (MockedStatic<UserInformationRetriever> infoRetriever =
+          Mockito.mockStatic(UserInformationRetriever.class)) {
+        infoRetriever
+            .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+            .thenReturn(USER_EMAIL);
+        armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+        verify(storageService, times(1))
+            .moveWorkspace(eq(item), eq(principal), eq(OLD_BUCKET), eq(NEW_BUCKET));
+      }
     }
   }
 
@@ -912,9 +927,15 @@ class ArmadilloStorageServiceTest {
     when(storageService.bucketExists(OLD_BUCKET)).thenReturn(false);
     when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
 
-    armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
-    verify(storageService, never()).listObjects(any());
+      verify(storageService, never()).listObjects(any());
+    }
   }
 
   // Test case 3: new bucket already exists, so no workspaces should be moved
@@ -923,10 +944,16 @@ class ArmadilloStorageServiceTest {
     when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
     when(storageService.bucketExists(NEW_BUCKET)).thenReturn(true);
 
-    armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
-    verify(storageService, never()).listObjects(any());
-    verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+      verify(storageService, never()).listObjects(any());
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
   }
 
   // Test case 4: old bucket exists, new bucket does not exist, but no workspaces to move
@@ -936,9 +963,15 @@ class ArmadilloStorageServiceTest {
     when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
     when(storageService.listObjects(OLD_BUCKET)).thenReturn(Collections.emptyList());
 
-    armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
-    verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
   }
 
   // Test case 5: old bucket exists, new bucket does not exist, but workspace with wrong extension
@@ -950,6 +983,7 @@ class ArmadilloStorageServiceTest {
     when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
     when(principal.getName()).thenReturn(USER_ID);
     when(item.name()).thenReturn("workspace1.txt");
+    when(storageService.getRootDir()).thenReturn("/mock/root");
 
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
