@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -975,6 +976,110 @@ class ArmadilloStorageServiceTest {
           .thenReturn(USER_EMAIL);
       assertThrows(
           RuntimeException.class, () -> armadilloStorage.moveWorkspacesIfInOldBucket(principal));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_success() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2", "migration3");
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Call the method
+      armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+
+      // Create the expected path
+      Path expectedPath = Paths.get("/mock/root", bucketName, "migration-status.txt");
+
+      // Verify that Files.write was called with the correct parameters
+      mockedFiles.verify(
+          () ->
+              Files.write(
+                  eq(expectedPath),
+                  eq(migrationStatus),
+                  eq(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_writeFailure() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2", "migration3");
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Simulate IOException when trying to write the file
+      mockedFiles
+          .when(() -> Files.write(any(Path.class), anyList(), any()))
+          .thenThrow(new IOException("Permission denied"));
+
+      // Call the method
+      try {
+        armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+      } catch (IOException e) {
+        assertTrue(e.getMessage().contains("Permission denied"));
+      }
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_emptyMigrationStatus() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of(); // Empty list
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Call the method with empty migration status
+      armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+
+      // Create the expected path
+      Path expectedPath = Paths.get("/mock/root", bucketName, "migration-status.txt");
+
+      // Verify that Files.write is still called with an empty list
+      mockedFiles.verify(
+          () ->
+              Files.write(
+                  eq(expectedPath),
+                  eq(migrationStatus),
+                  eq(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_invalidBucket() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2");
+    String bucketName = "invalidBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Simulate an invalid bucket by making the path creation fail
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Simulate a situation where creating the path causes an exception
+      mockedFiles
+          .when(() -> Files.write(any(Path.class), anyList(), any()))
+          .thenThrow(new IOException("Invalid bucket path"));
+
+      // Call the method
+      try {
+        armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+      } catch (IOException e) {
+        assertTrue(e.getMessage().contains("Invalid bucket path"));
+      }
     }
   }
 }

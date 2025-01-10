@@ -304,7 +304,7 @@ public class ArmadilloStorageService {
     }
   }
 
-  private void writeMigrationFile(List<String> migrationStatus, String bucketName)
+  void writeMigrationFile(List<String> migrationStatus, String bucketName)
       throws FileNotFoundException {
     Path bucketPath =
         Paths.get(storageService.getRootDir(), bucketName).toAbsolutePath().normalize();
