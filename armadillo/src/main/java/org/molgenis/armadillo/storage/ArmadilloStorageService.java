@@ -342,6 +342,7 @@ public class ArmadilloStorageService {
     storageService.delete(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
   public void removeWorkspaceByStringUserId(String userId, String id) {
     storageService.delete(USER_PREFIX + userId, getWorkspaceObjectName(id));
   }
