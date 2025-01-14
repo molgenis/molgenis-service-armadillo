@@ -332,3 +332,7 @@ export async function getFreeDiskSpace(): Promise<number> {
     return Number(data.measurements[0].value);
   });
 }
+
+export async function getWorkspaceDetails() {
+  return get(`/all-workspaces`);
+}
