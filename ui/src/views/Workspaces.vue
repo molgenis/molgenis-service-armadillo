@@ -72,6 +72,9 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
+import { Workspace } from "@/types/api";
+import { getWorkspaceDetails } from "@/api/api";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
@@ -90,19 +93,27 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
     const previewParam = ref();
+    const workspaces: Ref<Workspace[]> = ref([]);
     onMounted(() => {
       console.log(workspaceComponent);
       watch(
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
-          console.log(newVal);
           if (newVal != undefined) {
             emit("selectUser", newVal);
             selectedUser.value = newVal;
           }
         }
       );
+      loadWorkspaces();
     });
+    const loadWorkspaces = async () => {
+      workspaces.value = await getWorkspaceDetails().catch((error: string) => {
+        errorMessage.value = processErrorMessages(error, "workspaces", router);
+        return [];
+      });
+      console.log("Updated workspace value:", workspaces.value);
+    };
     return {
       route,
       router,
