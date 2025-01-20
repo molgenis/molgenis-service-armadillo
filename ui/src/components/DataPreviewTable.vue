@@ -6,8 +6,11 @@
     <thead>
       <tr>
         <!-- for each key of the first element of data-->
-        <th scope="col" v-for="key in tableHeader" :key="key">
+        <th scope="col" v-if="maxWidth" v-for="key in tableHeader" :key="key">
           {{ key }}
+        </th>
+        <th scope="col" v-else v-for="(key, index) in tableKeys" :key="index">
+          {{ toCapitalizedWords(key) }}
         </th>
       </tr>
     </thead>
@@ -16,7 +19,11 @@
       <tr v-for="(row, index) in dataToPreview" :key="index">
         <!-- for each value in row -->
         <td v-for="(value, key, index) in row" :key="key">
-          <span v-if="value.toString().length > tableHeader[index].length">
+          <span
+            v-if="
+              maxWidth && value.toString().length > tableHeader[index].length
+            "
+          >
             {{ value.toString().slice(0, tableHeader[index].length - 2) }}..
           </span>
           <span v-else>
@@ -31,29 +38,38 @@
 <script lang="ts">
 import { ListOfObjectsWithStringKey, StringArray } from "@/types/types";
 import { defineComponent, PropType } from "vue";
-import { isIntArray, transformTable, truncate } from "@/helpers/utils";
+import {
+  isIntArray,
+  transformTable,
+  truncate,
+  toCapitalizedWords,
+} from "@/helpers/utils";
 
 export default defineComponent({
   name: "DataPreviewTable",
   props: {
     data: {
-      type: Array as PropType<{ [key: string]: string }[]>,
+      type: Array as PropType<{ [key: string]: string | number }[]>,
       required: true,
     },
     maxWidth: {
       type: Number,
-      required: true,
+      required: false,
     },
     nRows: {
       type: Number,
       required: true,
+    },
+    sortedHeaders: {
+      type: Array,
+      required: false,
     },
   },
   computed: {
     maxNumberCharacters() {
       const l = this.tableKeys.length;
       // max width divided by number of characters * fontsize to evenly spread headers
-      return Math.floor(this.maxWidth / (l * 16));
+      return this.maxWidth ? Math.floor(this.maxWidth / (l * 16)) : undefined;
     },
     dataToPreview() {
       // converting ints to in, otherwise the id numbers look awkward
@@ -78,9 +94,6 @@ export default defineComponent({
       });
       return dataToPreview;
     },
-    tableKeys() {
-      return Object.keys(this.data[0]);
-    },
     tableHeader() {
       return this.data.length > 0
         ? this.tableKeys.map((item) => {
@@ -90,6 +103,14 @@ export default defineComponent({
           })
         : [];
     },
+    tableKeys() {
+      return this.sortedHeaders
+        ? this.sortedHeaders
+        : Object.keys(this.data[0]);
+    },
+  },
+  methods: {
+    toCapitalizedWords,
   },
 });
 </script>
