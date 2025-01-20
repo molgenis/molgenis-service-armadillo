@@ -154,7 +154,6 @@ async function getMetrics(): Promise<string[]> {
       if (data.hasOwnProperty("names")) {
         return data.names;
       } else {
-        console.log("No names found in the data");
         return [];
       }
     })
@@ -333,6 +332,6 @@ export async function getFreeDiskSpace(): Promise<number> {
   });
 }
 
-export async function getWorkspaceDetails() {
-  return get(`/all-workspaces`);
+export async function getWorkspaceDetails(): Promise<StringArray> {
+  return get("/all-workspaces");
 }
