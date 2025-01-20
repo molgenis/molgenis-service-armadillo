@@ -120,5 +120,5 @@ export type Metrics = Dictionary<Metric>;
 export type Workspace = {
   name: string;
   size: number;
-  lastModified: Date;
+  lastModified: string;
 };
