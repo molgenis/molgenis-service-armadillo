@@ -43,11 +43,12 @@
             ></ListGroup>
           </div>
           <div class="col-6" :style="{}" ref="workspaceDetails">
-            <!--<DataPreviewTable
-                :data="filePreview"
-                :maxWidth="previewContainerWidth"
-                :n-rows="fileInfo.dataSizeRows"
-              ></DataPreviewTable>-->
+            <DataPreviewTable
+              v-if="selectedUser"
+              :data="workspaces[selectedUser]"
+              :sortedHeaders="['name', 'size', 'lastModified']"
+              :nRows="2"
+            ></DataPreviewTable>
           </div>
         </div>
       </div>
@@ -95,7 +96,6 @@ export default defineComponent({
     const previewParam = ref();
     const workspaces: Ref<Workspace[]> = ref([]);
     onMounted(() => {
-      console.log(workspaceComponent);
       watch(
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
@@ -112,7 +112,6 @@ export default defineComponent({
         errorMessage.value = processErrorMessages(error, "workspaces", router);
         return [];
       });
-      console.log("Updated workspace value:", workspaces.value);
     };
     return {
       route,
@@ -120,76 +119,11 @@ export default defineComponent({
       errorMessage,
       previewParam,
       selectedUser,
+      workspaces,
     };
   },
   data() {
     return {
-      workspaces: {
-        "user-1bd26c22-4a9a-480a-80e7-6acbed34bc05": [
-          {
-            name: "cohort_2:test_workspace_2",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:49.107+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_2",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:48.877+01:00",
-          },
-          {
-            name: "cohort_2:test_workspace_1",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:37.2+01:00",
-          },
-          {
-            name: "cohort_2:test_workspace_3",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:52.65+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_3",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:52.418+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_1",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:36.963+01:00",
-          },
-        ],
-        "user-e6de84fa-d08d-43e4-9558-bb9fba1528b9": [
-          {
-            name: "cohort_2:test_workspace_2",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:49.107+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_2",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:48.877+01:00",
-          },
-          {
-            name: "cohort_2:test_workspace_1",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:37.2+01:00",
-          },
-          {
-            name: "cohort_2:test_workspace_3",
-            size: 172681,
-            lastModified: "2024-12-05T12:27:52.65+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_3",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:52.418+01:00",
-          },
-          {
-            name: "cohort_1:test_workspace_1",
-            size: 174014,
-            lastModified: "2024-12-05T12:27:36.963+01:00",
-          },
-        ],
-      },
       loading: false,
     };
   },
