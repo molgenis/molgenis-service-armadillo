@@ -80,13 +80,22 @@ export function isInt(itemToCheck: number) {
 export function isIntArray(listOfItems: StringArray) {
   let itemIsIntArray = true;
   listOfItems.forEach((item) => {
-    const numberToCheck = parseFloat(item);
-    if (!isInt(numberToCheck)) {
+    if (!isDate(item)) {
+      const numberToCheck = parseFloat(item);
+      if (!isInt(numberToCheck)) {
+        itemIsIntArray = false;
+        return;
+      }
+    } else {
       itemIsIntArray = false;
       return;
     }
   });
   return itemIsIntArray;
+}
+
+export function isDate(item: string) {
+  return new Date(item) !== "NaN";
 }
 
 export function transformTable(table: { [key: string]: string }[]) {
