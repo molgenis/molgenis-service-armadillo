@@ -121,7 +121,7 @@ describe("utils", () => {
     it("should return false for actual float", () => {
       const actual = isInt(3.01);
       expect(actual).toBe(false);
-    });
+    })
   });
 
   describe("isIntArray", () => {
@@ -136,6 +136,14 @@ describe("utils", () => {
     it("should return false for string array with ints", () => {
       const actual = isIntArray(["1", "1", "2"]);
       expect(actual).toBe(true);
+    });
+    it("should return false for string array with dates", () => {
+      const actual = isIntArray(["2024-12-05T12:27:49.107+01:00", "2024-12-05T12:27:49.107+01:00", "2024-12-05T12:27:49.107+01:00"]);
+      expect(actual).toBe(false);
+    });
+    it("should return false for string array with strings", () => {
+      const actual = isIntArray(["test1", "test2", "test3"]);
+      expect(actual).toBe(false);
     });
   });
 
