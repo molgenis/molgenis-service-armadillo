@@ -45,7 +45,7 @@
           <div class="col-6" :style="{}" ref="workspaceDetails">
             <DataPreviewTable
               v-if="selectedUser"
-              :data="workspaces[selectedUser]"
+              :data="formattedWorkspaces[selectedUser]"
               :sortedHeaders="['name', 'size', 'lastModified']"
               :nRows="2"
             ></DataPreviewTable>
@@ -62,7 +62,7 @@ import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import {} from "@/api/api";
-import {} from "@/helpers/utils";
+import { convertBytes } from "@/helpers/utils";
 import {
   defineComponent,
   onMounted,
@@ -131,5 +131,19 @@ export default defineComponent({
     deleteUserWorkspace() {},
     showSelectedUser() {},
   },
+  computed: {
+  formattedWorkspaces() {
+    console.log(typeof this.workspaces);
+    return Object.entries(this.workspaces).reduce((result, [userId, workspaces]) => {
+      result[userId] = workspaces.map(workspace => ({
+        name: workspace.name,
+        size: convertBytes(workspace.size),
+        lastModified: Date(workspace.lastModified),
+      }));
+      return result;
+    }, {});
+  }
+}
+,
 });
 </script>
