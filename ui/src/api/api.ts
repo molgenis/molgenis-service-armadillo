@@ -335,3 +335,7 @@ export async function getFreeDiskSpace(): Promise<number> {
 export async function getWorkspaceDetails(): Promise<StringArray> {
   return get("/all-workspaces");
 }
+
+export async function deleteUserWorkspace(idWorkspace: string) {
+  return delete_("/workspaces", idWorkspace);
+}
