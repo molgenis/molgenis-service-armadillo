@@ -94,8 +94,9 @@ export function isIntArray(listOfItems: StringArray) {
   return itemIsIntArray;
 }
 
-export function isDate(item: string) {
-  return new Date(item) !== "NaN";
+function isDate(item: string) {
+  const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/;
+  return iso8601Regex.test(item);
 }
 
 export function transformTable(table: { [key: string]: string }[]) {
