@@ -21,6 +21,7 @@ import {
   ObjectWithStringKey,
   StringArray,
   ListOfObjectsWithStringKey,
+  Workspaces
 } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -332,10 +333,10 @@ export async function getFreeDiskSpace(): Promise<number> {
   });
 }
 
-export async function getWorkspaceDetails(): Promise<StringArray> {
+export async function getWorkspaceDetails(): Promise<Workspaces> {
   return get("/all-workspaces");
 }
 
-export async function deleteUserWorkspace(idWorkspace: string) {
-  return delete_("/workspaces", idWorkspace);
+export async function deleteUserWorkspace(deletePath: string) {
+  return delete_("/workspaces", deletePath);
 }
