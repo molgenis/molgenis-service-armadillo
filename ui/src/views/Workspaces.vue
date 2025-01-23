@@ -73,9 +73,9 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
-import { Workspace } from "@/types/api";
-import { getWorkspaceDetails } from "@/api/api";
+import { getWorkspaceDetails, deleteUserWorkspace } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import { Workspaces } from "@/types/types";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
@@ -94,7 +94,7 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
     const previewParam = ref();
-    const workspaces: Ref<Workspace[]> = ref([]);
+    const workspaces: Ref<Workspaces[]> = ref([]);
     onMounted(() => {
       watch(
         () => workspaceComponent.value?.selectedItem,
@@ -128,7 +128,13 @@ export default defineComponent({
     };
   },
   methods: {
-    deleteUserWorkspace() {},
+    deleteAllWorkspaces(workspaces: Workspaces, selectedUser: string) {
+      const userWorkspaces = workspaces[selectedUser];
+      userWorkspaces.forEach((workspace) => {
+      const deletepath = selectedUser.replace("user-", "") + workspace.name
+          deleteUserWorkspace(deletepath);
+        })
+      },
     showSelectedUser() {},
   },
   computed: {
