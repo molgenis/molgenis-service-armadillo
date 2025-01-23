@@ -116,9 +116,3 @@ export type Metric = {
 };
 
 export type Metrics = Dictionary<Metric>;
-
-export type Workspace = {
-  name: string;
-  size: number;
-  lastModified: string;
-};
