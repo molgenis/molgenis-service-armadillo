@@ -102,6 +102,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/workspaces": {
+        target: {
+          protocol: "http:",
+          host: "localhost",
+          port: 8080,
+        },
+      }
     },
   },
 });
