@@ -337,6 +337,6 @@ export async function getWorkspaceDetails(): Promise<Workspaces> {
   return get("/all-workspaces");
 }
 
-export async function deleteUserWorkspace(deletePath: string) {
-  return delete_("/workspaces", deletePath);
+export async function deleteUserWorkspace(user: string, workspace: string) {
+  return delete_("/workspaces" ,`${user}/${workspace}`)
 }
