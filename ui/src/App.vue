@@ -125,7 +125,7 @@ export default defineComponent({
       tabIcons: [
         "clipboard2-data",
         "people-fill",
-        "bi-person-workspace",
+        "person-workspace",
         "shield-shaded",
         "brilliance",
       ],
