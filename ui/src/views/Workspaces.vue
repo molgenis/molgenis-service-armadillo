@@ -24,7 +24,7 @@
         <button
           type="button"
           class="btn btn-danger bg-danger"
-          @click="deleteUserWorkspace"
+          @click="deleteAllWorkspaces(workspaces, selectedUser)"
         >
           <i class="bi bi-trash-fill"></i>
         </button>
@@ -75,7 +75,7 @@ import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { getWorkspaceDetails, deleteUserWorkspace } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { Workspaces } from "@/types/types";
+import { FormattedWorkspaces, Workspace, Workspaces } from "@/types/types";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
@@ -94,7 +94,7 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
     const previewParam = ref();
-    const workspaces: Ref<Workspaces[]> = ref([]);
+    const workspaces: Ref<Workspaces> = ref({});
     onMounted(() => {
       watch(
         () => workspaceComponent.value?.selectedItem,
@@ -110,7 +110,7 @@ export default defineComponent({
     const loadWorkspaces = async () => {
       workspaces.value = await getWorkspaceDetails().catch((error: string) => {
         errorMessage.value = processErrorMessages(error, "workspaces", router);
-        return [];
+        return {};
       });
     };
     return {
@@ -139,12 +139,11 @@ export default defineComponent({
   },
   computed: {
   formattedWorkspaces() {
-    console.log(typeof this.workspaces);
-    return Object.entries(this.workspaces).reduce((result, [userId, workspaces]) => {
-      result[userId] = workspaces.map(workspace => ({
+    return Object.entries(this.workspaces).reduce((result: FormattedWorkspaces, [userId, workspaces]) => {
+      result[userId] = workspaces.map((workspace: Workspace) => ({
         name: workspace.name,
         size: convertBytes(workspace.size),
-        lastModified: Date(workspace.lastModified),
+        lastModified: new Date(workspace.lastModified),
       }));
       return result;
     }, {});

@@ -138,3 +138,11 @@ export type Workspace = {
 };
 
 export type Workspaces = Record<string, Workspace[]>;
+
+export type FormattedWorkspace = {
+  name: string;
+  size: string;
+  lastModified: Date;
+};
+
+export type FormattedWorkspaces = Record<string, FormattedWorkspace[]>;
