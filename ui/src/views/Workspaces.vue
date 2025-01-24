@@ -24,7 +24,7 @@
         <button
           type="button"
           class="btn btn-danger bg-danger"
-          @click="deleteAllWorkspaces(workspaces, selectedUser)"
+          @click="deleteAllWorkspaces"
         >
           <i class="bi bi-trash-fill"></i>
         </button>
@@ -128,11 +128,15 @@ export default defineComponent({
     };
   },
   methods: {
-    deleteAllWorkspaces(workspaces: Workspaces, selectedUser: string) {
-      const userWorkspaces = workspaces[selectedUser];
+    deleteWorkspace(workspaceName: string) {
+      deleteUserWorkspace(this.selectedUser.replace("user-", ""), workspaceName).catch( error => {
+            this.errorMessage = error
+          })
+    },
+    deleteAllWorkspaces() {
+      const userWorkspaces = this.workspaces[this.selectedUser];
       userWorkspaces.forEach((workspace) => {
-      const deletepath = selectedUser.replace("user-", "") + workspace.name
-          deleteUserWorkspace(deletepath);
+        this.deleteWorkspace(workspace.name)
         })
       },
     showSelectedUser() {},
