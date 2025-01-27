@@ -136,8 +136,19 @@ export default defineComponent({
     const loadWorkspaces = async () => {
       workspaces.value = await getWorkspaceDetails().catch((error: string) => {
         errorMessage.value = processErrorMessages(error, "workspaces", router);
+        console.log(getWorkspaceDetails)
         return {};
       });
+      const combinedWorkspaces = Object.entries(workspaces.value)
+    .flatMap(([userKey, workspaceArray]: [string, any]) =>
+      workspaceArray.map((workspace: any) => ({
+        user: userKey,
+        name: workspace.name,
+        size: workspace.size,
+        lastModified: workspace.lastModified,
+      }))
+    );
+    workspaces.value["All workspaces"] = combinedWorkspaces;
     };
     return {
       route,
