@@ -6,15 +6,16 @@
         <!--<FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
-        ></FeedbackMessage>
+        ></FeedbackMessage>-->
         <ConfirmationDialog
-          v-if="fileToDelete != ''"
-          :record="`${folderToDeleteFrom}/${fileToDelete}`"
+          v-if="isDeleteTriggered"
+          :record="`${workspacesToDelete.join(', ')}`"
           action="delete"
-          recordType="file"
-          @proceed="proceedDelete"
-          @cancel="clearRecordToDelete"
-        ></ConfirmationDialog>-->
+          recordType="workspaces"
+          :additionalMessage="`for user [${selectedUser}]`"
+          @proceed="() => {}"
+          @cancel="clearIsDeleteTriggered"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
@@ -24,7 +25,7 @@
         <button
           type="button"
           class="btn btn-danger bg-danger"
-          @click="deleteAllWorkspaces"
+          @click.prevent="deleteAllWorkspaces"
         >
           <i class="bi bi-trash-fill"></i>
         </button>
@@ -33,6 +34,7 @@
           <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
           <div class="col-6" v-else>
             <ListGroup
+              v-on:selectItem="setWorkspaces($event)"
               ref="workspaceComponent"
               :listContent="Object.keys(workspaces)"
               rowIcon="person-fill"
@@ -43,12 +45,39 @@
             ></ListGroup>
           </div>
           <div class="col-6" :style="{}" ref="workspaceDetails">
-            <DataPreviewTable
-              v-if="selectedUser"
-              :data="formattedWorkspaces[selectedUser]"
-              :sortedHeaders="['name', 'size', 'lastModified']"
-              :nRows="2"
-            ></DataPreviewTable>
+            <div v-if="selectedUser">
+              <button
+                type="button"
+                class="btn btn-danger bg-danger"
+                @click.prevent="setIsDeleteTriggered"
+              >
+                <i class="bi bi-trash-fill"></i>
+              </button>
+              <DataPreviewTable
+                :data="formattedWorkspaces[selectedUser]"
+                :sortedHeaders="['name', 'size', 'lastModified']"
+                :nRows="2"
+              >
+                <template #extraHeader>
+                  <th></th>
+                </template>
+                <template #extraColumn="columnProps">
+                  <!-- Add buttons for editing/deleting users -->
+                  <th scope="row">
+                    <input
+                      class="form-check-input"
+                      @click="toggleWorkspacesToDelete(columnProps.item)"
+                      v-model="
+                        userWorkspaces[
+                          getIndexOfWorkspace(columnProps.item['name'])
+                        ].checked
+                      "
+                      type="checkbox"
+                    />
+                  </th>
+                </template>
+              </DataPreviewTable>
+            </div>
           </div>
         </div>
       </div>
@@ -99,7 +128,7 @@ export default defineComponent({
       watch(
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
-          if (newVal != undefined) {
+          if (newVal != undefined && newVal !== "") {
             emit("selectUser", newVal);
             selectedUser.value = newVal;
           }
@@ -125,34 +154,72 @@ export default defineComponent({
   data() {
     return {
       loading: false,
+      isDeleteTriggered: false,
+      userWorkspaces: [] as Workspace[],
     };
   },
   methods: {
+    getIndexOfWorkspace(selectedWorkspaceName: string) {
+      return this.userWorkspaces.findIndex((workspace) => {
+        return workspace.name === selectedWorkspaceName;
+      });
+    },
+    setWorkspaces(user: string) {
+      this.resetWorkspacesToDelete();
+      this.userWorkspaces = this.workspaces[user].map((ws) => {
+        ws["checked"] = false;
+        return ws;
+      });
+    },
+    setIsDeleteTriggered() {
+      this.isDeleteTriggered = true;
+    },
+    clearIsDeleteTriggered() {
+      this.isDeleteTriggered = false;
+    },
+    resetWorkspacesToDelete() {
+      this.workspacesToDelete = [];
+    },
+    toggleWorkspacesToDelete(selectedWS: Workspace) {
+      const selectedWorkspaceName = selectedWS.name;
+      const index = this.getIndexOfWorkspace(selectedWorkspaceName);
+      this.userWorkspaces[index]["checked"] = true;
+    },
     deleteWorkspace(workspaceName: string) {
-      deleteUserWorkspace(this.selectedUser.replace("user-", ""), workspaceName).catch( error => {
-            this.errorMessage = error
-          })
+      deleteUserWorkspace(
+        this.selectedUser.replace("user-", ""),
+        workspaceName
+      ).catch((error) => {
+        this.errorMessage = error;
+      });
     },
     deleteAllWorkspaces() {
       const userWorkspaces = this.workspaces[this.selectedUser];
       userWorkspaces.forEach((workspace) => {
-        this.deleteWorkspace(workspace.name)
-        })
-      },
+        this.deleteWorkspace(workspace.name);
+      });
+    },
     showSelectedUser() {},
   },
   computed: {
-  formattedWorkspaces() {
-    return Object.entries(this.workspaces).reduce((result: FormattedWorkspaces, [userId, workspaces]) => {
-      result[userId] = workspaces.map((workspace: Workspace) => ({
-        name: workspace.name,
-        size: convertBytes(workspace.size),
-        lastModified: new Date(workspace.lastModified),
-      }));
-      return result;
-    }, {});
-  }
-}
-,
+    workspacesToDelete() {
+      return this.userWorkspaces
+        .filter((ws) => ws.checked)
+        .map((ws) => ws.name);
+    },
+    formattedWorkspaces() {
+      return Object.entries(this.workspaces).reduce(
+        (result: FormattedWorkspaces, [userId, workspaces]) => {
+          result[userId] = workspaces.map((workspace: Workspace) => ({
+            name: workspace.name,
+            size: convertBytes(workspace.size),
+            lastModified: new Date(workspace.lastModified),
+          }));
+          return result;
+        },
+        {}
+      );
+    },
+  },
 });
 </script>

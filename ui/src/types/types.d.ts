@@ -135,6 +135,7 @@ export type Workspace = {
   name: string;
   size: number;
   lastModified: string;
+  checked?: boolean;
 };
 
 export type Workspaces = Record<string, Workspace[]>;

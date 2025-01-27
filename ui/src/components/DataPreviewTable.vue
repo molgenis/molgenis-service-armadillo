@@ -6,6 +6,7 @@
     <thead>
       <tr>
         <!-- for each key of the first element of data-->
+        <slot name="extraHeader"></slot>
         <th scope="col" v-if="maxWidth" v-for="key in tableHeader" :key="key">
           {{ key }}
         </th>
@@ -17,6 +18,8 @@
     <tbody class="table-group-divider">
       <!-- for each row-->
       <tr v-for="(row, index) in dataToPreview" :key="index">
+        <!-- additional column for each row (row header) -->
+        <slot name="extraColumn" :item="row"></slot>
         <!-- for each value in row -->
         <td v-for="(value, key, index) in row" :key="key">
           <span
