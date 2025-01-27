@@ -3,17 +3,17 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
-        <!--<FeedbackMessage
+        <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
-        ></FeedbackMessage>-->
+        ></FeedbackMessage>
         <ConfirmationDialog
           v-if="isDeleteTriggered"
           :record="`${workspacesToDelete.join(', ')}`"
           action="delete"
           recordType="workspaces"
           :additionalMessage="`for user [${selectedUser}]`"
-          @proceed="() => {}"
+          @proceed="deleteSelectedWorkspaces"
           @cancel="clearIsDeleteTriggered"
         ></ConfirmationDialog>
       </div>
@@ -103,7 +103,7 @@ import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { getWorkspaceDetails, deleteUserWorkspace } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { FormattedWorkspaces, Workspace, Workspaces } from "@/types/types";
+import { FormattedWorkspaces, StringArray, Workspace, Workspaces } from "@/types/types";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
@@ -146,6 +146,7 @@ export default defineComponent({
       previewParam,
       selectedUser,
       workspaces,
+      loadWorkspaces,
     };
   },
   data() {
@@ -153,6 +154,9 @@ export default defineComponent({
       loading: false,
       isDeleteTriggered: false,
       userWorkspaces: [] as Workspace[],
+      successMessage: "",
+      deleteErrorMessages: [] as StringArray,
+      deleteSuccessMessages: [] as StringArray,
     };
   },
   methods: {
@@ -173,12 +177,17 @@ export default defineComponent({
     clearIsDeleteTriggered() {
       this.isDeleteTriggered = false;
     },
-    deleteWorkspace(workspaceName: string) {
-      deleteUserWorkspace(
+    async deleteWorkspace(workspaceName: string) {
+      await deleteUserWorkspace(
         this.selectedUser.replace("user-", ""),
         workspaceName
-      ).catch((error) => {
-        this.errorMessage = error;
+      ).then(() => {
+        const successMessage =  `[${workspaceName}] for user [${this.selectedUser}]`
+        this.deleteSuccessMessages.push(successMessage);
+        })
+        .catch((error) => {
+        const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`
+        this.deleteErrorMessages.push(errorMessage);
       });
     },
     deleteAllWorkspaces() {
@@ -187,7 +196,34 @@ export default defineComponent({
         this.deleteWorkspace(workspace.name);
       });
     },
+    async deleteSelectedWorkspaces() {
+      for (const workspace of this.workspacesToDelete) {
+        await this.deleteWorkspace(workspace);
+      }      
+      this.collectDeleteMessages()
+      this.loadWorkspaces()
+      this.setWorkspaces(this.selectedUser)
+    },
     showSelectedUser() {},
+    collectDeleteMessages() {
+      var errorCollection = ""
+      if(this.deleteSuccessMessages.length > 0) {
+        console.log("success if", this.deleteSuccessMessages)
+        const workspaceLabel = this.deleteSuccessMessages.length > 1 ? "workspaces" : "workspace";
+        errorCollection += `Successfully deleted ${workspaceLabel} ` 
+        errorCollection += this.deleteSuccessMessages.join("; ")
+      }
+      if(this.deleteErrorMessages.length > 0) {
+        const workspaceLabel = this.deleteErrorMessages.length > 1 ? "workspaces" : "workspace";
+        errorCollection += `Could not delete ${workspaceLabel} ` 
+        errorCollection += this.deleteErrorMessages.join("; ")
+        this.errorMessage = errorCollection
+      } else {
+        this.successMessage = errorCollection
+      }
+      this.deleteSuccessMessages = []
+      this.deleteErrorMessages = []
+    }
   },
   computed: {
     workspacesToDelete() {
