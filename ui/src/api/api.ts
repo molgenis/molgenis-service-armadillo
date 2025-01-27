@@ -21,7 +21,7 @@ import {
   ObjectWithStringKey,
   StringArray,
   ListOfObjectsWithStringKey,
-  Workspaces
+  Workspaces,
 } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -338,5 +338,5 @@ export async function getWorkspaceDetails(): Promise<Workspaces> {
 }
 
 export async function deleteUserWorkspace(user: string, workspace: string) {
-  return delete_("/workspaces" ,`${user}/${workspace}`)
+  return delete_("/workspaces", `${user}/${workspace}`);
 }

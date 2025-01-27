@@ -62,11 +62,10 @@
                   <th></th>
                 </template>
                 <template #extraColumn="columnProps">
-                  <!-- Add buttons for editing/deleting users -->
+                  <!-- Add buttons for editing/deleting users  -->
                   <th scope="row">
                     <input
                       class="form-check-input"
-                      @click="toggleWorkspacesToDelete(columnProps.item)"
                       v-model="
                         userWorkspaces[
                           getIndexOfWorkspace(columnProps.item['name'])
@@ -108,7 +107,6 @@ import { FormattedWorkspaces, Workspace, Workspaces } from "@/types/types";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
-  emits: ["selectUser"],
   components: {
     ConfirmationDialog,
     FeedbackMessage,
@@ -129,7 +127,6 @@ export default defineComponent({
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
           if (newVal != undefined && newVal !== "") {
-            emit("selectUser", newVal);
             selectedUser.value = newVal;
           }
         }
@@ -165,7 +162,6 @@ export default defineComponent({
       });
     },
     setWorkspaces(user: string) {
-      this.resetWorkspacesToDelete();
       this.userWorkspaces = this.workspaces[user].map((ws) => {
         ws["checked"] = false;
         return ws;
@@ -176,14 +172,6 @@ export default defineComponent({
     },
     clearIsDeleteTriggered() {
       this.isDeleteTriggered = false;
-    },
-    resetWorkspacesToDelete() {
-      this.workspacesToDelete = [];
-    },
-    toggleWorkspacesToDelete(selectedWS: Workspace) {
-      const selectedWorkspaceName = selectedWS.name;
-      const index = this.getIndexOfWorkspace(selectedWorkspaceName);
-      this.userWorkspaces[index]["checked"] = true;
     },
     deleteWorkspace(workspaceName: string) {
       deleteUserWorkspace(

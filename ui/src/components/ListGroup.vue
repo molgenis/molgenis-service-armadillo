@@ -62,7 +62,6 @@ export default {
   },
   methods: {
     toggleSelectedItem(newItem: string) {
-      console.log("listgroup", newItem);
       this.$emit("selectItem", newItem);
       if (this.selectedItem !== newItem) {
         this.selectedItem = newItem;
