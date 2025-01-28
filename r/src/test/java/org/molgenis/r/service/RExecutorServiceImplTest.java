@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -21,6 +20,7 @@ import org.molgenis.r.exceptions.InvalidRPackageException;
 import org.molgenis.r.exceptions.RExecutionException;
 import org.molgenis.r.rock.RockResult;
 import org.molgenis.r.rock.RockServerException;
+import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RFileInputStream;
@@ -251,16 +251,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
-  @Disabled
   void testInstallPackage() throws IOException, RServerException {
     when(rConnection.eval(
             "remotes::install_local('location__test_.tar.gz', dependencies = TRUE, upgrade = 'never')",
             false))
-        .thenReturn(new RockResult(new REXPNull()));
+        .thenReturn(new RserveResult(new REXPNull()));
     when(rConnection.eval("require('location/_test')", false))
-        .thenReturn(new RockResult(new REXPLogical(true)));
+        .thenReturn(new RserveResult(new REXPLogical(true)));
     when(rConnection.eval("file.remove('location/_test_.tar.gz')", false))
-        .thenReturn(new RockResult(new REXPNull()));
+        .thenReturn(new RserveResult(new REXPNull()));
 
     Resource resource = new InMemoryResource("Hello");
     String fileName = "location/_test_.tar.gz";

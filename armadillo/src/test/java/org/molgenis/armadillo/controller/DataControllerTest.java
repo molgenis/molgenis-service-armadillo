@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,6 +44,7 @@ import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.rock.RockResult;
+import org.molgenis.r.rserve.RserveResult;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethod;
 import org.obiba.datashield.core.impl.DefaultDSMethod;
@@ -288,7 +288,6 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"))));
   }
 
-  @Disabled
   @Test
   @WithMockUser
   void testGetLastResultNoResult() throws Exception {
@@ -297,13 +296,12 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
-  @Disabled
   @Test
   @WithMockUser
   void testGetLastResult() throws Exception {
     byte[] bytes = {0x0, 0x1, 0x2};
     when(commands.getLastExecution())
-        .thenReturn(Optional.of(completedFuture(new RockResult(new REXPRaw(bytes)))));
+        .thenReturn(Optional.of(completedFuture(new RserveResult(new REXPRaw(bytes)))));
 
     MvcResult result =
         mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
