@@ -132,6 +132,7 @@ export type ViewEditorData = {
 };
 
 export type Workspace = {
+  user?: string;
   name: string;
   size: number;
   lastModified: string;
@@ -141,6 +142,7 @@ export type Workspace = {
 export type Workspaces = Record<string, Workspace[]>;
 
 export type FormattedWorkspace = {
+  user?: string;
   name: string;
   size: string;
   lastModified: Date;
