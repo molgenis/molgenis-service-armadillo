@@ -36,7 +36,7 @@
             <ListGroup
               v-on:selectItem="setWorkspaces($event)"
               ref="workspaceComponent"
-              :listContent="Object.keys(workspaces)"
+              :listContent="Object.keys(sortedWorkspaces)"
               rowIcon="person-fill"
               rowIconAlt="person-fill"
               :altIconCondition="showSelectedUser"
@@ -257,6 +257,11 @@ export default defineComponent({
         {}
       );
     },
+    sortedWorkspaces() {
+      return Object.fromEntries(
+        Object.entries(this.formattedWorkspaces).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+);
+    }
   },
 });
 </script>
