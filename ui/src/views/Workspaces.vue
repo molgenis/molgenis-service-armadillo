@@ -54,8 +54,8 @@
                 <i class="bi bi-trash-fill"></i>
               </button>
               <DataPreviewTable
-                :data="formattedWorkspaces[selectedUser]"
-                :sortedHeaders="['name', 'size', 'lastModified']"
+                :data="filteredWorkspaces[selectedUser]"
+                :sortedHeaders=filteredHeaders
                 :nRows="2"
               >
                 <template #extraHeader>
@@ -236,7 +236,16 @@ export default defineComponent({
       }
       this.deleteSuccessMessages = []
       this.deleteErrorMessages = []
-    }, 
+    },
+    addUserAsColumn() {
+      const workspacesWithUser = this.workspaces
+      for (const user in workspacesWithUser) {
+        workspacesWithUser[user] = workspacesWithUser[user].map((item) => ({
+        user: user,
+        ...item
+      }));
+  } return workspacesWithUser;
+}, 
   },
   computed: {
     workspacesToDelete() {
@@ -245,13 +254,16 @@ export default defineComponent({
         .map((ws) => ws.name);
     },
     formattedWorkspaces() {
-      return Object.entries(this.workspaces).reduce(
+      const workspacesWithUser = this.addUserAsColumn();
+      return Object.entries(workspacesWithUser).reduce(
         (result: FormattedWorkspaces, [userId, workspaces]) => {
           result[userId] = workspaces.map((workspace: Workspace) => ({
+            user: workspace.user,
             name: workspace.name,
             size: convertBytes(workspace.size),
             lastModified: new Date(workspace.lastModified),
           }));
+          console.log("test user there", result)
           return result;
         },
         {}
@@ -259,9 +271,27 @@ export default defineComponent({
     },
     sortedWorkspaces() {
       return Object.fromEntries(
-        Object.entries(this.formattedWorkspaces).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-);
-    }
-  },
+        Object.entries(this.formattedWorkspaces).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)));
+    },
+    filteredWorkspaces() {
+  if (this.selectedUser === "All workspaces") {
+    return this.formattedWorkspaces; 
+  } else {
+    return Object.fromEntries(
+      Object.entries(this.formattedWorkspaces).map(([userId, workspaces]) => [
+        userId,
+        workspaces.map(({ user, ...rest }) => rest), // Exclude `user`
+      ])
+    );
+  }
+},
+filteredHeaders () {
+  if (this.selectedUser === "All workspaces") {
+    return['user', 'name', 'size', 'lastModified'];
+  } else {
+    return['name', 'size', 'lastModified'];
+  }
+}
+  }
 });
 </script>
