@@ -43,7 +43,7 @@ armadillo:
     - name: xenon-vanilla
       image: datashield/armadillo-rserver_caravan-xenon:latest
       host: xenon-vanilla
-      port: 8085
+      port: 6012
       package-whitelist:
         - dsBase
         - resourcer
