@@ -133,13 +133,8 @@ export default defineComponent({
       );
       loadWorkspaces();
     });
-    const loadWorkspaces = async () => {
-      workspaces.value = await getWorkspaceDetails().catch((error: string) => {
-        errorMessage.value = processErrorMessages(error, "workspaces", router);
-        console.log(getWorkspaceDetails)
-        return {};
-      });
-      const combinedWorkspaces = Object.entries(workspaces.value)
+    const getAllWorkspaces = () => {
+     return Object.entries(workspaces.value)
     .flatMap(([userKey, workspaceArray]: [string, any]) =>
       workspaceArray.map((workspace: any) => ({
         user: userKey,
@@ -148,7 +143,14 @@ export default defineComponent({
         lastModified: workspace.lastModified,
       }))
     );
-    workspaces.value["All workspaces"] = combinedWorkspaces;
+    };
+    const loadWorkspaces = async () => {
+      workspaces.value = await getWorkspaceDetails().catch((error: string) => {
+        errorMessage.value = processErrorMessages(error, "workspaces", router);
+        console.log(getWorkspaceDetails)
+        return {};
+      });    
+      workspaces.value["All workspaces"] = getAllWorkspaces()
     };
     return {
       route,
@@ -158,7 +160,7 @@ export default defineComponent({
       selectedUser,
       workspaces,
       loadWorkspaces,
-    };
+      getAllWorkspaces    };
   },
   data() {
     return {
@@ -234,7 +236,7 @@ export default defineComponent({
       }
       this.deleteSuccessMessages = []
       this.deleteErrorMessages = []
-    }
+    }, 
   },
   computed: {
     workspacesToDelete() {
