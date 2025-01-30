@@ -64,7 +64,16 @@
                 <template #extraColumn="columnProps">
                   <!-- Add buttons for editing/deleting users  -->
                   <th scope="row">
-                    <input
+                    <input v-if = "selectedUser === 'All workspaces'"
+                      class="form-check-input"
+                      v-model="
+                        userWorkspaces[
+                          getIndexOfAllWorkspaces(columnProps.item['user'], columnProps.item['name'])
+                        ].checked
+                      "
+                      type="checkbox"
+                    />
+                    <input v-else
                       class="form-check-input"
                       v-model="
                         userWorkspaces[
@@ -176,6 +185,11 @@ export default defineComponent({
     getIndexOfWorkspace(selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
         return workspace.name === selectedWorkspaceName;
+      });
+    },
+    getIndexOfAllWorkspaces(user: string, selectedWorkspaceName: string) {
+      return this.userWorkspaces.findIndex((workspace) => {
+        return workspace.name === selectedWorkspaceName && workspace.user === user;
       });
     },
     setWorkspaces(user: string) {
