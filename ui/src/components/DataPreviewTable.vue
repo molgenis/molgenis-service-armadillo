@@ -12,6 +12,13 @@
         </th>
         <th scope="col" v-else v-for="(key, index) in tableKeys" :key="index">
           {{ toCapitalizedWords(key) }}
+          <button
+            class="btn btn-link btn-sm"
+            v-if="sortColumns.includes(key)"
+            @click="sortOnColumn(key)"
+          >
+            <i class="bi bi-arrow-down-up"></i>
+          </button>
         </th>
       </tr>
     </thead>
@@ -46,6 +53,7 @@ import {
   transformTable,
   truncate,
   toCapitalizedWords,
+  sortAlphabetically,
 } from "@/helpers/utils";
 
 export default defineComponent({
@@ -66,6 +74,10 @@ export default defineComponent({
     sortedHeaders: {
       type: Array,
       required: false,
+    },
+    sortColumns: {
+      type: Array,
+      default: [],
     },
   },
   computed: {
@@ -95,7 +107,15 @@ export default defineComponent({
         });
         dataToPreview.push(newRow);
       });
-      return dataToPreview;
+      if (this.columnToSortOn) {
+        return sortAlphabetically(
+          dataToPreview,
+          this.columnToSortOn,
+          this.isAscending
+        );
+      } else {
+        return dataToPreview;
+      }
     },
     tableHeader() {
       return this.data.length > 0
@@ -112,8 +132,32 @@ export default defineComponent({
         : Object.keys(this.data[0]);
     },
   },
+  data() {
+    return {
+      columnToSortOn: "",
+      isAscending: false,
+    };
+  },
   methods: {
     toCapitalizedWords,
+    sortOnColumn(column: string) {
+      if (column === this.columnToSortOn) {
+        this.isAscending = !this.isAscending;
+      }
+      this.columnToSortOn = column;
+    },
+    sortData(a: string, b: string) {
+      const nameA = a.toString().toUpperCase(); // ignore upper and lowercase
+      const nameB = b.toString().toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return this.isAscending ? -1 : 1;
+      }
+      if (nameA > nameB) {
+        return this.isAscending ? 1 : -1;
+      }
+      // names must be equal
+      return 0;
+    },
   },
 });
 </script>

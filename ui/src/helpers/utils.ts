@@ -22,7 +22,8 @@ export function capitalize(word: string): string {
 
 export function sortAlphabetically(
   listOfObjects: ListOfObjectsWithStringKey | StringArray,
-  key?: string
+  key?: string,
+  isAscending?: boolean
 ): ListOfObjectsWithStringKey | string[] {
   return listOfObjects.sort((object1, object2) => {
     let obj1;
@@ -36,14 +37,57 @@ export function sortAlphabetically(
       obj2 = object2;
     }
 
+    if (isFileSize(obj1.toString())) {
+      obj1 = convertStringToBytes(obj1.toString());
+      obj2 = convertStringToBytes(obj2.toString());
+    }
+
     if (obj1 < obj2) {
-      return -1;
+      return isAscending ? -1 : 1;
     }
     if (obj1 > obj2) {
-      return 1;
+      return isAscending ? 1 : -1;
     }
     return 0;
   });
+}
+
+export function convertStringToBytes(size: string) {
+  // Regular expression to match the size string
+  const regex = /^(\d+(\.\d{1,2})?)\s?(KB|MB|GB|TB|EB|bytes)?$/i;
+
+  const match = size.trim().match(regex);
+  if (!match) {
+    throw new Error("Invalid size format");
+  }
+
+  // Extract the numeric value and unit
+  const value = parseFloat(match[1]);
+  const unit = match[3] ? match[3].toUpperCase() : "BYTES"; // Default to "BYTES" if no unit is provided
+
+  // Conversion factors
+  const units: { [key: string]: number } = {
+    BYTES: 1,
+    KB: 1024,
+    MB: 1024 * 1024,
+    GB: 1024 * 1024 * 1024,
+    TB: 1024 * 1024 * 1024 * 1024,
+    EB: 1024 * 1024 * 1024 * 1024 * 1024,
+  };
+
+  // Convert the value to bytes using the appropriate factor
+  const factor = units[unit];
+
+  if (!factor) {
+    throw new Error("Unknown unit: " + unit);
+  }
+
+  return value * factor;
+}
+
+function isFileSize(fileSizeString: string) {
+  const regexPattern = /^(\d+(\.\d{1,2})?)\s?(KB|MB|GB|TB|EB|bytes)?$/;
+  return regexPattern.test(fileSizeString);
 }
 
 export function shortenFileName(FileName: string): string {
@@ -94,9 +138,9 @@ export function isIntArray(listOfItems: StringArray) {
   return itemIsIntArray;
 }
 
-function isDate(item: string) {
+export function isDate(item: string) {
   const iso8601Regex =
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/;
+    /^\d{4}-(0[1-9]|1[0-2])-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$/;
   return iso8601Regex.test(item);
 }
 

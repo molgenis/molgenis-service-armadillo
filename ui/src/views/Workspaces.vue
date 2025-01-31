@@ -55,8 +55,9 @@
               </button>
               <DataPreviewTable
                 :data="filteredWorkspaces[selectedUser]"
-                :sortedHeaders=filteredHeaders
+                :sortedHeaders="filteredHeaders"
                 :nRows="2"
+                :sortColumns="['user', 'size', 'lastModified']"
               >
                 <template #extraHeader>
                   <th></th>
@@ -64,16 +65,21 @@
                 <template #extraColumn="columnProps">
                   <!-- Add buttons for editing/deleting users  -->
                   <th scope="row">
-                    <input v-if = "selectedUser === 'All workspaces'"
+                    <input
+                      v-if="selectedUser === 'All workspaces'"
                       class="form-check-input"
                       v-model="
                         userWorkspaces[
-                          getIndexOfAllWorkspaces(columnProps.item['user'], columnProps.item['name'])
+                          getIndexOfAllWorkspaces(
+                            columnProps.item['user'],
+                            columnProps.item['name']
+                          )
                         ].checked
                       "
                       type="checkbox"
                     />
-                    <input v-else
+                    <input
+                      v-else
                       class="form-check-input"
                       v-model="
                         userWorkspaces[
@@ -112,7 +118,12 @@ import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { getWorkspaceDetails, deleteUserWorkspace } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { FormattedWorkspaces, StringArray, Workspace, Workspaces } from "@/types/types";
+import {
+  FormattedWorkspaces,
+  StringArray,
+  Workspace,
+  Workspaces,
+} from "@/types/types";
 
 export default defineComponent({
   name: "WorkspaceExplorer",
@@ -143,23 +154,22 @@ export default defineComponent({
       loadWorkspaces();
     });
     const getAllWorkspaces = () => {
-     return Object.entries(workspaces.value)
-    .flatMap(([userKey, workspaceArray]: [string, any]) =>
-      workspaceArray.map((workspace: any) => ({
-        user: userKey,
-        name: workspace.name,
-        size: workspace.size,
-        lastModified: workspace.lastModified,
-      }))
-    );
+      return Object.entries(workspaces.value).flatMap(
+        ([userKey, workspaceArray]: [string, any]) =>
+          workspaceArray.map((workspace: any) => ({
+            user: userKey,
+            name: workspace.name,
+            size: workspace.size,
+            lastModified: workspace.lastModified,
+          }))
+      );
     };
     const loadWorkspaces = async () => {
       workspaces.value = await getWorkspaceDetails().catch((error: string) => {
         errorMessage.value = processErrorMessages(error, "workspaces", router);
-        console.log(getWorkspaceDetails)
         return {};
-      });    
-      workspaces.value["All workspaces"] = getAllWorkspaces()
+      });
+      workspaces.value["All workspaces"] = getAllWorkspaces();
     };
     return {
       route,
@@ -169,7 +179,8 @@ export default defineComponent({
       selectedUser,
       workspaces,
       loadWorkspaces,
-      getAllWorkspaces    };
+      getAllWorkspaces,
+    };
   },
   data() {
     return {
@@ -189,7 +200,9 @@ export default defineComponent({
     },
     getIndexOfAllWorkspaces(user: string, selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
-        return workspace.name === selectedWorkspaceName && workspace.user === user;
+        return (
+          workspace.name === selectedWorkspaceName && workspace.user === user
+        );
       });
     },
     setWorkspaces(user: string) {
@@ -208,14 +221,15 @@ export default defineComponent({
       await deleteUserWorkspace(
         this.selectedUser.replace("user-", ""),
         workspaceName
-      ).then(() => {
-        const successMessage =  `[${workspaceName}] for user [${this.selectedUser}]`
-        this.deleteSuccessMessages.push(successMessage);
+      )
+        .then(() => {
+          const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
+          this.deleteSuccessMessages.push(successMessage);
         })
         .catch((error) => {
-        const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`
-        this.deleteErrorMessages.push(errorMessage);
-      });
+          const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`;
+          this.deleteErrorMessages.push(errorMessage);
+        });
     },
     deleteAllWorkspaces() {
       const userWorkspaces = this.workspaces[this.selectedUser];
@@ -226,40 +240,42 @@ export default defineComponent({
     async deleteSelectedWorkspaces() {
       for (const workspace of this.workspacesToDelete) {
         await this.deleteWorkspace(workspace);
-      }      
-      this.collectDeleteMessages()
-      this.loadWorkspaces()
-      this.setWorkspaces(this.selectedUser)
+      }
+      this.collectDeleteMessages();
+      this.loadWorkspaces();
+      this.setWorkspaces(this.selectedUser);
     },
     showSelectedUser() {},
     collectDeleteMessages() {
-      var errorCollection = ""
-      if(this.deleteSuccessMessages.length > 0) {
-        console.log("success if", this.deleteSuccessMessages)
-        const workspaceLabel = this.deleteSuccessMessages.length > 1 ? "workspaces" : "workspace";
-        errorCollection += `Successfully deleted ${workspaceLabel} ` 
-        errorCollection += this.deleteSuccessMessages.join("; ")
+      var errorCollection = "";
+      if (this.deleteSuccessMessages.length > 0) {
+        const workspaceLabel =
+          this.deleteSuccessMessages.length > 1 ? "workspaces" : "workspace";
+        errorCollection += `Successfully deleted ${workspaceLabel} `;
+        errorCollection += this.deleteSuccessMessages.join("; ");
       }
-      if(this.deleteErrorMessages.length > 0) {
-        const workspaceLabel = this.deleteErrorMessages.length > 1 ? "workspaces" : "workspace";
-        errorCollection += `Could not delete ${workspaceLabel} ` 
-        errorCollection += this.deleteErrorMessages.join("; ")
-        this.errorMessage = errorCollection
+      if (this.deleteErrorMessages.length > 0) {
+        const workspaceLabel =
+          this.deleteErrorMessages.length > 1 ? "workspaces" : "workspace";
+        errorCollection += `Could not delete ${workspaceLabel} `;
+        errorCollection += this.deleteErrorMessages.join("; ");
+        this.errorMessage = errorCollection;
       } else {
-        this.successMessage = errorCollection
+        this.successMessage = errorCollection;
       }
-      this.deleteSuccessMessages = []
-      this.deleteErrorMessages = []
+      this.deleteSuccessMessages = [];
+      this.deleteErrorMessages = [];
     },
     addUserAsColumn() {
-      const workspacesWithUser = this.workspaces
+      const workspacesWithUser = this.workspaces;
       for (const user in workspacesWithUser) {
         workspacesWithUser[user] = workspacesWithUser[user].map((item) => ({
-        user: user,
-        ...item
-      }));
-  } return workspacesWithUser;
-}, 
+          user: user,
+          ...item,
+        }));
+      }
+      return workspacesWithUser;
+    },
   },
   computed: {
     workspacesToDelete() {
@@ -277,7 +293,6 @@ export default defineComponent({
             size: convertBytes(workspace.size),
             lastModified: new Date(workspace.lastModified),
           }));
-          console.log("test user there", result)
           return result;
         },
         {}
@@ -285,27 +300,32 @@ export default defineComponent({
     },
     sortedWorkspaces() {
       return Object.fromEntries(
-        Object.entries(this.formattedWorkspaces).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)));
+        Object.entries(this.formattedWorkspaces).sort(([keyA], [keyB]) =>
+          keyA.localeCompare(keyB)
+        )
+      );
     },
     filteredWorkspaces() {
-  if (this.selectedUser === "All workspaces") {
-    return this.formattedWorkspaces; 
-  } else {
-    return Object.fromEntries(
-      Object.entries(this.formattedWorkspaces).map(([userId, workspaces]) => [
-        userId,
-        workspaces.map(({ user, ...rest }) => rest), // Exclude `user`
-      ])
-    );
-  }
-},
-filteredHeaders () {
-  if (this.selectedUser === "All workspaces") {
-    return['user', 'name', 'size', 'lastModified'];
-  } else {
-    return['name', 'size', 'lastModified'];
-  }
-}
-  }
+      if (this.selectedUser === "All workspaces") {
+        return this.formattedWorkspaces;
+      } else {
+        return Object.fromEntries(
+          Object.entries(this.formattedWorkspaces).map(
+            ([userId, workspaces]) => [
+              userId,
+              workspaces.map(({ user, ...rest }) => rest), // Exclude `user`
+            ]
+          )
+        );
+      }
+    },
+    filteredHeaders() {
+      if (this.selectedUser === "All workspaces") {
+        return ["user", "name", "size", "lastModified"];
+      } else {
+        return ["name", "size", "lastModified"];
+      }
+    },
+  },
 });
 </script>
