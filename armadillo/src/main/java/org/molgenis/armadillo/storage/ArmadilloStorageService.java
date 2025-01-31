@@ -224,6 +224,10 @@ public class ArmadilloStorageService {
                 userFolder -> userFolder,
                 userFolder ->
                     storageService.listObjects(userFolder).stream()
+                        .filter(
+                            (object ->
+                                object.name().endsWith(RDATA_EXT)
+                                    || object.name().equals("migration-status.txt")))
                         .map(ArmadilloStorageService::toWorkspace)
                         .collect(Collectors.toList())));
   }

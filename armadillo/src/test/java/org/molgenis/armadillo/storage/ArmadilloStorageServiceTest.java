@@ -788,10 +788,16 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU") // Simulating a user with ROLE_SU
   void testListAllUserWorkspaces() {
+    String MIGRATION_FILE_NAME = "migration-status";
     ObjectMetadata ws1Mock = mock(ObjectMetadata.class);
     ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
     ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
+    ObjectMetadata notAWsMock = mock(ObjectMetadata.class);
+    ObjectMetadata migrationFile = mock(ObjectMetadata.class);
 
+    when(migrationFile.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
     when(ws1Mock.lastModified())
         .thenReturn(
             ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
@@ -805,14 +811,17 @@ class ArmadilloStorageServiceTest {
     when(ws1Mock.name()).thenReturn("workspace1.RData");
     when(ws2Mock.name()).thenReturn("workspace2.RData");
     when(ws3Mock.name()).thenReturn("workspace3.RData");
+    when(notAWsMock.name()).thenReturn("somethingweird.weirdextension");
+    when(migrationFile.name()).thenReturn(MIGRATION_FILE_NAME + ".txt");
 
     when(ws1Mock.size()).thenReturn(1234L);
     when(ws2Mock.size()).thenReturn(1235L);
     when(ws3Mock.size()).thenReturn(1236L);
+    when(migrationFile.size()).thenReturn(12L);
 
     // Given
     List<String> mockBuckets = Arrays.asList("user-bucket1", "user-bucket2");
-    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock);
+    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock, notAWsMock, migrationFile);
     List<ObjectMetadata> mockObjects2 = singletonList(ws3Mock);
 
     // Mocking the behavior of storageService
@@ -831,7 +840,9 @@ class ArmadilloStorageServiceTest {
 
     List<Workspace> user1Workspaces = result.get("user-bucket1");
     assertNotNull(user1Workspaces);
-    assertEquals(2, user1Workspaces.size()); // Expect 2 workspaces for user1
+    assertEquals(3, user1Workspaces.size()); // Expect 3 files for user1
+    // assert migrationfile is in userworkspaces
+    assertEquals(user1Workspaces.get(2).name(), MIGRATION_FILE_NAME);
 
     List<Workspace> user2Workspaces = result.get("user-bucket2");
     assertNotNull(user2Workspaces);
