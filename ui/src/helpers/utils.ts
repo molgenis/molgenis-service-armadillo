@@ -43,10 +43,10 @@ export function sortAlphabetically(
     }
 
     if (obj1 < obj2) {
-      return isAscending ? -1 : 1;
+      return isAscending !== false ? -1 : 1;
     }
     if (obj1 > obj2) {
-      return isAscending ? 1 : -1;
+      return isAscending !== false ? 1 : -1;
     }
     return 0;
   });
