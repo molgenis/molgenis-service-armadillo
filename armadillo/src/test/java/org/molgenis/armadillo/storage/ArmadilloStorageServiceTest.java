@@ -20,9 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,6 +53,10 @@ class ArmadilloStorageServiceTest {
   final String SHARED_GECKO = "shared-gecko";
   final String SHARED_DIABETES = "shared-diabetes";
   final String METADATA_FILE = "metadata.json";
+  private static final String USER_ID = "very-random-id";
+  private static final String USER_EMAIL = "user@email.com";
+  private static final String OLD_BUCKET = "user-very-random-id";
+  private static final String NEW_BUCKET = "user-user__at__email.com";
 
   @MockBean StorageService storageService;
   @Mock Principal principal;
@@ -514,31 +521,32 @@ class ArmadilloStorageServiceTest {
     ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
     when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
     when(workspaceMock.getSize()).thenReturn(123456789123456789L);
-    assertThrows(
-        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      assertThrows(
+          StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    }
   }
 
   @Test
   void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
     when(storageService.getWorkSpace(is))
         .thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
-    try {
-      armadilloStorage.saveWorkspace(is, principal, "test");
-    } catch (StorageException e) {
-      assertEquals(
-          "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      try {
+        armadilloStorage.saveWorkspace(is, principal, "test");
+      } catch (StorageException e) {
+        assertEquals(
+            "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+      }
     }
-  }
-
-  @Test
-  void testSaveWorkspaceChecksBucketName() {
-    ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
-    when(principal.getName()).thenReturn("Henk");
-    when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
-    when(workspaceMock.getSize()).thenReturn(12345L);
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> armadilloStorage.saveWorkspace(is, principal, "test"));
   }
 
   @Test
@@ -774,5 +782,349 @@ class ArmadilloStorageServiceTest {
     when(storageService.getInfo(SHARED_GECKO, srcObj)).thenReturn(info);
     FileInfo actual = armadilloStorage.getInfo("gecko", srcObj);
     assertEquals(info, actual);
+  }
+
+  // Test: User has ROLE_SU, and storage service returns expected data
+  @Test
+  @WithMockUser(roles = "SU") // Simulating a user with ROLE_SU
+  void testListAllUserWorkspaces() {
+    String MIGRATION_FILE_NAME = "migration-status";
+    ObjectMetadata ws1Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
+    ObjectMetadata notAWsMock = mock(ObjectMetadata.class);
+    ObjectMetadata migrationFile = mock(ObjectMetadata.class);
+
+    when(migrationFile.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws1Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws2Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws3Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+
+    when(ws1Mock.name()).thenReturn("workspace1.RData");
+    when(ws2Mock.name()).thenReturn("workspace2.RData");
+    when(ws3Mock.name()).thenReturn("workspace3.RData");
+    when(notAWsMock.name()).thenReturn("somethingweird.weirdextension");
+    when(migrationFile.name()).thenReturn(MIGRATION_FILE_NAME + ".txt");
+
+    when(ws1Mock.size()).thenReturn(1234L);
+    when(ws2Mock.size()).thenReturn(1235L);
+    when(ws3Mock.size()).thenReturn(1236L);
+    when(migrationFile.size()).thenReturn(12L);
+
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1", "user-bucket2");
+    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock, notAWsMock, migrationFile);
+    List<ObjectMetadata> mockObjects2 = singletonList(ws3Mock);
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects1);
+    when(storageService.listObjects("user-bucket2")).thenReturn(mockObjects2);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.size()); // Expecting 2 users/buckets
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.containsKey("user-bucket2"));
+
+    List<Workspace> user1Workspaces = result.get("user-bucket1");
+    assertNotNull(user1Workspaces);
+    assertEquals(3, user1Workspaces.size()); // Expect 3 files for user1
+    // assert migrationfile is in userworkspaces
+    assertEquals(user1Workspaces.get(2).name(), MIGRATION_FILE_NAME);
+
+    List<Workspace> user2Workspaces = result.get("user-bucket2");
+    assertNotNull(user2Workspaces);
+    assertEquals(1, user2Workspaces.size()); // Expect 1 workspace for user2
+  }
+
+  // Test: User without ROLE_SU should not access the method
+  @Test
+  @WithMockUser(roles = "RESEARCHER") // Simulating a user without the correct role
+  void testListUserWorkspacesWithUnauthorizedUser() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When & Then: Expecting an access denied exception due to lack of proper role
+    assertThrows(
+        AccessDeniedException.class,
+        () -> {
+          armadilloStorage.listAllUserWorkspaces();
+        });
+  }
+
+  // Test: No buckets available
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoBuckets() {
+    // Given
+    List<String> mockBuckets = Collections.emptyList();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty()); // Expecting an empty map
+  }
+
+  // Test: Single bucket with no workspaces
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoWorkspacesInBucket() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+    List<ObjectMetadata> mockObjects = new ArrayList<>();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size()); // 1 bucket should be present
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.get("user-bucket1").isEmpty()); // Expecting an empty list for workspaces
+  }
+
+  // Test case 1: old bucket exists, new bucket doesn't exist, and there are valid workspaces to
+  // move
+  @Test
+  void
+      testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsNewBucketDoesNotExist_AndWorkspacesToMove() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
+    when(principal.getName()).thenReturn(USER_ID);
+    when(item.name()).thenReturn("workspace1.RData");
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      try (MockedStatic<UserInformationRetriever> infoRetriever =
+          Mockito.mockStatic(UserInformationRetriever.class)) {
+        infoRetriever
+            .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+            .thenReturn(USER_EMAIL);
+        armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+        verify(storageService, times(1))
+            .moveWorkspace(eq(item), eq(principal), eq(OLD_BUCKET), eq(NEW_BUCKET));
+      }
+    }
+  }
+
+  // Test case 2: old bucket doesn't exist, so no action is taken
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenOldBucketDoesNotExist() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(false);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).listObjects(any());
+    }
+  }
+
+  // Test case 3: new bucket already exists, so no workspaces should be moved
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenNewBucketExists() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(true);
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).listObjects(any());
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
+  }
+
+  // Test case 4: old bucket exists, new bucket does not exist, but no workspaces to move
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsButNoWorkspacesToMove() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(storageService.listObjects(OLD_BUCKET)).thenReturn(Collections.emptyList());
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
+  }
+
+  // Test case 5: old bucket exists, new bucket does not exist, but workspace with wrong extension
+  // (not RDATA)
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsButNonRDataFiles() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
+    when(principal.getName()).thenReturn(USER_ID);
+    when(item.name()).thenReturn("workspace1.txt");
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
+  }
+
+  // Test case 6: handle exception (e.g., if storageService throws an exception)
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenStorageServiceFails() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(principal.getName()).thenReturn(USER_ID);
+    when(storageService.listObjects(OLD_BUCKET)).thenThrow(new RuntimeException("Service failure"));
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever
+          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
+          .thenReturn(USER_EMAIL);
+      assertThrows(
+          RuntimeException.class, () -> armadilloStorage.moveWorkspacesIfInOldBucket(principal));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_success() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2", "migration3");
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Call the method
+      armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+
+      // Create the expected path
+      Path expectedPath = Paths.get("/mock/root", bucketName, "migration-status.txt");
+
+      // Verify that Files.write was called with the correct parameters
+      mockedFiles.verify(
+          () ->
+              Files.write(
+                  eq(expectedPath),
+                  eq(migrationStatus),
+                  eq(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_writeFailure() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2", "migration3");
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Simulate IOException when trying to write the file
+      mockedFiles
+          .when(() -> Files.write(any(Path.class), anyList(), any()))
+          .thenThrow(new IOException("Permission denied"));
+
+      // Call the method
+      try {
+        armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+      } catch (IOException e) {
+        assertTrue(e.getMessage().contains("Permission denied"));
+      }
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_emptyMigrationStatus() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of(); // Empty list
+    String bucketName = "testBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Use Mockito to mock static method Files.write()
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Call the method with empty migration status
+      armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+
+      // Create the expected path
+      Path expectedPath = Paths.get("/mock/root", bucketName, "migration-status.txt");
+
+      // Verify that Files.write is still called with an empty list
+      mockedFiles.verify(
+          () ->
+              Files.write(
+                  eq(expectedPath),
+                  eq(migrationStatus),
+                  eq(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+  }
+
+  @Test
+  public void testWriteMigrationFile_invalidBucket() throws IOException {
+    // Prepare test data
+    List<String> migrationStatus = List.of("migration1", "migration2");
+    String bucketName = "invalidBucket";
+
+    // Mock behavior of storageService to return a valid root directory
+    when(storageService.getRootDir()).thenReturn("/mock/root");
+
+    // Simulate an invalid bucket by making the path creation fail
+    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+      // Simulate a situation where creating the path causes an exception
+      mockedFiles
+          .when(() -> Files.write(any(Path.class), anyList(), any()))
+          .thenThrow(new IOException("Invalid bucket path"));
+
+      // Call the method
+      try {
+        armadilloStorage.writeMigrationFile(migrationStatus, bucketName);
+      } catch (IOException e) {
+        assertTrue(e.getMessage().contains("Invalid bucket path"));
+      }
+    }
   }
 }
