@@ -57,7 +57,7 @@
                 :data="filteredWorkspaces[selectedUser]"
                 :sortedHeaders="filteredHeaders"
                 :nRows="2"
-                :sortColumns="['user', 'size', 'lastModified']"
+                :sortColumns="['user', 'name', 'size', 'lastModified']"
               >
                 <template #extraHeader>
                   <th></th>
@@ -190,6 +190,7 @@ export default defineComponent({
       successMessage: "",
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
+      migrationStatus: false,
     };
   },
   methods: {
