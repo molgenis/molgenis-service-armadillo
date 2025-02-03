@@ -21,14 +21,6 @@
     <div class="row">
       <div class="col-12">
         <h2 class="mt-3">Workspaces</h2>
-        {{ selectedUser }}
-        <button
-          type="button"
-          class="btn btn-danger bg-danger"
-          @click.prevent="deleteAllWorkspaces"
-        >
-          <i class="bi bi-trash-fill"></i>
-        </button>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
           <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
@@ -46,13 +38,6 @@
           </div>
           <div class="col-6" :style="{}" ref="workspaceDetails">
             <div v-if="selectedUser">
-              <button
-                type="button"
-                class="btn btn-danger bg-danger"
-                @click.prevent="setIsDeleteTriggered"
-              >
-                <i class="bi bi-trash-fill"></i>
-              </button>
               <DataPreviewTable
                 :data="filteredWorkspaces[selectedUser]"
                 :sortedHeaders="filteredHeaders"
@@ -60,7 +45,15 @@
                 :sortColumns="['user', 'name', 'size', 'lastModified']"
               >
                 <template #extraHeader>
-                  <th></th>
+                  <th>
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm bg-danger"
+                      @click.prevent="setIsDeleteTriggered"
+                    >
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </th>
                 </template>
                 <template #extraColumn="columnProps">
                   <!-- Add buttons for editing/deleting users  -->
@@ -190,7 +183,7 @@ export default defineComponent({
       successMessage: "",
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
-      migrationStatus: false,
+      hasMigrationStatus: false,
     };
   },
   methods: {
@@ -231,12 +224,6 @@ export default defineComponent({
           const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`;
           this.deleteErrorMessages.push(errorMessage);
         });
-    },
-    deleteAllWorkspaces() {
-      const userWorkspaces = this.workspaces[this.selectedUser];
-      userWorkspaces.forEach((workspace) => {
-        this.deleteWorkspace(workspace.name);
-      });
     },
     async deleteSelectedWorkspaces() {
       for (const workspace of this.workspacesToDelete) {
