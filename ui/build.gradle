@@ -37,7 +37,7 @@ task mybuild(type: YarnTask, dependsOn: yarn_install) {
 }
 
 task test(type: YarnTask, dependsOn: mybuild) {
-    args = ['run', 'test']
+    args = ['run', 'jest', '--coverage']
 }
 
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
