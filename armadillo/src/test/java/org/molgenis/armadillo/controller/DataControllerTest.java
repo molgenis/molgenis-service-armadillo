@@ -1098,6 +1098,22 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
+  void testGetMigrationStatus() throws Exception {
+
+    mockMvc
+        .perform(get("/migration-status/henk@email.com").session(session))
+        .andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_MIGRATION_STATUS",
+            Map.of("user", "henk@email.com", "sessionId", sessionId, "roles", List.of("ROLE_SU"))));
+  }
+
+  @Test
   void testGetMatchedData() {
     DataController dataController =
         new DataController(
