@@ -415,7 +415,7 @@ public class DataController {
 
   @Operation(summary = "Get migration status")
   @GetMapping(value = "/migration-status/{user}", produces = APPLICATION_JSON_VALUE)
-  public ArrayList<HashMap<String, String>> getMigrationStatus(
+  public List<HashMap<String, String>> getMigrationStatus(
       Principal principal, @PathVariable String user) {
     return auditEventPublisher.audit(
         () -> storage.getMigrationStatus(user),

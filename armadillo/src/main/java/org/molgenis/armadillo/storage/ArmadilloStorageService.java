@@ -14,7 +14,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -240,7 +239,7 @@ public class ArmadilloStorageService {
     return id + RDATA_EXT;
   }
 
-  public ArrayList<HashMap<String, String>> getMigrationStatus(String user) {
+  public List<HashMap<String, String>> getMigrationStatus(String user) {
     try {
       ArmadilloMigrationFile migrationFile =
           new ArmadilloMigrationFile(
