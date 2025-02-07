@@ -2,10 +2,11 @@ package org.molgenis.armadillo.storage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
 
@@ -13,7 +14,10 @@ class ArmadilloMigrationFileTest {
 
   private static ArmadilloMigrationFile armadilloMigrationFile;
   private static Path tempDirectory;
-  private static String MIGRATION_FILE_PATH = "/migration-status.amf";
+  private static final String MIGRATION_FILE_PATH =
+      File.separator
+          + ArmadilloMigrationFile.MIGRATION_FILE_NAME
+          + ArmadilloMigrationFile.MIGRATION_FILE_EXTENSION;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -43,7 +47,7 @@ class ArmadilloMigrationFileTest {
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
-    ArrayList<HashMap<String, String>> status = armadilloMigrationFile.getMigrationStatus();
+    List<HashMap<String, String>> status = armadilloMigrationFile.getMigrationStatus();
 
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);
@@ -62,7 +66,7 @@ class ArmadilloMigrationFileTest {
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
-    ArrayList<HashMap<String, String>> status = armadilloMigrationFile.getMigrationStatus();
+    List<HashMap<String, String>> status = armadilloMigrationFile.getMigrationStatus();
 
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);

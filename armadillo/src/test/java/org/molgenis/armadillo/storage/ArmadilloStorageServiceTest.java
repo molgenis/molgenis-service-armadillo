@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -788,7 +787,6 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU") // Simulating a user with ROLE_SU
   void testListAllUserWorkspaces() {
-    String MIGRATION_FILE_NAME = "migration-status";
     ObjectMetadata ws1Mock = mock(ObjectMetadata.class);
     ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
     ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
@@ -812,7 +810,10 @@ class ArmadilloStorageServiceTest {
     when(ws2Mock.name()).thenReturn("workspace2.RData");
     when(ws3Mock.name()).thenReturn("workspace3.RData");
     when(notAWsMock.name()).thenReturn("somethingweird.weirdextension");
-    when(migrationFile.name()).thenReturn(MIGRATION_FILE_NAME + ".txt");
+    when(migrationFile.name())
+        .thenReturn(
+            ArmadilloMigrationFile.MIGRATION_FILE_NAME
+                + ArmadilloMigrationFile.MIGRATION_FILE_EXTENSION);
 
     when(ws1Mock.size()).thenReturn(1234L);
     when(ws2Mock.size()).thenReturn(1235L);
@@ -842,7 +843,7 @@ class ArmadilloStorageServiceTest {
     assertNotNull(user1Workspaces);
     assertEquals(3, user1Workspaces.size()); // Expect 3 files for user1
     // assert migrationfile is in userworkspaces
-    assertEquals(user1Workspaces.get(2).name(), MIGRATION_FILE_NAME);
+    assertEquals(user1Workspaces.get(2).name(), ArmadilloMigrationFile.MIGRATION_FILE_NAME);
 
     List<Workspace> user2Workspaces = result.get("user-bucket2");
     assertNotNull(user2Workspaces);
@@ -859,7 +860,7 @@ class ArmadilloStorageServiceTest {
     // Mocking the behavior of storageService
     when(storageService.listBuckets()).thenReturn(mockBuckets);
 
-    // When & Then: Expecting an access denied exception due to lack of proper role
+    // When & Then: Expecting access denied exception due to lack of proper role
     assertThrows(
         AccessDeniedException.class,
         () -> {
@@ -927,8 +928,7 @@ class ArmadilloStorageServiceTest {
             .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
             .thenReturn(USER_EMAIL);
         armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-        verify(storageService, times(1))
-            .moveWorkspace(eq(item), eq(principal), eq(OLD_BUCKET), eq(NEW_BUCKET));
+        verify(storageService, times(1)).moveWorkspace(item, principal, OLD_BUCKET, NEW_BUCKET);
       }
     }
   }

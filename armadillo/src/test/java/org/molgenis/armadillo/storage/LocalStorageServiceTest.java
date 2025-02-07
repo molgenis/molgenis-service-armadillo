@@ -375,7 +375,7 @@ class LocalStorageServiceTest {
   }
 
   @Test
-  void testMoveWorkspace() throws IOException {
+  void testMoveWorkspace() {
     // Setup test data: Create a workspace in the old bucket
     String oldBucketName = "old-bucket";
     String newBucketName = "new-bucket";

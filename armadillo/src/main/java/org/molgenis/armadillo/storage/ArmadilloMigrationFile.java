@@ -12,29 +12,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArmadilloMigrationFile {
-  String MIGRATION_FILE_NAME = "migration-status";
-  String MIGRATION_FILE_EXTENSION = ".amf";
+  static final String MIGRATION_FILE_NAME = "migration-status";
+  static final String MIGRATION_FILE_EXTENSION = ".amf";
 
   Path migrationFilePath;
 
   public ArmadilloMigrationFile(String rootDir, String filePath) {
     Path bucketPath = Paths.get(rootDir, filePath).toAbsolutePath().normalize();
     migrationFilePath =
-        Paths.get(bucketPath + "/" + MIGRATION_FILE_NAME + MIGRATION_FILE_EXTENSION);
+        Paths.get(bucketPath + File.separator + MIGRATION_FILE_NAME + MIGRATION_FILE_EXTENSION);
   }
 
-  public ArrayList<HashMap<String, String>> getMigrationStatus() throws FileNotFoundException {
+  public List<HashMap<String, String>> getMigrationStatus() throws FileNotFoundException {
     File migrationFile = migrationFilePath.toFile();
     Scanner reader = new Scanner(migrationFile);
     ArrayList<HashMap<String, String>> migrationStatus = new ArrayList<>();
-    while (reader.hasNextLine()) {
-      String data = reader.nextLine();
-      if (!Objects.equals(data, "\n")) {
-        HashMap<String, String> parsedLine = parseLine(data);
-        if (!parsedLine.isEmpty()) {
-          migrationStatus.add(parsedLine);
+    try {
+      while (reader.hasNextLine()) {
+        String data = reader.nextLine();
+        if (!Objects.equals(data, "\n")) {
+          HashMap<String, String> parsedLine = parseLine(data);
+          if (!parsedLine.isEmpty()) {
+            migrationStatus.add(parsedLine);
+          }
         }
       }
+    } finally {
+      reader.close();
     }
     return migrationStatus;
   }
@@ -42,7 +46,6 @@ public class ArmadilloMigrationFile {
   HashMap<String, String> parseLine(String line) {
     HashMap<String, String> parsedLine = new HashMap<>();
     Pattern pattern = Pattern.compile("");
-    ;
     String status = "";
     if (line.startsWith("Successfully")) {
       pattern =
@@ -73,14 +76,14 @@ public class ArmadilloMigrationFile {
   String getMigrationSuccessMessage(
       String workspaceName, String oldBucketName, String newBucketName) {
     return format(
-        "Successfully migrated workspace [%s] from [%s] to [%s]\n",
+        "Successfully migrated workspace [%s] from [%s] to [%s]%n",
         workspaceName, oldBucketName, newBucketName);
   }
 
   String getMigrationFailureMessage(
       String workspaceName, String oldBucketName, String newBucketName, String errorMessage) {
     return format(
-        "Cannot migrate workspace [%s] from [%s] to [%s], because [%s]. Workspace needs to be moved manually.\n",
+        "Cannot migrate workspace [%s] from [%s] to [%s], because [%s]. Workspace needs to be moved manually.%n",
         workspaceName, oldBucketName, newBucketName, errorMessage);
   }
 
