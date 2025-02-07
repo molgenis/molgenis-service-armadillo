@@ -413,6 +413,17 @@ public class DataController {
         storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
   }
 
+  @Operation(summary = "Get migration status")
+  @GetMapping(value = "/migration-status/{user}", produces = APPLICATION_JSON_VALUE)
+  public ArrayList<HashMap<String, String>> getMigrationStatus(
+      Principal principal, @PathVariable String user) {
+    return auditEventPublisher.audit(
+        () -> storage.getMigrationStatus(user),
+        principal,
+        GET_MIGRATION_STATUS,
+        Map.of(USER, user));
+  }
+
   @Operation(
       summary = "Delete user workspace",
       responses = {
@@ -529,7 +540,7 @@ public class DataController {
         : variableList.stream().filter(allowedVariables::contains).toList();
   }
 
-  String getSafeUsernameForFileSystem(String user) {
+  public static String getSafeUsernameForFileSystem(String user) {
     // replaces the @ in email addresses because when we use it as name of a folder, not all
     // filesystems might like it
     if (user.contains("@")) {

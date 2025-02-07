@@ -4,18 +4,18 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.molgenis.armadillo.controller.DataController.getSafeUsernameForFileSystem;
 import static org.molgenis.armadillo.info.UserInformationRetriever.getUserIdentifierFromPrincipal;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -240,6 +240,18 @@ public class ArmadilloStorageService {
     return id + RDATA_EXT;
   }
 
+  public ArrayList<HashMap<String, String>> getMigrationStatus(String user) {
+    try {
+      ArmadilloMigrationFile migrationFile =
+          new ArmadilloMigrationFile(
+              storageService.getRootDir(), USER_PREFIX + getSafeUsernameForFileSystem(user));
+      return migrationFile.getMigrationStatus();
+    } catch (FileNotFoundException e) {
+      throw new StorageException(
+          format("Migration status file for user [%s] does not exist", user));
+    }
+  }
+
   private static String getOldUserBucketName(Principal principal) {
     return USER_PREFIX + principal.getName();
   }
@@ -269,17 +281,18 @@ public class ArmadilloStorageService {
     }
   }
 
-  public void moveWorkspacesIfInOldBucket(Principal principal) {
+  public void moveWorkspacesIfInOldBucket(Principal principal) throws FileNotFoundException {
     String oldBucketName = getOldUserBucketName(principal);
     String newBucketName = getUserBucketName(principal);
     // only move workspaces from old bucket to new if there is no new bucket yet, we don't want to
-    List<String> migrationStatus = new ArrayList<>();
     if (storageService.bucketExists(oldBucketName) && !storageService.bucketExists(newBucketName)) {
       LOGGER.info(
           "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
           oldBucketName,
           newBucketName);
       List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
+      ArmadilloMigrationFile migrationFile =
+          new ArmadilloMigrationFile(storageService.getRootDir(), newBucketName);
       existingWorkspaces.forEach(
           (ws) -> {
             String message = "";
@@ -287,36 +300,21 @@ public class ArmadilloStorageService {
               try {
                 storageService.moveWorkspace(ws, principal, oldBucketName, newBucketName);
                 message =
-                    format(
-                        "Successfully migrated workspace [%s] from [%s] to [%s]",
+                    migrationFile.getMigrationSuccessMessage(
                         ws.name(), oldBucketName, newBucketName);
               } catch (StorageException e) {
                 message =
-                    format(
-                        "Can't migrate workspace [%s] from [%s] to [%s], because [%s]. Workspace needs to be moved manually.",
+                    migrationFile.getMigrationFailureMessage(
                         ws.name(), oldBucketName, newBucketName, e.getMessage());
               } finally {
-                migrationStatus.add(message);
+                try {
+                  migrationFile.addLine(message);
+                } catch (IOException e) {
+                  LOGGER.warn("Can't write migration status file for user [{}].", newBucketName);
+                }
               }
             }
           });
-      try {
-        writeMigrationFile(migrationStatus, newBucketName);
-      } catch (FileNotFoundException e) {
-        LOGGER.warn("Can't write migration status file for user [{}].", newBucketName);
-      }
-    }
-  }
-
-  void writeMigrationFile(List<String> migrationStatus, String bucketName)
-      throws FileNotFoundException {
-    Path bucketPath =
-        Paths.get(storageService.getRootDir(), bucketName).toAbsolutePath().normalize();
-    Path path = Paths.get(bucketPath + "/migration-status.txt");
-    try {
-      Files.write(path, migrationStatus, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      LOGGER.warn("Cannot write migration file to [{}] because: [{}]", path, e.getMessage());
     }
   }
 
@@ -337,7 +335,7 @@ public class ArmadilloStorageService {
                 "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
                 getHumanReadableByteCount(fileSize)));
       }
-    } catch (StorageException e) {
+    } catch (StorageException | FileNotFoundException e) {
       throw new StorageException(e.getMessage().replace("load", "save"));
     }
   }
