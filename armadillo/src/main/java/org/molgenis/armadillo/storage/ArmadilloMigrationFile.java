@@ -50,12 +50,12 @@ public class ArmadilloMigrationFile {
     if (line.startsWith("Successfully")) {
       pattern =
           Pattern.compile(
-              "Successfully migrated workspace \\[(.+:.+\\.RData)] from \\[(user-[\\w-]+)] to \\[(user-[\\w.]+)]");
+              "Successfully migrated workspace \\[([a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+\\.RData)] from \\[user-[a-zA-Z0-9-]+] to \\[user-[a-zA-Z0-9.-]+(?:__at__)?[a-zA-Z0-9.-]+]\n");
       status = "success";
     } else if (line.startsWith("Cannot migrate workspace")) {
       pattern =
           Pattern.compile(
-              "Cannot migrate workspace \\[(.+:.+\\.RData)] from \\[(user-[\\w-]+)] to \\[(user-[\\w.]+)], because \\[(.+)]. Workspace needs to be moved manually.");
+              "Cannot migrate workspace \\[([a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+\\.RData)] from \\[user-[a-zA-Z0-9-]+] to \\[user-[a-zA-Z0-9.-]+(?:__at__)?[a-zA-Z0-9.-]+], because \\[([^\\]]+)]. Workspace needs to be moved manually.\n");
       status = "failure";
     }
     Matcher matcher = pattern.matcher(line);
