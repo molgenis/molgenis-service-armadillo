@@ -8,8 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ArmadilloMigrationFile {
   static final String MIGRATION_FILE_NAME = "migration-status";
@@ -43,14 +41,6 @@ public class ArmadilloMigrationFile {
     return migrationStatus;
   }
 
-  String getMatch(Pattern pattern, String stringToMatch) {
-    Matcher matcher = pattern.matcher(stringToMatch);
-    if (matcher.find()) {
-      return matcher.group(1);
-    }
-    return "";
-  }
-
   String getMigrationStatus(String statusLine) {
     if (statusLine.startsWith("Successfully")) {
       return "success";
@@ -64,20 +54,16 @@ public class ArmadilloMigrationFile {
   HashMap<String, String> parseLine(String line) {
     HashMap<String, String> parsedLine = new HashMap<>();
     String status = getMigrationStatus(line);
-    Pattern workspacePattern = Pattern.compile("workspace \\[(.+?:.+?\\.RData)] from");
-    String workspace = getMatch(workspacePattern, line);
-    Pattern oldUserPattern =
-        Pattern.compile("\\[(user-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})]");
-    String oldUser = getMatch(oldUserPattern, line);
-    Pattern newUserPattern = Pattern.compile("to \\[(user-.+?__at__.+?\\.[a-z]{2,3})][,%][n ]");
-    String newUser = getMatch(newUserPattern, line);
-    Pattern errorMessagePattern = Pattern.compile(", because \\[(.+)]");
-    String errorMessage = getMatch(errorMessagePattern, line);
+    String[] splittedLine = line.split("[\\[\\]]");
+    parsedLine.put("workspace", splittedLine[1]);
+    parsedLine.put("oldUserFolder", splittedLine[3]);
+    parsedLine.put("newUserFolder", splittedLine[5]);
     parsedLine.put("status", status);
-    parsedLine.put("workspace", workspace);
-    parsedLine.put("oldUserFolder", oldUser);
-    parsedLine.put("newUserFolder", newUser);
-    parsedLine.put("errorMessage", errorMessage);
+
+    if (splittedLine.length > 7) {
+      parsedLine.put("errorMessage", splittedLine[7]);
+    }
+
     return !status.isEmpty() ? parsedLine : null;
   }
 
