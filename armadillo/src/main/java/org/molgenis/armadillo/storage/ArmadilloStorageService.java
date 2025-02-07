@@ -226,7 +226,11 @@ public class ArmadilloStorageService {
                         .filter(
                             (object ->
                                 object.name().endsWith(RDATA_EXT)
-                                    || object.name().equals("migration-status.txt")))
+                                    || object
+                                        .name()
+                                        .equals(
+                                            ArmadilloMigrationFile.MIGRATION_FILE_NAME
+                                                + ArmadilloMigrationFile.MIGRATION_FILE_EXTENSION)))
                         .map(ArmadilloStorageService::toWorkspace)
                         .collect(Collectors.toList())));
   }
