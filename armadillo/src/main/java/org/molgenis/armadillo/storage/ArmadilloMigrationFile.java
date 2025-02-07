@@ -64,12 +64,12 @@ public class ArmadilloMigrationFile {
   HashMap<String, String> parseLine(String line) {
     HashMap<String, String> parsedLine = new HashMap<>();
     String status = getMigrationStatus(line);
-    Pattern workspacePattern = Pattern.compile("\\[(.+:.+\\.RData)]");
+    Pattern workspacePattern = Pattern.compile("workspace \\[(.+:.+\\.RData)] from");
     String workspace = getMatch(workspacePattern, line);
     Pattern oldUserPattern =
         Pattern.compile("\\[(user-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})]");
     String oldUser = getMatch(oldUserPattern, line);
-    Pattern newUserPattern = Pattern.compile("to \\[(user-.+__at__.+\\.[a-z]{2,3})]");
+    Pattern newUserPattern = Pattern.compile("to \\[(user-.+__at__.+\\.[a-z]{2,3})][,%][n ]");
     String newUser = getMatch(newUserPattern, line);
     Pattern errorMessagePattern = Pattern.compile(", because \\[(.+)]");
     String errorMessage = getMatch(errorMessagePattern, line);
