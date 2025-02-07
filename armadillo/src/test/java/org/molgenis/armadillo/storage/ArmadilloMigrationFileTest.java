@@ -43,7 +43,7 @@ class ArmadilloMigrationFileTest {
   void testGetMigrationStatusSuccess() throws IOException {
     // Mock file reading
     String testData =
-        "Successfully migrated workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk]\n";
+        "Successfully migrated workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-a.new.user__at__something.co.uk]%n";
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
@@ -53,8 +53,7 @@ class ArmadilloMigrationFileTest {
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
     assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
-    assertEquals(
-        "user-new__at__something.co.uk__at__something.co.uk", migration.get("newUserFolder"));
+    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newUserFolder"));
     assertEquals("success", migration.get("status"));
 
     Files.delete(tempFile);
@@ -63,7 +62,7 @@ class ArmadilloMigrationFileTest {
   @Test
   void testGetMigrationStatusFailure() throws IOException {
     String testData =
-        "Cannot migrate workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
+        "Cannot migrate workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-a.new.user__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
@@ -73,8 +72,7 @@ class ArmadilloMigrationFileTest {
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
     assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
-    assertEquals(
-        "user-new__at__something.co.uk__at__something.co.uk", migration.get("newUserFolder"));
+    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newUserFolder"));
     assertEquals("failure", migration.get("status"));
     assertEquals("error", migration.get("errorMessage"));
 
@@ -87,9 +85,9 @@ class ArmadilloMigrationFileTest {
         armadilloMigrationFile.getMigrationSuccessMessage(
             "workspace-name",
             "user-3bd39efc-b92b-49e9-abad-22da4254d911",
-            "user-new__at__something.co.uk__at__something.co.uk");
+            "user-a.new.user__at__something.co.uk");
     String expectedMessage =
-        "Successfully migrated workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk]\n";
+        "Successfully migrated workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-a.new.user__at__something.co.uk]\n";
     assertEquals(expectedMessage, message);
   }
 
@@ -99,10 +97,10 @@ class ArmadilloMigrationFileTest {
         armadilloMigrationFile.getMigrationFailureMessage(
             "workspace-name",
             "user-3bd39efc-b92b-49e9-abad-22da4254d911",
-            "user-new__at__something.co.uk__at__something.co.uk",
+            "user-a.new.user__at__something.co.uk",
             "error");
     String expectedMessage =
-        "Cannot migrate workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
+        "Cannot migrate workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-a.new.user__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
     assertEquals(expectedMessage, message);
   }
 
@@ -131,5 +129,33 @@ class ArmadilloMigrationFileTest {
     // Verify the file was created and contains the correct content
     String content = Files.readString(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     assertTrue(content.contains("New line to add"));
+  }
+
+  @Test
+  public void testSuccessStatus() {
+    String statusLine = "Successfully migrated data.";
+    String result = armadilloMigrationFile.getMigrationStatus(statusLine);
+    assertEquals("success", result);
+  }
+
+  @Test
+  public void testFailureStatus() {
+    String statusLine = "Cannot migrate data.";
+    String result = armadilloMigrationFile.getMigrationStatus(statusLine);
+    assertEquals("failure", result);
+  }
+
+  @Test
+  public void testEmptyStatus() {
+    String statusLine = "Migration status unavailable.";
+    String result = armadilloMigrationFile.getMigrationStatus(statusLine);
+    assertEquals("", result);
+  }
+
+  @Test
+  public void testEmptyString() {
+    String statusLine = "";
+    String result = armadilloMigrationFile.getMigrationStatus(statusLine);
+    assertEquals("", result);
   }
 }
