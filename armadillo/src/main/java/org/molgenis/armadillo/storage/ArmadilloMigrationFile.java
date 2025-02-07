@@ -43,34 +43,42 @@ public class ArmadilloMigrationFile {
     return migrationStatus;
   }
 
+  String getMatch(Pattern pattern, String stringToMatch) {
+    Matcher matcher = pattern.matcher(stringToMatch);
+    if (matcher.find()) {
+      return matcher.group(1);
+    }
+    return "";
+  }
+
+  String getMigrationStatus(String statusLine) {
+    if (statusLine.startsWith("Successfully")) {
+      return "success";
+    } else if (statusLine.startsWith("Cannot")) {
+      return "failure";
+    } else {
+      return "";
+    }
+  }
+
   HashMap<String, String> parseLine(String line) {
     HashMap<String, String> parsedLine = new HashMap<>();
-    Pattern pattern = Pattern.compile("");
-    String status = "";
-    if (line.startsWith("Successfully")) {
-      pattern =
-          Pattern.compile(
-              "Successfully migrated workspace \\[([a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+\\.RData)] from \\[user-[a-zA-Z0-9-]+] to \\[user-[a-zA-Z0-9.-]+(?:__at__)?[a-zA-Z0-9.-]+]\n");
-      status = "success";
-    } else if (line.startsWith("Cannot migrate workspace")) {
-      pattern =
-          Pattern.compile(
-              "Cannot migrate workspace \\[([a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+\\.RData)] from \\[user-[a-zA-Z0-9-]+] to \\[user-[a-zA-Z0-9.-]+(?:__at__)?[a-zA-Z0-9.-]+], because \\[([^\\]]+)]. Workspace needs to be moved manually.\n");
-      status = "failure";
-    }
-    Matcher matcher = pattern.matcher(line);
-    while (matcher.find()) {
-      if (!status.isEmpty()) {
-        parsedLine.put("workspace", matcher.group(1));
-        parsedLine.put("oldUserFolder", matcher.group(2));
-        parsedLine.put("newUserFolder", matcher.group(3));
-        parsedLine.put("status", status);
-      }
-      if (status.equals("failure")) {
-        parsedLine.put("errorMessage", matcher.group(4));
-      }
-    }
-    return parsedLine;
+    String status = getMigrationStatus(line);
+    Pattern workspacePattern = Pattern.compile("\\[(.+:.+\\.RData)]");
+    String workspace = getMatch(workspacePattern, line);
+    Pattern oldUserPattern =
+        Pattern.compile("\\[(user-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})]");
+    String oldUser = getMatch(oldUserPattern, line);
+    Pattern newUserPattern = Pattern.compile("to \\[(user-.+__at__.+\\.[a-z]{2,3})]");
+    String newUser = getMatch(newUserPattern, line);
+    Pattern errorMessagePattern = Pattern.compile(", because \\[(.+)]");
+    String errorMessage = getMatch(errorMessagePattern, line);
+    parsedLine.put("status", status);
+    parsedLine.put("workspace", workspace);
+    parsedLine.put("oldUserFolder", oldUser);
+    parsedLine.put("newUserFolder", newUser);
+    parsedLine.put("errorMessage", errorMessage);
+    return !status.isEmpty() ? parsedLine : null;
   }
 
   String getMigrationSuccessMessage(

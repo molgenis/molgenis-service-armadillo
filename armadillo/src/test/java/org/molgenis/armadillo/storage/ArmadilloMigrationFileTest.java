@@ -43,7 +43,7 @@ class ArmadilloMigrationFileTest {
   void testGetMigrationStatusSuccess() throws IOException {
     // Mock file reading
     String testData =
-        "Successfully migrated workspace [cohort:workspace-name.RData] from [user-old] to [user-new]\n";
+        "Successfully migrated workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk]\n";
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
@@ -52,8 +52,9 @@ class ArmadilloMigrationFileTest {
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
-    assertEquals("user-old", migration.get("oldUserFolder"));
-    assertEquals("user-new", migration.get("newUserFolder"));
+    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
+    assertEquals(
+        "user-new__at__something.co.uk__at__something.co.uk", migration.get("newUserFolder"));
     assertEquals("success", migration.get("status"));
 
     Files.delete(tempFile);
@@ -62,7 +63,7 @@ class ArmadilloMigrationFileTest {
   @Test
   void testGetMigrationStatusFailure() throws IOException {
     String testData =
-        "Cannot migrate workspace [cohort:workspace-name.RData] from [user-old] to [user-new], because [error]. Workspace needs to be moved manually.\n";
+        "Cannot migrate workspace [cohort:workspace-name.RData] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
     Path tempFile = Files.createFile(Path.of(tempDirectory + MIGRATION_FILE_PATH));
     Files.write(tempFile, testData.getBytes(), StandardOpenOption.CREATE);
 
@@ -71,8 +72,9 @@ class ArmadilloMigrationFileTest {
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
-    assertEquals("user-old", migration.get("oldUserFolder"));
-    assertEquals("user-new", migration.get("newUserFolder"));
+    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
+    assertEquals(
+        "user-new__at__something.co.uk__at__something.co.uk", migration.get("newUserFolder"));
     assertEquals("failure", migration.get("status"));
     assertEquals("error", migration.get("errorMessage"));
 
@@ -82,9 +84,12 @@ class ArmadilloMigrationFileTest {
   @Test
   void testGetMigrationSuccessMessage() {
     String message =
-        armadilloMigrationFile.getMigrationSuccessMessage("workspace-name", "user-old", "user-new");
+        armadilloMigrationFile.getMigrationSuccessMessage(
+            "workspace-name",
+            "user-3bd39efc-b92b-49e9-abad-22da4254d911",
+            "user-new__at__something.co.uk__at__something.co.uk");
     String expectedMessage =
-        "Successfully migrated workspace [workspace-name] from [user-old] to [user-new]\n";
+        "Successfully migrated workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk]\n";
     assertEquals(expectedMessage, message);
   }
 
@@ -92,9 +97,12 @@ class ArmadilloMigrationFileTest {
   void testGetMigrationFailureMessage() {
     String message =
         armadilloMigrationFile.getMigrationFailureMessage(
-            "workspace-name", "user-old", "user-new", "error");
+            "workspace-name",
+            "user-3bd39efc-b92b-49e9-abad-22da4254d911",
+            "user-new__at__something.co.uk__at__something.co.uk",
+            "error");
     String expectedMessage =
-        "Cannot migrate workspace [workspace-name] from [user-old] to [user-new], because [error]. Workspace needs to be moved manually.\n";
+        "Cannot migrate workspace [workspace-name] from [user-3bd39efc-b92b-49e9-abad-22da4254d911] to [user-new__at__something.co.uk__at__something.co.uk], because [error]. Workspace needs to be moved manually.\n";
     assertEquals(expectedMessage, message);
   }
 
