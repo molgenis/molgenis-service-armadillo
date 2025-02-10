@@ -153,6 +153,10 @@ run_omics_tests(project = project1, url = test_config$armadillo_url, token = tok
                    user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive,
                    update_auto = test_config$update_auto)
 
+cli_alert_info("Testing dsTidyverse")
+source("test-cases/donkey-tidyverse.R")
+run_tidyverse_tests(skip_tests = test_config$skip_tests)
+
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") # Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
