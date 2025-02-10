@@ -1,6 +1,6 @@
-create_dir_if_not_exists <- function(directory) {
+create_dir_if_not_exists <- function(dest, directory) {
   if (!dir.exists(paste0(dest, directory))) {
-    dir.create(paste0(dest, directory))
+    dir.create(paste0(dest, directory), recursive = TRUE)
   }
 }
 
@@ -13,7 +13,7 @@ download_test_files <- function(urls, dest) {
     folder <- splitted[length(splitted) - 1]
     filename <- splitted[length(splitted)]
     cli_alert_info(paste0("Downloading ", filename))
-    download.file(download_url, paste0(dest, folder, "/", filename), quiet = TRUE)
+    download.file(download_url, paste0(dest, folder, "/", filename), quiet = FALSE)
     cli_progress_update()
   }
   cli_progress_done()
@@ -28,8 +28,8 @@ download_tables <- function(dest, service_location, skip_tests, default_parquet_
   if (!dir.exists(default_parquet_path)) {
     cli_alert_info("Downloading tables")
     cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", dest))
-    create_dir_if_not_exists("core")
-    create_dir_if_not_exists("outcome")
+    create_dir_if_not_exists(dest, "core")
+    create_dir_if_not_exists(dest, "outcome")
     test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
     download_test_files(
       c(
