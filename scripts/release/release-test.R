@@ -40,6 +40,8 @@ library(dsBaseClient)
 library(DSMolgenisArmadillo)
 library(resourcer)
 
+options(datashield.errors.print = TRUE)
+
 cli_alert_info("Loading common functions")
 source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
@@ -82,7 +84,7 @@ create_test_project(target_project_name = project1, skip_tests = test_config$ski
 
 cli_h2("Uploading test data")
 source("test-cases/upload-data.R")
-upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
+upload_test_data(project = project1, dest = test_config$dest, default_parquet_path = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 
 cli_h2("Uploading resource source file")
 source("test-cases/upload-resource.R")
@@ -153,6 +155,10 @@ run_omics_tests(project = project1, url = test_config$armadillo_url, token = tok
                    user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive,
                    update_auto = test_config$update_auto)
 
+cli_alert_info("Testing dsTidyverse")
+source("test-cases/donkey-tidyverse.R")
+run_tidyverse_tests(project = project1, data_path = "/tidyverse", skip_tests = test_config$skip_tests)
+
 cli_h2("Removing data as admin")
 source("test-cases/remove-data.R") # Add link_project once module works
 dm_clean_up(user = test_config$user, admin_pwd = test_config$admin_pwd, required_projects = list(project1), update_auto = test_config$update_auto, url = test_config$armadillo_url, skip_tests = test_config$skip_tests, interactive = test_config$interactive)
@@ -160,7 +166,7 @@ datashield.logout(conns)
 
 cli_h2("Testing basic authentification")
 source("test-cases/basic-auth.R")
-verify_basic_auth(url = test_config$armadillo_url, admin_pwd = test_config$admin_pwd, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
+verify_basic_auth(url = test_config$armadillo_url, admin_pwd = test_config$admin_pwd, dest = test_config$dest, skip_tests = test_config$skip_tests)
 
 cli_alert_info("Testing done")
 cli_alert_info("Please test rest of UI manually, if impacted this release")

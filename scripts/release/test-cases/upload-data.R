@@ -1,11 +1,14 @@
-upload_test_data <- function(project, dest, skip_tests) {
+library(dplyr)
+
+upload_test_data <- function(project, dest, default_parquet_path, skip_tests) {
   test_name <- "upload-data"
   if (do_skip_test(test_name, skip_tests)) {
     return()
   }
-
+  
+  if(dir.exists(default_parquet_path)){dest <- default_parquet_path}
+  
   cli_alert_info("Reading parquet files for core variables")
-  print(dest)
   nonrep <- read_parquet_with_message("core/nonrep", dest)
   yearlyrep <- read_parquet_with_message("core/yearlyrep", dest)
   monthlyrep <- read_parquet_with_message("core/monthlyrep", dest)
@@ -50,5 +53,8 @@ upload_test_data <- function(project, dest, skip_tests) {
     cli_alert_danger(paste0(colnames(trimesterrep), "!=", cols))
     exit_test("Colnames incorrect")
   }
+  
+  cli_alert_info("Uploading tidyverse test table")
+  armadillo.upload_table(project, "tidyverse", mtcars)
   cli_alert_success(sprintf("%s passed!", test_name))
 }
