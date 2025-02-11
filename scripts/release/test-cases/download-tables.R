@@ -30,18 +30,21 @@ download_tables <- function(dest, service_location, skip_tests, default_parquet_
     cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", dest))
     create_dir_if_not_exists(dest, "core")
     create_dir_if_not_exists(dest, "outcome")
-    test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%srep.parquet"
+    create_dir_if_not_exists(dest, "survival")
+    test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%s.parquet"
     download_test_files(
       c(
-        sprintf(test_files_url_template, "core", "non"),
-        sprintf(test_files_url_template, "core", "yearly"),
-        sprintf(test_files_url_template, "core", "monthly"),
-        sprintf(test_files_url_template, "core", "trimester"),
-        sprintf(test_files_url_template, "outcome", "non"),
-        sprintf(test_files_url_template, "outcome", "yearly")
+        sprintf(test_files_url_template, "core", "nonrep"),
+        sprintf(test_files_url_template, "core", "yearlyrep"),
+        sprintf(test_files_url_template, "core", "monthlyrep"),
+        sprintf(test_files_url_template, "core", "trimesterrep"),
+        sprintf(test_files_url_template, "outcome", "nonrep"),
+        sprintf(test_files_url_template, "outcome", "yearlyrep"), 
+        sprintf(test_files_url_template, "survival", "veteran")
       ),
       dest
     )
+    
     cli_alert_success("Tables downloaded")
   } else {
     cli_alert_success("Tables not downloaded: available locally")
