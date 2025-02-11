@@ -1,5 +1,12 @@
 library(dsTidyverseClient)
 
+assign_tidyverse_data <- function(project, data_path) {
+  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars]", project, data_path))
+  datashield.assign.table(conns, "mtcars", sprintf("%s%s/mtcars", project, data_path))
+  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars_group]", project, data_path))
+  datashield.assign.table(conns, "mtcars_group", sprintf("%s%s/mtcars_group", project, data_path))
+}
+
 verify_arrange <- function() {
   ds_function_name <- "ds.arrange"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
@@ -137,7 +144,7 @@ verify_group_by <- function() {
   cli_alert_info(sprintf("Checking %s", ds_function_name))
   ds.group_by(
     df.name = "mtcars",
-    tidy_expr = list(mpg, cyl),
+    tidy_expr = list(cyl),
     newobj = "grouped",
     datasources = conns
   )
@@ -155,30 +162,131 @@ verify_ungroup <- function() {
   ds_function_name <- "ds.ungroup"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
   ds.ungroup("mtcars_group", "ungrouped_df", datasources = conns)
-  
   res <- ds.class("ungrouped_df", datasources = conns)[[1]]
 
   verify_output(
     function_name = ds_function_name, object = res,
-    expected = c("tbl_df", "tbl", "data.frame"),
+    expected = "data.frame",
     fail_msg = xenon_fail_msg$srv_class
   )
 }
 
-# group_by
-# group_keys
-# if_else
-# mutate
-# rename
-# select
-# slice
+verify_group_keys <- function() {
+  ds_function_name <- "ds.group_keys"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  res <- ds.group_keys("grouped", datasources = conns)$armadillo
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = tibble(cyl = c(4, 6, 8)),
+    fail_msg = xenon_fail_msg$clt_grp
+  )
+}
 
+verify_if_else <- function() {
+  ds_function_name <- "ds.if_else"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  
+  ds.if_else(
+    condition = list(mtcars$mpg > 20),
+    "high",
+    "low",
+    newobj = "test",
+    datasources = conns
+  )
+  
+  res <- names(ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = c("high", "low", "NA"),
+    fail_msg = xenon_fail_msg$srv_lvl
+  )
+}
 
-run_tidyverse_tests <- function(skip_tests) {
+verify_mutate <- function() {
+  ds_function_name <- "ds.mutate"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  
+  ds.mutate(
+    df.name = "mtcars",
+    tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
+    newobj = "new",
+    datasources = conns
+  )
+  
+  res <- ds.colnames("new")$armadillo
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = c("mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am", "gear", "carb", "mpg_trans", "new_var"),
+    fail_msg = xenon_fail_msg$srv_var
+  )
+}
+
+verify_rename <- function() {
+  ds_function_name <- "ds.rename"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  
+  ds.rename(
+    df.name = "mtcars",
+    tidy_expr = list(test_1 = mpg, test_2 = drat),
+    newobj = "mpg_drat",
+    datasources = conns
+  )
+  res <- ds.colnames("mpg_drat", datasources = conns)$armadillo
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = c("test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am", "gear", "carb"),
+    fail_msg = xenon_fail_msg$srv_var
+  )
+}
+
+verify_select <- function() {
+  ds_function_name <- "ds.select"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  
+  ds.select(
+    df.name = "mtcars",
+    tidy_expr = list(mpg:drat),
+    newobj = "mpg_drat",
+    datasources = conns
+  )
+  res <-  ds.colnames("mpg_drat", datasources = conns)$armadillo
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = c("mpg", "cyl", "disp", "hp", "drat"),
+    fail_msg = xenon_fail_msg$srv_var
+  )
+}
+
+verify_slice <- function() {
+  ds_function_name <- "ds.slice"
+  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  
+  ds.slice(
+    df.name = "mtcars",
+    tidy_expr = list(1:5),
+    newobj = "sliced",
+    datasources = conns
+  )
+  
+  res <-  ds.dim("sliced", datasources = conns)[[1]]
+  
+  verify_output(
+    function_name = ds_function_name, object = res,
+    expected = as.integer(c(5, 11)),
+    fail_msg = xenon_fail_msg$srv_dim)
+}
+
+run_tidyverse_tests <- function(skip_tests, project, data_path) {
   test_name <- "donkey-tidyverse"
   if (do_skip_test(test_name, skip_tests)) {
     return()
   }
+  assign_tidyverse_data(project, data_path)
   verify_arrange()
   verify_as_tibble()
   verify_bind_cols()
@@ -188,5 +296,11 @@ run_tidyverse_tests <- function(skip_tests) {
   verify_filter()
   verify_group_by()
   verify_ungroup()
+  verify_group_keys()
+  verify_if_else()
+  verify_mutate()
+  verify_rename()
+  verify_select()
+  verify_slice()
   cli_alert_success(sprintf("%s passed!", test_name))
 }
