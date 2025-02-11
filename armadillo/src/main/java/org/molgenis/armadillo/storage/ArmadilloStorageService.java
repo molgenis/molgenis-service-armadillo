@@ -88,8 +88,14 @@ public class ArmadilloStorageService {
   public void copyObject(String project, String newObject, String oldObject) {
     throwIfUnknown(project, oldObject);
     throwIfDuplicate(project, newObject);
-    var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
-    storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
+    copyFile(SHARED_PREFIX + project, SHARED_PREFIX + project, oldObject, newObject);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void copyFile(
+      String oldLocation, String newLocation, String oldFileName, String newFileName) {
+    var inputStream = storageService.load(oldLocation, oldFileName);
+    storageService.save(inputStream, newLocation, newFileName, APPLICATION_OCTET_STREAM);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

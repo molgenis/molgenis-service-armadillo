@@ -474,6 +474,24 @@ public class DataController {
         .get();
   }
 
+  @Operation(summary = "Copy user workspace to other directory")
+  @PostMapping(value = "/workspaces/{oldDirectory}/{id}/copy", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(CREATED)
+  public void copyUserWorkspace(
+      @PathVariable String id,
+      @PathVariable String oldDirectory,
+      Principal principal,
+      @RequestParam String newDirectory) {
+    auditEventPublisher.audit(
+        () -> {
+          storage.copyFile(oldDirectory, newDirectory, id, id);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(ID, id, USER, oldDirectory));
+  }
+
   @Operation(summary = "Load user workspace")
   @PostMapping(value = "/load-workspace")
   public void loadUserWorkspace(
