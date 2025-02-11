@@ -130,3 +130,22 @@ export type ViewEditorData = {
   srcFolder: string;
   formValidated: boolean;
 };
+
+export type Workspace = {
+  user?: string;
+  name: string;
+  size: number;
+  lastModified: string;
+  checked?: boolean;
+};
+
+export type Workspaces = Record<string, Workspace[]>;
+
+export type FormattedWorkspace = {
+  user?: string;
+  name: string;
+  size: string;
+  lastModified: Date;
+};
+
+export type FormattedWorkspaces = Record<string, FormattedWorkspace[]>;
