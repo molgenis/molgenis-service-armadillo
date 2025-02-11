@@ -161,12 +161,12 @@ verify_group_by <- function() {
 verify_ungroup <- function() {
   ds_function_name <- "ds.ungroup"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  ds.ungroup("mtcars_group", "ungrouped_df", datasources = conns)
+  ds.ungroup("grouped", "ungrouped_df", datasources = conns)
   res <- ds.class("ungrouped_df", datasources = conns)[[1]]
 
   verify_output(
     function_name = ds_function_name, object = res,
-    expected = "data.frame",
+    expected = c("tbl_df", "tbl", "data.frame"),
     fail_msg = xenon_fail_msg$srv_class
   )
 }
