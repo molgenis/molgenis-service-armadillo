@@ -457,18 +457,19 @@ public class DataController {
         Map.of(ID, id, USER, user));
   }
 
-  @DeleteMapping(value = "/workspaces/{user}")
+  @DeleteMapping(value = "/workspaces/directory/{userDirectory}")
   @ResponseStatus(NO_CONTENT)
-  public void removeUserWorkspacesDirectory(@PathVariable String user, Principal principal) {
-    String finalUser = getSafeUsernameForFileSystem(user);
+  public void removeUserWorkspacesDirectory(
+      @PathVariable String userDirectory, Principal principal) {
+    String finalUserDirectory = getSafeUsernameForFileSystem(userDirectory);
     auditEventPublisher.audit(
         () -> {
-          //              storage.removeWorkspaceByStringUserId(finalUser, id);
+          storage.deleteDirectory(finalUserDirectory);
           return null;
         },
         principal,
-        DELETE_USER_WORKSPACE,
-        Map.of(USER, user));
+        DELETE_USER_WORKSPACE_DIRECTORY,
+        Map.of(USER_WORKSPACE_DIRECTORY, userDirectory));
   }
 
   @Operation(summary = "Save user workspace")

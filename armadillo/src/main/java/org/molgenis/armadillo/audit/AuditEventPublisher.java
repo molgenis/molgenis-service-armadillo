@@ -41,6 +41,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_ALL_USER_WORKSPACES = "GET_ALL_USER_WORKSPACES";
   public static final String GET_MIGRATION_STATUS = "GET_MIGRATION_STATUS";
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
+  public static final String DELETE_USER_WORKSPACE_DIRECTORY = "DELETE_USER_WORKSPACE_DIRECTORY";
+  public static final String USER_WORKSPACE_DIRECTORY = "USER_WORKSPACE_DIRECTORY";
   public static final String COPY_USER_WORKSPACE = "COPY_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";

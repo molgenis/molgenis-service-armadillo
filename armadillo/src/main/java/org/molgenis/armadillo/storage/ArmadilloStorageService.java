@@ -63,7 +63,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteProject(String project) {
     throwIfUnknown(project);
-    storageService.deleteBucket(SHARED_PREFIX + project);
+    deleteDirectory(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -96,6 +96,11 @@ public class ArmadilloStorageService {
       String oldLocation, String newLocation, String oldFileName, String newFileName) {
     var inputStream = storageService.load(oldLocation, oldFileName);
     storageService.save(inputStream, newLocation, newFileName, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteDirectory(String directory) {
+    storageService.deleteBucket(directory);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
