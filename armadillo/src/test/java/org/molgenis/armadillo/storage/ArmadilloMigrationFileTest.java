@@ -52,8 +52,8 @@ class ArmadilloMigrationFileTest {
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
-    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
-    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newUserFolder"));
+    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldDirectory"));
+    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newDirectory"));
     assertEquals("success", migration.get("status"));
 
     Files.delete(tempFile);
@@ -71,8 +71,8 @@ class ArmadilloMigrationFileTest {
     assertEquals(1, status.size());
     HashMap<String, String> migration = status.get(0);
     assertEquals("cohort:workspace-name.RData", migration.get("workspace"));
-    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldUserFolder"));
-    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newUserFolder"));
+    assertEquals("user-3bd39efc-b92b-49e9-abad-22da4254d911", migration.get("oldDirectory"));
+    assertEquals("user-a.new.user__at__something.co.uk", migration.get("newDirectory"));
     assertEquals("failure", migration.get("status"));
     assertEquals("error", migration.get("errorMessage"));
 

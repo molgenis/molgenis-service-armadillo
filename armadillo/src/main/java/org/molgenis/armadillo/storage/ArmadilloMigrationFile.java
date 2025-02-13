@@ -56,8 +56,8 @@ public class ArmadilloMigrationFile {
     String status = getMigrationStatus(line);
     String[] splittedLine = line.split("[\\[\\]]");
     parsedLine.put("workspace", splittedLine[1]);
-    parsedLine.put("oldUserFolder", splittedLine[3]);
-    parsedLine.put("newUserFolder", splittedLine[5]);
+    parsedLine.put("oldDirectory", splittedLine[3]);
+    parsedLine.put("newDirectory", splittedLine[5]);
     parsedLine.put("status", status);
 
     if (splittedLine.length > 7) {
