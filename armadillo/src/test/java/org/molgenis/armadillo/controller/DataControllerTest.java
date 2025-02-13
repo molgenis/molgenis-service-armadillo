@@ -1102,7 +1102,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testGetMigrationStatus() throws Exception {
 
     mockMvc
-        .perform(get("/migration-status/henk@email.com").session(session))
+        .perform(get("/workspaces/migration-status/henk@email.com").session(session))
         .andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(

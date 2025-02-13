@@ -414,7 +414,7 @@ public class DataController {
   }
 
   @Operation(summary = "Get migration status")
-  @GetMapping(value = "/migration-status/{user}", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/workspaces/migration-status/{user}", produces = APPLICATION_JSON_VALUE)
   public List<HashMap<String, String>> getMigrationStatus(
       Principal principal, @PathVariable String user) {
     return auditEventPublisher.audit(
@@ -457,6 +457,20 @@ public class DataController {
         Map.of(ID, id, USER, user));
   }
 
+  @DeleteMapping(value = "/workspaces/{user}")
+  @ResponseStatus(NO_CONTENT)
+  public void removeUserWorkspacesDirectory(@PathVariable String user, Principal principal) {
+    String finalUser = getSafeUsernameForFileSystem(user);
+    auditEventPublisher.audit(
+        () -> {
+          //              storage.removeWorkspaceByStringUserId(finalUser, id);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(USER, user));
+  }
+
   @Operation(summary = "Save user workspace")
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
@@ -488,7 +502,7 @@ public class DataController {
           return null;
         },
         principal,
-        DELETE_USER_WORKSPACE,
+        COPY_USER_WORKSPACE,
         Map.of(ID, id, USER, oldDirectory));
   }
 
