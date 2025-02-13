@@ -38,6 +38,45 @@
           </div>
           <div class="col-6" :style="{}" ref="workspaceDetails">
             <div v-if="selectedUser">
+              <div v-if="migrationStatus.length > 0">
+                <div class="fst-italic">
+                  <Alert type="info mt-1" :dismissible="false">
+                    <i class="bi bi-info-circle"></i> This workspace directory
+                    was moved from:
+                    <button
+                      class="btn btn-link"
+                      @click="changeUser(migrationStatus[0]['oldDirectory'])"
+                    >
+                      <i class="bi bi-folder"></i>
+                      {{ migrationStatus[0]["oldDirectory"] }}
+                    </button>
+                  </Alert>
+                </div>
+                <div v-if="failedMigrations.length > 0">
+                  <Alert type="warning" :dismissible="false">
+                    Some workspaces were not moved succesfully:
+                    <div
+                      v-for="ws in failedMigrations"
+                      :key="ws['name']"
+                      class="mt-2"
+                    >
+                      <i class="bi bi-file-binary-fill"></i>
+                      <span class="fw-bold">{{ ws["workspace"] }}</span>
+                      because:
+                      <div>{{ ws["errorMessage"] }}</div>
+                      <LoadingSpinner v-if="isMovingWorkspace" class="pt-3 mt-3"></LoadingSpinner>
+                      <button class="btn btn-sm btn-link" @click="moveWorkspace(ws['workspace'], ws['oldDirectory'], ws['newDirectory'])" :disabled="isMovingWorkspace">
+                        <i class="bi bi-folder-symlink-fill"></i> Move manually
+                      </button>
+                    </div>
+                  </Alert>
+                </div>
+                <div v-else>
+                  <button class="btn btn-danger mb-3">
+                    <i class="bi bi-trash-fill"></i> Remove old directory
+                  </button>
+                </div>
+              </div>
               <DataPreviewTable
                 :data="filteredWorkspaces[selectedUser]"
                 :sortedHeaders="filteredHeaders"
@@ -97,7 +136,7 @@ import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import {} from "@/api/api";
+import Alert from "@/components/Alert.vue";
 import { convertBytes } from "@/helpers/utils";
 import {
   defineComponent,
@@ -109,7 +148,13 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
-import { getWorkspaceDetails, deleteUserWorkspace } from "@/api/api";
+import {
+  getWorkspaceDetails,
+  deleteUserWorkspace,
+  getMigrationStatusForUser,
+  copyWorkspaceToFolder,
+
+} from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import {
   FormattedWorkspaces,
@@ -119,13 +164,14 @@ import {
 } from "@/types/types";
 
 export default defineComponent({
-  name: "WorkspaceExplorer",
+  name: "Workspaces",
   components: {
     ConfirmationDialog,
     FeedbackMessage,
     ListGroup,
     LoadingSpinner,
     DataPreviewTable,
+    Alert,
   },
   setup(_props, { emit }) {
     const selectedUser: Ref = ref("");
@@ -184,9 +230,50 @@ export default defineComponent({
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
       hasMigrationStatus: false,
+      migrationStatus: [],
+      isMovingWorkspace: false,
     };
   },
   methods: {
+    moveWorkspace(workspaceName: string, oldDirectory: string, newDirectory: string) {
+      this.isMovingWorkspace = true;
+      copyWorkspaceToFolder(workspaceName, oldDirectory, newDirectory).then(()=> {
+        this.successMessage = `Successfully moved ${workspaceName} from ${oldDirectory} to ${newDirectory}. You can now remove ${oldDirectory}/${workspaceName}.`
+      }).catch((error) => {
+        this.errorMessage = `Failed to move ${workspaceName} from ${oldDirectory} to ${newDirectory}, because: ${error}.`
+      }).finally(() => {
+        this.isMovingWorkspace = false;
+      })
+    },
+    changeUser(user: string) {
+      this.selectedUser = user;
+      this.setWorkspaces(user);
+    },
+    async setMigrationStatus() {
+      if (this.hasMigrationStatus) {
+        this.migrationStatus = await getMigrationStatusForUser(
+          this.getUserNameFromFolder()
+        ).catch((error) => {
+          this.errorMessage = error;
+        });
+      }
+    },
+    getUserNameFromFolder() {
+      return this.selectedUser.replace("user-", "");
+    },
+    getWorkspacesWithoutMigrationStatus(workspaces: Workspace[]) {
+      let containsMigrationStatus = false;
+      const filteredWorkspaces = workspaces.filter((ws: Workspace) => {
+        const hasMigrationStatus = ws.name === "migration-status";
+        if (hasMigrationStatus && ws.user === this.selectedUser) {
+          containsMigrationStatus = true;
+        }
+        return !hasMigrationStatus;
+      });
+      this.hasMigrationStatus = containsMigrationStatus;
+      this.setMigrationStatus();
+      return filteredWorkspaces;
+    },
     getIndexOfWorkspace(selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
         return workspace.name === selectedWorkspaceName;
@@ -200,10 +287,22 @@ export default defineComponent({
       });
     },
     setWorkspaces(user: string) {
-      this.userWorkspaces = this.workspaces[user].map((ws) => {
-        ws["checked"] = false;
-        return ws;
-      });
+      this.hasMigrationStatus = false;
+      this.migrationStatus = [];
+      this.userWorkspaces = this.getWorkspacesWithoutMigrationStatus(
+        this.workspaces[user].map(
+          (ws: {
+            name: string;
+            checked: boolean;
+            user: string;
+            lastModified: string;
+            size: number;
+          }) => {
+            ws["checked"] = false;
+            return ws;
+          }
+        )
+      );
     },
     setIsDeleteTriggered() {
       this.isDeleteTriggered = true;
@@ -212,10 +311,7 @@ export default defineComponent({
       this.isDeleteTriggered = false;
     },
     async deleteWorkspace(workspaceName: string) {
-      await deleteUserWorkspace(
-        this.selectedUser.replace("user-", ""),
-        workspaceName
-      )
+      await deleteUserWorkspace(this.getUserNameFromFolder(), workspaceName)
         .then(() => {
           const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
           this.deleteSuccessMessages.push(successMessage);
@@ -275,7 +371,9 @@ export default defineComponent({
       const workspacesWithUser = this.addUserAsColumn();
       return Object.entries(workspacesWithUser).reduce(
         (result: FormattedWorkspaces, [userId, workspaces]) => {
-          result[userId] = workspaces.map((workspace: Workspace) => ({
+          result[userId] = this.getWorkspacesWithoutMigrationStatus(
+            workspaces as Workspace[]
+          ).map((workspace: Workspace) => ({
             user: workspace.user,
             name: workspace.name,
             size: convertBytes(workspace.size),
@@ -306,6 +404,11 @@ export default defineComponent({
           )
         );
       }
+    },
+    failedMigrations() {
+      return this.migrationStatus.filter(
+        (ws: { status: string }) => ws.status === "failure"
+      );
     },
     filteredHeaders() {
       if (this.selectedUser === "All workspaces") {
