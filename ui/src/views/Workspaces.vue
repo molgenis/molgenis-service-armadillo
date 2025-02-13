@@ -72,9 +72,10 @@
                   </Alert>
                 </div>
                 <div v-else>
-                  <button class="btn btn-danger mb-3">
+                  <button class="btn btn-danger mb-3" @click="removeOldWorkspaceDirectory(migrationStatus[0]['oldDirectory'])">
                     <i class="bi bi-trash-fill"></i> Remove old directory
                   </button>
+                  <LoadingSpinner v-if="isDeletingOldWorkspaces" class="pt-3 mt-3"></LoadingSpinner>
                 </div>
               </div>
               <DataPreviewTable
@@ -153,6 +154,7 @@ import {
   deleteUserWorkspace,
   getMigrationStatusForUser,
   copyWorkspaceToFolder,
+  deleteWorkspaceDirectory
 
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
@@ -232,9 +234,20 @@ export default defineComponent({
       hasMigrationStatus: false,
       migrationStatus: [],
       isMovingWorkspace: false,
+      isDeletingOldWorkspaces: false
     };
   },
   methods: {
+    removeOldWorkspaceDirectory(oldDirectory: string){
+      this.isDeletingOldWorkspaces = true;
+      deleteWorkspaceDirectory(oldDirectory).then(()=> {
+        this.successMessage = `Successfully deleted old workspace directory [${oldDirectory}].`
+      }).catch((error) => {
+        this.errorMessage = `Failed to delete old workspace directory [${oldDirectory}], because: ${error}.`
+      }).finally(() => {
+        this.isDeletingOldWorkspaces = false;
+      })
+    },
     moveWorkspace(workspaceName: string, oldDirectory: string, newDirectory: string) {
       this.isMovingWorkspace = true;
       copyWorkspaceToFolder(workspaceName, oldDirectory, newDirectory).then(()=> {
