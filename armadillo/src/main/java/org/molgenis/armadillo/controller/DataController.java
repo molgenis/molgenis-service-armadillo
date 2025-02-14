@@ -413,17 +413,6 @@ public class DataController {
         storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
   }
 
-  @Operation(summary = "Get migration status")
-  @GetMapping(value = "/workspaces/migration-status/{user}", produces = APPLICATION_JSON_VALUE)
-  public List<HashMap<String, String>> getMigrationStatus(
-      Principal principal, @PathVariable String user) {
-    return auditEventPublisher.audit(
-        () -> storage.getMigrationStatus(user),
-        principal,
-        GET_MIGRATION_STATUS,
-        Map.of(USER, user));
-  }
-
   @Operation(
       summary = "Delete user workspace",
       responses = {
@@ -487,24 +476,6 @@ public class DataController {
         .audit(
             commands.saveWorkspace(principal, id), principal, SAVE_USER_WORKSPACE, Map.of(ID, id))
         .get();
-  }
-
-  @Operation(summary = "Copy user workspace to other directory")
-  @PostMapping(value = "/workspaces/{oldDirectory}/{id}/copy", produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(CREATED)
-  public void copyUserWorkspace(
-      @PathVariable String id,
-      @PathVariable String oldDirectory,
-      Principal principal,
-      @RequestParam String newDirectory) {
-    auditEventPublisher.audit(
-        () -> {
-          storage.copyFile(oldDirectory, newDirectory, id, id);
-          return null;
-        },
-        principal,
-        COPY_USER_WORKSPACE,
-        Map.of(ID, id, USER, oldDirectory));
   }
 
   @Operation(summary = "Load user workspace")

@@ -341,14 +341,6 @@ export async function deleteUserWorkspace(user: string, workspace: string) {
   return delete_("/workspaces", `${user}/${workspace}`);
 }
 
-export async function getMigrationStatusForUser(user: string) {
-  return get(`/workspaces/migration-status/${user}`);
-}
-
-export async function copyWorkspaceToFolder(workspace: string, oldDirectory: string, newDirectory: string) {
-  return post(`/workspaces/${oldDirectory}/${workspace}/copy?newDirectory=${newDirectory}`);
-}
-
 export async function deleteWorkspaceDirectory(userDirectory: string) {
   return delete_("/workspaces/directory/", `${userDirectory}`);
 }

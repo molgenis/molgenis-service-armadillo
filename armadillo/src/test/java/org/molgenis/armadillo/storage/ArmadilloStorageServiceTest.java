@@ -791,11 +791,7 @@ class ArmadilloStorageServiceTest {
     ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
     ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
     ObjectMetadata notAWsMock = mock(ObjectMetadata.class);
-    ObjectMetadata migrationFile = mock(ObjectMetadata.class);
 
-    when(migrationFile.lastModified())
-        .thenReturn(
-            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
     when(ws1Mock.lastModified())
         .thenReturn(
             ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
@@ -810,19 +806,13 @@ class ArmadilloStorageServiceTest {
     when(ws2Mock.name()).thenReturn("workspace2.RData");
     when(ws3Mock.name()).thenReturn("workspace3.RData");
     when(notAWsMock.name()).thenReturn("somethingweird.weirdextension");
-    when(migrationFile.name())
-        .thenReturn(
-            ArmadilloMigrationFile.MIGRATION_FILE_NAME
-                + ArmadilloMigrationFile.MIGRATION_FILE_EXTENSION);
-
     when(ws1Mock.size()).thenReturn(1234L);
     when(ws2Mock.size()).thenReturn(1235L);
     when(ws3Mock.size()).thenReturn(1236L);
-    when(migrationFile.size()).thenReturn(12L);
 
     // Given
     List<String> mockBuckets = Arrays.asList("user-bucket1", "user-bucket2");
-    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock, notAWsMock, migrationFile);
+    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock, notAWsMock);
     List<ObjectMetadata> mockObjects2 = singletonList(ws3Mock);
 
     // Mocking the behavior of storageService
@@ -841,9 +831,7 @@ class ArmadilloStorageServiceTest {
 
     List<Workspace> user1Workspaces = result.get("user-bucket1");
     assertNotNull(user1Workspaces);
-    assertEquals(3, user1Workspaces.size()); // Expect 3 files for user1
-    // assert migrationfile is in userworkspaces
-    assertEquals(user1Workspaces.get(2).name(), ArmadilloMigrationFile.MIGRATION_FILE_NAME);
+    assertEquals(2, user1Workspaces.size()); // Expect 2 files for user1
 
     List<Workspace> user2Workspaces = result.get("user-bucket2");
     assertNotNull(user2Workspaces);
@@ -908,31 +896,6 @@ class ArmadilloStorageServiceTest {
     assertTrue(result.get("user-bucket1").isEmpty()); // Expecting an empty list for workspaces
   }
 
-  // Test case 1: old bucket exists, new bucket doesn't exist, and there are valid workspaces to
-  // move
-  @Test
-  void
-      testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsNewBucketDoesNotExist_AndWorkspacesToMove()
-          throws FileNotFoundException {
-    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
-    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
-    when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
-    when(principal.getName()).thenReturn(USER_ID);
-    when(item.name()).thenReturn("workspace1.RData");
-    when(storageService.getRootDir()).thenReturn("/mock/root");
-
-    try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
-      try (MockedStatic<UserInformationRetriever> infoRetriever =
-          Mockito.mockStatic(UserInformationRetriever.class)) {
-        infoRetriever
-            .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-            .thenReturn(USER_EMAIL);
-        armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-        verify(storageService, times(1)).moveWorkspace(item, principal, OLD_BUCKET, NEW_BUCKET);
-      }
-    }
-  }
-
   // Test case 2: old bucket doesn't exist, so no action is taken
   @Test
   void testMoveWorkspacesIfInOldBucket_WhenOldBucketDoesNotExist() {
@@ -987,28 +950,6 @@ class ArmadilloStorageServiceTest {
       verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  // Test case 5: old bucket exists, new bucket does not exist, but workspace with wrong extension
-  // (not RDATA)
-  @Test
-  void testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsButNonRDataFiles()
-      throws FileNotFoundException {
-    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
-    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
-    when(storageService.listObjects(OLD_BUCKET)).thenReturn(List.of(item));
-    when(principal.getName()).thenReturn(USER_ID);
-    when(item.name()).thenReturn("workspace1.txt");
-    when(storageService.getRootDir()).thenReturn("/mock/root");
-
-    try (MockedStatic<UserInformationRetriever> infoRetriever =
-        Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
-      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
     }
   }
 

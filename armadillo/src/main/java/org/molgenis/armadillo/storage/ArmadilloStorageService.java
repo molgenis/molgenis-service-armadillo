@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.molgenis.armadillo.controller.DataController.getSafeUsernameForFileSystem;
 import static org.molgenis.armadillo.info.UserInformationRetriever.getUserIdentifierFromPrincipal;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -13,8 +12,8 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -234,14 +233,7 @@ public class ArmadilloStorageService {
                 userFolder -> userFolder,
                 userFolder ->
                     storageService.listObjects(userFolder).stream()
-                        .filter(
-                            (object ->
-                                object.name().endsWith(RDATA_EXT)
-                                    || object
-                                        .name()
-                                        .equals(
-                                            ArmadilloMigrationFile.MIGRATION_FILE_NAME
-                                                + ArmadilloMigrationFile.MIGRATION_FILE_EXTENSION)))
+                        .filter((object -> object.name().endsWith(RDATA_EXT)))
                         .map(ArmadilloStorageService::toWorkspace)
                         .collect(Collectors.toList())));
   }
@@ -252,18 +244,6 @@ public class ArmadilloStorageService {
 
   static String getWorkspaceObjectName(String id) {
     return id + RDATA_EXT;
-  }
-
-  public List<HashMap<String, String>> getMigrationStatus(String user) {
-    try {
-      ArmadilloMigrationFile migrationFile =
-          new ArmadilloMigrationFile(
-              storageService.getRootDir(), USER_PREFIX + getSafeUsernameForFileSystem(user));
-      return migrationFile.getMigrationStatus();
-    } catch (FileNotFoundException e) {
-      throw new StorageException(
-          format("Migration status file for user [%s] does not exist", user));
-    }
   }
 
   private static String getOldUserBucketName(Principal principal) {
@@ -304,31 +284,14 @@ public class ArmadilloStorageService {
           "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
           oldBucketName,
           newBucketName);
-      List<ObjectMetadata> existingWorkspaces = storageService.listObjects(oldBucketName);
-      ArmadilloMigrationFile migrationFile =
-          new ArmadilloMigrationFile(storageService.getRootDir(), newBucketName);
-      existingWorkspaces.forEach(
-          (ws) -> {
-            String message = "";
-            if (ws.name().toLowerCase().endsWith(RDATA_EXT.toLowerCase())) {
-              try {
-                storageService.moveWorkspace(ws, principal, oldBucketName, newBucketName);
-                message =
-                    migrationFile.getMigrationSuccessMessage(
-                        ws.name(), oldBucketName, newBucketName);
-              } catch (StorageException e) {
-                message =
-                    migrationFile.getMigrationFailureMessage(
-                        ws.name(), oldBucketName, newBucketName, e.getMessage());
-              } finally {
-                try {
-                  migrationFile.addLine(message);
-                } catch (IOException e) {
-                  LOGGER.warn("Can't write migration status file for user [{}].", newBucketName);
-                }
-              }
-            }
-          });
+      Path source = Paths.get(storageService.getRootDir() + File.separator + oldBucketName);
+      try {
+        Files.move(
+            source,
+            source.resolveSibling(storageService.getRootDir() + File.separator + newBucketName));
+      } catch (IOException e) {
+        throw new StorageException(e);
+      }
     }
   }
 
