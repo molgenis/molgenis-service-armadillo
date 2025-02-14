@@ -1,40 +1,49 @@
 <template>
-  <div class="row">
-    <div class="col">
-      <Navbar
-        :version="version"
-        :username="username"
-        @logout="logoutUser"
-        :showLogin="false"
-      />
-      <div class="container">
-        <div class="row mt-2">
-          <div class="col" v-if="username">
-            <Alert v-if="diskNearFull" type="warning" :dismissible="false">
-              {{ diskSpaceMessage }}
-            </Alert>
-            <Alert v-if="isUnauthorised" type="warning" :dismissible="false">
-              You are logged in, but you don't have permission to access the
-              Armadillo user interface.
-              <div>
-                Don't worry, you can still do your research using the R client.
-                If you believe you should have permission to access this user
-                interface, please contact an administrator.
-              </div>
-            </Alert>
-            {{ errorMessage }}
-            <Tabs
-              v-if="username && !isUnauthorised"
-              :menu="tabs"
-              :icons="tabIcons"
-            />
+  <div class="d-flex flex-column min-vh-100">
+    <div class="row flex-grow-1">
+      <div class="col">
+        <Navbar
+          :version="version"
+          :username="username"
+          @logout="logoutUser"
+          :showLogin="false"
+        />
+        <div class="container">
+          <div class="row mt-2">
+            <div class="col" v-if="username">
+              <Alert v-if="diskNearFull" type="warning" :dismissible="false">
+                {{ diskSpaceMessage }}
+              </Alert>
+              <Alert v-if="isUnauthorised" type="warning" :dismissible="false">
+                You are logged in, but you don't have permission to access the
+                Armadillo user interface.
+                <div>
+                  Don't worry, you can still do your research using the R client.
+                  If you believe you should have permission to access this user
+                  interface, please contact an administrator.
+                </div>
+              </Alert>
+              {{ errorMessage }}
+              <Tabs
+                v-if="username && !isUnauthorised"
+                :menu="tabs"
+                :icons="tabIcons"
+              />
+            </div>
+            <Login @loginEvent="reloadUser" v-else />
           </div>
-          <Login @loginEvent="reloadUser" v-else />
         </div>
       </div>
     </div>
+    <footer class="text-primary text-center py-3 border-top">
+      <div class="container">
+        <p class="mb-0"><small class="text-muted">Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726">Cadman et al. (2024)</a> when publishing research conducted using Armadillo.</small></p>
+        <p class="mb-0"><small class="text-muted">This platform was created using <a href="https://molgenis.org/">MOLGENIS.org</a><a href="https://github.com/molgenis/molgenis-service-armadillo"> (Github)</a>.</small></p>
+      </div>
+    </footer>
   </div>
 </template>
+
 
 <script lang="ts">
 import Navbar from "@/components/Navbar.vue";
