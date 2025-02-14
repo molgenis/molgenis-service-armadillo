@@ -406,6 +406,13 @@ public class DataController {
         () -> storage.listWorkspaces(principal), principal, GET_USER_WORKSPACES, Map.of());
   }
 
+  @Operation(summary = "Get all workspaces")
+  @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
+  public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
+    return auditEventPublisher.audit(
+        storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
+  }
+
   @Operation(
       summary = "Delete user workspace",
       responses = {
@@ -413,13 +420,7 @@ public class DataController {
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(
-      @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          String id,
-      Principal principal) {
+  public void removeWorkspace(@PathVariable String id, Principal principal) {
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspace(principal, id);
@@ -428,6 +429,36 @@ public class DataController {
         principal,
         DELETE_USER_WORKSPACE,
         Map.of(ID, id));
+  }
+
+  @DeleteMapping(value = "/workspaces/{user}/{id}")
+  @ResponseStatus(NO_CONTENT)
+  public void removeUserWorkspace(
+      @PathVariable String user, @PathVariable String id, Principal principal) {
+    String finalUser = getSafeUsernameForFileSystem(user);
+    auditEventPublisher.audit(
+        () -> {
+          storage.removeWorkspaceByStringUserId(finalUser, id);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(ID, id, USER, user));
+  }
+
+  @DeleteMapping(value = "/workspaces/directory/{userDirectory}")
+  @ResponseStatus(NO_CONTENT)
+  public void removeUserWorkspacesDirectory(
+      @PathVariable String userDirectory, Principal principal) {
+    String finalUserDirectory = getSafeUsernameForFileSystem(userDirectory);
+    auditEventPublisher.audit(
+        () -> {
+          storage.deleteDirectory(finalUserDirectory);
+          return null;
+        },
+        principal,
+        DELETE_USER_WORKSPACE_DIRECTORY,
+        Map.of(USER_WORKSPACE_DIRECTORY, finalUserDirectory));
   }
 
   @Operation(summary = "Save user workspace")
@@ -511,6 +542,15 @@ public class DataController {
     return variableList.size() == 0
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
+  }
+
+  public static String getSafeUsernameForFileSystem(String user) {
+    // replaces the @ in email addresses because when we use it as name of a folder, not all
+    // filesystems might like it
+    if (user.contains("@")) {
+      user = user.replace("@", "__at__");
+    }
+    return user;
   }
 
   private CompletableFuture<ResponseEntity<Void>> loadTableFromLinkFile(

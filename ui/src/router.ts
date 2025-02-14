@@ -5,6 +5,7 @@ import Users from "@/views/Users.vue";
 import Profiles from "@/views/Profiles.vue";
 import Login from "@/views/Login.vue";
 import Insight from "./views/Insight.vue";
+import Workspaces from "./views/Workspaces.vue";
 
 const routes = [
   {
@@ -15,6 +16,11 @@ const routes = [
     path: "/users",
     name: "users",
     component: Users,
+  },
+  {
+    path: "/workspaces",
+    name: "workspaces",
+    component: Workspaces,
   },
   {
     path: "/projects",
