@@ -364,6 +364,29 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser(roles = "SU", username = "admin")
+  void testDeleteWorkspaceDirectoryOfUser() throws Exception {
+    mockMvc
+        .perform(delete("/workspaces/directory/user-henk@email.com").session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).deleteDirectory("user-henk__at__email.com");
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "DELETE_USER_WORKSPACE_DIRECTORY",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "USER_WORKSPACE_DIRECTORY",
+                "user-henk__at__email.com")));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
   void testDeleteWorkspaceOfUser() throws Exception {
     mockMvc
         .perform(delete("/workspaces/henk@email.com/test").session(session))

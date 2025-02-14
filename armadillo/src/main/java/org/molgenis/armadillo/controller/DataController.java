@@ -458,7 +458,7 @@ public class DataController {
         },
         principal,
         DELETE_USER_WORKSPACE_DIRECTORY,
-        Map.of(USER_WORKSPACE_DIRECTORY, userDirectory));
+        Map.of(USER_WORKSPACE_DIRECTORY, finalUserDirectory));
   }
 
   @Operation(summary = "Save user workspace")
