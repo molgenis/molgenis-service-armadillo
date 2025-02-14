@@ -37,7 +37,7 @@
     </div>
     <footer class="text-primary text-center py-3 border-top">
       <div class="container">
-        <p class="mb-0"><small class="text-muted">Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726">Cadman et al. (2024)</a> when reporting research conducted using Armadillo.</small></p>
+        <p class="mb-0"><small class="text-muted">Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726">Cadman et al. (2024)</a> when publishing research conducted using Armadillo.</small></p>
         <p class="mb-0"><small class="text-muted">This platform was created using <a href="https://molgenis.org/">MOLGENIS.org</a><a href="https://github.com/molgenis/molgenis-service-armadillo"> (Github)</a>.</small></p>
       </div>
     </footer>
