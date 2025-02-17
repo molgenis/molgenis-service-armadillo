@@ -16,11 +16,22 @@
           @proceed="deleteSelectedWorkspaces"
           @cancel="clearIsDeleteTriggered"
         ></ConfirmationDialog>
+        <ConfirmationDialog
+          v-if="isDeleteWorkspaceDirectoryTriggered"
+          :record="`${selectedUser}`"
+          action="delete"
+          recordType="user workspace directory:"
+          @proceed="deleteUserWorkspaceDirectory"
+          @cancel="clearIsDeleteUserWorkspaceDirectoryTriggered"
+        ></ConfirmationDialog>
       </div>
     </div>
     <div class="row">
       <div class="col-12">
         <h2 class="mt-3">Workspaces</h2>
+        <button class="btn btn-danger" :disabled="!selectedUser || selectedUser === 'All workspaces'" @click="setDeleteUserWorkspaceDirectory">
+          <i class="bi bi-trash-fill"></i> Delete directory
+        </button>
         <div class="row mt-1 border border-1">
           <!-- Loading spinner -->
           <LoadingSpinner v-if="loading" class="pt-3 mt-3"></LoadingSpinner>
@@ -112,8 +123,7 @@ import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import {
   getWorkspaceDetails,
   deleteUserWorkspace,
-  deleteWorkspaceDirectory
-
+  deleteWorkspaceDirectory,
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import {
@@ -185,6 +195,7 @@ export default defineComponent({
     return {
       loading: false,
       isDeleteTriggered: false,
+      isDeleteWorkspaceDirectoryTriggered: false,
       userWorkspaces: [] as Workspace[],
       successMessage: "",
       deleteErrorMessages: [] as StringArray,
@@ -192,6 +203,23 @@ export default defineComponent({
     };
   },
   methods: {
+    clearIsDeleteUserWorkspaceDirectoryTriggered() {
+      this.isDeleteWorkspaceDirectoryTriggered = false;
+    },
+    setDeleteUserWorkspaceDirectory(){
+      this.isDeleteWorkspaceDirectoryTriggered = true;
+    },
+    deleteUserWorkspaceDirectory() {
+      deleteWorkspaceDirectory(this.selectedUser).then(() => {
+        this.successMessage = `Succesfully deleted workspace for user: [${this.selectedUser}]`
+        this.loadWorkspaces();
+        this.selectedUser = "";
+      }).catch((error) => {
+        this.errorMessage = `Failed to delete workspace for user :[${this.selectedUser}], because: ${error}`
+      }).finally(() => {
+        this.clearIsDeleteUserWorkspaceDirectoryTriggered();
+      })
+    },
     changeUser(user: string) {
       this.selectedUser = user;
       this.setWorkspaces(user);
@@ -214,18 +242,18 @@ export default defineComponent({
     setWorkspaces(user: string) {
       this.hasMigrationStatus = false;
       this.migrationStatus = [];
-      this.userWorkspaces =  this.workspaces[user].map(
-          (ws: {
-            name: string;
-            checked: boolean;
-            user: string;
-            lastModified: string;
-            size: number;
-          }) => {
-            ws["checked"] = false;
-            return ws;
-          }
-        );
+      this.userWorkspaces = this.workspaces[user].map(
+        (ws: {
+          name: string;
+          checked: boolean;
+          user: string;
+          lastModified: string;
+          size: number;
+        }) => {
+          ws["checked"] = false;
+          return ws;
+        }
+      );
     },
     setIsDeleteTriggered() {
       this.isDeleteTriggered = true;
@@ -276,10 +304,12 @@ export default defineComponent({
     addUserAsColumn() {
       const workspacesWithUser = this.workspaces;
       for (const user in workspacesWithUser) {
-        workspacesWithUser[user] = workspacesWithUser[user].map((item: Workspace) => ({
-          user: user,
-          ...item,
-        }));
+        workspacesWithUser[user] = workspacesWithUser[user].map(
+          (item: Workspace) => ({
+            user: user,
+            ...item,
+          })
+        );
       }
       return workspacesWithUser;
     },
@@ -294,12 +324,14 @@ export default defineComponent({
       const workspacesWithUser = this.addUserAsColumn();
       return Object.entries(workspacesWithUser).reduce(
         (result: FormattedWorkspaces, [userId, workspaces]) => {
-          result[userId] = (workspaces as Workspace[]).map((workspace: Workspace) => ({
-            user: workspace.user,
-            name: workspace.name,
-            size: convertBytes(workspace.size),
-            lastModified: new Date(workspace.lastModified),
-          }));
+          result[userId] = (workspaces as Workspace[]).map(
+            (workspace: Workspace) => ({
+              user: workspace.user,
+              name: workspace.name,
+              size: convertBytes(workspace.size),
+              lastModified: new Date(workspace.lastModified),
+            })
+          );
           return result;
         },
         {}
