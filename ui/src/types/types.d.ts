@@ -1,4 +1,4 @@
-import { Project, User } from "./api";
+import { Project, User, Workspace } from "./api";
 
 export type StringObject = Record<string, string | Array<string>>;
 
@@ -129,14 +129,6 @@ export type ViewEditorData = {
   srcProject: string;
   srcFolder: string;
   formValidated: boolean;
-};
-
-export type Workspace = {
-  user?: string;
-  name: string;
-  size: number;
-  lastModified: string;
-  checked?: boolean;
 };
 
 export type Workspaces = Record<string, Workspace[]>;

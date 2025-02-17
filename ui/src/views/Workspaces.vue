@@ -29,7 +29,11 @@
     <div class="row">
       <div class="col-12">
         <h2 class="mt-3">Workspaces</h2>
-        <button class="btn btn-danger" :disabled="!selectedUser || selectedUser === 'All workspaces'" @click="setDeleteUserWorkspaceDirectory">
+        <button
+          class="btn btn-danger"
+          :disabled="!selectedUser || selectedUser === 'All workspaces'"
+          @click="setDeleteUserWorkspaceDirectory"
+        >
           <i class="bi bi-trash-fill"></i> Delete directory
         </button>
         <div class="row mt-1 border border-1">
@@ -126,12 +130,8 @@ import {
   deleteWorkspaceDirectory,
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import {
-  FormattedWorkspaces,
-  StringArray,
-  Workspace,
-  Workspaces,
-} from "@/types/types";
+import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
+import { Workspace } from "@/types/api";
 
 export default defineComponent({
   name: "Workspaces",
@@ -206,19 +206,22 @@ export default defineComponent({
     clearIsDeleteUserWorkspaceDirectoryTriggered() {
       this.isDeleteWorkspaceDirectoryTriggered = false;
     },
-    setDeleteUserWorkspaceDirectory(){
+    setDeleteUserWorkspaceDirectory() {
       this.isDeleteWorkspaceDirectoryTriggered = true;
     },
     deleteUserWorkspaceDirectory() {
-      deleteWorkspaceDirectory(this.selectedUser).then(() => {
-        this.successMessage = `Succesfully deleted workspace for user: [${this.selectedUser}]`
-        this.loadWorkspaces();
-        this.selectedUser = "";
-      }).catch((error) => {
-        this.errorMessage = `Failed to delete workspace for user :[${this.selectedUser}], because: ${error}`
-      }).finally(() => {
-        this.clearIsDeleteUserWorkspaceDirectoryTriggered();
-      })
+      deleteWorkspaceDirectory(this.selectedUser)
+        .then(() => {
+          this.successMessage = `Succesfully deleted workspace for user: [${this.selectedUser}]`;
+          this.loadWorkspaces();
+          this.selectedUser = "";
+        })
+        .catch((error) => {
+          this.errorMessage = `Failed to delete workspace for user :[${this.selectedUser}], because: ${error}`;
+        })
+        .finally(() => {
+          this.clearIsDeleteUserWorkspaceDirectoryTriggered();
+        });
     },
     changeUser(user: string) {
       this.selectedUser = user;
@@ -240,20 +243,10 @@ export default defineComponent({
       });
     },
     setWorkspaces(user: string) {
-      this.hasMigrationStatus = false;
-      this.migrationStatus = [];
-      this.userWorkspaces = this.workspaces[user].map(
-        (ws: {
-          name: string;
-          checked: boolean;
-          user: string;
-          lastModified: string;
-          size: number;
-        }) => {
-          ws["checked"] = false;
-          return ws;
-        }
-      );
+      this.userWorkspaces = this.workspaces[user].map((ws: Workspace) => {
+        ws["checked"] = false;
+        return ws;
+      });
     },
     setIsDeleteTriggered() {
       this.isDeleteTriggered = true;
@@ -352,7 +345,7 @@ export default defineComponent({
           Object.entries(this.formattedWorkspaces).map(
             ([userId, workspaces]) => [
               userId,
-              (workspaces as Workspaces).map(({ user, ...rest }) => rest), // Exclude `user`
+              workspaces.map(({ user, ...rest }) => rest), // Exclude `user`
             ]
           )
         );
