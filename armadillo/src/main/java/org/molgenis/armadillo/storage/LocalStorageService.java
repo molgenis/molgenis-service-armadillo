@@ -3,11 +3,13 @@ package org.molgenis.armadillo.storage;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
@@ -24,7 +26,11 @@ public class LocalStorageService implements StorageService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
-  final String rootDir;
+  public final String rootDir;
+
+  public String getRootDir() {
+    return rootDir;
+  }
 
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);
@@ -56,8 +62,7 @@ public class LocalStorageService implements StorageService {
 
     try {
       // check bucket
-      Path dir = Paths.get(rootDir, bucketName);
-      if (!Files.exists(dir)) {
+      if (!bucketExists(bucketName)) {
         return false;
       }
       // check object
@@ -66,6 +71,12 @@ public class LocalStorageService implements StorageService {
     } catch (Exception e) {
       throw new StorageException(e);
     }
+  }
+
+  public boolean bucketExists(String bucketName) {
+    // check bucket
+    Path dir = Paths.get(rootDir, bucketName);
+    return Files.exists(dir);
   }
 
   @Override
@@ -210,6 +221,29 @@ public class LocalStorageService implements StorageService {
 
   public ArmadilloWorkspace getWorkSpace(InputStream is) {
     return new ArmadilloWorkspace(is);
+  }
+
+  public void moveWorkspace(
+      ObjectMetadata workspaceMetaData,
+      Principal principal,
+      String oldBucketName,
+      String newBucketName) {
+    String workspaceName = workspaceMetaData.name();
+    InputStream wsIs = load(oldBucketName, workspaceName);
+    ArmadilloWorkspace armadilloWorkspace = new ArmadilloWorkspace(wsIs);
+    try {
+      LOGGER.info("Moving workspace: [{}]", workspaceName);
+      save(
+          armadilloWorkspace.createInputStream(),
+          newBucketName,
+          workspaceName,
+          APPLICATION_OCTET_STREAM);
+      LOGGER.info("Workspace: [{}] moved to: [{}]", workspaceName, newBucketName);
+    } catch (Exception e) {
+      // Log when we can't migrate workspace
+      LOGGER.warn("Can't migrate workspace: [{}], because: {}", workspaceName, e.getMessage());
+      throw new StorageException(e);
+    }
   }
 
   private FileInfo getFileInfoForLinkFile(

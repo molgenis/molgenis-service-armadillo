@@ -35,6 +35,7 @@ import { PropType } from "vue";
 
 export default {
   name: "ListGroup",
+  emits: ["selectItem"],
   props: {
     listContent: { type: Array as PropType<StringArray>, required: true },
     rowIcon: { type: String, required: true },
@@ -61,6 +62,7 @@ export default {
   },
   methods: {
     toggleSelectedItem(newItem: string) {
+      this.$emit("selectItem", newItem);
       if (this.selectedItem !== newItem) {
         this.selectedItem = newItem;
       } else {

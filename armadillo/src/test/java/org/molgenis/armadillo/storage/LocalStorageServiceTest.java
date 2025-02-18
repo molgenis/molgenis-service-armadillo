@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
@@ -34,6 +36,11 @@ class LocalStorageServiceTest {
   public static final String SOME_OBJECT_PATH =
       "object/some/path"; // n.b. can be subfolders you see?
   public static final String SOME_PROJECT = "project";
+  public static final String WORKSPACE_NAME = "workspace1";
+
+  @Mock Principal principal;
+
+  @Mock ObjectMetadata workspaceMetaData;
 
   @BeforeEach
   void beforeEach() throws IOException {
@@ -365,5 +372,52 @@ class LocalStorageServiceTest {
   void testGetHumanReadableByteCountGb() {
     String size = getHumanReadableByteCount(12345678910L);
     assertEquals("11.5 GB", size);
+  }
+
+  @Test
+  void testMoveWorkspace() {
+    // Setup test data: Create a workspace in the old bucket
+    String oldBucketName = "old-bucket";
+    String newBucketName = "new-bucket";
+
+    localStorageService.createBucketIfNotExists(oldBucketName);
+
+    // Create a workspace in the old bucket
+    localStorageService.save(
+        new ByteArrayInputStream("workspace content".getBytes()),
+        oldBucketName,
+        WORKSPACE_NAME,
+        MediaType.APPLICATION_OCTET_STREAM);
+
+    // Initialize the mock ObjectMetadata and define its behavior
+    workspaceMetaData = mock(ObjectMetadata.class); // Ensure workspaceMetaData is not null
+    when(workspaceMetaData.name()).thenReturn(WORKSPACE_NAME); // Mock name() method
+
+    // Call the moveWorkspace method
+    localStorageService.moveWorkspace(workspaceMetaData, principal, oldBucketName, newBucketName);
+
+    // Verify both workspaces are there (we don't want to remove the old one in case not everything
+    // is moved)
+    assertTrue(localStorageService.objectExists(newBucketName, WORKSPACE_NAME));
+    assertTrue(localStorageService.objectExists(oldBucketName, WORKSPACE_NAME));
+  }
+
+  @Test
+  void testMoveWorkspaceFileDoesNotExistInOldBucket() {
+    // Setup test data: Create workspace in old bucket
+    String oldBucketName = "old-bucket";
+    String newBucketName = "new-bucket";
+
+    localStorageService.createBucketIfNotExists(newBucketName);
+
+    // Initialize the mock ObjectMetadata and define its behavior
+    workspaceMetaData = mock(ObjectMetadata.class); // Ensure workspaceMetaData is not null
+    when(workspaceMetaData.name()).thenReturn(WORKSPACE_NAME); // Mock name() method
+
+    assertThrows(
+        StorageException.class,
+        () ->
+            localStorageService.moveWorkspace(
+                workspaceMetaData, principal, oldBucketName, newBucketName));
   }
 }

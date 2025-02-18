@@ -21,6 +21,7 @@ import {
   ObjectWithStringKey,
   StringArray,
   ListOfObjectsWithStringKey,
+  Workspaces,
 } from "@/types/types";
 import { APISettings } from "./config";
 
@@ -154,7 +155,6 @@ async function getMetrics(): Promise<string[]> {
       if (data.hasOwnProperty("names")) {
         return data.names;
       } else {
-        console.log("No names found in the data");
         return [];
       }
     })
@@ -331,4 +331,16 @@ export async function getFreeDiskSpace(): Promise<number> {
   return get("/actuator/metrics/disk.free").then((data) => {
     return Number(data.measurements[0].value);
   });
+}
+
+export async function getWorkspaceDetails(): Promise<Workspaces> {
+  return get("/all-workspaces");
+}
+
+export async function deleteUserWorkspace(user: string, workspace: string) {
+  return delete_("/workspaces", `${user}/${workspace}`);
+}
+
+export async function deleteWorkspaceDirectory(userDirectory: string) {
+  return delete_("/workspaces/directory/", `${userDirectory}`);
 }

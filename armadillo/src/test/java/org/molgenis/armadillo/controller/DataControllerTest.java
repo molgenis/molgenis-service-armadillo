@@ -37,7 +37,6 @@ import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
-import org.molgenis.armadillo.model.Workspace;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.storage.ArmadilloLinkFile;
@@ -51,6 +50,7 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.obiba.datashield.r.expr.v2.ParseException;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -87,6 +87,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @MockBean private DSEnvironmentCache environments;
   @Mock private RockResult rexp;
   @Mock private DSEnvironment assignEnvironment;
+  @Autowired private DataController dataController;
 
   @Test
   @WithMockUser
@@ -357,6 +358,54 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             "henk",
             "DELETE_USER_WORKSPACE",
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_USER"), "id", "test")));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testDeleteWorkspaceDirectoryOfUser() throws Exception {
+    mockMvc
+        .perform(delete("/workspaces/directory/user-henk@email.com").session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).deleteDirectory("user-henk__at__email.com");
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "DELETE_USER_WORKSPACE_DIRECTORY",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "USER_WORKSPACE_DIRECTORY",
+                "user-henk__at__email.com")));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testDeleteWorkspaceOfUser() throws Exception {
+    mockMvc
+        .perform(delete("/workspaces/henk@email.com/test").session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).removeWorkspaceByStringUserId("henk__at__email.com", "test");
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "DELETE_USER_WORKSPACE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "id",
+                "test",
+                "user",
+                "henk@email.com")));
   }
 
   @Test
@@ -1045,9 +1094,6 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testGetWorkspaces() throws Exception {
-    when(armadilloStorage.listWorkspaces(any(Principal.class)))
-        .thenReturn(List.of(mock(Workspace.class)));
-
     mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -1055,6 +1101,20 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             instant,
             "user",
             "GET_USER_WORKSPACES",
+            Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetAllWorkspaces() throws Exception {
+
+    mockMvc.perform(get("/all-workspaces").session(session)).andExpect(status().isOk());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            "GET_ALL_USER_WORKSPACES",
             Map.of("sessionId", sessionId, "roles", List.of("ROLE_SU"))));
   }
 
@@ -1073,5 +1133,11 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     expected.put("folder", "somethingElse");
     expected.put("RESOURCE", "Blaat");
     assertEquals(matchedData, expected);
+  }
+
+  @Test
+  void testGetSafeUserNameForFile() {
+    String user = "username@email.com";
+    assertEquals("username__at__email.com", dataController.getSafeUsernameForFileSystem(user));
   }
 }

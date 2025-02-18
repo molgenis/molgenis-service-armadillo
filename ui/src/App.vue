@@ -130,10 +130,11 @@ export default defineComponent({
   data() {
     return {
       loading: false,
-      tabs: ["Projects", "Users", "Profiles", "Insight"],
+      tabs: ["Projects", "Users", "Workspaces", "Profiles", "Insight"],
       tabIcons: [
         "clipboard2-data",
         "people-fill",
+        "person-workspace",
         "shield-shaded",
         "brilliance",
       ],
