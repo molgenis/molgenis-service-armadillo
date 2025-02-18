@@ -40,6 +40,8 @@ library(dsBaseClient)
 library(DSMolgenisArmadillo)
 library(resourcer)
 
+options(datashield.errors.print = TRUE)
+
 cli_alert_info("Loading common functions")
 source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
@@ -89,7 +91,7 @@ run_tests_for_profile <- function(profile) {
 
     cli_h2("Uploading test data")
     source("test-cases/upload-data.R")
-    upload_test_data(project = project1, dest = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
+    upload_test_data(project = project1, dest = test_config$dest, default_parquet_path = test_config$default_parquet_path, skip_tests = test_config$skip_tests)
 
     cli_h2("Uploading resource source file")
     source("test-cases/upload-resource.R")
@@ -159,6 +161,10 @@ run_tests_for_profile <- function(profile) {
                        ref = omics_ref, skip_tests = test_config$skip_tests,
                        user = test_config$user, admin_pwd = test_config$admin_pwd, interactive = test_config$interactive,
                        update_auto = test_config$update_auto)
+  
+    cli_alert_info("Testing dsTidyverse")
+    source("test-cases/donkey-tidyverse.R")
+    run_tidyverse_tests(project = project1, data_path = "/tidyverse", skip_tests = test_config$skip_tests)
 
     cli_h2("Removing data as admin")
     source("test-cases/remove-data.R") # Add link_project once module works
@@ -176,4 +182,3 @@ run_tests_for_profile <- function(profile) {
 }
 
 lapply(profiles, run_tests_for_profile)
-

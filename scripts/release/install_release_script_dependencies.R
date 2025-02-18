@@ -35,7 +35,8 @@ packages <- c(
   "DSMolgenisArmadillo", 
   "purrr", 
   "stringr",
-  "tibble"
+  "tibble", 
+  "dsTidyverseClient"
 )
 
 install_requirements_from_cran <- function(packages) {
