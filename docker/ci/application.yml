@@ -24,9 +24,9 @@ armadillo:
         datashield:
           # the seed can only be 9 digits
           seed: 342325352
-    - name: donkey-rock
-      image: datashield/rock-lemon-donkey:latest
-      host: donkey
+    - name: xenon
+      image: datashield/rock-dolomite-xenon:latest
+      host: xenon
       port: 8085
       package-whitelist:
         - dsBase

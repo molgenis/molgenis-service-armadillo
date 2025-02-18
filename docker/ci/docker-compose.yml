@@ -24,14 +24,6 @@ services:
     environment:
       DEBUG: "TRUE"
 
-  donkey-rock:
-    hostname: donkey-rock
-    image: datashield/rock-lemon-donkey:latest
-    environment:
-      DEBUG: "TRUE"
-
-  xenon-vanilla:
-    hostname: xenon-vanilla
-    image: datashield/armadillo-rserver_caravan-xenon:latest
-    environment:
-      DEBUG: "TRUE"
+  xenon:
+    hostname: xenon
+    image: datashield/rock-dolomite-xenon:latest
