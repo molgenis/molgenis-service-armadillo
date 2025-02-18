@@ -409,11 +409,29 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
-  void testListTablesListsObjectsInSharedBucket() {
+  void testListTablesListsParquetObjectsInSharedBucket() {
     when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
     when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
+  }
+
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesListsAlfObjectsInSharedBucket() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("1_0_release_1_1/gecko_link.alf");
+    assertEquals(List.of("gecko/1_0_release_1_1/gecko_link"), armadilloStorage.listTables("gecko"));
+  }
+
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesDoesntListCSVObjectsInSharedBucket() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("1_0_release_1_1/gecko_link.csv");
+    assertEquals(List.of(), armadilloStorage.listTables("gecko"));
   }
 
   @Test

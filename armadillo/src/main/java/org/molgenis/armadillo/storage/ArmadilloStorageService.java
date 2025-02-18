@@ -179,7 +179,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listTables(String project) {
     return listObjects(project).stream()
-        .filter(it -> it.endsWith(PARQUET))
+        .filter(it -> it.endsWith(PARQUET) || it.endsWith(LINK_FILE))
         .map(FilenameUtils::removeExtension)
         .toList();
   }
