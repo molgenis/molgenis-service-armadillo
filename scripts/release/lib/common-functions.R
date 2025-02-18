@@ -267,4 +267,9 @@ xenon_fail_msg <- list(
   clt_class = "did not create a clientside object with the expected class",
   clt_var = "did not create a clientside object with the expected variable names",
   clt_list_names = "did not return a clientside list with the expected names",
-  clt_dim = "did not return a clientside object with the expected dimensions")
+  clt_dim = "did not return a clientside object with the expected dimensions", 
+  srv_dim = "did not return a serverside object with the expected dimensions", 
+  srv_lvl = "did not return a serverside object with the expected levels",
+  clt_grp = "did not return a clientside object with the expected number of groups",
+  srv_var = "did not create a serverside object with the expected variable names"
+  ) 
