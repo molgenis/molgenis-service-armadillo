@@ -78,6 +78,7 @@ public abstract class ProfileConfig {
     props.setName(getName());
     props.setHost(getHost());
     props.setPort(getPort());
+    props.setImage(getImage());
     return props;
   }
 }
