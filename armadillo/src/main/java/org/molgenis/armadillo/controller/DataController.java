@@ -35,6 +35,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
@@ -46,6 +47,7 @@ import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -431,6 +433,13 @@ public class DataController {
         Map.of(ID, id));
   }
 
+  @Operation(
+      summary = "Delete workspace of specific user",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Workspace was removed."),
+        @ApiResponse(responseCode = "404", description = "Workspace does not exist."),
+        @ApiResponse(responseCode = "401", description = "Permission denied.")
+      })
   @DeleteMapping(value = "/workspaces/{user}/{id}")
   @ResponseStatus(NO_CONTENT)
   public void removeUserWorkspace(
@@ -438,14 +447,25 @@ public class DataController {
     String finalUser = getSafeUsernameForFileSystem(user);
     auditEventPublisher.audit(
         () -> {
-          storage.removeWorkspaceByStringUserId(finalUser, id);
-          return null;
+          try {
+            storage.removeWorkspaceByStringUserId(finalUser, id);
+            return null;
+          } catch (StorageException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+          }
         },
         principal,
         DELETE_USER_WORKSPACE,
         Map.of(ID, id, USER, user));
   }
 
+  @Operation(
+      summary = "Delete workspace directory of specific user",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Workspace directory was removed."),
+        @ApiResponse(responseCode = "404", description = "Workspace directory does not exist."),
+        @ApiResponse(responseCode = "401", description = "Permission denied.")
+      })
   @DeleteMapping(value = "/workspaces/directory/{userDirectory}")
   @ResponseStatus(NO_CONTENT)
   public void removeUserWorkspacesDirectory(
@@ -453,8 +473,12 @@ public class DataController {
     String finalUserDirectory = getSafeUsernameForFileSystem(userDirectory);
     auditEventPublisher.audit(
         () -> {
-          storage.deleteDirectory(finalUserDirectory);
-          return null;
+          try {
+            storage.deleteDirectory(finalUserDirectory);
+            return null;
+          } catch (StorageException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+          }
         },
         principal,
         DELETE_USER_WORKSPACE_DIRECTORY,
