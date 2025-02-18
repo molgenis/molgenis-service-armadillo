@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.info;
 
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.info.UserInformationRetriever.getUserIdentifierFromPrincipal;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 
 import java.security.Principal;
 import org.junit.jupiter.api.Assertions;
@@ -18,15 +18,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 class UserInformationRetrieverTest {
   @Test
   void testGetAnonymousUser() {
-    Assertions.assertEquals(
-        UserInformationRetriever.ANONYMOUS, getUserIdentifierFromPrincipal(null));
+    Assertions.assertEquals(UserInformationRetriever.ANONYMOUS, getUser(null));
   }
 
   @Test
   void testGetOidcUser() {
     var principal = mock(OAuth2AuthenticationToken.class, RETURNS_DEEP_STUBS);
     when(principal.getPrincipal().getAttribute("email")).thenReturn("henk@molgenis.nl");
-    Assertions.assertEquals("henk@molgenis.nl", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("henk@molgenis.nl", getUser(principal));
   }
 
   @Test
@@ -34,7 +33,7 @@ class UserInformationRetrieverTest {
     var principal = mock(Principal.class);
     when(principal.getName()).thenReturn("admin");
 
-    Assertions.assertEquals("admin", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("admin", getUser(principal));
   }
 
   @Test
@@ -42,7 +41,7 @@ class UserInformationRetrieverTest {
     var principal = mock(Object.class);
     when(principal.toString()).thenReturn("object");
 
-    Assertions.assertEquals("object", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("object", getUser(principal));
   }
 
   @Test
@@ -50,14 +49,14 @@ class UserInformationRetrieverTest {
     var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
     when(principal.getTokenAttributes().get("email")).thenReturn("tommy@molgenis.nl");
 
-    Assertions.assertEquals("tommy@molgenis.nl", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("tommy@molgenis.nl", getUser(principal));
   }
 
   @Test
   void testJwt() {
     var principal = mock(Jwt.class, RETURNS_DEEP_STUBS);
     when(principal.getClaims().get("email")).thenReturn("tommy@molgenis.nl");
-    Assertions.assertEquals("tommy@molgenis.nl", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("tommy@molgenis.nl", getUser(principal));
   }
 
   @Test
@@ -65,7 +64,7 @@ class UserInformationRetrieverTest {
     var principal = mock(DefaultOAuth2User.class, RETURNS_DEEP_STUBS);
     when(principal.getAttributes().get("email")).thenReturn("bofke@molgenis.nl");
 
-    Assertions.assertEquals("bofke@molgenis.nl", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("bofke@molgenis.nl", getUser(principal));
   }
 
   @Test
@@ -73,6 +72,6 @@ class UserInformationRetrieverTest {
     var principal = mock(User.class);
     when(principal.getUsername()).thenReturn("admin");
 
-    Assertions.assertEquals("admin", getUserIdentifierFromPrincipal(principal));
+    Assertions.assertEquals("admin", getUser(principal));
   }
 }

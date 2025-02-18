@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.molgenis.armadillo.info.UserInformationRetriever.getUserIdentifierFromPrincipal;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -251,7 +251,7 @@ public class ArmadilloStorageService {
   }
 
   static String getUserBucketName(Principal principal) {
-    String userIdentifier = getUserIdentifierFromPrincipal(principal).replace("@", "__at__");
+    String userIdentifier = getUser(principal).replace("@", "__at__");
     return USER_PREFIX + userIdentifier;
   }
 

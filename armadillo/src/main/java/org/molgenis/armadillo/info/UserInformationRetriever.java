@@ -11,7 +11,7 @@ public class UserInformationRetriever {
   static final String EMAIL = "email";
   static final String ANONYMOUS = "ANONYMOUS";
 
-  public static String getUserIdentifierFromPrincipal(Object principal) {
+  public static String getUser(Object principal) {
     if (principal == null) {
       return ANONYMOUS;
     } else if (principal instanceof OAuth2AuthenticationToken token) {

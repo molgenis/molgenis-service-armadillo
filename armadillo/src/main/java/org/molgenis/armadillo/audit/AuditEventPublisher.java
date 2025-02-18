@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.audit;
 
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 import java.security.Principal;
@@ -7,7 +8,6 @@ import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.slf4j.MDC;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -121,7 +121,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     Map<String, Object> sessionData = new HashMap<>(data);
     sessionData.put("sessionId", sessionId);
     sessionData.put("roles", roles);
-    var user = UserInformationRetriever.getUserIdentifierFromPrincipal(principal);
+    var user = getUser(principal);
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
   }

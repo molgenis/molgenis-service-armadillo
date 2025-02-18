@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -540,9 +541,7 @@ class ArmadilloStorageServiceTest {
     when(workspaceMock.getSize()).thenReturn(123456789123456789L);
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       assertThrows(
           StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
     }
@@ -554,9 +553,7 @@ class ArmadilloStorageServiceTest {
         .thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       try {
         armadilloStorage.saveWorkspace(is, principal, "test");
       } catch (StorageException e) {
@@ -922,9 +919,7 @@ class ArmadilloStorageServiceTest {
 
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
       verify(storageService, never()).listObjects(any());
@@ -941,9 +936,7 @@ class ArmadilloStorageServiceTest {
 
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
       verify(storageService, never()).listObjects(any());
@@ -960,9 +953,7 @@ class ArmadilloStorageServiceTest {
 
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
       verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
@@ -981,9 +972,7 @@ class ArmadilloStorageServiceTest {
 
     try (MockedStatic<UserInformationRetriever> infoRetriever =
         Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever
-          .when(() -> UserInformationRetriever.getUserIdentifierFromPrincipal(principal))
-          .thenReturn(USER_EMAIL);
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       assertThrows(
           RuntimeException.class, () -> armadilloStorage.moveWorkspacesIfInOldBucket(principal));
     }

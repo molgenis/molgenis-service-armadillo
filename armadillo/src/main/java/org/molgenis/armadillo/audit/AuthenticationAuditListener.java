@@ -1,8 +1,9 @@
 package org.molgenis.armadillo.audit;
 
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
+
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
-import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.security.AbstractAuthenticationAuditListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
@@ -28,8 +29,7 @@ public class AuthenticationAuditListener extends AbstractAuthenticationAuditList
   private void onAuthenticationSuccessEvent(AuthenticationSuccessEvent event) {
     publish(
         new AuditEvent(
-            UserInformationRetriever.getUserIdentifierFromPrincipal(
-                event.getAuthentication().getPrincipal()),
+            getUser(event.getAuthentication().getPrincipal()),
             AUTHENTICATION_SUCCESS,
             Map.of(
                 "details",
@@ -41,8 +41,7 @@ public class AuthenticationAuditListener extends AbstractAuthenticationAuditList
   private void onLogoutSuccessEvent(LogoutSuccessEvent event) {
     publish(
         new AuditEvent(
-            UserInformationRetriever.getUserIdentifierFromPrincipal(
-                event.getAuthentication().getPrincipal()),
+            getUser(event.getAuthentication().getPrincipal()),
             LOGOUT_SUCCESS,
             Map.of(
                 "details",
