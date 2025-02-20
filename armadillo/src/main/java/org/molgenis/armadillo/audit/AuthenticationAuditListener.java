@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.audit;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.getUser;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
