@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 public class EnvironmentConfigProps {
   @NotEmpty private String name;
   @NotEmpty private String host = "localhost";
+  private String image = "";
   @Positive private int port = 6311;
 
   public String getHost() {
@@ -30,5 +31,13 @@ public class EnvironmentConfigProps {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getImage() {
+    return image;
+  }
+
+  public void setImage(String image) {
+    this.image = image;
   }
 }

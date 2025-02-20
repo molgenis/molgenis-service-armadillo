@@ -9,13 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,6 +53,10 @@ class ArmadilloStorageServiceTest {
   final String SHARED_GECKO = "shared-gecko";
   final String SHARED_DIABETES = "shared-diabetes";
   final String METADATA_FILE = "metadata.json";
+  private static final String USER_ID = "very-random-id";
+  private static final String USER_EMAIL = "user@email.com";
+  private static final String OLD_BUCKET = "user-very-random-id";
+  private static final String NEW_BUCKET = "user-user__at__email.com";
 
   @MockBean StorageService storageService;
   @Mock Principal principal;
@@ -403,11 +410,29 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
-  void testListTablesListsObjectsInSharedBucket() {
+  void testListTablesListsParquetObjectsInSharedBucket() {
     when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
     when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
     when(item.name()).thenReturn("1_0_release_1_1/gecko.parquet");
     assertEquals(List.of("gecko/1_0_release_1_1/gecko"), armadilloStorage.listTables("gecko"));
+  }
+
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesListsAlfObjectsInSharedBucket() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("1_0_release_1_1/gecko_link.alf");
+    assertEquals(List.of("gecko/1_0_release_1_1/gecko_link"), armadilloStorage.listTables("gecko"));
+  }
+
+  @Test
+  @WithMockUser(roles = "GECKO_RESEARCHER")
+  void testListTablesDoesntListCSVObjectsInSharedBucket() {
+    when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
+    when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
+    when(item.name()).thenReturn("1_0_release_1_1/gecko_link.csv");
+    assertEquals(List.of(), armadilloStorage.listTables("gecko"));
   }
 
   @Test
@@ -514,31 +539,28 @@ class ArmadilloStorageServiceTest {
     ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
     when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
     when(workspaceMock.getSize()).thenReturn(123456789123456789L);
-    assertThrows(
-        StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      assertThrows(
+          StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+    }
   }
 
   @Test
   void testSaveWorkspaceReturnsErrorWhenBiggerThan2Gbs() {
     when(storageService.getWorkSpace(is))
         .thenThrow(new StorageException(ArmadilloWorkspace.WORKSPACE_TOO_BIG_ERROR));
-    try {
-      armadilloStorage.saveWorkspace(is, principal, "test");
-    } catch (StorageException e) {
-      assertEquals(
-          "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      try {
+        armadilloStorage.saveWorkspace(is, principal, "test");
+      } catch (StorageException e) {
+        assertEquals(
+            "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
+      }
     }
-  }
-
-  @Test
-  void testSaveWorkspaceChecksBucketName() {
-    ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
-    when(principal.getName()).thenReturn("Henk");
-    when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
-    when(workspaceMock.getSize()).thenReturn(12345L);
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> armadilloStorage.saveWorkspace(is, principal, "test"));
   }
 
   @Test
@@ -774,5 +796,185 @@ class ArmadilloStorageServiceTest {
     when(storageService.getInfo(SHARED_GECKO, srcObj)).thenReturn(info);
     FileInfo actual = armadilloStorage.getInfo("gecko", srcObj);
     assertEquals(info, actual);
+  }
+
+  // Test: User has ROLE_SU, and storage service returns expected data
+  @Test
+  @WithMockUser(roles = "SU") // Simulating a user with ROLE_SU
+  void testListAllUserWorkspaces() {
+    ObjectMetadata ws1Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws2Mock = mock(ObjectMetadata.class);
+    ObjectMetadata ws3Mock = mock(ObjectMetadata.class);
+    ObjectMetadata notAWsMock = mock(ObjectMetadata.class);
+
+    when(ws1Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws2Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+    when(ws3Mock.lastModified())
+        .thenReturn(
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(1542654265978L), ZoneId.systemDefault()));
+
+    when(ws1Mock.name()).thenReturn("workspace1.RData");
+    when(ws2Mock.name()).thenReturn("workspace2.RData");
+    when(ws3Mock.name()).thenReturn("workspace3.RData");
+    when(notAWsMock.name()).thenReturn("somethingweird.weirdextension");
+    when(ws1Mock.size()).thenReturn(1234L);
+    when(ws2Mock.size()).thenReturn(1235L);
+    when(ws3Mock.size()).thenReturn(1236L);
+
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1", "user-bucket2");
+    List<ObjectMetadata> mockObjects1 = Arrays.asList(ws1Mock, ws2Mock, notAWsMock);
+    List<ObjectMetadata> mockObjects2 = singletonList(ws3Mock);
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects1);
+    when(storageService.listObjects("user-bucket2")).thenReturn(mockObjects2);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.size()); // Expecting 2 users/buckets
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.containsKey("user-bucket2"));
+
+    List<Workspace> user1Workspaces = result.get("user-bucket1");
+    assertNotNull(user1Workspaces);
+    assertEquals(2, user1Workspaces.size()); // Expect 2 files for user1
+
+    List<Workspace> user2Workspaces = result.get("user-bucket2");
+    assertNotNull(user2Workspaces);
+    assertEquals(1, user2Workspaces.size()); // Expect 1 workspace for user2
+  }
+
+  // Test: User without ROLE_SU should not access the method
+  @Test
+  @WithMockUser(roles = "RESEARCHER") // Simulating a user without the correct role
+  void testListUserWorkspacesWithUnauthorizedUser() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When & Then: Expecting access denied exception due to lack of proper role
+    assertThrows(
+        AccessDeniedException.class,
+        () -> {
+          armadilloStorage.listAllUserWorkspaces();
+        });
+  }
+
+  // Test: No buckets available
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoBuckets() {
+    // Given
+    List<String> mockBuckets = Collections.emptyList();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty()); // Expecting an empty map
+  }
+
+  // Test: Single bucket with no workspaces
+  @Test
+  @WithMockUser(roles = "SU")
+  void testListUserWorkspacesNoWorkspacesInBucket() {
+    // Given
+    List<String> mockBuckets = Arrays.asList("user-bucket1");
+    List<ObjectMetadata> mockObjects = new ArrayList<>();
+
+    // Mocking the behavior of storageService
+    when(storageService.listBuckets()).thenReturn(mockBuckets);
+    when(storageService.listObjects("user-bucket1")).thenReturn(mockObjects);
+
+    // When
+    Map<String, List<Workspace>> result = armadilloStorage.listAllUserWorkspaces();
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size()); // 1 bucket should be present
+    assertTrue(result.containsKey("user-bucket1"));
+    assertTrue(result.get("user-bucket1").isEmpty()); // Expecting an empty list for workspaces
+  }
+
+  // Test case 2: old bucket doesn't exist, so no action is taken
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenOldBucketDoesNotExist() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(false);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).listObjects(any());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  // Test case 3: new bucket already exists, so no workspaces should be moved
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenNewBucketExists() throws FileNotFoundException {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(true);
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).listObjects(any());
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    }
+  }
+
+  // Test case 4: old bucket exists, new bucket does not exist, but no workspaces to move
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsButNoWorkspacesToMove() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(storageService.listObjects(OLD_BUCKET)).thenReturn(Collections.emptyList());
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
+
+      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  // Test case 6: handle exception (e.g., if storageService throws an exception)
+  @Test
+  void testMoveWorkspacesIfInOldBucket_WhenStorageServiceFails() {
+    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
+    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
+    when(principal.getName()).thenReturn(USER_ID);
+    when(storageService.listObjects(OLD_BUCKET)).thenThrow(new RuntimeException("Service failure"));
+
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      assertThrows(
+          RuntimeException.class, () -> armadilloStorage.moveWorkspacesIfInOldBucket(principal));
+    }
   }
 }
