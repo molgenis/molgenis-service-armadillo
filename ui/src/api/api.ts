@@ -17,7 +17,12 @@ import {
   Metrics,
 } from "@/types/api";
 
-import { ObjectWithStringKey, StringArray } from "@/types/types";
+import {
+  ObjectWithStringKey,
+  StringArray,
+  ListOfObjectsWithStringKey,
+  Workspaces,
+} from "@/types/types";
 import { APISettings } from "./config";
 
 export async function get(url: string, auth: Auth | undefined = undefined) {
@@ -90,7 +95,7 @@ export async function handleResponse(response: Response) {
       error.message = response.statusText;
     } else if (response.status === 403 || response.status === 401) {
       error.message =
-        "You don't have correct permissions. Please contact the administrator";
+        "You are logged in, but you don't have permissions to access the Armadillo user interface";
     } else {
       const json = await response.json();
 
@@ -150,7 +155,6 @@ async function getMetrics(): Promise<string[]> {
       if (data.hasOwnProperty("names")) {
         return data.names;
       } else {
-        console.log("No names found in the data");
         return [];
       }
     })
@@ -196,6 +200,10 @@ export async function getUsers(): Promise<User[]> {
 
 export async function getProjects(): Promise<Project[]> {
   return get("/access/projects");
+}
+
+export function getPermissions(): Promise<ListOfObjectsWithStringKey> {
+  return get("/access/permissions");
 }
 
 export async function getFiles(): Promise<RemoteFileInfo[]> {
@@ -319,8 +327,20 @@ export async function createLinkFile(
   return postJson(`/storage/projects/${viewProject}/objects/link`, data);
 }
 
-export async function getFreeDiskSpace() {
+export async function getFreeDiskSpace(): Promise<number> {
   return get("/actuator/metrics/disk.free").then((data) => {
-    return data.measurements[0].value;
+    return Number(data.measurements[0].value);
   });
+}
+
+export async function getWorkspaceDetails(): Promise<Workspaces> {
+  return get("/all-workspaces");
+}
+
+export async function deleteUserWorkspace(user: string, workspace: string) {
+  return delete_("/workspaces", `${user}/${workspace}`);
+}
+
+export async function deleteWorkspaceDirectory(userDirectory: string) {
+  return delete_("/workspaces/directory/", `${userDirectory}`);
 }

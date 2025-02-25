@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(BAD_REQUEST)
 public class InvalidObjectNameException extends RuntimeException {
 
-    public InvalidObjectNameException(String objectName) {
-        super(
-                format(
-                        "Object name '%s' is invalid. Object format should be in the following format: folder/file.",
-                        objectName));
-    }
+  public InvalidObjectNameException(String objectName) {
+    super(
+        format(
+            "Object name '%s' is invalid. Object format should be in the following format: folder/file.",
+            objectName));
+  }
 }

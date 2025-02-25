@@ -193,7 +193,11 @@
               <ColumnNamesPreview
                 v-if="!editView && !createLinkFromSrc"
                 :columnNames="columnNames"
-                :buttonName="columnNames.length > 10 ? '+ ' + (columnNames.length - 10) + ' variables: ' : columnNames.length + ' variables: '"
+                :buttonName="
+                  columnNames.length > 10
+                    ? '+ ' + (columnNames.length - 10) + ' variables: '
+                    : columnNames.length + ' variables: '
+                "
               >
               </ColumnNamesPreview>
             </div>
@@ -327,10 +331,7 @@ export default defineComponent({
           this.isLinkFileType(this.selectedFile)
         ) {
           this.loading_preview = true;
-          previewObject(
-            this.projectId,
-            `${this.selectedObject}`
-          )
+          previewObject(this.projectId, `${this.selectedObject}`)
             .then((data) => {
               this.filePreview = data;
               this.loading_preview = false;
@@ -341,25 +342,7 @@ export default defineComponent({
               this.loading_preview = false;
             });
 
-          getFileDetails(
-          this.projectId,
-          `${this.selectedObject}`
-        )
-          .then((data) => {
-            this.fileInfo.fileSize = data["size"];
-            this.fileInfo.dataSizeRows = parseInt(data["rows"]);
-            this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
-            this.fileInfo.sourceLink = data["sourceLink"];
-            this.fileInfo.variables = data["variables"];
-            if (isLinkFileType(this.selectedFile)) {
-              this.columnNames = this.fileInfo.variables
-            } else {
-              this.getTableColumnNames( this.projectId, `${this.selectedObject}`)
-            }
-          })
-          .catch((error) => {
-            this.errorMessage = `Cannot load details for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
-          });  
+          this.setFileDetails();
         }
       }
     },
@@ -376,17 +359,36 @@ export default defineComponent({
       return Object.keys(this.projectContent) as StringArray;
     },
     selectedObject(): String {
-      return `${this.selectedFolder}/${this.selectedFile}`
-    }
+      return `${this.selectedFolder}/${this.selectedFile}`;
+    },
   },
   methods: {
     isTableType,
     isLinkFileType,
     isNonTableType,
+    setFileDetails() {
+      getFileDetails(this.projectId, `${this.selectedObject}`)
+        .then((data) => {
+          this.fileInfo.fileSize = data["size"];
+          this.fileInfo.dataSizeRows = parseInt(data["rows"]);
+          this.fileInfo.dataSizeColumns = parseInt(data["columns"]);
+          this.fileInfo.sourceLink = data["sourceLink"];
+          this.fileInfo.variables = data["variables"];
+          if (isLinkFileType(this.selectedFile)) {
+            this.columnNames = this.fileInfo.variables;
+          } else {
+            this.setTableColumnNames(this.projectId, `${this.selectedObject}`);
+          }
+        })
+        .catch((error) => {
+          this.errorMessage = `Cannot load details for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+        });
+    },
     askIfPreviewIsEmpty() {
       return isEmptyObject(this.filePreview[0]);
     },
     cancelView() {
+      this.setFileDetails();
       this.createLinkFromSrc = false;
       this.editView = false;
     },
@@ -420,13 +422,10 @@ export default defineComponent({
         this.errorMessage = "Folder name cannot be empty";
       }
     },
-    getTableColumnNames (project: string, object: string) {
-      getTableVariables(
-        project,
-        object
-      )
+    setTableColumnNames(project: string, object: string) {
+      getTableVariables(project, object)
         .then((data) => {
-          this.columnNames = data; 
+          this.columnNames = data;
         })
         .catch((error) => {
           this.errorMessage = `Cannot load column names for [${object}] of project [${project}]. Because: ${error}.`;
@@ -461,10 +460,7 @@ export default defineComponent({
       const splittedFileAndFolder = fileAndFolder.split("/");
       const file = splittedFileAndFolder[1];
       const folder = splittedFileAndFolder[0];
-      const response = deleteObject(
-        this.projectId,
-        `${this.selectedObject}`
-      );
+      const response = deleteObject(this.projectId, `${this.selectedObject}`);
       response
         .then(() => {
           this.selectedFile = "";

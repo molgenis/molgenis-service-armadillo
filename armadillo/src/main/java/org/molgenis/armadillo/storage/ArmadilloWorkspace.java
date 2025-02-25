@@ -7,7 +7,8 @@ import org.molgenis.armadillo.exceptions.StorageException;
 
 public class ArmadilloWorkspace {
   byte[] content;
-  public static final String WORKSPACE_TOO_BIG_ERROR = "Unable to load workspace. Maximum supported workspace size is 2GB";
+  public static final String WORKSPACE_TOO_BIG_ERROR =
+      "Unable to load workspace. Maximum supported workspace size is 2GB";
 
   public ArmadilloWorkspace(InputStream is) {
     content = toByteArray(is);

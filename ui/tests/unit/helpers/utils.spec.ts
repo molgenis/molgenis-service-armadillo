@@ -18,7 +18,10 @@ import {
   isLinkFileType,
   encodeUriComponent,
   convertBytes,
-  diskSpaceBelowThreshold
+  diskSpaceBelowThreshold,
+  isEmpty,
+  convertStringToBytes,
+  isDate
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -120,7 +123,7 @@ describe("utils", () => {
     it("should return false for actual float", () => {
       const actual = isInt(3.01);
       expect(actual).toBe(false);
-    });
+    })
   });
 
   describe("isIntArray", () => {
@@ -135,6 +138,14 @@ describe("utils", () => {
     it("should return false for string array with ints", () => {
       const actual = isIntArray(["1", "1", "2"]);
       expect(actual).toBe(true);
+    });
+    it("should return false for string array with dates", () => {
+      const actual = isIntArray(["2024-12-05T12:27:49.107+01:00", "2024-12-05T12:27:49.107+01:00", "2024-12-05T12:27:49.107+01:00"]);
+      expect(actual).toBe(false);
+    });
+    it("should return false for string array with strings", () => {
+      const actual = isIntArray(["test1", "test2", "test3"]);
+      expect(actual).toBe(false);
     });
   });
 
@@ -289,7 +300,6 @@ describe("utils", () => {
       expect(actual).toEqual("project%2Did%2Ffolder%2Ffile%2Dversion1.parquet");
     });
   });
-});
 
   describe("convertBytes", () => {
     it("bytes", () => {
@@ -328,7 +338,121 @@ describe("utils", () => {
       const actual = diskSpaceBelowThreshold(9214748364);
       expect(actual).toEqual(false);
     });
+
+    it("Return false", () => {
+      const actual = diskSpaceBelowThreshold(NaN);
+      expect(actual).toEqual(false);
+    });
   });
+
+  describe("isEmpty", () => {
+    it("Returns true when undefined", () => {
+      const actual = isEmpty(undefined);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when null", () => {
+      const actual = isEmpty(null);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty string", () => {
+      const actual = isEmpty('');
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty array", () => {
+      const actual = isEmpty([]);
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns true when empty object", () => {
+      const actual = isEmpty({});
+      expect(actual).toEqual(true);
+    });
+
+    it("Returns false when array with element", () => {
+      const actual = isEmpty(['element']);
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when object with element", () => {
+      const actual = isEmpty({"el": undefined});
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when string with content", () => {
+      const actual = isEmpty("el");
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns false when number", () => {
+      const actual = isEmpty(0);
+      expect(actual).toEqual(false);
+    });
+
+    it("Returns true when NaN", () => {
+      const actual = isEmpty(NaN);
+      expect(actual).toEqual(true);
+    });
+  });
+
+  describe('convertStringToBytes', () => {
+    it('should convert KB to bytes correctly', () => {
+      expect(convertStringToBytes("745.81 KB")).toEqual(763709.44);
+      expect(convertStringToBytes("2.10 KB")).toEqual(2150.4);
+    });
   
+    it('should convert MB to bytes correctly', () => {
+      expect(convertStringToBytes("844.53 MB")).toEqual(885553889.28);
+      expect(convertStringToBytes("23.34 MB")).toEqual(24473763.84);
+    });
+  
+    it('should convert GB to bytes correctly', () => {
+      expect(convertStringToBytes("1.38 GB")).toEqual(1481763717.12);
+      expect(convertStringToBytes("0.5 GB")).toEqual(536870912);
+    });
+  
+    it('should convert TB to bytes correctly', () => {
+      expect(convertStringToBytes("2.10 TB")).toEqual(2308974418329.6);
+    });
+  
+    it('should convert EB to bytes correctly', () => {
+      expect(convertStringToBytes("1.38 EB")).toEqual(1553741871442821);
+    });
+  
+    it('should convert bytes to bytes correctly', () => {
+      expect(convertStringToBytes("133.00 bytes")).toBe(133);
+    });
+  
+    it('should handle a missing unit and default to bytes', () => {
+      expect(convertStringToBytes("745.81")).toBeCloseTo(745.81, 1);
+      expect(convertStringToBytes("1000")).toBe(1000);
+    });
+  
+    it('should throw an error for invalid input format', () => {
+      expect(() => convertStringToBytes("invalid input")).toThrow("Invalid size format");
+      expect(() => convertStringToBytes("123.45 XY")).toThrow("Invalid size format");
+    });
+  });
 
+  describe('isDate', () => {
+  // Valid ISO 8601 date strings
+  it('should return true for valid ISO 8601 date strings', () => {
+    expect(isDate('2023-01-31T15:45:00Z')).toBe(true); // UTC with Z
+    expect(isDate('2023-01-31T15:45:00+02:00')).toBe(true); // With timezone offset
+    expect(isDate('2023-01-31T15:45:00-05:00')).toBe(true); // With negative timezone offset
+    expect(isDate('2023-01-31T15:45:00.123Z')).toBe(true); // With milliseconds and UTC
+    expect(isDate('2023-01-31T15:45:00.123+01:00')).toBe(true); // With milliseconds and timezone offset
+  });
 
+  // Empty strings and non-date inputs
+  it('should return false for empty strings or non-date values', () => {
+    expect(isDate('')).toBe(false); // Empty string
+    expect(isDate('Hello, world!')).toBe(false); // Random text
+    expect(isDate('12345')).toBe(false); // Random number as string
+  });
+});
+});
+
+  

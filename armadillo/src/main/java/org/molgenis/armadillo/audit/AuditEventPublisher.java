@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.audit;
 
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 import java.security.Principal;
@@ -14,11 +15,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,7 +38,12 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_ASSIGN_METHODS = "GET_ASSIGN_METHODS";
   public static final String GET_AGGREGATE_METHODS = "GET_AGGREGATE_METHODS";
   public static final String GET_USER_WORKSPACES = "GET_USER_WORKSPACES";
+  public static final String GET_ALL_USER_WORKSPACES = "GET_ALL_USER_WORKSPACES";
+  public static final String GET_MIGRATION_STATUS = "GET_MIGRATION_STATUS";
   public static final String DELETE_USER_WORKSPACE = "DELETE_USER_WORKSPACE";
+  public static final String DELETE_USER_WORKSPACE_DIRECTORY = "DELETE_USER_WORKSPACE_DIRECTORY";
+  public static final String USER_WORKSPACE_DIRECTORY = "USER_WORKSPACE_DIRECTORY";
+  public static final String COPY_USER_WORKSPACE = "COPY_USER_WORKSPACE";
   public static final String SAVE_USER_WORKSPACE = "SAVE_USER_WORKSPACE";
   public static final String LOAD_USER_WORKSPACE = "LOAD_USER_WORKSPACE";
   public static final String PERMISSIONS_LIST = "PERMISSIONS_LIST";
@@ -96,6 +97,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String MESSAGE = "message";
   public static final String TABLE = "table";
   public static final String ID = "id";
+  public static final String USER = "user";
   static final String ANONYMOUS = "ANONYMOUS";
   public static final String MDC_SESSION_ID = "sessionID";
   private ApplicationEventPublisher applicationEventPublisher;
@@ -122,26 +124,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
     var user = getUser(principal);
     applicationEventPublisher.publishEvent(
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
-  }
-
-  static String getUser(Object principal) {
-    if (principal == null) {
-      return ANONYMOUS;
-    } else if (principal instanceof OAuth2AuthenticationToken token) {
-      return token.getPrincipal().getAttribute(EMAIL);
-    } else if (principal instanceof JwtAuthenticationToken token) {
-      return token.getTokenAttributes().get(EMAIL).toString();
-    } else if (principal instanceof DefaultOAuth2User user) {
-      return user.getAttributes().get(EMAIL).toString();
-    } else if (principal instanceof Jwt jwt) {
-      return jwt.getClaims().get(EMAIL).toString();
-    } else if (principal instanceof User user) {
-      return user.getUsername();
-    } else if (principal instanceof Principal p) {
-      return p.getName();
-    } else {
-      return principal.toString();
-    }
   }
 
   public void audit(Principal principal, String type, Map<String, Object> data) {
