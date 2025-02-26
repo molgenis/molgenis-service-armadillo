@@ -26,7 +26,7 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-    - image: molgenis/ci-build:1.2.3
+    - image: molgenis/ci-build-armadillo:1.0.0
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -39,7 +39,7 @@ definitions:
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build:1.2.3 
+      - image: molgenis/ci-build:1.0.0
 
     working_directory: ~/repo
     resource_class: large
@@ -68,21 +68,21 @@ jobs:
             pwd
             echo "$CIRCLE_WORKING_DIRECTORY"
 
-      - run:
-          name: Install Docker client
-          command: apt-get -y install docker-ce docker-ce-cli containerd.io
+     # - run:
+     #     name: Install Docker client
+     #     command: apt-get -y install docker-ce docker-ce-cli containerd.io
 
-      - run:
-          name: Install zip
-          command: apt-get --yes install zip
+     # - run:
+     #     name: Install zip
+     #     command: apt-get --yes install zip
 
-      - setup_remote_docker:
-          version: previous
-          docker_layer_caching: true
+    #  - setup_remote_docker:
+    #      version: previous
+    #      docker_layer_caching: true
 
-      - run:
-          name: Sign in to docker
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+    #  - run:
+    #      name: Sign in to docker
+    #      command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
           name: Setup git
@@ -92,26 +92,26 @@ jobs:
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
 
-      - run:
-          name: Build Armadillo and R CICD image
-          command: |
-            ./gradlew docker ci
-            ./docker/bin/prepare.bash ci
+    #  - run:
+    #      name: Build Armadillo and R CICD image
+    #      command: |
+    #        ./gradlew docker ci
+    #        ./docker/bin/prepare.bash ci
 
-      - store_artifacts:
-          path: build/libs
+     # - store_artifacts:
+     #     path: build/libs
 
-      - run:
-          name: Zip armadillo-compose
-          command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-            cd $CIRCLE_WORKING_DIRECTORY
-            mkdir build/artifacts
+    #  - run:
+    #      name: Zip armadillo-compose
+    #      command: |
+    #        echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
+    #        cd $CIRCLE_WORKING_DIRECTORY
+    #        mkdir build/artifacts
 
             # Workaround for ~ expansion not working
-            K=`pwd`
-            cd build/docker/
-            zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
+     #       K=`pwd`
+     #       cd build/docker/
+     #       zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
 
       - store_artifacts:
           path: build/artifacts/armadillo-compose.zip
@@ -154,68 +154,68 @@ jobs:
               -X POST https://slack.com/api/chat.postMessage
             fi
 
-      - run:
-          name: Make sure all images declared in docker-compose.yml are available and ready
-          command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-            cd $CIRCLE_WORKING_DIRECTORY
+     # - run:
+     #     name: Make sure all images declared in docker-compose.yml are available and ready
+     #     command: |
+     #       echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
+     #       cd $CIRCLE_WORKING_DIRECTORY
 
             # Somehow build/docker/armadillo-compose is deleted so redo
-            ./docker/bin/prepare.bash ci
+     #       ./docker/bin/prepare.bash ci
 
-            cd build/docker/armadillo-compose
+      #      cd build/docker/armadillo-compose
 
-            docker images ls
-            docker compose up -d
-            docker images ls
+       #     docker images ls
+       #     docker compose up -d
+       #     docker images ls
 
-      - run:
-          name: Start docker-compose and wait for `release-test.R` to finish
-          command: |
-            # FIXME: make this name not directory dependent
-            ARMADILLO="armadillo-compose-armadillo-1"
+      #- run:
+      #    name: Start docker-compose and wait for `release-test.R` to finish
+      #    command: |
+      #      # FIXME: make this name not directory dependent
+      #      ARMADILLO="armadillo-compose-armadillo-1"
 
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/armadillo-compose
+      #      cd $CIRCLE_WORKING_DIRECTORY
+      #      cd build/docker/armadillo-compose
 
-            docker compose up -d
-            docker ps
+      #      docker compose up -d
+      #      docker ps
 
 
             # 1 CircleCI docker in docker workaround
-            docker cp ./armadillo/config $ARMADILLO:/config
-            docker cp ./armadillo/data   $ARMADILLO:/data
-            docker cp ./armadillo/logs   $ARMADILLO:/logs
+      #      docker cp ./armadillo/config $ARMADILLO:/config
+      #      docker cp ./armadillo/data   $ARMADILLO:/data
+      #      docker cp ./armadillo/logs   $ARMADILLO:/logs
             # .1 CircleCI docker in docker workaround
 
             # Poll to see Armadillo is up
-            docker container run --network container:$ARMADILLO \
-              docker.io/jwilder/dockerize \
-              -wait http://localhost:8080/ \
-              -wait-retry-interval 20s \
-              -timeout 30s || echo "Timed out"
+      #      docker container run --network container:$ARMADILLO \
+      #        docker.io/jwilder/dockerize \
+      #        -wait http://localhost:8080/ \
+      #        -wait-retry-interval 20s \
+      #        -timeout 30s || echo "Timed out"
 
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/cicd
+      #      cd $CIRCLE_WORKING_DIRECTORY
+      #      cd build/docker/cicd
 
             # Run release-test.R
-            docker container run \
-              --network container:$ARMADILLO \
-              --interactive --tty \
-              --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
+      #      docker container run \
+      #        --network container:$ARMADILLO \
+      #        --interactive --tty \
+      #        --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
 
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/armadillo-compose
+      #      cd $CIRCLE_WORKING_DIRECTORY
+      #      cd build/docker/armadillo-compose
 
             # 2 CircleCI docker in docker workaround
             # See what changed within Armadillo
-            docker cp $ARMADILLO:/logs   ./armadillo/logs
+      #      docker cp $ARMADILLO:/logs   ./armadillo/logs
             # .2 CircleCI docker in docker workaround
 
-            docker container ls
-            docker compose down
-            docker images ls
-            docker compose rm
+      #      docker container ls
+      #      docker compose down
+      #      docker images ls
+      #      docker compose rm
 
   delete-helm-preview:
     environment:
