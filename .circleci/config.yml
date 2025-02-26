@@ -39,7 +39,7 @@ definitions:
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build:1.0.0
+      - image: molgenis/ci-build-armadillo:1.0.0
 
     working_directory: ~/repo
     resource_class: large
