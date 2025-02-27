@@ -61,13 +61,13 @@ jobs:
      #     name: Install zip
      #     command: apt-get --yes install zip
 
-    #  - setup_remote_docker:
-    #      version: previous
-    #      docker_layer_caching: true
+      - setup_remote_docker:
+          version: previous
+          docker_layer_caching: true
 
-    #  - run:
-    #      name: Sign in to docker
-    #      command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Sign in to docker
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - run:
           name: Setup git
