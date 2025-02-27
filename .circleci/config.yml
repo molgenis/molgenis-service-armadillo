@@ -53,14 +53,6 @@ jobs:
     steps:
       - checkout
 
-     # - run:
-     #     name: Install Docker client
-     #     command: apt-get -y install docker-ce docker-ce-cli containerd.io
-
-     # - run:
-     #     name: Install zip
-     #     command: apt-get --yes install zip
-
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
@@ -81,27 +73,8 @@ jobs:
           name: Build Armadillo and R CICD image
           command: |
             ./gradlew docker ci
-    
-
-    #  - store_artifacts:
-    #      path: build/libs
-
-    #  - run:
-    #      name: Zip armadillo-compose
-    #      command: |
-    #        echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-    #        cd $CIRCLE_WORKING_DIRECTORY
-    #        mkdir build/artifacts
-
-            # Workaround for ~ expansion not working
-     #       K=`pwd`
-     #       cd build/docker/
-     #       zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
-
-     # - store_artifacts:
-     #     path: build/artifacts/armadillo-compose.zip
-
-      - run:
+  
+        - run:
           name: build, test, push docker
           command: |
             if [ "${CIRCLE_BRANCH}" = "master" ]; then
@@ -139,69 +112,18 @@ jobs:
               -X POST https://slack.com/api/chat.postMessage
             fi
 
-     # - run:
-     #     name: Make sure all images declared in docker-compose.yml are available and ready
-     #     command: |
-     #       echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-     #       cd $CIRCLE_WORKING_DIRECTORY
+      - run:
+          name: Settting enviroment for testing
+          command: |
+            bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
-            # Somehow build/docker/armadillo-compose is deleted so redo
-     #       ./docker/bin/prepare.bash ci
+       - run: 
+           name: Install dependencies for release testing
+           command: |
+             ./scripts/release/install_release_script_dependencies.R
 
-      #      cd build/docker/armadillo-compose
-
-       #     docker images ls
-       #     docker compose up -d
-       #     docker images ls
-
-      #- run:
-      #    name: Start docker-compose and wait for `release-test.R` to finish
-      #    command: |
-      #      # FIXME: make this name not directory dependent
-      #      ARMADILLO="armadillo-compose-armadillo-1"
-
-      #      cd $CIRCLE_WORKING_DIRECTORY
-      #      cd build/docker/armadillo-compose
-
-      #      docker compose up -d
-      #      docker ps
-
-
-            # 1 CircleCI docker in docker workaround
-      #      docker cp ./armadillo/config $ARMADILLO:/config
-      #      docker cp ./armadillo/data   $ARMADILLO:/data
-      #      docker cp ./armadillo/logs   $ARMADILLO:/logs
-            # .1 CircleCI docker in docker workaround
-
-            # Poll to see Armadillo is up
-      #      docker container run --network container:$ARMADILLO \
-      #        docker.io/jwilder/dockerize \
-      #        -wait http://localhost:8080/ \
-      #        -wait-retry-interval 20s \
-      #        -timeout 30s || echo "Timed out"
-
-      #      cd $CIRCLE_WORKING_DIRECTORY
-      #      cd build/docker/cicd
-
-            # Run release-test.R
-      #      docker container run \
-      #        --network container:$ARMADILLO \
-      #        --interactive --tty \
-      #        --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
-
-      #      cd $CIRCLE_WORKING_DIRECTORY
-      #      cd build/docker/armadillo-compose
-
-            # 2 CircleCI docker in docker workaround
-            # See what changed within Armadillo
-      #      docker cp $ARMADILLO:/logs   ./armadillo/logs
-            # .2 CircleCI docker in docker workaround
-
-      #      docker container ls
-      #      docker compose down
-      #      docker images ls
-      #      docker compose rm
-
+        
+     
   delete-helm-preview:
     environment:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
