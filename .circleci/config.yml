@@ -53,21 +53,6 @@ jobs:
     steps:
       - checkout
 
-      # https://support.circleci.com/hc/en-us/articles/16164465307931-Using-an-environment-variable-to-define-a-path-when-using-the-Docker-executor
-      - run:
-          name: "Fix CIRCLE_WORKING_DIRECTORY"
-          # replace ~ by $HOME
-          command: echo 'CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"' >> $BASH_ENV
-
-      - run:
-          name: Test env
-          command: |
-            echo "id: `id`"
-            cd
-            cd repo
-            pwd
-            echo "$CIRCLE_WORKING_DIRECTORY"
-
      # - run:
      #     name: Install Docker client
      #     command: apt-get -y install docker-ce docker-ce-cli containerd.io
@@ -92,14 +77,14 @@ jobs:
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
 
-    #  - run:
-    #      name: Build Armadillo and R CICD image
-    #      command: |
-    #        ./gradlew docker ci
-    #        ./docker/bin/prepare.bash ci
+      - run:
+          name: Build Armadillo and R CICD image
+          command: |
+            ./gradlew docker ci
+    
 
-     # - store_artifacts:
-     #     path: build/libs
+    #  - store_artifacts:
+    #      path: build/libs
 
     #  - run:
     #      name: Zip armadillo-compose
@@ -113,8 +98,8 @@ jobs:
      #       cd build/docker/
      #       zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
 
-      - store_artifacts:
-          path: build/artifacts/armadillo-compose.zip
+     # - store_artifacts:
+     #     path: build/artifacts/armadillo-compose.zip
 
       - run:
           name: build, test, push docker
@@ -222,7 +207,7 @@ jobs:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
     
     docker:
-      - image: molgenis/ci-build:1.2.3 
+      - image: molgenis/ci-build-armadillo:1.0.0
 
     working_directory: ~/repo
     resource_class: large
