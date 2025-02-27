@@ -26,7 +26,7 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-    - image: molgenis/ci-build-armadillo:1.0.0
+      - image: molgenis/ci-build-armadillo:1.0.0
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -34,7 +34,6 @@ definitions:
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
       TERM: dumb
 
-  
 
 jobs:
   build:
@@ -68,12 +67,12 @@ jobs:
             git config user.email "molgenis@gmail.com"
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
-            
+
       - run:
           name: Build Armadillo and R CICD image
           command: |
             ./gradlew docker ci
-  
+
       - run:
           name: build, test, push docker
           command: |
@@ -118,14 +117,11 @@ jobs:
             bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
 
-       - run: 
-           name: Install dependencies for release testing
-           command: |
-             ./scripts/release/install_release_script_dependencies.R
+      - run: 
+          name: Install dependencies for release testing
+          command: |
+            ./scripts/release/install_release_script_dependencies.R
 
-
-        
-     
   delete-helm-preview:
     environment:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
@@ -151,17 +147,13 @@ workflows:
     unless:
       equal: ["delete-pr-preview", << pipeline.parameters.GHA_Action >>]
     jobs:
-    - build:
-      filters:
-        branches:
-          ignore: master
-  
+      - build:
+        filters:
+          branches:
+            ignore: master
+
   delete_preview:
     when:
       equal: [ "delete-pr-preview", << pipeline.parameters.GHA_Action >> ]
     jobs:
-    - delete-helm-preview
-    
-    
-
-
+      - delete-helm-preview
