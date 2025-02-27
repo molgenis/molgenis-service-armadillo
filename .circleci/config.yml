@@ -122,6 +122,11 @@ jobs:
           command: |
             ./scripts/release/install_release_script_dependencies.R
 
+      - run: 
+          name: Release testing
+          command: |
+            ./scripts/release/release-test.R
+
   delete-helm-preview:
     environment:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
