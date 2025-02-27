@@ -68,6 +68,7 @@ jobs:
             git config user.email "molgenis@gmail.com"
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
+            
 
       - run:
           name: Build Armadillo and R CICD image
@@ -117,10 +118,12 @@ jobs:
           command: |
             bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
+
        - run: 
            name: Install dependencies for release testing
            command: |
              ./scripts/release/install_release_script_dependencies.R
+
 
         
      
