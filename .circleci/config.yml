@@ -126,7 +126,7 @@ jobs:
                       echo "preview is not ready yet, waiting 10 seconds...";
                   fi; 
                   sleep 10; 
-              done      
+              done
 
       - run:
           name: Settting enviroment for testing
