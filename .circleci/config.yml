@@ -116,17 +116,15 @@ jobs:
           command: |
             bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
-
       - run: 
           name: Install dependencies for release testing
           command: |
             ./scripts/release/install_release_script_dependencies.R
 
-      - run: 
+      - run:
           name: Release testing
           command: |
-             cd /scripts/release
-            ./release-test.R
+             cd /scripts/release && ./release-test.R
 
   delete-helm-preview:
     environment:
