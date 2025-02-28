@@ -115,17 +115,17 @@ jobs:
         name: Wait for preview to be up, poll every 10 seconds
         command: |
           GETURL="https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org/"
-          while true; 
-              do 
+          while true;
+              do
                   STATUS=$(curl --silent --head $GETURL | awk '/^HTTP/{print $2}')
                   echo ${STATUS}
-                  if [[ "$STATUS" == "200" ]]; then 
+                  if [[ "$STATUS" == "200" ]]; then
                       echo "preview is up";
-                      break; 
-                  else 
+                      break;
+                  else
                       echo "preview is not ready yet, waiting 10 seconds...";
-                  fi; 
-                  sleep 10; 
+                  fi;
+                  sleep 10;
               done
 
       - run:
@@ -133,7 +133,7 @@ jobs:
           command: |
             bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
-      - run: 
+      - run:
           name: Install dependencies for release testing
           command: |
             ./scripts/release/install_release_script_dependencies.R
@@ -146,7 +146,7 @@ jobs:
   delete-helm-preview:
     environment:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
-    
+
     docker:
       - image: molgenis/ci-build-armadillo:1.1.1
 
