@@ -26,7 +26,7 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-      - image: molgenis/ci-build-armadillo:1.0.1
+      - image: molgenis/ci-build-armadillo:1.0.2
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -38,7 +38,7 @@ definitions:
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build-armadillo:1.0.1
+      - image: molgenis/ci-build-armadillo:1.0.2
 
     working_directory: ~/repo
     resource_class: large
@@ -132,7 +132,7 @@ jobs:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
     
     docker:
-      - image: molgenis/ci-build-armadillo:1.0.1
+      - image: molgenis/ci-build-armadillo:1.0.2
 
     working_directory: ~/repo
     resource_class: large
