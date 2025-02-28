@@ -124,7 +124,7 @@ jobs:
       - run:
           name: Release testing
           command: |
-             cd /scripts/release && ./release-test.R
+             cd repo/scripts/release && ./release-test.R
 
   delete-helm-preview:
     environment:

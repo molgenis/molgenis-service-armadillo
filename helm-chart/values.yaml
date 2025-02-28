@@ -35,6 +35,8 @@ config:
           - resourcer
           - dsMediation
           - dsMTLBase
+          - dsSurvival
+          - dsOmics
         function-blacklist: [ ]
         options:
           datashield:
