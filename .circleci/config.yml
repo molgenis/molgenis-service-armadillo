@@ -110,23 +110,23 @@ jobs:
               -d "channel=C0639V5KTCY" \
               -X POST https://slack.com/api/chat.postMessage
             fi
-            
+
       - run:
-        name: Wait for preview to be up, poll every 10 seconds
-        command: |
-          GETURL="https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org/"
-          while true;
-              do
-                  STATUS=$(curl --silent --head $GETURL | awk '/^HTTP/{print $2}')
-                  echo ${STATUS}
-                  if [[ "$STATUS" == "200" ]]; then
-                      echo "preview is up";
-                      break;
-                  else
-                      echo "preview is not ready yet, waiting 10 seconds...";
-                  fi;
-                  sleep 10;
-              done
+          name: Wait for preview to be up, poll every 10 seconds
+          command: |
+            GETURL="https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org/"
+            while true;
+                do
+                    STATUS=$(curl --silent --head $GETURL | awk '/^HTTP/{print $2}')
+                    echo ${STATUS}
+                    if [[ "$STATUS" == "200" ]]; then
+                        echo "preview is up";
+                        break;
+                    else
+                        echo "preview is not ready yet, waiting 10 seconds...";
+                    fi;
+                    sleep 10;
+                done
 
       - run:
           name: Settting enviroment for testing
