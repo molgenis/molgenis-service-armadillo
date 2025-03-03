@@ -112,6 +112,10 @@ jobs:
             fi
 
       - run:
+          name: Wait 10s for deployment to get ingress configuration to come up
+          command: sleep 10;
+
+      - run:
           name: Wait for preview to be up, poll every 10 seconds
           command: |
             GETURL="https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org/"
