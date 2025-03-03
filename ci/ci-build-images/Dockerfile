@@ -32,6 +32,7 @@ RUN apt install -y \
     libfontconfig1-dev \
     libtiff5 \ 
     libtiff5-dev \
+    libudunits2-dev \
     qpdf \
     texinfo \
     software-properties-common \
