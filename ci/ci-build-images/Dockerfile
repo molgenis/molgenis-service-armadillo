@@ -33,6 +33,7 @@ RUN apt install -y \
     libtiff5 \ 
     libtiff5-dev \
     libudunits2-dev \
+    libgdal-dev \
     qpdf \
     texinfo \
     software-properties-common \
