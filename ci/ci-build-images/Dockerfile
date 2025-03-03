@@ -48,7 +48,7 @@ RUN ln -sf /usr/local/lib/R/site-library/littler/examples/install2.r /usr/local/
 RUN install2.r --skipinstalled --repo https://cran.r-project.org devtools diffobj getPass getopt triebeard
 RUN install2.r --skipinstalled --repo https://cran.r-project.org qqconf mutoss fftw 
 RUN install2.r --skipinstalled --repo https://cran.r-project.org metap jsonlite urltools vroom
-RUN install2.r --skipinstalled --repo https://cran.r-project.org arrow future RCurl cli
+RUN install2.r --skipinstalled --repo https://cran.r-project.org arrow future RCurl cli sf
 RUN install2.r --skipinstalled --repo https://cran.r-project.org DSI resourcer MolgenisArmadillo DSMolgenisArmadillo
 
 RUN mkdir -p /cicd/armadillo/scripts/release
