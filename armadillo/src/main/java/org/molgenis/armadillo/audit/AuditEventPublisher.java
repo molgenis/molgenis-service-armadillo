@@ -62,6 +62,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
   public static final String GET_PROJECT = "GET_PROJECT";
   public static final String LIST_PROFILES = "LIST_PROFILES";
+  public static final String LIST_PROFILES_STATUS = "LIST_PROFILES_STATUS";
   public static final String UPSERT_PROFILE = "UPSERT_PROFILE";
   public static final String DELETE_PROFILE = "DELETE_PROFILE";
   public static final String GET_PROFILE = "GET_PROFILE";
@@ -98,7 +99,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String TABLE = "table";
   public static final String ID = "id";
   public static final String USER = "user";
-  static final String ANONYMOUS = "ANONYMOUS";
   public static final String MDC_SESSION_ID = "sessionID";
   private ApplicationEventPublisher applicationEventPublisher;
   private Clock clock = Clock.systemUTC();

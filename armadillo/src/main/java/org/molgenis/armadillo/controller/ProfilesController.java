@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES_STATUS;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROFILE;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
@@ -49,7 +50,6 @@ public class ProfilesController {
   private final ProfileService profiles;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
-  private final ProfileService profileService;
 
   public ProfilesController(
       ProfileService profileService,
@@ -58,7 +58,6 @@ public class ProfilesController {
     this.profiles = requireNonNull(profileService);
     this.dockerService = dockerService;
     this.auditor = requireNonNull(auditor);
-    this.profileService = profileService;
   }
 
   @Operation(
@@ -107,6 +106,10 @@ public class ProfilesController {
   @GetMapping(value = "status", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
   public List<Map<String, String>> getProfileStatus(Principal principal) {
+    return auditor.audit(this::getDockerProfileInformation, principal, LIST_PROFILES_STATUS);
+  }
+
+  private List<Map<String, String>> getDockerProfileInformation() {
     List<ProfileResponse> profiles = runAsSystem(this::getProfiles);
     List<Map<String, String>> result = new ArrayList<>();
     profiles.forEach(
