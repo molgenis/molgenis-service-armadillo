@@ -113,17 +113,23 @@ public class ProfilesController {
         (profile) -> {
           Map<String, String> info = new HashMap<>();
           String profileName = profile.getName();
-          String status = requireNonNull(profile.getContainer()).getStatus().toString();
-          info.put("status", status);
-          if (dockerService != null && Objects.equals(status, "RUNNING")) {
-            String[] config =
-                runAsSystem(() -> dockerService.getProfileEnvironmentConfig(profileName));
-            String versions =
-                Arrays.toString(
-                    Arrays.stream(config)
-                        .filter(configItem -> configItem.contains("_VERSION"))
-                        .toArray(String[]::new));
-            info.put("config", versions);
+          if (dockerService != null) {
+            String status =
+                runAsSystem(
+                    () -> dockerService.getProfileStatus(profileName).getStatus().toString());
+            info.put("status", status);
+            if (Objects.equals(status, "RUNNING")) {
+              String[] config =
+                  runAsSystem(() -> dockerService.getProfileEnvironmentConfig(profileName));
+              String versions =
+                  Arrays.toString(
+                      Arrays.stream(config)
+                          .filter(configItem -> configItem.contains("_VERSION"))
+                          .toArray(String[]::new));
+              info.put("config", versions);
+            } else {
+              info.put("config", "[]");
+            }
           }
           info.put("image", profile.getImage());
           info.put("name", profileName);
