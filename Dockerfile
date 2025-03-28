@@ -1,5 +1,5 @@
 #FROM --platform=linux/amd64 eclipse-temurin:17.0.12_7-jdk-focal
-FROM --platform=linux/amd64 eclipse-temurin:21
+FROM --platform=linux/amd64 eclipse-temurin:21-jre-alpine
 VOLUME /data
 VOLUME /config
 VOLUME /logs
