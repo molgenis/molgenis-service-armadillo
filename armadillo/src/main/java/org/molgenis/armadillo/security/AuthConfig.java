@@ -14,7 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -59,8 +59,8 @@ public class AuthConfig {
   @Order(1)
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(
-        requests ->
-            requests
+        authorize ->
+            authorize
                 .requestMatchers(
                     "/",
                     "/_docs/**",
@@ -85,22 +85,18 @@ public class AuthConfig {
                 .authenticated());
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
-    http.httpBasic(
-        httpBasicConfigurer ->
-            httpBasicConfigurer
-                .withObjectPostProcessor(
-                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                      // save of basic auth in the session because oauth2 make it stateless
-                      // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
-                      @Override
-                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                        filter.setSecurityContextRepository(
-                            new HttpSessionSecurityContextRepository());
-                        return filter;
-                      }
-                    })
-                .realmName("Armadillo")
-                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+    http
+        // ...
+        .httpBasic(
+        (basic) ->
+            basic.addObjectPostProcessor(
+                new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                  @Override
+                  public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                    filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+                    return filter;
+                  }
+                }));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
