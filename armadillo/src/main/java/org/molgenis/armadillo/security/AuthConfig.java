@@ -59,8 +59,8 @@ public class AuthConfig {
   @Order(1)
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(
-        authorize ->
-            authorize
+        requests ->
+            requests
                 .requestMatchers(
                     "/",
                     "/_docs/**",
@@ -85,18 +85,33 @@ public class AuthConfig {
                 .authenticated());
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
-    http
-        // ...
-        .httpBasic(
-        (basic) ->
-            basic.addObjectPostProcessor(
-                new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                  @Override
-                  public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                    filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-                    return filter;
-                  }
-                }));
+    http.httpBasic(
+        httpBasicConfigurer ->
+            httpBasicConfigurer
+                .withObjectPostProcessor(
+                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                      // save of basic auth in the session because oauth2 make it stateless
+                      // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
+                      @Override
+                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                        filter.setSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository());
+                        return filter;
+                      }
+                    })
+                .realmName("Armadillo")
+                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+    //    http.httpBasic(
+    //        (basic) ->
+    //            basic.addObjectPostProcessor(
+    //                new ObjectPostProcessor<BasicAuthenticationFilter>() {
+    //                  @Override
+    //                  public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+    //                    filter.setSecurityContextRepository(new
+    // HttpSessionSecurityContextRepository());
+    //                    return filter;
+    //                  }
+    //                }));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
