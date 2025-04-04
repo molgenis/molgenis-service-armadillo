@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 
 @WebMvcTest(ProfilesController.class)
@@ -149,7 +150,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  @WithMockUser(roles = "SU")
+  @WithAnonymousUser
   void getProfileStatus_GET() throws Exception {
     ContainerInfo runningContainer = ContainerInfo.create(ProfileStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
