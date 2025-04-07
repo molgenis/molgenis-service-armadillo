@@ -105,38 +105,37 @@ public class ProfilesController {
       })
   @GetMapping(value = "status", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<Map<String, String>> getProfileStatus(Principal principal) {
+  public List<ProfilesStatusResponse> getProfileStatus(Principal principal) {
     return auditor.audit(this::getDockerProfileInformation, principal, LIST_PROFILES_STATUS);
   }
 
-  private List<Map<String, String>> getDockerProfileInformation() {
+  private List<ProfilesStatusResponse> getDockerProfileInformation() {
     List<ProfileResponse> profiles = runAsSystem(this::getProfiles);
-    List<Map<String, String>> result = new ArrayList<>();
+    List<ProfilesStatusResponse> result = new ArrayList<>();
     profiles.forEach(
         (profile) -> {
-          Map<String, String> info = new HashMap<>();
           String profileName = profile.getName();
           if (dockerService != null) {
             String status =
                 runAsSystem(
                     () -> dockerService.getProfileStatus(profileName).getStatus().toString());
-            info.put("status", status);
+            String versions = "";
             if (Objects.equals(status, "RUNNING")) {
               String[] config =
                   runAsSystem(() -> dockerService.getProfileEnvironmentConfig(profileName));
-              String versions =
+              versions =
                   Arrays.toString(
                       Arrays.stream(config)
                           .filter(configItem -> configItem.contains("_VERSION"))
                           .toArray(String[]::new));
-              info.put("config", versions);
             } else {
-              info.put("config", "[]");
+              versions = "[]";
             }
+            result.add(
+                ProfilesStatusResponse.create(profile.getImage(), profileName, versions, status));
+          } else {
+            result.add(ProfilesStatusResponse.create(profile.getImage(), profileName));
           }
-          info.put("image", profile.getImage());
-          info.put("name", profileName);
-          result.add(info);
         });
     return result;
   }

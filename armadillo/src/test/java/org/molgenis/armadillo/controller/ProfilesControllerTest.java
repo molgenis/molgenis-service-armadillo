@@ -3,9 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -152,6 +150,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithAnonymousUser
   void getProfileStatus_GET() throws Exception {
+    // DockerService dockerService = mock(DockerService.class);
     ContainerInfo runningContainer = ContainerInfo.create(ProfileStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
     // Mock DockerService to return a specific status
