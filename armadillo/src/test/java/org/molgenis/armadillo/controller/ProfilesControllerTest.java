@@ -150,7 +150,6 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithAnonymousUser
   void getProfileStatus_GET() throws Exception {
-    // DockerService dockerService = mock(DockerService.class);
     ContainerInfo runningContainer = ContainerInfo.create(ProfileStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
     // Mock DockerService to return a specific status

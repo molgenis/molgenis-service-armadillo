@@ -30,7 +30,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
   @MockBean ProfilesLoader profilesLoader;
 
   @BeforeEach
-  public void before() {
+  void before() {
     var settings = createExampleSettings();
     when(profilesLoader.load()).thenReturn(settings);
     runAsSystem(() -> profileService.initialize());
