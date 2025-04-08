@@ -70,7 +70,7 @@ public class AuthConfig {
                     "/basic-login",
                     "/my/**",
                     "/armadillo-logo.png",
-                    "favicon.ico",
+                    "/favicon.ico",
                     "/assets/**",
                     "/v3/**",
                     "/swagger-ui/**",
@@ -101,17 +101,6 @@ public class AuthConfig {
                     })
                 .realmName("Armadillo")
                 .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
-    //    http.httpBasic(
-    //        (basic) ->
-    //            basic.addObjectPostProcessor(
-    //                new ObjectPostProcessor<BasicAuthenticationFilter>() {
-    //                  @Override
-    //                  public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-    //                    filter.setSecurityContextRepository(new
-    // HttpSessionSecurityContextRepository());
-    //                    return filter;
-    //                  }
-    //                }));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
