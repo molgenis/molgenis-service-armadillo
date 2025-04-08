@@ -24,8 +24,8 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.51.0'
 }
 
-targetCompatibility = '17'
-sourceCompatibility = '17'
+targetCompatibility = '21'
+sourceCompatibility = '21'
 
 println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.previousVersion
 
