@@ -4,7 +4,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,11 +35,6 @@ public class InsightControllerTest {
 
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @Autowired AccessService accessService;
-
-  @BeforeEach
-  public void before() {
-    //      runAsSystem(() -> insightService.initialize());
-  }
 
   @Test
   public void testFilesList() throws Exception {
