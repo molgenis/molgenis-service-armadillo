@@ -141,7 +141,7 @@ task ci(type: WriteProperties) {
 
 docker {
     name imageName
-    tags 'latest', tagName
+    tags tagName
     dockerfile file('Dockerfile')
     files bootJar.archiveFile
     buildArgs(['JAR_FILE': "${bootJar.archiveFile.get().asFile.name}"])
