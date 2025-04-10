@@ -26,7 +26,7 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-    - image: molgenis/ci-build:1.2.3
+      - image: molgenis/ci-build-armadillo:1.1.5
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -34,12 +34,11 @@ definitions:
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
       TERM: dumb
 
-  
 
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build:1.2.3 
+      - image: molgenis/ci-build-armadillo:1.1.5
 
     working_directory: ~/repo
     resource_class: large
@@ -52,29 +51,6 @@ jobs:
 
     steps:
       - checkout
-
-      # https://support.circleci.com/hc/en-us/articles/16164465307931-Using-an-environment-variable-to-define-a-path-when-using-the-Docker-executor
-      - run:
-          name: "Fix CIRCLE_WORKING_DIRECTORY"
-          # replace ~ by $HOME
-          command: echo 'CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"' >> $BASH_ENV
-
-      - run:
-          name: Test env
-          command: |
-            echo "id: `id`"
-            cd
-            cd repo
-            pwd
-            echo "$CIRCLE_WORKING_DIRECTORY"
-
-      - run:
-          name: Install Docker client
-          command: apt-get -y install docker-ce docker-ce-cli containerd.io
-
-      - run:
-          name: Install zip
-          command: apt-get --yes install zip
 
       - setup_remote_docker:
           version: previous
@@ -96,25 +72,6 @@ jobs:
           name: Build Armadillo and R CICD image
           command: |
             ./gradlew docker ci
-            ./docker/bin/prepare.bash ci
-
-      - store_artifacts:
-          path: build/libs
-
-      - run:
-          name: Zip armadillo-compose
-          command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-            cd $CIRCLE_WORKING_DIRECTORY
-            mkdir build/artifacts
-
-            # Workaround for ~ expansion not working
-            K=`pwd`
-            cd build/docker/
-            zip -r $K/build/artifacts/armadillo-compose.zip armadillo-compose
-
-      - store_artifacts:
-          path: build/artifacts/armadillo-compose.zip
 
       - run:
           name: build, test, push docker
@@ -155,74 +112,47 @@ jobs:
             fi
 
       - run:
-          name: Make sure all images declared in docker-compose.yml are available and ready
-          command: |
-            echo "Working directory: $CIRCLE_WORKING_DIRECTORY"
-            cd $CIRCLE_WORKING_DIRECTORY
-
-            # Somehow build/docker/armadillo-compose is deleted so redo
-            ./docker/bin/prepare.bash ci
-
-            cd build/docker/armadillo-compose
-
-            docker images ls
-            docker compose up -d
-            docker images ls
+          name: Wait 10s for deployment to get ingress configuration to come up
+          command: sleep 10;
 
       - run:
-          name: Start docker-compose and wait for `release-test.R` to finish
+          name: Wait for preview to be up, poll every 10 seconds
           command: |
-            # FIXME: make this name not directory dependent
-            ARMADILLO="armadillo-compose-armadillo-1"
+            GETURL="https://preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}.dev.molgenis.org/"
+            while true;
+                do
+                    STATUS=$(curl --silent --head $GETURL | awk '/^HTTP/{print $2}')
+                    echo ${STATUS}
+                    if [[ "$STATUS" == "200" ]]; then
+                        echo "preview is up";
+                        break;
+                    else
+                        echo "preview is not ready yet, waiting 10 seconds...";
+                    fi;
+                    sleep 10;
+                done
 
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/armadillo-compose
+      - run:
+          name: Settting enviroment for testing
+          command: |
+            bash ci/set_test_environment.sh "preview-armadillo-pr-${CIRCLE_PULL_REQUEST##*/}"
 
-            docker compose up -d
-            docker ps
+      - run:
+          name: Install dependencies for release testing
+          command: |
+            ./scripts/release/install_release_script_dependencies.R
 
-
-            # 1 CircleCI docker in docker workaround
-            docker cp ./armadillo/config $ARMADILLO:/config
-            docker cp ./armadillo/data   $ARMADILLO:/data
-            docker cp ./armadillo/logs   $ARMADILLO:/logs
-            # .1 CircleCI docker in docker workaround
-
-            # Poll to see Armadillo is up
-            docker container run --network container:$ARMADILLO \
-              docker.io/jwilder/dockerize \
-              -wait http://localhost:8080/ \
-              -wait-retry-interval 20s \
-              -timeout 30s || echo "Timed out"
-
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/cicd
-
-            # Run release-test.R
-            docker container run \
-              --network container:$ARMADILLO \
-              --interactive --tty \
-              --entrypoint /bin/bash molgenis/r-cicd -c "cd /cicd/scripts/release ; ./armadillo-ready.bash"
-
-            cd $CIRCLE_WORKING_DIRECTORY
-            cd build/docker/armadillo-compose
-
-            # 2 CircleCI docker in docker workaround
-            # See what changed within Armadillo
-            docker cp $ARMADILLO:/logs   ./armadillo/logs
-            # .2 CircleCI docker in docker workaround
-
-            docker container ls
-            docker compose down
-            docker images ls
-            docker compose rm
+      - run:
+          name: Release testing
+          command: |
+             cd scripts/release && ./release-test.R
 
   delete-helm-preview:
     environment:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
-    
+
     docker:
-      - image: molgenis/ci-build:1.2.3 
+      - image: molgenis/ci-build-armadillo:1.1.5
 
     working_directory: ~/repo
     resource_class: large
@@ -242,16 +172,13 @@ workflows:
     unless:
       equal: ["delete-pr-preview", << pipeline.parameters.GHA_Action >>]
     jobs:
-    - build:
-      filters:
-        branches:
-          ignore: master
-  
+      - build:
+        filters:
+          branches:
+            ignore: master
+
   delete_preview:
     when:
       equal: [ "delete-pr-preview", << pipeline.parameters.GHA_Action >> ]
     jobs:
-    - delete-helm-preview
-    
-
-
+      - delete-helm-preview

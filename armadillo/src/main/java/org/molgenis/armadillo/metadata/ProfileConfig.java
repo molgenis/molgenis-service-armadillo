@@ -42,7 +42,6 @@ public abstract class ProfileConfig {
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
-  @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
