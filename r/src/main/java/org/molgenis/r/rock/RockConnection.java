@@ -87,7 +87,7 @@ public class RockConnection implements RServerConnection {
 
       String serverUrl = getRSessionResourceUrl(UPLOAD_ENDPOINT);
       UriComponentsBuilder builder =
-          UriComponentsBuilder.fromHttpUrl(serverUrl)
+          UriComponentsBuilder.fromUriString(serverUrl)
               .queryParam(PATH, fileName)
               .queryParam(OVERWRITE, true);
 
@@ -111,7 +111,7 @@ public class RockConnection implements RServerConnection {
       String serverUrl = getRSessionResourceUrl(DOWNLOAD_ENDPOINT);
 
       UriComponentsBuilder builder =
-          UriComponentsBuilder.fromHttpUrl(serverUrl).queryParam(PATH, fileName);
+          UriComponentsBuilder.fromUriString(serverUrl).queryParam(PATH, fileName);
       restClient
           .get()
           .uri(builder.build().toUri())
