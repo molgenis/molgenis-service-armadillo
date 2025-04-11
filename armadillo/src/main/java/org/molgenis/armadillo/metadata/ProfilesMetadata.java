@@ -11,7 +11,6 @@ public abstract class ProfilesMetadata implements Persistable {
   @JsonProperty("profiles")
   public abstract ConcurrentMap<String, ProfileConfig> getProfiles();
 
-  //  @JsonCreator
   public static ProfilesMetadata create() {
     return new AutoValue_ProfilesMetadata(new ConcurrentHashMap<>());
   }
