@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.function.Consumer;
 import org.molgenis.r.RServerConnection;
@@ -13,7 +12,6 @@ import org.molgenis.r.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -179,10 +177,6 @@ public class RockConnection implements RServerConnection {
   private RestClient getRestClient() {
     String serverUrl = getRSessionResourceUrl(UPLOAD_ENDPOINT);
     String authHeader = getAuthHeader();
-    ClientHttpRequestFactorySettings settings =
-        ClientHttpRequestFactorySettings.defaults()
-            .withConnectTimeout(Duration.ofSeconds(300L))
-            .withReadTimeout(Duration.ofSeconds(900L));
     return RestClient.builder()
         .baseUrl(serverUrl)
         .requestFactory(ClientHttpRequestFactoryBuilder.httpComponents().build())
