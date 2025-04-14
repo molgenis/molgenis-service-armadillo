@@ -15,7 +15,7 @@ plugins {
     id 'org.springframework.boot' version '3.2.3'
     id "io.spring.dependency-management" version "1.1.7"
     id "java"
-    id "org.sonarqube" version "4.4.1.3373"
+    id "org.sonarqube" version "5.1.0.4882"
     id 'maven-publish'
     id 'application'
     id "jacoco"
@@ -168,13 +168,15 @@ task jacocoMergedReport(type: JacocoReport) {
 }
 
 //push to sonarqube
-sonarqube {
+sonar {
     properties {
         // Uncomment when upgrading to sonar 5.x
-        // property 'sonar.gradle.skipCompile', 'true'
+        property 'sonar.gradle.skipCompile', 'true'
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
-        property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
+        property 'sonar.javascript.coveragePlugin', 'lcov'
+        property 'sonar.javascript.lcov.reportPaths', "${projectDir}/ui/coverage/lcov.info"
+        //property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
     }
 }
 
