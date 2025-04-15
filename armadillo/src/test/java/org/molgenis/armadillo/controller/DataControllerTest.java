@@ -53,9 +53,9 @@ import org.rosuda.REngine.REXPRaw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -80,11 +80,11 @@ class DataControllerTest extends ArmadilloControllerTestBase {
           .setLibPath("/usr/local/lib/R/site-library")
           .build();
 
-  @MockBean private ExpressionRewriter expressionRewriter;
-  @MockBean private Commands commands;
-  @MockBean DockerClient dockerClient;
-  @MockBean private ArmadilloStorageService armadilloStorage;
-  @MockBean private DSEnvironmentCache environments;
+  @MockitoBean private ExpressionRewriter expressionRewriter;
+  @MockitoBean private Commands commands;
+  @MockitoBean DockerClient dockerClient;
+  @MockitoBean private ArmadilloStorageService armadilloStorage;
+  @MockitoBean private DSEnvironmentCache environments;
   @Mock private RockResult rexp;
   @Mock private DSEnvironment assignEnvironment;
   @Autowired private DataController dataController;

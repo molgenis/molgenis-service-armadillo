@@ -17,17 +17,17 @@ import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @WebMvcTest(ProfilesController.class)
 @Import({TestSecurityConfig.class})
 class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase {
 
   @Autowired ProfileService profileService;
-  @MockBean ArmadilloStorageService armadilloStorage;
-  @MockBean ProfilesLoader profilesLoader;
+  @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean ProfilesLoader profilesLoader;
 
   @BeforeEach
   void before() {

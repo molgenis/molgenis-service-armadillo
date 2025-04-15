@@ -19,7 +19,6 @@ public abstract class AccessMetadata implements Persistable {
   @JsonProperty("permissions")
   public abstract Set<ProjectPermission> getPermissions();
 
-  @JsonCreator
   public static AccessMetadata create() {
     return new AutoValue_AccessMetadata(
         new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new HashSet<>());

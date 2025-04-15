@@ -61,7 +61,6 @@ public abstract class ProfileConfig {
         newOptions != null ? newOptions : Map.of());
   }
 
-  @JsonCreator
   public static ProfileConfig createDefault() {
     return create(
         "default",

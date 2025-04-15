@@ -25,10 +25,10 @@ import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @WebMvcTest(ProfilesController.class)
 @Import({TestSecurityConfig.class})
@@ -40,9 +40,9 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
       "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
 
   @Autowired ProfileService profileService;
-  @MockBean ArmadilloStorageService armadilloStorage;
-  @MockBean DockerService dockerService;
-  @MockBean ProfilesLoader profilesLoader;
+  @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean DockerService dockerService;
+  @MockitoBean ProfilesLoader profilesLoader;
 
   @BeforeEach
   public void before() {
