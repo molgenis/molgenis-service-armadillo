@@ -18,7 +18,7 @@ bootJar.enabled = false
 dependencies {
     //spring
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'jakarta.validation:jakarta.validation-api:3.1.0-M1'
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.retry:spring-retry'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

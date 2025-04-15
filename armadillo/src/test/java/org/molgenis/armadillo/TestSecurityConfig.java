@@ -14,6 +14,9 @@ import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -35,7 +38,15 @@ public class TestSecurityConfig {
 
   @Bean
   protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(request -> request.anyRequest().authenticated())
+    return http.authorizeHttpRequests(
+            requests ->
+                requests
+                    .requestMatchers("/ds-profiles/status")
+                    .permitAll()
+                    .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
         .httpBasic(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
         .build();

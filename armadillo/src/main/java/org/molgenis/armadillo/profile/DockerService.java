@@ -11,10 +11,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.Ports;
-import com.github.dockerjava.api.model.RestartPolicy;
+import com.github.dockerjava.api.model.*;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
@@ -113,6 +110,13 @@ public class DockerService {
       return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
     }
     return containerName;
+  }
+
+  public String[] getProfileEnvironmentConfig(String profileName) {
+    profileService.getByName(profileName);
+    String containerName = asContainerName(profileName);
+    InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerName).exec();
+    return containerInfo.getConfig().getEnv();
   }
 
   public ContainerInfo getProfileStatus(String profileName) {

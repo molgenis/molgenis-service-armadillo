@@ -31,11 +31,11 @@ packages <- c(
   "devtools",
   "DSI",
   "resourcer",
-  "MolgenisArmadillo",
-  "DSMolgenisArmadillo", 
   "purrr", 
   "stringr",
   "tibble", 
+  "MolgenisArmadillo",
+  "DSMolgenisArmadillo",
   "dsTidyverseClient"
 )
 

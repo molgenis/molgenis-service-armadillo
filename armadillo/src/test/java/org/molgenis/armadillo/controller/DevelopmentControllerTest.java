@@ -26,13 +26,13 @@ import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -40,10 +40,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Import({TestSecurityConfig.class})
 class DevelopmentControllerTest extends ArmadilloControllerTestBase {
 
-  @MockBean private ProfileService profileService;
-  @MockBean private Commands commands;
-  @MockBean private ArmadilloStorageService armadilloStorage;
-  @MockBean DockerClient dockerClient;
+  @MockitoBean private ProfileService profileService;
+  @MockitoBean private Commands commands;
+  @MockitoBean private ArmadilloStorageService armadilloStorage;
+  @MockitoBean DockerClient dockerClient;
 
   @Mock(lenient = true)
   private Clock clock;

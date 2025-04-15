@@ -14,7 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -70,11 +70,12 @@ public class AuthConfig {
                     "/basic-login",
                     "/my/**",
                     "/armadillo-logo.png",
-                    "favicon.ico",
+                    "/favicon.ico",
                     "/assets/**",
                     "/v3/**",
                     "/swagger-ui/**",
                     "/ui/**",
+                    "/ds-profiles/status",
                     "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()

@@ -4,8 +4,10 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES_STATUS;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROFILE;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -22,9 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
@@ -85,6 +85,59 @@ public class ProfilesController {
   @ResponseStatus(OK)
   public List<ProfileResponse> profileList(Principal principal) {
     return auditor.audit(this::getProfiles, principal, LIST_PROFILES);
+  }
+
+  @Operation(
+      summary = "List profiles",
+      description =
+          """
+                        If Docker management is enabled, this will also display each profile's Docker
+                        container status.
+                        """)
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "All profiles listed",
+            content =
+                @Content(
+                    array = @ArraySchema(schema = @Schema(implementation = ProfileResponse.class))))
+      })
+  @GetMapping(value = "status", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(OK)
+  public List<ProfilesStatusResponse> getProfileStatus(Principal principal) {
+    return auditor.audit(this::getDockerProfileInformation, principal, LIST_PROFILES_STATUS);
+  }
+
+  private List<ProfilesStatusResponse> getDockerProfileInformation() {
+    List<ProfileResponse> profiles = runAsSystem(this::getProfiles);
+    List<ProfilesStatusResponse> result = new ArrayList<>();
+    profiles.forEach(
+        (profile) -> {
+          String profileName = profile.getName();
+          if (dockerService != null) {
+            String status =
+                runAsSystem(
+                    () -> dockerService.getProfileStatus(profileName).getStatus().toString());
+            String versions = "";
+            if (Objects.equals(status, "RUNNING")) {
+              String[] config =
+                  runAsSystem(() -> dockerService.getProfileEnvironmentConfig(profileName));
+              versions =
+                  Arrays.toString(
+                      Arrays.stream(config)
+                          .filter(configItem -> configItem.contains("_VERSION"))
+                          .toArray(String[]::new));
+            } else {
+              versions = "[]";
+            }
+            result.add(
+                ProfilesStatusResponse.create(profile.getImage(), profileName, versions, status));
+          } else {
+            result.add(ProfilesStatusResponse.create(profile.getImage(), profileName));
+          }
+        });
+    return result;
   }
 
   private List<ProfileResponse> getProfiles() {

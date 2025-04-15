@@ -18,8 +18,11 @@
         ></ConfirmationDialog>
       </div>
     </div>
+
+    <LoadingSpinner v-if="profilesLoading" />
     <!-- Actual table -->
     <Table
+      v-else
       :dataToShow="profiles"
       :allData="profiles"
       :indexToEdit="profileToEditIndex"
@@ -167,6 +170,7 @@ export default defineComponent({
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
+    const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
     const router = useRouter();
@@ -184,6 +188,7 @@ export default defineComponent({
             // Delete required or else shows when creating or editing profiles
             delete profiles[profile_index].options["datashield.seed"];
           }
+          profilesLoading.value = false;
           return profiles;
         })
         .catch((error: string) => {
@@ -192,6 +197,7 @@ export default defineComponent({
         });
     };
     return {
+      profilesLoading,
       profiles,
       errorMessage,
       loadProfiles,

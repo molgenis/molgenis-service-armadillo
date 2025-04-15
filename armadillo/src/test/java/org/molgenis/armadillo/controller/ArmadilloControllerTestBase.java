@@ -14,11 +14,11 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +30,7 @@ public class ArmadilloControllerTestBase {
   @Autowired protected MockMvc mockMvc;
   @Autowired protected AuditEventPublisher auditEventPublisher;
 
-  @MockBean protected ApplicationEventPublisher applicationEventPublisher;
+  @MockitoBean protected ApplicationEventPublisher applicationEventPublisher;
 
   @Mock(lenient = true)
   protected Clock clock;
