@@ -27,5 +27,3 @@ services:
   xenon:
     hostname: xenon
     image: datashield/rock-dolomite-xenon:latest
-    environment:
-      DEBUG: "TRUE"

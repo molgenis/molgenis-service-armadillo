@@ -35,6 +35,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.ExpressionException;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.model.Workspace;
@@ -46,6 +47,7 @@ import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -406,6 +408,13 @@ public class DataController {
         () -> storage.listWorkspaces(principal), principal, GET_USER_WORKSPACES, Map.of());
   }
 
+  @Operation(summary = "Get all workspaces")
+  @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
+  public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
+    return auditEventPublisher.audit(
+        storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
+  }
+
   @Operation(
       summary = "Delete user workspace",
       responses = {
@@ -413,13 +422,7 @@ public class DataController {
       })
   @DeleteMapping(value = "/workspaces/{id}")
   @ResponseStatus(OK)
-  public void removeWorkspace(
-      @PathVariable
-          @Pattern(
-              regexp = WORKSPACE_ID_FORMAT_REGEX,
-              message = "Please use only letters, numbers, dashes or underscores")
-          String id,
-      Principal principal) {
+  public void removeWorkspace(@PathVariable String id, Principal principal) {
     auditEventPublisher.audit(
         () -> {
           storage.removeWorkspace(principal, id);
@@ -428,6 +431,58 @@ public class DataController {
         principal,
         DELETE_USER_WORKSPACE,
         Map.of(ID, id));
+  }
+
+  @Operation(
+      summary = "Delete workspace of specific user",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Workspace was removed."),
+        @ApiResponse(responseCode = "404", description = "Workspace does not exist."),
+        @ApiResponse(responseCode = "401", description = "Permission denied.")
+      })
+  @DeleteMapping(value = "/workspaces/{user}/{id}")
+  @ResponseStatus(NO_CONTENT)
+  public void removeUserWorkspace(
+      @PathVariable String user, @PathVariable String id, Principal principal) {
+    String finalUser = getSafeUsernameForFileSystem(user);
+    auditEventPublisher.audit(
+        () -> {
+          try {
+            storage.removeWorkspaceByStringUserId(finalUser, id);
+            return null;
+          } catch (StorageException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+          }
+        },
+        principal,
+        DELETE_USER_WORKSPACE,
+        Map.of(ID, id, USER, user));
+  }
+
+  @Operation(
+      summary = "Delete workspace directory of specific user",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Workspace directory was removed."),
+        @ApiResponse(responseCode = "404", description = "Workspace directory does not exist."),
+        @ApiResponse(responseCode = "401", description = "Permission denied.")
+      })
+  @DeleteMapping(value = "/workspaces/directory/{userDirectory}")
+  @ResponseStatus(NO_CONTENT)
+  public void removeUserWorkspacesDirectory(
+      @PathVariable String userDirectory, Principal principal) {
+    String finalUserDirectory = getSafeUsernameForFileSystem(userDirectory);
+    auditEventPublisher.audit(
+        () -> {
+          try {
+            storage.deleteDirectory(finalUserDirectory);
+            return null;
+          } catch (StorageException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+          }
+        },
+        principal,
+        DELETE_USER_WORKSPACE_DIRECTORY,
+        Map.of(USER_WORKSPACE_DIRECTORY, finalUserDirectory));
   }
 
   @Operation(summary = "Save user workspace")
@@ -511,6 +566,15 @@ public class DataController {
     return variableList.size() == 0
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
+  }
+
+  public static String getSafeUsernameForFileSystem(String user) {
+    // replaces the @ in email addresses because when we use it as name of a folder, not all
+    // filesystems might like it
+    if (user.contains("@")) {
+      user = user.replace("@", "__at__");
+    }
+    return user;
   }
 
   private CompletableFuture<ResponseEntity<Void>> loadTableFromLinkFile(

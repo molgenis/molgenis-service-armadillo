@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -11,14 +12,18 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.Workspace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,7 +39,10 @@ public class ArmadilloStorageService {
   public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
   public static final String SYSTEM = "system";
+  public static final String RDATA_EXT = ".RData";
   private final StorageService storageService;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
   public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
@@ -54,7 +62,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void deleteProject(String project) {
     throwIfUnknown(project);
-    storageService.deleteBucket(SHARED_PREFIX + project);
+    deleteDirectory(SHARED_PREFIX + project);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -79,8 +87,19 @@ public class ArmadilloStorageService {
   public void copyObject(String project, String newObject, String oldObject) {
     throwIfUnknown(project, oldObject);
     throwIfDuplicate(project, newObject);
-    var inputStream = storageService.load(SHARED_PREFIX + project, oldObject);
-    storageService.save(inputStream, SHARED_PREFIX + project, newObject, APPLICATION_OCTET_STREAM);
+    copyFile(SHARED_PREFIX + project, SHARED_PREFIX + project, oldObject, newObject);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void copyFile(
+      String oldLocation, String newLocation, String oldFileName, String newFileName) {
+    var inputStream = storageService.load(oldLocation, oldFileName);
+    storageService.save(inputStream, newLocation, newFileName, APPLICATION_OCTET_STREAM);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteDirectory(String directory) {
+    storageService.deleteBucket(directory);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -160,7 +179,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public List<String> listTables(String project) {
     return listObjects(project).stream()
-        .filter(it -> it.endsWith(PARQUET))
+        .filter(it -> it.endsWith(PARQUET) || it.endsWith(LINK_FILE))
         .map(FilenameUtils::removeExtension)
         .toList();
   }
@@ -202,21 +221,38 @@ public class ArmadilloStorageService {
         .toList();
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public Map<String, List<Workspace>> listAllUserWorkspaces() {
+    List<String> availableUsers =
+        storageService.listBuckets().stream()
+            .filter((user) -> user.startsWith(USER_PREFIX))
+            .toList();
+    return availableUsers.stream()
+        .collect(
+            Collectors.toMap(
+                userFolder -> userFolder,
+                userFolder ->
+                    storageService.listObjects(userFolder).stream()
+                        .filter((object -> object.name().endsWith(RDATA_EXT)))
+                        .map(ArmadilloStorageService::toWorkspace)
+                        .collect(Collectors.toList())));
+  }
+
   public InputStream loadWorkspace(Principal principal, String id) {
     return storageService.load(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
-  private static String getWorkspaceObjectName(String id) {
-    return id + ".RData";
+  static String getWorkspaceObjectName(String id) {
+    return id + RDATA_EXT;
   }
 
-  private static String getUserBucketName(Principal principal) {
-    String bucketName = USER_PREFIX + principal.getName();
-    if (!bucketName.matches(BUCKET_REGEX)) {
-      throw new IllegalArgumentException(
-          "Cannot create valid S3 bucket for username " + principal.getName());
-    }
-    return bucketName;
+  private static String getOldUserBucketName(Principal principal) {
+    return USER_PREFIX + principal.getName();
+  }
+
+  static String getUserBucketName(Principal principal) {
+    String userIdentifier = getUser(principal).replace("@", "__at__");
+    return USER_PREFIX + userIdentifier;
   }
 
   private static Workspace toWorkspace(ObjectMetadata item) {
@@ -239,12 +275,34 @@ public class ArmadilloStorageService {
     }
   }
 
+  public void moveWorkspacesIfInOldBucket(Principal principal) throws FileNotFoundException {
+    String oldBucketName = getOldUserBucketName(principal);
+    String newBucketName = getUserBucketName(principal);
+    // only move workspaces from old bucket to new if there is no new bucket yet, we don't want to
+    if (storageService.bucketExists(oldBucketName) && !storageService.bucketExists(newBucketName)) {
+      LOGGER.info(
+          "Found old workspaces bucket for user, moving workspaces from old directory [{}] to new directory [{}]",
+          oldBucketName,
+          newBucketName);
+      Path source = Paths.get(storageService.getRootDir() + File.separator + oldBucketName);
+      try {
+        Files.move(
+            source,
+            source.resolveSibling(storageService.getRootDir() + File.separator + newBucketName));
+      } catch (IOException e) {
+        throw new StorageException(e);
+      }
+    }
+  }
+
   public void saveWorkspace(InputStream is, Principal principal, String id) {
     // Load root dir
     File drive = new File("/");
     long usableSpace = drive.getUsableSpace();
     try {
+      moveWorkspacesIfInOldBucket(principal);
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
+
       long fileSize = workspace.getSize();
       if (usableSpace > fileSize * 2L) {
         trySaveWorkspace(workspace, principal, id);
@@ -254,13 +312,18 @@ public class ArmadilloStorageService {
                 "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
                 getHumanReadableByteCount(fileSize)));
       }
-    } catch (StorageException e) {
+    } catch (StorageException | FileNotFoundException e) {
       throw new StorageException(e.getMessage().replace("load", "save"));
     }
   }
 
   public void removeWorkspace(Principal principal, String id) {
     storageService.delete(getUserBucketName(principal), getWorkspaceObjectName(id));
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public void removeWorkspaceByStringUserId(String userId, String id) {
+    storageService.delete(USER_PREFIX + userId, getWorkspaceObjectName(id));
   }
 
   public void saveSystemFile(InputStream is, String name, MediaType mediaType) {

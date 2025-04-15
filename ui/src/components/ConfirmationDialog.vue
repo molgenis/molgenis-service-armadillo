@@ -6,7 +6,8 @@
       @clear="$emit('cancel')"
     >
       <div>
-        Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]?
+        Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]
+        {{ additionalMessage }}?
       </div>
       <div class="mb-1">
         <small>{{ extraInfo }}</small>
@@ -42,6 +43,10 @@ export default {
     record: String,
     action: String,
     recordType: String,
+    additionalMessage: {
+      type: String,
+      default: "",
+    },
     extraInfo: {
       type: String,
       default: "",

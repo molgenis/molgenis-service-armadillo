@@ -31,11 +31,12 @@ packages <- c(
   "devtools",
   "DSI",
   "resourcer",
-  "MolgenisArmadillo",
-  "DSMolgenisArmadillo", 
   "purrr", 
   "stringr",
-  "tibble"
+  "tibble", 
+  "MolgenisArmadillo",
+  "DSMolgenisArmadillo",
+  "dsTidyverseClient"
 )
 
 install_requirements_from_cran <- function(packages) {

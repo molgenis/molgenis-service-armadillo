@@ -31,12 +31,12 @@ import org.molgenis.armadillo.metadata.UserDetails;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AccessController.class)
@@ -47,12 +47,12 @@ class AccessControllerTest {
 
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\":  \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
-  @MockBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean ArmadilloStorageService armadilloStorage;
 
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired MockMvc mockMvc;
-  @MockBean JwtDecoder jwtDecoder;
-  @MockBean AccessLoader accessLoader;
+  @MockitoBean JwtDecoder jwtDecoder;
+  @MockitoBean AccessLoader accessLoader;
   @Autowired AccessService accessService;
 
   @BeforeEach

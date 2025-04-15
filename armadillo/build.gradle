@@ -46,16 +46,17 @@ dependencies {
     //other
     implementation 'org.rosuda.REngine:REngine:2.1.0'
     implementation 'org.rosuda.REngine:Rserve:1.8.1'
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.23'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.30'
+    implementation("io.swagger.core.v3:swagger-core-jakarta:2.2.30")
     implementation 'com.google.auto.value:auto-value-annotations:1.10.4'
     implementation 'org.obiba.datashield:ds4j-core:2.1.0'
     implementation 'org.obiba.datashield:ds4j-r:2.1.0'
-    implementation 'com.github.docker-java:docker-java:3.3.6'
-    implementation 'com.github.docker-java:docker-java-transport-zerodep:3.3.6'
+    implementation 'com.github.docker-java:docker-java:3.5.0'
+    implementation 'com.github.docker-java:docker-java-transport-zerodep:3.5.0'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
     implementation 'org.apache.parquet:parquet-hadoop:1.13.1'
     implementation 'org.apache.hadoop:hadoop-client:3.3.6'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
     //Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips
     //https://github.com/docker-java/docker-java/issues/1876 -->

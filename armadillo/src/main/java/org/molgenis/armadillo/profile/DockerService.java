@@ -11,10 +11,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.Ports;
-import com.github.dockerjava.api.model.RestartPolicy;
+import com.github.dockerjava.api.model.*;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
@@ -95,7 +92,7 @@ public class DockerService {
    */
   String asContainerName(String profileName) {
     if (!inContainer) {
-      LOG.warn("NO ".repeat(100) + " " + profileName);
+      LOG.warn("Profile not running in docker container: " + profileName);
       return profileName;
     }
 
@@ -104,7 +101,7 @@ public class DockerService {
       return profileName;
     }
 
-    LOG.warn("YES ".repeat(100) + " " + profileName);
+    LOG.warn("Profile running in docker container: " + profileName);
     return containerPrefix + profileName + "-1";
   }
 
@@ -113,6 +110,13 @@ public class DockerService {
       return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
     }
     return containerName;
+  }
+
+  public String[] getProfileEnvironmentConfig(String profileName) {
+    profileService.getByName(profileName);
+    String containerName = asContainerName(profileName);
+    InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerName).exec();
+    return containerInfo.getConfig().getEnv();
   }
 
   public ContainerInfo getProfileStatus(String profileName) {
@@ -148,12 +152,13 @@ public class DockerService {
     startContainer(containerName);
   }
 
-  private void installImage(ProfileConfig profileConfig) {
+  void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
     }
 
-    int imageExposed = 8085;
+    // if rock is in the image name, it's rock
+    int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
