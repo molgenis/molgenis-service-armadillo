@@ -20,6 +20,7 @@ metadata:
     {{- include "armadillo.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

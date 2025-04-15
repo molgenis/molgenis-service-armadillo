@@ -37,13 +37,13 @@ import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.info.UserInformationRetriever;
 import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig
@@ -58,7 +58,7 @@ class ArmadilloStorageServiceTest {
   private static final String OLD_BUCKET = "user-very-random-id";
   private static final String NEW_BUCKET = "user-user__at__email.com";
 
-  @MockBean StorageService storageService;
+  @MockitoBean StorageService storageService;
   @Mock Principal principal;
   @Mock ObjectMetadata item;
   @Mock InputStream is;

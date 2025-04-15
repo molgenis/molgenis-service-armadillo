@@ -15,7 +15,7 @@
           <a
             type="button"
             class="btn btn-dark"
-            href="/_docs/master/index.html"
+            href="https://molgenis.github.io/molgenis-service-armadillo/"
             target="_blank"
             ><i class="bi bi-book"></i> Docs</a
           >

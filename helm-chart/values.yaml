@@ -12,9 +12,11 @@ config:
     container-prefix: 'dev-'
     profiles:
       - name: default 
-        image: datashield/rock-base:latest
-        #host: rock-molgenis-rock.armadillo-rock.svc
-        host: rock-molgenis-rock.armadillo-rock.svc
+      #  image: datashield/rock-base:latest
+      #  #host: rock-molgenis-rock.armadillo-rock.svc
+      #  host: rock-molgenis-rock.armadillo-rock.svc
+        image: datashield/rock-dolomite-xenon:latest
+        host: xenon-molgenis-xenon.armadillo-xenon.svc
         port: 8085 
         package-whitelist:
           - dsBase
@@ -33,6 +35,8 @@ config:
           - resourcer
           - dsMediation
           - dsMTLBase
+          - dsSurvival
+          - dsOmics
         function-blacklist: [ ]
         options:
           datashield:
