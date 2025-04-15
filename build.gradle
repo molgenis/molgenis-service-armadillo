@@ -157,6 +157,10 @@ task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("bootStartScripts", true)
     dependsOn project.getTasksByName("startScripts", true)
     dependsOn project.getTasksByName(":armadillo:spotlessJava", true)
+    dependsOn project.getTasksByName(":r:spotlessJava", true)
+
+    mustRunAfter(":armadillo:spotlessJava")
+    mustRunAfter(":r:spotlessJava")
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
