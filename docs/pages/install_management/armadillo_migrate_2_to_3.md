@@ -1,302 +1,304 @@
-# Migrate Armadillo 3 to Armadillo 4
+# Migrate Armadillo 2 to Armadillo 3
 
-Upgrade to Armadillo 4 (rock only)
+Migrating from Armadillo 2 to Armadillo 3 can be done in two variants, a full migration including [projects, users and data](#migrate-projects-users-and-data) or [just projects and their users](#migrate-projects-and-their-users).
+Both options require Python (version 3.8) and additional python libraries, described in [Getting started](#getting-started).
+
+## Getting started
+
+To start the migration, python 3.8 is advised together with a number of utilitarian python libraries. Other python
+versions might work, but performance has only been tested with python 3.8.
+
+### Install with Python virtual environment
+
+For more info see [python virtual environment](https://docs.python.org/3/library/venv.html).
+
+The following code does not require superuser rights. The code does assume you are already in the [scripts/upgrade](https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts/upgrade) directory.
+
+```bash
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+```
+
+??? tip
+    If the installation of one (or more libraries) fails, try to install the libraries one by one.
+
+## Migrate Projects, users and data
+
+### 1. Check if there's enough space left on the server
+
+```bash
+df -h
+```
+
+Compare to:
+
+```bash
+du -h /var/lib/minio
+```
+
+??? warning
+    Available space should be at least twice the size of the MinIO folder.
+
+### 2. Backup Armadillo 2 settings
+
+```bash
+mkdir armadillo2-backup 
+rsync -avr /usr/share/armadillo armadillo2-backup 
+cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml 
+```
+
+???+ note
+    Change `/usr/share` to the path matching your local config.
+
+### 3. Install helper software
+
+FIXME: Skip these steps as you have already done installing the python code in a virtual env.
+
+Login to your server as root, using ssh.
+
+```bash
+apt update
+
+#apt install pip
+#pip install minio
+#pip install fusionauth-client
+#pip install simple_term_menu
+```
+
+If you get a purple message asking to update, accept and install everything.
+
+Restart of server is recommended after this.
 
 ??? note
-    We assume Ubuntu with systemd is used.
+    The commands in this manual are for Ubuntu, on other linux systems, the `apt` command needs to be replaced with the correct one.
 
-The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock profiles.
+### 4. Stop all docker images for Armadillo 2
 
-Additionally, when working with an armadillo 4 instance, researchers should update `DSMolgenisArmadillo` to version 2.0.5 (this version is compatible with armadillo 3 as well).
-
-## Get latest version
-
-For the latest 4.x release check https://github.com/molgenis/molgenis-service-armadillo/releases/latest. This will redirect to a v4.x.y page.
-
-Make a note of the version as you will use this below.
-
-## 1. Check your profile types
-
-Check if the new profiles are compatible with your needs, these profile names can be edited later on in the manual:
-
-    - datashield/rock-base:latest
-    - datashield/rock-dolomite-xenon:latest
-
-See also DataSHIELD profiles
-
-## 2. Check server space
-
-Make sure enough disk space is available for the Rock only images.
-
-### 2.1 Check disk space
+List all docker images
 
 ```bash
-# Check disk space
-df -H
+docker ps -a
 ```
 
-If you have 15 GB or more available, you can continue. If you have less available, check `docker image list` to see if you can cleanup some docker images (you only need the latest `datashield/armadillo-rserver` and `datashield/armadillo-rserver_caravan-xenon` for armadillo 3).
-
-### 2.2 Check docker images
-
-First stop all profiles through the Armadillo UI.
-
-Now that the profiles are not running you can delete the old versions of their docker images.
-
-The command are indicative so change as needed.
+Stop and remove all Armadillo 2 related images (except for MinIO), e.g.
 
 ```bash
-# should return empty list (i.e. default, xenon, rock)
-docker container list
-
-# remove containers not needed
-docker container stop <id>
-docker container rm <id>
-
-# remove unneeded images/profiles (ie. caravan, ...)
-docker image list
-docker image rm <id>
+docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
 ```
 
-If possible download the new images from shell using `docker pull` beforehand (for minimum downtime):
+Check with `docker ps -a` if there are still containers running, if so remove these (**except for the MinIO**) in the same way as the others.
+
+???+ warning
+    Make sure you do **not** remove the docker instance of MinIO before you migrated the data!
+
+### 5. Install armadillo
 
 ```bash
-docker pull datashield/rock-base:latest
-docker pull datashield/rock-dolomite-xenon:latest
+apt update
+apt install openjdk-19-jre-headless
+apt install docker.io
 ```
 
-Check disk space again.
+The docker.io step might fail because containerd already exists, if that's the case, remove containerd and try again:
 
 ```bash
-# Check disk space
-df -H
+apt remove containerd.io
+apt install docker.io
 ```
 
-## 3. Download required files
-
-Make a note of the version number ie. `v4.1.3` as you need to download some files from the terminal using the update script.
-
-### 3.1 Update script
-
-You need to be root user.
+Get armadillo:
 
 ```bash
-cd /root
-# Change the versions number v4.x.y
-mkdir v4.x.y
-cd v4.x.y
-
-# Check directory location
-pwd
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
+bash armadillo-setup.sh \
+    --admin-user admin \
+    --admin-password xxxxx 
+    --domain my.server.com \
+    --oidc \
+    --oidc_url https://lifecycle-auth.molgenis.org \
+    --oidc_clientid clientid \
+    --oidc_clientsecret secret \
+    --cleanup \
 ```
 
-```bash
-# Change the version number v4.x.y then run command
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/scripts/install/armadillo-check-update.sh
-```
+Don't forget to set a proper admin password (use a generator), domain, clientid and clientsecret. The client id and
+secret can be found on the lifecycle auth server in the configuration for your server. If you don't have permissions to
+receive this, you can ask the support team to get it for you.
 
-Make the script runnable
-```bash
-chmod u+x armadillo-check-update.sh
-```
-
-### 3.2 Run update script
-
-You can run the following script to download the new Armadillo version.
-
-??? note
-    The output could help us to help you fix problems.
-
-```bash
-# Change the version number v4.x.y
-./armadillo-check-update.sh 4.x.y
-```
-
-Once the script has completed, you can verify that the Armadillo JAR file has been downloaded by checking the directory:
-
-```bash
-# See all jar files on your system
-ls -ltr /usr/share/armadillo/application/
-```
-
-## 4. Config the new version
-
-### 4.1 application.yml
-
-To compare the latest template to your own configuration, see the troubleshooting section below. The safest way to update armadillo is by fetching the template and filling it in with your configuration using the information in the troubleshooting section. You can try the following first:
-
-Edit the application.yml:
-
-```bash
-nano /etc/armadillo/application.yml
-```
-
-Below the line `docker-management-enabled: true`, ensure to insert the line `docker-run-in-container: false`. Typically, you'll find these configurations at the beginning of the file.
-
-## 4.2 Make backup of system config
-
-```bash
-# Still in the correct directory? (`/root/v4.x.y`)
-pwd
-```
-
-We make a backup into the same `v4.x.y` directory but that is not strictly needed.
-
-```bash
-cp -r /usr/share/armadillo/data/system ./
-```
-
-should result in:
-
-```bash
-ls system/
-# access.json  profiles.json
-```
-
-## 5. Restart application using new version
-
-Armadillo has not yet been updated, follow the following steps to do so:
-
-### 5.1 Stop Armadillo
-
-```bash
-systemctl stop armadillo
-```
-
-### 5.2 Link new version
-
-```bash
-# List application files
-ls -l /usr/share/armadillo/application/
-
-# Remove the linked file
-rm /usr/share/armadillo/application/armadillo.jar
-
-# Attach new linked file and dont forget to change the version number v4.x.y
-ln -s /usr/share/armadillo/application/armadillo-4.x.y.jar /usr/share/armadillo/application/armadillo.jar
-
-# Check result
-ls -l /usr/share/armadillo/application/
-```
-
-### 5.3 Restart Armadillo
+Open armadillo in the browser and try to login using basicauth to check if the server is running properly. If it is not
+running at all, try:
 
 ```bash
 systemctl start armadillo
-systemctl status armadillo
 ```
 
-## 6. Log on to the UI
+### 6. Export data from Armadillo 2 into armadillo 3
 
-Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful.
-
-## 7. Update profiles
-
-Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`.
-Any other profiles can be removed.
-
-1. Edit the default profile.
-2. Change the "image" to `datashield/rock-base:latest` and save.
-3. Start the default profile.
-4. Edit the "xenon" profile.
-5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-6. Start the xenon profile.
-
-Everything should now be working correctly. You can try and login to your server via the central analysis server, using
-the `DSMolgenisArmadillo` (2.0.5 or up) package to test.
-
-## Troubleshooting
-
-### Logs
-
-Reviewing the log files can provide valuable insights into any issues or activities within the application. If you encounter any errors or unexpected behavior, examining the log files can often help diagnose the problem.
-
-Check log files location
+Look up the user/password in the application.yml of the old armadillo. They are called MinIO access key and minio secret key.
 
 ```bash
-ls -l /var/log/armadillo/
+cat /root/armadillo2-backup/application-armadillo2.yml
 ```
 
-should look something like:
+Do the following step in a separate screen. On ubuntu use:
 
 ```bash
--rw-r--r-- 1 root      root      111224 Jan 30 11:47 armadillo.log
--rw-r--r-- 1 armadillo armadillo  68872 Jan 30 11:47 audit.log
--rw-r--r-- 1 root      root        8428 Dec 19 11:57 error.log
+screen
 ```
 
-If the `error.log` data/time is around current day/time you have to check this file.
+Navigate to the armadillo folder:
 
 ```bash
-# See last 100 lines
-tail -n 100 /var/log/armadillo/error.log
+cd /usr/share/armadillo
 ```
 
-Otherwise, you can look into `armadillo.log`:
+This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:
 
 ```bash
-# See last 100 lines
-tail -n 100 /var/log/armadillo/armadillo.log
+mkdir data
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-minio.py
+python3 migrate-minio.py  --minio http://localhost:9000 --target /usr/share/armadillo/data  
 ```
 
-or
+This might take a couple of minutes. You can detach the screen using ++ctrl+a++ followed by ++d++ and reattach it using `screen -r`.
+
+### 7. Run Armadillo 3 using exported data
+
+Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:
 
 ```bash
-# Follow all files for changes (keep open to see activities)
-tail -f /var/log/armadillo/*
+chown armadillo:armadillo -R data 
 ```
 
-### Compare application.yml
+Check if armadillo is running by going to the URL of your server in the browser, login and navigate to the projects tab.
 
-Although we try to be very complete in this manual, if you run into issues, it might be because a setting was changed
-in the application.yml. You can check if application settings has any new entries by first downloading the application template (for reference).
+### 8. Optionally, acquire a permission set from MOLGENIS team
+
+If you previously ran a central authorisation server with MOLGENIS team, they can provide you with procedure to load pre-existing permissions. They will use:
 
 ```bash
-# Change the version number v4.x.y
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v4.x.y/application.template.yml
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-auth.py
+python3 migrate-auth.py  --fusion-auth https://lifecycle-auth.molgenis.org --armadillo https://thearmadillourl.net
 ```
 
-To see the difference run:
+Now check if all users and data are properly migrated.
+
+??? note
+    If the script fails with a timeout, try pinging the armadillo url and lifecycle auth url to see if they're reachable from the server. In case they are not, you could choose to export the users using the `export-users.py` script locally and then manually enter them into the system.
+
+### 9. Cleanup ngnix config
+
+Change `/etc/nginx/sites-available/armadillo.conf` to:
 
 ```bash
-diff --side-by-side /etc/armadillo/application.yml application.template.yml
+server {
+  listen 80;
+  server_name urlofyourserver.org
+  include /etc/nginx/global.d/*.conf;
+  location / {
+  proxy_pass http://localhost:8080;
+  client_max_body_size 0;
+  proxy_read_timeout 600s;
+  proxy_redirect http://localhost:8080/ $scheme://$host/;
+  proxy_set_header Host $host;
+  proxy_http_version 1.1;
+  }
+}
 ```
 
-Your output should look like output below.
+??? note
+    Note that the `https://` is missing in the server_name part.
+??? note
+    If port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you should not comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config.
 
-- Left side column is your settings.
-- Right side column is our expected settings.
-- In the middle some symbols may occur:
-  - the `&lt;` means only your settings
-  - the `&gt;` means we have a setting (probably added or options)
-  - the `|` means both have different values which happens with OICD/oauth settings for sure.
+Remove the console, auth and storage file from: `/etc/nginx/sites-enabled/` and `/etc/nginx/sites-available/`.
 
 ```bash
-armadillo:                            armadillo:
-  # set this false if you DON'T want Armadillo to create/edit      # set this false if you DON'T want Armadillo to create/edit
-  docker-management-enabled: true                  docker-management-enabled: true
-....
-audit:                                  <
-  log:                                  <
-    path: /var/log/armadillo/audit.log  <
-                                        <
-....
-
-storage:                                         storage:
-  ## to change location of the data storage        ## to change location of the data storage
-  root-dir: /usr/share/armadillo/data           |  root-dir: data
+systemctl restart nginx
 ```
 
-Making changes may be a little tricky. You can backup
+### 10. Fix application.yml
+
+Make sure the following is added:
 
 ```bash
-cp /etc/armadillo/application.yml ./
-# list files
-ls .
+server:
+forward-headers-strategy: framework
 ```
 
-then edit
+### 11. Fix URLs in the lifecycle FusionAuth
+
+Add the following to the config of your server: `https://yourserver.com/login/oauth2/code/molgenis`
+
+### 12. Set up profiles
+
+Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
+
+Name: `xenon`  
+Image: `datashield/armadillo-rserver_caravan-xenon:latest`  
+Package whitelist: `dsBase`, `resourcer`, `dsMediation`, `dsMTLBase`, `dsSurvival`, `dsExposome`
+
+Assign a random 9-number seed and create and start the container.
+
+### 13. Remove old MinIO data
+
+First remove the MinIO docker container. First check the name of the container using `docker ps -a`, then:
 
 ```bash
-nano /etc/armadillo/application.yml
+docker rm containername -f
+```
+
+After that remove the data:
+
+```bash
+rm -Rf /var/lib/minio/
+```
+
+???+ warning
+    Be sure you have migrated your data successfully or created a backup prior to deleting your minio data folder!
+
+## Migrate Projects and their users
+
+Migration of just the projects and their users (with their corresponding rights) can be done by using [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py) and [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py).
+
+???+ warning
+    This options does not migrate the data!
+
+### 1. Export Projects and users from Armadillo 2
+
+To export users from an Armadillo 2 server, one must use the [export-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py) script. `export-users.py` can be used by using the following arguments:
+
+- -f / --fusion-auth **(required)**: The full URL (including http) of the Armadillo 2 server of which you wish to export the Projects and their users from. **Please note that `export-users.py` will prompt to supply the API key for this server once all arguments are valid!**
+- -o / --output **(required)**: The output directory in which (unzipped) TSVs will be placed of all projects and their users, with the project name being the TSV name. `export-users.py` will create a new folder in the supplied output folder named: `YYYY-MM-DD`, where `YYYY` is the current year, `MM` is the current month and `DD` is the current day.
+
+**Again, note that `export-users.py` will prompt to supply the API key for the `-f / --fusion-auth` server once all arguments are valid!**
+
+Empty projects (without users) will also be exported as an empty TSV (containing only the header). This is a feature that `import-users.py`, the next step, is able to function with.
+
+Also note that some projects might change in name, as Armadillo 3 is stricter with naming projects.
+
+Example:
+
+```bash
+pipenv shell
+python3 export-users.py -f https://armadillo2-server.org -o ./armadillo_2_exports
+```
+
+### 2. Import Projects and users TSVs into Armadillo 3
+
+To import users into an Armadillo 3 server, one must use the [import-users.py](https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py) script. `import-users` can be used by using the following arguments:
+
+- -s / --server **(required)**: The full URL (including http) of the Armadillo 3 server of which you wish to import the Projects and their users TSVs in [step 1](#1-export-projects-and-users-from-armadillo-2). **Please note that `import-users.py` will prompt to supply the API key for this server once all arguments are valid!**
+- -d / --user-data **(required)**: The directory, including the folder named after the year-month-day combination, where the export TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) are stored.
+
+**Again, note that `import-users.py` will prompt to supply the API key for the `-s / --server` server once all arguments are valid!**
+
+Empty TSVs from [step 1](#1-export-projects-and-users-from-armadillo-2) will be imported as empty projects with no users.
+
+Example:
+
+```bash
+pipenv shell
+python3 import-users.py -s https://armadillo3-server.org -d ./armadillo_2_exports/2023-11-09
 ```
