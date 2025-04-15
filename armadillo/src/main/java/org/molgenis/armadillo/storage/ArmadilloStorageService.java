@@ -66,9 +66,14 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void addObject(String project, String object, InputStream inputStream) {
+  public void addObject(String project, String object, InputStream inputStream) throws IOException {
     throwIfDuplicate(project, object);
-    storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
+    if (object.endsWith(".csv")) {
+      System.out.println("CONVERT TO PARQUET");
+      ParquetUtils.writeFromCsv("blaat", inputStream);
+    } else {
+      storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
+    }
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
