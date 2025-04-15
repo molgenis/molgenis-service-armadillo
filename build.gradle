@@ -173,7 +173,7 @@ task jacocoMergedReport(type: JacocoReport) {
 }
 
 //push to sonarqube
-sonarqube {
+sonar {
     properties {
         // Uncomment when upgrading to sonar 5.x
         // property 'sonar.gradle.skipCompile', 'true'
