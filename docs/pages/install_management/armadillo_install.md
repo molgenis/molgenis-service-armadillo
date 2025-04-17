@@ -19,7 +19,7 @@ In case of using dsOmics this setup can be rather bigger. Please [contact](../co
 
 ## Software requirements
 
-* Java 21 JRE or JDK
+* Java 19 JRE or JDK
 * Docker
 
 In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy.

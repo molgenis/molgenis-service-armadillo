@@ -18,9 +18,9 @@
                 You are logged in, but you don't have permission to access the
                 Armadillo user interface.
                 <div>
-                  Don't worry, you can still do your research using the R
-                  client. If you believe you should have permission to access
-                  this user interface, please contact an administrator.
+                  Don't worry, you can still do your research using the R client.
+                  If you believe you should have permission to access this user
+                  interface, please contact an administrator.
                 </div>
               </Alert>
               {{ errorMessage }}
@@ -35,16 +35,21 @@
         </div>
       </div>
     </div>
-    <Footer />
+    <footer class="text-primary text-center py-3 border-top">
+      <div class="container">
+        <p class="mb-0"><small class="text-muted">Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726">Cadman et al. (2024)</a> when publishing research conducted using Armadillo.</small></p>
+        <p class="mb-0"><small class="text-muted">This platform was created using <a href="https://molgenis.org/">MOLGENIS.org</a><a href="https://github.com/molgenis/molgenis-service-armadillo"> (Github)</a>.</small></p>
+      </div>
+    </footer>
   </div>
 </template>
+
 
 <script lang="ts">
 import Navbar from "@/components/Navbar.vue";
 import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
-import Footer from "./components/Footer.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
 import {
   getPrincipal,
@@ -68,7 +73,6 @@ export default defineComponent({
     Tabs,
     Login,
     Alert,
-    Footer,
   },
   setup() {
     const isAuthenticated: Ref<boolean> = ref(false);
