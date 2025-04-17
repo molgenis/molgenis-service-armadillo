@@ -37,7 +37,7 @@ and paste it in a file called `application.yml`, in the same folder as the downl
 
 #### Docker
 For testing without having to installing Java you can run using docker:
-1. Install [docker-compose](https://docs.docker.com/compose/install/)
+1. Install [docker-compose](https://docs.docker.com/compose/install/).
 2. Download this [docker-compose.yml](docker-compose.yml).
-3. Execute `docker-compose up`
+3. Execute `docker-compose up`.
 4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
