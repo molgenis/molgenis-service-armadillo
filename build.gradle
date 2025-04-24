@@ -12,7 +12,7 @@
  * - ui/build.gradle
  */
 plugins {
-    id 'org.springframework.boot' version '3.2.3'
+    id 'org.springframework.boot' version '3.4.4'
     id "io.spring.dependency-management" version "1.1.7"
     id "java"
     id "org.sonarqube" version "4.4.1.3373"
@@ -158,6 +158,11 @@ task jacocoMergedReport(type: JacocoReport) {
     dependsOn project.getTasksByName("jacocoTestReport", true)
     dependsOn project.getTasksByName("bootStartScripts", true)
     dependsOn project.getTasksByName("startScripts", true)
+    dependsOn project.getTasksByName(":armadillo:spotlessJava", true)
+    dependsOn project.getTasksByName(":r:spotlessJava", true)
+
+    mustRunAfter(":armadillo:spotlessJava")
+    mustRunAfter(":r:spotlessJava")
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
@@ -170,7 +175,7 @@ task jacocoMergedReport(type: JacocoReport) {
 }
 
 //push to sonarqube
-sonarqube {
+sonar {
     properties {
         // Uncomment when upgrading to sonar 5.x
         // property 'sonar.gradle.skipCompile', 'true'
