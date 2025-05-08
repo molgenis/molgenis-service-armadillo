@@ -96,8 +96,6 @@ String getGitNameRef() {
 mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 dependencies {
     implementation project(':armadillo')
-    // https://mvnrepository.com/artifact/org.apache.avro/avro
-    implementation("org.apache.avro:avro:1.8.1")
 }
 jar {
     //we gonna use spring jar, below

@@ -9,6 +9,7 @@ import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByte
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ArmadilloStorageService {
@@ -68,12 +70,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addObject(String project, String object, InputStream inputStream) throws IOException {
     throwIfDuplicate(project, object);
-    if (object.endsWith(".csv")) {
-      System.out.println("CONVERT TO PARQUET");
-      ParquetUtils.writeFromCsv("blaat", inputStream);
-    } else {
-      storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
-    }
+    storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -391,5 +388,18 @@ public class ArmadilloStorageService {
   public FileInfo getInfo(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getInfo(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void writeParquet(String project, String object, MultipartFile file)
+      throws CsvValidationException, IOException {
+    CharacterSeparatedFile characterSeparatedFile = new CharacterSeparatedFile(file);
+    characterSeparatedFile.writeParquet(
+        storageService.getRootDir()
+            + File.separator
+            + SHARED_PREFIX
+            + project
+            + File.separator
+            + object.replace(".csv", PARQUET));
   }
 }

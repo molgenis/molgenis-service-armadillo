@@ -27,7 +27,6 @@ public class LocalStorageService implements StorageService {
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
 
   public final String rootDir;
-  private org.apache.hadoop.fs.Path ParquetPath;
 
   public String getRootDir() {
     return rootDir;

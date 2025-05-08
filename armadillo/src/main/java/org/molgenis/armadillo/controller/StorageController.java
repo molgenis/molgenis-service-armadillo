@@ -12,6 +12,7 @@ import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
+import com.opencsv.exceptions.CsvValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -118,8 +119,15 @@ public class StorageController {
 
   private void addObject(String project, String object, MultipartFile file) {
     try {
-      storage.addObject(project, object, file.getInputStream());
-    } catch (IOException e) {
+      // we still have a file here!
+      if (object.endsWith(".csv")) {
+        System.out.println("CONVERT TO PARQUET");
+        storage.writeParquet(project, object, file);
+        // create TabularFile and export it
+      } else {
+        storage.addObject(project, object, file.getInputStream());
+      }
+    } catch (IOException | CsvValidationException e) {
       throw new FileProcessingException();
     }
   }
