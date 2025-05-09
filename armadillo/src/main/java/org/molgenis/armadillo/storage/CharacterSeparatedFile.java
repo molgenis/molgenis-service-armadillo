@@ -31,6 +31,7 @@ public class CharacterSeparatedFile {
   Schema schema;
   String[] header;
   List<String> types;
+  int numberOfRowsToDetermineTypeBy = 100;
 
   public CharacterSeparatedFile(MultipartFile file) throws IOException, CsvValidationException {
     this.file = file;
@@ -45,6 +46,10 @@ public class CharacterSeparatedFile {
     }
     this.types = this.getTypesFromData(reader);
     this.setSchema(this.createSchemaFromTypes(this.types, this.header));
+  }
+
+  public void setNumberOfRowsToDetermineTypeBy(int numberOfRowsToDetermineTypeBy) {
+    this.numberOfRowsToDetermineTypeBy = numberOfRowsToDetermineTypeBy;
   }
 
   public void setSeparator(char separator) {
@@ -98,7 +103,8 @@ public class CharacterSeparatedFile {
       throws IOException, CsvValidationException {
     String[] line;
     String[] types = new String[this.header.length];
-    while ((line = reader.readNext()) != null && reader.getLinesRead() < 100) {
+    while ((line = reader.readNext()) != null
+        && reader.getLinesRead() < this.numberOfRowsToDetermineTypeBy) {
       int i = 0;
       for (String value : line) {
         // determine type

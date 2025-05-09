@@ -117,16 +117,53 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
+  @Operation(summary = "Upload an object to a project")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
+        @ApiResponse(responseCode = "404", description = "Unknown project"),
+        @ApiResponse(responseCode = "409", description = "Object already exists"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(
+      value = "/projects/{project}/objects/csv",
+      consumes = {MULTIPART_FORM_DATA_VALUE})
+  @ResponseStatus(NO_CONTENT)
+  public void uploadCharacterSeparatedFile(
+      Principal principal,
+      @PathVariable String project,
+      @RequestParam @NotEmpty String object,
+      @RequestParam int numberOfRowsToDetermineTypeBy,
+      @Valid @RequestParam MultipartFile file) {
+    auditor.audit(
+        () -> {
+          try {
+            addParquetObject(project, object, file, numberOfRowsToDetermineTypeBy);
+          } catch (IOException | CsvValidationException e) {
+            throw new FileProcessingException();
+          }
+        },
+        principal,
+        UPLOAD_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
   private void addObject(String project, String object, MultipartFile file) {
     try {
       if (object.endsWith(".csv") || object.endsWith(".tsv")) {
-        storage.writeParquet(project, object, file);
+        addParquetObject(project, object, file, 100);
       } else {
         storage.addObject(project, object, file.getInputStream());
       }
     } catch (IOException | CsvValidationException e) {
       throw new FileProcessingException();
     }
+  }
+
+  private void addParquetObject(
+      String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
+      throws CsvValidationException, IOException {
+    storage.writeParquet(project, object, file, numberOfRowsToDetermineTypeBy);
   }
 
   @Operation(

@@ -394,11 +394,13 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void writeParquet(String project, String object, MultipartFile file)
+  public void writeParquet(
+      String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
       throws CsvValidationException, IOException {
     String objectParquet = removeExtension(object) + PARQUET;
     throwIfDuplicate(project, objectParquet);
     CharacterSeparatedFile characterSeparatedFile = new CharacterSeparatedFile(file);
+    characterSeparatedFile.setNumberOfRowsToDetermineTypeBy(numberOfRowsToDetermineTypeBy);
     Path path = localStorageService.getObjectPathSafely(SHARED_PREFIX + project, objectParquet);
     try {
       localStorageService.createBucketIfNotExists(SHARED_PREFIX + project);
