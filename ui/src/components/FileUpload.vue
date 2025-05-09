@@ -45,6 +45,23 @@
           <i class="bi bi-upload"></i> Upload
         </button>
       </div>
+      <div
+        v-if="file.name.endsWith('.csv') || file.name.endsWith('.tsv')"
+        class="row mb-3 small"
+      >
+        <label for="typeRows" class="form-label"
+          >Determine types based on:
+        </label>
+        <div class="col-4">
+          <input
+            type="text"
+            id="typeRows"
+            class="form-control form-control-sm"
+            v-model="typeRows"
+          />
+        </div>
+        <div class="col-8">lines</div>
+      </div>
     </div>
   </div>
 </template>
@@ -53,7 +70,7 @@
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { defineComponent } from "vue";
 import { truncate } from "@/helpers/utils";
-import { uploadIntoProject } from "@/api/api";
+import { uploadIntoProject, uploadCsvIntoProject } from "@/api/api";
 
 export default defineComponent({
   name: "FileUpload",
@@ -84,12 +101,14 @@ export default defineComponent({
     isHoveringOverFileUpload: boolean;
     isUploadingFile: boolean;
     file: undefined | File;
+    typeRows: number;
   } {
     return {
       uploadDone: false,
       isHoveringOverFileUpload: false,
       isUploadingFile: false,
       file: undefined,
+      typeRows: 100,
     };
   },
   methods: {
@@ -111,26 +130,39 @@ export default defineComponent({
     getFileName() {
       return this.file && this.file.name ? this.file.name : "";
     },
+    handleUploadResponse(response) {
+      response
+        .then(() => {
+          this.isUploadingFile = false;
+          this.$emit("upload_success", {
+            object: this.object,
+            filename: this.getFileName(),
+          });
+        })
+        .catch((error: Error) => {
+          this.isUploadingFile = false;
+          this.$emit("upload_error", error);
+        });
+    },
     uploadFile() {
       if (this.file && this.file.name) {
         this.isUploadingFile = true;
-        const response = uploadIntoProject(
-          this.file,
-          this.object,
-          this.project
-        );
-        response
-          .then(() => {
-            this.isUploadingFile = false;
-            this.$emit("upload_success", {
-              object: this.object,
-              filename: this.getFileName(),
-            });
-          })
-          .catch((error: Error) => {
-            this.isUploadingFile = false;
-            this.$emit("upload_error", error);
-          });
+        if (this.typeRows == 100) {
+          const response = uploadIntoProject(
+            this.file,
+            this.object,
+            this.project
+          );
+          this.handleUploadResponse(response);
+        } else {
+          const response = uploadCsvIntoProject(
+            this.file,
+            this.object,
+            this.project,
+            this.typeRows
+          );
+          this.handleUploadResponse(response);
+        }
       } else {
         this.$emit("upload_error", "No file selected.");
       }
