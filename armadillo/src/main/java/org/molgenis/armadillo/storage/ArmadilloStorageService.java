@@ -400,6 +400,7 @@ public class ArmadilloStorageService {
             + SHARED_PREFIX
             + project
             + File.separator
-            + object.replace(".csv", PARQUET));
+            + removeExtension(object)
+            + PARQUET);
   }
 }

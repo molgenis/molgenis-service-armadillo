@@ -119,11 +119,8 @@ public class StorageController {
 
   private void addObject(String project, String object, MultipartFile file) {
     try {
-      // we still have a file here!
-      if (object.endsWith(".csv")) {
-        System.out.println("CONVERT TO PARQUET");
+      if (object.endsWith(".csv") || object.endsWith(".tsv")) {
         storage.writeParquet(project, object, file);
-        // create TabularFile and export it
       } else {
         storage.addObject(project, object, file.getInputStream());
       }
