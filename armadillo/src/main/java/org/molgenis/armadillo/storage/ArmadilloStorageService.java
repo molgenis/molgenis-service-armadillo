@@ -45,9 +45,12 @@ public class ArmadilloStorageService {
   private final StorageService storageService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
+  private final LocalStorageService localStorageService;
 
-  public ArmadilloStorageService(StorageService storageService) {
+  public ArmadilloStorageService(
+      StorageService storageService, LocalStorageService localStorageService) {
     this.storageService = storageService;
+    this.localStorageService = localStorageService;
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -393,14 +396,25 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public void writeParquet(String project, String object, MultipartFile file)
       throws CsvValidationException, IOException {
+    String objectParquet = removeExtension(object) + PARQUET;
+    throwIfDuplicate(project, objectParquet);
     CharacterSeparatedFile characterSeparatedFile = new CharacterSeparatedFile(file);
+    Path path = localStorageService.getObjectPathSafely(SHARED_PREFIX + project, objectParquet);
+    try {
+      localStorageService.createBucketIfNotExists(SHARED_PREFIX + project);
+
+      // create parent dirs if needed
+      //noinspection ResultOfMethodCallIgnored
+      path.toFile().getParentFile().mkdirs();
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
     characterSeparatedFile.writeParquet(
         storageService.getRootDir()
             + File.separator
             + SHARED_PREFIX
             + project
             + File.separator
-            + removeExtension(object)
-            + PARQUET);
+            + objectParquet);
   }
 }
