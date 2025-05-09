@@ -126,7 +126,7 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  void testAddObject() {
+  void testAddObject() throws IOException {
     when(storageService.listBuckets()).thenReturn(List.of("shared-test"));
     var inputStream = mock(InputStream.class);
 
