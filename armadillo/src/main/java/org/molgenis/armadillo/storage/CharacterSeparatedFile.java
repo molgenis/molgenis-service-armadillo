@@ -180,8 +180,8 @@ public class CharacterSeparatedFile {
       try {
         writer.write(record);
       } catch (Exception e) {
-        // TODO: do something here
-        System.out.println(e.getMessage());
+        throw new WriteAbortedException(
+            String.format("Cannot write parquet file because: [%s]", e.getMessage()), e);
       }
     }
     writer.close();
