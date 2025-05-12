@@ -63,14 +63,16 @@ class ArmadilloStorageServiceTest {
   @Mock ObjectMetadata item;
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
+  @Mock LocalStorageService localStorage;
 
   @EnableGlobalMethodSecurity(prePostEnabled = true)
   @Configuration
   static class Config {
 
     @Bean
-    ArmadilloStorageService armadilloStorageService(StorageService storageService) {
-      return new ArmadilloStorageService(storageService);
+    ArmadilloStorageService armadilloStorageService(
+        StorageService storageService, LocalStorageService localStorageService) {
+      return new ArmadilloStorageService(storageService, localStorageService);
     }
   }
 

@@ -24,8 +24,8 @@ import org.apache.parquet.io.LocalOutputFile;
 import org.springframework.web.multipart.MultipartFile;
 
 public class CharacterSeparatedFile {
-  String STRING = "string";
-  String DOUBLE = "double";
+  static String STRING = "string";
+  static String DOUBLE = "double";
   MultipartFile file;
   char separator = ',';
   Schema schema;
@@ -38,7 +38,8 @@ public class CharacterSeparatedFile {
     // test if , is real separator
     CSVReader reader = this.getReader();
     this.setHeader(reader.readNext());
-    this.implySeparatorFromHeader(header);
+    Character separator = getSeparatorFromHeader(header, file);
+    this.setSeparator(separator);
     // if , is not the separator, change it
     if (separator != ',') {
       reader = this.getReader();
@@ -64,43 +65,45 @@ public class CharacterSeparatedFile {
     this.header[index] = colname;
   }
 
-  public void implySeparatorFromHeader(String[] header) throws CsvValidationException {
+  static char getSeparatorFromHeader(String[] header, MultipartFile file)
+      throws CsvValidationException {
     if (header.length == 1) {
       String headerLine = header[0];
       if (headerLine.split(";").length > 1) {
-        this.setSeparator(';');
+        return ';';
       } else if (headerLine.split("\t").length > 1) {
-        this.setSeparator('\t');
+        return '\t';
       } else if (headerLine.split("\\|").length > 1) {
-        this.setSeparator('|');
+        return '|';
       } else {
         // separator must be , ; \t or |
         throw new CsvValidationException(
             String.format(
                 "Unsupported separator in file [%s] with header: [%s]",
-                this.file.getOriginalFilename(), headerLine));
+                file.getOriginalFilename(), headerLine));
       }
+    } else {
+      return ',';
     }
   }
 
-  public CSVReader getReader() throws IOException {
+  private CSVReader getReader() throws IOException {
     CSVParser parser = new CSVParserBuilder().withSeparator(separator).build();
     return new CSVReaderBuilder(new InputStreamReader(file.getInputStream()))
         .withCSVParser(parser)
         .build();
   }
 
-  String getTypeOfCell(String cell) {
+  static String getTypeOfCell(String cell) {
     try {
       Double.parseDouble(cell);
-      return DOUBLE;
+      return CharacterSeparatedFile.DOUBLE;
     } catch (NumberFormatException e) {
-      return STRING;
+      return CharacterSeparatedFile.STRING;
     }
   }
 
-  public List<String> getTypesFromData(CSVReader reader)
-      throws IOException, CsvValidationException {
+  List<String> getTypesFromData(CSVReader reader) throws IOException, CsvValidationException {
     String[] line;
     String[] types = new String[this.header.length];
     while ((line = reader.readNext()) != null
@@ -124,7 +127,7 @@ public class CharacterSeparatedFile {
     return Arrays.stream(types).map((type) -> Objects.requireNonNullElse(type, STRING)).toList();
   }
 
-  public Schema createSchemaFromTypes(List<String> types, String[] header) {
+  Schema createSchemaFromTypes(List<String> types, String[] header) {
     String schemaJson =
         "{\"namespace\": \"org.molgenis.armadillo\"," // Not used in Parquet, can put anything
             + "\"type\": \"record\"," // Must be set as record

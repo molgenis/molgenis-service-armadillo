@@ -117,7 +117,7 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
-  @Operation(summary = "Upload an object to a project")
+  @Operation(summary = "Upload a csv file to a project")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
