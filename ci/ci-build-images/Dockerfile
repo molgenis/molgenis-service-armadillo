@@ -1,11 +1,11 @@
-FROM molgenis/ci-build:1.2.4 
+FROM molgenis/ci-build:1.3.4 
 
 
-RUN echo "deb https://cran.r-project.org/bin/linux/ubuntu jammy-cran40/" >> /etc/apt/sources.list
+RUN echo "deb https://cran.r-project.org/bin/linux/ubuntu noble-cran40/" >> /etc/apt/sources.list
 RUN wget -qO- https://cran.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 
 #Install R
-RUN apt update && apt -y install r-base r-base-dev 
+RUN apt update 
 
 #install deps for building 
 RUN apt -y install libpcre2-dev libdeflate-dev liblzma-dev libbz2-dev zlib1g-dev libzstd-dev libicu-dev libfftw3-dev curl ssh libcurl4-openssl-dev libssl-dev build-essential ninja-build cmake jq  
@@ -30,8 +30,7 @@ RUN apt install -y \
     libzmq3-dev \
     libfontconfig-dev \
     libfontconfig1-dev \
-    libtiff5 \ 
-    libtiff5-dev \
+    libtiff-dev \
     libudunits2-dev \
     libgdal-dev \
     qpdf \
@@ -39,6 +38,7 @@ RUN apt install -y \
     software-properties-common \
     vim \
     wget
+RUN apt -y install r-base r-base-dev 
 
 #Install littler
 RUN Rscript -e "install.packages(c('littler', 'docopt'), repos='https://cran.r-project.org')"
