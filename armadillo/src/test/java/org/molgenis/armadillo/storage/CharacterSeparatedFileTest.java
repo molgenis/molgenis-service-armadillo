@@ -1,0 +1,100 @@
+package org.molgenis.armadillo.storage;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+
+import com.opencsv.exceptions.CsvValidationException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.web.multipart.MultipartFile;
+
+class CharacterSeparatedFileTest {
+
+  MultipartFile mockFile;
+
+  @BeforeEach
+  void setup() {
+    mockFile = mock(MultipartFile.class);
+  }
+
+  @Test
+  void testConstructorWithCommaSeparator() throws IOException, CsvValidationException {
+    String csvData = "name,age\nJohn,30\nJane,25\n";
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
+
+    CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
+
+    assertNotNull(csf);
+    assertEquals(',', csf.separator);
+    assertArrayEquals(new String[] {"name", "age"}, csf.header);
+    assertEquals(List.of("string", "double"), csf.types);
+    assertNotNull(csf.schema);
+  }
+
+  @Test
+  void testGetSeparatorFromSemicolon() throws CsvValidationException {
+    char sep = CharacterSeparatedFile.getSeparatorFromHeader(new String[] {"name;age"}, mockFile);
+    assertEquals(';', sep);
+  }
+
+  @Test
+  void testGetSeparatorFromTab() throws CsvValidationException {
+    char sep = CharacterSeparatedFile.getSeparatorFromHeader(new String[] {"name\tage"}, mockFile);
+    assertEquals('\t', sep);
+  }
+
+  @Test
+  void testGetSeparatorFromPipe() throws IOException, CsvValidationException {
+    char sep = CharacterSeparatedFile.getSeparatorFromHeader(new String[] {"name|age"}, mockFile);
+    assertEquals('|', sep);
+  }
+
+  @Test
+  void testImplySeparatorThrowsOnUnsupportedSeparator() {
+    String csvData = "name#age\nJohn#30\n";
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("bad.csv");
+
+    Exception exception =
+        assertThrows(
+            CsvValidationException.class,
+            () -> {
+              Mockito.when(mockFile.getInputStream())
+                  .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+              new CharacterSeparatedFile(mockFile);
+            });
+
+    assertTrue(exception.getMessage().contains("Unsupported separator"));
+  }
+
+  @Test
+  void testGetTypeOfCell() throws CsvValidationException, IOException {
+    assertEquals("double", CharacterSeparatedFile.getTypeOfCell("123.45"));
+    assertEquals("string", CharacterSeparatedFile.getTypeOfCell("abc"));
+  }
+
+  @Test
+  void testWriteParquetCreatesFile() throws IOException, CsvValidationException {
+    String csvData = "name,age\nAlice,35\nBob,28\n";
+    Path tempDirWithPrefix = Files.createTempDirectory("temp");
+    String savePath = tempDirWithPrefix.toString() + "/test.parquet";
+
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
+
+    CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
+    csf.writeParquet(savePath);
+
+    File f = new File(savePath);
+    assertTrue(f.exists());
+  }
+}
