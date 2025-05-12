@@ -13,21 +13,21 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(CurrentUserController.class)
 @Import({TestSecurityConfig.class})
 class CurrentUserControllerTest extends ArmadilloControllerTestBase {
 
-  @MockBean DockerClient dockerClient;
+  @MockitoBean DockerClient dockerClient;
   @Autowired private MockMvc mockMvc;
 
-  @MockBean ArmadilloStorageService armadilloStorage;
-  @MockBean OAuth2AuthorizedClientService auth2AuthorizedClientService;
+  @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean OAuth2AuthorizedClientService auth2AuthorizedClientService;
 
   @Test
   @WithMockJwtAuth(

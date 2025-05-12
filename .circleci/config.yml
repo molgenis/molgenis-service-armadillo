@@ -27,6 +27,7 @@ definitions:
   build_config: &build_config
     docker:
       - image: molgenis/ci-build-armadillo:1.1.6
+
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -39,6 +40,7 @@ jobs:
   build:
     docker:
       - image: molgenis/ci-build-armadillo:1.1.6
+
 
     working_directory: ~/repo
     resource_class: large
@@ -80,7 +82,7 @@ jobs:
               ./gradlew --stacktrace --info \
                 test jacocoMergedReport \
                 sonar \
-                  -Dsonar.login=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
+                  -Dsonar.token=${SONAR_TOKEN} -Dsonar.organization=molgenis -Dsonar.host.url=https://sonarcloud.io -Dsonar.verbose=true \
                 release \
                   -Dorg.ajoberstar.grgit.auth.username=${GITHUB_TOKEN} -Dorg.ajoberstar.grgit.auth.password \
                 dockerPush

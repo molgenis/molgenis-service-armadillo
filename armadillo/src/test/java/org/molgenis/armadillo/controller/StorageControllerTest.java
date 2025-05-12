@@ -31,11 +31,11 @@ import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(StorageController.class)
@@ -43,8 +43,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @WithMockUser(roles = "SU")
 class StorageControllerTest extends ArmadilloControllerTestBase {
 
-  @MockBean DockerClient dockerClient;
-  @MockBean ArmadilloStorageService storage;
+  @MockitoBean DockerClient dockerClient;
+  @MockitoBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
 

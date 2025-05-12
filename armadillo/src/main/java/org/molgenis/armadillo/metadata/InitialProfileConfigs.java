@@ -1,14 +1,14 @@
 package org.molgenis.armadillo.metadata;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 
 /** Collects the profiles that are passed as configuration parameters. */
 @ConfigurationProperties(prefix = "armadillo")
 @Component
-@Validated
+@Valid
 public class InitialProfileConfigs {
 
   private List<InitialProfileConfig> profiles;
