@@ -38,7 +38,7 @@ public class CharacterSeparatedFile {
     // test if , is real separator
     CSVReader reader = this.getReader();
     this.setHeader(reader.readNext());
-    Character separator = getSeparatorFromHeader(header, file);
+    char separator = getSeparatorFromHeader(header, file);
     this.setSeparator(separator);
     // if , is not the separator, change it
     if (separator != ',') {

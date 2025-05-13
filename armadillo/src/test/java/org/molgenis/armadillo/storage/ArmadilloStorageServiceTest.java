@@ -15,10 +15,7 @@ import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -45,6 +42,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.web.multipart.MultipartFile;
 
 @SpringJUnitConfig
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +61,7 @@ class ArmadilloStorageServiceTest {
   @Mock ObjectMetadata item;
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
+  static LocalStorageService localStorageServiceMock = Mockito.mock(LocalStorageService.class);
 
   @EnableMethodSecurity
   @Configuration
@@ -70,7 +69,6 @@ class ArmadilloStorageServiceTest {
 
     @Bean
     ArmadilloStorageService armadilloStorageService(StorageService storageService) {
-      LocalStorageService localStorageServiceMock = Mockito.mock(LocalStorageService.class);
       return new ArmadilloStorageService(storageService, localStorageServiceMock);
     }
   }
@@ -977,5 +975,50 @@ class ArmadilloStorageServiceTest {
       assertThrows(
           RuntimeException.class, () -> armadilloStorage.moveWorkspacesIfInOldBucket(principal));
     }
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testWriteParquet() throws IOException {
+    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
+    String csvData = "name,age\nJohn,30\nJane,25\n";
+    MultipartFile mockFile = mock(MultipartFile.class);
+    Path tempDirWithPrefix = Files.createTempDirectory("test");
+    String projectName = "gecko";
+    String objectName = "1_0_release_1_1/gecko";
+    String objectLocation =
+        tempDirWithPrefix.toString()
+            + File.separator
+            + SHARED_PREFIX
+            + projectName
+            + File.separator
+            + "1_0_release_1_1";
+    File theDir = new File(objectLocation);
+    if (!theDir.exists()) {
+      theDir.mkdirs();
+    }
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(
+            localStorageServiceMock.getObjectPathSafely(
+                SHARED_PREFIX + projectName, objectName + PARQUET))
+        .thenReturn(Path.of(objectLocation));
+    Mockito.when(storageService.getRootDir()).thenReturn(tempDirWithPrefix.toString());
+    Mockito.when(storageService.objectExists("gecko", objectName + PARQUET))
+        .thenReturn(Boolean.FALSE);
+    assertDoesNotThrow(() -> armadilloStorage.writeParquet(projectName, objectName, mockFile, 10));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testWriteParquetThrowsError() throws IOException {
+    when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
+    String csvData = "name,age\nJohn,30\nJane,25\n";
+    MultipartFile mockFile = mock(MultipartFile.class);
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    assertThrows(
+        StorageException.class,
+        () -> armadilloStorage.writeParquet("gecko", "1_0_release_1_1/gecko", mockFile, 10));
   }
 }
