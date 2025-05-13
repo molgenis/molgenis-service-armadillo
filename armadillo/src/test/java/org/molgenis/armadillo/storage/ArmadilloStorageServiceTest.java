@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -63,16 +63,15 @@ class ArmadilloStorageServiceTest {
   @Mock ObjectMetadata item;
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
-  @Mock LocalStorageService localStorage;
 
-  @EnableGlobalMethodSecurity(prePostEnabled = true)
+  @EnableMethodSecurity
   @Configuration
   static class Config {
 
     @Bean
-    ArmadilloStorageService armadilloStorageService(
-        StorageService storageService, LocalStorageService localStorageService) {
-      return new ArmadilloStorageService(storageService, localStorageService);
+    ArmadilloStorageService armadilloStorageService(StorageService storageService) {
+      LocalStorageService localStorageServiceMock = Mockito.mock(LocalStorageService.class);
+      return new ArmadilloStorageService(storageService, localStorageServiceMock);
     }
   }
 
