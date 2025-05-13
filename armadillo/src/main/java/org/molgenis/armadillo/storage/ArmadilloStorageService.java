@@ -408,15 +408,15 @@ public class ArmadilloStorageService {
       // create parent dirs if needed
       //noinspection ResultOfMethodCallIgnored
       path.toFile().getParentFile().mkdirs();
+      characterSeparatedFile.writeParquet(
+          storageService.getRootDir()
+              + File.separator
+              + SHARED_PREFIX
+              + project
+              + File.separator
+              + objectParquet);
     } catch (Exception e) {
       throw new StorageException(e);
     }
-    characterSeparatedFile.writeParquet(
-        storageService.getRootDir()
-            + File.separator
-            + SHARED_PREFIX
-            + project
-            + File.separator
-            + objectParquet);
   }
 }

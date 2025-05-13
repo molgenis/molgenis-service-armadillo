@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -1007,18 +1008,24 @@ class ArmadilloStorageServiceTest {
     Mockito.when(storageService.objectExists("gecko", objectName + PARQUET))
         .thenReturn(Boolean.FALSE);
     assertDoesNotThrow(() -> armadilloStorage.writeParquet(projectName, objectName, mockFile, 10));
+    FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testWriteParquetThrowsError() throws IOException {
     when(storageService.listBuckets()).thenReturn(List.of(SHARED_DIABETES, SHARED_GECKO));
+    String projectName = "gecko";
+    String objectName = "1_0_release_1_1/gecko";
+    Path tempDirWithPrefix = Files.createTempDirectory("test");
+    Mockito.when(storageService.getRootDir()).thenReturn(tempDirWithPrefix.toString());
     String csvData = "name,age\nJohn,30\nJane,25\n";
     MultipartFile mockFile = mock(MultipartFile.class);
     Mockito.when(mockFile.getInputStream())
         .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
     assertThrows(
         StorageException.class,
-        () -> armadilloStorage.writeParquet("gecko", "1_0_release_1_1/gecko", mockFile, 10));
+        () -> armadilloStorage.writeParquet(projectName, objectName, mockFile, 10));
+    FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
 }
