@@ -58,7 +58,7 @@ config:
         options:
           datashield:
             # the seed can only be 9 digits
-            seed: 342325999
+            seed: 342325998
 
 
 image:
