@@ -53,7 +53,7 @@ config:
           - dsMTLBase
           - dsSurvival
           - dsOmics
-	  - dsTidyverse
+	  - dsTidyVerse
         function-blacklist: [ ]
         options:
           datashield:
