@@ -90,6 +90,30 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  void uploadCharacterSeparatedFile() throws Exception {
+    var contents = "contents".getBytes();
+    var file = mockMultipartFile(contents);
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects/csv")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.csv")
+                .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
+        .andExpect(status().isNoContent());
+
+    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(10));
+    //    assertArrayEquals(file, inputStreamCaptor.getValue().readAllBytes());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
+  }
+
+  @Test
   void uploadObjectProjectNotExists() throws Exception {
     var file = mockMultipartFile("contents".getBytes());
     doThrow(new UnknownProjectException("lifecycle"))
