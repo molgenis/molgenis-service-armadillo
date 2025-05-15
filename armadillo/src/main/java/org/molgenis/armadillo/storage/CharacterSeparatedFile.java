@@ -15,12 +15,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaParseException;
 import org.apache.avro.generic.GenericData;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.io.LocalOutputFile;
+import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.springframework.web.multipart.MultipartFile;
 
 public class CharacterSeparatedFile {
@@ -151,7 +153,14 @@ public class CharacterSeparatedFile {
               colNumber[0]++;
             });
     Schema.Parser parser = new Schema.Parser().setValidate(true);
-    return parser.parse(schemaJson.concat(fields.toString()).concat("}"));
+    try {
+      return parser.parse(schemaJson.concat(fields.toString()).concat("}"));
+    } catch (SchemaParseException e) {
+      throw new FileProcessingException(
+          String.format(
+              "Cannot create CSV file, schema cannot be created from header because: [%s]",
+              e.getMessage()));
+    }
   }
 
   public void setSchema(Schema schema) {

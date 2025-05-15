@@ -139,8 +139,11 @@ public class StorageController {
         () -> {
           try {
             addParquetObject(project, object, file, numberOfRowsToDetermineTypeBy);
-          } catch (IOException | CsvValidationException e) {
-            throw new FileProcessingException();
+          } catch (IOException | CsvValidationException | FileProcessingException e) {
+            throw new FileProcessingException(
+                String.format(
+                    "Could not process file: [%s] because: [%s]",
+                    file.getOriginalFilename(), e.getMessage()));
           }
         },
         principal,
