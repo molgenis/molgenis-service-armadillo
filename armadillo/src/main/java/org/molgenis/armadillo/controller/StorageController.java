@@ -148,7 +148,7 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
-  private void addObject(String project, String object, MultipartFile file) {
+  void addObject(String project, String object, MultipartFile file) {
     try {
       if (object.endsWith(".csv") || object.endsWith(".tsv")) {
         addParquetObject(project, object, file, 100);
