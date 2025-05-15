@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.springframework.web.multipart.MultipartFile;
 
 class CharacterSeparatedFileTest {
@@ -39,6 +40,16 @@ class CharacterSeparatedFileTest {
     assertArrayEquals(new String[] {"name", "age"}, csf.header);
     assertEquals(List.of("string", "double"), csf.types);
     assertNotNull(csf.schema);
+  }
+
+  @Test
+  void testErrorThrownWhenSchemaCannotBeCreated() throws IOException, CsvValidationException {
+    String csvData = "name of person,age\nJohn,30\nJane,25\n";
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
+
+    assertThrows(FileProcessingException.class, () -> new CharacterSeparatedFile(mockFile));
   }
 
   @Test
