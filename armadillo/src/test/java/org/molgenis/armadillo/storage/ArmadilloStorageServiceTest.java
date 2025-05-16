@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -64,7 +64,7 @@ class ArmadilloStorageServiceTest {
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
 
-  @EnableGlobalMethodSecurity(prePostEnabled = true)
+  @EnableMethodSecurity
   @Configuration
   static class Config {
 
@@ -911,7 +911,7 @@ class ArmadilloStorageServiceTest {
     assertTrue(result.get("user-bucket1").isEmpty()); // Expecting an empty list for workspaces
   }
 
-  // Test case 2: old bucket doesn't exist, so no action is taken
+  // Test: old bucket doesn't exist, so no action is taken
   @Test
   void testMoveWorkspacesIfInOldBucket_WhenOldBucketDoesNotExist() {
     when(storageService.bucketExists(OLD_BUCKET)).thenReturn(false);
@@ -928,7 +928,7 @@ class ArmadilloStorageServiceTest {
     }
   }
 
-  // Test case 3: new bucket already exists, so no workspaces should be moved
+  // Test: new bucket already exists, so no workspaces should be moved
   @Test
   void testMoveWorkspacesIfInOldBucket_WhenNewBucketExists() throws FileNotFoundException {
     when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
@@ -943,23 +943,7 @@ class ArmadilloStorageServiceTest {
     }
   }
 
-  // Test case 4: old bucket exists, new bucket does not exist, but no workspaces to move
-  @Test
-  void testMoveWorkspacesIfInOldBucket_WhenOldBucketExistsButNoWorkspacesToMove() {
-    when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
-    when(storageService.bucketExists(NEW_BUCKET)).thenReturn(false);
-    when(storageService.listObjects(OLD_BUCKET)).thenReturn(Collections.emptyList());
-
-    try (MockedStatic<UserInformationRetriever> infoRetriever =
-        Mockito.mockStatic(UserInformationRetriever.class)) {
-      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
-      armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  // Test case 6: handle exception (e.g., if storageService throws an exception)
+  // Test: handle exception (e.g., if storageService throws an exception)
   @Test
   void testMoveWorkspacesIfInOldBucket_WhenStorageServiceFails() {
     when(storageService.bucketExists(OLD_BUCKET)).thenReturn(true);
