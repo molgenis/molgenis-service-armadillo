@@ -268,6 +268,19 @@ export async function uploadIntoProject(
   return postFormData(`/storage/projects/${project}/objects`, formData);
 }
 
+export async function uploadCsvIntoProject(
+  fileToUpload: File,
+  object: string,
+  project: string,
+  typeRows: number
+) {
+  let formData = new FormData();
+  formData.append("file", fileToUpload);
+  formData.append("object", `${object}/${fileToUpload.name}`);
+  formData.append("numberOfRowsToDetermineTypeBy", typeRows.toString());
+  return postFormData(`/storage/projects/${project}/objects/csv`, formData);
+}
+
 export async function previewObject(projectId: string, object: string) {
   return get(
     `/storage/projects/${projectId}/objects/${encodeUriComponent(

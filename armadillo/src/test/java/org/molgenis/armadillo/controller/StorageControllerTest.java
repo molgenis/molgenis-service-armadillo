@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,7 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
-import org.molgenis.armadillo.exceptions.DuplicateObjectException;
-import org.molgenis.armadillo.exceptions.UnknownObjectException;
-import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -37,6 +36,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(StorageController.class)
 @Import({TestSecurityConfig.class})
@@ -47,6 +47,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
+  @Autowired private StorageController storageController;
 
   @Test
   void listObjects() throws Exception {
@@ -87,6 +88,108 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             UPLOAD_OBJECT,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.parquet"))));
+  }
+
+  @Test
+  void uploadCsvObject() throws Exception {
+    var contents = "contents".getBytes();
+    var file = mockMultipartFile(contents);
+
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.csv"))
+        .andExpect(status().isNoContent());
+
+    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(100));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
+  }
+
+  @Test
+  void uploadTsvObject() throws Exception {
+    var contents = "contents".getBytes();
+    var file = mockMultipartFile(contents);
+
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.tsv"))
+        .andExpect(status().isNoContent());
+
+    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.tsv"), eq(file), eq(100));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.tsv"))));
+  }
+
+  @Test
+  void uploadCharacterSeparatedFile() throws Exception {
+    var contents = "contents".getBytes();
+    var file = mockMultipartFile(contents);
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects/csv")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.csv")
+                .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
+        .andExpect(status().isNoContent());
+
+    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(10));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
+  }
+
+  @Test
+  void uploadCharacterSeparatedFileFails() throws Exception {
+    var contents = "contents are broken,spaces in header not allowed".getBytes();
+    var file = mockMultipartFile(contents);
+    doThrow(new FileProcessingException("Cannot write parquet"))
+        .when(storage)
+        .writeParquet("lifecycle", "core/nonrep2.csv", file, 10);
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects/csv")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.csv")
+                .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
+        .andExpect(status().isBadRequest());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT + "_FAILURE",
+            mockSuAuditMap(
+                Map.of(
+                    PROJECT,
+                    "lifecycle",
+                    OBJECT,
+                    "core/nonrep2.csv",
+                    "message",
+                    "Could not process file: [data.parquet] because: [Cannot write parquet]",
+                    "type",
+                    "org.molgenis.armadillo.exceptions.FileProcessingException"))));
   }
 
   @Test
@@ -392,7 +495,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   void downloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
-    Path mockPath = mock(Path.class);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
     when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
 
@@ -526,6 +628,17 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             GET_VARIABLES,
             mockSuAuditMap(Map.of(PROJECT, "my-project", OBJECT, "my-table.parquet"))));
+  }
+
+  @Test
+  void testAddObjectThrowsError() throws Exception {
+    InputStream isMock = mock(InputStream.class);
+    MultipartFile fileMock = mock(MultipartFile.class);
+    when(fileMock.getInputStream()).thenReturn(isMock);
+    doThrow(new IOException()).when(storage).addObject("lifecycle", "folder/test.parquet", isMock);
+    assertThrows(
+        FileProcessingException.class,
+        () -> storageController.addObject("lifecycle", "folder/test.parquet", fileMock));
   }
 
   private Map<String, Object> mockSuAuditMap() {
