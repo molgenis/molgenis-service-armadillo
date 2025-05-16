@@ -523,6 +523,21 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
+  void testLoadWorkspaceFails() {
+    when(principal.getName()).thenReturn("henk");
+    when(storageService.load("user-henk", "test.RData")).thenReturn(is);
+    when(storageService.bucketExists("user-henk")).thenReturn(true);
+    when(storageService.bucketExists("user-user__at__email.com")).thenReturn(false);
+    try (MockedStatic<UserInformationRetriever> infoRetriever =
+        Mockito.mockStatic(UserInformationRetriever.class)) {
+      infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
+      assertThrows(StorageException.class, () -> armadilloStorage.loadWorkspace(principal, "test"));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
   void testSaveWorkspace() {
     ArmadilloWorkspace workspaceMock = mock(ArmadilloWorkspace.class);
     ByteArrayInputStream isMock = mock(ByteArrayInputStream.class);
