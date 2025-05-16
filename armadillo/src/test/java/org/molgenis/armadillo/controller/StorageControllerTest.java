@@ -17,7 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
-import org.molgenis.armadillo.exceptions.DuplicateObjectException;
-import org.molgenis.armadillo.exceptions.FileProcessingException;
-import org.molgenis.armadillo.exceptions.UnknownObjectException;
-import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,6 +157,39 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             UPLOAD_OBJECT,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
+  }
+
+  @Test
+  void uploadCharacterSeparatedFileFails() throws Exception {
+    var contents = "contents are broken,spaces in header not allowed".getBytes();
+    var file = mockMultipartFile(contents);
+    doThrow(new FileProcessingException("Cannot write parquet"))
+        .when(storage)
+        .writeParquet("lifecycle", "core/nonrep2.csv", file, 10);
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/objects/csv")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.csv")
+                .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
+        .andExpect(status().isBadRequest());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT + "_FAILURE",
+            mockSuAuditMap(
+                Map.of(
+                    PROJECT,
+                    "lifecycle",
+                    OBJECT,
+                    "core/nonrep2.csv",
+                    "message",
+                    "Could not process file: [data.parquet] because: [Cannot write parquet]",
+                    "type",
+                    "org.molgenis.armadillo.exceptions.FileProcessingException"))));
   }
 
   @Test
@@ -466,7 +495,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   void downloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
-    Path mockPath = mock(Path.class);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
     when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
 
