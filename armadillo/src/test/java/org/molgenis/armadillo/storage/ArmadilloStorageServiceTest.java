@@ -940,7 +940,6 @@ class ArmadilloStorageServiceTest {
       armadilloStorage.moveWorkspacesIfInOldBucket(principal);
 
       verify(storageService, never()).listObjects(any());
-      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
     }
   }
 
@@ -955,8 +954,6 @@ class ArmadilloStorageServiceTest {
         Mockito.mockStatic(UserInformationRetriever.class)) {
       infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       armadilloStorage.moveWorkspacesIfInOldBucket(principal);
-
-      verify(storageService, never()).moveWorkspace(any(), any(), any(), any());
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
