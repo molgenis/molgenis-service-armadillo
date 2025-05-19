@@ -29,7 +29,7 @@ public class CharacterSeparatedFile {
   static String STRING = "string";
   static String DOUBLE = "double";
   MultipartFile file;
-  char separator = ',';
+  private char separator = ',';
   Schema schema;
   String[] header;
   List<String> types;
@@ -49,6 +49,22 @@ public class CharacterSeparatedFile {
     }
     this.types = this.getTypesFromData(reader);
     this.setSchema(this.createSchemaFromTypes(this.types, this.header));
+  }
+
+  public char getSeparator() {
+    return separator;
+  }
+
+  public String[] getHeader() {
+    return header;
+  }
+
+  public List<String> getTypes() {
+    return types;
+  }
+
+  public Schema getSchema() {
+    return schema;
   }
 
   public void setNumberOfRowsToDetermineTypeBy(int numberOfRowsToDetermineTypeBy) {
