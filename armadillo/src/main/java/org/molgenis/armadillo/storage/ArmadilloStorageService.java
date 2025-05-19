@@ -244,6 +244,11 @@ public class ArmadilloStorageService {
   }
 
   public InputStream loadWorkspace(Principal principal, String id) {
+    try {
+      moveWorkspacesIfInOldBucket(principal);
+    } catch (FileNotFoundException | StorageException e) {
+      throw new StorageException(e.getMessage());
+    }
     return storageService.load(getUserBucketName(principal), getWorkspaceObjectName(id));
   }
 
