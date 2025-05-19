@@ -1003,7 +1003,8 @@ class ArmadilloStorageServiceTest {
     Mockito.when(storageService.getRootDir()).thenReturn(tempDirWithPrefix.toString());
     Mockito.when(storageService.objectExists("gecko", objectName + PARQUET))
         .thenReturn(Boolean.FALSE);
-    assertDoesNotThrow(() -> armadilloStorage.writeParquet(projectName, objectName, mockFile, 10));
+    assertDoesNotThrow(
+        () -> armadilloStorage.writeParquetFromCsv(projectName, objectName, mockFile, 10));
     FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
 
@@ -1021,7 +1022,7 @@ class ArmadilloStorageServiceTest {
         .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
     assertThrows(
         StorageException.class,
-        () -> armadilloStorage.writeParquet(projectName, objectName, mockFile, 10));
+        () -> armadilloStorage.writeParquetFromCsv(projectName, objectName, mockFile, 10));
     FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
 }

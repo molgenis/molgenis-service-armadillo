@@ -399,7 +399,7 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void writeParquet(
+  public void writeParquetFromCsv(
       String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
       throws CsvValidationException, IOException {
     String objectParquet = removeExtension(object) + PARQUET;

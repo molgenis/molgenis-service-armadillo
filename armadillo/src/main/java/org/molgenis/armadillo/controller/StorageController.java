@@ -166,7 +166,7 @@ public class StorageController {
   private void addParquetObject(
       String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
       throws CsvValidationException, IOException {
-    storage.writeParquet(project, object, file, numberOfRowsToDetermineTypeBy);
+    storage.writeParquetFromCsv(project, object, file, numberOfRowsToDetermineTypeBy);
   }
 
   @Operation(

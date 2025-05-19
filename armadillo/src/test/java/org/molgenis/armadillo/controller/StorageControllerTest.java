@@ -103,7 +103,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 .param("object", "core/nonrep2.csv"))
         .andExpect(status().isNoContent());
 
-    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(100));
+    verify(storage).writeParquetFromCsv(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(100));
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -126,7 +126,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 .param("object", "core/nonrep2.tsv"))
         .andExpect(status().isNoContent());
 
-    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.tsv"), eq(file), eq(100));
+    verify(storage).writeParquetFromCsv(eq("lifecycle"), eq("core/nonrep2.tsv"), eq(file), eq(100));
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -149,7 +149,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
         .andExpect(status().isNoContent());
 
-    verify(storage).writeParquet(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(10));
+    verify(storage).writeParquetFromCsv(eq("lifecycle"), eq("core/nonrep2.csv"), eq(file), eq(10));
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -165,7 +165,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     var file = mockMultipartFile(contents);
     doThrow(new FileProcessingException("Cannot write parquet"))
         .when(storage)
-        .writeParquet("lifecycle", "core/nonrep2.csv", file, 10);
+        .writeParquetFromCsv("lifecycle", "core/nonrep2.csv", file, 10);
     mockMvc
         .perform(
             multipart("/storage/projects/lifecycle/csv")
