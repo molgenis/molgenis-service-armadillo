@@ -142,7 +142,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     var file = mockMultipartFile(contents);
     mockMvc
         .perform(
-            multipart("/storage/projects/lifecycle/objects/csv")
+            multipart("/storage/projects/lifecycle/csv")
                 .file(file)
                 .session(session)
                 .param("object", "core/nonrep2.csv")
@@ -168,7 +168,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
         .writeParquet("lifecycle", "core/nonrep2.csv", file, 10);
     mockMvc
         .perform(
-            multipart("/storage/projects/lifecycle/objects/csv")
+            multipart("/storage/projects/lifecycle/csv")
                 .file(file)
                 .session(session)
                 .param("object", "core/nonrep2.csv")

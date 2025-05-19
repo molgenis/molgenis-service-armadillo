@@ -278,7 +278,7 @@ export async function uploadCsvIntoProject(
   formData.append("file", fileToUpload);
   formData.append("object", `${object}/${fileToUpload.name}`);
   formData.append("numberOfRowsToDetermineTypeBy", typeRows.toString());
-  return postFormData(`/storage/projects/${project}/objects/csv`, formData);
+  return postFormData(`/storage/projects/${project}/csv`, formData);
 }
 
 export async function previewObject(projectId: string, object: string) {

@@ -126,7 +126,7 @@ public class StorageController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping(
-      value = "/projects/{project}/objects/csv",
+      value = "/projects/{project}/csv",
       consumes = {MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(NO_CONTENT)
   public void uploadCharacterSeparatedFile(
