@@ -50,7 +50,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @Autowired private StorageController storageController;
 
   @Test
-  void listObjects() throws Exception {
+  void testListObjects() throws Exception {
     when(storage.listObjects("lifecycle"))
         .thenReturn(List.of("core/nonrep.parquet", "outcome/nonrep.parquet"));
 
@@ -66,7 +66,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadObject() throws Exception {
+  void testUploadObject() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
 
@@ -91,7 +91,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadCsvObject() throws Exception {
+  void testUploadCsvObject() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
 
@@ -114,7 +114,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadTsvObject() throws Exception {
+  void testUploadTsvObject() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
 
@@ -137,7 +137,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadCharacterSeparatedFile() throws Exception {
+  void testUploadCharacterSeparatedFile() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
     mockMvc
@@ -160,7 +160,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadCharacterSeparatedFileFails() throws Exception {
+  void testUploadCharacterSeparatedFileFails() throws Exception {
     var contents = "contents are broken,spaces in header not allowed".getBytes();
     var file = mockMultipartFile(contents);
     doThrow(new FileProcessingException("Cannot write parquet"))
@@ -193,7 +193,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadObjectProjectNotExists() throws Exception {
+  void testUploadObjectProjectNotExists() throws Exception {
     var file = mockMultipartFile("contents".getBytes());
     doThrow(new UnknownProjectException("lifecycle"))
         .when(storage)
@@ -225,7 +225,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void uploadObjectDuplicateObject() throws Exception {
+  void testUploadObjectDuplicateObject() throws Exception {
     var file = mockMultipartFile("contents".getBytes());
     doThrow(new DuplicateObjectException("lifecycle", "core/nonrep2.parquet"))
         .when(storage)
@@ -257,7 +257,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void copyObject() throws Exception {
+  void testCopyObject() throws Exception {
     mockMvc.perform(copyRequest()).andExpect(status().isNoContent());
 
     verify(storage).copyObject("lifecycle", "copies/test_copy.parquet", "test.parquet");
@@ -285,7 +285,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void copyObjectNotExists() throws Exception {
+  void testCopyObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
         .copyObject("lifecycle", "copies/test_copy.parquet", "test.parquet");
@@ -312,7 +312,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void copyObjectDuplicateObject() throws Exception {
+  void testCopyObjectDuplicateObject() throws Exception {
     doThrow(new DuplicateObjectException("lifecycle", "copies/test_copy.parquet"))
         .when(storage)
         .copyObject("lifecycle", "copies/test_copy.parquet", "test.parquet");
@@ -339,7 +339,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void moveObject() throws Exception {
+  void testMoveObject() throws Exception {
     mockMvc.perform(moveRequest()).andExpect(status().isNoContent());
 
     verify(storage).moveObject("lifecycle", "test_renamed.parquet", "test.parquet");
@@ -362,7 +362,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void moveObjectNotExists() throws Exception {
+  void testMoveObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
         .moveObject("lifecycle", "test_renamed.parquet", "test.parquet");
@@ -389,7 +389,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void moveObjectDuplicateObject() throws Exception {
+  void testMoveObjectDuplicateObject() throws Exception {
     doThrow(new DuplicateObjectException("lifecycle", "test_renamed.parquet"))
         .when(storage)
         .moveObject("lifecycle", "test_renamed.parquet", "test.parquet");
@@ -416,7 +416,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void objectExists() throws Exception {
+  void testObjectExists() throws Exception {
     when(storage.hasObject("lifecycle", "test.parquet")).thenReturn(true);
 
     mockMvc
@@ -432,7 +432,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void objectNotExists() throws Exception {
+  void testObjectNotExists() throws Exception {
     when(storage.hasObject("lifecycle", "non-existing.parquet")).thenReturn(false);
 
     mockMvc
@@ -448,7 +448,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void deleteObject() throws Exception {
+  void testDeleteObject() throws Exception {
     mockMvc
         .perform(
             delete(new URI("/storage/projects/lifecycle/objects/test.parquet")).session(session))
@@ -465,7 +465,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void deleteObjectNotExists() throws Exception {
+  void testDeleteObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
         .deleteObject("lifecycle", "test.parquet");
@@ -492,7 +492,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void downloadObject() throws Exception {
+  void testDownloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
@@ -513,7 +513,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void previewObject() throws Exception {
+  void testPreviewObject() throws Exception {
     when(storage.getPreview("lifecycle", "test.parquet")).thenReturn(List.of(Map.of("foo", "bar")));
 
     mockMvc
@@ -531,7 +531,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void createLinkedObject() throws Exception {
+  void testCreateLinkedObject() throws Exception {
     doNothing()
         .when(storage)
         .createLinkedObject("lifecycle", "test", "my-link", "lifecycle", "a,b,c");
@@ -562,7 +562,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void getObjectInfo() throws Exception {
+  void testGetObjectInfo() throws Exception {
     when(storage.getInfo("lifecycle", "test.parquet"))
         .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30", null, new String[] {}));
 
@@ -584,7 +584,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void downloadObjectNotExists() throws Exception {
+  void testDownloadObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
         .loadObject("lifecycle", "test.parquet");
@@ -611,7 +611,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void getVariables() throws Exception {
+  void testGetVariables() throws Exception {
     when(storage.getVariables("my-project", "my-table.parquet"))
         .thenReturn(List.of("col1", "col2", "col3"));
 
