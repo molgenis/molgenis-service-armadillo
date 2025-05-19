@@ -105,7 +105,8 @@ public class CharacterSeparatedFile {
     }
   }
 
-  List<String> getTypesFromData(CSVReader reader) throws IOException, CsvValidationException {
+  private List<String> getTypesFromData(CSVReader reader)
+      throws IOException, CsvValidationException {
     String[] line;
     String[] types = new String[this.header.length];
     while ((line = reader.readNext()) != null
@@ -129,7 +130,7 @@ public class CharacterSeparatedFile {
     return Arrays.stream(types).map((type) -> Objects.requireNonNullElse(type, STRING)).toList();
   }
 
-  Schema createSchemaFromTypes(List<String> types, String[] header) {
+  private Schema createSchemaFromTypes(List<String> types, String[] header) {
     String schemaJson =
         "{\"namespace\": \"org.molgenis.armadillo\"," // Not used in Parquet, can put anything
             + "\"type\": \"record\"," // Must be set as record
