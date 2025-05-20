@@ -36,7 +36,7 @@ class CharacterSeparatedFileTest {
     CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
 
     assertNotNull(csf);
-    assertEquals(',', csf.getSeparator());
+    assertEquals(',', csf.getHeaderSeparator());
     assertArrayEquals(new String[] {"name", "age"}, csf.getHeader());
     assertEquals(
         List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.DOUBLE), csf.getTypes());

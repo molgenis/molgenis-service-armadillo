@@ -37,13 +37,13 @@ public class CharacterSeparatedFile {
 
   public CharacterSeparatedFile(MultipartFile file) throws IOException, CsvValidationException {
     this.file = file;
-    // test if , is real separator
+    // test if , is real headerSeparator
     CSVReader reader = this.getReader();
     this.setHeader(reader.readNext());
-    char separator = getSeparatorFromHeader(header, file);
-    this.setSeparator(separator);
-    // if , is not the separator, change it
-    if (separator != ',') {
+    char headerSeparator = getSeparatorFromHeader(header, file);
+    this.setHeaderSeparator(headerSeparator);
+    // if , is not the headerSeparator, change it
+    if (headerSeparator != ',') {
       reader = this.getReader();
       this.setHeader(reader.readNext());
     }
@@ -51,7 +51,7 @@ public class CharacterSeparatedFile {
     this.setSchema(this.createSchemaFromTypes(this.types, this.header));
   }
 
-  public char getSeparator() {
+  public char getHeaderSeparator() {
     return separator;
   }
 
@@ -71,7 +71,7 @@ public class CharacterSeparatedFile {
     this.numberOfRowsToDetermineTypeBy = numberOfRowsToDetermineTypeBy;
   }
 
-  public void setSeparator(char separator) {
+  public void setHeaderSeparator(char separator) {
     this.separator = separator;
   }
 
