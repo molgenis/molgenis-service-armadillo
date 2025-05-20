@@ -32,7 +32,7 @@ public class CharacterSeparatedFile {
   private char separator = ',';
   Schema schema;
   String[] header;
-  List<String> types;
+  List<String> datatypes;
   int numberOfRowsToDetermineTypeBy = 100;
 
   public CharacterSeparatedFile(MultipartFile file) throws IOException, CsvValidationException {
@@ -47,8 +47,8 @@ public class CharacterSeparatedFile {
       reader = this.getReader();
       this.setHeader(reader.readNext());
     }
-    this.types = this.getTypesFromData(reader);
-    this.setSchema(this.createSchemaFromTypes(this.types, this.header));
+    this.datatypes = this.getTypesFromData(reader);
+    this.setSchema(this.createSchemaFromTypes(this.datatypes, this.header));
   }
 
   public char getHeaderSeparator() {
@@ -60,7 +60,7 @@ public class CharacterSeparatedFile {
   }
 
   public List<String> getTypes() {
-    return types;
+    return datatypes;
   }
 
   public Schema getSchema() {
@@ -204,7 +204,7 @@ public class CharacterSeparatedFile {
       for (String value : line) {
         if (value.isEmpty()) {
           record.put(header[i], null);
-        } else if (Objects.equals(types.get(i), DOUBLE)) {
+        } else if (Objects.equals(datatypes.get(i), DOUBLE)) {
           Double d = Double.parseDouble(value);
           record.put(header[i], d);
         } else {
