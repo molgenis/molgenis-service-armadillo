@@ -26,8 +26,8 @@ import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.springframework.web.multipart.MultipartFile;
 
 public class CharacterSeparatedFile {
-  static String STRING = "string";
-  static String DOUBLE = "double";
+  public static final String STRING = "string";
+  public static final String DOUBLE = "double";
   MultipartFile file;
   private char separator = ',';
   Schema schema;

@@ -38,7 +38,8 @@ class CharacterSeparatedFileTest {
     assertNotNull(csf);
     assertEquals(',', csf.getSeparator());
     assertArrayEquals(new String[] {"name", "age"}, csf.getHeader());
-    assertEquals(List.of("string", "double"), csf.getTypes());
+    assertEquals(
+        List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.DOUBLE), csf.getTypes());
     assertNotNull(csf.getSchema());
   }
 
@@ -89,8 +90,8 @@ class CharacterSeparatedFileTest {
 
   @Test
   void testGetTypeOfCell() throws CsvValidationException, IOException {
-    assertEquals("double", CharacterSeparatedFile.getTypeOfCell("123.45"));
-    assertEquals("string", CharacterSeparatedFile.getTypeOfCell("abc"));
+    assertEquals(CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.getTypeOfCell("123.45"));
+    assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("abc"));
   }
 
   @Test
