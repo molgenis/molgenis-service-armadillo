@@ -44,7 +44,7 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
-  void testErrorThrownWhenSchemaCannotBeCreated() throws IOException, CsvValidationException {
+  void testErrorThrownWhenSchemaCannotBeCreated() throws IOException {
     String csvData = "name of person,age\nJohn,30\nJane,25\n";
     Mockito.when(mockFile.getInputStream())
         .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
@@ -66,7 +66,7 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
-  void testGetSeparatorFromPipe() throws IOException, CsvValidationException {
+  void testGetSeparatorFromPipe() throws CsvValidationException {
     char sep = CharacterSeparatedFile.getSeparatorFromHeader(new String[] {"name|age"}, mockFile);
     assertEquals('|', sep);
   }
@@ -89,7 +89,7 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
-  void testGetTypeOfCell() throws CsvValidationException, IOException {
+  void testGetTypeOfCell() {
     assertEquals(CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.getTypeOfCell("123.45"));
     assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("abc"));
   }

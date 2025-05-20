@@ -143,7 +143,7 @@ public class CharacterSeparatedFile {
         i++;
       }
     }
-    return Arrays.stream(types).map((type) -> Objects.requireNonNullElse(type, STRING)).toList();
+    return Arrays.stream(types).map(type -> Objects.requireNonNullElse(type, STRING)).toList();
   }
 
   private Schema createSchemaFromTypes(List<String> types, String[] header) {
@@ -157,7 +157,7 @@ public class CharacterSeparatedFile {
     final int[] colNumber = {0};
     Arrays.stream(header)
         .forEach(
-            (headerValue) -> {
+            headerValue -> {
               // replace BOM if present
               headerValue = headerValue.replace("\uFEFF", "");
               if (Objects.equals(headerValue, "")) {
@@ -188,7 +188,7 @@ public class CharacterSeparatedFile {
     CSVReader reader = getReader();
     // skip header
     reader.readNext();
-    // for each line create record and write
+    // for each line create dataRecord and write
     Path outputFilePath = Paths.get(savePath);
     LocalOutputFile fileToWrite = new LocalOutputFile(outputFilePath);
     ParquetWriter<GenericData.Record> writer =
@@ -198,22 +198,22 @@ public class CharacterSeparatedFile {
             .withCompressionCodec(CompressionCodecName.SNAPPY)
             .build();
     String[] line;
-    GenericData.Record record = new GenericData.Record(schema);
+    GenericData.Record dataRecord = new GenericData.Record(schema);
     while ((line = reader.readNext()) != null) {
       int i = 0;
       for (String value : line) {
         if (value.isEmpty()) {
-          record.put(header[i], null);
+          dataRecord.put(header[i], null);
         } else if (Objects.equals(datatypes.get(i), DOUBLE)) {
           Double d = Double.parseDouble(value);
-          record.put(header[i], d);
+          dataRecord.put(header[i], d);
         } else {
-          record.put(header[i], value);
+          dataRecord.put(header[i], value);
         }
         i++;
       }
       try {
-        writer.write(record);
+        writer.write(dataRecord);
       } catch (Exception e) {
         throw new WriteAbortedException(
             String.format("Cannot write parquet file because: [%s]", e.getMessage()), e);
