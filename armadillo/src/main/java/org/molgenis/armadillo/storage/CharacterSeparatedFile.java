@@ -131,7 +131,7 @@ public class CharacterSeparatedFile {
       for (String value : line) {
         // determine type
         // if value is NA, it's not a string by definition
-        if (!value.isEmpty()) {
+        if (!value.isEmpty() && !value.equals("NA")) {
           String type = getTypeOfCell(value);
           // only set to double if is not string yet, because if one value is not double, the cell
           // cannot be double and must be string
@@ -202,7 +202,7 @@ public class CharacterSeparatedFile {
     while ((line = reader.readNext()) != null) {
       int i = 0;
       for (String value : line) {
-        if (value.isEmpty()) {
+        if (value.isEmpty() || value.equals("NA")) {
           dataRecord.put(header[i], null);
         } else if (Objects.equals(datatypes.get(i), DOUBLE)) {
           Double d = Double.parseDouble(value);
