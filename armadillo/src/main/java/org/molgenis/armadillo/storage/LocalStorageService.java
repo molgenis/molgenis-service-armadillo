@@ -221,6 +221,34 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
+  @Override
+  public Map<String, String> getMetadataFromTablePath(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      if (objectPath.toString().endsWith(PARQUET)) {
+        return ParquetUtils.getDatatypes(objectPath);
+      } else if (objectPath.toString().endsWith(LINK_FILE)) {
+        ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+        String srcProject = linkFile.getSourceProject();
+        String srcObject = linkFile.getSourceObject();
+        // TODO: only return datatypes of variable in linkfile
+        // String[] variables = linkFile.getVariables().split(",");
+        Path srcObjectPath = getPathIfObjectExists(SHARED_PREFIX + srcProject, srcObject + PARQUET);
+        return ParquetUtils.getDatatypes(srcObjectPath);
+      } else {
+        throw new StorageException(
+            format(
+                "Object [%s/%s] is not a parquet file, cannot determine metadata.",
+                bucketName, objectName));
+      }
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
   private FileInfo getFileInfoForLinkFile(
       String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);

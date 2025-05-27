@@ -308,6 +308,25 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
+  @Operation(summary = "Retrieve metadata of table")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Metadata successfully determined"),
+        @ApiResponse(responseCode = "404", description = "Table does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(
+      path = "/projects/{project}/objects/{object}/metadata",
+      produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Map<String, String> determineMetadataOfTable(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> storage.getMetadata(project, object),
+        principal,
+        PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
   @Operation(summary = "Get information of a file")
   @ApiResponses(
       value = {
