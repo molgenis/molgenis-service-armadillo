@@ -14,6 +14,8 @@ import org.apache.parquet.io.ColumnIOFactory;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.Type;
 
 public class ParquetUtils {
   public static List<Map<String, String>> previewRecords(
@@ -82,6 +84,19 @@ public class ParquetUtils {
       return getColumnsFromSchema(schema);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public static Map<String, String> getDatatypes(Path path) throws IOException {
+    try (ParquetFileReader reader = getFileReader(path)) {
+      List<Type> schema = getSchemaFromReader(reader).getFields();
+      Map<String, String> datatypes = new LinkedHashMap<>();
+      schema.forEach(
+          (field) -> {
+            datatypes.put(
+                field.getName(), ((PrimitiveType) field).getPrimitiveTypeName().toString());
+          });
+      return datatypes;
     }
   }
 
