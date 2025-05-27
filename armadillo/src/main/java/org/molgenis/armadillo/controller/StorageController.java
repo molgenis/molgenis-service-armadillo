@@ -318,7 +318,7 @@ public class StorageController {
   @GetMapping(
       path = "/projects/{project}/objects/{object}/metadata",
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Map<String, String> determineMetadataOfTable(
+  public @ResponseBody Map<String, Map<String, String>> determineMetadataOfTable(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> storage.getMetadata(project, object),
