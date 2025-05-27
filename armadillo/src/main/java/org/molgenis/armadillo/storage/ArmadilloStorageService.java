@@ -387,7 +387,7 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public Map<String, String> getMetadata(String project, String object) {
+  public Map<String, Map<String, String>> getMetadata(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getMetadataFromTablePath(SHARED_PREFIX + project, object);
   }

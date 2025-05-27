@@ -100,6 +100,39 @@ public class ParquetUtils {
     }
   }
 
+  public static Map<String, Integer> getMissingData(Path path) throws IOException {
+    Map<String, Integer> missings = new LinkedHashMap<>();
+    try (ParquetFileReader reader = getFileReader(path)) {
+      long numberOfRows = reader.getRecordCount();
+      MessageType schema = getSchemaFromReader(reader);
+      RecordReader<Group> recordReader = getRecordReader(schema, reader);
+      List<String> columns = getColumnsFromSchema(schema);
+
+      for (int i = 0; i < numberOfRows; i++) {
+        SimpleGroup group = (SimpleGroup) recordReader.read();
+        columns.forEach(
+            column -> {
+              try {
+                var value = group.getValueToString(schema.getFieldIndex(column), 0);
+                if (Objects.equals(value, "NA")) {
+                  missings.put(column, 1);
+                } else {
+                  missings.put(column, 0);
+                }
+              } catch (Exception e) {
+                if (missings.containsKey(column)) {
+                  Integer currentValue = missings.get(column);
+                  missings.put(column, currentValue + 1);
+                } else {
+                  missings.put(column, 1);
+                }
+              }
+            });
+      }
+    }
+    return missings;
+  }
+
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {
     try (ParquetFileReader reader = getFileReader(path)) {
       MessageType schema = getSchemaFromReader(reader);
