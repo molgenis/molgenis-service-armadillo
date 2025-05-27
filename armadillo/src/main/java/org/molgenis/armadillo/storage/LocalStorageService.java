@@ -232,11 +232,12 @@ public class LocalStorageService implements StorageService {
       Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
       if (objectPath.toString().endsWith(PARQUET)) {
         Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
-        Map<String, Integer> missings = ParquetUtils.getMissingData(objectPath);
+        Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
         datatypes.forEach(
             (key, value1) -> {
               Map<String, String> value = new LinkedHashMap<>();
-              value.put("missing", missings.get(key).toString());
+              value.put(
+                  "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
               value.put("type", datatypes.get(key));
               metadata.put(key, value);
             });

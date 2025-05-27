@@ -100,8 +100,8 @@ public class ParquetUtils {
     }
   }
 
-  public static Map<String, Integer> getMissingData(Path path) throws IOException {
-    Map<String, Integer> missings = new LinkedHashMap<>();
+  public static Map<String, Map<String, Integer>> getMissingData(Path path) throws IOException {
+    Map<String, Map<String, Integer>> missings = new LinkedHashMap<>();
     try (ParquetFileReader reader = getFileReader(path)) {
       long numberOfRows = reader.getRecordCount();
       MessageType schema = getSchemaFromReader(reader);
@@ -113,17 +113,23 @@ public class ParquetUtils {
         columns.forEach(
             column -> {
               if (!missings.containsKey(column)) {
-                missings.put(column, 0);
+                Map<String, Integer> missingInfo = new LinkedHashMap<>();
+                missingInfo.put("count", 0);
+                missingInfo.put("total", (int) numberOfRows);
+                missings.put(column, missingInfo);
               }
-              Integer currentValue = missings.get(column);
+              Map<String, Integer> missingInfo = missings.get(column);
+              Integer currentValue = missingInfo.get("count");
               try {
                 var value = group.getValueToString(schema.getFieldIndex(column), 0);
                 if (Objects.equals(value, "NA")) {
-                  missings.put(column, currentValue + 1);
+                  missingInfo.put("count", currentValue + 1);
+                  missings.put(column, missingInfo);
                 }
               } catch (Exception e) {
                 if (missings.containsKey(column)) {
-                  missings.put(column, currentValue + 1);
+                  missingInfo.put("count", currentValue + 1);
+                  missings.put(column, missingInfo);
                 }
               }
             });
