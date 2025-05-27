@@ -61,5 +61,5 @@ public interface StorageService {
 
   ArmadilloWorkspace getWorkSpace(InputStream is);
 
-  Map<String, String> getMetadataFromTablePath(String bucketName, String objectName);
+  Map<String, Map<String, String>> getMetadataFromTablePath(String bucketName, String objectName);
 }
