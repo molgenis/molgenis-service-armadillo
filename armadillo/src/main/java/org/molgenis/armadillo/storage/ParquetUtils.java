@@ -112,19 +112,18 @@ public class ParquetUtils {
         SimpleGroup group = (SimpleGroup) recordReader.read();
         columns.forEach(
             column -> {
+              if (!missings.containsKey(column)) {
+                missings.put(column, 0);
+              }
+              Integer currentValue = missings.get(column);
               try {
                 var value = group.getValueToString(schema.getFieldIndex(column), 0);
                 if (Objects.equals(value, "NA")) {
-                  missings.put(column, 1);
-                } else {
-                  missings.put(column, 0);
+                  missings.put(column, currentValue + 1);
                 }
               } catch (Exception e) {
                 if (missings.containsKey(column)) {
-                  Integer currentValue = missings.get(column);
                   missings.put(column, currentValue + 1);
-                } else {
-                  missings.put(column, 1);
                 }
               }
             });
