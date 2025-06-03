@@ -71,7 +71,7 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
-  public void addObject(String project, String object, InputStream inputStream) throws IOException {
+  public void addObject(String project, String object, InputStream inputStream) {
     throwIfDuplicate(project, object);
     storageService.save(inputStream, SHARED_PREFIX + project, object, APPLICATION_OCTET_STREAM);
   }
