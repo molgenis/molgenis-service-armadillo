@@ -89,9 +89,107 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
-  void testGetTypeOfCell() {
+  void testGetTypeOfCellDouble() {
     assertEquals(CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.getTypeOfCell("123.45"));
+    assertEquals(CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.getTypeOfCell("1.0"));
+  }
+
+  @Test
+  void testGetTypeOfCellInt() {
+    assertEquals(CharacterSeparatedFile.INT, CharacterSeparatedFile.getTypeOfCell("1"));
+  }
+
+  @Test
+  void testGetTypeOfCellBool() {
+    assertEquals(CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.getTypeOfCell("T"));
+    assertEquals(CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.getTypeOfCell("f"));
+    assertEquals(CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.getTypeOfCell("True"));
+    assertEquals(CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.getTypeOfCell("FALSE"));
+  }
+
+  @Test
+  void testGetTypeOfCellString() {
     assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("abc"));
+  }
+
+  @Test
+  void testGetTypeToSetBoolean() {
+    assertEquals(
+        CharacterSeparatedFile.BOOLEAN,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.BOOLEAN));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.STRING, CharacterSeparatedFile.BOOLEAN));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.INT, CharacterSeparatedFile.BOOLEAN));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.BOOLEAN));
+  }
+
+  @Test
+  void testGetTypeToSetInt() {
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.INT));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.STRING, CharacterSeparatedFile.INT));
+    assertEquals(
+        CharacterSeparatedFile.INT,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.INT, CharacterSeparatedFile.INT));
+    assertEquals(
+        CharacterSeparatedFile.DOUBLE,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.INT));
+  }
+
+  @Test
+  void testGetTypeToSetString() {
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.STRING));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.STRING, CharacterSeparatedFile.STRING));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.INT, CharacterSeparatedFile.STRING));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.STRING));
+  }
+
+  @Test
+  void testGetTypeToSetDouble() {
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.BOOLEAN, CharacterSeparatedFile.DOUBLE));
+    assertEquals(
+        CharacterSeparatedFile.STRING,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.STRING, CharacterSeparatedFile.DOUBLE));
+    assertEquals(
+        CharacterSeparatedFile.DOUBLE,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.INT, CharacterSeparatedFile.DOUBLE));
+    assertEquals(
+        CharacterSeparatedFile.DOUBLE,
+        CharacterSeparatedFile.getTypeToSet(
+            CharacterSeparatedFile.DOUBLE, CharacterSeparatedFile.DOUBLE));
   }
 
   @Test

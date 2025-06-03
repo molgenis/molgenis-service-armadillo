@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class CharacterSeparatedFile {
   public static final String STRING = "string";
   public static final String DOUBLE = "double";
+  public static final String BOOLEAN = "boolean";
+  public static final String INT = "int";
   MultipartFile file;
   private char separator = ',';
   Schema schema;
@@ -114,9 +116,51 @@ public class CharacterSeparatedFile {
 
   static String getTypeOfCell(String cell) {
     try {
-      Double.parseDouble(cell);
-      return CharacterSeparatedFile.DOUBLE;
+      double d = Double.parseDouble(cell);
+      if ((d == Math.floor(d)) && !Double.isInfinite(d) && !cell.contains(".")) {
+        return CharacterSeparatedFile.INT;
+      } else {
+        return CharacterSeparatedFile.DOUBLE;
+      }
     } catch (NumberFormatException e) {
+      String upperCaseCell = cell.toUpperCase();
+      if (upperCaseCell.equals("TRUE")
+          || upperCaseCell.equals("T")
+          || upperCaseCell.equals("F")
+          || upperCaseCell.equals("FALSE")) {
+        return CharacterSeparatedFile.BOOLEAN;
+      } else {
+        return CharacterSeparatedFile.STRING;
+      }
+    }
+  }
+
+  static String getTypeToSet(String type, String currentType) {
+    if ( // bool only when no other type found in column
+    (!Objects.equals(currentType, CharacterSeparatedFile.STRING)
+            && !Objects.equals(currentType, CharacterSeparatedFile.DOUBLE)
+            && !Objects.equals(currentType, CharacterSeparatedFile.INT)
+            && Objects.equals(type, CharacterSeparatedFile.BOOLEAN))
+        ||
+        // int only when no other type found in column
+        (!Objects.equals(currentType, CharacterSeparatedFile.STRING)
+            && !Objects.equals(currentType, CharacterSeparatedFile.DOUBLE)
+            && !Objects.equals(currentType, CharacterSeparatedFile.BOOLEAN)
+            && Objects.equals(type, CharacterSeparatedFile.INT))
+        ||
+        // double only when no string/bool found in column (int can become double)
+        (!Objects.equals(currentType, CharacterSeparatedFile.STRING)
+            && !Objects.equals(currentType, CharacterSeparatedFile.BOOLEAN)
+            && Objects.equals(type, CharacterSeparatedFile.DOUBLE))
+        // can always become string
+        || type.equals(CharacterSeparatedFile.STRING)) {
+      return type;
+    } else if (currentType.equals(CharacterSeparatedFile.INT)
+            && type.equals(CharacterSeparatedFile.DOUBLE)
+        || currentType.equals(CharacterSeparatedFile.DOUBLE)
+            && type.equals(CharacterSeparatedFile.INT)) {
+      return CharacterSeparatedFile.DOUBLE;
+    } else {
       return CharacterSeparatedFile.STRING;
     }
   }
@@ -132,13 +176,10 @@ public class CharacterSeparatedFile {
         // determine type
         // if value is NA, it's not a string by definition
         if (!value.isEmpty() && !value.equals("NA")) {
-          String type = getTypeOfCell(value);
-          // only set to double if is not string yet, because if one value is not double, the cell
-          // cannot be double and must be string
-          if (Array.get(types, i) != STRING && Objects.equals(type, DOUBLE)
-              || type.equals(STRING)) {
-            Array.set(types, i, type);
-          }
+          String typeOfCell = getTypeOfCell(value);
+          String currentType = (String) Array.get(types, i);
+          String type = getTypeToSet(typeOfCell, currentType);
+          Array.set(types, i, type);
         }
         i++;
       }
