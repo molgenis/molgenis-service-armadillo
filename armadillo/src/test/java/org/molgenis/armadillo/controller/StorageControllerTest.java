@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.dockerjava.api.DockerClient;
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -632,13 +633,15 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testAddObjectThrowsError() throws Exception {
-    InputStream isMock = mock(InputStream.class);
+    String object = "folder/test.csv";
+    String project = "lifecycle";
     MultipartFile fileMock = mock(MultipartFile.class);
-    when(fileMock.getInputStream()).thenReturn(isMock);
-    doThrow(new IOException()).when(storage).addObject("lifecycle", "folder/test.parquet", isMock);
+    doThrow(new CsvValidationException("error"))
+        .when(storage)
+        .writeParquetFromCsv(project, object, fileMock, 100);
     assertThrows(
         FileProcessingException.class,
-        () -> storageController.addObject("lifecycle", "folder/test.parquet", fileMock));
+        () -> storageController.addObject(project, object, fileMock));
   }
 
   private Map<String, Object> mockSuAuditMap() {

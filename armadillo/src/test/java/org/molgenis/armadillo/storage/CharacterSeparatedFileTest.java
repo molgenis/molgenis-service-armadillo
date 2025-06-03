@@ -39,7 +39,7 @@ class CharacterSeparatedFileTest {
     assertEquals(',', csf.getHeaderSeparator());
     assertArrayEquals(new String[] {"name", "age"}, csf.getHeader());
     assertEquals(
-        List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.DOUBLE), csf.getTypes());
+        List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.INT), csf.getTypes());
     assertNotNull(csf.getSchema());
   }
 
