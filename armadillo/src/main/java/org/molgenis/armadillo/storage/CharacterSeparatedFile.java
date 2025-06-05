@@ -225,6 +225,30 @@ public class CharacterSeparatedFile {
     this.schema = schema;
   }
 
+  static Boolean getBooleanValue(String value) {
+    if (value.equalsIgnoreCase("t")) {
+      return Boolean.TRUE;
+    } else if (value.equalsIgnoreCase("f")) {
+      return Boolean.FALSE;
+    } else {
+      return Boolean.parseBoolean(value);
+    }
+  }
+
+  static Object getCorrectlyTypedDataRecord(String value, String type) {
+    if (value.isEmpty() || value.equals("NA")) {
+      return null;
+    } else if (Objects.equals(type, DOUBLE)) {
+      return Double.parseDouble(value);
+    } else if (Objects.equals(type, INT)) {
+      return Integer.parseInt(value);
+    } else if (Objects.equals(type, BOOLEAN)) {
+      return getBooleanValue(value);
+    } else {
+      return value;
+    }
+  }
+
   public void writeParquet(String savePath) throws IOException, CsvValidationException {
     CSVReader reader = getReader();
     // skip header
@@ -243,14 +267,7 @@ public class CharacterSeparatedFile {
     while ((line = reader.readNext()) != null) {
       int i = 0;
       for (String value : line) {
-        if (value.isEmpty() || value.equals("NA")) {
-          dataRecord.put(header[i], null);
-        } else if (Objects.equals(datatypes.get(i), DOUBLE)) {
-          Double d = Double.parseDouble(value);
-          dataRecord.put(header[i], d);
-        } else {
-          dataRecord.put(header[i], value);
-        }
+        dataRecord.put(header[i], getCorrectlyTypedDataRecord(value, datatypes.get(i)));
         i++;
       }
       try {
