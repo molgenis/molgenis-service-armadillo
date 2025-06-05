@@ -10,4 +10,8 @@ public class FileProcessingException extends RuntimeException {
   public FileProcessingException() {
     super("Error processing file");
   }
+
+  public FileProcessingException(String message) {
+    super(message);
+  }
 }

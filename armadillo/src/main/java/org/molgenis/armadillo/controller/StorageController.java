@@ -12,6 +12,7 @@ import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
+import com.opencsv.exceptions.CsvValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -116,12 +117,56 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
-  private void addObject(String project, String object, MultipartFile file) {
+  @Operation(summary = "Upload a csv file to a project")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
+        @ApiResponse(responseCode = "404", description = "Unknown project"),
+        @ApiResponse(responseCode = "409", description = "Object already exists"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(
+      value = "/projects/{project}/csv",
+      consumes = {MULTIPART_FORM_DATA_VALUE})
+  @ResponseStatus(NO_CONTENT)
+  public void uploadCharacterSeparatedFile(
+      Principal principal,
+      @PathVariable String project,
+      @RequestParam @NotEmpty String object,
+      @RequestParam int numberOfRowsToDetermineTypeBy,
+      @Valid @RequestParam MultipartFile file) {
+    auditor.audit(
+        () -> {
+          try {
+            addParquetObject(project, object, file, numberOfRowsToDetermineTypeBy);
+          } catch (IOException | CsvValidationException | FileProcessingException e) {
+            throw new FileProcessingException(
+                String.format(
+                    "Could not process file: [%s] because: [%s]",
+                    file.getOriginalFilename(), e.getMessage()));
+          }
+        },
+        principal,
+        UPLOAD_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  void addObject(String project, String object, MultipartFile file) {
     try {
-      storage.addObject(project, object, file.getInputStream());
-    } catch (IOException e) {
+      if (object.endsWith(".csv") || object.endsWith(".tsv")) {
+        addParquetObject(project, object, file, 100);
+      } else {
+        storage.addObject(project, object, file.getInputStream());
+      }
+    } catch (IOException | CsvValidationException e) {
       throw new FileProcessingException();
     }
+  }
+
+  private void addParquetObject(
+      String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
+      throws CsvValidationException, IOException {
+    storage.writeParquetFromCsv(project, object, file, numberOfRowsToDetermineTypeBy);
   }
 
   @Operation(
