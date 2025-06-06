@@ -260,7 +260,7 @@ public class CharacterSeparatedFile {
         AvroParquetWriter.<GenericData.Record>builder(fileToWrite)
             .withSchema(schema)
             .withConf(new Configuration())
-            .withCompressionCodec(CompressionCodecName.SNAPPY)
+            .withCompressionCodec(CompressionCodecName.GZIP)
             .build();
     String[] line;
     GenericData.Record dataRecord = new GenericData.Record(schema);
