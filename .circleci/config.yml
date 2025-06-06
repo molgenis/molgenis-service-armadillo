@@ -112,8 +112,8 @@ jobs:
             fi
 
       - run:
-          name: Wait 10s for deployment to get ingress configuration to come up
-          command: sleep 10;
+          name: Wait 30s for deployment to get ingress configuration to come up
+          command: sleep 30;
 
       - run:
           name: Wait for preview to be up, poll every 10 seconds
