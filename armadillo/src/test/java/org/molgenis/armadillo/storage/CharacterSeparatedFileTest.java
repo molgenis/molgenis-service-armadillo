@@ -193,6 +193,74 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
+  void testGetBooleanValueTrue() {
+    assertEquals(Boolean.TRUE, CharacterSeparatedFile.getBooleanValue("T"));
+    assertEquals(Boolean.TRUE, CharacterSeparatedFile.getBooleanValue("True"));
+  }
+
+  @Test
+  void testGetBooleanValueFalse() {
+    assertEquals(Boolean.FALSE, CharacterSeparatedFile.getBooleanValue("F"));
+    assertEquals(Boolean.FALSE, CharacterSeparatedFile.getBooleanValue("falSE"));
+  }
+
+  @Test
+  void testGetCorrectlyTypedDataRecordNull() {
+    assertNull(
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("NA", CharacterSeparatedFile.STRING));
+    assertNull(
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("NA", CharacterSeparatedFile.INT));
+    assertNull(
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("NA", CharacterSeparatedFile.BOOLEAN));
+    assertNull(
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("NA", CharacterSeparatedFile.DOUBLE));
+  }
+
+  @Test
+  void testGetCorrectlyTypedDataRecordString() {
+    assertEquals(
+        "Very Random String",
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord(
+            "Very Random String", CharacterSeparatedFile.STRING));
+    assertEquals(
+        "true",
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("true", CharacterSeparatedFile.STRING));
+    assertEquals(
+        "1.09",
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("1.09", CharacterSeparatedFile.STRING));
+    assertEquals(
+        "1",
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("1", CharacterSeparatedFile.STRING));
+  }
+
+  @Test
+  void testGetCorrectlyTypedDataRecordInt() {
+    assertEquals(
+        7, CharacterSeparatedFile.getCorrectlyTypedDataRecord("7", CharacterSeparatedFile.INT));
+  }
+
+  @Test
+  void testGetCorrectlyTypedDataRecordDouble() {
+    assertEquals(
+        1.092,
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("1.092", CharacterSeparatedFile.DOUBLE));
+    assertEquals(
+        7.0,
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("7", CharacterSeparatedFile.DOUBLE));
+  }
+
+  @Test
+  void testGetCorrectlyTypedDataRecordBool() {
+    assertEquals(
+        true,
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord("tRuE", CharacterSeparatedFile.BOOLEAN));
+    assertEquals(
+        false,
+        CharacterSeparatedFile.getCorrectlyTypedDataRecord(
+            "FALSE", CharacterSeparatedFile.BOOLEAN));
+  }
+
+  @Test
   void testWriteParquetCreatesFile() throws IOException, CsvValidationException {
     String csvData = "name,age\nAlice,35\nBob,28\n";
     Path tempDirWithPrefix = Files.createTempDirectory("temp");
