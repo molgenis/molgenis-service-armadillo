@@ -14,6 +14,8 @@ import org.apache.parquet.io.ColumnIOFactory;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.Type;
 
 public class ParquetUtils {
   public static List<Map<String, String>> previewRecords(
@@ -83,6 +85,57 @@ public class ParquetUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static Map<String, String> getDatatypes(Path path) throws IOException {
+    try (ParquetFileReader reader = getFileReader(path)) {
+      List<Type> schema = getSchemaFromReader(reader).getFields();
+      Map<String, String> datatypes = new LinkedHashMap<>();
+      schema.forEach(
+          (field) -> {
+            datatypes.put(
+                field.getName(), ((PrimitiveType) field).getPrimitiveTypeName().toString());
+          });
+      return datatypes;
+    }
+  }
+
+  public static Map<String, Map<String, Integer>> getMissingData(Path path) throws IOException {
+    Map<String, Map<String, Integer>> missings = new LinkedHashMap<>();
+    try (ParquetFileReader reader = getFileReader(path)) {
+      long numberOfRows = reader.getRecordCount();
+      MessageType schema = getSchemaFromReader(reader);
+      RecordReader<Group> recordReader = getRecordReader(schema, reader);
+      List<String> columns = getColumnsFromSchema(schema);
+
+      for (int i = 0; i < numberOfRows; i++) {
+        SimpleGroup group = (SimpleGroup) recordReader.read();
+        columns.forEach(
+            column -> {
+              if (!missings.containsKey(column)) {
+                Map<String, Integer> missingInfo = new LinkedHashMap<>();
+                missingInfo.put("count", 0);
+                missingInfo.put("total", (int) numberOfRows);
+                missings.put(column, missingInfo);
+              }
+              Map<String, Integer> missingInfo = missings.get(column);
+              Integer currentValue = missingInfo.get("count");
+              try {
+                var value = group.getValueToString(schema.getFieldIndex(column), 0);
+                if (Objects.equals(value, "NA")) {
+                  missingInfo.put("count", currentValue + 1);
+                  missings.put(column, missingInfo);
+                }
+              } catch (Exception e) {
+                if (missings.containsKey(column)) {
+                  missingInfo.put("count", currentValue + 1);
+                  missings.put(column, missingInfo);
+                }
+              }
+            });
+      }
+    }
+    return missings;
   }
 
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {

@@ -221,6 +221,48 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
+  @Override
+  public Map<String, Map<String, String>> getMetadataFromTablePath(
+      String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
+      if (objectPath.toString().endsWith(PARQUET)) {
+        Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
+        Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
+        datatypes.forEach(
+            (key, value1) -> {
+              Map<String, String> value = new LinkedHashMap<>();
+              value.put(
+                  "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
+              value.put("type", datatypes.get(key));
+              metadata.put(key, value);
+            });
+        // TODO: add missings + levels
+        return metadata;
+      } else if (objectPath.toString().endsWith(LINK_FILE)) {
+        ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+        String srcProject = linkFile.getSourceProject();
+        String srcObject = linkFile.getSourceObject();
+        // TODO: only return datatypes of variable in linkfile
+        // TODO: implement for linkfile
+        // String[] variables = linkFile.getVariables().split(",");
+        Path srcObjectPath = getPathIfObjectExists(SHARED_PREFIX + srcProject, srcObject + PARQUET);
+        return metadata;
+      } else {
+        throw new StorageException(
+            format(
+                "Object [%s/%s] is not a parquet file, cannot determine metadata.",
+                bucketName, objectName));
+      }
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
   private FileInfo getFileInfoForLinkFile(
       String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
