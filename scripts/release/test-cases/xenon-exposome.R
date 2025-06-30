@@ -1,6 +1,5 @@
 library(dsExposomeClient)
 library(purrr)
-library(tibble)
 
 source("test-cases/download-resources.R")
 source("test-cases/upload-resource.R")
@@ -164,9 +163,9 @@ verify_exposure_cor_dim <- function(ds_function_name) {
 
 exposome_ref <- tribble(
   ~file_name, ~path, ~url, ~object_name, ~format,
-  "exposures.csv", file.path(test_config$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
-  "description.csv", file.path(test_config$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
-  "phenotypes.csv", file.path(test_config$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposures.parquet", file.path(test_config$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.parquet", file.path(test_config$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.parquet", file.path(test_config$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
   "exposomeSet.RData", file.path(test_config$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
 )
 
@@ -182,7 +181,6 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
   } else {
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
-    
     download_many_sources(ref = exposome_ref, skip_tests = NULL)
     upload_many_sources(project = project, ref = exposome_ref, url = url, folder = "exposome", token = token, auth_type = auth_type, skip_tests = NULL)
     exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome", project = project, url = url, skip_tests = NULL)
