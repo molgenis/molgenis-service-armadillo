@@ -62,6 +62,7 @@
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
                 <FileUpload
+                  class="mb-2"
                   :project="projectId"
                   :object="selectedFolder"
                   @upload_success="onUploadSuccess"
