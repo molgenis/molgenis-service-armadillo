@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.controller;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.dockerjava.api.DockerClient;
-import com.opencsv.exceptions.CsvValidationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +35,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(StorageController.class)
 @Import({TestSecurityConfig.class})
@@ -92,52 +89,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
-  void testUploadCsvObject() throws Exception {
-    var contents = "contents".getBytes();
-    var file = mockMultipartFile(contents);
-
-    mockMvc
-        .perform(
-            multipart("/storage/projects/lifecycle/objects")
-                .file(file)
-                .session(session)
-                .param("object", "core/nonrep2.csv"))
-        .andExpect(status().isNoContent());
-
-    verify(storage).writeParquetFromCsv("lifecycle", "core/nonrep2.csv", file, 100);
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user",
-            UPLOAD_OBJECT,
-            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
-  }
-
-  @Test
-  void testUploadTsvObject() throws Exception {
-    var contents = "contents".getBytes();
-    var file = mockMultipartFile(contents);
-
-    mockMvc
-        .perform(
-            multipart("/storage/projects/lifecycle/objects")
-                .file(file)
-                .session(session)
-                .param("object", "core/nonrep2.tsv"))
-        .andExpect(status().isNoContent());
-
-    verify(storage).writeParquetFromCsv("lifecycle", "core/nonrep2.tsv", file, 100);
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user",
-            UPLOAD_OBJECT,
-            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.tsv"))));
-  }
-
-  @Test
   void testUploadCharacterSeparatedFile() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
@@ -158,6 +109,29 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             UPLOAD_OBJECT,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.csv"))));
+  }
+
+  @Test
+  void testUploadCharacterSeparatedTsvFile() throws Exception {
+    var contents = "contents".getBytes();
+    var file = mockMultipartFile(contents);
+    mockMvc
+        .perform(
+            multipart("/storage/projects/lifecycle/csv")
+                .file(file)
+                .session(session)
+                .param("object", "core/nonrep2.tsv")
+                .param("numberOfRowsToDetermineTypeBy", String.valueOf(10)))
+        .andExpect(status().isNoContent());
+
+    verify(storage).writeParquetFromCsv("lifecycle", "core/nonrep2.tsv", file, 10);
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            UPLOAD_OBJECT,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.tsv"))));
   }
 
   @Test
@@ -629,19 +603,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             GET_VARIABLES,
             mockSuAuditMap(Map.of(PROJECT, "my-project", OBJECT, "my-table.parquet"))));
-  }
-
-  @Test
-  void testAddObjectThrowsError() throws Exception {
-    String object = "folder/test.csv";
-    String project = "lifecycle";
-    MultipartFile fileMock = mock(MultipartFile.class);
-    doThrow(new CsvValidationException("error"))
-        .when(storage)
-        .writeParquetFromCsv(project, object, fileMock, 100);
-    assertThrows(
-        FileProcessingException.class,
-        () -> storageController.addObject(project, object, fileMock));
   }
 
   private Map<String, Object> mockSuAuditMap() {

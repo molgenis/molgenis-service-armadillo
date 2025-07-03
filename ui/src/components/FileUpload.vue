@@ -47,12 +47,30 @@
       </div>
       <div
         v-if="file.name.endsWith('.csv') || file.name.endsWith('.tsv')"
-        class="row mb-3 small"
+        class="row mb-3 small border-top mt-3 pt-2"
       >
-        <label for="typeRows" class="form-label"
-          >Determine types based on:
-        </label>
-        <div class="col-4">
+        <div class="col">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="csv-checkbox"
+              v-model="uploadCsvAsParquet"
+            />
+            <label class="form-check-label" for="csv-checkbox"
+              >Convert file to parquet upon upload</label
+            >
+            <small id="csv-help" class="form-text text-muted"
+              >Converts file so that it can be read as table by DataSHIELD,
+              however if you have another use case you may want to uncheck
+              this.</small
+            >
+          </div>
+        </div>
+        <label v-if="uploadCsvAsParquet" for="typeRows" class="form-label"
+          >Determine types based on:</label
+        >
+        <div class="col-4" v-if="uploadCsvAsParquet">
           <input
             type="text"
             id="typeRows"
@@ -60,7 +78,7 @@
             v-model="typeRows"
           />
         </div>
-        <div class="col-8">lines</div>
+        <div class="col-8" v-if="uploadCsvAsParquet">lines</div>
       </div>
     </div>
   </div>
@@ -97,6 +115,7 @@ export default defineComponent({
     },
   },
   data(): {
+    uploadCsvAsParquet: boolean;
     uploadDone: boolean;
     isHoveringOverFileUpload: boolean;
     isUploadingFile: boolean;
@@ -104,6 +123,7 @@ export default defineComponent({
     typeRows: number;
   } {
     return {
+      uploadCsvAsParquet: true,
       uploadDone: false,
       isHoveringOverFileUpload: false,
       isUploadingFile: false,
@@ -147,19 +167,23 @@ export default defineComponent({
     uploadFile() {
       if (this.file && this.file.name) {
         this.isUploadingFile = true;
-        if (this.typeRows == 100) {
-          const response = uploadIntoProject(
-            this.file,
-            this.object,
-            this.project
-          );
-          this.handleUploadResponse(response);
-        } else {
+        if (
+          (this.file.name.endsWith(".tsv") ||
+            this.file.name.endsWith(".csv")) &&
+          this.uploadCsvAsParquet
+        ) {
           const response = uploadCsvIntoProject(
             this.file,
             this.object,
             this.project,
             this.typeRows
+          );
+          this.handleUploadResponse(response);
+        } else {
+          const response = uploadIntoProject(
+            this.file,
+            this.object,
+            this.project
           );
           this.handleUploadResponse(response);
         }

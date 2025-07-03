@@ -153,12 +153,8 @@ public class StorageController {
 
   void addObject(String project, String object, MultipartFile file) {
     try {
-      if (object.endsWith(".csv") || object.endsWith(".tsv")) {
-        addParquetObject(project, object, file, 100);
-      } else {
-        storage.addObject(project, object, file.getInputStream());
-      }
-    } catch (IOException | CsvValidationException e) {
+      storage.addObject(project, object, file.getInputStream());
+    } catch (IOException e) {
       throw new FileProcessingException();
     }
   }
