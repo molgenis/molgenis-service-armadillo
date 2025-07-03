@@ -60,6 +60,10 @@
             <label class="form-check-label" for="csv-checkbox"
               >Convert file to parquet upon upload</label
             >
+            <small id="csv-help" class="form-text text-muted"
+              >Converts file so that can be read as table by DataSHIELD, however
+              if you have another use case you may want to uncheck this</small
+            >
           </div>
         </div>
         <label v-if="uploadCsvAsParquet" for="typeRows" class="form-label"
@@ -118,7 +122,7 @@ export default defineComponent({
     typeRows: number;
   } {
     return {
-      uploadCsvAsParquet: false,
+      uploadCsvAsParquet: true,
       uploadDone: false,
       isHoveringOverFileUpload: false,
       isUploadingFile: false,
