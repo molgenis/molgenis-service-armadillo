@@ -61,8 +61,9 @@
               >Convert file to parquet upon upload</label
             >
             <small id="csv-help" class="form-text text-muted"
-              >Converts file so that can be read as table by DataSHIELD, however
-              if you have another use case you may want to uncheck this</small
+              >Converts file so that it can be read as table by DataSHIELD,
+              however if you have another use case you may want to uncheck
+              this.</small
             >
           </div>
         </div>
