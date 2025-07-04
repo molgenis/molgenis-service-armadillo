@@ -70,6 +70,7 @@ export type Profile = {
     tags: StringArray;
     status: string;
   };
+  autoUpdate?: boolean;
 };
 
 export type Auth = { user: string; pwd: string };
