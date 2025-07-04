@@ -255,4 +255,47 @@ public class DockerService {
     }
     return emptyList();
   }
+
+  public boolean pullImageIfUpdated(ProfileConfig profileConfig) {
+    String image = profileConfig.getImage();
+    String profileName = profileConfig.getName();
+
+    if (image == null) {
+      throw new MissingImageException(profileName);
+    }
+
+    try {
+      LOG.info("Checking if image for profile '{}' has been updated: {}", profileName, image);
+
+      // Get current image ID before pulling
+      String before = dockerClient.inspectImageCmd(image).exec().getId();
+      LOG.debug("Image ID before pull for '{}': {}", profileName, before);
+
+      // Pull the image
+      dockerClient
+          .pullImageCmd(image)
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(5, TimeUnit.MINUTES);
+
+      // Get image ID after pulling
+      String after = dockerClient.inspectImageCmd(image).exec().getId();
+      LOG.debug("Image ID after pull for '{}': {}", profileName, after);
+
+      boolean updated = !before.equals(after);
+      if (updated) {
+        LOG.info("Image for profile '{}' has changed and will be restarted.", profileName);
+      } else {
+        LOG.info("Image for profile '{}' is unchanged.", profileName);
+      }
+
+      return updated;
+    } catch (Exception e) {
+      LOG.warn(
+          "Failed to determine update status for image '{}' (profile '{}'): {}",
+          image,
+          profileName,
+          e.getMessage());
+      return false;
+    }
+  }
 }
