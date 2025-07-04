@@ -40,6 +40,8 @@
             <i class="bi bi-plus-lg"></i>
           </button>
         </th>
+        <th>Tags</th>
+        <th>Auto update</th>
       </template>
       <template #objectType="objectProps">
         <div
@@ -118,6 +120,27 @@
             :disabled="profileToEdit !== '' || profileToEditIndex === 0"
           ></ButtonGroup>
         </th>
+        <td>
+          <span
+            v-if="(columnProps.item.container?.tags || []).length > 0"
+            v-for="tag in columnProps.item.container.tags"
+            :key="tag"
+            class="badge bg-secondary me-1"
+          >
+            {{ tag }}
+          </span>
+          <span v-else>&nbsp;</span>
+        </td>
+        <td>
+          <input
+            class="form-check-input"
+            type="checkbox"
+            :checked="columnProps.item.autoUpdate"
+            @change="
+              updateAutoUpdate(columnProps.item, columnProps.item.autoUpdate)
+            "
+          />
+        </td>
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
@@ -408,6 +431,7 @@ export default defineComponent({
         functionBlacklist: [],
         datashieldSeed: this.firstFreeSeed,
         options: {},
+        autoUpdate: false,
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
@@ -443,6 +467,14 @@ export default defineComponent({
           this.errorMessage = `Could not stop [${name}]: ${error}.`;
           this.clearLoading();
         });
+    },
+    updateAutoUpdate(profile: Profile, currentValue: boolean) {
+      profile.autoUpdate = !currentValue;
+      putProfile(profile).catch((error) => {
+        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${error}.`;
+        // Revert checkbox on failure
+        profile.autoUpdate = currentValue;
+      });
     },
     async reloadProfiles() {
       this.loading = true;
