@@ -60,6 +60,7 @@ public class ProfileService {
             ProfileConfig.create(
                 profileName,
                 profileConfig.getImage(),
+                profileConfig.getAutoUpdate(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),
