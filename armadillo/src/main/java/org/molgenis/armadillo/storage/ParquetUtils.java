@@ -102,8 +102,9 @@ public class ParquetUtils {
     }
   }
 
-  public static Map<String, List<String>> getLevels(Path path) throws IOException {
-    Map<String, List<String>> levels = new LinkedHashMap<>();
+  public static HashMap<String, List<String>> getLevels(Path path) throws IOException {
+    HashMap<String, List<String>> raw_levels = new LinkedHashMap<>();
+    HashMap<String, Integer> level_counts = new LinkedHashMap<>();
     Map<String, String> datatypes = getDatatypes(path);
     try (ParquetFileReader reader = getFileReader(path)) {
       long numberOfRows = reader.getRecordCount();
@@ -117,17 +118,19 @@ public class ParquetUtils {
             column -> {
               try {
                 String value = group.getValueToString(schema.getFieldIndex(column), 0);
-                if (!levels.containsKey(column)) {
-                  levels.put(column, new ArrayList<>(Arrays.asList(value)));
+                if (!raw_levels.containsKey(column)) {
+                  raw_levels.put(column, new ArrayList<>(Arrays.asList(value)));
+                  level_counts.put(column, 1);
                 }
                 // if column is binary, if value in row not in list, add it
                 if (Objects.equals(datatypes.get(column), "BINARY")) {
                   try {
-                    if (!Objects.equals(value, "NA") && !levels.get(column).contains(value)) {
-                      // add value to levels of column
-                      List<String> currentLevels = levels.get(column);
+                    if (!isEmpty(value) && !raw_levels.get(column).contains(value)) {
+                      // add value to raw_levels of column
+                      List<String> currentLevels = raw_levels.get(column);
                       currentLevels.add(value);
-                      levels.put(column, currentLevels);
+                      raw_levels.put(column, currentLevels);
+                      level_counts.put(column, level_counts.get(column) + 1);
                     }
                   } catch (Exception ignored) {
                   }
@@ -136,8 +139,24 @@ public class ParquetUtils {
               }
             });
       }
+      HashMap<String, List<String>> levels = (HashMap<String, List<String>>) raw_levels.clone();
+      // display raw_levels if the number of unique raw_levels is <= 0.3 / length of data frame
+      raw_levels.forEach(
+          (column, column_levels) -> {
+            if (isUnique(level_counts.get(column), numberOfRows)) {
+              levels.remove(column);
+            }
+          });
+      return levels;
     }
-    return levels;
+  }
+
+  static boolean isUnique(int occurrences, long totalRows) {
+    return ((double) occurrences / totalRows) >= 0.3;
+  }
+
+  static boolean isEmpty(String value) {
+    return value == null || value.isEmpty() || Objects.equals(value, "NA");
   }
 
   public static Map<String, Map<String, Integer>> getMissingData(Path path) throws IOException {
@@ -162,7 +181,7 @@ public class ParquetUtils {
               Integer currentValue = missingInfo.get("count");
               try {
                 var value = group.getValueToString(schema.getFieldIndex(column), 0);
-                if (Objects.equals(value, "NA")) {
+                if (isEmpty(value)) {
                   missingInfo.put("count", currentValue + 1);
                   missings.put(column, missingInfo);
                 }
