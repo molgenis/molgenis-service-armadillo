@@ -40,8 +40,6 @@
             <i class="bi bi-plus-lg"></i>
           </button>
         </th>
-        <th>Tags</th>
-        <th>Auto update</th>
       </template>
       <template #objectType="objectProps">
         <div
@@ -120,27 +118,6 @@
             :disabled="profileToEdit !== '' || profileToEditIndex === 0"
           ></ButtonGroup>
         </th>
-        <td>
-          <span
-            v-if="(columnProps.item.container?.tags || []).length > 0"
-            v-for="tag in columnProps.item.container.tags"
-            :key="tag"
-            class="badge bg-secondary me-1"
-          >
-            {{ tag }}
-          </span>
-          <span v-else>&nbsp;</span>
-        </td>
-        <td>
-          <input
-            class="form-check-input"
-            type="checkbox"
-            :checked="columnProps.item.autoUpdate"
-            @change="
-              updateAutoUpdate(columnProps.item, columnProps.item.autoUpdate)
-            "
-          />
-        </td>
       </template>
       <template #editRow="rowProps">
         <InlineRowEdit
@@ -150,6 +127,14 @@
           :cancel="clearProfileToEdit"
           :hideColumns="['container']"
           :dataStructure="profilesDataStructure"
+        />
+      </template>
+      <template #boolType="boolProps">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          :checked="boolProps.data"
+          @change="updateAutoUpdate(boolProps.row, boolProps.data)"
         />
       </template>
     </Table>
@@ -210,7 +195,11 @@ export default defineComponent({
               profiles[profile_index].options["datashield.seed"];
             // Delete required or else shows when creating or editing profiles
             delete profiles[profile_index].options["datashield.seed"];
+            // Extract tags
+            profiles[profile_index].tags =
+              profiles[profile_index].container?.tags || [];
           }
+          console.log("Loaded profiles:", profiles);
           profilesLoading.value = false;
           return profiles;
         })
@@ -287,6 +276,8 @@ export default defineComponent({
       let columns: TypeObject = {
         name: "string",
         image: "string",
+        tags: "array",
+        autoUpdate: "boolean",
         host: "string",
         port: "string",
         packageWhitelist: "array",
@@ -328,6 +319,7 @@ export default defineComponent({
     saveEditedProfile() {
       this.clearUserMessages();
       const profile: Profile = this.profiles[this.profileToEditIndex];
+      console.log("Saving autoUpdate:", profile.autoUpdate);
       const profileNames = this.profiles.map((profile) => {
         return profile.name;
       });
@@ -425,13 +417,14 @@ export default defineComponent({
       this.profiles.unshift({
         name: "",
         image: "datashield/rock-base:latest",
+        tags: [],
+        autoUpdate: false,
         host: "localhost",
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
         functionBlacklist: [],
         datashieldSeed: this.firstFreeSeed,
         options: {},
-        autoUpdate: false,
         container: { tags: [], status: "unknown" },
       });
       this.profileToEditIndex = 0;
