@@ -58,6 +58,7 @@ export type Principal = {
 export type Profile = {
   name: string;
   image: string;
+  tags?: string[];
   host: string;
   port: number;
   packageWhitelist: StringArray;
