@@ -125,9 +125,49 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="['container', 'tags']"
+          :hideColumns="['container', 'tags', 'autoUpdateSchedule']"
           :dataStructure="profilesDataStructure"
         />
+        <tr>
+          <td colspan="100%">
+            <strong>Auto-update schedule:</strong>
+            <div
+              class="form-check form-check-inline"
+              v-for="option in ['daily', 'weekly', 'monthly']"
+              :key="option"
+            >
+              <input
+                class="form-check-input"
+                type="radio"
+                :id="`freq-${option}`"
+                :value="option"
+                v-model="rowProps.row.autoUpdateSchedule.frequency"
+              />
+              <label class="form-check-label" :for="`freq-${option}`">
+                {{ option }}
+              </label>
+            </div>
+
+            <div class="mt-2">
+              <label class="form-label me-2">Day:</label>
+              <input
+                v-model="rowProps.row.autoUpdateSchedule.day"
+                class="form-control d-inline-block w-auto"
+                placeholder="e.g. Sunday or 01"
+              />
+
+              <label class="form-label ms-3 me-2">Time:</label>
+              <input
+                v-model="rowProps.row.autoUpdateSchedule.time"
+                class="form-control d-inline-block w-auto"
+                placeholder="e.g. 01:00"
+              />
+            </div>
+            <pre>{{
+              JSON.stringify(rowProps.row.autoUpdateSchedule, null, 2)
+            }}</pre>
+          </td>
+        </tr>
       </template>
       <template #boolType="boolProps">
         <input
@@ -136,6 +176,12 @@
           :checked="boolProps.data"
           @change="updateAutoUpdate(boolProps.row, boolProps.data)"
         />
+      </template>
+      <template #autoUpdateSchedule="scheduleProps">
+        <span v-if="scheduleProps.data">
+          {{ formatSchedule(scheduleProps.data) }}
+        </span>
+        <span v-else class="text-muted">Not scheduled</span>
       </template>
     </Table>
   </div>
@@ -198,6 +244,12 @@ export default defineComponent({
             // Extract tags
             profiles[profile_index].tags =
               profiles[profile_index].container?.tags || [];
+            profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
+              .autoUpdateSchedule || {
+              frequency: "weekly",
+              day: "Sunday",
+              time: "01:00",
+            };
           }
           console.log("Loaded profiles:", profiles);
           profilesLoading.value = false;
@@ -278,6 +330,7 @@ export default defineComponent({
         image: "string",
         tags: "array",
         autoUpdate: "boolean",
+        autoUpdateSchedule: "object",
         host: "string",
         port: "string",
         packageWhitelist: "array",
@@ -365,6 +418,10 @@ export default defineComponent({
     proceedEdit(profile: Profile) {
       this.addProfile = false;
       profile.options["datashield.seed"] = profile.datashieldSeed;
+      console.log(
+        "Submitting profile with autoUpdateSchedule:",
+        profile.autoUpdateSchedule
+      );
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -419,6 +476,11 @@ export default defineComponent({
         image: "datashield/rock-base:latest",
         tags: [],
         autoUpdate: false,
+        autoUpdateSchedule: {
+          frequency: "weekly",
+          day: "Sunday",
+          time: "01:00",
+        },
         host: "localhost",
         port: this.firstFreePort,
         packageWhitelist: ["dsBase"],
@@ -468,6 +530,25 @@ export default defineComponent({
         // Revert checkbox on failure
         profile.autoUpdate = currentValue;
       });
+    },
+    formatSchedule(schedule: {
+      frequency: string;
+      day?: string;
+      time: string;
+    }): string {
+      if (!schedule) return "Not scheduled";
+      const { frequency, day, time } = schedule;
+
+      switch (frequency) {
+        case "daily":
+          return `Every day at ${time}`;
+        case "weekly":
+          return `Every ${day} at ${time}`;
+        case "monthly":
+          return `Day ${day} of the month at ${time}`;
+        default:
+          return `${frequency} ${day || ""} at ${time}`;
+      }
     },
     async reloadProfiles() {
       this.loading = true;
