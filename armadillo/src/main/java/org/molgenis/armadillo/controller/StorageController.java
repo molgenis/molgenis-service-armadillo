@@ -321,9 +321,15 @@ public class StorageController {
   public @ResponseBody Map<String, Map<String, String>> determineMetadataOfTable(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
-        () -> storage.getMetadata(project, object),
+        () -> {
+          try {
+            return storage.getMetadata(project, object);
+          } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
         principal,
-        PREVIEW_OBJECT,
+        PREVIEW_METADATA,
         Map.of(PROJECT, project, OBJECT, object));
   }
 

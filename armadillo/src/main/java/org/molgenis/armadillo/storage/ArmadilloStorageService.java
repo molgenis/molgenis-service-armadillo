@@ -389,7 +389,11 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, Map<String, String>> getMetadata(String project, String object) {
     throwIfUnknown(project, object);
-    return storageService.getMetadataFromTablePath(SHARED_PREFIX + project, object);
+    if (object.endsWith(".parquet")) {
+      return storageService.getMetadataFromTablePath(SHARED_PREFIX + project, object);
+    } else {
+      throw new IllegalArgumentException("Metadata can only be retrieved for parquet files");
+    }
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

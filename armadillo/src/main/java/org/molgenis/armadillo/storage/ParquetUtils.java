@@ -88,6 +88,8 @@ public class ParquetUtils {
   }
 
   public static Map<String, String> getDatatypes(Path path) throws IOException {
+    // TODO: doesn't work perfect, see
+    // http://localhost:8080/storage/projects/datashield/objects/factor_levels%2FFACTOR_LEVELS3.parquet/metadata
     try (ParquetFileReader reader = getFileReader(path)) {
       List<Type> schema = getSchemaFromReader(reader).getFields();
       Map<String, String> datatypes = new LinkedHashMap<>();
@@ -98,6 +100,44 @@ public class ParquetUtils {
           });
       return datatypes;
     }
+  }
+
+  public static Map<String, List<String>> getLevels(Path path) throws IOException {
+    Map<String, List<String>> levels = new LinkedHashMap<>();
+    Map<String, String> datatypes = getDatatypes(path);
+    try (ParquetFileReader reader = getFileReader(path)) {
+      long numberOfRows = reader.getRecordCount();
+      MessageType schema = getSchemaFromReader(reader);
+      RecordReader<Group> recordReader = getRecordReader(schema, reader);
+      List<String> columns = getColumnsFromSchema(schema);
+
+      for (int i = 0; i < numberOfRows; i++) {
+        SimpleGroup group = (SimpleGroup) recordReader.read();
+        columns.forEach(
+            column -> {
+              try {
+                String value = group.getValueToString(schema.getFieldIndex(column), 0);
+                if (!levels.containsKey(column)) {
+                  levels.put(column, new ArrayList<>(Arrays.asList(value)));
+                }
+                // if column is binary, if value in row not in list, add it
+                if (Objects.equals(datatypes.get(column), "BINARY")) {
+                  try {
+                    if (!Objects.equals(value, "NA") && !levels.get(column).contains(value)) {
+                      // add value to levels of column
+                      List<String> currentLevels = levels.get(column);
+                      currentLevels.add(value);
+                      levels.put(column, currentLevels);
+                    }
+                  } catch (Exception ignored) {
+                  }
+                }
+              } catch (Exception ignored) {
+              }
+            });
+      }
+    }
+    return levels;
   }
 
   public static Map<String, Map<String, Integer>> getMissingData(Path path) throws IOException {

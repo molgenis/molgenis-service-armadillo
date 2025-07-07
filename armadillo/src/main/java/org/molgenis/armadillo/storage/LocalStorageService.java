@@ -233,12 +233,18 @@ public class LocalStorageService implements StorageService {
       if (objectPath.toString().endsWith(PARQUET)) {
         Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
         Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
+        Map<String, List<String>> levels = ParquetUtils.getLevels(objectPath);
         datatypes.forEach(
             (key, value1) -> {
               Map<String, String> value = new LinkedHashMap<>();
               value.put(
                   "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
               value.put("type", datatypes.get(key));
+              if (datatypes.get(key).equals("BINARY")) {
+                if (levels.containsKey(key)) {
+                  value.put("levels", String.valueOf(levels.get(key)));
+                }
+              }
               metadata.put(key, value);
             });
         // TODO: add missings + levels
