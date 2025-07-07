@@ -152,6 +152,9 @@ public class ParquetUtils {
   }
 
   static boolean isUnique(int occurrences, long totalRows) {
+    if (totalRows == 0) {
+      throw new ArithmeticException("Number of rows is 0, cannot divide by 0");
+    }
     return ((double) occurrences / totalRows) >= 0.3;
   }
 

@@ -54,4 +54,48 @@ public class ParquetUtilsTest {
     assertEquals("24", preview.get(0).get("age"));
     assertNull(preview.get(0).get("name"));
   }
+
+  @Test
+  void testIsUniqueAboveThreshold() {
+    assertTrue(ParquetUtils.isUnique(30, 100)); // 0.3
+    assertTrue(ParquetUtils.isUnique(40, 100)); // 0.4
+  }
+
+  @Test
+  void testIsUniqueBelowThreshold() {
+    assertFalse(ParquetUtils.isUnique(29, 100)); // 0.29
+    assertFalse(ParquetUtils.isUnique(0, 100)); // 0.0
+  }
+
+  @Test
+  void testIsUniqueEdgeCaseZeroRows() {
+    assertThrows(ArithmeticException.class, () -> ParquetUtils.isUnique(1, 0));
+  }
+
+  // --- Tests for isEmpty ---
+
+  @Test
+  void testIsEmptyWithNull() {
+    assertTrue(ParquetUtils.isEmpty(null));
+  }
+
+  @Test
+  void testIsEmptyWithEmptyString() {
+    assertTrue(ParquetUtils.isEmpty(""));
+  }
+
+  @Test
+  void testIsEmptyWithNA() {
+    assertTrue(ParquetUtils.isEmpty("NA"));
+  }
+
+  @Test
+  void testIsEmptyWithNonEmptyString() {
+    assertFalse(ParquetUtils.isEmpty("Hello"));
+  }
+
+  @Test
+  void testIsEmptyWithWhitespaceOnly() {
+    assertFalse(ParquetUtils.isEmpty("   "));
+  }
 }
