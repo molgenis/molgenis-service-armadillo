@@ -125,7 +125,7 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="['container']"
+          :hideColumns="['container', 'tags']"
           :dataStructure="profilesDataStructure"
         />
       </template>
