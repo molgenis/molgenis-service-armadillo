@@ -28,6 +28,10 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract Boolean getAutoUpdate();
 
+  @JsonProperty("autoUpdateSchedule")
+  @Nullable
+  public abstract AutoUpdateSchedule getAutoUpdateSchedule();
+
   @JsonProperty("host")
   @Nullable // defaults to localhost
   @NotEmpty
@@ -51,6 +55,7 @@ public abstract class ProfileConfig {
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("autoUpdate") Boolean autoUpdate,
+      @JsonProperty("autoUpdateSchedule") AutoUpdateSchedule autoUpdateSchedule,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
@@ -60,6 +65,7 @@ public abstract class ProfileConfig {
         newName,
         newImage,
         autoUpdate,
+        autoUpdateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
         newPackageWhitelist,
@@ -67,11 +73,15 @@ public abstract class ProfileConfig {
         newOptions != null ? newOptions : Map.of());
   }
 
+  private static final AutoUpdateSchedule DEFAULT_SCHEDULE =
+      new AutoUpdateSchedule("weekly", "Sunday", "03:00");
+
   public static ProfileConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",
         false,
+        DEFAULT_SCHEDULE,
         "localhost",
         6311,
         Set.of("dsBase"),

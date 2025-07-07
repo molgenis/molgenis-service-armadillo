@@ -201,6 +201,9 @@ public class ProfilesController {
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
+    System.out.println("Incoming profile config: " + profileConfig);
+    System.out.println("Auto-update schedule: " + profileConfig.getAutoUpdateSchedule());
+
     auditor.audit(
         () -> profiles.upsert(profileConfig),
         principal,

@@ -61,6 +61,7 @@ public class ProfileService {
                 profileName,
                 profileConfig.getImage(),
                 profileConfig.getAutoUpdate(),
+                profileConfig.getAutoUpdateSchedule(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),

@@ -23,7 +23,7 @@ public class ProfileScheduler {
     this.profileService = profileService;
   }
 
-  @Scheduled(cron = "0 */3 * * * *")
+  @Scheduled(cron = "0 */1 * * * *")
   public void restartRunningProfiles() {
     LOG.info(
         "Scheduled task: checking for updated images and restarting running profiles if needed");
