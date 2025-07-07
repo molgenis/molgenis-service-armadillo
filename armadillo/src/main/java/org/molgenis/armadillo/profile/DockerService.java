@@ -267,21 +267,24 @@ public class DockerService {
     try {
       LOG.info("Checking if image for profile '{}' has been updated: {}", profileName, image);
 
-      // Get current image ID before pulling
-      String before = dockerClient.inspectImageCmd(image).exec().getId();
-      LOG.debug("Image ID before pull for '{}': {}", profileName, before);
+      // Get the container's current image ID
+      String containerName = asContainerName(profileName);
+      String imageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
 
-      // Pull the image
-      dockerClient
-          .pullImageCmd(image)
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(5, TimeUnit.MINUTES);
+      // Get digest based on image ID (guaranteed to match what's running)
+      List<String> beforeDigests = dockerClient.inspectImageCmd(imageId).exec().getRepoDigests();
+      String before = beforeDigests.isEmpty() ? null : beforeDigests.get(0);
+      LOG.info("Image digest before pull for '{}': {}", profileName, before);
 
-      // Get image ID after pulling
-      String after = dockerClient.inspectImageCmd(image).exec().getId();
-      LOG.debug("Image ID after pull for '{}': {}", profileName, after);
+      // Pull image (always executes a pull, but Docker handles caching)
+      pullImage(profileConfig);
 
-      boolean updated = !before.equals(after);
+      // Get digest after pulling
+      List<String> afterDigests = dockerClient.inspectImageCmd(image).exec().getRepoDigests();
+      String after = afterDigests.isEmpty() ? null : afterDigests.get(0);
+      LOG.info("Image digest after pull for '{}': {}", profileName, after);
+
+      boolean updated = before == null || !before.equals(after);
       if (updated) {
         LOG.info("Image for profile '{}' has changed and will be restarted.", profileName);
       } else {
