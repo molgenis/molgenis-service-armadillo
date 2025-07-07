@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -603,6 +604,38 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             GET_VARIABLES,
             mockSuAuditMap(Map.of(PROJECT, "my-project", OBJECT, "my-table.parquet"))));
+  }
+
+  @Test
+  void testGetMetadataOfTable() throws Exception {
+    Map<String, Map<String, String>> metadata =
+        Map.of(
+            "column1", Map.of("type", "STRING", "description", "Some description"),
+            "column2", Map.of("type", "INTEGER", "description", "Another column"));
+
+    when(storage.getMetadata("lifecycle", "test.parquet")).thenReturn(metadata);
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet/metadata").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content()
+                .json(
+                    """
+                                    {
+                                      "column1": {"type": "STRING", "description": "Some description"},
+                                      "column2": {"type": "INTEGER", "description": "Another column"}
+                                    }
+                                    """,
+                    true));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            PREVIEW_METADATA,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
   }
 
   private Map<String, Object> mockSuAuditMap() {
