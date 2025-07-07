@@ -38,13 +38,16 @@ public class ProfileScheduler {
                   try {
                     var profileConfig = profileService.getByName(profileName);
 
-                    // Pull latest image and check if it updated
-                    boolean updated = dockerService.pullImageIfUpdated(profileConfig);
-                    if (updated) {
-                      LOG.info("Image updated for '{}', restarting...", profileName);
-                      dockerService.startProfile(profileName);
+                    if (Boolean.TRUE.equals(profileConfig.getAutoUpdate())) {
+                      boolean updated = dockerService.pullImageIfUpdated(profileConfig);
+                      if (updated) {
+                        LOG.info("Image updated for '{}', restarting...", profileName);
+                        dockerService.startProfile(profileName);
+                      } else {
+                        LOG.info("No image update for '{}', skipping restart", profileName);
+                      }
                     } else {
-                      LOG.info("No image update for '{}', skipping restart", profileName);
+                      LOG.info("Auto-update disabled for '{}', skipping", profileName);
                     }
                   } catch (Exception e) {
                     LOG.error(
