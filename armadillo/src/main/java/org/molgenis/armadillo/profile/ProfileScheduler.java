@@ -102,8 +102,6 @@ public class ProfileScheduler {
           } else {
             LOG.info("No image update for '{}', skipping restart", profile.getName());
           }
-        } else {
-          LOG.info("Auto-update disabled for '{}', skipping", profile.getName());
         }
       }
     } catch (Exception e) {
