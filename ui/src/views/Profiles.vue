@@ -101,6 +101,17 @@
             ></ProfileStatus>
           </div>
         </div>
+        <div
+          v-else-if="objectProps.row.autoUpdateSchedule === objectProps.data"
+        >
+          <span>
+            {{
+              objectProps.data.frequency === "daily"
+                ? `Daily at ${objectProps.data.time}`
+                : `Weekly, ${objectProps.data.day} at ${objectProps.data.time}`
+            }}
+          </span>
+        </div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
@@ -128,12 +139,12 @@
           :hideColumns="['container', 'tags', 'autoUpdateSchedule']"
           :dataStructure="profilesDataStructure"
         />
-        <tr>
+        <tr v-if="rowProps.row.autoUpdate">
           <td colspan="100%">
             <strong>Auto-update schedule:</strong>
             <div
               class="form-check form-check-inline"
-              v-for="option in ['daily', 'weekly', 'monthly']"
+              v-for="option in ['daily', 'weekly']"
               :key="option"
             >
               <input
@@ -147,25 +158,40 @@
                 {{ option }}
               </label>
             </div>
-
             <div class="mt-2">
               <label class="form-label me-2">Day:</label>
-              <input
+              <select
                 v-model="rowProps.row.autoUpdateSchedule.day"
-                class="form-control d-inline-block w-auto"
-                placeholder="e.g. Sunday or 01"
-              />
-
+                class="form-select d-inline-block w-auto"
+                :disabled="
+                  rowProps.row.autoUpdateSchedule.frequency === 'daily'
+                "
+              >
+                <option value="" disabled>Select day</option>
+                <option
+                  v-for="day in [
+                    'Sunday',
+                    'Monday',
+                    'Tuesday',
+                    'Wednesday',
+                    'Thursday',
+                    'Friday',
+                    'Saturday',
+                  ]"
+                  :key="day"
+                  :value="day"
+                >
+                  {{ day }}
+                </option>
+              </select>
               <label class="form-label ms-3 me-2">Time:</label>
               <input
+                type="time"
                 v-model="rowProps.row.autoUpdateSchedule.time"
                 class="form-control d-inline-block w-auto"
-                placeholder="e.g. 01:00"
+                :disabled="!rowProps.row.autoUpdate"
               />
             </div>
-            <pre>{{
-              JSON.stringify(rowProps.row.autoUpdateSchedule, null, 2)
-            }}</pre>
           </td>
         </tr>
       </template>
@@ -175,13 +201,8 @@
           type="checkbox"
           :checked="boolProps.data"
           @change="updateAutoUpdate(boolProps.row, boolProps.data)"
+          :disabled="profileToEditIndex !== profiles.indexOf(boolProps.row)"
         />
-      </template>
-      <template #autoUpdateSchedule="scheduleProps">
-        <span v-if="scheduleProps.data">
-          {{ formatSchedule(scheduleProps.data) }}
-        </span>
-        <span v-else class="text-muted">Not scheduled</span>
       </template>
     </Table>
   </div>
@@ -251,7 +272,6 @@ export default defineComponent({
               time: "01:00",
             };
           }
-          console.log("Loaded profiles:", profiles);
           profilesLoading.value = false;
           return profiles;
         })
@@ -350,6 +370,19 @@ export default defineComponent({
     profileToEdit() {
       this.profileToEditIndex = this.getEditIndex();
     },
+    profiles: {
+      handler(newProfiles) {
+        newProfiles.forEach((profile: Profile) => {
+          if (
+            profile.autoUpdateSchedule &&
+            profile.autoUpdateSchedule.frequency === "daily"
+          ) {
+            profile.autoUpdateSchedule.day = "";
+          }
+        });
+      },
+      deep: true,
+    },
   },
   methods: {
     proceedDelete(profileName: string) {
@@ -418,10 +451,6 @@ export default defineComponent({
     proceedEdit(profile: Profile) {
       this.addProfile = false;
       profile.options["datashield.seed"] = profile.datashieldSeed;
-      console.log(
-        "Submitting profile with autoUpdateSchedule:",
-        profile.autoUpdateSchedule
-      );
       //add/update
       this.loadingProfile = profile.name;
       putProfile(profile)
@@ -530,25 +559,6 @@ export default defineComponent({
         // Revert checkbox on failure
         profile.autoUpdate = currentValue;
       });
-    },
-    formatSchedule(schedule: {
-      frequency: string;
-      day?: string;
-      time: string;
-    }): string {
-      if (!schedule) return "Not scheduled";
-      const { frequency, day, time } = schedule;
-
-      switch (frequency) {
-        case "daily":
-          return `Every day at ${time}`;
-        case "weekly":
-          return `Every ${day} at ${time}`;
-        case "monthly":
-          return `Day ${day} of the month at ${time}`;
-        default:
-          return `${frequency} ${day || ""} at ${time}`;
-      }
     },
     async reloadProfiles() {
       this.loading = true;
