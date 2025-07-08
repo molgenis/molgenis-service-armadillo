@@ -286,7 +286,7 @@ public class DockerService {
 
       boolean updated = before == null || !before.equals(after);
       if (updated) {
-        LOG.info("Image for profile '{}' has changed and will be restarted.", profileName);
+        LOG.info("Image for profile '{}' has changed.", profileName);
       } else {
         LOG.info("Image for profile '{}' is unchanged.", profileName);
       }
