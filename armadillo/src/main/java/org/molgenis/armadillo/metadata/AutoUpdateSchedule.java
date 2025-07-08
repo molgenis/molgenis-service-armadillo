@@ -14,19 +14,4 @@ public class AutoUpdateSchedule {
     this.day = day;
     this.time = time;
   }
-
-  @Override
-  public String toString() {
-    return "AutoUpdateSchedule{"
-        + "frequency='"
-        + frequency
-        + '\''
-        + ", day='"
-        + day
-        + '\''
-        + ", time='"
-        + time
-        + '\''
-        + '}';
-  }
 }
