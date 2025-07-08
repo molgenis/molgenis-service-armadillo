@@ -405,7 +405,6 @@ export default defineComponent({
     saveEditedProfile() {
       this.clearUserMessages();
       const profile: Profile = this.profiles[this.profileToEditIndex];
-      console.log("Saving autoUpdate:", profile.autoUpdate);
       const profileNames = this.profiles.map((profile) => {
         return profile.name;
       });
@@ -506,9 +505,9 @@ export default defineComponent({
         tags: [],
         autoUpdate: false,
         autoUpdateSchedule: {
-          frequency: "weekly",
-          day: "Sunday",
-          time: "01:00",
+          frequency: "daily",
+          day: "",
+          time: "03:00",
         },
         host: "localhost",
         port: this.firstFreePort,
