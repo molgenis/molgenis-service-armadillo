@@ -230,7 +230,7 @@ public class DockerService {
 
   public void removeProfile(String profileName) {
     // check profile exists
-    profileService.getByName(profileName).getImage();
+    profileService.getByName(profileName);
     stopContainer(profileName);
     removeContainer(profileName);
   }
