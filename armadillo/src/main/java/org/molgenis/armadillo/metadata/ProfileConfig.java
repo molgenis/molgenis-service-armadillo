@@ -73,15 +73,12 @@ public abstract class ProfileConfig {
         newOptions != null ? newOptions : Map.of());
   }
 
-  private static final AutoUpdateSchedule DEFAULT_SCHEDULE =
-      new AutoUpdateSchedule("weekly", "Sunday", "03:00");
-
   public static ProfileConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",
         false,
-        DEFAULT_SCHEDULE,
+        null,
         "localhost",
         6311,
         Set.of("dsBase"),
