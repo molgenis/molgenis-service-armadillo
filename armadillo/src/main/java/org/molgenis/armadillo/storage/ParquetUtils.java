@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.storage;
 
+import static java.lang.Integer.parseInt;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -88,8 +90,6 @@ public class ParquetUtils {
   }
 
   public static Map<String, String> getDatatypes(Path path) throws IOException {
-    // TODO: doesn't work perfect, see
-    // http://localhost:8080/storage/projects/datashield/objects/factor_levels%2FFACTOR_LEVELS3.parquet/metadata
     try (ParquetFileReader reader = getFileReader(path)) {
       List<Type> schema = getSchemaFromReader(reader).getFields();
       Map<String, String> datatypes = new LinkedHashMap<>();
@@ -102,22 +102,42 @@ public class ParquetUtils {
     }
   }
 
-  public static HashMap<String, List<String>> getLevels(Path path) throws IOException {
+  public static HashMap<String, Map<String, String>> getColumnMetaData(Path path)
+      throws IOException {
     HashMap<String, List<String>> raw_levels = new LinkedHashMap<>();
     HashMap<String, Integer> level_counts = new LinkedHashMap<>();
     Map<String, String> datatypes = getDatatypes(path);
+    HashMap<String, Map<String, String>> columnMetaData = new LinkedHashMap<>();
+    // datastructure: {column1: {missing_values: "x", total: "y", levels: "a,b,c"}}
+    // HashMap<String, Map<String, String>>
     try (ParquetFileReader reader = getFileReader(path)) {
       long numberOfRows = reader.getRecordCount();
       MessageType schema = getSchemaFromReader(reader);
       RecordReader<Group> recordReader = getRecordReader(schema, reader);
       List<String> columns = getColumnsFromSchema(schema);
-
       for (int i = 0; i < numberOfRows; i++) {
         SimpleGroup group = (SimpleGroup) recordReader.read();
         columns.forEach(
             column -> {
+              if (!columnMetaData.containsKey(column)) {
+                Map<String, String> metaDataForColumn = new LinkedHashMap<>();
+                metaDataForColumn.put("type", datatypes.get(column));
+                metaDataForColumn.put("missing", "0/" + String.valueOf(numberOfRows));
+                metaDataForColumn.put("levels", "");
+                columnMetaData.put(column, metaDataForColumn);
+              }
+              Map<String, String> metaDataForColumn = columnMetaData.get(column);
+              int currentValue = parseInt(metaDataForColumn.get("missing").split("/")[0]);
+              String total = "/" + metaDataForColumn.get("missing").split("/")[1];
+
               try {
-                String value = group.getValueToString(schema.getFieldIndex(column), 0);
+                var value = group.getValueToString(schema.getFieldIndex(column), 0);
+                if (isEmpty(value)) {
+                  currentValue++;
+                  metaDataForColumn.put("missing", currentValue + total);
+                  columnMetaData.put(column, metaDataForColumn);
+                }
+                // if column is binary, if value in row not in list, add it
                 if (!raw_levels.containsKey(column)) {
                   raw_levels.put(column, new ArrayList<>(Arrays.asList(value)));
                   level_counts.put(column, 1);
@@ -135,20 +155,25 @@ public class ParquetUtils {
                   } catch (Exception ignored) {
                   }
                 }
-              } catch (Exception ignored) {
+              } catch (Exception e) {
+                if (columnMetaData.containsKey(column)) {
+                  currentValue++;
+                  metaDataForColumn.put("missing", currentValue + total);
+                  columnMetaData.put(column, metaDataForColumn);
+                }
               }
             });
       }
-      HashMap<String, List<String>> levels = (HashMap<String, List<String>>) raw_levels.clone();
-      // display raw_levels if the number of unique raw_levels is <= 0.3 / length of data frame
       raw_levels.forEach(
           (column, column_levels) -> {
-            if (isUnique(level_counts.get(column), numberOfRows)) {
-              levels.remove(column);
+            if (!isUnique(level_counts.get(column), numberOfRows)) {
+              Map<String, String> metaDataForColumn = columnMetaData.get(column);
+              metaDataForColumn.put("levels", String.valueOf(column_levels));
+              columnMetaData.put(column, metaDataForColumn);
             }
           });
-      return levels;
     }
+    return columnMetaData;
   }
 
   static boolean isUnique(int occurrences, long totalRows) {
@@ -160,44 +185,6 @@ public class ParquetUtils {
 
   static boolean isEmpty(String value) {
     return value == null || value.isEmpty() || Objects.equals(value, "NA");
-  }
-
-  public static Map<String, Map<String, Integer>> getMissingData(Path path) throws IOException {
-    Map<String, Map<String, Integer>> missings = new LinkedHashMap<>();
-    try (ParquetFileReader reader = getFileReader(path)) {
-      long numberOfRows = reader.getRecordCount();
-      MessageType schema = getSchemaFromReader(reader);
-      RecordReader<Group> recordReader = getRecordReader(schema, reader);
-      List<String> columns = getColumnsFromSchema(schema);
-
-      for (int i = 0; i < numberOfRows; i++) {
-        SimpleGroup group = (SimpleGroup) recordReader.read();
-        columns.forEach(
-            column -> {
-              if (!missings.containsKey(column)) {
-                Map<String, Integer> missingInfo = new LinkedHashMap<>();
-                missingInfo.put("count", 0);
-                missingInfo.put("total", (int) numberOfRows);
-                missings.put(column, missingInfo);
-              }
-              Map<String, Integer> missingInfo = missings.get(column);
-              Integer currentValue = missingInfo.get("count");
-              try {
-                var value = group.getValueToString(schema.getFieldIndex(column), 0);
-                if (isEmpty(value)) {
-                  missingInfo.put("count", currentValue + 1);
-                  missings.put(column, missingInfo);
-                }
-              } catch (Exception e) {
-                if (missings.containsKey(column)) {
-                  missingInfo.put("count", currentValue + 1);
-                  missings.put(column, missingInfo);
-                }
-              }
-            });
-      }
-    }
-    return missings;
   }
 
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {

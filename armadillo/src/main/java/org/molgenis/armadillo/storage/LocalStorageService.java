@@ -224,23 +224,7 @@ public class LocalStorageService implements StorageService {
 
   Map<String, Map<String, String>> getMetaDataOfTable(Path objectPath) throws IOException {
     Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
-    Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
-    Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
-    Map<String, List<String>> levels = ParquetUtils.getLevels(objectPath);
-    datatypes.forEach(
-        (key, value1) -> {
-          Map<String, String> value = new LinkedHashMap<>();
-          value.put(
-              "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
-          value.put("type", datatypes.get(key));
-          if (datatypes.get(key).equals("BINARY")) {
-            if (levels.containsKey(key)) {
-              value.put("levels", String.valueOf(levels.get(key)));
-            }
-          }
-          metadata.put(key, value);
-        });
-    return metadata;
+    return ParquetUtils.getColumnMetaData(objectPath);
   }
 
   @Override
