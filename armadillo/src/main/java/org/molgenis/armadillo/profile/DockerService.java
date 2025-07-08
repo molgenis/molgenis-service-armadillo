@@ -230,9 +230,15 @@ public class DockerService {
 
   public void removeProfile(String profileName) {
     // check profile exists
-    profileService.getByName(profileName);
+    profileService.getByName(profileName).getImage();
     stopContainer(profileName);
     removeContainer(profileName);
+  }
+
+  public void deleteProfile(String profileName) {
+    removeProfile(profileName);
+    String imageName = profileService.getByName(profileName).getImage();
+    removeImageIfUnused(imageName);
   }
 
   private void removeContainer(String containerName) {
@@ -254,5 +260,29 @@ public class DockerService {
       // getting image tags is non-essential, don't throw error
     }
     return emptyList();
+  }
+
+  private void removeImageIfUnused(String imageName) {
+    // Find image ID for given name
+    String imageId = dockerClient.inspectImageCmd(imageName).exec().getId();
+
+    // Check if any containers are using this image ID
+    boolean isInUse =
+        dockerClient.listContainersCmd().withShowAll(true).exec().stream()
+            .anyMatch(container -> container.getImageId().equals(imageId));
+
+    if (isInUse) {
+      LOG.info("Image '{}' (ID: {}) still in use — skipping removal", imageName, imageId);
+      return;
+    }
+
+    // Remove all tags pointing to this image
+    List<String> tags = dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
+    for (String tag : tags) {
+      dockerClient.removeImageCmd(tag).withForce(true).exec();
+      LOG.info("Removed image tag '{}'", tag);
+    }
+
+    LOG.info("Fully removed image ID: {}", imageId);
   }
 }
