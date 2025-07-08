@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.slf4j.Logger;
@@ -221,47 +222,54 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
+  Map<String, Map<String, String>> getMetaDataOfTable(Path objectPath) throws IOException {
+    Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
+    Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
+    Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
+    Map<String, List<String>> levels = ParquetUtils.getLevels(objectPath);
+    datatypes.forEach(
+        (key, value1) -> {
+          Map<String, String> value = new LinkedHashMap<>();
+          value.put(
+              "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
+          value.put("type", datatypes.get(key));
+          if (datatypes.get(key).equals("BINARY")) {
+            if (levels.containsKey(key)) {
+              value.put("levels", String.valueOf(levels.get(key)));
+            }
+          }
+          metadata.put(key, value);
+        });
+    return metadata;
+  }
+
   @Override
   public Map<String, Map<String, String>> getMetadataFromTablePath(
       String bucketName, String objectName) {
     try {
       Objects.requireNonNull(bucketName);
       Objects.requireNonNull(objectName);
-
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
-      Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
       if (objectPath.toString().endsWith(PARQUET)) {
-        Map<String, String> datatypes = ParquetUtils.getDatatypes(objectPath);
-        Map<String, Map<String, Integer>> missings = ParquetUtils.getMissingData(objectPath);
-        Map<String, List<String>> levels = ParquetUtils.getLevels(objectPath);
-        datatypes.forEach(
-            (key, value1) -> {
-              Map<String, String> value = new LinkedHashMap<>();
-              value.put(
-                  "missing", missings.get(key).get("count") + "/" + missings.get(key).get("total"));
-              value.put("type", datatypes.get(key));
-              if (datatypes.get(key).equals("BINARY")) {
-                if (levels.containsKey(key)) {
-                  value.put("levels", String.valueOf(levels.get(key)));
-                }
-              }
-              metadata.put(key, value);
-            });
-        // TODO: add missings + levels
-        return metadata;
+        return getMetaDataOfTable(objectPath);
       } else if (objectPath.toString().endsWith(LINK_FILE)) {
         ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
-        String srcProject = linkFile.getSourceProject();
-        String srcObject = linkFile.getSourceObject();
-        // TODO: only return datatypes of variable in linkfile
-        // TODO: implement for linkfile
-        // String[] variables = linkFile.getVariables().split(",");
-        Path srcObjectPath = getPathIfObjectExists(SHARED_PREFIX + srcProject, srcObject + PARQUET);
-        return metadata;
+        List<String> columns = Arrays.asList(linkFile.getVariables().split(","));
+        Path srcObjectPath =
+            getPathIfObjectExists(
+                SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+        Map<String, Map<String, String>> metadata = getMetaDataOfTable(srcObjectPath);
+        return metadata.entrySet().stream()
+            .filter(
+                map -> {
+                  String key = map.getKey();
+                  return columns.contains(key);
+                })
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       } else {
         throw new StorageException(
             format(
-                "Object [%s/%s] is not a parquet file, cannot determine metadata.",
+                "Object [%s/%s] is not a table, cannot determine metadata.",
                 bucketName, objectName));
       }
     } catch (Exception e) {
