@@ -142,10 +142,10 @@ public class DockerService {
 
   public void startProfile(String profileName) {
     String containerName = asContainerName(profileName);
-    LOG.info("Starting profile '{}', resolved container name: '{}'", profileName, containerName);
+    LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
-
+    pullImage(profileConfig);
     stopContainer(containerName);
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
