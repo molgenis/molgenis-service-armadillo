@@ -16,6 +16,7 @@ import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
@@ -278,24 +279,6 @@ public class DockerService {
     return emptyList();
   }
 
-  private void updateTrackedImage(ProfileConfig profileConfig, String containerName) {
-    String previousImageId = profileConfig.getLastImageId();
-    String currentImageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
-
-    profileService.updateLastImageId(profileConfig.getName(), currentImageId);
-
-    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
-          "Image ID for profile '{}' changed: {} -> {}",
-          profileConfig.getName(),
-          previousImageId,
-          currentImageId);
-      removeImageIfUnused(previousImageId);
-    } else {
-      LOG.info("Image ID for profile '{}' unchanged: {}", profileConfig.getName(), currentImageId);
-    }
-  }
-
   private void removeImageIfUnused(String imageName) {
     try {
       // May throw NotFoundException
@@ -303,7 +286,7 @@ public class DockerService {
 
       boolean isInUse =
           dockerClient.listContainersCmd().withShowAll(true).exec().stream()
-              .anyMatch(container -> container.getImageId().equals(imageId));
+              .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
         LOG.info("Image '{}' (ID: {}) still in use — skipping removal", imageName, imageId);
@@ -311,9 +294,11 @@ public class DockerService {
       }
 
       List<String> tags = dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
-      for (String tag : tags) {
-        dockerClient.removeImageCmd(tag).withForce(true).exec();
-        LOG.info("Removed image tag '{}'", tag);
+      if (tags != null) {
+        for (String tag : tags) {
+          dockerClient.removeImageCmd(tag).withForce(true).exec();
+          LOG.info("Removed image tag '{}'", tag);
+        }
       }
 
       LOG.info("Removed image ID '{}' from local Docker cache", imageId);
