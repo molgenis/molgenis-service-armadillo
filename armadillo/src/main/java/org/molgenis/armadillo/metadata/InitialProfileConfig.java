@@ -20,7 +20,7 @@ public class InitialProfileConfig {
 
   public ProfileConfig toProfileConfig() {
     return ProfileConfig.create(
-        name, image, host, port, packageWhitelist, functionBlacklist, options);
+        name, image, host, port, packageWhitelist, functionBlacklist, options, null);
   }
 
   public void setName(String name) {

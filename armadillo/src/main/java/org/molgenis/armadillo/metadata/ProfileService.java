@@ -64,7 +64,8 @@ public class ProfileService {
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
-                profileConfig.getOptions()));
+                profileConfig.getOptions(),
+                profileConfig.getLastImageId())); // ← add this
 
     flushProfileBeans(profileName);
     save();
@@ -109,5 +110,24 @@ public class ProfileService {
     if (!settings.getProfiles().containsKey(DEFAULT)) {
       upsert(ProfileConfig.createDefault());
     }
+  }
+
+  public void updateLastImageId(String profileName, String newImageId) {
+    ProfileConfig existing = getByName(profileName);
+
+    ProfileConfig updated =
+        ProfileConfig.create(
+            existing.getName(),
+            existing.getImage(),
+            existing.getHost(),
+            existing.getPort(),
+            existing.getPackageWhitelist(),
+            existing.getFunctionBlacklist(),
+            existing.getOptions(),
+            newImageId);
+
+    settings.getProfiles().put(profileName, updated);
+    flushProfileBeans(profileName);
+    save();
   }
 }
