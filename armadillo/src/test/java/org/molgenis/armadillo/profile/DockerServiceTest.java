@@ -164,7 +164,8 @@ class DockerServiceTest {
             6312,
             Set.of("dsBase", "dsOmics"),
             emptySet(),
-            emptyMap());
+            emptyMap(),
+            null);
     return List.of(profile1, profile2);
   }
 }
