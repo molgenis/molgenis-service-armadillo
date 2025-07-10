@@ -137,7 +137,7 @@ public class ParquetUtils {
     return columnMetaData;
   }
 
-  private static void processRows(
+  static void processRows(
       RecordReader<Group> recordReader,
       long numberOfRows,
       MessageType schema,
@@ -145,10 +145,9 @@ public class ParquetUtils {
       Map<String, String> datatypes,
       HashMap<String, Map<String, String>> columnMetaData,
       HashMap<String, List<String>> rawLevels,
-      HashMap<String, Integer> levelCounts)
-      throws IOException {
+      HashMap<String, Integer> levelCounts) {
     for (int i = 0; i < numberOfRows; i++) {
-      SimpleGroup group = (SimpleGroup) recordReader.read();
+      Group group = recordReader.read();
       for (String column : columns) {
         initializeColumnMetadata(
             column, datatypes, columnMetaData, rawLevels, levelCounts, numberOfRows);
@@ -157,7 +156,7 @@ public class ParquetUtils {
     }
   }
 
-  private static void initializeColumnMetadata(
+  static void initializeColumnMetadata(
       String column,
       Map<String, String> datatypes,
       HashMap<String, Map<String, String>> columnMetaData,
@@ -175,8 +174,8 @@ public class ParquetUtils {
     }
   }
 
-  private static void handleColumnValue(
-      SimpleGroup group,
+  static void handleColumnValue(
+      Group group,
       MessageType schema,
       String column,
       Map<String, String> datatypes,
