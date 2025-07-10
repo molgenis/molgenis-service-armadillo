@@ -158,14 +158,10 @@ public class DockerService {
     profileService.updateLastImageId(profileName, currentImageId);
 
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
-          "Image ID for profile '{}' changed: {} -> {}",
-          profileName,
-          previousImageId,
-          currentImageId);
+      LOG.info("Image ID for profile '{}' changed", profileName);
       removeImageIfUnused(previousImageId);
     } else {
-      LOG.info("Image ID for profile '{}' unchanged: {}", profileName, currentImageId);
+      LOG.info("Image ID for profile '{}' unchanged", profileName);
     }
   }
 
