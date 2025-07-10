@@ -110,54 +110,106 @@ public class ParquetUtils {
 
   public static HashMap<String, Map<String, String>> getColumnMetaData(Path path)
       throws IOException {
-    HashMap<String, List<String>> raw_levels = new LinkedHashMap<>();
-    HashMap<String, Integer> level_counts = new LinkedHashMap<>();
+    HashMap<String, List<String>> rawLevels = new LinkedHashMap<>();
+    HashMap<String, Integer> levelCounts = new LinkedHashMap<>();
     Map<String, String> datatypes = getDatatypes(path);
     HashMap<String, Map<String, String>> columnMetaData = new LinkedHashMap<>();
+
     try (ParquetFileReader reader = getFileReader(path)) {
       long numberOfRows = reader.getRecordCount();
       MessageType schema = getSchemaFromReader(reader);
       RecordReader<Group> recordReader = getRecordReader(schema, reader);
       List<String> columns = getColumnsFromSchema(schema);
-      for (int i = 0; i < numberOfRows; i++) {
-        SimpleGroup group = (SimpleGroup) recordReader.read();
-        columns.forEach(
-            column -> {
-              if (!columnMetaData.containsKey(column)) {
-                Map<String, String> metaDataForColumn = new LinkedHashMap<>();
-                metaDataForColumn.put(TYPE, datatypes.get(column));
-                metaDataForColumn.put(MISSING, "0/" + numberOfRows);
-                metaDataForColumn.put(LEVELS, "");
-                level_counts.put(column, 0);
-                raw_levels.put(column, new ArrayList<>());
-                columnMetaData.put(column, metaDataForColumn);
-              }
 
-              try {
-                var value = group.getValueToString(schema.getFieldIndex(column), 0);
-                if (isEmpty(value)) {
-                  countMissingValue(columnMetaData, column);
-                }
-                if (Objects.equals(datatypes.get(column), BINARY_TYPE)) {
-                  try {
-                    if (!isEmpty(value) && !raw_levels.get(column).contains(value)) {
-                      List<String> currentLevels = raw_levels.get(column);
-                      currentLevels.add(value);
-                      countLevelValue(raw_levels, level_counts, column, value);
-                    }
-                  } catch (Exception ignored) {
-                  }
-                }
-              } catch (Exception e) {
-                if (columnMetaData.containsKey(column)) {
-                  countMissingValue(columnMetaData, column);
-                }
-              }
-            });
-      }
-      addLevelsToMetaData(raw_levels, level_counts, numberOfRows, columnMetaData);
+      processRows(
+          recordReader,
+          numberOfRows,
+          schema,
+          columns,
+          datatypes,
+          columnMetaData,
+          rawLevels,
+          levelCounts);
+
+      addLevelsToMetaData(rawLevels, levelCounts, numberOfRows, columnMetaData);
     }
+
     return columnMetaData;
+  }
+
+  private static void processRows(
+      RecordReader<Group> recordReader,
+      long numberOfRows,
+      MessageType schema,
+      List<String> columns,
+      Map<String, String> datatypes,
+      HashMap<String, Map<String, String>> columnMetaData,
+      HashMap<String, List<String>> rawLevels,
+      HashMap<String, Integer> levelCounts)
+      throws IOException {
+    for (int i = 0; i < numberOfRows; i++) {
+      SimpleGroup group = (SimpleGroup) recordReader.read();
+      for (String column : columns) {
+        initializeColumnMetadata(
+            column, datatypes, columnMetaData, rawLevels, levelCounts, numberOfRows);
+        handleColumnValue(group, schema, column, datatypes, columnMetaData, rawLevels, levelCounts);
+      }
+    }
+  }
+
+  private static void initializeColumnMetadata(
+      String column,
+      Map<String, String> datatypes,
+      HashMap<String, Map<String, String>> columnMetaData,
+      HashMap<String, List<String>> rawLevels,
+      HashMap<String, Integer> levelCounts,
+      long numberOfRows) {
+    if (!columnMetaData.containsKey(column)) {
+      Map<String, String> metaDataForColumn = new LinkedHashMap<>();
+      metaDataForColumn.put(TYPE, datatypes.get(column));
+      metaDataForColumn.put(MISSING, "0/" + numberOfRows);
+      metaDataForColumn.put(LEVELS, "");
+      levelCounts.put(column, 0);
+      rawLevels.put(column, new ArrayList<>());
+      columnMetaData.put(column, metaDataForColumn);
+    }
+  }
+
+  private static void handleColumnValue(
+      SimpleGroup group,
+      MessageType schema,
+      String column,
+      Map<String, String> datatypes,
+      HashMap<String, Map<String, String>> columnMetaData,
+      HashMap<String, List<String>> rawLevels,
+      HashMap<String, Integer> levelCounts) {
+    try {
+      String value = group.getValueToString(schema.getFieldIndex(column), 0);
+
+      if (isEmpty(value)) {
+        countMissingValue(columnMetaData, column);
+      } else if (Objects.equals(datatypes.get(column), BINARY_TYPE)) {
+        handleBinaryLevel(column, value, rawLevels, levelCounts);
+      }
+
+    } catch (Exception e) {
+      countMissingValue(columnMetaData, column);
+    }
+  }
+
+  private static void handleBinaryLevel(
+      String column,
+      String value,
+      HashMap<String, List<String>> rawLevels,
+      HashMap<String, Integer> levelCounts) {
+    try {
+      List<String> currentLevels = rawLevels.get(column);
+      if (!currentLevels.contains(value)) {
+        currentLevels.add(value);
+        countLevelValue(rawLevels, levelCounts, column, value);
+      }
+    } catch (Exception ignored) {
+    }
   }
 
   private static void countLevelValue(
