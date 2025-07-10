@@ -22,8 +22,8 @@ import org.apache.parquet.schema.Type;
 public class ParquetUtils {
   private static final String MISSING = "missing";
   private static final String LEVELS = "levels";
-  private static final String BINARY_TYPE = "binary";
   private static final String TYPE = "type";
+  private static final String BINARY_TYPE = "BINARY";
   private static final String NA_VALUE = "NA";
 
   public static List<Map<String, String>> previewRecords(
