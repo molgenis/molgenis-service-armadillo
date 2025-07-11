@@ -42,27 +42,29 @@ class DockerServiceTest {
   @Mock private ProfileService profileService;
   private DockerService dockerService;
 
+  /** Test-only callback that never blocks. */
+  private static class NonBlockingCallback extends PullImageResultCallback {
+    @Override
+    public PullImageResultCallback awaitCompletion() {
+      return this; // no-op
+    }
+
+    @Override
+    public boolean awaitCompletion(long timeout, TimeUnit unit) {
+      return true; // immediate success
+    }
+  }
+
   @BeforeEach
   void setup() {
     dockerService = new DockerService(dockerClient, profileService);
 
-    var pullImageCmd = mock(PullImageCmd.class);
-    when(dockerClient.pullImageCmd(anyString())).thenReturn(pullImageCmd);
+    // lenient so tests that don't pull images won't fail strict-stubbing checks
+    PullImageCmd pullImageCmd = mock(PullImageCmd.class);
+    lenient().when(dockerClient.pullImageCmd(anyString())).thenReturn(pullImageCmd);
 
-    var callback =
-        new PullImageResultCallback() {
-          @Override
-          public PullImageResultCallback awaitCompletion() {
-            return this; // prevent actual blocking
-          }
-
-          @Override
-          public boolean awaitCompletion(long timeout, TimeUnit unit) {
-            return true; // prevent blocking with timeout
-          }
-        };
-
-    when(pullImageCmd.exec(any(PullImageResultCallback.class))).thenReturn(callback);
+    // return a non-blocking callback from exec(..)
+    lenient().when(pullImageCmd.exec(any())).thenReturn(new NonBlockingCallback());
   }
 
   @Test
