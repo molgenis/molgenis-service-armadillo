@@ -12,6 +12,7 @@ import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse.ContainerState;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.PullImageResultCallback;
@@ -188,39 +189,40 @@ class DockerServiceTest {
 
   @Test
   void testStartImageRemovalWhenIdChanges() {
-    var mockProfileConfig = mock(ProfileConfig.class);
-    when(profileService.getByName("default")).thenReturn(mockProfileConfig);
-    when(mockProfileConfig.getImage()).thenReturn("datashield/armadillo-rserver");
-    when(mockProfileConfig.getLastImageId()).thenReturn("sha256:old");
+    var profileCfg = mock(ProfileConfig.class);
+    when(profileService.getByName("default")).thenReturn(profileCfg);
+    when(profileCfg.getImage()).thenReturn("datashield/armadillo-rserver");
+    when(profileCfg.getLastImageId()).thenReturn("sha256:old");
 
-    var inspectContainerResponse = mock(InspectContainerResponse.class);
-    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectContainerResponse);
-    when(inspectContainerResponse.getImageId()).thenReturn("sha256:new");
+    var containerInfo = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(containerInfo);
+    when(containerInfo.getImageId()).thenReturn("sha256:new");
 
-    var inspectImageResponse = mock(com.github.dockerjava.api.command.InspectImageResponse.class);
-    when(dockerClient.inspectImageCmd("sha256:old").exec()).thenReturn(inspectImageResponse);
-    when(inspectImageResponse.getId()).thenReturn("sha256:old");
-    when(inspectImageResponse.getRepoTags())
-        .thenReturn(List.of("datashield/armadillo-rserver:oldtag"));
+    // old image has one tag
+    var inspectOld = mock(InspectImageResponse.class);
+    when(dockerClient.inspectImageCmd("sha256:old").exec()).thenReturn(inspectOld);
+    when(inspectOld.getRepoTags())
+        .thenReturn(List.of("datashield/armadillo-rserver:oldtag")); // used
 
-    var listContainersCmd = mock(com.github.dockerjava.api.command.ListContainersCmd.class);
-    when(dockerClient.listContainersCmd()).thenReturn(listContainersCmd);
-    when(listContainersCmd.withShowAll(true)).thenReturn(listContainersCmd);
-    when(listContainersCmd.exec()).thenReturn(List.of()); // no containers use old image
+    // no containers use the old image
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of());
 
-    var removeImageCmd = mock(com.github.dockerjava.api.command.RemoveImageCmd.class);
-    when(dockerClient.removeImageCmd("datashield/armadillo-rserver:oldtag"))
-        .thenReturn(removeImageCmd);
-    when(removeImageCmd.withForce(true)).thenReturn(removeImageCmd);
-    doNothing().when(removeImageCmd).exec();
+    // image-removal chain
+    var rmCmd = mock(RemoveImageCmd.class);
+    when(dockerClient.removeImageCmd("datashield/armadillo-rserver:oldtag")).thenReturn(rmCmd);
+    when(rmCmd.withForce(true)).thenReturn(rmCmd);
+    doNothing().when(rmCmd).exec();
 
-    // Directly call the method that contains removal logic (assuming it’s accessible)
+    // act
     dockerService.startProfile("default");
 
+    // assert
     verify(dockerClient).removeImageCmd("datashield/armadillo-rserver:oldtag");
-    verify(removeImageCmd).withForce(true);
-    verify(removeImageCmd).exec();
-
+    verify(rmCmd).withForce(true);
+    verify(rmCmd).exec();
     verify(profileService).updateLastImageId("default", "sha256:new");
   }
 
