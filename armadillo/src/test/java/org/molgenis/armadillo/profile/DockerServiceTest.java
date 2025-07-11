@@ -12,8 +12,10 @@ import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse.ContainerState;
+import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.command.RemoveImageCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import jakarta.ws.rs.ProcessingException;
@@ -185,7 +187,7 @@ class DockerServiceTest {
   }
 
   @Test
-  void testImageRemovalWhenIdChanges() {
+  void testStartImageRemovalWhenIdChanges() {
     var mockProfileConfig = mock(ProfileConfig.class);
     when(profileService.getByName("default")).thenReturn(mockProfileConfig);
     when(mockProfileConfig.getImage()).thenReturn("datashield/armadillo-rserver");
@@ -223,7 +225,7 @@ class DockerServiceTest {
   }
 
   @Test
-  void testImageNotRemovedWhenIdUnchanged() {
+  void testStartImageNotRemovedWhenIdUnchanged() {
     var mockProfileConfig = mock(ProfileConfig.class);
     when(profileService.getByName("default")).thenReturn(mockProfileConfig);
     when(mockProfileConfig.getImage()).thenReturn("datashield/armadillo-rserver");
@@ -259,23 +261,91 @@ class DockerServiceTest {
   }
 
   @Test
-  void testRemoveProfile() {
-    // given an existing profile
-    var profileConfig = ProfileConfig.createDefault();
-    when(profileService.getByName("default")).thenReturn(profileConfig);
+  void removeImageIfUnused_skipsWhenImageIdIsNull() {
+    assertDoesNotThrow(() -> dockerService.removeImageIfUnused(null));
 
-    // stub stop/remove commands so .exec() is callable
-    var stopCmd = mock(com.github.dockerjava.api.command.StopContainerCmd.class, RETURNS_SELF);
-    var rmCmd = mock(com.github.dockerjava.api.command.RemoveContainerCmd.class, RETURNS_SELF);
-    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
-    when(dockerClient.removeContainerCmd("default")).thenReturn(rmCmd);
+    verify(dockerClient, never()).inspectImageCmd(anyString());
+    verify(dockerClient, never()).removeImageCmd(anyString());
+  }
 
-    // when
-    dockerService.removeProfile("default");
+  @Test
+  void removeImageIfUnused_skipsWhenImageInUse() {
+    var container = mock(Container.class);
+    when(container.getImageId()).thenReturn("sha256:inuse");
 
-    // then
-    verify(profileService).getByName("default");
-    verify(dockerClient).stopContainerCmd("default");
-    verify(dockerClient).removeContainerCmd("default");
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of(container));
+
+    dockerService.removeImageIfUnused("sha256:inuse");
+
+    verify(dockerClient, never()).removeImageCmd(anyString());
+  }
+
+  @Test
+  void removeImageIfUnused_removesAllTags() {
+    String imageId = "sha256:unused";
+    List<String> tags = List.of("image:tag1", "image:tag2");
+
+    // use a spy to stub getImageTags
+    DockerService spyService = spy(dockerService);
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of()); // not in use
+
+    doReturn(tags).when(spyService).getImageTags(imageId);
+
+    for (String tag : tags) {
+      var rmCmd = mock(RemoveImageCmd.class);
+      when(dockerClient.removeImageCmd(tag)).thenReturn(rmCmd);
+      when(rmCmd.withForce(true)).thenReturn(rmCmd);
+      doNothing().when(rmCmd).exec();
+    }
+
+    spyService.removeImageIfUnused(imageId);
+
+    verify(dockerClient).removeImageCmd("image:tag1");
+    verify(dockerClient).removeImageCmd("image:tag2");
+  }
+
+  @Test
+  void removeImageIfUnused_handlesImageNotFound() {
+    String imageId = "sha256:missing";
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of()); // not in use
+
+    when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
+
+    assertDoesNotThrow(() -> dockerService.removeImageIfUnused(imageId));
+  }
+
+  @Test
+  void deleteProfile_removesProfileAndImage() {
+    var profileName = "default";
+    var imageId = "sha256:test";
+
+    // mock config with image ID
+    var config = mock(ProfileConfig.class);
+    when(config.getLastImageId()).thenReturn(imageId);
+    when(profileService.getByName(profileName)).thenReturn(config);
+
+    // spy DockerService to verify internal method calls
+    var spyService = spy(new DockerService(dockerClient, profileService));
+    doNothing().when(spyService).removeProfile(profileName);
+    doNothing().when(spyService).removeImageIfUnused(imageId);
+
+    // execute
+    spyService.deleteProfile(profileName);
+
+    // verify interactions
+    verify(spyService).removeProfile(profileName);
+    verify(profileService).getByName(profileName);
+    verify(spyService).removeImageIfUnused(imageId);
   }
 }
