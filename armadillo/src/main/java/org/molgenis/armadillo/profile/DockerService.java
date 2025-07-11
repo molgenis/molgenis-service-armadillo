@@ -250,8 +250,8 @@ public class DockerService {
 
   public void deleteProfile(String profileName) {
     removeProfile(profileName);
-    String imageName = profileService.getByName(profileName).getImage();
-    removeImageIfUnused(imageName);
+    String imageId = profileService.getByName(profileName).getLastImageId();
+    removeImageIfUnused(imageId);
   }
 
   private void removeContainer(String containerName) {
@@ -265,7 +265,7 @@ public class DockerService {
     }
   }
 
-  private List<String> getImageTags(String imageId) {
+  List<String> getImageTags(String imageId) {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
@@ -275,32 +275,32 @@ public class DockerService {
     return emptyList();
   }
 
-  private void removeImageIfUnused(String imageName) {
-    try {
-      // May throw NotFoundException
-      String imageId = dockerClient.inspectImageCmd(imageName).exec().getId();
+  void removeImageIfUnused(String imageId) {
+    if (imageId == null) {
+      LOG.info("No image ID provided; skipping image removal");
+      return;
+    }
 
+    try {
       boolean isInUse =
           dockerClient.listContainersCmd().withShowAll(true).exec().stream()
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
-        LOG.info("Image '{}' (ID: {}) still in use — skipping removal", imageName, imageId);
+        LOG.info("Image ID still in use — skipping removal");
         return;
       }
 
-      List<String> tags = dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
-      if (tags != null) {
-        for (String tag : tags) {
-          dockerClient.removeImageCmd(tag).withForce(true).exec();
-          LOG.info("Removed image tag '{}'", tag);
-        }
+      List<String> tags = getImageTags(imageId);
+      for (String tag : tags) {
+        dockerClient.removeImageCmd(tag).withForce(true).exec();
+        LOG.info("Removed image tag '{}'", tag);
       }
 
-      LOG.info("Removed image ID '{}' from local Docker cache", imageId);
+      LOG.info("Removed image ID from local Docker cache");
 
     } catch (NotFoundException e) {
-      LOG.info("Image '{}' does not exist locally; skipping removal", imageName);
+      LOG.info("Image ID not found locally; skipping removal");
     }
   }
 }
