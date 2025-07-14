@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
@@ -157,11 +158,20 @@ public class DockerService {
 
     profileService.updateLastImageId(profileName, currentImageId);
 
+    String safeProfileName = StringEscapeUtils.escapeJava(profileName);
+    String safePrevImageId = StringEscapeUtils.escapeJava(previousImageId);
+    String safeCurrImageId = StringEscapeUtils.escapeJava(currentImageId);
+
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info("Image ID for profile '{}' changed", profileName);
+      LOG.info(
+          "Image ID for profile '{}' changed from '{}' to '{}'",
+          safeProfileName,
+          safePrevImageId,
+          safeCurrImageId);
       removeImageIfUnused(previousImageId);
     } else {
-      LOG.info("Image ID for profile '{}' unchanged", profileName);
+      LOG.info(
+          "Image ID for profile '{}' unchanged (still '{}')", safeProfileName, safeCurrImageId);
     }
   }
 
@@ -281,26 +291,22 @@ public class DockerService {
       return;
     }
 
+    String safeImageId = StringEscapeUtils.escapeJava(imageId);
+
     try {
       boolean isInUse =
           dockerClient.listContainersCmd().withShowAll(true).exec().stream()
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
-        LOG.info("Image ID still in use — skipping removal");
+        LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
         return;
       }
 
-      List<String> tags = getImageTags(imageId);
-      for (String tag : tags) {
-        dockerClient.removeImageCmd(tag).withForce(true).exec();
-        LOG.info("Removed image tag '{}'", tag);
-      }
-
-      LOG.info("Removed image ID from local Docker cache");
-
+      dockerClient.removeImageCmd(imageId).withForce(true).exec();
+      LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
     } catch (NotFoundException e) {
-      LOG.info("Image ID not found locally; skipping removal");
+      LOG.info("Image ID '{}' not found locally; skipping removal", safeImageId);
     }
   }
 }
