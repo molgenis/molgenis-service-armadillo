@@ -67,12 +67,12 @@ class ProfileServiceTest {
     // Mock loader and dependencies
     ProfilesLoader loader = mock(ProfilesLoader.class);
     InitialProfileConfigs initialProfiles = mock(InitialProfileConfigs.class);
-    ProfileScope profileScope = mock(ProfileScope.class);
+    ProfileScope mockProfileScope = mock(ProfileScope.class);
 
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    ProfileService profileService = new ProfileService(loader, initialProfiles, profileScope);
+    ProfileService profileService = new ProfileService(loader, initialProfiles, mockProfileScope);
     profileService.initialize();
 
     // Act: update the image id
@@ -83,7 +83,7 @@ class ProfileServiceTest {
     assertEquals(newImageId, updated.getLastImageId());
 
     // Verify flush and save were called
-    verify(profileScope).removeAllProfileBeans(profileName);
+    verify(mockProfileScope).removeAllProfileBeans(profileName);
     verify(loader).save(any());
   }
 }
