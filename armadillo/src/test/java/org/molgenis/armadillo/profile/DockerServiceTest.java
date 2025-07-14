@@ -6,13 +6,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doNothing;
 import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse.ContainerState;
-import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.PullImageResultCallback;
@@ -79,9 +77,9 @@ class DockerServiceTest {
     when(containerState.getRunning()).thenReturn(true);
     var inspectContainerResponse = mock(InspectContainerResponse.class);
     when(dockerClient.inspectContainerCmd(name).exec()).thenReturn(inspectContainerResponse);
+    when(inspectContainerResponse.getState()).thenReturn(containerState);
     when(dockerClient.inspectImageCmd(name).exec().getRepoTags()).thenReturn(tags);
     when(inspectContainerResponse.getName()).thenReturn(name);
-    when(inspectContainerResponse.getState()).thenReturn(containerState);
 
     var expected = ContainerInfo.create(tags, RUNNING);
 
@@ -198,11 +196,8 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(containerInfo);
     when(containerInfo.getImageId()).thenReturn("sha256:new");
 
-    // old image has one tag
-    var inspectOld = mock(InspectImageResponse.class);
-    when(dockerClient.inspectImageCmd("sha256:old").exec()).thenReturn(inspectOld);
-    when(inspectOld.getRepoTags())
-        .thenReturn(List.of("datashield/armadillo-rserver:oldtag")); // used
+    // return tags — optional now
+    when(dockerClient.inspectImageCmd("sha256:old").exec().getRepoTags()).thenReturn(List.of());
 
     // no containers use the old image
     var listCmd = mock(ListContainersCmd.class);
@@ -210,9 +205,9 @@ class DockerServiceTest {
     when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of());
 
-    // image-removal chain
+    // image-removal by image ID
     var rmCmd = mock(RemoveImageCmd.class);
-    when(dockerClient.removeImageCmd("datashield/armadillo-rserver:oldtag")).thenReturn(rmCmd);
+    when(dockerClient.removeImageCmd("sha256:old")).thenReturn(rmCmd);
     when(rmCmd.withForce(true)).thenReturn(rmCmd);
     doNothing().when(rmCmd).exec();
 
@@ -220,7 +215,7 @@ class DockerServiceTest {
     dockerService.startProfile("default");
 
     // assert
-    verify(dockerClient).removeImageCmd("datashield/armadillo-rserver:oldtag");
+    verify(dockerClient).removeImageCmd("sha256:old");
     verify(rmCmd).withForce(true);
     verify(rmCmd).exec();
     verify(profileService).updateLastImageId("default", "sha256:new");
@@ -286,31 +281,24 @@ class DockerServiceTest {
   }
 
   @Test
-  void removeImageIfUnused_removesAllTags() {
+  void removeImageIfUnused_removesImageById() {
     String imageId = "sha256:unused";
-    List<String> tags = List.of("image:tag1", "image:tag2");
-
-    // use a spy to stub getImageTags
-    DockerService spyService = spy(dockerService);
 
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
     when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of()); // not in use
 
-    doReturn(tags).when(spyService).getImageTags(imageId);
+    var rmCmd = mock(RemoveImageCmd.class);
+    when(dockerClient.removeImageCmd(imageId)).thenReturn(rmCmd);
+    when(rmCmd.withForce(true)).thenReturn(rmCmd);
+    doNothing().when(rmCmd).exec();
 
-    for (String tag : tags) {
-      var rmCmd = mock(RemoveImageCmd.class);
-      when(dockerClient.removeImageCmd(tag)).thenReturn(rmCmd);
-      when(rmCmd.withForce(true)).thenReturn(rmCmd);
-      doNothing().when(rmCmd).exec();
-    }
+    dockerService.removeImageIfUnused(imageId);
 
-    spyService.removeImageIfUnused(imageId);
-
-    verify(dockerClient).removeImageCmd("image:tag1");
-    verify(dockerClient).removeImageCmd("image:tag2");
+    verify(dockerClient).removeImageCmd(imageId);
+    verify(rmCmd).withForce(true);
+    verify(rmCmd).exec();
   }
 
   @Test
