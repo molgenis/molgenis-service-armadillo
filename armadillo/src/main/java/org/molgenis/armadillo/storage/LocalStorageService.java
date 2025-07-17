@@ -213,7 +213,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  private ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
+  ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
     InputStream armadilloLinkFileStream = load(bucketName, objectName);
     return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
   }
@@ -222,9 +222,21 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
-  Map<String, Map<String, String>> getMetaDataOfTable(Path objectPath) throws IOException {
-    Map<String, Map<String, String>> metadata = new LinkedHashMap<>();
-    return ParquetUtils.getColumnMetaData(objectPath);
+  Map<String, Map<String, String>> getMetaDataForLinkfile(String bucketName, String objectName)
+      throws IOException {
+    ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+    List<String> columns = Arrays.asList(linkFile.getVariables().split(","));
+    Path srcObjectPath =
+        getPathIfObjectExists(
+            SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+    Map<String, Map<String, String>> metadata = ParquetUtils.getColumnMetaData(srcObjectPath);
+    return metadata.entrySet().stream()
+        .filter(
+            map -> {
+              String key = map.getKey();
+              return columns.contains(key);
+            })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
@@ -235,21 +247,9 @@ public class LocalStorageService implements StorageService {
       Objects.requireNonNull(objectName);
       Path objectPath = getPathIfObjectExists(bucketName, objectName);
       if (objectPath.toString().endsWith(PARQUET)) {
-        return getMetaDataOfTable(objectPath);
+        return ParquetUtils.getColumnMetaData(objectPath);
       } else if (objectPath.toString().endsWith(LINK_FILE)) {
-        ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
-        List<String> columns = Arrays.asList(linkFile.getVariables().split(","));
-        Path srcObjectPath =
-            getPathIfObjectExists(
-                SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
-        Map<String, Map<String, String>> metadata = getMetaDataOfTable(srcObjectPath);
-        return metadata.entrySet().stream()
-            .filter(
-                map -> {
-                  String key = map.getKey();
-                  return columns.contains(key);
-                })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return getMetaDataForLinkfile(bucketName, objectName);
       } else {
         throw new StorageException(
             format(
@@ -261,8 +261,8 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  private FileInfo getFileInfoForLinkFile(
-      String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
+  FileInfo getFileInfoForLinkFile(String bucketName, String objectName, String fileSizeWithUnit)
+      throws FileNotFoundException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
     Path srcObjectPath =
         getPathIfObjectExists(
