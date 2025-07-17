@@ -111,6 +111,15 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "SU")
+  void testGetMetaData() {
+    when(storageService.listBuckets()).thenReturn(List.of("shared-test"));
+    when(armadilloStorage.hasObject("test", "my-object")).thenReturn(Boolean.TRUE);
+    armadilloStorage.getMetadata("test", "my-object");
+    verify(storageService).getMetadataFromTablePath("shared-test", "my-object");
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
   void testDeleteProjectNotExists() {
     when(storageService.listBuckets()).thenReturn(List.of());
     assertThrows(UnknownProjectException.class, () -> armadilloStorage.deleteProject("test"));
