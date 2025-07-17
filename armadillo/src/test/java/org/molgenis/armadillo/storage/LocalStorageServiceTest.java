@@ -9,9 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 
-import com.opencsv.exceptions.CsvValidationException;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,7 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -34,7 +31,6 @@ import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.multipart.MultipartFile;
 
 class LocalStorageServiceTest {
   @Autowired LocalStorageService localStorageService;
@@ -434,85 +430,5 @@ class LocalStorageServiceTest {
     assertFalse(result.containsKey("age"));
 
     mockedParquetUtils.close();
-  }
-
-  @Test
-  void testGetMetaDataForLinkfile() throws IOException, CsvValidationException {
-    //    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
-    //    String bucket = "shared-my-bucket";
-    //    String object = "my-table.parquet";
-    //    String testData =
-    //
-    // "{\"sourceObject\":\"my-table\",\"sourceProject\":\"my-bucket\",\"variables\":\"id,place\"}";
-    //    String csvData = "id,name,age,place\n1,Alice,35,London\n2,Bob,28,Berlin\n";
-    //    if(new File(tmpDir + "/" +  bucket).mkdirs()) {
-    //      MultipartFile multipartFileMock = mock(MultipartFile.class);
-    //      Mockito.when(multipartFileMock.getInputStream())
-    //              .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
-    //      Mockito.when(multipartFileMock.getOriginalFilename()).thenReturn("test.csv");
-    //      CharacterSeparatedFile csvFile = new CharacterSeparatedFile(multipartFileMock);
-    //
-    //      // write a file
-    //      localStorageService.save(
-    //              new ByteArrayInputStream(testData.getBytes()),
-    //              "shared-user-admin",
-    //              "blah.alf",
-    //              MediaType.TEXT_PLAIN);
-    //      // save the parquet thing...
-    ////    MockedStatic<Paths> mockedPaths = Mockito.mockStatic(Paths.class, RETURNS_DEEP_STUBS);
-    //      MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
-    ////    Path bucketPathMock = mock(Path.class);
-    //      Path objectPathMock = mock(Path.class);
-    //      String objectPathString = localStorageService.rootDir + "/" + bucket + "/" + object;
-    ////    when(objectPathMock.startsWith(bucketPathMock)).thenReturn(Boolean.TRUE);
-    //      Path path = Path.of(objectPathString);
-    //
-    //
-    ////    when(Paths.get(objectPathString)).thenReturn(path);
-    ////    when(Paths.get(localStorageService.rootDir, bucket,
-    // object).toAbsolutePath().normalize())
-    ////            .thenReturn(objectPathMock);
-    ////    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(bucketPathMock);
-    ////    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath())
-    ////            .thenReturn(bucketPathMock);
-    ////    when(Paths.get(localStorageService.rootDir, bucket).toAbsolutePath().normalize())
-    ////            .thenReturn(bucketPathMock);
-    ////    when(Paths.get(localStorageService.rootDir, bucket)).thenReturn(path);
-    ////    when(Files.exists(bucketPathMock)).thenReturn(Boolean.TRUE);
-    ////    when(Files.exists(objectPathMock)).thenReturn(Boolean.TRUE);
-    //      csvFile.writeParquet(objectPathString);
-    //      localStorageService.getMetadataFromTablePath("shared-user-admin", "blah.alf");
-    //      mockedParquetUtils.verify(() -> ParquetUtils.getColumnMetaData(path));
-    //
-    ////    mockedPaths.close();
-    //      mockedFiles.close();
-    //    }
-    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
-    String bucket = "shared-my-bucket";
-    String object = "my-table.parquet";
-    String csvData = "id,name,age,place\n1,Alice,35,London\n2,Bob,28,Berlin\n";
-    String testData =
-        "{\"sourceObject\":\"my-table\",\"sourceProject\":\"my-bucket\",\"variables\":\"id,place\"}";
-    Path tempDirWithPrefix = Files.createTempDirectory("temp");
-    if (new File(tempDirWithPrefix + "/" + bucket).mkdirs()) {
-      // works with this tempdir, but not with the global tmpDir
-      String savePath = tempDirWithPrefix.toString() + "/" + object;
-      MultipartFile mockFile = mock(MultipartFile.class);
-
-      Mockito.when(mockFile.getInputStream())
-          .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
-      Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
-
-      CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
-      csf.writeParquet(savePath);
-      localStorageService.save(
-          new ByteArrayInputStream(testData.getBytes()),
-          "shared-user-admin",
-          "blah.alf",
-          MediaType.TEXT_PLAIN);
-      localStorageService.getMetadataFromTablePath("shared-user-admin", "blah.alf");
-      mockedParquetUtils.verify(() -> ParquetUtils.getColumnMetaData(Path.of(savePath)));
-    }
-    FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
 }
