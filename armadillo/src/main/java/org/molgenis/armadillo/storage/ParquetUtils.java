@@ -231,7 +231,7 @@ public class ParquetUtils {
     metaDataForThisColumn.put(MISSING, currentCount + total);
   }
 
-  private static void addLevelsToMetaData(
+  static void addLevelsToMetaData(
       HashMap<String, List<String>> raw_levels,
       HashMap<String, Integer> level_counts,
       long numberOfRows,
