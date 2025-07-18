@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -222,14 +223,14 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
-  Map<String, Map<String, String>> getMetaDataForLinkfile(String bucketName, String objectName)
+  Map<String, ArmadilloColumnMetaData> getMetaDataForLinkfile(String bucketName, String objectName)
       throws IOException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
     List<String> columns = Arrays.asList(linkFile.getVariables().split(","));
     Path srcObjectPath =
         getPathIfObjectExists(
             SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
-    Map<String, Map<String, String>> metadata = ParquetUtils.getColumnMetaData(srcObjectPath);
+    Map<String, ArmadilloColumnMetaData> metadata = ParquetUtils.getColumnMetaData(srcObjectPath);
     return metadata.entrySet().stream()
         .filter(
             map -> {
@@ -240,7 +241,7 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public Map<String, Map<String, String>> getMetadataFromTablePath(
+  public Map<String, ArmadilloColumnMetaData> getMetadataFromTablePath(
       String bucketName, String objectName) {
     try {
       Objects.requireNonNull(bucketName);

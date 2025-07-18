@@ -1,7 +1,5 @@
 package org.molgenis.armadillo.storage;
 
-import static java.lang.Integer.parseInt;
-
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -18,6 +16,7 @@ import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 
 public class ParquetUtils {
   private static final String MISSING = "missing";
@@ -108,12 +107,12 @@ public class ParquetUtils {
     }
   }
 
-  public static HashMap<String, Map<String, String>> getColumnMetaData(Path path)
+  public static HashMap<String, ArmadilloColumnMetaData> getColumnMetaData(Path path)
       throws IOException {
-    HashMap<String, List<String>> rawLevels = new LinkedHashMap<>();
+    HashMap<String, Set<String>> rawLevels = new LinkedHashMap<>();
     HashMap<String, Integer> levelCounts = new LinkedHashMap<>();
     Map<String, String> datatypes = getDatatypes(path);
-    HashMap<String, Map<String, String>> columnMetaData = new LinkedHashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new LinkedHashMap<>();
 
     try (ParquetFileReader reader = getFileReader(path)) {
       long numberOfRows = reader.getRecordCount();
@@ -143,8 +142,8 @@ public class ParquetUtils {
       MessageType schema,
       List<String> columns,
       Map<String, String> datatypes,
-      HashMap<String, Map<String, String>> columnMetaData,
-      HashMap<String, List<String>> rawLevels,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
       HashMap<String, Integer> levelCounts) {
     for (int i = 0; i < numberOfRows; i++) {
       Group group = recordReader.read();
@@ -159,18 +158,17 @@ public class ParquetUtils {
   static void initializeColumnMetadata(
       String column,
       Map<String, String> datatypes,
-      HashMap<String, Map<String, String>> columnMetaData,
-      HashMap<String, List<String>> rawLevels,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
       HashMap<String, Integer> levelCounts,
       long numberOfRows) {
     if (!columnMetaData.containsKey(column)) {
-      Map<String, String> metaDataForColumn = new LinkedHashMap<>();
-      metaDataForColumn.put(TYPE, datatypes.get(column));
-      metaDataForColumn.put(MISSING, "0/" + numberOfRows);
-      metaDataForColumn.put(LEVELS, "");
+      ArmadilloColumnMetaData armadilloColumnMetaData =
+          ArmadilloColumnMetaData.create(datatypes.get(column));
+      armadilloColumnMetaData.setTotal(numberOfRows);
       levelCounts.put(column, 0);
-      rawLevels.put(column, new ArrayList<>());
-      columnMetaData.put(column, metaDataForColumn);
+      rawLevels.put(column, new HashSet<>());
+      columnMetaData.put(column, armadilloColumnMetaData);
     }
   }
 
@@ -179,30 +177,30 @@ public class ParquetUtils {
       MessageType schema,
       String column,
       Map<String, String> datatypes,
-      HashMap<String, Map<String, String>> columnMetaData,
-      HashMap<String, List<String>> rawLevels,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
       HashMap<String, Integer> levelCounts) {
     try {
       String value = group.getValueToString(schema.getFieldIndex(column), 0);
 
       if (isEmpty(value)) {
-        countMissingValue(columnMetaData, column);
+        columnMetaData.get(column).countMissingValue();
       } else if (Objects.equals(datatypes.get(column), BINARY_TYPE)) {
         handleBinaryLevel(column, value, rawLevels, levelCounts);
       }
 
     } catch (Exception e) {
-      countMissingValue(columnMetaData, column);
+      columnMetaData.get(column).countMissingValue();
     }
   }
 
   private static void handleBinaryLevel(
       String column,
       String value,
-      HashMap<String, List<String>> rawLevels,
+      HashMap<String, Set<String>> rawLevels,
       HashMap<String, Integer> levelCounts) {
     try {
-      List<String> currentLevels = rawLevels.get(column);
+      Set<String> currentLevels = rawLevels.get(column);
       if (!currentLevels.contains(value)) {
         currentLevels.add(value);
         countLevelValue(rawLevels, levelCounts, column, value);
@@ -212,37 +210,28 @@ public class ParquetUtils {
   }
 
   private static void countLevelValue(
-      HashMap<String, List<String>> raw_levels,
+      HashMap<String, Set<String>> raw_levels,
       HashMap<String, Integer> level_counts,
       String column,
       String levelToAdd) {
-    List<String> currentLevels = raw_levels.get(column);
+    Set<String> currentLevels = raw_levels.get(column);
     currentLevels.add(levelToAdd);
     raw_levels.put(column, currentLevels);
     level_counts.put(column, level_counts.get(column) + 1);
   }
 
-  private static void countMissingValue(
-      HashMap<String, Map<String, String>> columnMetaData, String column) {
-    Map<String, String> metaDataForThisColumn = columnMetaData.get(column);
-    String[] splitValue = metaDataForThisColumn.get(MISSING).split("/");
-    int currentCount = parseInt(splitValue[0]) + 1;
-    String total = "/" + splitValue[1];
-    metaDataForThisColumn.put(MISSING, currentCount + total);
-  }
-
   static void addLevelsToMetaData(
-      HashMap<String, List<String>> raw_levels,
+      HashMap<String, Set<String>> raw_levels,
       HashMap<String, Integer> level_counts,
       long numberOfRows,
-      HashMap<String, Map<String, String>> columnMetaData) {
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData) {
     raw_levels.forEach(
         (column, column_levels) -> {
           if (!isUnique(level_counts.get(column), numberOfRows)
-              && columnMetaData.get(column).get(TYPE).equals(BINARY_TYPE)) {
-            columnMetaData.get(column).put(LEVELS, String.valueOf(column_levels));
+              && columnMetaData.get(column).getType().equals(BINARY_TYPE)) {
+            columnMetaData.get(column).setPossibleLevels(column_levels);
           } else {
-            columnMetaData.get(column).remove(LEVELS);
+            columnMetaData.get(column).setPossibleLevels(null);
           }
         });
   }

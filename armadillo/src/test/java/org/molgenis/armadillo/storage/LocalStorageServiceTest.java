@@ -29,6 +29,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -420,7 +421,7 @@ class LocalStorageServiceTest {
         .thenReturn(mockMetadata);
 
     // Call the method under test
-    Map<String, Map<String, String>> result =
+    Map<String, ArmadilloColumnMetaData> result =
         localStorageService.getMetadataFromTablePath(linkBucket, linkObject);
 
     // Assertions

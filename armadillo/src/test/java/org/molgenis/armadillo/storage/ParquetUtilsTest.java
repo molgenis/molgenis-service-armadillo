@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.*;
+import org.apache.commons.compress.utils.Sets;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
 import org.junit.jupiter.api.Test;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 
 public class ParquetUtilsTest {
   @Test
@@ -107,31 +109,32 @@ public class ParquetUtilsTest {
   @Test
   void testInitializeColumnMetadataCreatesExpectedStructure() {
     Map<String, String> datatypes = Map.of("myColumn", "BINARY");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
 
     ParquetUtils.initializeColumnMetadata(
         "myColumn", datatypes, columnMetaData, rawLevels, levelCounts, 5L);
 
     assertTrue(columnMetaData.containsKey("myColumn"));
-    assertEquals("BINARY", columnMetaData.get("myColumn").get("type"));
-    assertEquals("0/5", columnMetaData.get("myColumn").get("missing"));
-    assertEquals("", columnMetaData.get("myColumn").get("levels"));
+    assertEquals("BINARY", columnMetaData.get("myColumn").getType());
+    assertEquals("0/5", columnMetaData.get("myColumn").getTotalMissing());
+    assertEquals(0, columnMetaData.get("myColumn").getLevels().size());
     assertEquals(0, levelCounts.get("myColumn"));
-    assertEquals(List.of(), rawLevels.get("myColumn"));
+    assertEquals(Set.of(), rawLevels.get("myColumn"));
   }
 
   @Test
   void testHandleColumnValueCountsMissingWhenEmpty() {
     Map<String, String> datatypes = Map.of("col", "BINARY");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
 
-    columnMetaData.put(
-        "col", new HashMap<>(Map.of("type", "BINARY", "missing", "0/1", "levels", "")));
-    rawLevels.put("col", new ArrayList<>());
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("BINARY");
+    armadilloColumnMetaData.setTotal(1L);
+    columnMetaData.put("col", armadilloColumnMetaData);
+    rawLevels.put("col", new HashSet<>());
     levelCounts.put("col", 0);
 
     // Mock Group
@@ -145,18 +148,19 @@ public class ParquetUtilsTest {
     ParquetUtils.handleColumnValue(
         group, schema, "col", datatypes, columnMetaData, rawLevels, levelCounts);
 
-    assertEquals("1/1", columnMetaData.get("col").get("missing"));
+    assertEquals("1/1", columnMetaData.get("col").getTotalMissing());
   }
 
   @Test
   void testHandleColumnValueAddsBinaryLevel() {
     Map<String, String> datatypes = Map.of("col", "BINARY");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
-    columnMetaData.put(
-        "col", new HashMap<>(Map.of("type", "BINARY", "missing", "0/1", "levels", "")));
-    rawLevels.put("col", new ArrayList<>());
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("BINARY");
+    armadilloColumnMetaData.setTotal(1L);
+    columnMetaData.put("col", armadilloColumnMetaData);
+    rawLevels.put("col", new HashSet<>());
     levelCounts.put("col", 0);
 
     SimpleGroup group = mock(SimpleGroup.class);
@@ -176,8 +180,8 @@ public class ParquetUtilsTest {
   void testProcessRowsWithSingleRow() throws Exception {
     // Prepare mocks and test data
     Map<String, String> datatypes = Map.of("col1", "BINARY", "col2", "INT32");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
     List<String> columns = List.of("col1", "col2");
     long numberOfRows = 1;
@@ -223,8 +227,8 @@ public class ParquetUtilsTest {
     assertTrue(columnMetaData.containsKey("col2"));
 
     // Check missing counts (should be "0/1" initially)
-    assertEquals("0/1", columnMetaData.get("col1").get("missing"));
-    assertEquals("0/1", columnMetaData.get("col2").get("missing"));
+    assertEquals("0/1", columnMetaData.get("col1").getTotalMissing());
+    assertEquals("0/1", columnMetaData.get("col2").getTotalMissing());
 
     // For col1 (BINARY), level should be recorded
     assertTrue(rawLevels.get("col1").contains("level1"));
@@ -263,33 +267,34 @@ public class ParquetUtilsTest {
             Objects.requireNonNull(this.getClass().getClassLoader().getResource("patient.parquet"))
                 .toURI());
 
-    HashMap<String, Map<String, String>> metadata = ParquetUtils.getColumnMetaData(path);
+    HashMap<String, ArmadilloColumnMetaData> metadata = ParquetUtils.getColumnMetaData(path);
 
     assertNotNull(metadata);
     assertEquals(3, metadata.size());
 
     // Validate "id"
-    Map<String, String> idMeta = metadata.get("id");
+    ArmadilloColumnMetaData idMeta = metadata.get("id");
+    idMeta.setPossibleLevels(Sets.newHashSet("1", "2", "3"));
     assertNotNull(idMeta);
-    assertEquals("INT32", idMeta.get("type"));
-    assertTrue(idMeta.get("missing").matches("\\d+/\\d+")); // e.g., "0/11"
-    assertFalse(idMeta.containsKey("levels")); // INT32 should not have levels
+    assertEquals("INT32", idMeta.getType());
+    assertTrue(idMeta.getTotalMissing().matches("\\d+/\\d+")); // e.g., "0/11"
+    assertNull(idMeta.getLevels()); // INT32 should not have levels
 
     // Validate "age"
-    Map<String, String> ageMeta = metadata.get("age");
+    ArmadilloColumnMetaData ageMeta = metadata.get("age");
+    ageMeta.setPossibleLevels(Sets.newHashSet("1", "2", "3"));
     assertNotNull(ageMeta);
-    assertEquals("INT32", ageMeta.get("type"));
-    assertTrue(ageMeta.get("missing").matches("\\d+/\\d+"));
-    assertFalse(ageMeta.containsKey("levels")); // No levels for non-BINARY
+    assertEquals("INT32", ageMeta.getType());
+    assertTrue(ageMeta.getTotalMissing().matches("\\d+/\\d+"));
+    assertNull(ageMeta.getLevels()); // No levels for non-BINARY
 
     // Validate "name"
-    Map<String, String> nameMeta = metadata.get("name");
+    ArmadilloColumnMetaData nameMeta = metadata.get("name");
+    nameMeta.setPossibleLevels(Sets.newHashSet("A", "B", "C"));
     assertNotNull(nameMeta);
-    assertEquals("BINARY", nameMeta.get("type"));
-    assertTrue(nameMeta.get("missing").matches("\\d+/\\d+"));
-    if (nameMeta.containsKey("levels")) {
-      assertTrue(nameMeta.get("levels").startsWith("["));
-    }
+    assertEquals("BINARY", nameMeta.getType());
+    assertTrue(nameMeta.getTotalMissing().matches("\\d+/\\d+"));
+    assertFalse(Objects.requireNonNull(nameMeta.getLevels()).isEmpty());
   }
 
   @Test
@@ -302,8 +307,8 @@ public class ParquetUtilsTest {
   @Test
   void testProcessRowsWithAllValuesPresent() {
     Map<String, String> datatypes = Map.of("col", "INT32");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
     List<String> columns = List.of("col");
     long numberOfRows = 1;
@@ -333,15 +338,15 @@ public class ParquetUtilsTest {
         rawLevels,
         levelCounts);
 
-    assertEquals("0/1", columnMetaData.get("col").get("missing"));
-    assertEquals("", columnMetaData.get("col").get("levels"));
+    assertEquals("0/1", columnMetaData.get("col").getTotalMissing());
+    assertNull(columnMetaData.get("col").getLevels());
   }
 
   @Test
   void testProcessRowsWithMissingValue() {
     Map<String, String> datatypes = Map.of("col", "INT32");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
     List<String> columns = List.of("col");
     long numberOfRows = 1;
@@ -371,14 +376,14 @@ public class ParquetUtilsTest {
         rawLevels,
         levelCounts);
 
-    assertEquals("1/1", columnMetaData.get("col").get("missing"));
+    assertEquals("1/1", columnMetaData.get("col").getTotalMissing());
   }
 
   @Test
   void testProcessRowsBinaryLevels() {
     Map<String, String> datatypes = Map.of("status", "BINARY");
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
     HashMap<String, Integer> levelCounts = new HashMap<>();
     List<String> columns = List.of("status");
     long numberOfRows = 2;
@@ -415,7 +420,7 @@ public class ParquetUtilsTest {
         rawLevels,
         levelCounts);
 
-    assertEquals("0/2", columnMetaData.get("status").get("missing"));
+    assertEquals("0/2", columnMetaData.get("status").getTotalMissing());
     assertTrue(rawLevels.get("status").contains("active"));
     assertTrue(rawLevels.get("status").contains("inactive"));
     assertEquals(2, levelCounts.get("status"));
@@ -423,67 +428,73 @@ public class ParquetUtilsTest {
 
   @Test
   void testAddLevelsToMetaData_shouldAddLevelsWhenNotUniqueAndBinary() {
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
-    rawLevels.put("col", new ArrayList<>(List.of("A", "B")));
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
+    rawLevels.put("col", Sets.newHashSet("A", "B"));
 
     HashMap<String, Integer> levelCounts = new HashMap<>();
     levelCounts.put("col", 1); // 1 / 5 = 0.2 < 0.3 → not unique
 
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    columnMetaData.put("col", new HashMap<>(Map.of("type", "BINARY", "missing", "0/5")));
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("BINARY");
+    armadilloColumnMetaData.setTotal(5L);
+    columnMetaData.put("col", armadilloColumnMetaData);
 
     ParquetUtils.addLevelsToMetaData(rawLevels, levelCounts, 5, columnMetaData);
 
-    assertEquals("[A, B]", columnMetaData.get("col").get("levels"));
+    assertTrue(Objects.requireNonNull(columnMetaData.get("col").getLevels()).contains("A"));
+    assertTrue(Objects.requireNonNull(columnMetaData.get("col").getLevels()).contains("B"));
   }
 
   @Test
   void testAddLevelsToMetaData_shouldRemoveLevelsWhenUnique() {
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
-    rawLevels.put("col", new ArrayList<>(List.of("A", "B", "C")));
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
+    rawLevels.put("col", Sets.newHashSet("A", "B", "C"));
 
     HashMap<String, Integer> levelCounts = new HashMap<>();
     levelCounts.put("col", 5); // 5 / 5 = 1.0 → unique
 
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    columnMetaData.put(
-        "col", new HashMap<>(Map.of("type", "BINARY", "missing", "0/5", "levels", "[A, B, C]")));
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("BINARY");
+    armadilloColumnMetaData.setPossibleLevels(rawLevels.get("col"));
+    armadilloColumnMetaData.setTotal(5L);
+    columnMetaData.put("col", armadilloColumnMetaData);
 
     ParquetUtils.addLevelsToMetaData(rawLevels, levelCounts, 5, columnMetaData);
-
-    assertFalse(columnMetaData.get("col").containsKey("levels")); // Should be removed
+    assertNull(columnMetaData.get("col").getLevels());
   }
 
   @Test
   void testAddLevelsToMetaData_shouldSkipNonBinaryColumns() {
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
-    rawLevels.put("col", new ArrayList<>(List.of("1", "2")));
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
+    rawLevels.put("col", Sets.newHashSet("1", "2"));
 
     HashMap<String, Integer> levelCounts = new HashMap<>();
     levelCounts.put("col", 1); // doesn't matter, not BINARY
 
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    columnMetaData.put(
-        "col", new HashMap<>(Map.of("type", "INT32", "missing", "0/5", "levels", "[1, 2]")));
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("INT32");
+    armadilloColumnMetaData.setPossibleLevels(rawLevels.get("col"));
+    armadilloColumnMetaData.setTotal(5L);
+    columnMetaData.put("col", armadilloColumnMetaData);
 
     ParquetUtils.addLevelsToMetaData(rawLevels, levelCounts, 5, columnMetaData);
-
-    assertFalse(columnMetaData.get("col").containsKey("levels")); // Should be removed
+    assertNull(columnMetaData.get("col").getLevels());
   }
 
   @Test
   void testAddLevelsToMetaData_handlesEmptyLevelsGracefully() {
-    HashMap<String, List<String>> rawLevels = new HashMap<>();
-    rawLevels.put("col", new ArrayList<>());
-
+    HashMap<String, Set<String>> rawLevels = new HashMap<>();
+    rawLevels.put("col", new HashSet<>());
     HashMap<String, Integer> levelCounts = new HashMap<>();
     levelCounts.put("col", 0);
 
-    HashMap<String, Map<String, String>> columnMetaData = new HashMap<>();
-    columnMetaData.put("col", new HashMap<>(Map.of("type", "BINARY", "missing", "0/2")));
-
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
+    ArmadilloColumnMetaData armadilloColumnMetaData = ArmadilloColumnMetaData.create("BINARY");
+    armadilloColumnMetaData.setTotal(2L);
+    columnMetaData.put("col", armadilloColumnMetaData);
     ParquetUtils.addLevelsToMetaData(rawLevels, levelCounts, 2, columnMetaData);
-
-    assertEquals("[]", columnMetaData.get("col").get("levels")); // empty, but added
+    assertTrue(
+        Objects.requireNonNull(columnMetaData.get("col").getLevels())
+            .isEmpty()); // empty, but added
   }
 }

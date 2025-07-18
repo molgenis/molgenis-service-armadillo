@@ -33,6 +33,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
@@ -318,7 +319,7 @@ public class StorageController {
   @GetMapping(
       path = "/projects/{project}/objects/{object}/metadata",
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Map<String, Map<String, String>> getMetadataOfTable(
+  public @ResponseBody Map<String, ArmadilloColumnMetaData> getMetadataOfTable(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> {

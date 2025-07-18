@@ -24,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -607,10 +608,13 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testGetMetadataOfTable() throws Exception {
-    Map<String, Map<String, String>> metadata =
+    ArmadilloColumnMetaData armadilloColumn1 = ArmadilloColumnMetaData.create("INT32");
+    ArmadilloColumnMetaData armadilloColumn2 = ArmadilloColumnMetaData.create("BINARY");
+
+    Map<String, ArmadilloColumnMetaData> metadata =
         Map.of(
-            "column1", Map.of("type", "STRING", "description", "Some description"),
-            "column2", Map.of("type", "INTEGER", "description", "Another column"));
+            "column1", armadilloColumn1,
+            "column2", armadilloColumn2);
 
     when(storage.getMetadata("lifecycle", "test.parquet")).thenReturn(metadata);
 
@@ -623,8 +627,8 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 .json(
                     """
                                     {
-                                      "column1": {"type": "STRING", "description": "Some description"},
-                                      "column2": {"type": "INTEGER", "description": "Another column"}
+                                      "column1": {"type": "INT32", "missing":  "0/0"},
+                                      "column2": {"type": "BINARY", "missing":  "0/0", "levels":  []}
                                     }
                                     """,
                     true));
