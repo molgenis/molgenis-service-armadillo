@@ -177,7 +177,7 @@ public class ParquetUtilsTest {
   }
 
   @Test
-  void testProcessRowsWithSingleRow() throws Exception {
+  void testProcessRowsWithSingleRow() {
     // Prepare mocks and test data
     Map<String, String> datatypes = Map.of("col1", "BINARY", "col2", "INT32");
     HashMap<String, ArmadilloColumnMetaData> columnMetaData = new HashMap<>();
@@ -267,7 +267,7 @@ public class ParquetUtilsTest {
             Objects.requireNonNull(this.getClass().getClassLoader().getResource("patient.parquet"))
                 .toURI());
 
-    HashMap<String, ArmadilloColumnMetaData> metadata = ParquetUtils.getColumnMetaData(path);
+    Map<String, ArmadilloColumnMetaData> metadata = ParquetUtils.getColumnMetaData(path);
 
     assertNotNull(metadata);
     assertEquals(3, metadata.size());

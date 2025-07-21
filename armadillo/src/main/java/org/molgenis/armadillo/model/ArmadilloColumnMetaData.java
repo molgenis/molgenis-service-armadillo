@@ -13,7 +13,7 @@ import java.util.*;
 public abstract class ArmadilloColumnMetaData {
   private int missing = 0;
   private long total = 0;
-  private Set<String> possible_levels = new HashSet<>();
+  private Set<String> possibleLevels = new HashSet<>();
 
   @JsonProperty("type")
   @NotEmpty
@@ -24,7 +24,6 @@ public abstract class ArmadilloColumnMetaData {
   public String getTotalMissing() {
     return getMissing() + "/" + getTotal();
   }
-  ;
 
   @JsonProperty("levels")
   @Nullable
@@ -34,7 +33,6 @@ public abstract class ArmadilloColumnMetaData {
     }
     return null;
   }
-  ;
 
   @JsonCreator
   public static ArmadilloColumnMetaData create(@JsonProperty("type") String newType) {
@@ -61,11 +59,11 @@ public abstract class ArmadilloColumnMetaData {
     this.missing = missing;
   }
 
-  public void setPossibleLevels(Set<String> possible_levels) {
-    this.possible_levels = possible_levels;
+  public void setPossibleLevels(Set<String> possibleLevels) {
+    this.possibleLevels = possibleLevels;
   }
 
   private Set<String> getPossibleLevels() {
-    return possible_levels;
+    return possibleLevels;
   }
 }

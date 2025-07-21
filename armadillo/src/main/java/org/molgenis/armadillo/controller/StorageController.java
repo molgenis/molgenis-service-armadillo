@@ -319,7 +319,7 @@ public class StorageController {
   @GetMapping(
       path = "/projects/{project}/objects/{object}/metadata",
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Map<String, ArmadilloColumnMetaData> getMetadataOfTable(
+  public Map<String, ArmadilloColumnMetaData> getMetadataOfTable(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     return auditor.audit(
         () -> {

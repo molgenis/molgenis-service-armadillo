@@ -16,12 +16,10 @@ import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 
 public class ParquetUtils {
-  private static final String MISSING = "missing";
-  private static final String LEVELS = "levels";
-  private static final String TYPE = "type";
   private static final String BINARY_TYPE = "BINARY";
   private static final String NA_VALUE = "NA";
 
@@ -99,15 +97,14 @@ public class ParquetUtils {
       List<Type> schema = getSchemaFromReader(reader).getFields();
       Map<String, String> datatypes = new LinkedHashMap<>();
       schema.forEach(
-          (field) -> {
-            datatypes.put(
-                field.getName(), ((PrimitiveType) field).getPrimitiveTypeName().toString());
-          });
+          field ->
+              datatypes.put(
+                  field.getName(), ((PrimitiveType) field).getPrimitiveTypeName().toString()));
       return datatypes;
     }
   }
 
-  public static HashMap<String, ArmadilloColumnMetaData> getColumnMetaData(Path path)
+  public static Map<String, ArmadilloColumnMetaData> getColumnMetaData(Path path)
       throws IOException {
     HashMap<String, Set<String>> rawLevels = new LinkedHashMap<>();
     HashMap<String, Integer> levelCounts = new LinkedHashMap<>();
@@ -206,6 +203,7 @@ public class ParquetUtils {
         countLevelValue(rawLevels, levelCounts, column, value);
       }
     } catch (Exception ignored) {
+      throw new StorageException("Cannot handle binary level for column: " + column);
     }
   }
 
@@ -221,15 +219,15 @@ public class ParquetUtils {
   }
 
   static void addLevelsToMetaData(
-      HashMap<String, Set<String>> raw_levels,
-      HashMap<String, Integer> level_counts,
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts,
       long numberOfRows,
       HashMap<String, ArmadilloColumnMetaData> columnMetaData) {
-    raw_levels.forEach(
-        (column, column_levels) -> {
-          if (!isUnique(level_counts.get(column), numberOfRows)
+    rawLevels.forEach(
+        (column, columnLevels) -> {
+          if (!isUnique(levelCounts.get(column), numberOfRows)
               && columnMetaData.get(column).getType().equals(BINARY_TYPE)) {
-            columnMetaData.get(column).setPossibleLevels(column_levels);
+            columnMetaData.get(column).setPossibleLevels(columnLevels);
           } else {
             columnMetaData.get(column).setPossibleLevels(null);
           }
