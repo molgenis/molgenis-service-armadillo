@@ -8,6 +8,7 @@ import java.text.StringCharacterIterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
@@ -60,4 +61,7 @@ public interface StorageService {
   }
 
   ArmadilloWorkspace getWorkSpace(InputStream is);
+
+  Map<String, ArmadilloColumnMetaData> getMetadataFromTablePath(
+      String bucketName, String objectName);
 }
