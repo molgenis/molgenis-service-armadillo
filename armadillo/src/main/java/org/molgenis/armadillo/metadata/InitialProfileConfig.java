@@ -30,7 +30,8 @@ public class InitialProfileConfig {
         port,
         packageWhitelist,
         functionBlacklist,
-        options);
+        options,
+        null);
   }
 
   public void setName(String name) {

@@ -50,6 +50,10 @@ public abstract class ProfileConfig {
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
+  @JsonProperty("lastImageId")
+  @Nullable
+  public abstract String getLastImageId();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
@@ -60,7 +64,8 @@ public abstract class ProfileConfig {
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
-      @JsonProperty("options") Map<String, String> newOptions) {
+      @JsonProperty("options") Map<String, String> newOptions,
+      @JsonProperty("lastImageId") @Nullable String newLastImageId) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
@@ -70,7 +75,8 @@ public abstract class ProfileConfig {
         newPort,
         newPackageWhitelist,
         newFunctionBlacklist,
-        newOptions != null ? newOptions : Map.of());
+        newOptions != null ? newOptions : Map.of(),
+        newLastImageId);
   }
 
   public static ProfileConfig createDefault() {
@@ -83,7 +89,8 @@ public abstract class ProfileConfig {
         6311,
         Set.of("dsBase"),
         emptySet(),
-        Map.of("datashield.seed", "342325352"));
+        Map.of("datashield.seed", "342325352"),
+        null);
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {

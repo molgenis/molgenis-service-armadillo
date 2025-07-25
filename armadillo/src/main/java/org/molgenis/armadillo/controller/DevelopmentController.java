@@ -131,7 +131,8 @@ public class DevelopmentController {
             currentConfig.getPort(),
             whitelist,
             currentConfig.getFunctionBlacklist(),
-            currentConfig.getOptions());
+            currentConfig.getOptions(),
+            null);
     auditEventPublisher.audit(
         () -> profiles.upsert(profileConfig),
         principal,
