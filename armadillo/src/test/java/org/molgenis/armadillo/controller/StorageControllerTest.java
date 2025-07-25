@@ -24,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(StorageController.class)
@@ -603,6 +605,41 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             GET_VARIABLES,
             mockSuAuditMap(Map.of(PROJECT, "my-project", OBJECT, "my-table.parquet"))));
+  }
+
+  @Test
+  void testGetMetadataOfTable() throws Exception {
+    ArmadilloColumnMetaData armadilloColumn1 = ArmadilloColumnMetaData.create("INT32");
+    ArmadilloColumnMetaData armadilloColumn2 = ArmadilloColumnMetaData.create("BINARY");
+
+    Map<String, ArmadilloColumnMetaData> metadata =
+        Map.of(
+            "column1", armadilloColumn1,
+            "column2", armadilloColumn2);
+
+    when(storage.getMetadata("lifecycle", "test.parquet")).thenReturn(metadata);
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet/metadata").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content()
+                .json(
+                    """
+                                    {
+                                      "column1": {"type": "INT32", "missing":  "0/0"},
+                                      "column2": {"type": "BINARY", "missing":  "0/0", "levels":  []}
+                                    }
+                                    """,
+                    JsonCompareMode.STRICT));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user",
+            PREVIEW_METADATA,
+            mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "test.parquet"))));
   }
 
   private Map<String, Object> mockSuAuditMap() {

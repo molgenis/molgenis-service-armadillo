@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -384,6 +385,16 @@ public class ArmadilloStorageService {
   public List<Map<String, String>> getPreview(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.preview(SHARED_PREFIX + project, object, 10, 10);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public Map<String, ArmadilloColumnMetaData> getMetadata(String project, String object) {
+    throwIfUnknown(project, object);
+    try {
+      return storageService.getMetadataFromTablePath(SHARED_PREFIX + project, object);
+    } catch (StorageException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
