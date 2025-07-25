@@ -1,10 +1,12 @@
 package org.molgenis.armadillo.controller;
 
+import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import com.github.dockerjava.api.model.Image;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import java.io.FileInputStream;
 import java.security.Principal;
 import java.util.List;
@@ -21,6 +24,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.FileDetails;
 import org.molgenis.armadillo.metadata.FileInfo;
 import org.molgenis.armadillo.metadata.InsightService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -38,10 +42,15 @@ import org.springframework.web.bind.annotation.*;
 public class InsightController {
   private final InsightService insightService;
   private final AuditEventPublisher auditor;
+  private final DockerService dockerService;
 
-  public InsightController(InsightService insightService, AuditEventPublisher auditor) {
-    this.insightService = insightService;
-    this.auditor = auditor;
+  public InsightController(
+      InsightService insightService,
+      AuditEventPublisher auditor,
+      @Nullable DockerService dockerService) {
+    this.insightService = requireNonNull(insightService);
+    this.dockerService = dockerService;
+    this.auditor = requireNonNull(auditor);
   }
 
   @Operation(summary = "List files")
@@ -114,5 +123,12 @@ public class InsightController {
         "attachment; filename=\"" + insightService.getDownloadName(file_id) + ".txt\"");
     headers.add(HttpHeaders.CONTENT_TYPE, "text/text");
     return new ResponseEntity<>(inputStreamResource, headers, OK);
+  }
+
+  @GetMapping(path = "docker/all-images", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(OK)
+  public List<Image> getDockerImages(Principal principal) {
+    assert dockerService != null;
+    return auditor.audit(dockerService::getDockerImages, principal, GET_DOCKER_IMAGES);
   }
 }

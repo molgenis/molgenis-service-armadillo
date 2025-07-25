@@ -288,6 +288,10 @@ public class DockerService {
     return emptyList();
   }
 
+  public List<Image> getDockerImages() {
+    return dockerClient.listImagesCmd().withShowAll(TRUE).exec();
+  }
+
   void removeImageIfUnused(String imageId) {
     if (imageId == null) {
       LOG.info("No image ID provided; skipping image removal");
