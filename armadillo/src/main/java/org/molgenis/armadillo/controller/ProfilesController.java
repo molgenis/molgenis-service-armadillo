@@ -239,7 +239,7 @@ public class ProfilesController {
 
   private void deleteProfile(String name) {
     if (dockerService != null) {
-      dockerService.removeProfile(name);
+      dockerService.deleteProfile(name);
     }
     profiles.delete(name);
   }
