@@ -125,6 +125,8 @@ public class DevelopmentController {
         ProfileConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),
+            currentConfig.getAutoUpdate(),
+            currentConfig.getAutoUpdateSchedule(),
             currentConfig.getHost(),
             currentConfig.getPort(),
             whitelist,

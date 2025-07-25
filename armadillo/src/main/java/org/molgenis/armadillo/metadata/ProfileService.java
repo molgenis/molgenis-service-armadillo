@@ -60,13 +60,14 @@ public class ProfileService {
             ProfileConfig.create(
                 profileName,
                 profileConfig.getImage(),
+                profileConfig.getAutoUpdate(),
+                profileConfig.getAutoUpdateSchedule(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions(),
-                profileConfig.getLastImageId())); // ← add this
-
+                profileConfig.getLastImageId()));
     flushProfileBeans(profileName);
     save();
   }
@@ -119,6 +120,8 @@ public class ProfileService {
         ProfileConfig.create(
             existing.getName(),
             existing.getImage(),
+            existing.getAutoUpdate(),
+            existing.getAutoUpdateSchedule(),
             existing.getHost(),
             existing.getPort(),
             existing.getPackageWhitelist(),

@@ -154,28 +154,27 @@ public class DockerService {
     startContainer(containerName);
 
     String previousImageId = profileConfig.getLastImageId();
-    String currentImageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
+    String currentImageId =
+        dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
-    logImageChange(profileName, previousImageId, currentImageId);
+    if (hasImageIdChanged(previousImageId, currentImageId)) {
+      removeImageIfUnused(previousImageId);
+      LOG.info(
+          "Image ID for profile '{}' changed from '{}' to '{}'",
+          StringEscapeUtils.escapeJava(profileName),
+          StringEscapeUtils.escapeJava(previousImageId),
+          StringEscapeUtils.escapeJava(currentImageId));
+    } else {
+      LOG.info(
+          "Image ID for profile '{}' unchanged (still '{}')",
+          StringEscapeUtils.escapeJava(profileName),
+          StringEscapeUtils.escapeJava(currentImageId));
+    }
     profileService.updateLastImageId(profileName, currentImageId);
   }
 
-  private void logImageChange(String profileName, String previousImageId, String currentImageId) {
-    String safeProfileName = StringEscapeUtils.escapeJava(profileName);
-    String safePrevImageId = StringEscapeUtils.escapeJava(previousImageId);
-    String safeCurrImageId = StringEscapeUtils.escapeJava(currentImageId);
-
-    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
-          "Image ID for profile '{}' changed from '{}' to '{}'",
-          safeProfileName,
-          safePrevImageId,
-          safeCurrImageId);
-      removeImageIfUnused(previousImageId);
-    } else {
-      LOG.info(
-          "Image ID for profile '{}' unchanged (still '{}')", safeProfileName, safeCurrImageId);
-    }
+  boolean hasImageIdChanged(String previousImageId, String currentImageId) {
+    return previousImageId != null && !previousImageId.equals(currentImageId);
   }
 
   void installImage(ProfileConfig profileConfig) {

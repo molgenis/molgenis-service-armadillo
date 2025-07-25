@@ -24,6 +24,14 @@ public abstract class ProfileConfig {
   @Nullable // only required when docker enabled
   public abstract String getImage();
 
+  @JsonProperty("autoUpdate")
+  @Nullable
+  public abstract Boolean getAutoUpdate();
+
+  @JsonProperty("autoUpdateSchedule")
+  @Nullable
+  public abstract AutoUpdateSchedule getAutoUpdateSchedule();
+
   @JsonProperty("host")
   @Nullable // defaults to localhost
   @NotEmpty
@@ -50,6 +58,8 @@ public abstract class ProfileConfig {
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
+      @JsonProperty("autoUpdate") Boolean autoUpdate,
+      @JsonProperty("autoUpdateSchedule") AutoUpdateSchedule autoUpdateSchedule,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
@@ -59,6 +69,8 @@ public abstract class ProfileConfig {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
+        autoUpdate,
+        autoUpdateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
         newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
@@ -71,6 +83,8 @@ public abstract class ProfileConfig {
     return create(
         "default",
         "datashield/armadillo-rserver",
+        false,
+        null,
         "localhost",
         6311,
         Set.of("dsBase"),
