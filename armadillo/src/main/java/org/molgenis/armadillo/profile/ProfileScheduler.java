@@ -2,11 +2,13 @@ package org.molgenis.armadillo.profile;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import com.github.dockerjava.api.DockerClient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +25,14 @@ public class ProfileScheduler {
   private final DockerService dockerService;
   private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
   private ThreadPoolTaskScheduler taskScheduler;
+  private final ProfileService profileService;
+  private final DockerClient dockerClient;
 
-  public ProfileScheduler(DockerService dockerService) {
+  public ProfileScheduler(
+      DockerService dockerService, ProfileService profileService, DockerClient dockerClient) {
     this.dockerService = dockerService;
+    this.profileService = profileService;
+    this.dockerClient = dockerClient;
   }
 
   @Bean
@@ -90,22 +97,29 @@ public class ProfileScheduler {
   }
 
   private void runUpdateForProfile(ProfileConfig profile) {
+    String profileName = profile.getName();
+    var profileConfig = profileService.getByName(profileName);
+    String previousImageId = profileConfig.getLastImageId();
+    String currentImageId =
+        dockerClient
+            .inspectContainerCmd(dockerService.asContainerName(profileName))
+            .exec()
+            .getImageId();
+
     try {
       var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());
-
       if (containerInfo != null && containerInfo.getStatus() == ProfileStatus.RUNNING) {
         if (Boolean.TRUE.equals(profile.getAutoUpdate())) {
-          boolean updated = dockerService.pullImageIfUpdated(profile);
-          if (updated) {
-            LOG.info("Image updated for '{}', restarting...", profile.getName());
-            dockerService.startProfile(profile.getName());
+          if (dockerService.hasImageIdChanged(previousImageId, currentImageId)) {
+            LOG.info("Image updated,  for '{}', restarting...", profileName);
+            dockerService.startProfile(profileName);
           } else {
-            LOG.info("No image update for '{}', skipping restart", profile.getName());
+            LOG.info("No image update for '{}', skipping restart", profileName);
           }
         }
       }
     } catch (Exception e) {
-      LOG.error("Error while checking profile '{}': {}", profile.getName(), e.getMessage(), e);
+      LOG.error("Error while checking profile '{}': {}", profileName, e.getMessage(), e);
     }
   }
 }

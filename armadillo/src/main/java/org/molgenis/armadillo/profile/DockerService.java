@@ -150,6 +150,29 @@ public class DockerService {
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
     startContainer(containerName);
+
+    String previousImageId = profileConfig.getLastImageId();
+    String currentImageId =
+        dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
+
+    if (hasImageIdChanged(previousImageId, currentImageId)) {
+      removeImageIfUnused(previousImageId);
+      LOG.info(
+          "Image ID for profile '{}' changed from '{}' to '{}'",
+          StringEscapeUtils.escapeJava(profileName),
+          StringEscapeUtils.escapeJava(previousImageId),
+          StringEscapeUtils.escapeJava(currentImageId));
+    } else {
+      LOG.info(
+          "Image ID for profile '{}' unchanged (still '{}')",
+          StringEscapeUtils.escapeJava(profileName),
+          StringEscapeUtils.escapeJava(currentImageId));
+    }
+    profileService.updateLastImageId(profileName, currentImageId);
+  }
+
+  boolean hasImageIdChanged(String previousImageId, String currentImageId) {
+    return previousImageId != null && !previousImageId.equals(currentImageId);
   }
 
   void installImage(ProfileConfig profileConfig) {
@@ -256,49 +279,28 @@ public class DockerService {
     return emptyList();
   }
 
-  public boolean pullImageIfUpdated(ProfileConfig profileConfig) {
-    String image = profileConfig.getImage();
-    String profileName = profileConfig.getName();
-
-    if (image == null) {
-      throw new MissingImageException(profileName);
+  void removeImageIfUnused(String imageId) {
+    if (imageId == null) {
+      LOG.info("No image ID provided; skipping image removal");
+      return;
     }
 
+    String safeImageId = StringEscapeUtils.escapeJava(imageId);
+
     try {
-      LOG.info("Checking if image for profile '{}' has been updated: {}", profileName, image);
+      boolean isInUse =
+          dockerClient.listContainersCmd().withShowAll(true).exec().stream()
+              .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
-      // Get the container's current image ID
-      String containerName = asContainerName(profileName);
-      String imageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
-
-      // Get digest based on image ID (guaranteed to match what's running)
-      List<String> beforeDigests = dockerClient.inspectImageCmd(imageId).exec().getRepoDigests();
-      String before = beforeDigests.isEmpty() ? null : beforeDigests.get(0);
-      LOG.info("Image digest before pull for '{}': {}", profileName, before);
-
-      // Pull image (always executes a pull, but Docker handles caching)
-      pullImage(profileConfig);
-
-      // Get digest after pulling
-      List<String> afterDigests = dockerClient.inspectImageCmd(image).exec().getRepoDigests();
-      String after = afterDigests.isEmpty() ? null : afterDigests.get(0);
-      LOG.info("Image digest after pull for '{}': {}", profileName, after);
-
-      boolean updated = before == null || !before.equals(after);
-      if (updated) {
-        LOG.info("Image for profile '{}' has changed.", profileName);
-      } else {
-        LOG.info("Image for profile '{}' is unchanged.", profileName);
+      if (isInUse) {
+        LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
+        return;
       }
 
-      return updated;
-    } catch (Exception e) {
-      LOG.warn(
-          "Failed to determine update status for image '{}' (profile '{}'): {}",
-          image,
-          profileName,
-          e.getMessage());
-      return false;
+      dockerClient.removeImageCmd(imageId).withForce(true).exec();
+      LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
+    } catch (NotFoundException e) {
+      LOG.info("Image ID '{}' not found locally; skipping removal", safeImageId);
     }
   }
 }
