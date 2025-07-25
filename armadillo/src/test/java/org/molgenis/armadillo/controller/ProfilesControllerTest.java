@@ -22,6 +22,7 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,6 +44,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean DockerService dockerService;
   @MockitoBean ProfilesLoader profilesLoader;
+  @MockitoBean ProfileScheduler profileScheduler;
 
   @BeforeEach
   public void before() {
