@@ -156,8 +156,11 @@ public class DockerService {
     String previousImageId = profileConfig.getLastImageId();
     String currentImageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
 
+    logImageChange(profileName, previousImageId, currentImageId);
     profileService.updateLastImageId(profileName, currentImageId);
+  }
 
+  private void logImageChange(String profileName, String previousImageId, String currentImageId) {
     String safeProfileName = StringEscapeUtils.escapeJava(profileName);
     String safePrevImageId = StringEscapeUtils.escapeJava(previousImageId);
     String safeCurrImageId = StringEscapeUtils.escapeJava(currentImageId);
