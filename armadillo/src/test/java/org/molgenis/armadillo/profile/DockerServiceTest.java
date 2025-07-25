@@ -160,6 +160,8 @@ class DockerServiceTest {
         ProfileConfig.create(
             "omics",
             "datashield/armadillo-rserver-omics",
+            false,
+            null,
             "localhost",
             6312,
             Set.of("dsBase", "dsOmics"),

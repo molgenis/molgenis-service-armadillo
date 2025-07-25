@@ -60,6 +60,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             ProfileConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
+                false,
+                null,
                 "localhost",
                 6311,
                 Set.of("dsBase"),
@@ -72,6 +74,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             ProfileConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
+                false,
+                null,
                 "localhost",
                 6312,
                 Set.of("dsBase", "dsOmics"),
@@ -110,6 +114,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         ProfileConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",
+            false,
+            null,
             "localhost",
             6312,
             Set.of("dsBase"),

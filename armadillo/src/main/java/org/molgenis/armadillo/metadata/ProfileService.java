@@ -112,4 +112,25 @@ public class ProfileService {
       upsert(ProfileConfig.createDefault());
     }
   }
+
+  public void updateLastImageId(String profileName, String newImageId) {
+    ProfileConfig existing = getByName(profileName);
+
+    ProfileConfig updated =
+        ProfileConfig.create(
+            existing.getName(),
+            existing.getImage(),
+            existing.getAutoUpdate(),
+            existing.getAutoUpdateSchedule(),
+            existing.getHost(),
+            existing.getPort(),
+            existing.getPackageWhitelist(),
+            existing.getFunctionBlacklist(),
+            existing.getOptions(),
+            newImageId);
+
+    settings.getProfiles().put(profileName, updated);
+    flushProfileBeans(profileName);
+    save();
+  }
 }
