@@ -154,6 +154,7 @@ public class DockerService {
     startContainer(containerName);
 
     String previousImageId = profileConfig.getLastImageId();
+<<<<<<< HEAD
     String currentImageId =
         dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
@@ -177,7 +178,7 @@ public class DockerService {
     return previousImageId != null && !previousImageId.equals(currentImageId);
   }
 
-  void installImage(ProfileConfig profileConfig) {
+   void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
     }
@@ -260,6 +261,12 @@ public class DockerService {
     removeContainer(profileName);
   }
 
+  public void deleteProfile(String profileName) {
+    removeProfile(profileName);
+    String imageId = profileService.getByName(profileName).getLastImageId();
+    removeImageIfUnused(imageId);
+  }
+
   private void removeContainer(String containerName) {
     try {
       dockerClient.removeContainerCmd(containerName).exec();
@@ -271,7 +278,7 @@ public class DockerService {
     }
   }
 
-  private List<String> getImageTags(String imageId) {
+  List<String> getImageTags(String imageId) {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {

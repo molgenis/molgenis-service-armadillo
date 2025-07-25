@@ -73,8 +73,8 @@ public abstract class ProfileConfig {
         autoUpdateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
-        newPackageWhitelist,
-        newFunctionBlacklist,
+        newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
+        newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
         newOptions != null ? newOptions : Map.of(),
         newLastImageId);
   }

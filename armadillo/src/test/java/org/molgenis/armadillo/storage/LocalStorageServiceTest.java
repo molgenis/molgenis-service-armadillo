@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -28,6 +29,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -42,9 +44,11 @@ class LocalStorageServiceTest {
 
   @Mock ObjectMetadata workspaceMetaData;
 
+  String tmpDir;
+
   @BeforeEach
   void beforeEach() throws IOException {
-    String tmpDir = Files.createTempDirectory("armadilloStorageTest").toFile().getAbsolutePath();
+    tmpDir = Files.createTempDirectory("armadilloStorageTest").toFile().getAbsolutePath();
     localStorageService = new LocalStorageService(tmpDir);
   }
 
@@ -372,5 +376,60 @@ class LocalStorageServiceTest {
   void testGetHumanReadableByteCountGb() {
     String size = getHumanReadableByteCount(12345678910L);
     assertEquals("11.5 GB", size);
+  }
+
+  @Test
+  void testGetMetaDataForLinkfile_shouldReturnFilteredMetadata() throws IOException {
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
+
+    String bucket = "shared-my-bucket";
+    String object = "my-table.parquet";
+    String linkBucket = "shared-user-admin";
+    String linkObject = "blah.alf";
+
+    // Ensure bucket directory exists
+    Files.createDirectories(Paths.get(localStorageService.rootDir, bucket));
+
+    // Create dummy parquet file
+    Path parquetPath = Paths.get(localStorageService.rootDir, bucket, object);
+    Files.writeString(parquetPath, "dummy parquet content");
+
+    // Create and save the link file
+    String testData =
+        "{\"sourceObject\":\"my-table\",\"sourceProject\":\"my-bucket\",\"variables\":\"id,place\"}";
+    localStorageService.save(
+        new ByteArrayInputStream(testData.getBytes()),
+        linkBucket,
+        linkObject,
+        MediaType.TEXT_PLAIN);
+
+    // Mock Parquet metadata
+    Map<String, Map<String, String>> mockMetadata = new HashMap<>();
+
+    Map<String, String> idMeta = new HashMap<>();
+    idMeta.put("label", "ID label");
+
+    Map<String, String> placeMeta = new HashMap<>();
+    placeMeta.put("label", "Place label");
+
+    mockMetadata.put("id", idMeta);
+    mockMetadata.put("place", placeMeta);
+    mockMetadata.put("age", Map.of("label", "Age label")); // should be filtered out
+
+    mockedParquetUtils
+        .when(() -> ParquetUtils.getColumnMetaData(parquetPath))
+        .thenReturn(mockMetadata);
+
+    // Call the method under test
+    Map<String, ArmadilloColumnMetaData> result =
+        localStorageService.getMetadataFromTablePath(linkBucket, linkObject);
+
+    // Assertions
+    assertEquals(2, result.size());
+    assertTrue(result.containsKey("id"));
+    assertTrue(result.containsKey("place"));
+    assertFalse(result.containsKey("age"));
+
+    mockedParquetUtils.close();
   }
 }

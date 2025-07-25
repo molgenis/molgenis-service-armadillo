@@ -33,6 +33,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
@@ -305,6 +306,31 @@ public class StorageController {
         () -> storage.getPreview(project, object),
         principal,
         PREVIEW_OBJECT,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  @Operation(summary = "Retrieve metadata of table")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Metadata successfully determined"),
+        @ApiResponse(responseCode = "404", description = "Table does not exist"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(
+      path = "/projects/{project}/objects/{object}/metadata",
+      produces = APPLICATION_JSON_VALUE)
+  public Map<String, ArmadilloColumnMetaData> getMetadataOfTable(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    return auditor.audit(
+        () -> {
+          try {
+            return storage.getMetadata(project, object);
+          } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
+        principal,
+        PREVIEW_METADATA,
         Map.of(PROJECT, project, OBJECT, object));
   }
 

@@ -67,8 +67,7 @@ public class ProfileService {
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions(),
-                null));
-
+                profileConfig.getLastImageId()));
     flushProfileBeans(profileName);
     save();
   }

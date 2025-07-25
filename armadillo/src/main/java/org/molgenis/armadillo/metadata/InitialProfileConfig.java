@@ -32,6 +32,7 @@ public class InitialProfileConfig {
         functionBlacklist,
         options,
         null);
+
   }
 
   public void setName(String name) {
