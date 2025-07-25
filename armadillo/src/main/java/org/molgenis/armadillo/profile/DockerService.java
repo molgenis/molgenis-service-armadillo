@@ -154,7 +154,6 @@ public class DockerService {
     startContainer(containerName);
 
     String previousImageId = profileConfig.getLastImageId();
-<<<<<<< HEAD
     String currentImageId =
         dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
@@ -178,7 +177,7 @@ public class DockerService {
     return previousImageId != null && !previousImageId.equals(currentImageId);
   }
 
-   void installImage(ProfileConfig profileConfig) {
+  void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
     }
