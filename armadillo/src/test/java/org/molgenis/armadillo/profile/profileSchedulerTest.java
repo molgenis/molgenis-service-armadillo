@@ -46,10 +46,27 @@ class ProfileSchedulerTest {
   }
 
   @Test
+  void testToCronWithNullValuesUsesDefaults() throws Exception {
+    var schedule = new AutoUpdateSchedule(null, null, null); // all null
+    var cron = invokeToCron(schedule);
+    // Defaults: time = "01:00", frequency = "weekly", day = "Sunday" (mapped to 0)
+    assertEquals("0 00 01 * * 0", cron);
+  }
+
+  @Test
   void testDayToCronNumber() throws Exception {
     assertEquals(0, invokeDayToCronNumber("Sunday"));
+    assertEquals(1, invokeDayToCronNumber("Monday"));
+    assertEquals(2, invokeDayToCronNumber("Tuesday"));
     assertEquals(3, invokeDayToCronNumber("Wednesday"));
+    assertEquals(4, invokeDayToCronNumber("Thursday"));
+    assertEquals(5, invokeDayToCronNumber("Friday"));
     assertEquals(6, invokeDayToCronNumber("Saturday"));
+  }
+
+  @Test
+  void testDayToCronNumberDefaultCase() throws Exception {
+    assertEquals(0, invokeDayToCronNumber("NotADay")); // Covers 'default -> 0'
   }
 
   @Test
@@ -131,6 +148,76 @@ class ProfileSchedulerTest {
     invokeRunUpdateForProfile(profile);
 
     verify(dockerService).startProfile("testProfile");
+  }
+
+  @Test
+  void testRunUpdateForProfileNoContainerInfo() {
+    var profile = mock(ProfileConfig.class);
+    when(profile.getName()).thenReturn("testProfile"); // ✅ Still needed
+    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of()); // No container info
+    invokeRunUpdateForProfile(profile);
+    verify(dockerService, never()).startProfile(any());
+    verify(dockerClient, never()).inspectContainerCmd(any());
+  }
+
+  @Test
+  void testRunUpdateForProfileAutoUpdateDisabled() {
+    var profile = mock(ProfileConfig.class);
+    when(profile.getName()).thenReturn("testProfile");
+    when(profile.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
+
+    // Only stub container info and its status
+    var containerInfo = mock(ContainerInfo.class);
+    when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
+    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+
+    invokeRunUpdateForProfile(profile);
+
+    verify(dockerService, never()).startProfile(any());
+    verify(dockerClient, never()).inspectContainerCmd(any());
+    verify(profileService, never()).getByName(any());
+  }
+
+  @Test
+  void testRunUpdateForProfileImageUnchanged() {
+    var profile = mock(ProfileConfig.class);
+    when(profile.getName()).thenReturn("testProfile");
+    when(profile.getAutoUpdate()).thenReturn(true);
+
+    var containerInfo = mock(ContainerInfo.class);
+    when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
+    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+
+    when(profileService.getByName("testProfile")).thenReturn(profile);
+    when(profile.getLastImageId()).thenReturn("oldImage");
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd(any())).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("oldImage"); // same image
+
+    when(dockerService.asContainerName("testProfile")).thenReturn("containerName");
+    when(dockerService.hasImageIdChanged("oldImage", "oldImage")).thenReturn(false);
+
+    invokeRunUpdateForProfile(profile);
+
+    verify(dockerService, never()).startProfile(any());
+  }
+
+  @Test
+  void testRunUpdateForProfileHandlesException() {
+    var profile = mock(ProfileConfig.class);
+    when(profile.getName()).thenReturn("testProfile"); // needed for logging
+
+    // Throw exception when fetching container info (caught inside try/catch)
+    when(dockerService.getAllProfileStatuses()).thenThrow(new RuntimeException("Test exception"));
+
+    invokeRunUpdateForProfile(profile); // Should log error but not rethrow
+
+    // Verify: nothing else was called
+    verify(profileService, never()).getByName(any());
+    verify(dockerClient, never()).inspectContainerCmd(any());
   }
 
   // --- Helper methods to invoke private methods ---
