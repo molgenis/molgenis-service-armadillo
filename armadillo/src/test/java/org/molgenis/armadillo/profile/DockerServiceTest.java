@@ -17,6 +17,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.command.RemoveImageCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Image;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.model.DockerImageInfo;
 
 @ExtendWith(MockitoExtension.class)
 class DockerServiceTest {
@@ -337,5 +339,27 @@ class DockerServiceTest {
     verify(spyService).removeProfile(profileName);
     verify(profileService).getByName(profileName);
     verify(spyService).removeImageIfUnused(imageId);
+  }
+
+  @Test
+  void testCreateFromImage() {
+    // Given
+    String expectedId = "sha256:abcd1234";
+    String[] expectedTags = {"my-image:latest"};
+    Image mockImage = mock(Image.class);
+    when(mockImage.getId()).thenReturn(expectedId);
+    when(mockImage.getRepoTags()).thenReturn(expectedTags);
+    when(mockImage.getSize()).thenReturn(12345678L);
+    when(mockImage.getCreated()).thenReturn(1753712029L);
+
+    // When
+    DockerImageInfo result = DockerImageInfo.create(mockImage);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(expectedId, result.getImageId());
+    assertEquals(expectedTags[0], result.getRepoTags()[0]);
+    assertEquals("11 MB", result.getSize());
+    assertEquals("Mon Jul 28 16:13:49 CEST 2025", result.getCreated().toString());
   }
 }
