@@ -342,25 +342,38 @@ class DockerServiceTest {
   }
 
   @Test
-  void testCreateFromImage() {
-    // Given
-    String expectedId = "sha256:abcd1234";
-    String[] expectedTags = {"my-image:latest"};
-    Image mockImage = mock(Image.class);
-    when(mockImage.getId()).thenReturn(expectedId);
-    when(mockImage.getRepoTags()).thenReturn(expectedTags);
-    when(mockImage.getSize()).thenReturn(12345678L);
-    when(mockImage.getCreated()).thenReturn(1753712029L);
+  void testGetDockerImages() {
+    // Mock Docker images
+    Image image1 = mock(Image.class);
+    Image image2 = mock(Image.class);
 
-    // When
-    DockerImageInfo result = DockerImageInfo.create(mockImage);
+    when(image1.getId()).thenReturn("sha256:1111");
+    when(image1.getRepoTags()).thenReturn(new String[] {"image1:latest"});
 
-    // Then
-    assertNotNull(result);
-    assertEquals(expectedId, result.getImageId());
-    assertEquals(expectedTags[0], result.getRepoTags()[0]);
-    assertEquals("11 MB", result.getSize());
-    // difference in string value between mac and linux, but starts the same way
-    assertTrue(result.getCreated().toString().startsWith("Mon Jul 28 "));
+    when(image2.getId()).thenReturn("sha256:2222");
+    when(image2.getRepoTags()).thenReturn(new String[] {"image2:dev"});
+
+    var listImagesCmd = mock(com.github.dockerjava.api.command.ListImagesCmd.class);
+    when(dockerClient.listImagesCmd()).thenReturn(listImagesCmd);
+    when(listImagesCmd.withShowAll(true)).thenReturn(listImagesCmd);
+    when(listImagesCmd.exec()).thenReturn(List.of(image1, image2));
+
+    // Act
+    List<DockerImageInfo> images = dockerService.getDockerImages();
+
+    // Assert
+    assertEquals(2, images.size());
+
+    DockerImageInfo info1 = images.get(0);
+    assertEquals("sha256:1111", info1.getImageId());
+    assertArrayEquals(new String[] {"image1:latest"}, info1.getRepoTags());
+
+    DockerImageInfo info2 = images.get(1);
+    assertEquals("sha256:2222", info2.getImageId());
+    assertArrayEquals(new String[] {"image2:dev"}, info2.getRepoTags());
+
+    verify(dockerClient).listImagesCmd();
+    verify(listImagesCmd).withShowAll(true);
+    verify(listImagesCmd).exec();
   }
 }
