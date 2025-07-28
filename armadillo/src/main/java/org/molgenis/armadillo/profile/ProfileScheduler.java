@@ -98,24 +98,30 @@ public class ProfileScheduler {
 
   private void runUpdateForProfile(ProfileConfig profile) {
     String profileName = profile.getName();
-    var profileConfig = profileService.getByName(profileName);
-    String previousImageId = profileConfig.getLastImageId();
-    String currentImageId =
-        dockerClient
-            .inspectContainerCmd(dockerService.asContainerName(profileName))
-            .exec()
-            .getImageId();
 
     try {
       var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());
-      if (containerInfo != null && containerInfo.getStatus() == ProfileStatus.RUNNING) {
-        if (Boolean.TRUE.equals(profile.getAutoUpdate())) {
-          if (dockerService.hasImageIdChanged(previousImageId, currentImageId)) {
-            LOG.info("Image updated,  for '{}', restarting...", profileName);
-            dockerService.startProfile(profileName);
-          } else {
-            LOG.info("No image update for '{}', skipping restart", profileName);
-          }
+
+      // Only proceed if container is running and auto-update is enabled
+      if (containerInfo != null
+          && containerInfo.getStatus() == ProfileStatus.RUNNING
+          && Boolean.TRUE.equals(profile.getAutoUpdate())) {
+
+        var profileConfig = profileService.getByName(profileName);
+        String previousImageId = profileConfig.getLastImageId();
+
+        // Inspect the container only after confirming status
+        String currentImageId =
+            dockerClient
+                .inspectContainerCmd(dockerService.asContainerName(profileName))
+                .exec()
+                .getImageId();
+
+        if (dockerService.hasImageIdChanged(previousImageId, currentImageId)) {
+          LOG.info("Image updated for '{}', restarting...", profileName);
+          dockerService.startProfile(profileName);
+        } else {
+          LOG.info("No image update for '{}', skipping restart", profileName);
         }
       }
     } catch (Exception e) {
