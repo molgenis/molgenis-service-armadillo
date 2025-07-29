@@ -41,6 +41,10 @@ public abstract class ProfileResponse {
   @Nullable // only present when docker management is enabled and Docker is online
   public abstract ContainerInfo getContainer();
 
+  @Nullable
+  @JsonProperty("lastImageId") // Add this line to include lastImageId in the response
+  public abstract String getLastImageId();
+
   public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
@@ -52,6 +56,7 @@ public abstract class ProfileResponse {
         profileConfig.getPackageWhitelist(),
         profileConfig.getFunctionBlacklist(),
         profileConfig.getOptions(),
-        containerInfo);
+        containerInfo,
+        profileConfig.getLastImageId());
   }
 }
