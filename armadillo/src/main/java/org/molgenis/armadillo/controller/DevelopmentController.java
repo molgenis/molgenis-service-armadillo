@@ -132,7 +132,8 @@ public class DevelopmentController {
             whitelist,
             currentConfig.getFunctionBlacklist(),
             currentConfig.getOptions(),
-            currentConfig.getLastImageId());
+            currentConfig.getLastImageId(),
+            currentConfig.getVersionId());
     auditEventPublisher.audit(
         () -> profiles.upsert(profileConfig),
         principal,

@@ -31,6 +31,7 @@ public class InitialProfileConfig {
         packageWhitelist,
         functionBlacklist,
         options,
+        null,
         null);
   }
 

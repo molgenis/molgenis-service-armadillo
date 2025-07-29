@@ -69,7 +69,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 Set.of("dsBase"),
                 emptySet(),
                 emptyMap(),
-                null));
+                null,
+                newVersionId));
     settings
         .getProfiles()
         .put(
@@ -84,7 +85,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
-                null));
+                null,
+                newVersionId));
     return settings;
   }
 
@@ -125,7 +127,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             Set.of("dsBase"),
             emptySet(),
             Map.of(),
-            null);
+            null,
+            newVersionId);
 
     mockMvc
         .perform(

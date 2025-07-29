@@ -16,6 +16,7 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
+
   @JsonProperty("name")
   @NotEmpty
   public abstract String getName();
@@ -54,6 +55,10 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract String getLastImageId();
 
+  @JsonProperty("versionId")
+  @Nullable
+  public abstract String getVersionId();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
@@ -65,7 +70,8 @@ public abstract class ProfileConfig {
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions,
-      @JsonProperty("lastImageId") @Nullable String newLastImageId) {
+      @JsonProperty("lastImageId") @Nullable String newLastImageId,
+      @JsonProperty("versionId") @Nullable String newVersionId) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
@@ -76,7 +82,8 @@ public abstract class ProfileConfig {
         newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
         newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
         newOptions != null ? newOptions : Map.of(),
-        newLastImageId);
+        newLastImageId,
+        newVersionId);
   }
 
   public static ProfileConfig createDefault() {
@@ -90,6 +97,7 @@ public abstract class ProfileConfig {
         Set.of("dsBase"),
         emptySet(),
         Map.of("datashield.seed", "342325352"),
+        null,
         null);
   }
 

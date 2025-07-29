@@ -38,7 +38,8 @@ class ProfileServiceTest {
             new HashSet<>(),
             Set.of(),
             new HashMap<>(),
-            null);
+            null,
+            newVersionId);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
@@ -69,7 +70,8 @@ class ProfileServiceTest {
             new HashSet<>(),
             new HashSet<>(),
             Map.of(),
-            oldImageId);
+            oldImageId,
+            newVersionId);
 
     // Setup ProfilesMetadata and add existing profile
     ProfilesMetadata metadata = ProfilesMetadata.create();

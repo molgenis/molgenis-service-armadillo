@@ -54,7 +54,8 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 Set.of("dsBase"),
                 emptySet(),
                 emptyMap(),
-                null));
+                null,
+                newVersionId));
     settings
         .getProfiles()
         .put(
@@ -69,7 +70,8 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
-                null));
+                null,
+                newVersionId));
     return settings;
   }
 

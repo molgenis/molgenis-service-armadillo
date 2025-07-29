@@ -8,6 +8,7 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
@@ -160,7 +161,25 @@ public class DockerService {
     if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
       removeImageIfUnused(previousImageId);
     }
-    profileService.updateLastImageId(profileName, currentImageId);
+    String openContainersID = getOpenContainersImageVersion(currentImageId);
+    profileService.updateImageMetaData(profileName, currentImageId, openContainersID);
+  }
+
+  public String getOpenContainersImageVersion(String imageName) {
+    try {
+      // Inspect the image using the provided image name
+      InspectImageResponse image = dockerClient.inspectImageCmd(imageName).exec();
+
+      // Retrieve the OpenContainers image version (org.opencontainers.image.version)
+      String imageVersion = image.getConfig().getLabels().get("org.opencontainers.image.version");
+
+      // Return the version if available, or null if not found
+      return imageVersion != null ? imageVersion : "Unknown Version";
+    } catch (Exception e) {
+      // Log the error and return null if the image couldn't be inspected
+      LOG.error("Error retrieving OpenContainers version for image: " + imageName, e);
+      return null;
+    }
   }
 
   boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {

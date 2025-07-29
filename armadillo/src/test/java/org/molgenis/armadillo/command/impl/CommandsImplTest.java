@@ -250,7 +250,8 @@ class CommandsImplTest {
             Set.of(),
             Set.of(),
             Map.of(),
-            null);
+            null,
+            newVersionId);
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
