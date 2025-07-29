@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.dockerjava.api.DockerClient;
 import java.security.Principal;
 import java.time.Clock;
 import java.time.Instant;
@@ -22,6 +21,7 @@ import org.mockito.Mock;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
@@ -43,7 +43,6 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private ProfileService profileService;
   @MockitoBean private Commands commands;
   @MockitoBean private ArmadilloStorageService armadilloStorage;
-  @MockitoBean DockerClient dockerClient;
 
   @Mock(lenient = true)
   private Clock clock;
@@ -53,6 +52,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   private final Instant instant = Instant.now();
   private String sessionId;
   private AuditEventValidator auditEventValidator;
+  @MockitoBean private DockerService dockerService;
 
   @BeforeEach
   public void setup() {
@@ -122,7 +122,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
     DevelopmentController controller =
-        new DevelopmentController(commands, auditEventPublisher, profileService);
+        new DevelopmentController(commands, auditEventPublisher, profileService, dockerService);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }

@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
@@ -202,7 +203,6 @@ class DockerServiceTest {
     // no containers use the old image
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
-    when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of());
 
     // image-removal by image ID
@@ -272,12 +272,10 @@ class DockerServiceTest {
 
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
-    when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of(container));
 
-    dockerService.removeImageIfUnused("sha256:inuse");
-
-    verify(dockerClient, never()).removeImageCmd(anyString());
+    assertThrows(
+        ImageRemoveFailedException.class, () -> dockerService.removeImageIfUnused("sha256:inuse"));
   }
 
   @Test
@@ -286,7 +284,6 @@ class DockerServiceTest {
 
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
-    when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of()); // not in use
 
     var rmCmd = mock(RemoveImageCmd.class);
@@ -307,7 +304,6 @@ class DockerServiceTest {
 
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
-    when(listCmd.withShowAll(true)).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of()); // not in use
 
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
