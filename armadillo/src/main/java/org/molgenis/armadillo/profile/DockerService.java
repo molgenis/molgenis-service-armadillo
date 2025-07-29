@@ -157,24 +157,27 @@ public class DockerService {
     String currentImageId =
         dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
-    if (hasImageIdChanged(previousImageId, currentImageId)) {
+    if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
       removeImageIfUnused(previousImageId);
+    }
+    profileService.updateLastImageId(profileName, currentImageId);
+  }
+
+  boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {
+    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
       LOG.info(
           "Image ID for profile '{}' changed from '{}' to '{}'",
           StringEscapeUtils.escapeJava(profileName),
           StringEscapeUtils.escapeJava(previousImageId),
           StringEscapeUtils.escapeJava(currentImageId));
+      return true;
     } else {
       LOG.info(
           "Image ID for profile '{}' unchanged (still '{}')",
           StringEscapeUtils.escapeJava(profileName),
           StringEscapeUtils.escapeJava(currentImageId));
+      return false;
     }
-    profileService.updateLastImageId(profileName, currentImageId);
-  }
-
-  boolean hasImageIdChanged(String previousImageId, String currentImageId) {
-    return previousImageId != null && !previousImageId.equals(currentImageId);
   }
 
   void installImage(ProfileConfig profileConfig) {
