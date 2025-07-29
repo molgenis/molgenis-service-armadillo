@@ -97,9 +97,8 @@ public class ProfileScheduler {
   }
 
   private void runUpdateForProfile(ProfileConfig profile) {
-    String profileName = profile.getName();
-
     try {
+      // Get container status directly using profile name
       var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());
 
       // Only proceed if container is running and auto-update is enabled
@@ -107,25 +106,29 @@ public class ProfileScheduler {
           && containerInfo.getStatus() == ProfileStatus.RUNNING
           && Boolean.TRUE.equals(profile.getAutoUpdate())) {
 
-        var profileConfig = profileService.getByName(profileName);
-        String previousImageId = profileConfig.getLastImageId();
+        // Retrieve the previous image ID and current image name from the profile
+        String previousImageId = profile.getLastImageId();
+        String imageName = profile.getImage();
 
-        // Inspect the container only after confirming status
-        String currentImageId =
-            dockerClient
-                .inspectContainerCmd(dockerService.asContainerName(profileName))
-                .exec()
-                .getImageId();
+        // Ensure imageName is not null or empty
+        if (imageName != null && !imageName.isEmpty()) {
+          // Retrieve the latest image ID for the remote image
+          String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
 
-        if (dockerService.hasImageIdChanged(previousImageId, currentImageId)) {
-          LOG.info("Image updated for '{}', restarting...", profileName);
-          dockerService.startProfile(profileName);
+          // Check if the image has changed
+          if (dockerService.hasImageIdChanged(profile.getName(), previousImageId, latestImageId)) {
+            LOG.info("Image updated for '{}', restarting...", profile.getName());
+            dockerService.startProfile(profile.getName());
+          } else {
+            LOG.info("No image update for '{}', skipping restart", profile.getName());
+          }
         } else {
-          LOG.info("No image update for '{}', skipping restart", profileName);
+          LOG.error(
+              "Image name is null or empty for profile '{}'. Skipping update.", profile.getName());
         }
       }
     } catch (Exception e) {
-      LOG.error("Error while checking profile '{}': {}", profileName, e.getMessage(), e);
+      LOG.error("Error while checking profile '{}': {}", profile.getName(), e.getMessage(), e);
     }
   }
 }

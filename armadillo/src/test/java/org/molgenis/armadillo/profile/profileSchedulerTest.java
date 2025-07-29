@@ -143,7 +143,7 @@ class ProfileSchedulerTest {
     when(inspectResponse.getImageId()).thenReturn("newImage");
 
     when(dockerService.asContainerName("testProfile")).thenReturn("containerName");
-    when(dockerService.hasImageIdChanged("oldImage", "newImage")).thenReturn(true);
+    when(dockerService.hasImageIdChanged("testProfile", "oldImage", "newImage")).thenReturn(true);
 
     invokeRunUpdateForProfile(profile);
 
@@ -198,7 +198,7 @@ class ProfileSchedulerTest {
     when(inspectResponse.getImageId()).thenReturn("oldImage"); // same image
 
     when(dockerService.asContainerName("testProfile")).thenReturn("containerName");
-    when(dockerService.hasImageIdChanged("oldImage", "oldImage")).thenReturn(false);
+    when(dockerService.hasImageIdChanged("testProfile", "oldImage", "oldImage")).thenReturn(false);
 
     invokeRunUpdateForProfile(profile);
 
