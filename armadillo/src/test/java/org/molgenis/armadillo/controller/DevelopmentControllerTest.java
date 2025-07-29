@@ -3,7 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -125,5 +125,22 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
         new DevelopmentController(commands, auditEventPublisher, profileService, dockerService);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testDeleteDockerImage() throws Exception {
+    String imageId = "some-image-id";
+
+    // We mock the dockerService.removeImageIfUnused to do nothing (void method)
+    // You can verify later if needed.
+    doNothing().when(dockerService).removeImageIfUnused(imageId);
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.delete("/delete-docker-image").param("imageId", imageId))
+        .andExpect(status().isNoContent());
+
+    // Verify that dockerService.removeImageIfUnused was called with the correct imageId
+    verify(dockerService).removeImageIfUnused(imageId);
   }
 }

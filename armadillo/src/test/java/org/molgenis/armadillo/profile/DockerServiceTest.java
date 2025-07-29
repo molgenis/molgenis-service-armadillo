@@ -266,9 +266,22 @@ class DockerServiceTest {
   }
 
   @Test
-  void removeImageIfUnused_skipsWhenImageInUse() {
+  void removeImageIfUnused_throwsErrorWhenInUse() {
     var container = mock(Container.class);
     when(container.getImageId()).thenReturn("sha256:inuse");
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of(container));
+
+    assertThrows(
+        ImageRemoveFailedException.class, () -> dockerService.removeImageIfUnused("sha256:inuse"));
+  }
+
+  @Test
+  void removeImageIfUnused_throwsErrorWhenNoImage() {
+    var container = mock(Container.class);
+    when(container.getImageId()).thenThrow(NotFoundException.class);
 
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
