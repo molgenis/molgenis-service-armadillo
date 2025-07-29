@@ -45,6 +45,10 @@ public abstract class ProfileResponse {
   @JsonProperty("lastImageId") // Add this line to include lastImageId in the response
   public abstract String getLastImageId();
 
+  @Nullable
+  @JsonProperty("versionId") //
+  public abstract String getVersionId();
+
   public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
@@ -57,6 +61,7 @@ public abstract class ProfileResponse {
         profileConfig.getFunctionBlacklist(),
         profileConfig.getOptions(),
         containerInfo,
-        profileConfig.getLastImageId());
+        profileConfig.getLastImageId(),
+        profileConfig.getVersionId());
   }
 }
