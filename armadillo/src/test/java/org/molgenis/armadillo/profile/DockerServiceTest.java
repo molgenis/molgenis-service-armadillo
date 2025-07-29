@@ -233,7 +233,7 @@ class DockerServiceTest {
     when(inspectContainerResponse.getImageId()).thenReturn("sha256:same");
 
     // Call the method under test
-    dockerService.startProfile("default");
+    assertDoesNotThrow(() -> dockerService.startProfile("default"));
 
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
