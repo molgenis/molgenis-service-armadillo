@@ -113,7 +113,9 @@ public class ProfileScheduler {
         // Ensure imageName is not null or empty
         if (imageName != null && !imageName.isEmpty()) {
           // Retrieve the latest image ID for the remote image
+          dockerClient.pullImageCmd(imageName).start().awaitCompletion(); // Pull image if necessary
           String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
+          LOG.info("Latest imageId is {}", latestImageId);
 
           // Check if the image has changed
           if (dockerService.hasImageIdChanged(profile.getName(), previousImageId, latestImageId)) {
