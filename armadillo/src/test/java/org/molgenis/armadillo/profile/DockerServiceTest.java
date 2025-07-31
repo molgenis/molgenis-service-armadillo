@@ -347,4 +347,24 @@ class DockerServiceTest {
     verify(profileService).getByName(profileName);
     verify(spyService).removeImageIfUnused(imageId);
   }
+
+  @Test
+  void deleteProfile_doesntThrowError() {
+    var profileName = "default";
+    var imageId = "sha256:test";
+
+    // mock config with image ID
+    var config = mock(ProfileConfig.class);
+    when(config.getLastImageId()).thenReturn(imageId);
+    when(profileService.getByName(profileName)).thenReturn(config);
+    when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
+
+    // spy DockerService to verify internal method calls
+    var spyService = spy(new DockerService(dockerClient, profileService));
+    doNothing().when(spyService).removeProfile(profileName);
+    doThrow(ImageRemoveFailedException.class).when(spyService).removeImageIfUnused(imageId);
+
+    // execute
+    assertDoesNotThrow(() -> spyService.deleteProfile(profileName));
+  }
 }
