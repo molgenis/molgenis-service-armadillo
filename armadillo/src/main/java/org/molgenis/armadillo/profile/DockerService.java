@@ -172,7 +172,11 @@ public class DockerService {
           safeProfileName,
           safePrevImageId,
           safeCurrImageId);
-      removeImageIfUnused(previousImageId);
+      try {
+        removeImageIfUnused(previousImageId);
+      } catch (ImageRemoveFailedException e) {
+        LOG.info(e.getMessage());
+      }
     } else {
       LOG.info(
           "Image ID for profile '{}' unchanged (still '{}')", safeProfileName, safeCurrImageId);
@@ -265,7 +269,11 @@ public class DockerService {
   public void deleteProfile(String profileName) {
     removeProfile(profileName);
     String imageId = profileService.getByName(profileName).getLastImageId();
-    removeImageIfUnused(imageId);
+    try {
+      removeImageIfUnused(imageId);
+    } catch (ImageRemoveFailedException e) {
+      LOG.info(e.getMessage());
+    }
   }
 
   private void removeContainer(String containerName) {
@@ -295,7 +303,7 @@ public class DockerService {
         .toList();
   }
 
-  void removeImageIfUnused(String imageId) {
+  public void removeImageIfUnused(String imageId) {
     if (imageId == null) {
       LOG.info("No image ID provided; skipping image removal");
       return;
@@ -305,18 +313,18 @@ public class DockerService {
 
     try {
       boolean isInUse =
-          dockerClient.listContainersCmd().withShowAll(true).exec().stream()
+          dockerClient.listContainersCmd().exec().stream()
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
         LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
-        return;
+        throw new ImageRemoveFailedException(
+            safeImageId, "Image ID is still in use — skipping removal");
       }
-
       dockerClient.removeImageCmd(imageId).withForce(true).exec();
       LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
     } catch (NotFoundException e) {
-      LOG.info("Image ID '{}' not found locally; skipping removal", safeImageId);
+      throw new ImageRemoveFailedException(safeImageId, "Image ID not found — skipping removal");
     }
   }
 }
