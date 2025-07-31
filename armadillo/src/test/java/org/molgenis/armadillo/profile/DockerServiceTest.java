@@ -17,6 +17,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.command.RemoveImageCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Image;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.model.DockerImageInfo;
 
 @ExtendWith(MockitoExtension.class)
 class DockerServiceTest {
@@ -337,5 +339,41 @@ class DockerServiceTest {
     verify(spyService).removeProfile(profileName);
     verify(profileService).getByName(profileName);
     verify(spyService).removeImageIfUnused(imageId);
+  }
+
+  @Test
+  void testGetDockerImages() {
+    // Mock Docker images
+    Image image1 = mock(Image.class);
+    Image image2 = mock(Image.class);
+
+    when(image1.getId()).thenReturn("sha256:1111");
+    when(image1.getRepoTags()).thenReturn(new String[] {"image1:latest"});
+
+    when(image2.getId()).thenReturn("sha256:2222");
+    when(image2.getRepoTags()).thenReturn(new String[] {"image2:dev"});
+
+    var listImagesCmd = mock(com.github.dockerjava.api.command.ListImagesCmd.class);
+    when(dockerClient.listImagesCmd()).thenReturn(listImagesCmd);
+    when(listImagesCmd.withShowAll(true)).thenReturn(listImagesCmd);
+    when(listImagesCmd.exec()).thenReturn(List.of(image1, image2));
+
+    // Act
+    List<DockerImageInfo> images = dockerService.getDockerImages();
+
+    // Assert
+    assertEquals(2, images.size());
+
+    DockerImageInfo info1 = images.get(0);
+    assertEquals("sha256:1111", info1.getImageId());
+    assertArrayEquals(new String[] {"image1:latest"}, info1.getRepoTags());
+
+    DockerImageInfo info2 = images.get(1);
+    assertEquals("sha256:2222", info2.getImageId());
+    assertArrayEquals(new String[] {"image2:dev"}, info2.getRepoTags());
+
+    verify(dockerClient).listImagesCmd();
+    verify(listImagesCmd).withShowAll(true);
+    verify(listImagesCmd).exec();
   }
 }

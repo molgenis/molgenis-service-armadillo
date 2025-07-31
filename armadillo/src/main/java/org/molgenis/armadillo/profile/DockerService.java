@@ -23,6 +23,7 @@ import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.model.DockerImageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -286,6 +287,12 @@ public class DockerService {
       // getting image tags is non-essential, don't throw error
     }
     return emptyList();
+  }
+
+  public List<DockerImageInfo> getDockerImages() {
+    return dockerClient.listImagesCmd().withShowAll(TRUE).exec().stream()
+        .map(DockerImageInfo::create)
+        .toList();
   }
 
   void removeImageIfUnused(String imageId) {
