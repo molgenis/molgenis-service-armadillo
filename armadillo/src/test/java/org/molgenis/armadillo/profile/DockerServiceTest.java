@@ -368,7 +368,8 @@ class DockerServiceTest {
 
     // execute
     assertDoesNotThrow(() -> spyService.deleteProfile(profileName));
-  
+  }
+
   @Test
   void testGetDockerImages() {
     // Mock Docker images
