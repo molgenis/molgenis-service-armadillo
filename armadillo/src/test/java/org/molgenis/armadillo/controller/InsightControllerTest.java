@@ -46,7 +46,7 @@ public class InsightControllerTest {
   @MockitoBean DockerService dockerService;
 
   @Test
-  public void testFilesList() throws Exception {
+  void testFilesList() throws Exception {
     mockMvc
         .perform(get("/insight/files"))
         .andExpect(status().isOk())
@@ -54,7 +54,7 @@ public class InsightControllerTest {
   }
 
   @Test
-  public void testFilesDetail() throws Exception {
+  void testFilesDetail() throws Exception {
     mockMvc
         .perform(get("/insight/files/XyZ"))
         .andExpect(status().isOk())
@@ -65,7 +65,7 @@ public class InsightControllerTest {
   }
 
   @Test
-  public void testGetDockerImages() throws Exception {
+  void testGetDockerImages() throws Exception {
     // Arrange
     Image mockImage = mock(Image.class);
     when(mockImage.getId()).thenReturn("sha256:1234");
