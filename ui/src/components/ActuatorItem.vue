@@ -15,30 +15,33 @@
   </tr>
   <tr v-if="data._display">
     <td colspan="5">
-      <summary>
+      <div>
         <details>
           <pre>
             {{ JSON.stringify(data, null, 3) }}
           </pre>
         </details>
-      </summary>
+      </div>
     </td>
   </tr>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { defineComponent } from "vue";
 import { convertBytes } from "@/helpers/utils";
-const props = defineProps({
-  name: {
-    type: String,
-    required: true,
+
+export default defineComponent({
+  name: "ActuatorItem",
+  props: {
+    name: {
+      type: String,
+      required: true,
+    },
+    data: {
+      type: Object,
+      required: true,
+    },
   },
-  methods: {
-    convertBytes,
-  },
-  data: {
-    type: Object,
-    required: true,
-  },
+  methods: { convertBytes },
 });
 </script>
