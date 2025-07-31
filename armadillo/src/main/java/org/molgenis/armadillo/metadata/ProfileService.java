@@ -60,13 +60,15 @@ public class ProfileService {
             ProfileConfig.create(
                 profileName,
                 profileConfig.getImage(),
+                profileConfig.getAutoUpdate(),
+                profileConfig.getAutoUpdateSchedule(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions(),
-                profileConfig.getLastImageId())); // ← add this
-
+                profileConfig.getLastImageId(),
+                profileConfig.getVersionId()));
     flushProfileBeans(profileName);
     save();
   }
@@ -112,19 +114,22 @@ public class ProfileService {
     }
   }
 
-  public void updateLastImageId(String profileName, String newImageId) {
+  public void updateImageMetaData(String profileName, String newImageId, String newVersionId) {
     ProfileConfig existing = getByName(profileName);
 
     ProfileConfig updated =
         ProfileConfig.create(
             existing.getName(),
             existing.getImage(),
+            existing.getAutoUpdate(),
+            existing.getAutoUpdateSchedule(),
             existing.getHost(),
             existing.getPort(),
             existing.getPackageWhitelist(),
             existing.getFunctionBlacklist(),
             existing.getOptions(),
-            newImageId);
+            newImageId,
+            newVersionId);
 
     settings.getProfiles().put(profileName, updated);
     flushProfileBeans(profileName);
