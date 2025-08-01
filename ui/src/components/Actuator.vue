@@ -2,11 +2,15 @@
   <div class="row">
     <div class="col mt-3" v-if="isLoading">
       <LoadingSpinner />
+      <FeedbackMessage
+        v-if="errorMessage != ''"
+        :errorMessage="errorMessage"
+      ></FeedbackMessage>
     </div>
     <div class="col" v-else>
       <div class="row">
         <div class="col-sm-3">
-          <SearchBar id="searchbox" v-model="filterValue" />
+          <SearchBar id="searchbox" v-model="searchString" />
         </div>
         <div class="col">
           <button
@@ -33,12 +37,12 @@
             v-for="(metric, path, index) in metrics"
             :key="index"
             :data="metric"
-            :name="path"
+            :name="path.toString()"
           />
         </tbody>
       </table>
       <hr />
-      <summary>
+      <div>
         <h3>Other Actuator links</h3>
         <details>
           <table>
@@ -61,115 +65,139 @@
             </tbody>
           </table>
         </details>
-      </summary>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { defineComponent, onMounted } from "vue";
 import { getActuator, getMetricsAll } from "@/api/api";
-import { ref, watch } from "vue";
-import { Metrics, HalLinks } from "@/types/api";
+import { ref, Ref } from "vue";
+import { Metrics, ActuatorLink, HalLinks } from "@/types/api";
 import { ObjectWithStringKey } from "@/types/types";
 import { objectDeepCopy } from "@/helpers/utils";
+import { useRouter } from "vue-router";
+import { processErrorMessages } from "@/helpers/errorProcessing";
 
 import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import FeedbackMessage from "./FeedbackMessage.vue";
 
-const actuator = ref<HalLinks>();
-const metrics = ref<Metrics>([]);
-const isLoading = ref<boolean>(true);
+export default defineComponent({
+  name: "Actuator",
+  components: {
+    ActuatorItem,
+    LoadingSpinner,
+    SearchBar,
+    FeedbackMessage,
+  },
+  setup() {
+    const actuator = ref<ActuatorLink[]>();
+    const metrics = ref<Metrics>({});
+    const isLoading = ref<boolean>(true);
+    const errorMessage: Ref<string> = ref("");
+    const router = useRouter();
 
-const loadActuator = async () => {
-  let result = (await getActuator())["_links"];
-  let list = [];
-  for (let key in result) {
-    // Add key to each item for further usage
-    const item = result[key];
-    item["key"] = key;
-    list.push(result[key]);
-  }
-  actuator.value = list;
-};
+    onMounted(() => {
+      loadActuator();
+      loadMetrics();
+    });
+    const loadActuator = async () => {
+      let response = await getActuator().catch((error: string) => {
+        errorMessage.value = processErrorMessages(error, "actuator", router);
+        return { _links: {} };
+      });
 
-const loadMetrics = async () => {
-  metrics.value = await getMetricsAll();
+      const result: HalLinks = response["_links"];
+      let list = [];
+      for (let key in result) {
+        // Add key to each item for further usage
+        const item = result[key];
+        item["key"] = key;
+        list.push(result[key]);
+      }
+      actuator.value = list;
+    };
+    const loadMetrics = async () => {
+      metrics.value = await getMetricsAll().catch((error: string) => {
+        errorMessage.value = processErrorMessages(error, "metrics", router);
+        return {};
+      });
+      isLoading.value = false;
+    };
+    return {
+      actuator,
+      metrics,
+      isLoading,
+      errorMessage,
+    };
+  },
+  data(): {
+    searchString: String;
+  } {
+    return {
+      searchString: "",
+    };
+  },
+  watch: {
+    searchString() {
+      this.filterMetrics();
+    },
+    isLoading() {
+      this.filterMetrics();
+    },
+  },
+  methods: {
+    filterMetrics() {
+      const SEARCH_TEXT_FIELDS = "searchWords";
+      const filterOn: string = this.searchString.toLowerCase();
+      for (let [_key, value] of Object.entries(this.metrics)) {
+        if (!this.metrics[SEARCH_TEXT_FIELDS]) {
+          value[SEARCH_TEXT_FIELDS] =
+            this.getConcatenatedValues(value).toLowerCase();
+        }
+        const searchWords: string | undefined = value[SEARCH_TEXT_FIELDS];
+        value["_display"] = filterOn === "" || searchWords?.includes(filterOn);
+      }
+    },
+    getConcatenatedValues(obj: any): String {
+      let result = "";
+      for (const key in obj) {
+        if (typeof obj[key] === "object" && obj[key] !== null) {
+          result += this.getConcatenatedValues(obj[key]);
+        } else {
+          result += obj[key];
+        }
+      }
+      return result;
+    },
+    downloadJSON(filename: String) {
+      const cleanedUp = this.removeFields(this.metrics);
+      const dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(cleanedUp));
+      const downloadAnchorNode = document.createElement("a");
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", filename + ".json");
+      document.body.appendChild(downloadAnchorNode); // required for firefox
+      downloadAnchorNode.click();
+      setTimeout(() => downloadAnchorNode.remove(), 10);
+    },
+    removeFields(json: Metrics) {
+      const result: Metrics = objectDeepCopy<Metrics>(json);
+      for (let [_key, value] of Object.entries(result)) {
+        const wrapper: ObjectWithStringKey = value;
 
-  // preload search values
-  filteredLines();
-  isLoading.value = false;
-};
-
-loadMetrics();
-loadActuator();
-
-function downloadJSON(filename: string) {
-  const cleanedUp = removeFields(metrics.value);
-  const dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(cleanedUp));
-  const downloadAnchorNode = document.createElement("a");
-  downloadAnchorNode.setAttribute("href", dataStr);
-  downloadAnchorNode.setAttribute("download", filename + ".json");
-  document.body.appendChild(downloadAnchorNode); // required for firefox
-  downloadAnchorNode.click();
-  setTimeout(() => downloadAnchorNode.remove(), 10);
-}
-
-function downloadMetrics() {
-  downloadJSON("armadillo-metrics-" + new Date().toISOString());
-}
-
-const filterValue = ref("");
-watch(filterValue, (_newVal, _oldVal) => filteredLines());
-
-const FIELD_DISPLAY = "_display";
-const SEARCH_TEXT_FIELDS = "searchWords";
-
-function concatValues(obj: any): string {
-  let result = "";
-  for (const key in obj) {
-    if (typeof obj[key] === "object" && obj[key] !== null) {
-      result += concatValues(obj[key]);
-    } else {
-      result += obj[key];
-    }
-  }
-  return result;
-}
-
-/**
- * Filter metrics on search value
- *
- * We add:
- * - string search field for matching
- * - booelan display field for storing matched
- */
-function filteredLines() {
-  const filterOn: string = filterValue.value.toLowerCase();
-  for (let [_key, value] of Object.entries(metrics.value)) {
-    if (!value[SEARCH_TEXT_FIELDS]) {
-      value[SEARCH_TEXT_FIELDS] = concatValues(value).toLowerCase();
-    }
-    const searchWords: string = value[SEARCH_TEXT_FIELDS];
-    value[FIELD_DISPLAY] = filterOn === "" || searchWords.includes(filterOn);
-  }
-}
-
-/**
- * Remove added fields for searching.
- *
- * @param json
- */
-function removeFields(json: Metrics) {
-  const result: Metrics = objectDeepCopy<Metrics>(json);
-  for (let [_key, value] of Object.entries(result)) {
-    const wrapper: ObjectWithStringKey = value;
-
-    delete wrapper[SEARCH_TEXT_FIELDS];
-    delete wrapper[FIELD_DISPLAY];
-  }
-  return result;
-}
+        delete wrapper["searchWords"];
+        delete wrapper["_display"];
+      }
+      return result;
+    },
+    downloadMetrics() {
+      this.downloadJSON("armadillo-metrics-" + new Date().toISOString());
+    },
+  },
+});
 </script>

@@ -82,6 +82,7 @@ export type Auth = { user: string; pwd: string };
 interface ActuatorLink {
   href: string;
   templated?: boolean;
+  key?: string;
 }
 
 interface HalLinks {
