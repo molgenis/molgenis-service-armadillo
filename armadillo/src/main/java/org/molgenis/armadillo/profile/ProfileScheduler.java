@@ -6,18 +6,21 @@ import com.github.dockerjava.api.DockerClient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import org.molgenis.armadillo.controller.ProfilesDockerController;
 import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(ProfilesDockerController.DOCKER_MANAGEMENT_ENABLED)
 public class ProfileScheduler {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProfileScheduler.class);
