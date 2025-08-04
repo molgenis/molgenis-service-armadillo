@@ -70,9 +70,9 @@ public class ProfileScheduler {
   }
 
   private String toCron(AutoUpdateSchedule schedule) {
-    String time = schedule.time != null ? schedule.time : "01:00";
-    String frequency = schedule.frequency != null ? schedule.frequency : "weekly";
-    String day = schedule.day;
+    String time = schedule.time() != null ? schedule.time() : "01:00";
+    String frequency = schedule.frequency() != null ? schedule.frequency() : "weekly";
+    String day = schedule.day();
 
     String[] parts = time.split(":");
     String minute = parts[1];
