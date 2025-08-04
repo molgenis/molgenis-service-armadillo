@@ -29,7 +29,7 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
-            newVersionId);
+            null);
     EnvironmentConfigProps actual = config.toEnvironmentConfigProps();
     assertEquals(img, actual.getImage());
   }
@@ -48,7 +48,7 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
-            newVersionId);
+            null);
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
 
@@ -66,7 +66,7 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
-            newVersionId);
+            null);
     assertEquals("localhost", config.getHost());
   }
 
@@ -84,7 +84,7 @@ public class ProfileConfigTest {
             new HashSet<>(),
             null,
             null,
-            newVersionId);
+            null);
     assertEquals("java.util.ImmutableCollections$MapN", config.getOptions().getClass().getName());
   }
 }

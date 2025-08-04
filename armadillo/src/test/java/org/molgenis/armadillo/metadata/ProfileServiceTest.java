@@ -39,7 +39,7 @@ class ProfileServiceTest {
             Set.of(),
             new HashMap<>(),
             null,
-            newVersionId);
+            null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
@@ -57,6 +57,7 @@ class ProfileServiceTest {
     String profileName = "default";
     String oldImageId = "sha256:old";
     String newImageId = "sha256:new";
+    String newVersionId = "0.0.1";
 
     // Create an existing profile config with oldImageId
     ProfileConfig existingProfile =
@@ -71,7 +72,7 @@ class ProfileServiceTest {
             new HashSet<>(),
             Map.of(),
             oldImageId,
-            newVersionId);
+            null);
 
     // Setup ProfilesMetadata and add existing profile
     ProfilesMetadata metadata = ProfilesMetadata.create();
@@ -89,7 +90,7 @@ class ProfileServiceTest {
     profileService.initialize();
 
     // Act: update the image id
-    profileService.updateLastImageId(profileName, newImageId);
+    profileService.updateImageMetaData(profileName, newImageId, newVersionId);
 
     // Assert that the profile has been updated
     ProfileConfig updated = profileService.getByName(profileName);

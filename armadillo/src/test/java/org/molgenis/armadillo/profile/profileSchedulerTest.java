@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.InspectContainerCmd;
-import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageCmd;
+import com.github.dockerjava.api.command.InspectImageResponse;
+import com.github.dockerjava.api.command.PullImageCmd;
+import com.github.dockerjava.api.command.PullImageResultCallback;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -123,30 +125,40 @@ class ProfileSchedulerTest {
   @Mock private ContainerInfo containerInfo; // Add this mock
 
   @Test
-  void testRunUpdateForProfileImageChanged() {
+  void testRunUpdateForProfileImageChanged() throws Exception {
+    // Mock profile
     var profile = mock(ProfileConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
+    when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
+    when(profile.getLastImageId()).thenReturn("oldImage");
 
-    // Mock ContainerInfo to return RUNNING status
+    // Mock container status (RUNNING so update check proceeds)
     when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
     var profileStatusMap = Map.of("testProfile", containerInfo);
     when(dockerService.getAllProfileStatuses()).thenReturn(profileStatusMap);
 
-    when(profileService.getByName("testProfile")).thenReturn(profile);
-    when(profile.getLastImageId()).thenReturn("oldImage");
+    // Mock dockerClient.pullImageCmd
+    var pullImageCmd = mock(PullImageCmd.class);
+    var pullImageResult = mock(PullImageResultCallback.class);
+    when(dockerClient.pullImageCmd("timmyjc/mytest:latest")).thenReturn(pullImageCmd);
+    when(pullImageCmd.start()).thenReturn(pullImageResult);
+    when(pullImageResult.awaitCompletion()).thenReturn(null);
 
-    var inspectCmd = mock(InspectContainerCmd.class);
-    var inspectResponse = mock(InspectContainerResponse.class);
-    when(dockerClient.inspectContainerCmd(any())).thenReturn(inspectCmd);
-    when(inspectCmd.exec()).thenReturn(inspectResponse);
-    when(inspectResponse.getImageId()).thenReturn("newImage");
+    // Mock dockerClient.inspectImageCmd
+    var inspectImageCmd = mock(InspectImageCmd.class);
+    var inspectImageResponse = mock(InspectImageResponse.class);
+    when(dockerClient.inspectImageCmd("timmyjc/mytest:latest")).thenReturn(inspectImageCmd);
+    when(inspectImageCmd.exec()).thenReturn(inspectImageResponse);
+    when(inspectImageResponse.getId()).thenReturn("newImage");
 
-    when(dockerService.asContainerName("testProfile")).thenReturn("containerName");
+    // Mock hasImageIdChanged -> true so restart triggers
     when(dockerService.hasImageIdChanged("testProfile", "oldImage", "newImage")).thenReturn(true);
 
+    // Execute
     invokeRunUpdateForProfile(profile);
 
+    // Verify startProfile is invoked
     verify(dockerService).startProfile("testProfile");
   }
 
@@ -179,29 +191,34 @@ class ProfileSchedulerTest {
   }
 
   @Test
-  void testRunUpdateForProfileImageUnchanged() {
+  void testRunUpdateForProfileImageUnchanged() throws Exception {
     var profile = mock(ProfileConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
+    when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
+    when(profile.getLastImageId()).thenReturn("oldImage");
 
-    var containerInfo = mock(ContainerInfo.class);
     when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
     when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
 
-    when(profileService.getByName("testProfile")).thenReturn(profile);
-    when(profile.getLastImageId()).thenReturn("oldImage");
+    // Mock pull and inspect
+    var pullImageCmd = mock(PullImageCmd.class);
+    var pullImageResult = mock(PullImageResultCallback.class);
+    when(dockerClient.pullImageCmd("timmyjc/mytest:latest")).thenReturn(pullImageCmd);
+    when(pullImageCmd.start()).thenReturn(pullImageResult);
+    when(pullImageResult.awaitCompletion()).thenReturn(null);
 
-    var inspectCmd = mock(InspectContainerCmd.class);
-    var inspectResponse = mock(InspectContainerResponse.class);
-    when(dockerClient.inspectContainerCmd(any())).thenReturn(inspectCmd);
-    when(inspectCmd.exec()).thenReturn(inspectResponse);
-    when(inspectResponse.getImageId()).thenReturn("oldImage"); // same image
+    var inspectImageCmd = mock(InspectImageCmd.class);
+    var inspectImageResponse = mock(InspectImageResponse.class);
+    when(dockerClient.inspectImageCmd("timmyjc/mytest:latest")).thenReturn(inspectImageCmd);
+    when(inspectImageCmd.exec()).thenReturn(inspectImageResponse);
+    when(inspectImageResponse.getId()).thenReturn("oldImage"); // Same ID -> unchanged
 
-    when(dockerService.asContainerName("testProfile")).thenReturn("containerName");
     when(dockerService.hasImageIdChanged("testProfile", "oldImage", "oldImage")).thenReturn(false);
 
     invokeRunUpdateForProfile(profile);
 
+    // Verify NO restart
     verify(dockerService, never()).startProfile(any());
   }
 
