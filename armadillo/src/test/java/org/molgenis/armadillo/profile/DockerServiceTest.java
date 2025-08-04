@@ -185,7 +185,7 @@ class DockerServiceTest {
     verify(dockerClient).removeContainerCmd("default");
     verify(dockerClient).createContainerCmd(profileConfig.getImage());
     verify(dockerClient).startContainerCmd("default");
-    verify(profileService).updateLastImageId("default", "sha256:abcd");
+    verify(profileService).updateImageMetaData("default", "sha256:abcd", "v1.0.0");
   }
 
   @Test
@@ -220,7 +220,7 @@ class DockerServiceTest {
     verify(dockerClient).removeImageCmd("sha256:old");
     verify(rmCmd).withForce(true);
     verify(rmCmd).exec();
-    verify(profileService).updateLastImageId("default", "sha256:new");
+    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0");
   }
 
   @Test
@@ -241,7 +241,7 @@ class DockerServiceTest {
     verify(dockerClient, never()).removeImageCmd(anyString());
 
     // Verify last image ID update still happens (to same ID)
-    verify(profileService).updateLastImageId("default", "sha256:same");
+    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0");
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -258,7 +258,7 @@ class DockerServiceTest {
             emptySet(),
             emptyMap(),
             null,
-            newVersionId);
+            null);
     return List.of(profile1, profile2);
   }
 

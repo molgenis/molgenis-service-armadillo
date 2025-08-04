@@ -70,7 +70,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 emptySet(),
                 emptyMap(),
                 null,
-                newVersionId));
+                null));
     settings
         .getProfiles()
         .put(
@@ -86,7 +86,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 emptySet(),
                 emptyMap(),
                 null,
-                newVersionId));
+                null));
     return settings;
   }
 
@@ -128,7 +128,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             emptySet(),
             Map.of(),
             null,
-            newVersionId);
+            null);
 
     mockMvc
         .perform(
