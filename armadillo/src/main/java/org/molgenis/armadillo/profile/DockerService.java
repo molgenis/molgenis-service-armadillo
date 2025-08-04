@@ -159,13 +159,18 @@ public class DockerService {
     String currentImageId =
         dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
-    if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+    if (previousImageId == null) {
+      LOG.info(
+          "No previous image ID recorded for {}. This may be the first run or from before image tracking was added.",
+          profileName);
+    } else if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
       try {
         removeImageIfUnused(previousImageId);
       } catch (ImageRemoveFailedException e) {
         LOG.info(e.getMessage());
       }
     }
+
     String openContainersID = getOpenContainersImageVersion(currentImageId);
     Long imageSize = getImageSize(currentImageId);
     profileService.updateImageMetaData(profileName, currentImageId, openContainersID, imageSize);
