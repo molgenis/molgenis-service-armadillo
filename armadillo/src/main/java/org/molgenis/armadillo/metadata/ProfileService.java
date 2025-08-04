@@ -68,7 +68,8 @@ public class ProfileService {
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions(),
                 profileConfig.getLastImageId(),
-                profileConfig.getVersionId()));
+                profileConfig.getVersionId(),
+                profileConfig.getImageSize()));
     flushProfileBeans(profileName);
     save();
   }
@@ -114,7 +115,8 @@ public class ProfileService {
     }
   }
 
-  public void updateImageMetaData(String profileName, String newImageId, String newVersionId) {
+  public void updateImageMetaData(
+      String profileName, String newImageId, String newVersionId, Long newImageSize) {
     ProfileConfig existing = getByName(profileName);
 
     ProfileConfig updated =
@@ -129,7 +131,8 @@ public class ProfileService {
             existing.getFunctionBlacklist(),
             existing.getOptions(),
             newImageId,
-            newVersionId);
+            newVersionId,
+            newImageSize);
 
     settings.getProfiles().put(profileName, updated);
     flushProfileBeans(profileName);

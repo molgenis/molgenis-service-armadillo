@@ -59,6 +59,10 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract String getVersionId();
 
+  @JsonProperty("imageSize")
+  @Nullable
+  public abstract Long getImageSize();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
@@ -71,7 +75,8 @@ public abstract class ProfileConfig {
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions,
       @JsonProperty("lastImageId") @Nullable String newLastImageId,
-      @JsonProperty("versionId") @Nullable String newVersionId) {
+      @JsonProperty("versionId") @Nullable String newVersionId,
+      @JsonProperty("imageSize") @Nullable Long newImageSize) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
@@ -83,7 +88,8 @@ public abstract class ProfileConfig {
         newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
         newOptions != null ? newOptions : Map.of(),
         newLastImageId,
-        newVersionId);
+        newVersionId,
+        newImageSize);
   }
 
   public static ProfileConfig createDefault() {
@@ -97,6 +103,7 @@ public abstract class ProfileConfig {
         Set.of("dsBase"),
         emptySet(),
         Map.of("datashield.seed", "342325352"),
+        null,
         null,
         null);
   }

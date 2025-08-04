@@ -55,6 +55,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 emptySet(),
                 emptyMap(),
                 null,
+                null,
                 null));
     settings
         .getProfiles()
@@ -70,6 +71,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
+                null,
                 null,
                 null));
     return settings;

@@ -251,6 +251,7 @@ class CommandsImplTest {
             Set.of(),
             Map.of(),
             null,
+            null,
             null);
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
