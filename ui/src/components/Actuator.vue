@@ -9,7 +9,7 @@
     </div>
     <div class="col" v-else>
       <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-3 align-self-end">
           <SearchBar id="searchbox" v-model="searchString" />
         </div>
         <div class="col">
@@ -23,24 +23,42 @@
           </button>
         </div>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th>key</th>
-            <th>statistic</th>
-            <th>value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ActuatorItem
-            v-for="(metric, path, index) in metrics"
-            :key="index"
-            :data="metric"
-            :name="path.toString()"
-          />
-        </tbody>
-      </table>
+      <div>
+        <div class="m-2">
+          <h5><i class="bi bi-hdd"></i> Disk</h5>
+          <div class="progress">
+            <div
+              class="progress-bar bg-success"
+              role="progressbar"
+              aria-label="Success striped example"
+              :style="'width:' + diskspace.percentage + '%'"
+              :aria-valuenow="diskspace.percentage.toString()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          Used: {{ diskspace.used }} / {{ diskspace.total }}
+        </div>
+        <div class="row">
+          <div class="col">
+            <MetricsCard :metrics="metrics" item="application" icon="window" />
+            <MetricsCard :metrics="metrics" item="process" icon="cpu" />
+            <MetricsCard :metrics="metrics" item="system" icon="gear" />
+          </div>
+          <div class="col">
+            <MetricsCard :metrics="metrics" item="user" icon="person-fill" />
+            <MetricsCard
+              :metrics="metrics"
+              item="rserve"
+              icon="r-circle-fill"
+            />
+            <MetricsCard :metrics="metrics" item="http" icon="wifi" />
+            <MetricsCard :metrics="metrics" item="tomcat" icon="hdd-stack" />
+          </div>
+        </div>
+        <MetricsCard :metrics="metrics" item="jvm" icon="filetype-java" />
+        <MetricsCard :metrics="metrics" item="spring" icon="leaf" />
+      </div>
       <hr />
       <div>
         <h3>Other Actuator links</h3>
@@ -76,22 +94,22 @@ import { getActuator, getMetricsAll } from "@/api/api";
 import { ref, Ref } from "vue";
 import { Metrics, ActuatorLink, HalLinks } from "@/types/api";
 import { ObjectWithStringKey } from "@/types/types";
-import { objectDeepCopy } from "@/helpers/utils";
+import { objectDeepCopy, convertBytes } from "@/helpers/utils";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-
-import ActuatorItem from "./ActuatorItem.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import FeedbackMessage from "./FeedbackMessage.vue";
+import { toNamespacedPath } from "path";
+import MetricsCard from "./MetricsCard.vue";
 
 export default defineComponent({
   name: "Actuator",
   components: {
-    ActuatorItem,
     LoadingSpinner,
     SearchBar,
     FeedbackMessage,
+    MetricsCard,
   },
   setup() {
     const actuator = ref<ActuatorLink[]>();
@@ -149,7 +167,26 @@ export default defineComponent({
       this.filterMetrics();
     },
   },
+  computed: {
+    diskspace(): {
+      total: String;
+      free: String;
+      used: String;
+      percentage: Number;
+    } {
+      const totalSpace = this.metrics["disk.total"]["measurements"][0].value;
+      const freeSpace = this.metrics["disk.free"]["measurements"][0].value;
+      const usedSpace = totalSpace - freeSpace;
+      return {
+        total: convertBytes(totalSpace),
+        free: convertBytes(freeSpace),
+        used: convertBytes(usedSpace),
+        percentage: (usedSpace * 100) / totalSpace,
+      };
+    },
+  },
   methods: {
+    convertBytes,
     filterMetrics() {
       const SEARCH_TEXT_FIELDS = "searchWords";
       const filterOn: string = this.searchString.toLowerCase();
