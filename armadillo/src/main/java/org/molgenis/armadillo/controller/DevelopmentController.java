@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,12 +47,17 @@ public class DevelopmentController {
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
   private final ProfileService profiles;
+  private final DockerService dockerService;
 
   public DevelopmentController(
-      Commands commands, AuditEventPublisher auditEventPublisher, ProfileService profileService) {
+      Commands commands,
+      AuditEventPublisher auditEventPublisher,
+      ProfileService profileService,
+      @Nullable DockerService dockerService) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
     this.profiles = requireNonNull(profileService);
+    this.dockerService = dockerService;
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -139,6 +146,24 @@ public class DevelopmentController {
         principal,
         UPSERT_PROFILE,
         Map.of(PROFILE, profileConfig));
+  }
+
+  @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Object deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @DeleteMapping(value = "delete-docker-image")
+  @ResponseStatus(NO_CONTENT)
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void deleteDockerImage(Principal principal, @RequestParam String imageId) {
+    assert dockerService != null;
+    auditEventPublisher.audit(
+        () -> dockerService.removeImageIfUnused(imageId),
+        principal,
+        DELETE_DOCKER_IMAGE,
+        Map.of(DELETE_DOCKER_IMAGE, imageId));
   }
 
   protected String getPackageNameFromFilename(String filename) {

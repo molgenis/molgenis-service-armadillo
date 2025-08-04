@@ -174,7 +174,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  String getFileSizeInUnit(long fileSize) {
+  public static String getFileSizeInUnit(long fileSize) {
     int sizeOfUnit = 1024;
     String[] units = new String[] {"bytes", "KB", "MB", "GB"};
     for (String unit : units) {
