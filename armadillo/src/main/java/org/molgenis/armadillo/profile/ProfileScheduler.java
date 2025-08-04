@@ -9,7 +9,6 @@ import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.controller.ProfilesDockerController;
 import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
 import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +27,10 @@ public class ProfileScheduler {
   private final DockerService dockerService;
   private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
   private ThreadPoolTaskScheduler taskScheduler;
-  private final ProfileService profileService;
   private final DockerClient dockerClient;
 
-  public ProfileScheduler(
-      DockerService dockerService, ProfileService profileService, DockerClient dockerClient) {
+  public ProfileScheduler(DockerService dockerService, DockerClient dockerClient) {
     this.dockerService = dockerService;
-    this.profileService = profileService;
     this.dockerClient = dockerClient;
   }
 
@@ -132,6 +128,9 @@ public class ProfileScheduler {
               "Image name is null or empty for profile '{}'. Skipping update.", profile.getName());
         }
       }
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt(); // Preserve interrupt status
+      LOG.error("Thread interrupted while updating profile '{}'", profile.getName(), ie);
     } catch (Exception e) {
       LOG.error("Error while checking profile '{}': {}", profile.getName(), e.getMessage(), e);
     }
