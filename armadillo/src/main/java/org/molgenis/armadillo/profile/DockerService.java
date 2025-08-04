@@ -167,7 +167,17 @@ public class DockerService {
       }
     }
     String openContainersID = getOpenContainersImageVersion(currentImageId);
-    profileService.updateImageMetaData(profileName, currentImageId, openContainersID);
+    Long imageSize = getImageSize(currentImageId);
+    profileService.updateImageMetaData(profileName, currentImageId, openContainersID, imageSize);
+  }
+
+  Long getImageSize(String imageId) {
+    try {
+      return dockerClient.inspectImageCmd(imageId).exec().getSize();
+    } catch (Exception e) {
+      LOG.error("Error retrieving size of image: {}", imageId, e);
+      return null;
+    }
   }
 
   public String getOpenContainersImageVersion(String imageName) {

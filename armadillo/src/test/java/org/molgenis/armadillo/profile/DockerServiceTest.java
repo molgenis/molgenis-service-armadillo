@@ -181,14 +181,20 @@ class DockerServiceTest {
     // Mock version retrieval
     when(dockerService.getOpenContainersImageVersion("sha256:abcd")).thenReturn("v1.0.0");
 
+    // Mock image size retrieval
+    when(dockerService.getImageSize("sha256:abcd")).thenReturn(123_456_789L); // size in bytes
+
     dockerService.startProfile("default");
 
+    // Verify Docker operations
     verify(dockerClient).pullImageCmd(profileConfig.getImage());
     verify(dockerClient).stopContainerCmd("default");
     verify(dockerClient).removeContainerCmd("default");
     verify(dockerClient).createContainerCmd(profileConfig.getImage());
     verify(dockerClient).startContainerCmd("default");
-    verify(profileService).updateImageMetaData("default", "sha256:abcd", "v1.0.0");
+
+    // Verify metadata update now includes image size
+    verify(profileService).updateImageMetaData("default", "sha256:abcd", "v1.0.0", 123_456_789L);
   }
 
   @Test
@@ -202,31 +208,36 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(containerInfo);
     when(containerInfo.getImageId()).thenReturn("sha256:new");
 
-    // ✅ Instead of mocking inspectImageCmd and config, just stub this:
+    // Mock version retrieval
     when(dockerService.getOpenContainersImageVersion("sha256:new")).thenReturn("v1.0.0");
 
-    // return tags — optional
+    // ✅ Mock image size retrieval
+    when(dockerService.getImageSize("sha256:new")).thenReturn(987_654_321L);
+
+    // Return tags — optional
     when(dockerClient.inspectImageCmd("sha256:old").exec().getRepoTags()).thenReturn(List.of());
 
-    // no containers use the old image
+    // No containers use the old image
     var listCmd = mock(ListContainersCmd.class);
     when(dockerClient.listContainersCmd()).thenReturn(listCmd);
     when(listCmd.exec()).thenReturn(List.of());
 
-    // image-removal by image ID
+    // Image removal by image ID
     var rmCmd = mock(RemoveImageCmd.class);
     when(dockerClient.removeImageCmd("sha256:old")).thenReturn(rmCmd);
     when(rmCmd.withForce(true)).thenReturn(rmCmd);
     doNothing().when(rmCmd).exec();
 
-    // act
+    // Act
     dockerService.startProfile("default");
 
-    // assert
+    // Assert
     verify(dockerClient).removeImageCmd("sha256:old");
     verify(rmCmd).withForce(true);
     verify(rmCmd).exec();
-    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0");
+
+    // ✅ Updated verification includes image size
+    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0", 987_654_321L);
   }
 
   @Test
@@ -243,14 +254,17 @@ class DockerServiceTest {
     // Mock version retrieval
     when(dockerService.getOpenContainersImageVersion("sha256:same")).thenReturn("v1.0.0");
 
+    // ✅ Mock image size retrieval
+    when(dockerService.getImageSize("sha256:same")).thenReturn(555_000_000L);
+
     // Call the method under test
     assertDoesNotThrow(() -> dockerService.startProfile("default"));
 
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
 
-    // Verify last image ID update still happens (to same ID, with mocked version)
-    verify(profileService).updateImageMetaData("default", "sha256:same", "v1.0.0");
+    // ✅ Verify metadata update now includes image size
+    verify(profileService).updateImageMetaData("default", "sha256:same", "v1.0.0", 555_000_000L);
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -266,6 +280,7 @@ class DockerServiceTest {
             Set.of("dsBase", "dsOmics"),
             emptySet(),
             emptyMap(),
+            null,
             null,
             null);
     return List.of(profile1, profile2);

@@ -32,6 +32,7 @@ public class InitialProfileConfig {
         functionBlacklist,
         options,
         null,
+        null,
         null);
   }
 
