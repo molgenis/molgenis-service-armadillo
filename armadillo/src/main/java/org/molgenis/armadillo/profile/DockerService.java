@@ -182,24 +182,27 @@ public class DockerService {
       return imageVersion != null ? imageVersion : "Unknown Version";
     } catch (Exception e) {
       // Log the error and return null if the image couldn't be inspected
-      LOG.error("Error retrieving OpenContainers version for image: " + imageName, e);
+      LOG.error("Error retrieving OpenContainers version for image: {}", imageName, e);
       return null;
     }
   }
 
   boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {
+    String escapedProfile = StringEscapeUtils.escapeJava(profileName);
+    String escapedPreviousId =
+        previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
+    String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
+
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
       LOG.info(
           "Image ID for profile '{}' changed from '{}' to '{}'",
-          StringEscapeUtils.escapeJava(profileName),
-          StringEscapeUtils.escapeJava(previousImageId),
-          StringEscapeUtils.escapeJava(currentImageId));
+          escapedProfile,
+          escapedPreviousId,
+          escapedCurrentId);
       return true;
     } else {
       LOG.info(
-          "Image ID for profile '{}' unchanged (still '{}')",
-          StringEscapeUtils.escapeJava(profileName),
-          StringEscapeUtils.escapeJava(currentImageId));
+          "Image ID for profile '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
       return false;
     }
   }
