@@ -64,7 +64,7 @@ export type AutoUpdateSchedule = {
 export type Profile = {
   name: string;
   image: string;
-  tags?: string[];
+  versionId?: string;
   host: string;
   port: number;
   packageWhitelist: StringArray;

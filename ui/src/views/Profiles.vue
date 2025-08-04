@@ -262,9 +262,6 @@ export default defineComponent({
               profiles[profile_index].options["datashield.seed"];
             // Delete required or else shows when creating or editing profiles
             delete profiles[profile_index].options["datashield.seed"];
-            // Extract tags
-            profiles[profile_index].tags =
-              profiles[profile_index].container?.tags || [];
             profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
               .autoUpdateSchedule || {
               frequency: "weekly",
@@ -348,7 +345,7 @@ export default defineComponent({
       let columns: TypeObject = {
         name: "string",
         image: "string",
-        tags: "array",
+        versionId: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
         host: "string",
@@ -502,7 +499,7 @@ export default defineComponent({
       this.profiles.unshift({
         name: "",
         image: "datashield/rock-base:latest",
-        tags: [],
+        versionId: "",
         autoUpdate: false,
         autoUpdateSchedule: {
           frequency: "daily",
