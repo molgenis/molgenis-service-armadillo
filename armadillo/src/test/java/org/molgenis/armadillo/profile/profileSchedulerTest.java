@@ -245,7 +245,7 @@ class ProfileSchedulerTest {
   }
 
   private int invokeDayToCronNumber(String day) throws Exception {
-    var method = ProfileScheduler.class.getDeclaredMethod("dayToCronNumber", String.class);
+    var method = ProfileScheduler.class.getDeclaredMethod("convertDayToCronNumber", String.class);
     method.setAccessible(true);
     return (int) method.invoke(profileScheduler, day);
   }

@@ -75,14 +75,14 @@ public class ProfileScheduler {
     String hour = parts[0];
 
     if ("weekly".equalsIgnoreCase(frequency)) {
-      int dayOfWeek = dayToCronNumber(day != null ? day : "Sunday");
+      int dayOfWeek = convertDayToCronNumber(day != null ? day : "Sunday");
       return String.format("0 %s %s * * %d", minute, hour, dayOfWeek);
     } else {
       return String.format("0 %s %s * * *", minute, hour); // daily or fallback
     }
   }
 
-  private int dayToCronNumber(String day) {
+  private int convertDayToCronNumber(String day) {
     return switch (day.toLowerCase()) {
       case "sunday" -> 0;
       case "monday" -> 1;
