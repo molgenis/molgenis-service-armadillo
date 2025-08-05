@@ -40,6 +40,7 @@ class ProfileServiceTest {
             new HashMap<>(),
             null,
             null,
+            null,
             null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
@@ -59,7 +60,8 @@ class ProfileServiceTest {
     String oldImageId = "sha256:old";
     String newImageId = "sha256:new";
     String newVersionId = "0.0.1";
-    Long newImageSize = 123_456_789L; // ✅ Add image size
+    Long newImageSize = 123_456_789L;
+    String newCreationDate = "2025-08-05T12:34:56Z";
 
     // Create an existing profile config with oldImageId
     ProfileConfig existingProfile =
@@ -74,6 +76,7 @@ class ProfileServiceTest {
             new HashSet<>(),
             Map.of(),
             oldImageId,
+            null,
             null,
             null);
 
@@ -93,13 +96,14 @@ class ProfileServiceTest {
     profileService.initialize();
 
     // Act: update the image id, version, and size
-    profileService.updateImageMetaData(profileName, newImageId, newVersionId, newImageSize);
+    profileService.updateImageMetaData(
+        profileName, newImageId, newVersionId, newImageSize, newCreationDate);
 
     // Assert that the profile has been updated
     ProfileConfig updated = profileService.getByName(profileName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
-    assertEquals(newImageSize, updated.getImageSize()); // ✅ Check image size
+    assertEquals(newImageSize, updated.getImageSize());
 
     // Verify flush and save were called
     verify(mockProfileScope).removeAllProfileBeans(profileName);

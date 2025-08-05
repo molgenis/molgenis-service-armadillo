@@ -170,10 +170,34 @@ public class DockerService {
         LOG.info(e.getMessage());
       }
     }
+  }
 
-    String openContainersID = getOpenContainersImageVersion(currentImageId);
+  //  if (previousImageId == null && currentImageId != null) {
+  //    updateCreationDate
+  //  } else if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+  //    updateCreationDate
+  //  }
+
+  void updateImageMetaData(String profileName, String currentImageId) {
+    String openContainersId = getOpenContainersImageVersion(currentImageId);
     Long imageSize = getImageSize(currentImageId);
-    profileService.updateImageMetaData(profileName, currentImageId, openContainersID, imageSize);
+    String creationDate = getImageCreationDate(currentImageId);
+    profileService.updateImageMetaData(
+        profileName, currentImageId, openContainersId, imageSize, creationDate);
+  }
+
+  String getImageCreationDate(String imageId) {
+    try {
+      return dockerClient
+          .inspectImageCmd(imageId)
+          .exec()
+          .getConfig()
+          .getLabels()
+          .get("org.opencontainers.image.created");
+    } catch (Exception e) {
+      LOG.error("Error retrieving creation date of image: {}", imageId, e);
+      return null;
+    }
   }
 
   Long getImageSize(String imageId) {
