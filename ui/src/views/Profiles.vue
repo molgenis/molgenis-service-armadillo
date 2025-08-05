@@ -136,7 +136,12 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="['container', 'autoUpdateSchedule']"
+          :hideColumns="[
+            'versionId',
+            'autoUpdateSchedule',
+            'container',
+            'autoUpdateSchedule',
+          ]"
           :dataStructure="profilesDataStructure"
         />
         <tr v-if="rowProps.row.autoUpdate">
@@ -358,12 +363,6 @@ export default defineComponent({
 
       if (this.dockerManagementEnabled) {
         columns["container"] = "object";
-      }
-
-      if (this.profileToEditIndex !== -1) {
-        delete columns.versionId;
-        delete columns.autoUpdateSchedule;
-        delete columns.container;
       }
 
       return columns;
