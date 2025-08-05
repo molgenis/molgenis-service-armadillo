@@ -184,6 +184,9 @@ class DockerServiceTest {
     // Mock image size retrieval
     when(dockerService.getImageSize("sha256:abcd")).thenReturn(123_456_789L); // size in bytes
 
+    // Mock image creation date retrieval
+    when(dockerService.getImageCreationDate("sha256:abcd")).thenReturn("2025-08-05T12:34:56Z");
+
     dockerService.startProfile("default");
 
     // Verify Docker operations
@@ -194,7 +197,9 @@ class DockerServiceTest {
     verify(dockerClient).startContainerCmd("default");
 
     // Verify metadata update now includes image size
-    verify(profileService).updateImageMetaData("default", "sha256:abcd", "v1.0.0", 123_456_789L);
+    verify(profileService)
+        .updateImageMetaData(
+            "default", "sha256:abcd", "v1.0.0", 123_456_789L, "2025-08-05T12:34:56Z");
   }
 
   @Test
@@ -213,6 +218,9 @@ class DockerServiceTest {
 
     // ✅ Mock image size retrieval
     when(dockerService.getImageSize("sha256:new")).thenReturn(987_654_321L);
+
+    // Mock creation date retrieval
+    when(dockerService.getImageCreationDate("sha256:new")).thenReturn("2025-08-05T12:34:56Z");
 
     // Return tags — optional
     when(dockerClient.inspectImageCmd("sha256:old").exec().getRepoTags()).thenReturn(List.of());
@@ -237,7 +245,9 @@ class DockerServiceTest {
     verify(rmCmd).exec();
 
     // ✅ Updated verification includes image size
-    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0", 987_654_321L);
+    verify(profileService)
+        .updateImageMetaData(
+            "default", "sha256:new", "v1.0.0", 987_654_321L, "2025-08-05T12:34:56Z");
   }
 
   @Test
@@ -254,8 +264,11 @@ class DockerServiceTest {
     // Mock version retrieval
     when(dockerService.getOpenContainersImageVersion("sha256:same")).thenReturn("v1.0.0");
 
-    // ✅ Mock image size retrieval
+    // Mock image size retrieval
     when(dockerService.getImageSize("sha256:same")).thenReturn(555_000_000L);
+
+    // Mock creation date retrieval
+    when(dockerService.getImageCreationDate("sha256:new")).thenReturn("2025-08-05T12:34:56Z");
 
     // Call the method under test
     assertDoesNotThrow(() -> dockerService.startProfile("default"));
@@ -263,8 +276,10 @@ class DockerServiceTest {
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
 
-    // ✅ Verify metadata update now includes image size
-    verify(profileService).updateImageMetaData("default", "sha256:same", "v1.0.0", 555_000_000L);
+    // Verify metadata update now includes image size
+    verify(profileService)
+        .updateImageMetaData(
+            "default", "sha256:same", "v1.0.0", 555_000_000L, "2025-08-05T12:34:56Z");
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -282,7 +297,8 @@ class DockerServiceTest {
             emptyMap(),
             null,
             null,
-            null);
+            null,
+            newCreationDate);
     return List.of(profile1, profile2);
   }
 

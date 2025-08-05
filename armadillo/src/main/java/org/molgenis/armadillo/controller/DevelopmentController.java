@@ -141,7 +141,8 @@ public class DevelopmentController {
             currentConfig.getOptions(),
             currentConfig.getLastImageId(),
             currentConfig.getVersionId(),
-            currentConfig.getImageSize());
+            currentConfig.getImageSize(),
+            currentConfig.getCreationDate());
     auditEventPublisher.audit(
         () -> profiles.upsert(profileConfig),
         principal,
