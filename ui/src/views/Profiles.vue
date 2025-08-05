@@ -235,6 +235,7 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import { convertBytes } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Profiles",
@@ -261,26 +262,38 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
-          for (var profile_index in profiles) {
-            // Extract options.datashield.seed into proper column
-            profiles[profile_index].datashieldSeed =
-              profiles[profile_index].options["datashield.seed"];
-            // Delete required or else shows when creating or editing profiles
-            delete profiles[profile_index].options["datashield.seed"];
-            profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
-              .autoUpdateSchedule || {
-              frequency: "weekly",
-              day: "Sunday",
-              time: "01:00",
+
+          return profiles.map((profile) => {
+            // Extract datashieldSeed
+            const datashieldSeed = profile.options["datashield.seed"];
+            delete profile.options["datashield.seed"];
+
+            return {
+              ...profile,
+              datashieldSeed,
+              autoUpdateSchedule: profile.autoUpdateSchedule || {
+                frequency: "weekly",
+                day: "Sunday",
+                time: "01:00",
+              },
+              ImageSize: profile.imageSize
+                ? convertBytes(profile.imageSize)
+                : "N/A",
+              CreationDate: profile.creationDate
+                ? new Date(profile.creationDate).toLocaleString()
+                : "N/A",
+              InstallDate: profile.installDate
+                ? new Date(profile.installDate).toLocaleString()
+                : "N/A",
             };
-          }
-          profilesLoading.value = false;
-          return profiles;
+          });
         })
         .catch((error: string) => {
           errorMessage.value = processErrorMessages(error, "profiles", router);
           return [];
         });
+
+      profilesLoading.value = false;
     };
     return {
       profilesLoading,
@@ -351,6 +364,9 @@ export default defineComponent({
         name: "string",
         image: "string",
         versionId: "string",
+        ImageSize: "number",
+        CreationDate: "string",
+        InstallDate: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
         host: "string",
