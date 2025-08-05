@@ -172,6 +172,7 @@ public class DockerService {
         LOG.info(e.getMessage());
       }
     }
+  }
 
     updateImageMetaData(profileName, previousImageId, currentImageId);
   }
