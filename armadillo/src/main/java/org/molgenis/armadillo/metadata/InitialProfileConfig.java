@@ -34,6 +34,7 @@ public class InitialProfileConfig {
         null,
         null,
         null,
+        null,
         null);
   }
 

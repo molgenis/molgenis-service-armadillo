@@ -41,6 +41,7 @@ class ProfileServiceTest {
             null,
             null,
             null,
+            null,
             null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
@@ -62,6 +63,7 @@ class ProfileServiceTest {
     String newVersionId = "0.0.1";
     Long newImageSize = 123_456_789L;
     String newCreationDate = "2025-08-05T12:34:56Z";
+    String newInstallDate = "2025-10-05T12:34:56Z";
 
     // Create an existing profile config with oldImageId
     ProfileConfig existingProfile =
@@ -76,6 +78,7 @@ class ProfileServiceTest {
             new HashSet<>(),
             Map.of(),
             oldImageId,
+            null,
             null,
             null,
             null);
@@ -97,7 +100,7 @@ class ProfileServiceTest {
 
     // Act: update the image id, version, and size
     profileService.updateImageMetaData(
-        profileName, newImageId, newVersionId, newImageSize, newCreationDate);
+        profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
     // Assert that the profile has been updated
     ProfileConfig updated = profileService.getByName(profileName);

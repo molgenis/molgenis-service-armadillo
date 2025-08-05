@@ -9,6 +9,7 @@ import java.util.List;
 import org.molgenis.armadillo.exceptions.DefaultProfileDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.profile.ProfileScope;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +71,8 @@ public class ProfileService {
                 profileConfig.getLastImageId(),
                 profileConfig.getVersionId(),
                 profileConfig.getImageSize(),
-                profileConfig.getCreationDate()));
+                profileConfig.getCreationDate(),
+                profileConfig.getInstallDate()));
     flushProfileBeans(profileName);
     save();
   }
@@ -121,7 +123,8 @@ public class ProfileService {
       String newImageId,
       String newVersionId,
       Long newImageSize,
-      String newCreationDate) {
+      String newCreationDate,
+      @Nullable String newInstallDate) {
     ProfileConfig existing = getByName(profileName);
 
     ProfileConfig updated =
@@ -138,7 +141,8 @@ public class ProfileService {
             newImageId,
             newVersionId,
             newImageSize,
-            newCreationDate);
+            newCreationDate,
+            newInstallDate != null ? newInstallDate : existing.getInstallDate());
 
     settings.getProfiles().put(profileName, updated);
     flushProfileBeans(profileName);
