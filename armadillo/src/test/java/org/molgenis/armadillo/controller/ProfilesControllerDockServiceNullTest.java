@@ -57,7 +57,8 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 null,
                 null,
                 null,
-                newCreationDate));
+                null,
+                null));
     settings
         .getProfiles()
         .put(
@@ -75,7 +76,8 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
                 null,
                 null,
                 null,
-                newCreationDate));
+                null,
+                null));
     return settings;
   }
 

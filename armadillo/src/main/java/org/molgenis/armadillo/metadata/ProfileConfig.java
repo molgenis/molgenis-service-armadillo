@@ -67,6 +67,10 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract String getCreationDate();
 
+  @JsonProperty("InstallDate")
+  @Nullable
+  public abstract String getInstallDate();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
@@ -81,7 +85,8 @@ public abstract class ProfileConfig {
       @JsonProperty("lastImageId") @Nullable String newLastImageId,
       @JsonProperty("versionId") @Nullable String newVersionId,
       @JsonProperty("imageSize") @Nullable Long newImageSize,
-      @JsonProperty("creationDate") @Nullable String newCreationDate) {
+      @JsonProperty("creationDate") @Nullable String newCreationDate,
+      @JsonProperty("installDate") @Nullable String newInstallDate) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
@@ -95,7 +100,8 @@ public abstract class ProfileConfig {
         newLastImageId,
         newVersionId,
         newImageSize,
-        newCreationDate);
+        newCreationDate,
+        newInstallDate);
   }
 
   public static ProfileConfig createDefault() {
@@ -109,6 +115,7 @@ public abstract class ProfileConfig {
         Set.of("dsBase"),
         emptySet(),
         Map.of("datashield.seed", "342325352"),
+        null,
         null,
         null,
         null,

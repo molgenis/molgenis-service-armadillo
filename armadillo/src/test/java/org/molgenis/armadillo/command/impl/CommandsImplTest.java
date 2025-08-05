@@ -253,7 +253,8 @@ class CommandsImplTest {
             null,
             null,
             null,
-            newCreationDate);
+            null,
+            null);
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);

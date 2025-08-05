@@ -15,6 +15,8 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -170,20 +172,27 @@ public class DockerService {
         LOG.info(e.getMessage());
       }
     }
+
+    updateImageMetaData(profileName, previousImageId, currentImageId);
   }
 
-  //  if (previousImageId == null && currentImageId != null) {
-  //    updateCreationDate
-  //  } else if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
-  //    updateCreationDate
-  //  }
-
-  void updateImageMetaData(String profileName, String currentImageId) {
+  void updateImageMetaData(String profileName, String previousImageId, String currentImageId) {
     String openContainersId = getOpenContainersImageVersion(currentImageId);
     Long imageSize = getImageSize(currentImageId);
     String creationDate = getImageCreationDate(currentImageId);
+
+    String installDate;
+    if ((previousImageId == null && currentImageId != null)
+        || hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+      installDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+    } else {
+      installDate = null;
+    }
+    System.out.println("Previous imageId is: " + previousImageId);
+    System.out.println("Current imageId is: " + currentImageId);
+    System.out.println("Install date is: " + installDate);
     profileService.updateImageMetaData(
-        profileName, currentImageId, openContainersId, imageSize, creationDate);
+        profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
   }
 
   String getImageCreationDate(String imageId) {

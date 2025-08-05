@@ -182,7 +182,7 @@ class DockerServiceTest {
     when(dockerService.getOpenContainersImageVersion("sha256:abcd")).thenReturn("v1.0.0");
 
     // Mock image size retrieval
-    when(dockerService.getImageSize("sha256:abcd")).thenReturn(123_456_789L); // size in bytes
+    when(dockerService.getImageSize("sha256:abcd")).thenReturn(123_456_789L);
 
     // Mock image creation date retrieval
     when(dockerService.getImageCreationDate("sha256:abcd")).thenReturn("2025-08-05T12:34:56Z");
@@ -196,10 +196,15 @@ class DockerServiceTest {
     verify(dockerClient).createContainerCmd(profileConfig.getImage());
     verify(dockerClient).startContainerCmd("default");
 
-    // Verify metadata update now includes image size
     verify(profileService)
         .updateImageMetaData(
-            "default", "sha256:abcd", "v1.0.0", 123_456_789L, "2025-08-05T12:34:56Z");
+            eq("default"),
+            eq("sha256:abcd"),
+            eq("v1.0.0"),
+            eq(123_456_789L),
+            eq("2025-08-05T12:34:56Z"),
+            anyString() // installDate generated dynamically in method
+            );
   }
 
   @Test
@@ -216,7 +221,7 @@ class DockerServiceTest {
     // Mock version retrieval
     when(dockerService.getOpenContainersImageVersion("sha256:new")).thenReturn("v1.0.0");
 
-    // ✅ Mock image size retrieval
+    // Mock image size retrieval
     when(dockerService.getImageSize("sha256:new")).thenReturn(987_654_321L);
 
     // Mock creation date retrieval
@@ -244,10 +249,16 @@ class DockerServiceTest {
     verify(rmCmd).withForce(true);
     verify(rmCmd).exec();
 
-    // ✅ Updated verification includes image size
+    //
     verify(profileService)
         .updateImageMetaData(
-            "default", "sha256:new", "v1.0.0", 987_654_321L, "2025-08-05T12:34:56Z");
+            eq("default"),
+            eq("sha256:new"),
+            eq("v1.0.0"),
+            eq(987_654_321L),
+            eq("2025-08-05T12:34:56Z"),
+            anyString() // installDate dynamically generated
+            );
   }
 
   @Test
@@ -267,8 +278,8 @@ class DockerServiceTest {
     // Mock image size retrieval
     when(dockerService.getImageSize("sha256:same")).thenReturn(555_000_000L);
 
-    // Mock creation date retrieval
-    when(dockerService.getImageCreationDate("sha256:new")).thenReturn("2025-08-05T12:34:56Z");
+    // Mock creation date retrieval (fixed the ID to "same" instead of "new")
+    when(dockerService.getImageCreationDate("sha256:same")).thenReturn("2025-08-05T12:34:56Z");
 
     // Call the method under test
     assertDoesNotThrow(() -> dockerService.startProfile("default"));
@@ -276,10 +287,16 @@ class DockerServiceTest {
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
 
-    // Verify metadata update now includes image size
+    // Verify metadata update includes image size and a null install date (no change in image ID)
     verify(profileService)
         .updateImageMetaData(
-            "default", "sha256:same", "v1.0.0", 555_000_000L, "2025-08-05T12:34:56Z");
+            eq("default"),
+            eq("sha256:same"),
+            eq("v1.0.0"),
+            eq(555_000_000L),
+            eq("2025-08-05T12:34:56Z"),
+            isNull() // installDate should be null since image ID did not change
+            );
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -298,7 +315,8 @@ class DockerServiceTest {
             null,
             null,
             null,
-            newCreationDate);
+            null,
+            null);
     return List.of(profile1, profile2);
   }
 
