@@ -381,10 +381,19 @@ export default defineComponent({
         columns["container"] = "object";
       }
 
+      const toHideInEdit = [
+        "container",
+        "autoUpdateSchedule",
+        "versionId",
+        "ImageSize",
+        "CreationDate",
+        "installDate",
+      ];
+
       if (this.profileToEditIndex !== -1) {
-        delete columns.container;
-        delete columns.autoUpdateSchedule;
-        delete columns.versionId;
+        toHideInEdit.forEach((key) => {
+          delete columns[key as keyof TypeObject];
+        });
       }
 
       return columns;
