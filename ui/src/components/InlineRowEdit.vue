@@ -35,13 +35,20 @@
         />
       </div>
       <div class="input-group mb-3" v-else>
-        <input
-          type="text"
-          class="form-control"
+        <textarea
+          class="form-control p-2"
           v-model="rowData[column]"
-          :placeholder="rowData[column]"
-          :aria-label="column"
-        />
+          rows="1"
+          style="
+            white-space: normal;
+            word-break: break-word;
+            overflow: hidden;
+            resize: none;
+            font-family: inherit;
+            line-height: 1.5;
+          "
+          @input="autoResize($event)"
+        ></textarea>
       </div>
     </td>
   </tr>
@@ -103,6 +110,26 @@ export default defineComponent({
     emitUpdate(event: Event) {
       this.$emit("update-array-element", event);
     },
+    autoResize(e: Event) {
+      const el = e.target as HTMLTextAreaElement;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    },
+    resizeAll() {
+      this.$nextTick(() => {
+        const tbs = this.$el.querySelectorAll("textarea.form-control");
+        tbs.forEach((ta: HTMLTextAreaElement) => {
+          ta.style.height = "auto";
+          ta.style.height = `${ta.scrollHeight}px`;
+        });
+      });
+    },
+  },
+  mounted() {
+    this.resizeAll();
+  },
+  updated() {
+    this.resizeAll;
   },
   data(): {
     buttonIcons: StringArray;
