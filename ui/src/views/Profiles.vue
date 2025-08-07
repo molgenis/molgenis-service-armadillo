@@ -365,6 +365,12 @@ export default defineComponent({
         columns["container"] = "object";
       }
 
+      if (this.profileToEditIndex !== -1) {
+        delete columns.container;
+        delete columns.autoUpdateSchedule;
+        delete columns.versionId;
+      }
+
       return columns;
     },
   },
