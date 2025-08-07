@@ -100,7 +100,6 @@ import { processErrorMessages } from "@/helpers/errorProcessing";
 import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import FeedbackMessage from "./FeedbackMessage.vue";
-import { toNamespacedPath } from "path";
 import MetricsCard from "./MetricsCard.vue";
 
 export default defineComponent({
