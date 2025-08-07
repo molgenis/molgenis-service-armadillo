@@ -8,6 +8,7 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
@@ -155,31 +156,54 @@ public class DockerService {
     startContainer(containerName);
 
     String previousImageId = profileConfig.getLastImageId();
-    String currentImageId = dockerClient.inspectContainerCmd(containerName).exec().getImageId();
+    String currentImageId =
+        dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
-    logImageChange(profileName, previousImageId, currentImageId);
-    profileService.updateLastImageId(profileName, currentImageId);
-  }
-
-  private void logImageChange(String profileName, String previousImageId, String currentImageId) {
-    String safeProfileName = StringEscapeUtils.escapeJava(profileName);
-    String safePrevImageId = StringEscapeUtils.escapeJava(previousImageId);
-    String safeCurrImageId = StringEscapeUtils.escapeJava(currentImageId);
-
-    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
-          "Image ID for profile '{}' changed from '{}' to '{}'",
-          safeProfileName,
-          safePrevImageId,
-          safeCurrImageId);
+    if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
       try {
         removeImageIfUnused(previousImageId);
       } catch (ImageRemoveFailedException e) {
         LOG.info(e.getMessage());
       }
+    }
+    String openContainersID = getOpenContainersImageVersion(currentImageId);
+    profileService.updateImageMetaData(profileName, currentImageId, openContainersID);
+  }
+
+  public String getOpenContainersImageVersion(String imageName) {
+    try {
+      // Inspect the image using the provided image name
+      InspectImageResponse image = dockerClient.inspectImageCmd(imageName).exec();
+
+      // Retrieve the OpenContainers image version (org.opencontainers.image.version)
+      String imageVersion = image.getConfig().getLabels().get("org.opencontainers.image.version");
+
+      // Return the version if available, or null if not found
+      return imageVersion != null ? imageVersion : "Unknown Version";
+    } catch (Exception e) {
+      // Log the error and return null if the image couldn't be inspected
+      LOG.error("Error retrieving OpenContainers version for image: {}", imageName, e);
+      return null;
+    }
+  }
+
+  boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {
+    String escapedProfile = StringEscapeUtils.escapeJava(profileName);
+    String escapedPreviousId =
+        previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
+    String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
+
+    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
+      LOG.info(
+          "Image ID for profile '{}' changed from '{}' to '{}'",
+          escapedProfile,
+          escapedPreviousId,
+          escapedCurrentId);
+      return true;
     } else {
       LOG.info(
-          "Image ID for profile '{}' unchanged (still '{}')", safeProfileName, safeCurrImageId);
+          "Image ID for profile '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
+      return false;
     }
   }
 
