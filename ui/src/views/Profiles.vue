@@ -278,13 +278,13 @@ export default defineComponent({
               },
               ImageSize: profile.imageSize
                 ? convertBytes(profile.imageSize)
-                : "N/A",
+                : "",
               CreationDate: profile.creationDate
-                ? new Date(profile.creationDate).toLocaleString()
-                : "N/A",
+                ? new Date(profile.creationDate).toLocaleDateString()
+                : "",
               InstallDate: profile.installDate
-                ? new Date(profile.installDate).toLocaleString()
-                : "N/A",
+                ? new Date(profile.installDate).toLocaleDateString()
+                : "",
             };
           });
         })
