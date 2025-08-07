@@ -241,7 +241,17 @@ class CommandsImplTest {
     RequestContextHolder.setRequestAttributes(attrs);
     ProfileConfig profileConfig =
         ProfileConfig.create(
-            "exposome", "dummy", "localhost", 6311, Set.of(), Set.of(), Map.of(), null);
+            "exposome",
+            "dummy",
+            false,
+            null,
+            "localhost",
+            6311,
+            Set.of(),
+            Set.of(),
+            Map.of(),
+            null,
+            null);
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);

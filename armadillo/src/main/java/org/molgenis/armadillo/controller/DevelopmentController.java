@@ -132,12 +132,15 @@ public class DevelopmentController {
         ProfileConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),
+            currentConfig.getAutoUpdate(),
+            currentConfig.getAutoUpdateSchedule(),
             currentConfig.getHost(),
             currentConfig.getPort(),
             whitelist,
             currentConfig.getFunctionBlacklist(),
             currentConfig.getOptions(),
-            currentConfig.getLastImageId());
+            currentConfig.getLastImageId(),
+            currentConfig.getVersionId());
     auditEventPublisher.audit(
         () -> profiles.upsert(profileConfig),
         principal,

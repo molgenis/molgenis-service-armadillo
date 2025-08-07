@@ -22,6 +22,7 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,6 +44,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean DockerService dockerService;
   @MockitoBean ProfilesLoader profilesLoader;
+  @MockitoBean ProfileScheduler profileScheduler;
 
   @BeforeEach
   public void before() {
@@ -60,11 +62,14 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             ProfileConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
+                false,
+                null,
                 "localhost",
                 6311,
                 Set.of("dsBase"),
                 emptySet(),
                 emptyMap(),
+                null,
                 null));
     settings
         .getProfiles()
@@ -73,11 +78,14 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             ProfileConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
+                false,
+                null,
                 "localhost",
                 6312,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
+                null,
                 null));
     return settings;
   }
@@ -112,11 +120,14 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         ProfileConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",
+            false,
+            null,
             "localhost",
             6312,
             Set.of("dsBase"),
             emptySet(),
             Map.of(),
+            null,
             null);
 
     mockMvc

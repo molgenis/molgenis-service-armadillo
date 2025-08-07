@@ -16,6 +16,7 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
+
   @JsonProperty("name")
   @NotEmpty
   public abstract String getName();
@@ -23,6 +24,14 @@ public abstract class ProfileConfig {
   @JsonProperty("image")
   @Nullable // only required when docker enabled
   public abstract String getImage();
+
+  @JsonProperty("autoUpdate")
+  @Nullable
+  public abstract Boolean getAutoUpdate();
+
+  @JsonProperty("autoUpdateSchedule")
+  @Nullable
+  public abstract AutoUpdateSchedule getAutoUpdateSchedule();
 
   @JsonProperty("host")
   @Nullable // defaults to localhost
@@ -46,36 +55,49 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract String getLastImageId();
 
+  @JsonProperty("versionId")
+  @Nullable
+  public abstract String getVersionId();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
+      @JsonProperty("autoUpdate") Boolean autoUpdate,
+      @JsonProperty("autoUpdateSchedule") AutoUpdateSchedule autoUpdateSchedule,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
       @JsonProperty("options") Map<String, String> newOptions,
-      @JsonProperty("lastImageId") @Nullable String newLastImageId) {
+      @JsonProperty("lastImageId") @Nullable String newLastImageId,
+      @JsonProperty("versionId") @Nullable String newVersionId) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
+        autoUpdate,
+        autoUpdateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
         newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
         newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
         newOptions != null ? newOptions : Map.of(),
-        newLastImageId);
+        newLastImageId,
+        newVersionId);
   }
 
   public static ProfileConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",
+        false,
+        null,
         "localhost",
         6311,
         Set.of("dsBase"),
         emptySet(),
         Map.of("datashield.seed", "342325352"),
+        null,
         null);
   }
 

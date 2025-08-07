@@ -178,6 +178,9 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectResponse);
     when(inspectResponse.getImageId()).thenReturn("sha256:abcd");
 
+    // Mock version retrieval
+    when(dockerService.getOpenContainersImageVersion("sha256:abcd")).thenReturn("v1.0.0");
+
     dockerService.startProfile("default");
 
     verify(dockerClient).pullImageCmd(profileConfig.getImage());
@@ -185,7 +188,7 @@ class DockerServiceTest {
     verify(dockerClient).removeContainerCmd("default");
     verify(dockerClient).createContainerCmd(profileConfig.getImage());
     verify(dockerClient).startContainerCmd("default");
-    verify(profileService).updateLastImageId("default", "sha256:abcd");
+    verify(profileService).updateImageMetaData("default", "sha256:abcd", "v1.0.0");
   }
 
   @Test
@@ -199,7 +202,10 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(containerInfo);
     when(containerInfo.getImageId()).thenReturn("sha256:new");
 
-    // return tags — optional now
+    // ✅ Instead of mocking inspectImageCmd and config, just stub this:
+    when(dockerService.getOpenContainersImageVersion("sha256:new")).thenReturn("v1.0.0");
+
+    // return tags — optional
     when(dockerClient.inspectImageCmd("sha256:old").exec().getRepoTags()).thenReturn(List.of());
 
     // no containers use the old image
@@ -220,7 +226,7 @@ class DockerServiceTest {
     verify(dockerClient).removeImageCmd("sha256:old");
     verify(rmCmd).withForce(true);
     verify(rmCmd).exec();
-    verify(profileService).updateLastImageId("default", "sha256:new");
+    verify(profileService).updateImageMetaData("default", "sha256:new", "v1.0.0");
   }
 
   @Test
@@ -234,14 +240,17 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectContainerResponse);
     when(inspectContainerResponse.getImageId()).thenReturn("sha256:same");
 
+    // Mock version retrieval
+    when(dockerService.getOpenContainersImageVersion("sha256:same")).thenReturn("v1.0.0");
+
     // Call the method under test
     assertDoesNotThrow(() -> dockerService.startProfile("default"));
 
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
 
-    // Verify last image ID update still happens (to same ID)
-    verify(profileService).updateLastImageId("default", "sha256:same");
+    // Verify last image ID update still happens (to same ID, with mocked version)
+    verify(profileService).updateImageMetaData("default", "sha256:same", "v1.0.0");
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -250,11 +259,14 @@ class DockerServiceTest {
         ProfileConfig.create(
             "omics",
             "datashield/armadillo-rserver-omics",
+            false,
+            null,
             "localhost",
             6312,
             Set.of("dsBase", "dsOmics"),
             emptySet(),
             emptyMap(),
+            null,
             null);
     return List.of(profile1, profile2);
   }
