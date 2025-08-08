@@ -49,6 +49,18 @@ public abstract class ProfileResponse {
   @JsonProperty("versionId") //
   public abstract String getVersionId();
 
+  @JsonProperty("imageSize")
+  @Nullable
+  public abstract Long getImageSize();
+
+  @JsonProperty("creationDate")
+  @Nullable
+  public abstract String getCreationDate();
+
+  @JsonProperty("installDate")
+  @Nullable
+  public abstract String getInstallDate();
+
   public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
@@ -62,6 +74,9 @@ public abstract class ProfileResponse {
         profileConfig.getOptions(),
         containerInfo,
         profileConfig.getLastImageId(),
-        profileConfig.getVersionId());
+        profileConfig.getVersionId(),
+        profileConfig.getImageSize(),
+        profileConfig.getCreationDate(),
+        profileConfig.getInstallDate());
   }
 }
