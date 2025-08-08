@@ -7,8 +7,8 @@ import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
 import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.molgenis.armadillo.profile.ContainerInfo;
 
 @AutoValue
@@ -24,8 +24,8 @@ public abstract class ProfileResponse {
   public abstract Boolean getAutoUpdate();
 
   @Nullable
-  @JsonProperty("autoUpdateSchedule")
-  public abstract AutoUpdateSchedule getAutoUpdateSchedule();
+  @JsonProperty("updateSchedule")
+  public abstract UpdateSchedule getUpdateSchedule();
 
   public abstract String getHost();
 
@@ -49,12 +49,24 @@ public abstract class ProfileResponse {
   @JsonProperty("versionId") //
   public abstract String getVersionId();
 
+  @JsonProperty("imageSize")
+  @Nullable
+  public abstract Long getImageSize();
+
+  @JsonProperty("creationDate")
+  @Nullable
+  public abstract String getCreationDate();
+
+  @JsonProperty("installDate")
+  @Nullable
+  public abstract String getInstallDate();
+
   public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
         profileConfig.getName(),
         profileConfig.getImage(),
         profileConfig.getAutoUpdate(),
-        profileConfig.getAutoUpdateSchedule(),
+        profileConfig.getUpdateSchedule(),
         profileConfig.getHost(),
         profileConfig.getPort(),
         profileConfig.getPackageWhitelist(),
@@ -62,6 +74,9 @@ public abstract class ProfileResponse {
         profileConfig.getOptions(),
         containerInfo,
         profileConfig.getLastImageId(),
-        profileConfig.getVersionId());
+        profileConfig.getVersionId(),
+        profileConfig.getImageSize(),
+        profileConfig.getCreationDate(),
+        profileConfig.getInstallDate());
   }
 }

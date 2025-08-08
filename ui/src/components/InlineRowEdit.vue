@@ -35,13 +35,12 @@
         />
       </div>
       <div class="input-group mb-3" v-else>
-        <input
-          type="text"
-          class="form-control"
+        <textarea
+          class="form-control p-2"
           v-model="rowData[column]"
-          :placeholder="rowData[column]"
-          :aria-label="column"
-        />
+          v-autosize="rowData[column]"
+          rows="1"
+        ></textarea>
       </div>
     </td>
   </tr>
@@ -49,6 +48,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
+import { vAutosize } from "@/directives/autosize";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import DropdownArrayInput from "@/components/DropdownArrayInput.vue";
@@ -57,6 +57,7 @@ import { BootstrapType, StringArray, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
+  directives: { autosize: vAutosize },
   emits: ["update-array-element"],
   components: {
     StringArrayInput,

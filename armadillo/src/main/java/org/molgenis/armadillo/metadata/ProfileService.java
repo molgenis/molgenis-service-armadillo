@@ -9,6 +9,7 @@ import java.util.List;
 import org.molgenis.armadillo.exceptions.DefaultProfileDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.profile.ProfileScope;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -61,14 +62,17 @@ public class ProfileService {
                 profileName,
                 profileConfig.getImage(),
                 profileConfig.getAutoUpdate(),
-                profileConfig.getAutoUpdateSchedule(),
+                profileConfig.getUpdateSchedule(),
                 profileConfig.getHost(),
                 profileConfig.getPort(),
                 profileConfig.getPackageWhitelist(),
                 profileConfig.getFunctionBlacklist(),
                 profileConfig.getOptions(),
                 profileConfig.getLastImageId(),
-                profileConfig.getVersionId()));
+                profileConfig.getVersionId(),
+                profileConfig.getImageSize(),
+                profileConfig.getCreationDate(),
+                profileConfig.getInstallDate()));
     flushProfileBeans(profileName);
     save();
   }
@@ -114,7 +118,13 @@ public class ProfileService {
     }
   }
 
-  public void updateImageMetaData(String profileName, String newImageId, String newVersionId) {
+  public void updateImageMetaData(
+      String profileName,
+      String newImageId,
+      String newVersionId,
+      Long newImageSize,
+      String newCreationDate,
+      @Nullable String newInstallDate) {
     ProfileConfig existing = getByName(profileName);
 
     ProfileConfig updated =
@@ -122,14 +132,17 @@ public class ProfileService {
             existing.getName(),
             existing.getImage(),
             existing.getAutoUpdate(),
-            existing.getAutoUpdateSchedule(),
+            existing.getUpdateSchedule(),
             existing.getHost(),
             existing.getPort(),
             existing.getPackageWhitelist(),
             existing.getFunctionBlacklist(),
             existing.getOptions(),
             newImageId,
-            newVersionId);
+            newVersionId,
+            newImageSize,
+            newCreationDate,
+            newInstallDate != null ? newInstallDate : existing.getInstallDate());
 
     settings.getProfiles().put(profileName, updated);
     flushProfileBeans(profileName);

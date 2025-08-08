@@ -23,7 +23,7 @@
     <!-- Actual table -->
     <Table
       v-else
-      :dataToShow="profiles"
+      :dataToShow="formattedProfiles"
       :allData="profiles"
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
@@ -102,7 +102,11 @@
           </div>
         </div>
         <div
-          v-else-if="objectProps.row.autoUpdateSchedule === objectProps.data"
+          v-else-if="
+            objectProps.row.autoUpdate &&
+            objectProps.data &&
+            objectProps.data.frequency
+          "
         >
           <span>
             {{
@@ -112,6 +116,15 @@
             }}
           </span>
         </div>
+        <div
+          v-else-if="
+            !objectProps.row.autoUpdate &&
+            objectProps.data &&
+            'frequency' in objectProps.data &&
+            'day' in objectProps.data &&
+            'time' in objectProps.data
+          "
+        ></div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
@@ -136,17 +149,11 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="[
-            'versionId',
-            'autoUpdateSchedule',
-            'container',
-            'autoUpdateSchedule',
-          ]"
           :dataStructure="profilesDataStructure"
         />
         <tr v-if="rowProps.row.autoUpdate">
           <td colspan="100%">
-            <strong>Auto-update schedule:</strong>
+            <strong>Update schedule:</strong>
             <div
               class="form-check form-check-inline"
               v-for="option in ['daily', 'weekly']"
@@ -157,7 +164,7 @@
                 type="radio"
                 :id="`freq-${option}`"
                 :value="option"
-                v-model="rowProps.row.autoUpdateSchedule.frequency"
+                v-model="rowProps.row.updateSchedule.frequency"
               />
               <label class="form-check-label" :for="`freq-${option}`">
                 {{ option }}
@@ -166,11 +173,9 @@
             <div class="mt-2">
               <label class="form-label me-2">Day:</label>
               <select
-                v-model="rowProps.row.autoUpdateSchedule.day"
+                v-model="rowProps.row.updateSchedule.day"
                 class="form-select d-inline-block w-auto"
-                :disabled="
-                  rowProps.row.autoUpdateSchedule.frequency === 'daily'
-                "
+                :disabled="rowProps.row.updateSchedule.frequency === 'daily'"
               >
                 <option value="" disabled>Select day</option>
                 <option
@@ -192,7 +197,7 @@
               <label class="form-label ms-3 me-2">Time:</label>
               <input
                 type="time"
-                v-model="rowProps.row.autoUpdateSchedule.time"
+                v-model="rowProps.row.updateSchedule.time"
                 class="form-control d-inline-block w-auto"
                 :disabled="!rowProps.row.autoUpdate"
               />
@@ -235,6 +240,7 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import { convertBytes } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Profiles",
@@ -261,26 +267,24 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
-          for (var profile_index in profiles) {
-            // Extract options.datashield.seed into proper column
-            profiles[profile_index].datashieldSeed =
-              profiles[profile_index].options["datashield.seed"];
-            // Delete required or else shows when creating or editing profiles
-            delete profiles[profile_index].options["datashield.seed"];
-            profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
-              .autoUpdateSchedule || {
-              frequency: "weekly",
-              day: "Sunday",
-              time: "01:00",
+
+          return profiles.map((profile) => {
+            // Extract datashieldSeed
+            const datashieldSeed = profile.options["datashield.seed"];
+            delete profile.options["datashield.seed"];
+
+            return {
+              ...profile,
+              datashieldSeed,
             };
-          }
-          profilesLoading.value = false;
-          return profiles;
+          });
         })
         .catch((error: string) => {
           errorMessage.value = processErrorMessages(error, "profiles", router);
           return [];
         });
+
+      profilesLoading.value = false;
     };
     return {
       profilesLoading,
@@ -351,8 +355,11 @@ export default defineComponent({
         name: "string",
         image: "string",
         versionId: "string",
+        imageSize: "number",
+        creationDate: "string",
+        installDate: "string",
         autoUpdate: "boolean",
-        autoUpdateSchedule: "object",
+        updateSchedule: "object",
         host: "string",
         port: "string",
         packageWhitelist: "array",
@@ -365,13 +372,34 @@ export default defineComponent({
         columns["container"] = "object";
       }
 
+      const toHideInEdit = [
+        "container",
+        "updateSchedule",
+        "versionId",
+        "imageSize",
+        "creationDate",
+        "installDate",
+      ];
+
       if (this.profileToEditIndex !== -1) {
-        delete columns.container;
-        delete columns.autoUpdateSchedule;
-        delete columns.versionId;
+        toHideInEdit.forEach((key) => {
+          delete columns[key as keyof TypeObject];
+        });
       }
 
       return columns;
+    },
+    formattedProfiles() {
+      return this.profiles.map(({ ...profile }) => ({
+        ...profile,
+        imageSize: profile.imageSize ? convertBytes(profile.imageSize) : "",
+        creationDate: profile.creationDate
+          ? new Date(profile.creationDate).toLocaleDateString()
+          : "",
+        installDate: profile.installDate
+          ? new Date(profile.installDate).toLocaleDateString()
+          : "",
+      }));
     },
   },
   watch: {
@@ -382,10 +410,10 @@ export default defineComponent({
       handler(newProfiles) {
         newProfiles.forEach((profile: Profile) => {
           if (
-            profile.autoUpdateSchedule &&
-            profile.autoUpdateSchedule.frequency === "daily"
+            profile.updateSchedule &&
+            profile.updateSchedule.frequency === "daily"
           ) {
-            profile.autoUpdateSchedule.day = "";
+            profile.updateSchedule.day = "";
           }
         });
       },
@@ -512,7 +540,7 @@ export default defineComponent({
         image: "datashield/rock-base:latest",
         versionId: "",
         autoUpdate: false,
-        autoUpdateSchedule: {
+        updateSchedule: {
           frequency: "daily",
           day: "",
           time: "03:00",
@@ -561,9 +589,8 @@ export default defineComponent({
     },
     updateAutoUpdate(profile: Profile, currentValue: boolean) {
       profile.autoUpdate = !currentValue;
-      putProfile(profile).catch((error) => {
-        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${error}.`;
-        // Revert checkbox on failure
+      putProfile(profile).catch((err) => {
+        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${err}.`;
         profile.autoUpdate = currentValue;
       });
     },

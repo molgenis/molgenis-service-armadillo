@@ -55,7 +55,7 @@ export type Principal = {
   } | null;
 };
 
-export type AutoUpdateSchedule = {
+export type UpdateSchedule = {
   frequency: string; // e.g., 'daily' | 'weekly' | 'monthly'
   day?: string; // optional: e.g., 'Monday', '01' (depending on frequency)
   time: string; // e.g., '01:00'
@@ -65,6 +65,9 @@ export type Profile = {
   name: string;
   image: string;
   versionId?: string;
+  imageSize?: number;
+  creationDate?: string;
+  installDate?: string;
   host: string;
   port: number;
   packageWhitelist: StringArray;
@@ -78,7 +81,7 @@ export type Profile = {
     status: string;
   };
   autoUpdate?: boolean;
-  autoUpdateSchedule?: AutoUpdateSchedule;
+  updateSchedule?: UpdateSchedule;
 };
 
 export type Auth = { user: string; pwd: string };
