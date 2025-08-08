@@ -29,9 +29,9 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract Boolean getAutoUpdate();
 
-  @JsonProperty("autoUpdateSchedule")
+  @JsonProperty("updateSchedule")
   @Nullable
-  public abstract AutoUpdateSchedule getAutoUpdateSchedule();
+  public abstract UpdateSchedule getUpdateSchedule();
 
   @JsonProperty("host")
   @Nullable // defaults to localhost
@@ -76,7 +76,7 @@ public abstract class ProfileConfig {
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("autoUpdate") Boolean autoUpdate,
-      @JsonProperty("autoUpdateSchedule") AutoUpdateSchedule autoUpdateSchedule,
+      @JsonProperty("updateSchedule") UpdateSchedule updateSchedule,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
@@ -91,7 +91,7 @@ public abstract class ProfileConfig {
         newName,
         newImage,
         autoUpdate,
-        autoUpdateSchedule,
+        updateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
         newPackageWhitelist != null ? newPackageWhitelist : Set.of(),

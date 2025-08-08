@@ -133,7 +133,7 @@ public class DevelopmentController {
             currentConfig.getName(),
             currentConfig.getImage(),
             currentConfig.getAutoUpdate(),
-            currentConfig.getAutoUpdateSchedule(),
+            currentConfig.getUpdateSchedule(),
             currentConfig.getHost(),
             currentConfig.getPort(),
             whitelist,
