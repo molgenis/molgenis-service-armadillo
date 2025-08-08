@@ -102,7 +102,11 @@
           </div>
         </div>
         <div
-          v-else-if="objectProps.row.autoUpdateSchedule === objectProps.data"
+          v-else-if="
+            objectProps.row.autoUpdate &&
+            objectProps.data &&
+            objectProps.data.frequency
+          "
         >
           <span>
             {{
@@ -112,6 +116,15 @@
             }}
           </span>
         </div>
+        <div
+          v-else-if="
+            !objectProps.row.autoUpdate &&
+            objectProps.data &&
+            'frequency' in objectProps.data &&
+            'day' in objectProps.data &&
+            'time' in objectProps.data
+          "
+        ></div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
@@ -267,12 +280,6 @@ export default defineComponent({
               profiles[profile_index].options["datashield.seed"];
             // Delete required or else shows when creating or editing profiles
             delete profiles[profile_index].options["datashield.seed"];
-            profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
-              .autoUpdateSchedule || {
-              frequency: "weekly",
-              day: "Sunday",
-              time: "01:00",
-            };
           }
           profilesLoading.value = false;
           return profiles;
