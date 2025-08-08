@@ -38,16 +38,8 @@
         <textarea
           class="form-control p-2"
           v-model="rowData[column]"
+          v-autosize="rowData[column]"
           rows="1"
-          style="
-            white-space: normal;
-            word-break: break-word;
-            overflow: hidden;
-            resize: none;
-            font-family: inherit;
-            line-height: 1.5;
-          "
-          @input="autoResize($event)"
         ></textarea>
       </div>
     </td>
@@ -56,6 +48,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
+import { vAutosize } from "@/directives/autosize";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import StringArrayInput from "@/components/StringArrayInput.vue";
 import DropdownArrayInput from "@/components/DropdownArrayInput.vue";
@@ -64,6 +57,7 @@ import { BootstrapType, StringArray, TypeObject } from "@/types/types";
 
 export default defineComponent({
   name: "InlineRowEdit",
+  directives: { autosize: vAutosize },
   emits: ["update-array-element"],
   components: {
     StringArrayInput,
@@ -110,26 +104,6 @@ export default defineComponent({
     emitUpdate(event: Event) {
       this.$emit("update-array-element", event);
     },
-    autoResize(e: Event) {
-      const el = e.target as HTMLTextAreaElement;
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    },
-    resizeAll() {
-      this.$nextTick(() => {
-        const tbs = this.$el.querySelectorAll("textarea.form-control");
-        tbs.forEach((ta: HTMLTextAreaElement) => {
-          ta.style.height = "auto";
-          ta.style.height = `${ta.scrollHeight}px`;
-        });
-      });
-    },
-  },
-  mounted() {
-    this.resizeAll();
-  },
-  updated() {
-    this.resizeAll;
   },
   data(): {
     buttonIcons: StringArray;
