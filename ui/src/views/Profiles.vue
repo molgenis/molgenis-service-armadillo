@@ -102,7 +102,11 @@
           </div>
         </div>
         <div
-          v-else-if="objectProps.row.autoUpdateSchedule === objectProps.data"
+          v-else-if="
+            objectProps.row.autoUpdate &&
+            objectProps.data &&
+            objectProps.data.frequency
+          "
         >
           <span>
             {{
@@ -112,6 +116,15 @@
             }}
           </span>
         </div>
+        <div
+          v-else-if="
+            !objectProps.row.autoUpdate &&
+            objectProps.data &&
+            'frequency' in objectProps.data &&
+            'day' in objectProps.data &&
+            'time' in objectProps.data
+          "
+        ></div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
@@ -271,11 +284,6 @@ export default defineComponent({
             return {
               ...profile,
               datashieldSeed,
-              autoUpdateSchedule: profile.autoUpdateSchedule || {
-                frequency: "weekly",
-                day: "Sunday",
-                time: "01:00",
-              },
               imageSize: profile.imageSize
                 ? convertBytes(profile.imageSize)
                 : "",
@@ -586,9 +594,8 @@ export default defineComponent({
     },
     updateAutoUpdate(profile: Profile, currentValue: boolean) {
       profile.autoUpdate = !currentValue;
-      putProfile(profile).catch((error) => {
-        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${error}.`;
-        // Revert checkbox on failure
+      putProfile(profile).catch((err) => {
+        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${err}.`;
         profile.autoUpdate = currentValue;
       });
     },
