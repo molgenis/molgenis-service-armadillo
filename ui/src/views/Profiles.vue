@@ -23,8 +23,8 @@
     <!-- Actual table -->
     <Table
       v-else
-      :dataToShow="profiles"
-      :allData="profiles"
+      :dataToShow="formattedProfiles"
+      :allData="formattedProfiles"
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
     >
@@ -284,15 +284,6 @@ export default defineComponent({
             return {
               ...profile,
               datashieldSeed,
-              imageSize: profile.imageSize
-                ? convertBytes(profile.imageSize)
-                : "",
-              creationDate: profile.creationDate
-                ? new Date(profile.creationDate).toLocaleDateString()
-                : "",
-              installDate: profile.installDate
-                ? new Date(profile.installDate).toLocaleDateString()
-                : "",
             };
           });
         })
@@ -405,6 +396,18 @@ export default defineComponent({
       }
 
       return columns;
+    },
+    formattedProfiles() {
+      return this.profiles.map((profile) => ({
+        ...profile,
+        imageSize: profile.imageSize ? convertBytes(profile.imageSize) : "",
+        creationDate: profile.creationDate
+          ? new Date(profile.creationDate).toLocaleDateString()
+          : "",
+        installDate: profile.installDate
+          ? new Date(profile.installDate).toLocaleDateString()
+          : "",
+      }));
     },
   },
   watch: {
