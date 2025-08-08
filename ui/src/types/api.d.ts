@@ -55,7 +55,7 @@ export type Principal = {
   } | null;
 };
 
-export type AutoUpdateSchedule = {
+export type UpdateSchedule = {
   frequency: string; // e.g., 'daily' | 'weekly' | 'monthly'
   day?: string; // optional: e.g., 'Monday', '01' (depending on frequency)
   time: string; // e.g., '01:00'
@@ -78,7 +78,7 @@ export type Profile = {
     status: string;
   };
   autoUpdate?: boolean;
-  autoUpdateSchedule?: AutoUpdateSchedule;
+  updateSchedule?: UpdateSchedule;
 };
 
 export type Auth = { user: string; pwd: string };
