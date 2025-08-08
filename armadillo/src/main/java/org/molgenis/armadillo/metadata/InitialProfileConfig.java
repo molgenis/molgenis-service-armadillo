@@ -13,7 +13,7 @@ public class InitialProfileConfig {
   private String name;
   private String image;
   private boolean autoUpdate;
-  private AutoUpdateSchedule autoUpdateSchedule;
+  private UpdateSchedule updateSchedule;
   private String host;
   private int port;
   private Set<String> packageWhitelist;
@@ -25,7 +25,7 @@ public class InitialProfileConfig {
         name,
         image,
         autoUpdate,
-        autoUpdateSchedule,
+        updateSchedule,
         host,
         port,
         packageWhitelist,
@@ -50,8 +50,8 @@ public class InitialProfileConfig {
     this.autoUpdate = autoUpdate;
   }
 
-  public void setAutoUpdateSchedule(AutoUpdateSchedule autoUpdateSchedule) {
-    this.autoUpdateSchedule = autoUpdateSchedule;
+  public void setUpdateSchedule(UpdateSchedule updateSchedule) {
+    this.updateSchedule = updateSchedule;
   }
 
   public void setHost(String host) {
