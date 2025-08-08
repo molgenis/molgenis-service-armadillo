@@ -102,7 +102,6 @@ export default {
           this.result = endpointResult;
         })
         .catch((error) => {
-          console.log(error);
           this.isLoading = false;
           this.errorMsg = error.message;
         });

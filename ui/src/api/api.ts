@@ -101,16 +101,15 @@ export async function handleResponse(response: Response) {
     } else if (response.status === 404) {
       error.message = "Not found";
     } else {
-      const result = await response;
       try {
-        const json = result.json();
+        const json = await response.json();
         if (json.message) {
           error.message = json.message;
         } else {
           error.message = response.statusText;
         }
       } catch (e) {
-        throw error;
+        error.message = response.statusText;
       }
     }
     throw error;
