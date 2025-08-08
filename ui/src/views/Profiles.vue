@@ -276,13 +276,13 @@ export default defineComponent({
                 day: "Sunday",
                 time: "01:00",
               },
-              ImageSize: profile.imageSize
+              imageSize: profile.imageSize
                 ? convertBytes(profile.imageSize)
                 : "",
-              CreationDate: profile.creationDate
+              creationDate: profile.creationDate
                 ? new Date(profile.creationDate).toLocaleDateString()
                 : "",
-              InstallDate: profile.installDate
+              installDate: profile.installDate
                 ? new Date(profile.installDate).toLocaleDateString()
                 : "",
             };
@@ -364,9 +364,9 @@ export default defineComponent({
         name: "string",
         image: "string",
         versionId: "string",
-        ImageSize: "number",
-        CreationDate: "string",
-        InstallDate: "string",
+        imageSize: "number",
+        creationDate: "string",
+        installDate: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
         host: "string",
@@ -385,8 +385,8 @@ export default defineComponent({
         "container",
         "autoUpdateSchedule",
         "versionId",
-        "ImageSize",
-        "CreationDate",
+        "imageSize",
+        "creationDate",
         "installDate",
       ];
 
