@@ -3,6 +3,7 @@
     <div class="col mt-3" v-if="isLoading">
       <LoadingSpinner />
       <FeedbackMessage
+        successMessage=""
         v-if="errorMessage != ''"
         :errorMessage="errorMessage"
       ></FeedbackMessage>

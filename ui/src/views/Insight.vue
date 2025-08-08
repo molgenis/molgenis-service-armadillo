@@ -1,27 +1,29 @@
 <template>
-  <h2>Insight</h2>
-  <div class="row">
-    <div class="col-2">
-      <button
-        v-for="(tab, index) in tabs"
-        :key="index"
-        class="btn btn-sm"
-        :class="{
-          active: currentTab === index,
-          'btn-primary': currentTab === index,
-          'btn-secondary': currentTab !== index,
-        }"
-        @click="currentTab = index"
-      >
-        {{ tab }}
-      </button>
-    </div>
-    <div class="col-10">
-      <div v-show="currentTab === 0">
-        <RemoteFiles />
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <h2>Insight</h2>
       </div>
-      <div v-show="currentTab === 1">
-        <Actuator />
+      <div class="col mt-1">
+        <button
+          v-for="(tab, index) in tabs"
+          :key="index"
+          class="btn btn-sm float-end"
+          :class="{
+            active: currentTab === index,
+            'btn-primary': currentTab === index,
+            'btn-secondary': currentTab !== index,
+          }"
+          @click="currentTab = index"
+        >
+          {{ tab }}
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <RemoteFiles v-show="currentTab === 0" />
+        <Actuator v-show="currentTab === 1" />
       </div>
     </div>
   </div>
@@ -33,5 +35,5 @@ import RemoteFiles from "@/components/RemoteFiles.vue";
 import { ref } from "vue";
 
 let currentTab = ref(0);
-const tabs = ["Files", "Server metrics"];
+const tabs = ["Logs", "Server metrics"];
 </script>
