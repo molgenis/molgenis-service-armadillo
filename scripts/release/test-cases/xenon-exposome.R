@@ -1,6 +1,5 @@
 library(dsExposomeClient)
 library(purrr)
-library(tibble)
 
 source("test-cases/download-resources.R")
 source("test-cases/upload-resource.R")
@@ -182,7 +181,6 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
   } else {
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
-    
     download_many_sources(ref = exposome_ref, skip_tests = NULL)
     upload_many_sources(project = project, ref = exposome_ref, url = url, folder = "exposome", token = token, auth_type = auth_type, skip_tests = NULL)
     exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome", project = project, url = url, skip_tests = NULL)

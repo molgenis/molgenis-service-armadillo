@@ -105,7 +105,7 @@ setup_profiles <- function(token, auth_type, url, as_docker_container, skip_test
   }
 
   cat("\nAvailable profiles: \n")
-  profiles <- get_from_api_with_header("profiles", token, auth_type, url)
+  profiles <- get_from_api_with_header("profiles", token, auth_type, url, user)
 
   cli_alert_info("Checking if profile is prepared for all tests")
 

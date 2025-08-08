@@ -8,6 +8,7 @@ import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
@@ -16,11 +17,14 @@ import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.model.DockerImageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -150,6 +154,57 @@ public class DockerService {
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
     startContainer(containerName);
+
+    String previousImageId = profileConfig.getLastImageId();
+    String currentImageId =
+        dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
+
+    if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+      try {
+        removeImageIfUnused(previousImageId);
+      } catch (ImageRemoveFailedException e) {
+        LOG.info(e.getMessage());
+      }
+    }
+    String openContainersID = getOpenContainersImageVersion(currentImageId);
+    profileService.updateImageMetaData(profileName, currentImageId, openContainersID);
+  }
+
+  public String getOpenContainersImageVersion(String imageName) {
+    try {
+      // Inspect the image using the provided image name
+      InspectImageResponse image = dockerClient.inspectImageCmd(imageName).exec();
+
+      // Retrieve the OpenContainers image version (org.opencontainers.image.version)
+      String imageVersion = image.getConfig().getLabels().get("org.opencontainers.image.version");
+
+      // Return the version if available, or null if not found
+      return imageVersion != null ? imageVersion : "Unknown Version";
+    } catch (Exception e) {
+      // Log the error and return null if the image couldn't be inspected
+      LOG.error("Error retrieving OpenContainers version for image: {}", imageName, e);
+      return null;
+    }
+  }
+
+  boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {
+    String escapedProfile = StringEscapeUtils.escapeJava(profileName);
+    String escapedPreviousId =
+        previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
+    String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
+
+    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
+      LOG.info(
+          "Image ID for profile '{}' changed from '{}' to '{}'",
+          escapedProfile,
+          escapedPreviousId,
+          escapedCurrentId);
+      return true;
+    } else {
+      LOG.info(
+          "Image ID for profile '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
+      return false;
+    }
   }
 
   void installImage(ProfileConfig profileConfig) {
@@ -235,6 +290,16 @@ public class DockerService {
     removeContainer(profileName);
   }
 
+  public void deleteProfile(String profileName) {
+    removeProfile(profileName);
+    String imageId = profileService.getByName(profileName).getLastImageId();
+    try {
+      removeImageIfUnused(imageId);
+    } catch (ImageRemoveFailedException e) {
+      LOG.info(e.getMessage());
+    }
+  }
+
   private void removeContainer(String containerName) {
     try {
       dockerClient.removeContainerCmd(containerName).exec();
@@ -246,7 +311,7 @@ public class DockerService {
     }
   }
 
-  private List<String> getImageTags(String imageId) {
+  List<String> getImageTags(String imageId) {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
@@ -254,5 +319,36 @@ public class DockerService {
       // getting image tags is non-essential, don't throw error
     }
     return emptyList();
+  }
+
+  public List<DockerImageInfo> getDockerImages() {
+    return dockerClient.listImagesCmd().withShowAll(TRUE).exec().stream()
+        .map(DockerImageInfo::create)
+        .toList();
+  }
+
+  public void removeImageIfUnused(String imageId) {
+    if (imageId == null) {
+      LOG.info("No image ID provided; skipping image removal");
+      return;
+    }
+
+    String safeImageId = StringEscapeUtils.escapeJava(imageId);
+
+    try {
+      boolean isInUse =
+          dockerClient.listContainersCmd().exec().stream()
+              .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
+
+      if (isInUse) {
+        LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
+        throw new ImageRemoveFailedException(
+            safeImageId, "Image ID is still in use — skipping removal");
+      }
+      dockerClient.removeImageCmd(imageId).withForce(true).exec();
+      LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
+    } catch (NotFoundException e) {
+      throw new ImageRemoveFailedException(safeImageId, "Image ID not found — skipping removal");
+    }
   }
 }

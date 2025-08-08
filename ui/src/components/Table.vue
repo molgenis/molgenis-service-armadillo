@@ -24,7 +24,7 @@
           <slot name="extraColumn" :item="dataRow"></slot>
           <td
             v-for="(type, propertyName) in dataStructure"
-            :key="type"
+            :key="propertyName"
             class="table-column"
           >
             <span v-if="customColumns.includes(propertyName)">
