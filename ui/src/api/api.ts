@@ -40,6 +40,8 @@ export async function get(url: string, auth: Auth | undefined = undefined) {
     return outcome;
   } else if (response.status === 403 || response.status === 401) {
     return outcome;
+  } else if (response.status === 404) {
+    return outcome;
   } else {
     return response.json();
   }
@@ -96,13 +98,19 @@ export async function handleResponse(response: Response) {
     } else if (response.status === 403 || response.status === 401) {
       error.message =
         "You are logged in, but you don't have permissions to access the Armadillo user interface";
+    } else if (response.status === 404) {
+      error.message = "Not found";
     } else {
-      const json = await response.json();
-
-      if (json.message) {
-        error.message = json.message;
-      } else {
-        error.message = response.statusText;
+      const result = await response;
+      try {
+        const json = result.json();
+        if (json.message) {
+          error.message = json.message;
+        } else {
+          error.message = response.statusText;
+        }
+      } catch (e) {
+        throw error;
       }
     }
     throw error;

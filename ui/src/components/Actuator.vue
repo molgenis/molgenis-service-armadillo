@@ -62,27 +62,11 @@
       <hr />
       <div>
         <h3>Other Actuator links</h3>
-        <details>
-          <table>
-            <thead>
-              <tr>
-                <td>key</td>
-                <td>href</td>
-                <td>templated</td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, key) in actuator" :key="key">
-                <td>{{ key }}</td>
-                <td v-if="item.templated">{{ item.href }}</td>
-                <td v-if="!item.templated">
-                  <a :href="item.href" target="_new">{{ item.href }}</a>
-                </td>
-                <td>{{ item.templated }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </details>
+        <ExtraMetricsEndpoint
+          v-for="(item, key) in actuator"
+          :key="key"
+          :endpoint="item"
+        />
       </div>
     </div>
   </div>
@@ -101,6 +85,7 @@ import SearchBar from "@/components/SearchBar.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import FeedbackMessage from "./FeedbackMessage.vue";
 import MetricsCard from "./MetricsCard.vue";
+import ExtraMetricsEndpoint from "./ExtraMetricsEndpoint.vue";
 
 export default defineComponent({
   name: "Actuator",
@@ -109,6 +94,7 @@ export default defineComponent({
     SearchBar,
     FeedbackMessage,
     MetricsCard,
+    ExtraMetricsEndpoint,
   },
   setup() {
     const actuator = ref<ActuatorLink[]>();
