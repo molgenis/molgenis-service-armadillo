@@ -111,11 +111,13 @@
         <div class="content">
           <div class="line" v-for="(line, index) in lines" :key="index">
             <span
+              v-if="file.id === 'LOG_FILE'"
               class="line-content"
               :class="{ 'text-danger': isMatchedLine(index) }"
             >
               {{ line }}
             </span>
+            <AuditLogLine v-else :logLine="line" />
           </div>
         </div>
       </div>
@@ -133,12 +135,14 @@ import LoadingSpinner from "./LoadingSpinner.vue";
 import SearchBar from "./SearchBar.vue";
 import { RemoteFileDetail } from "@/types/api";
 import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
+import AuditLogLine from "./AuditLogLine.vue";
 
 export default {
   name: "RemoteFile",
   components: {
     SearchBar,
     LoadingSpinner,
+    AuditLogLine,
   },
   props: {
     fileId: {
