@@ -126,141 +126,161 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch } from "vue";
-
+<script lang="ts">
 import { getFileDetail } from "@/api/api";
-
-import { RemoteFileDetail } from "@/types/api";
-
-import SearchBar from "@/components/SearchBar.vue";
-
-import { matchedLineIndices, auditJsonLinesToLines } from "@/helpers/insight";
+import { onMounted, ref, watch } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import SearchBar from "./SearchBar.vue";
+import { RemoteFileDetail } from "@/types/api";
+import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
 
-const props = defineProps({
-  fileId: {
-    type: String,
-    required: true,
+export default {
+  name: "RemoteFile",
+  components: {
+    SearchBar,
+    LoadingSpinner,
   },
-});
+  props: {
+    fileId: {
+      type: String,
+      required: true,
+    },
+  },
+  setup(props) {
+    const file = ref<RemoteFileDetail | null>();
+    const lines = ref<Array<string>>([]);
+    const fromBeginOrEnd = ref<string>("end");
+    const currentFocus = ref(0);
 
-const file = ref<RemoteFileDetail>();
-const lines = ref<Array<string>>([]);
-const fromBeginOrEnd = ref<string>("end");
+    function resetStates() {
+      file.value = null;
+      lines.value = [];
+      currentFocus.value = 0;
+    }
 
-const filterValue = ref("");
-const numberOfLines = ref(-1);
-const currentFocus = ref(0);
-const charsOptions = ref([100, 200, 500, 1000, 2000, 5000, 10000]);
-
-function resetStates() {
-  file.value = null;
-  lines.value = [];
-  filterValue.value = "";
-  numberOfLines.value = -1;
-  currentFocus.value = 0;
-}
-
-// Watch for setting the component value
-watch(
-  () => props.fileId,
-  (_val, _oldVal) => fetchFile()
-);
-
-// Watch for changes while searching
-watch(filterValue, (_newVal, _oldVal) => {
-  console.log("Filtering");
-  filteredLines();
-});
-
-async function fetchFile() {
-  let page_num = 0;
-  let page_size = 1000;
-  let direction = "end";
-
-  if (file.value) {
-    page_num = file.value.page_num;
-    page_size = file.value.page_size;
-  }
-  if (fromBeginOrEnd.value) {
-    direction = fromBeginOrEnd.value;
-  }
-
-  resetStates();
-  try {
-    const res = await getFileDetail(
-      props.fileId,
-      page_num,
-      page_size,
-      direction
+    // Watch for setting the component value
+    watch(
+      () => props.fileId,
+      (_val, _oldVal) => fetchFile()
     );
 
-    let list = res.content.trim().split("\n");
+    async function fetchFile() {
+      let page_num = 0;
+      let page_size = 1000;
+      let direction = "end";
 
-    if (res.content_type === "application/x-ndjson") {
-      // We assume it is an Audit file for now
-      list = auditJsonLinesToLines(list);
+      if (file.value) {
+        page_num = file.value.page_num;
+        page_size = file.value.page_size;
+      }
+      if (fromBeginOrEnd.value) {
+        direction = fromBeginOrEnd.value;
+      }
+
+      resetStates();
+      try {
+        const res = await getFileDetail(
+          props.fileId,
+          page_num,
+          page_size,
+          direction
+        );
+
+        let list = res.content.trim().split("\n");
+
+        if (res.content_type === "application/x-ndjson") {
+          // We assume it is an Audit file for now
+          list = auditJsonLinesToLines(list);
+        }
+
+        lines.value = list;
+        file.value = res;
+      } catch (error) {
+        console.error(error);
+      }
     }
+    onMounted(() => {
+      fetchFile();
+    });
 
-    lines.value = list;
-    file.value = res;
-  } catch (error) {
-    console.error(error);
-  }
-}
+    return {
+      file,
+      lines,
+      fromBeginOrEnd,
+      currentFocus,
+      fetchFile,
+    };
+  },
+  data(): {
+    currentFocus: number;
+    matchedLines: number[];
+    filterValue: string;
+    numberOfLines: number;
+    charsOptions: number[];
+  } {
+    return {
+      currentFocus: 0,
+      matchedLines: [],
+      filterValue: "",
+      numberOfLines: -1,
+      charsOptions: [100, 200, 500, 1000, 2000, 5000, 10000],
+    };
+  },
+  computed: {
+    isMatchedLine() {
+      return (lineNo: number) =>
+        !(this.numberOfLines === -1) && this.matchedLines.includes(lineNo);
+    },
+  },
+  watch: {
+    filterValue() {
+      this.filteredLines();
+    },
+  },
+  methods: {
+    filteredLines() {
+      // find filter value in lines
+      const searchFor = this.filterValue.toLowerCase();
+      this.matchedLines = matchedLineIndices(this.lines, searchFor);
 
-fetchFile();
-
-// Find line numbers with matching string values
-let matchedLines: number[] = [];
-function filteredLines() {
-  // find filter value in lines
-  const searchFor = filterValue.value.toLowerCase();
-  matchedLines = matchedLineIndices(lines.value, searchFor);
-
-  numberOfLines.value = matchedLines.length || -1;
-  // FIXME: is this bad?
-  setTimeout(setFocusOnLine, 20, 0);
-}
-
-// Helper to highlight lines
-const isMatchedLine = (lineNo: number) =>
-  !(numberOfLines.value === -1) && matchedLines.includes(lineNo);
-
-/**
- * Scroll to one of the search results
- *
- * @param item index of element to set focus to.
- */
-function setFocusOnLine(item: number) {
-  const elements = document.getElementsByClassName("text-danger");
-  if (elements.length > 0) {
-    if (item < 0) item = 0;
-    if (item >= elements.length) item = elements.length - 1;
-    if (item >= matchedLines.length) item = matchedLines.length - 1;
-    currentFocus.value = item;
-    elements[item].scrollIntoView();
-  }
-}
-
-function navigate(direction: string) {
-  let curValue = currentFocus.value;
-  if (direction === "first") {
-    curValue = 0;
-  } else if (direction === "prev") {
-    curValue -= 1;
-    if (curValue < -1) {
-      curValue = 0;
-    }
-  } else if (direction === "next") {
-    curValue += 1;
-  } else if (direction === "last") {
-    curValue += matchedLines.length - 1;
-  }
-  currentFocus.value = curValue;
-  setTimeout(setFocusOnLine, 20, currentFocus.value);
-}
+      this.numberOfLines = this.matchedLines.length || -1;
+      // FIXME: is this bad?
+      setTimeout(this.setFocusOnLine, 20, 0);
+    },
+    resetData() {
+      this.numberOfLines = -1;
+      this.filterValue = "";
+    },
+    navigate(direction: string) {
+      let curValue = this.currentFocus;
+      if (direction === "first") {
+        curValue = 0;
+      } else if (direction === "prev") {
+        curValue -= 1;
+        if (curValue < -1) {
+          curValue = 0;
+        }
+      } else if (direction === "next") {
+        curValue += 1;
+      } else if (direction === "last") {
+        curValue += this.matchedLines.length - 1;
+      }
+      this.currentFocus = curValue;
+      setTimeout(this.setFocusOnLine, 20, this.currentFocus);
+    },
+    setFocusOnLine(item: number) {
+      const elements = document.getElementsByClassName("text-danger");
+      if (elements.length > 0) {
+        if (item < 0) item = 0;
+        if (item >= elements.length) item = elements.length - 1;
+        if (item >= this.matchedLines.length)
+          item = this.matchedLines.length - 1;
+        this.currentFocus = item;
+        elements[item].scrollIntoView();
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>

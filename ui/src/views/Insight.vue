@@ -29,11 +29,22 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import Actuator from "@/components/Actuator.vue";
 import RemoteFiles from "@/components/RemoteFiles.vue";
-import { ref } from "vue";
+import { defineComponent } from "vue";
 
-let currentTab = ref(0);
-const tabs = ["Logs", "Server metrics"];
+export default defineComponent({
+  name: "Insight",
+  components: {
+    Actuator,
+    RemoteFiles,
+  },
+  data() {
+    return {
+      currentTab: 0,
+      tabs: ["Logs", "Server metrics"],
+    };
+  },
+});
 </script>
