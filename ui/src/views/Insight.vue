@@ -16,7 +16,7 @@
           }"
           @click="currentTab = index"
         >
-          {{ tab }}
+          <i :class="'bi bi-' + icons[index]"></i> {{ tab }}
         </button>
       </div>
     </div>
@@ -43,6 +43,7 @@ export default defineComponent({
   data() {
     return {
       currentTab: 0,
+      icons: ["card-text", "gear-fill"],
       tabs: ["Logs", "Server metrics"],
     };
   },

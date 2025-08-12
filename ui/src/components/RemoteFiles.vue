@@ -2,11 +2,18 @@
   <div class="row">
     <p v-if="!remoteFiles">Loading...</p>
     <div class="col" v-else>
-      <select v-model="selectedFileId" class="form-select form-select-lg mb-3">
-        <option v-for="file in remoteFiles" :key="file.id" :value="file.id">
-          {{ file.name }}
-        </option>
-      </select>
+      <div class="row">
+        <div class="col-3">
+          <select
+            v-model="selectedFileId"
+            class="form-select form-select-lg mb-3"
+          >
+            <option v-for="file in remoteFiles" :key="file.id" :value="file.id">
+              {{ file.name }}
+            </option>
+          </select>
+        </div>
+      </div>
       <div class="row" v-if="selectedFileId">
         <RemoteFile :fileId="selectedFileId" />
       </div>

@@ -9,7 +9,7 @@
           class="btn btn-primary"
           :href="'/insight/files/' + file.id + '/download'"
         >
-          <i class="bi bi-box-arrow-down"></i>Download
+          <i class="bi bi-box-arrow-down"></i> Download
         </a>
       </div>
       <div class="col-sm-9 paging">
@@ -110,13 +110,14 @@
       <div class="col">
         <div class="content">
           <div class="line" v-for="(line, index) in lines" :key="index">
-            <span
+            <LogLine
               v-if="file.id === 'LOG_FILE'"
               class="line-content"
+              :logLine="line"
               :class="{ 'text-danger': isMatchedLine(index) }"
             >
               {{ line }}
-            </span>
+            </LogLine>
             <AuditLogLine
               v-else
               :logLine="line"
@@ -140,6 +141,7 @@ import SearchBar from "./SearchBar.vue";
 import { RemoteFileDetail } from "@/types/api";
 import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
 import AuditLogLine from "./AuditLogLine.vue";
+import LogLine from "./LogLine.vue";
 
 export default {
   name: "RemoteFile",
@@ -147,6 +149,7 @@ export default {
     SearchBar,
     LoadingSpinner,
     AuditLogLine,
+    LogLine,
   },
   props: {
     fileId: {
