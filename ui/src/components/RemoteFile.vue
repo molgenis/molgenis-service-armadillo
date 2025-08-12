@@ -2,7 +2,7 @@
   <div v-if="file">
     <div class="row">
       <div class="col-sm-3 buttons">
-        <button class="btn btn-info me-1" type="button" @click="fetchFile">
+        <button class="btn btn-info me-1" type="button" @click="changeSelected">
           <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
         <a
@@ -17,7 +17,7 @@
         <input
           type="number"
           v-model="file.page_num"
-          @change="fetchFile"
+          @change="changeSelected"
           min="0"
         />
         from the
@@ -26,7 +26,7 @@
           name="end-or-begin"
           value="start"
           v-model="fromBeginOrEnd"
-          @change="fetchFile"
+          @change="changeSelected"
         />
         start or
         <input
@@ -34,10 +34,10 @@
           name="end-or-begin"
           value="end"
           v-model="fromBeginOrEnd"
-          @change="fetchFile"
+          @change="changeSelected"
         />
         end page containing
-        <select v-model="file.page_size" @change="fetchFile">
+        <select v-model="file.page_size" @change="changeSelected">
           <option v-for="option in charsOptions" :key="option" :value="option">
             {{ option }}
           </option>
@@ -117,7 +117,11 @@
             >
               {{ line }}
             </span>
-            <AuditLogLine v-else :logLine="line" />
+            <AuditLogLine
+              v-else
+              :logLine="line"
+              :class="{ 'text-danger': isMatchedLine(index) }"
+            />
           </div>
         </div>
       </div>
@@ -130,7 +134,7 @@
 
 <script lang="ts">
 import { getFileDetail } from "@/api/api";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import SearchBar from "./SearchBar.vue";
 import { RemoteFileDetail } from "@/types/api";
@@ -161,12 +165,6 @@ export default {
       lines.value = [];
       currentFocus.value = 0;
     }
-
-    // Watch for setting the component value
-    watch(
-      () => props.fileId,
-      (_val, _oldVal) => fetchFile()
-    );
 
     async function fetchFile() {
       let page_num = 0;
@@ -211,6 +209,7 @@ export default {
       file,
       lines,
       fromBeginOrEnd,
+      resetStates,
       currentFocus,
       fetchFile,
     };
@@ -237,11 +236,22 @@ export default {
     },
   },
   watch: {
+    fileId: {
+      deep: true,
+      handler() {
+        this.changeSelected();
+      },
+    },
     filterValue() {
       this.filteredLines();
     },
   },
   methods: {
+    changeSelected() {
+      this.fetchFile();
+      this.resetData();
+      this.resetStates();
+    },
     filteredLines() {
       // find filter value in lines
       const searchFor = this.filterValue.toLowerCase();
@@ -254,6 +264,7 @@ export default {
     resetData() {
       this.numberOfLines = -1;
       this.filterValue = "";
+      this.matchedLines = [];
     },
     navigate(direction: string) {
       let curValue = this.currentFocus;
@@ -300,12 +311,5 @@ export default {
 }
 .line-content {
   white-space: pre-wrap;
-}
-
-.line {
-  background-color: white;
-}
-.line:nth-child(odd) {
-  filter: brightness(95%);
 }
 </style>

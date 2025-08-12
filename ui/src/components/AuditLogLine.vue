@@ -1,9 +1,7 @@
 <template>
   <div class="card m-1">
     <div class="card-body">
-      <p class="m-0">
-        <i class="bi bi-clock"></i> Timestamp: {{ content.timestamp }}
-      </p>
+      <p class="m-0"><i class="bi bi-clock"></i> {{ content.timestamp }}</p>
       <p class="m-0">
         <i class="bi bi-person-fill"></i> {{ content.principal }}
       </p>
