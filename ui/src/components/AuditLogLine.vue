@@ -28,20 +28,47 @@ export default {
   computed: {
     content() {
       const splitOnPrincipal = this.logLine.split("\nprincipal: ");
-      const timestamp = new Date(
-        splitOnPrincipal[0].replace("timestamp: ", "")
-      ).toUTCString();
-      const splitOnType = splitOnPrincipal[1].split("\ntype: ");
-      const principal = splitOnType[0];
-      const splitOnData = splitOnType[1].split("\ndata: ");
-      const type = splitOnData[0];
-      const data = JSON.parse(splitOnData[1]);
-      return {
-        principal: principal,
-        timestamp: timestamp,
-        type: type,
-        data: data,
-      };
+      if (splitOnPrincipal?.length > 1) {
+        const timestamp = new Date(
+          splitOnPrincipal[0].replace("timestamp: ", "")
+        ).toUTCString();
+        const splitOnType = splitOnPrincipal[1].split("\ntype: ");
+        if (splitOnType?.length > 1) {
+          const principal = splitOnType[0];
+          const splitOnData = splitOnType[1].split("\ndata: ");
+          if (splitOnData?.length > 1) {
+            const type = splitOnData[0];
+            const data = JSON.parse(splitOnData[1]);
+            return {
+              principal: principal,
+              timestamp: timestamp,
+              type: type,
+              data: data,
+            };
+          } else {
+            return {
+              principal: principal,
+              timestamp: timestamp,
+              type: "",
+              data: "",
+            };
+          }
+        } else {
+          return {
+            principal: "",
+            timestamp: timestamp,
+            type: "",
+            data: "",
+          };
+        }
+      } else {
+        return {
+          principal: "",
+          timestamp: "",
+          type: "",
+          data: "",
+        };
+      }
     },
   },
 };

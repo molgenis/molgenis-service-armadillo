@@ -11,7 +11,7 @@
       ></i>
       <i class="bi bi-info-circle-fill text-info" v-else></i>
       {{ content.serverTime }}: <span class="fw-bold">{{ content.type }}</span>
-      <span v-if="content.principal">[{{ content.principal }}]</span>
+      <span v-if="content.principal"> [{{ content.principal }}]</span>
       <button class="btn" @click="toggleCollapsed">
         <i class="bi bi-caret-down" v-if="collapsed"></i>
         <i class="bi bi-caret-up" v-else></i>
@@ -69,22 +69,11 @@ export default {
     },
     formatData(data: String) {
       const trimmedData = data.substring(1, data.length - 2);
-      // const result: StringObject = {};
-      //   let regex = /(\w+)=((?:\[[^\]]*\])|(?:[^,\[]+))(?:,|$)/g;
-      //   let match;
-
-      //   while ((match = regex.exec(trimmedData)) !== null) {
-      //       const key = match[1].trim();
-      //       const value = match[2].trim();
-      //       result[key] = value;
-      //   }
-      //   return result;
       const result: StringObject = {};
       let index = 0;
       const length = trimmedData.length;
 
       while (index < length) {
-        // Extract key
         let eqIndex = trimmedData.indexOf("=", index);
         if (eqIndex === -1) break;
 
