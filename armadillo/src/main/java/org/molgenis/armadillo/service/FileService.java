@@ -30,52 +30,6 @@ public class FileService {
    * @param pageSize number of lines to read
    * @return lines falling in the asked frame
    */
-  public String readLogFile(String logFilePath, int pageNum, int pageSize, String direction) {
-    StringBuilder stringBuilder = new StringBuilder();
-    String line;
-    pageNum = pageNumFromDirection(pageNum, direction);
-
-    try (BufferedReader reader = new BufferedReader(new FileReader(logFilePath))) {
-      long totalLines = new BufferedReader(new FileReader(logFilePath)).lines().count();
-      long startLine;
-      long endLine;
-
-      if (pageSize == 0) {
-        // Read the entire file
-        startLine = 0;
-        endLine = Long.MAX_VALUE;
-      } else {
-        if (pageNum < 0) {
-          // NOTE: page is negative
-          startLine = totalLines + (long) pageNum * pageSize;
-        } else {
-          startLine = (long) pageNum * pageSize;
-        }
-
-        endLine = startLine + pageSize;
-
-        // Restrict frame bounds
-        startLine = Math.max(0, startLine);
-        endLine = Math.min(endLine, totalLines);
-      }
-
-      long lineRead = 0;
-      while ((line = reader.readLine()) != null) {
-        if (startLine <= lineRead && lineRead < endLine) {
-          stringBuilder.append(line).append("\n");
-        }
-        if (endLine < lineRead) {
-          break;
-        }
-        lineRead += 1;
-      }
-    } catch (IOException e) {
-      return "Error reading log file on '" + logFilePath + "'";
-    }
-
-    return stringBuilder.toString();
-  }
-
   public String readLogFileBiz(String logFilePath, int pageNum, int pageSize, String direction) {
     long fileSize = getFileSize(logFilePath);
 
