@@ -46,46 +46,4 @@ describe("RemoteFile", () => {
           content: [...lines].join('\n'),
         });
     });
-
-    it('filters out value when searching', async () => {
-        // FIXME: according to https://vuejs.org/guide/scaling-up/testing.html#component-testing
-        // DO NOT test inner workings of you component
-        // so testing search or paging seems a DO NOT to me now.
-          wrapper = mount(RemoteFile, {
-          props: {
-            fileId: '123',
-          },
-        });
-        await wrapper.vm.$nextTick();
-
-        expect(wrapper.vm.file).toEqual({
-          id: '123',
-          name: 'test',
-          timestamp: '2024-01-03T15:39:56Z',
-          content: [...lines].join('\n'),
-        });
-
-        const searchValue = "Line";
-
-        const inputElement:HTMLInputElement = wrapper.find('#searchbox').element as HTMLInputElement;
-        
-        inputElement.value = searchValue;
-        inputElement.dispatchEvent(new Event('input'));
-
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-        await wrapper.vm.$nextTick();
-
-        // console.log(wrapper.html(), 'xxxxx');
-
-        expect(inputElement.value).toBe(searchValue);
-        // expect(wrapper.vm.$el).toMatchSnapshot();
-        // expect(wrapper.emitted()).toHaveProperty("update:modelValue");
-    });
-
 });

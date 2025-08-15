@@ -15,6 +15,7 @@ export type RemoteFileDetail = {
   name: string;
   fetched: string;
   content: string;
+  content_type: string;
   page_num: number;
   page_size: number;
 };

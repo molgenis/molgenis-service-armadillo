@@ -1,58 +1,51 @@
 <template>
   <div v-if="file">
+    <p class="m-0 mb-2 fst-italic">
+      Log file size: {{ fileInfo.convertedSize }}
+    </p>
     <div class="row">
       <div class="col-sm-3 buttons">
-        <button class="btn btn-info me-1" type="button" @click="fetchFile">
+        <button class="btn btn-info me-1" type="button">
           <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
         <a
           class="btn btn-primary"
           :href="'/insight/files/' + file.id + '/download'"
         >
-          <i class="bi bi-box-arrow-down"></i>Download
+          <i class="bi bi-box-arrow-down"></i> Download
         </a>
-      </div>
-      <div class="col-sm-9 paging">
-        Page
-        <input
-          type="number"
-          v-model="file.page_num"
-          @change="fetchFile"
-          min="0"
-        />
-        from the
-        <input
-          type="radio"
-          name="end-or-begin"
-          value="start"
-          v-model="fromBeginOrEnd"
-          @change="fetchFile"
-        />
-        start or
-        <input
-          type="radio"
-          name="end-or-begin"
-          value="end"
-          v-model="fromBeginOrEnd"
-          @change="fetchFile"
-        />
-        end page containing
-        <select v-model="file.page_size" @change="fetchFile">
-          <option v-for="option in charsOptions" :key="option" :value="option">
-            {{ option }}
-          </option>
-        </select>
-        ~ chars per page
       </div>
     </div>
     <div class="row stats">
+      <div
+        class="btn-group me-2"
+        role="group"
+        aria-label="First group"
+        v-if="pages.length < 10"
+      >
+        <button
+          type="button"
+          class="btn btn-primary"
+          v-for="index in pages"
+          :key="index"
+        >
+          {{ index + 1 }}
+        </button>
+      </div>
+
       <div class="text-secondary fst-italic">
-        Last reload @ server time {{ file.fetched }}
+        <p class="m-0">Last reload @ server time {{ fileInfo.reloadTime }}</p>
       </div>
     </div>
     <div class="row filtering">
       <div class="col-sm-3">
         <SearchBar id="searchbox" v-model="filterValue" />
+        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
+          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+        </div>
+        <div v-else class="text-secondary fst-italic">
+          <span>No search results</span>
+        </div>
       </div>
       <div class="col search-navigation">
         <div
@@ -95,28 +88,65 @@
           </button>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
-          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
-        </div>
-        <div v-else class="text-secondary fst-italic">
-          <span>No search results</span>
+      <div class="col-2">
+        <div class="row">
+          <div class="col">
+            Page
+            <input
+              type="number"
+              v-model="file.page_num"
+              @change="changeSelected"
+              min="0"
+            />
+          </div>
         </div>
       </div>
+      <div class="col-2">
+        <div class="row">
+          <div class="col">Sort on:</div>
+          <div class="col-3">
+            <i
+              v-if="sortType == 'timeDesc'"
+              class="bi bi-sort-numeric-up-alt"
+            ></i>
+            <i
+              v-else-if="sortType == 'timeAsc'"
+              class="bi bi-sort-numeric-down-alt"
+            ></i>
+          </div>
+        </div>
+        <select
+          v-model="sortType"
+          @change="changeSelected"
+          class="form-select mb-3 form-select-sm"
+        >
+          <option value="timeDesc">Time (new -> old)</option>
+          <option value="timeAsc">Time (old -> new)</option>
+        </select>
+      </div>
     </div>
+
     <div class="row">
       <div class="col">
         <div class="content">
           <div class="line" v-for="(line, index) in lines" :key="index">
-            <span
+            <LogLine
+              v-if="file.id === 'LOG_FILE'"
               class="line-content"
+              :logLine="line"
               :class="{ 'text-danger': isMatchedLine(index) }"
             >
               {{ line }}
-            </span>
+            </LogLine>
+            <AuditLogLine
+              v-else
+              :logLine="line"
+              :class="{ 'text-danger': isMatchedLine(index) }"
+            />
           </div>
+          <button class="btn btn-primary" @click="loadMore()">
+            <i class="bi bi-arrow-clockwise"></i> Load more
+          </button>
         </div>
       </div>
     </div>
@@ -126,141 +156,211 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch } from "vue";
-
+<script lang="ts">
 import { getFileDetail } from "@/api/api";
-
-import { RemoteFileDetail } from "@/types/api";
-
-import SearchBar from "@/components/SearchBar.vue";
-
-import { matchedLineIndices, auditJsonLinesToLines } from "@/helpers/insight";
+import { onMounted, ref } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import SearchBar from "./SearchBar.vue";
+import { RemoteFileDetail } from "@/types/api";
+import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
+import { convertBytes } from "@/helpers/utils";
+import AuditLogLine from "./AuditLogLine.vue";
+import LogLine from "./LogLine.vue";
 
-const props = defineProps({
-  fileId: {
-    type: String,
-    required: true,
+export default {
+  name: "RemoteFile",
+  components: {
+    SearchBar,
+    LoadingSpinner,
+    AuditLogLine,
+    LogLine,
   },
-});
+  props: {
+    fileId: {
+      type: String,
+      required: true,
+    },
+  },
+  setup(props) {
+    const file = ref<RemoteFileDetail | null>();
+    const lines = ref<Array<string>>([]);
+    const fromBeginOrEnd = ref<string>("end");
+    const currentFocus = ref(0);
 
-const file = ref<RemoteFileDetail>();
-const lines = ref<Array<string>>([]);
-const fromBeginOrEnd = ref<string>("end");
-
-const filterValue = ref("");
-const numberOfLines = ref(-1);
-const currentFocus = ref(0);
-const charsOptions = ref([100, 200, 500, 1000, 2000, 5000, 10000]);
-
-function resetStates() {
-  file.value = null;
-  lines.value = [];
-  filterValue.value = "";
-  numberOfLines.value = -1;
-  currentFocus.value = 0;
-}
-
-// Watch for setting the component value
-watch(
-  () => props.fileId,
-  (_val, _oldVal) => fetchFile()
-);
-
-// Watch for changes while searching
-watch(filterValue, (_newVal, _oldVal) => {
-  console.log("Filtering");
-  filteredLines();
-});
-
-async function fetchFile() {
-  let page_num = 0;
-  let page_size = 1000;
-  let direction = "end";
-
-  if (file.value) {
-    page_num = file.value.page_num;
-    page_size = file.value.page_size;
-  }
-  if (fromBeginOrEnd.value) {
-    direction = fromBeginOrEnd.value;
-  }
-
-  resetStates();
-  try {
-    const res = await getFileDetail(
-      props.fileId,
-      page_num,
-      page_size,
-      direction
-    );
-
-    let list = res.content.trim().split("\n");
-
-    if (res.content_type === "application/x-ndjson") {
-      // We assume it is an Audit file for now
-      list = auditJsonLinesToLines(list);
+    function resetStates() {
+      file.value = null;
+      lines.value = [];
+      currentFocus.value = 0;
     }
 
-    lines.value = list;
-    file.value = res;
-  } catch (error) {
-    console.error(error);
-  }
-}
+    async function fetchFile() {
+      let page_num = 0;
+      let direction = "end";
 
-fetchFile();
+      if (file.value) {
+        page_num = file.value.page_num;
+      }
+      if (fromBeginOrEnd.value) {
+        direction = fromBeginOrEnd.value;
+      }
 
-// Find line numbers with matching string values
-let matchedLines: number[] = [];
-function filteredLines() {
-  // find filter value in lines
-  const searchFor = filterValue.value.toLowerCase();
-  matchedLines = matchedLineIndices(lines.value, searchFor);
+      resetStates();
+      try {
+        const res = await getFileDetail(props.fileId, page_num, direction);
 
-  numberOfLines.value = matchedLines.length || -1;
-  // FIXME: is this bad?
-  setTimeout(setFocusOnLine, 20, 0);
-}
+        let list = res.content.trim().split("\n");
 
-// Helper to highlight lines
-const isMatchedLine = (lineNo: number) =>
-  !(numberOfLines.value === -1) && matchedLines.includes(lineNo);
+        if (res.content_type === "application/x-ndjson") {
+          // We assume it is an Audit file for now
+          list = auditJsonLinesToLines(list);
+        }
 
-/**
- * Scroll to one of the search results
- *
- * @param item index of element to set focus to.
- */
-function setFocusOnLine(item: number) {
-  const elements = document.getElementsByClassName("text-danger");
-  if (elements.length > 0) {
-    if (item < 0) item = 0;
-    if (item >= elements.length) item = elements.length - 1;
-    if (item >= matchedLines.length) item = matchedLines.length - 1;
-    currentFocus.value = item;
-    elements[item].scrollIntoView();
-  }
-}
-
-function navigate(direction: string) {
-  let curValue = currentFocus.value;
-  if (direction === "first") {
-    curValue = 0;
-  } else if (direction === "prev") {
-    curValue -= 1;
-    if (curValue < -1) {
-      curValue = 0;
+        lines.value = list;
+        file.value = res;
+      } catch (error) {
+        console.error(error);
+      }
     }
-  } else if (direction === "next") {
-    curValue += 1;
-  } else if (direction === "last") {
-    curValue += matchedLines.length - 1;
-  }
-  currentFocus.value = curValue;
-  setTimeout(setFocusOnLine, 20, currentFocus.value);
-}
+    onMounted(() => {
+      fetchFile();
+    });
+
+    return {
+      file,
+      lines,
+      fromBeginOrEnd,
+      resetStates,
+      currentFocus,
+      fetchFile,
+    };
+  },
+  data(): {
+    currentFocus: number;
+    matchedLines: number[];
+    filterValue: string;
+    numberOfLines: number;
+    sortType: string;
+  } {
+    return {
+      currentFocus: 0,
+      matchedLines: [],
+      filterValue: "",
+      numberOfLines: -1,
+      sortType: "timeDesc",
+    };
+  },
+  computed: {
+    pages() {
+      return [...Array(this.maxNumberOfPages).keys()];
+    },
+    fileInfo() {
+      const splittedInfo = this.file?.fetched.split(": ");
+      const bytes = splittedInfo ? splittedInfo[1] : "";
+      return {
+        reloadTime: this.file?.fetched.replace(": " + bytes, ""),
+        size: parseInt(bytes),
+        convertedSize: convertBytes(parseInt(bytes)),
+      };
+    },
+    maxNumberOfPages() {
+      return Math.ceil(this.fileInfo.size / 10000);
+    },
+    isMatchedLine() {
+      return (lineNo: number) =>
+        !(this.numberOfLines === -1) && this.matchedLines.includes(lineNo);
+    },
+  },
+  watch: {
+    sortType() {
+      if (this.sortType === "timeDesc") {
+        this.fromBeginOrEnd = "start";
+        this.changeSelected();
+      } else if (this.sortType === "timeAsc") {
+        this.fromBeginOrEnd = "end";
+        this.changeSelected();
+      } else if (this.sortType === "errors") {
+        const failure = "_FAILURE";
+        this.lines = this.lines.sort((a, b) => {
+          // console.log(a, b)
+          if (a.includes(failure) && b.includes(failure)) {
+            console.log("both");
+            return 0;
+          } else if (a.includes(failure)) {
+            console.log("a");
+            return 1;
+          } else {
+            console.log("b");
+            return -1;
+          }
+        });
+      }
+    },
+    fileId: {
+      deep: true,
+      handler() {
+        this.changeSelected();
+      },
+    },
+    filterValue() {
+      this.filteredLines();
+    },
+  },
+  methods: {
+    loadMore() {
+      if (this.file && this.file.page_num != this.maxNumberOfPages) {
+        this.file.page_num += 1;
+        this.changeSelected();
+      }
+    },
+    changeSelected() {
+      this.fetchFile();
+      this.resetData();
+      this.resetStates();
+    },
+    filteredLines() {
+      // find filter value in lines
+      const searchFor = this.filterValue.toLowerCase();
+      this.matchedLines = matchedLineIndices(this.lines, searchFor);
+
+      this.numberOfLines = this.matchedLines.length || -1;
+      // FIXME: is this bad?
+      setTimeout(this.setFocusOnLine, 20, 0);
+    },
+    resetData() {
+      this.numberOfLines = -1;
+      this.filterValue = "";
+      this.matchedLines = [];
+    },
+    navigate(direction: string) {
+      let curValue = this.currentFocus;
+      if (direction === "first") {
+        curValue = 0;
+      } else if (direction === "prev") {
+        curValue -= 1;
+        if (curValue < -1) {
+          curValue = 0;
+        }
+      } else if (direction === "next") {
+        curValue += 1;
+      } else if (direction === "last") {
+        curValue += this.matchedLines.length - 1;
+      }
+      this.currentFocus = curValue;
+      setTimeout(this.setFocusOnLine, 20, this.currentFocus);
+    },
+    setFocusOnLine(item: number) {
+      const elements = document.getElementsByClassName("text-danger");
+      if (elements.length > 0) {
+        if (item < 0) item = 0;
+        if (item >= elements.length) item = elements.length - 1;
+        if (item >= this.matchedLines.length)
+          item = this.matchedLines.length - 1;
+        this.currentFocus = item;
+        elements[item].scrollIntoView();
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -276,12 +376,5 @@ function navigate(direction: string) {
 }
 .line-content {
   white-space: pre-wrap;
-}
-
-.line {
-  background-color: white;
-}
-.line:nth-child(odd) {
-  filter: brightness(95%);
 }
 </style>

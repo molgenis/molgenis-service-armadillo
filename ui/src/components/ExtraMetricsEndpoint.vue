@@ -46,11 +46,11 @@
 </template>
 <script lang="ts">
 import { EndpointObject } from "@/types/types";
-import { get, handleResponse } from "@/api/api";
+import { get } from "@/api/api";
 import { PropType } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import FeedbackMessage from "./FeedbackMessage.vue";
-import { APISettings } from "@/api/config";
+import { ActuatorLink } from "@/types/api";
 
 export default {
   name: "ExtraMetricsEndpoint",
@@ -60,7 +60,7 @@ export default {
   },
   props: {
     endpoint: {
-      type: Object as PropType<EndpointObject>,
+      type: Object as PropType<ActuatorLink>,
       required: true,
     },
   },
