@@ -4,10 +4,7 @@
     <div class="col" v-else>
       <div class="row">
         <div class="col-3">
-          <select
-            v-model="selectedFileId"
-            class="form-select form-select-lg mb-3"
-          >
+          <select v-model="selectedFileId" class="form-select">
             <option v-for="file in remoteFiles" :key="file.id" :value="file.id">
               {{ file.name }}
             </option>

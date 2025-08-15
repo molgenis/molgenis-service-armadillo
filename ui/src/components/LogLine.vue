@@ -128,42 +128,62 @@ export default {
     content() {
       const firstSplit = this.logLine.split(" [");
       const serverTime = firstSplit[0];
-      const secondSplit = firstSplit[1].split("] ");
-      const info = secondSplit[0];
-      const thirdSplit = this.logLine.split("  ");
-      const status = thirdSplit[0].split("]")[1].replace(" ", "");
-      const fourthSplit = thirdSplit[1].split(" - ");
-      try {
-        const logger = fourthSplit[0];
-        const fifthSplit = fourthSplit[1].split(" [");
-        const event = fifthSplit[0];
-        const sixthSplit = fifthSplit[1].split(", principal=");
-        const timestamp = new Date(sixthSplit[0].replace("timestamp=", ""));
-        const seventhSplit = sixthSplit[1].split(", type=");
-        const principal = seventhSplit[0];
-        const eighthSplit = seventhSplit[1].split(", data=");
-        const type = eighthSplit[0];
-        const data = fourthSplit[1].split(", data=")[1];
+      if (firstSplit.length > 1) {
+        const secondSplit = firstSplit[1].split("] ");
+        const info = secondSplit[0];
+        const thirdSplit = this.logLine.split("  ");
+        if (thirdSplit.length > 1) {
+          const status = thirdSplit[0].split("]")[1].replace(" ", "");
+          const fourthSplit = thirdSplit[1].split(" - ");
+          try {
+            const logger = fourthSplit[0];
+            const fifthSplit = fourthSplit[1].split(" [");
+            const event = fifthSplit[0];
+            const sixthSplit = fifthSplit[1].split(", principal=");
+            const timestamp = new Date(sixthSplit[0].replace("timestamp=", ""));
+            const seventhSplit = sixthSplit[1].split(", type=");
+            const principal = seventhSplit[0];
+            const eighthSplit = seventhSplit[1].split(", data=");
+            const type = eighthSplit[0];
+            const data = fourthSplit[1].split(", data=")[1];
+            return {
+              serverTime: serverTime,
+              info: info,
+              status: status,
+              logger: logger,
+              event: event,
+              timestamp: timestamp.toUTCString(),
+              principal: principal,
+              type: type,
+              data: this.formatData(data),
+            };
+          } catch {
+            const type = fourthSplit[0];
+            const message = fourthSplit[1];
+            return {
+              serverTime: serverTime,
+              info: info,
+              status: status,
+              message: message,
+              type: type,
+            };
+          }
+        } else {
+          return {
+            serverTime: serverTime,
+            info: info,
+            status: "",
+            message: "",
+            type: "",
+          };
+        }
+      } else {
         return {
           serverTime: serverTime,
-          info: info,
-          status: status,
-          logger: logger,
-          event: event,
-          timestamp: timestamp.toUTCString(),
-          principal: principal,
-          type: type,
-          data: this.formatData(data),
-        };
-      } catch {
-        const type = fourthSplit[0];
-        const message = fourthSplit[1];
-        return {
-          serverTime: serverTime,
-          info: info,
-          status: status,
-          message: message,
-          type: type,
+          info: "",
+          status: "",
+          message: "",
+          type: "",
         };
       }
     },

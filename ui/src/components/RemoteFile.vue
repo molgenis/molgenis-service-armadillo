@@ -1,8 +1,11 @@
 <template>
   <div v-if="file">
+    <p class="m-0 mb-2 fst-italic">
+      Log file size: {{ fileInfo.convertedSize }}
+    </p>
     <div class="row">
       <div class="col-sm-3 buttons">
-        <button class="btn btn-info me-1" type="button" @click="changeSelected">
+        <button class="btn btn-info me-1" type="button">
           <i class="bi bi-arrow-clockwise"></i>Reload
         </button>
         <a
@@ -12,47 +15,37 @@
           <i class="bi bi-box-arrow-down"></i> Download
         </a>
       </div>
-      <div class="col-sm-9 paging">
-        Page
-        <input
-          type="number"
-          v-model="file.page_num"
-          @change="changeSelected"
-          min="0"
-        />
-        from the
-        <input
-          type="radio"
-          name="end-or-begin"
-          value="start"
-          v-model="fromBeginOrEnd"
-          @change="changeSelected"
-        />
-        start or
-        <input
-          type="radio"
-          name="end-or-begin"
-          value="end"
-          v-model="fromBeginOrEnd"
-          @change="changeSelected"
-        />
-        end page containing
-        <select v-model="file.page_size" @change="changeSelected">
-          <option v-for="option in charsOptions" :key="option" :value="option">
-            {{ option }}
-          </option>
-        </select>
-        ~ chars per page
-      </div>
     </div>
     <div class="row stats">
+      <div
+        class="btn-group me-2"
+        role="group"
+        aria-label="First group"
+        v-if="pages.length < 10"
+      >
+        <button
+          type="button"
+          class="btn btn-primary"
+          v-for="index in pages"
+          :key="index"
+        >
+          {{ index + 1 }}
+        </button>
+      </div>
+
       <div class="text-secondary fst-italic">
-        Last reload @ server time {{ file.fetched }}
+        <p class="m-0">Last reload @ server time {{ fileInfo.reloadTime }}</p>
       </div>
     </div>
     <div class="row filtering">
       <div class="col-sm-3">
         <SearchBar id="searchbox" v-model="filterValue" />
+        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
+          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+        </div>
+        <div v-else class="text-secondary fst-italic">
+          <span>No search results</span>
+        </div>
       </div>
       <div class="col search-navigation">
         <div
@@ -95,17 +88,44 @@
           </button>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
-          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
-        </div>
-        <div v-else class="text-secondary fst-italic">
-          <span>No search results</span>
+      <div class="col-2">
+        <div class="row">
+          <div class="col">
+            Page
+            <input
+              type="number"
+              v-model="file.page_num"
+              @change="changeSelected"
+              min="0"
+            />
+          </div>
         </div>
       </div>
+      <div class="col-2">
+        <div class="row">
+          <div class="col">Sort on:</div>
+          <div class="col-3">
+            <i
+              v-if="sortType == 'timeDesc'"
+              class="bi bi-sort-numeric-up-alt"
+            ></i>
+            <i
+              v-else-if="sortType == 'timeAsc'"
+              class="bi bi-sort-numeric-down-alt"
+            ></i>
+          </div>
+        </div>
+        <select
+          v-model="sortType"
+          @change="changeSelected"
+          class="form-select mb-3 form-select-sm"
+        >
+          <option value="timeDesc">Time (new -> old)</option>
+          <option value="timeAsc">Time (old -> new)</option>
+        </select>
+      </div>
     </div>
+
     <div class="row">
       <div class="col">
         <div class="content">
@@ -124,6 +144,9 @@
               :class="{ 'text-danger': isMatchedLine(index) }"
             />
           </div>
+          <button class="btn btn-primary" @click="loadMore()">
+            <i class="bi bi-arrow-clockwise"></i> Load more
+          </button>
         </div>
       </div>
     </div>
@@ -140,6 +163,7 @@ import LoadingSpinner from "./LoadingSpinner.vue";
 import SearchBar from "./SearchBar.vue";
 import { RemoteFileDetail } from "@/types/api";
 import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
+import { convertBytes } from "@/helpers/utils";
 import AuditLogLine from "./AuditLogLine.vue";
 import LogLine from "./LogLine.vue";
 
@@ -171,12 +195,10 @@ export default {
 
     async function fetchFile() {
       let page_num = 0;
-      let page_size = 1000;
       let direction = "end";
 
       if (file.value) {
         page_num = file.value.page_num;
-        page_size = file.value.page_size;
       }
       if (fromBeginOrEnd.value) {
         direction = fromBeginOrEnd.value;
@@ -184,12 +206,7 @@ export default {
 
       resetStates();
       try {
-        const res = await getFileDetail(
-          props.fileId,
-          page_num,
-          page_size,
-          direction
-        );
+        const res = await getFileDetail(props.fileId, page_num, direction);
 
         let list = res.content.trim().split("\n");
 
@@ -222,23 +239,62 @@ export default {
     matchedLines: number[];
     filterValue: string;
     numberOfLines: number;
-    charsOptions: number[];
+    sortType: string;
   } {
     return {
       currentFocus: 0,
       matchedLines: [],
       filterValue: "",
       numberOfLines: -1,
-      charsOptions: [100, 200, 500, 1000, 2000, 5000, 10000],
+      sortType: "timeDesc",
     };
   },
   computed: {
+    pages() {
+      return [...Array(this.maxNumberOfPages).keys()];
+    },
+    fileInfo() {
+      const splittedInfo = this.file?.fetched.split(": ");
+      const bytes = splittedInfo ? splittedInfo[1] : "";
+      return {
+        reloadTime: this.file?.fetched.replace(": " + bytes, ""),
+        size: parseInt(bytes),
+        convertedSize: convertBytes(parseInt(bytes)),
+      };
+    },
+    maxNumberOfPages() {
+      return Math.ceil(this.fileInfo.size / 10000);
+    },
     isMatchedLine() {
       return (lineNo: number) =>
         !(this.numberOfLines === -1) && this.matchedLines.includes(lineNo);
     },
   },
   watch: {
+    sortType() {
+      if (this.sortType === "timeDesc") {
+        this.fromBeginOrEnd = "start";
+        this.changeSelected();
+      } else if (this.sortType === "timeAsc") {
+        this.fromBeginOrEnd = "end";
+        this.changeSelected();
+      } else if (this.sortType === "errors") {
+        const failure = "_FAILURE";
+        this.lines = this.lines.sort((a, b) => {
+          // console.log(a, b)
+          if (a.includes(failure) && b.includes(failure)) {
+            console.log("both");
+            return 0;
+          } else if (a.includes(failure)) {
+            console.log("a");
+            return 1;
+          } else {
+            console.log("b");
+            return -1;
+          }
+        });
+      }
+    },
     fileId: {
       deep: true,
       handler() {
@@ -250,6 +306,12 @@ export default {
     },
   },
   methods: {
+    loadMore() {
+      if (this.file && this.file.page_num != this.maxNumberOfPages) {
+        this.file.page_num += 1;
+        this.changeSelected();
+      }
+    },
     changeSelected() {
       this.fetchFile();
       this.resetData();
