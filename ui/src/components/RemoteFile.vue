@@ -9,18 +9,7 @@
     </div>
     <div class="row mb-1 mt-0">
       <div class="row align-items-end">
-        <div class="col-1"><i class="bi bi-funnel-fill"></i> Show all</div>
-        <div class="col-2">
-          <div class="form-check form-switch ps-4">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              role="switch"
-              v-model="showOnlyErrors"
-            />
-            <label class="form-check-label">Only show errors</label>
-          </div>
-        </div>
+        <ShowSwitch class="col-3" @switched="switchShowAll($event)" />
         <div class="col-2 p-0 offset-1">
           <SearchBar id="searchbox" v-model="filterValue" />
         </div>
@@ -207,6 +196,7 @@ import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
 import { convertBytes } from "@/helpers/utils";
 import AuditLogLine from "./AuditLogLine.vue";
 import LogLine from "./LogLine.vue";
+import ShowSwitch from "./ShowSwitch.vue";
 
 export default {
   name: "RemoteFile",
@@ -215,6 +205,7 @@ export default {
     LoadingSpinner,
     AuditLogLine,
     LogLine,
+    ShowSwitch,
   },
   emits: ["resetReload"],
   props: {
@@ -337,6 +328,9 @@ export default {
     },
   },
   methods: {
+    switchShowAll(eventValue: boolean) {
+      this.showOnlyErrors = eventValue;
+    },
     resetPageNum() {
       if (this.file) {
         this.file.page_num = 0;
