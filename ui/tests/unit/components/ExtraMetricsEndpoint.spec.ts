@@ -17,14 +17,12 @@ jest.mock('@/api/api', () => ({
 
 jest.mock('@/components/LoadingSpinner.vue', () => {
   const vue = require('vue');
-  return {
-    default: vue.defineComponent({
-      name: 'LoadingSpinner',
-      render() {
-        return vue.h('div', { class: 'spinner-mock' });
-      },
-    }),
-  };
+  return vue.defineComponent({
+    name: 'LoadingSpinner',
+    render() {
+      return vue.h('div', { class: 'spinner-mock' });
+    },
+  });
 });
 
 jest.mock('@/components/FeedbackMessage.vue', () => {

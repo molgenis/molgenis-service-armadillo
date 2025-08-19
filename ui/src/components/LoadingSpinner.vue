@@ -14,7 +14,9 @@
 </template>
 
 <script lang="ts">
-export default {
+import { defineComponent } from "vue";
+
+export default defineComponent({
   name: "LoadingSpinner",
   props: {
     imageWidth: {
@@ -38,7 +40,7 @@ export default {
       };
     },
   },
-};
+});
 </script>
 
 <style lang="css" scoped>

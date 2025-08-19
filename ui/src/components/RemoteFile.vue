@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-3">
         <p class="m-0 fst-italic">
-          Log file size: {{ fileInfo.convertedSize }}
+          Log file size: {{ fileInfo?.convertedSize }}
         </p>
       </div>
     </div>
@@ -300,16 +300,18 @@ export default {
       return [...Array(this.maxNumberOfPages).keys()];
     },
     fileInfo() {
-      const splittedInfo = this.file?.fetched.split(": ");
-      const bytes = splittedInfo ? splittedInfo[1] : "";
-      return {
-        reloadTime: this.file?.fetched.replace(": " + bytes, ""),
-        size: parseInt(bytes),
-        convertedSize: convertBytes(parseInt(bytes)),
-      };
+      if (this.file && this.file.fetched) {
+        const splittedInfo = this.file.fetched.split(": ");
+        const bytes = splittedInfo ? splittedInfo[1] : "";
+        return {
+          reloadTime: this.file.fetched.replace(": " + bytes, ""),
+          size: parseInt(bytes),
+          convertedSize: convertBytes(parseInt(bytes)),
+        };
+      }
     },
     maxNumberOfPages() {
-      return Math.ceil(this.fileInfo.size / 10000);
+      return this.fileInfo ? Math.ceil(this.fileInfo.size / 10000) : 0;
     },
     isMatchedLine() {
       return (lineNo: number) =>
