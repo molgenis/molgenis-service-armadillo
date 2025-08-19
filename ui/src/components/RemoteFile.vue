@@ -1,150 +1,191 @@
 <template>
   <div v-if="file">
-    <p class="m-0 mb-2 fst-italic">
-      Log file size: {{ fileInfo.convertedSize }}
-    </p>
     <div class="row">
-      <div class="col-sm-3 buttons">
-        <button class="btn btn-info me-1" type="button">
-          <i class="bi bi-arrow-clockwise"></i>Reload
-        </button>
-        <a
-          class="btn btn-primary"
-          :href="'/insight/files/' + file.id + '/download'"
-        >
-          <i class="bi bi-box-arrow-down"></i> Download
-        </a>
+      <div class="col-3">
+        <p class="m-0 fst-italic">
+          Log file size: {{ fileInfo.convertedSize }}
+        </p>
       </div>
     </div>
-    <div class="row stats">
-      <div
-        class="btn-group me-2"
-        role="group"
-        aria-label="First group"
-        v-if="pages.length < 10"
-      >
-        <button
-          type="button"
-          class="btn btn-primary"
-          v-for="index in pages"
-          :key="index"
-        >
-          {{ index + 1 }}
-        </button>
-      </div>
-
-      <div class="text-secondary fst-italic">
-        <p class="m-0">Last reload @ server time {{ fileInfo.reloadTime }}</p>
-      </div>
-    </div>
-    <div class="row filtering">
-      <div class="col-sm-3">
-        <SearchBar id="searchbox" v-model="filterValue" />
-        <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
-          <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
-        </div>
-        <div v-else class="text-secondary fst-italic">
-          <span>No search results</span>
-        </div>
-      </div>
-      <div class="col search-navigation">
-        <div
-          class="btn-group"
-          role="group"
-          aria-label="navigation"
-          v-if="true || (filterValue && matchedLines.length > 0)"
-        >
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('first')"
-          >
-            <i class="bi bi-skip-backward-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('prev')"
-          >
-            <i class="bi bi-skip-start-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary me-1"
-            @click="navigate('next')"
-          >
-            <i class="bi bi-skip-end-fill"></i>
-          </button>
-          <button
-            type="button"
-            :disabled="numberOfLines < 1"
-            class="btn btn-primary"
-            @click="navigate('last')"
-          >
-            <i class="bi bi-skip-forward-fill"></i>
-          </button>
-        </div>
-      </div>
-      <div class="col-2">
-        <div class="row">
-          <div class="col">
-            Page
+    <div class="row mb-1 mt-0">
+      <div class="row align-items-end">
+        <div class="col-1"><i class="bi bi-funnel-fill"></i> Show all</div>
+        <div class="col-2">
+          <div class="form-check form-switch ps-4">
             <input
-              type="number"
-              v-model="file.page_num"
-              @change="changeSelected"
-              min="0"
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+              v-model="showOnlyErrors"
             />
+            <label class="form-check-label">Only show errors</label>
           </div>
         </div>
-      </div>
-      <div class="col-2">
-        <div class="row">
-          <div class="col">Sort on:</div>
-          <div class="col-3">
-            <i
-              v-if="sortType == 'timeDesc'"
-              class="bi bi-sort-numeric-up-alt"
-            ></i>
-            <i
-              v-else-if="sortType == 'timeAsc'"
-              class="bi bi-sort-numeric-down-alt"
-            ></i>
+        <div class="col-2 p-0 offset-1">
+          <SearchBar id="searchbox" v-model="filterValue" />
+        </div>
+        <div class="col-2">
+          <div class="row text-center">
+            <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
+              <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
+            </div>
+            <div
+              v-else-if="filterValue != ''"
+              class="text-secondary fst-italic"
+            >
+              <span>No search results</span>
+            </div>
+            <div v-else>
+              <div class="text-white">-</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col ps-1">
+              <div
+                class="btn-group"
+                role="group"
+                aria-label="navigation"
+                v-if="true || (filterValue && matchedLines.length > 0)"
+              >
+                <button
+                  type="button"
+                  :disabled="numberOfLines < 1"
+                  class="btn btn-primary"
+                  @click="navigate('first')"
+                >
+                  <i class="bi bi-skip-backward-fill"></i>
+                </button>
+                <button
+                  type="button"
+                  :disabled="numberOfLines < 1"
+                  class="btn btn-primary"
+                  @click="navigate('prev')"
+                >
+                  <i class="bi bi-skip-start-fill"></i>
+                </button>
+                <button
+                  type="button"
+                  :disabled="numberOfLines < 1"
+                  class="btn btn-primary"
+                  @click="navigate('next')"
+                >
+                  <i class="bi bi-skip-end-fill"></i>
+                </button>
+                <button
+                  type="button"
+                  :disabled="numberOfLines < 1"
+                  class="btn btn-primary"
+                  @click="navigate('last')"
+                >
+                  <i class="bi bi-skip-forward-fill"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <select
-          v-model="sortType"
-          @change="changeSelected"
-          class="form-select mb-3 form-select-sm"
-        >
-          <option value="timeDesc">Time (new -> old)</option>
-          <option value="timeAsc">Time (old -> new)</option>
-        </select>
+        <div class="col-2 offset-1">
+          <div class="row">
+            <div class="col">Sort page on:</div>
+            <div class="col-3">
+              <i
+                v-if="sortType == 'timeDesc'"
+                class="bi bi-sort-numeric-up-alt"
+              ></i>
+              <i
+                v-else-if="sortType == 'timeAsc'"
+                class="bi bi-sort-numeric-down-alt"
+              ></i>
+            </div>
+          </div>
+          <select
+            v-model="sortType"
+            @change="changeSelected"
+            class="form-select form-select-sm mt-1"
+          >
+            <option value="timeDesc">Time (new -> old)</option>
+            <option value="timeAsc">Time (old -> new)</option>
+          </select>
+        </div>
+        <div class="col-1 p-0">
+          <div class="row">
+            <div class="col fst-italic text-end">
+              Page <span>{{ file.page_num + 1 }}</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="btn-group btn-group-s ps-1">
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                @click="resetPageNum"
+                :disabled="file.page_num === 0"
+              >
+                <i class="bi bi-chevron-double-left"></i>
+              </button>
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                @click="decreasePageNum"
+                :disabled="file.page_num === 0"
+              >
+                <i class="bi bi-chevron-compact-left"></i>
+              </button>
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                @click="loadMore"
+                :disabled="file.page_num === maxNumberOfPages - 1"
+              >
+                <i class="bi bi-chevron-compact-right"></i>
+              </button>
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                @click="goToLastPage"
+                :disabled="file.page_num === maxNumberOfPages - 1"
+              >
+                <i class="bi bi-chevron-double-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
     <div class="row">
       <div class="col">
         <div class="content">
-          <div class="line" v-for="(line, index) in lines" :key="index">
+          <div
+            v-if="
+              showOnlyErrors &&
+              lines.filter((line) => line.includes('_FAILURE')).length == 0
+            "
+            class="fst-italic mb-3"
+          >
+            No lines found containing errors on page {{ file.page_num + 1 }}
+          </div>
+          <span class="m-0" v-for="(line, index) in lines" :key="index" v-else>
             <LogLine
-              v-if="file.id === 'LOG_FILE'"
+              v-if="
+                file.id === 'LOG_FILE' &&
+                (!showOnlyErrors || line.includes('_FAILURE'))
+              "
               class="line-content"
               :logLine="line"
-              :class="{ 'text-danger': isMatchedLine(index) }"
+              :class="{ 'text-primary': isMatchedLine(index) }"
             >
               {{ line }}
             </LogLine>
             <AuditLogLine
-              v-else
+              v-else-if="!showOnlyErrors || line.includes('_FAILURE')"
               :logLine="line"
-              :class="{ 'text-danger': isMatchedLine(index) }"
+              :class="{ 'text-primary': isMatchedLine(index) }"
             />
-          </div>
-          <button class="btn btn-primary" @click="loadMore()">
+          </span>
+          <button
+            class="btn btn-primary"
+            @click="loadMore()"
+            v-if="file.page_num != maxNumberOfPages - 1"
+          >
             <i class="bi bi-arrow-clockwise"></i> Load more
           </button>
         </div>
@@ -175,9 +216,14 @@ export default {
     AuditLogLine,
     LogLine,
   },
+  emits: ["resetReload"],
   props: {
     fileId: {
       type: String,
+      required: true,
+    },
+    reloadFile: {
+      type: Boolean,
       required: true,
     },
   },
@@ -235,18 +281,18 @@ export default {
     };
   },
   data(): {
-    currentFocus: number;
     matchedLines: number[];
     filterValue: string;
     numberOfLines: number;
     sortType: string;
+    showOnlyErrors: boolean;
   } {
     return {
-      currentFocus: 0,
       matchedLines: [],
       filterValue: "",
       numberOfLines: -1,
       sortType: "timeDesc",
+      showOnlyErrors: false,
     };
   },
   computed: {
@@ -271,43 +317,44 @@ export default {
     },
   },
   watch: {
-    sortType() {
-      if (this.sortType === "timeDesc") {
-        this.fromBeginOrEnd = "start";
-        this.changeSelected();
-      } else if (this.sortType === "timeAsc") {
-        this.fromBeginOrEnd = "end";
-        this.changeSelected();
-      } else if (this.sortType === "errors") {
-        const failure = "_FAILURE";
-        this.lines = this.lines.sort((a, b) => {
-          // console.log(a, b)
-          if (a.includes(failure) && b.includes(failure)) {
-            console.log("both");
-            return 0;
-          } else if (a.includes(failure)) {
-            console.log("a");
-            return 1;
-          } else {
-            console.log("b");
-            return -1;
-          }
-        });
+    reloadFile() {
+      if (this.reloadFile) {
+        this.fetchFile();
+        this.$emit("resetReload");
       }
     },
     fileId: {
       deep: true,
       handler() {
+        this.resetStates();
         this.changeSelected();
       },
     },
     filterValue() {
-      this.filteredLines();
+      this.filterLines();
     },
   },
   methods: {
+    resetPageNum() {
+      if (this.file) {
+        this.file.page_num = 0;
+        this.changeSelected();
+      }
+    },
+    goToLastPage() {
+      if (this.file) {
+        this.file.page_num = this.maxNumberOfPages - 1;
+        this.changeSelected();
+      }
+    },
+    decreasePageNum() {
+      if (this.file && this.file.page_num != 0) {
+        this.file.page_num -= 1;
+        this.changeSelected();
+      }
+    },
     loadMore() {
-      if (this.file && this.file.page_num != this.maxNumberOfPages) {
+      if (this.file && this.file.page_num != this.maxNumberOfPages - 1) {
         this.file.page_num += 1;
         this.changeSelected();
       }
@@ -317,13 +364,12 @@ export default {
       this.resetData();
       this.resetStates();
     },
-    filteredLines() {
+    filterLines() {
       // find filter value in lines
       const searchFor = this.filterValue.toLowerCase();
       this.matchedLines = matchedLineIndices(this.lines, searchFor);
 
       this.numberOfLines = this.matchedLines.length || -1;
-      // FIXME: is this bad?
       setTimeout(this.setFocusOnLine, 20, 0);
     },
     resetData() {
@@ -349,7 +395,7 @@ export default {
       setTimeout(this.setFocusOnLine, 20, this.currentFocus);
     },
     setFocusOnLine(item: number) {
-      const elements = document.getElementsByClassName("text-danger");
+      const elements = document.getElementsByClassName("text-primary");
       if (elements.length > 0) {
         if (item < 0) item = 0;
         if (item >= elements.length) item = elements.length - 1;
@@ -364,10 +410,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-  padding: 2px;
-}
-
 .content {
   overflow-y: scroll;
   max-height: 65vh;

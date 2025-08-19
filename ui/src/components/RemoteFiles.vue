@@ -10,9 +10,28 @@
             </option>
           </select>
         </div>
+        <div class="col">
+          <button
+            class="btn btn-primary me-1"
+            type="button"
+            @click="reloadFile = true"
+          >
+            <i class="bi bi-arrow-clockwise"></i> Reload
+          </button>
+          <a
+            class="btn btn-primary"
+            :href="'/insight/files/' + selectedFileId + '/download'"
+          >
+            <i class="bi bi-box-arrow-down"></i> Download
+          </a>
+        </div>
       </div>
       <div class="row" v-if="selectedFileId">
-        <RemoteFile :fileId="selectedFileId" />
+        <RemoteFile
+          :fileId="selectedFileId"
+          :reloadFile="reloadFile"
+          @resetReload="reloadFile = false"
+        />
       </div>
     </div>
   </div>
@@ -51,6 +70,7 @@ export default defineComponent({
   },
   data() {
     return {
+      reloadFile: false,
       selectedOption: "",
     };
   },
