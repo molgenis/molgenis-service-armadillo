@@ -1,14 +1,19 @@
 <template>
   <div>
     <div class="row text-center">
-      <div class="text-secondary fst-italic">
+      <div class="fst-italic" :class="textValueColour">
         <span v-if="currentValue === ''" class="text-white">-</span>
         <span v-else>{{ currentValue }}</span>
       </div>
     </div>
     <div class="row">
       <div class="col ps-1">
-        <div class="btn-group" role="group" aria-label="navigation">
+        <div
+          class="btn-group"
+          :class="isSmall ? 'btn-group-sm' : ''"
+          role="group"
+          aria-label="navigation"
+        >
           <button
             v-for="buttonId in buttons"
             type="button"
@@ -60,6 +65,14 @@ export default defineComponent({
         last: boolean;
       }>,
       required: true,
+    },
+    isSmall: {
+      type: Boolean,
+      default: false,
+    },
+    textValueColour: {
+      type: String,
+      default: "",
     },
   },
   data(): {

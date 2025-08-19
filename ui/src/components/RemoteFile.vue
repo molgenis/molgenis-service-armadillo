@@ -18,6 +18,7 @@
           :currentValue="
             numberOfLines != -1 ? `${currentFocus + 1} / ${numberOfLines}` : ''
           "
+          textValueColour="text-secondary"
           :icons="{
             first: 'skip-backward-fill',
             prev: 'skip-start-fill',
@@ -60,49 +61,29 @@
             <option value="timeAsc">Time (old -> new)</option>
           </select>
         </div>
-        <div class="col-1 p-0">
-          <div class="row">
-            <div class="col fst-italic text-end">
-              Page <span>{{ file.page_num + 1 }}</span>
-            </div>
-          </div>
-          <div class="row">
-            <div class="btn-group btn-group-s ps-1">
-              <button
-                class="btn btn-primary btn-sm"
-                type="button"
-                @click="resetPageNum"
-                :disabled="file.page_num === 0"
-              >
-                <i class="bi bi-chevron-double-left"></i>
-              </button>
-              <button
-                class="btn btn-primary btn-sm"
-                type="button"
-                @click="decreasePageNum"
-                :disabled="file.page_num === 0"
-              >
-                <i class="bi bi-chevron-compact-left"></i>
-              </button>
-              <button
-                class="btn btn-primary btn-sm"
-                type="button"
-                @click="loadMore"
-                :disabled="file.page_num === maxNumberOfPages - 1"
-              >
-                <i class="bi bi-chevron-compact-right"></i>
-              </button>
-              <button
-                class="btn btn-primary btn-sm"
-                type="button"
-                @click="goToLastPage"
-                :disabled="file.page_num === maxNumberOfPages - 1"
-              >
-                <i class="bi bi-chevron-double-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
+        <NavigationButtons
+          class="col-1 p-0"
+          :isSmall="true"
+          :currentValue="`Page ${file.page_num + 1}`"
+          :icons="{
+            first: 'chevron-double-left',
+            prev: 'chevron-left',
+            next: 'chevron-right',
+            last: 'chevron-double-right',
+          }"
+          :functions="{
+            first: resetPageNum,
+            prev: decreasePageNum,
+            next: loadMore,
+            last: goToLastPage,
+          }"
+          :disabled="{
+            first: file.page_num === 0,
+            prev: file.page_num === 0,
+            next: file.page_num === maxNumberOfPages - 1,
+            last: file.page_num === maxNumberOfPages - 1,
+          }"
+        />
       </div>
     </div>
     <div class="row">
@@ -123,7 +104,6 @@
                 file.id === 'LOG_FILE' &&
                 (!showOnlyErrors || line.includes('_FAILURE'))
               "
-              class="line-content"
               :logLine="line"
               :class="{ 'text-primary': isMatchedLine(index) }"
             >
@@ -339,6 +319,7 @@ export default {
       this.numberOfLines = -1;
       this.filterValue = "";
       this.matchedLines = [];
+      this.showOnlyErrors = false;
     },
     navigate(direction: string) {
       let curValue = this.currentFocus;
@@ -371,15 +352,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.content {
-  overflow-y: scroll;
-  max-height: 65vh;
-  border: none;
-  padding-top: 0.5em;
-}
-.line-content {
-  white-space: pre-wrap;
-}
-</style>
