@@ -1,15 +1,11 @@
 <template>
   <div class="card m-1">
     <div class="card-body">
-      <p class="m-0"><i class="bi bi-clock"></i> {{ content.timestamp }}</p>
-      <p class="m-0">
-        <i class="bi bi-person-fill"></i> {{ content.principal }}
-      </p>
-      <p class="m-0">
-        <span class="fw-bold">action: </span> {{ content.type }}
-      </p>
+      <p class="m-0"><i class="bi bi-clock"></i> {{ timestamp }}</p>
+      <p class="m-0"><i class="bi bi-person-fill"></i> {{ principal }}</p>
+      <p class="m-0"><span class="fw-bold">action: </span> {{ type }}</p>
       <div class="m-0">
-        <p v-for="(value, key) in content.data" :key="key" class="m-0">
+        <p v-for="(value, key) in data" :key="key" class="m-0">
           <span class="fw-bold m-0">{{ key }}: </span> {{ value }}
         </p>
       </div>
@@ -25,51 +21,30 @@ export default {
       required: true,
     },
   },
-  computed: {
-    content() {
-      const splitOnPrincipal = this.logLine.split("\nprincipal: ");
-      if (splitOnPrincipal?.length > 1) {
-        const timestamp = new Date(
-          splitOnPrincipal[0].replace("timestamp: ", "")
-        ).toUTCString();
-        const splitOnType = splitOnPrincipal[1].split("\ntype: ");
-        if (splitOnType?.length > 1) {
-          const principal = splitOnType[0];
-          const splitOnData = splitOnType[1].split("\ndata: ");
-          if (splitOnData?.length > 1) {
-            const type = splitOnData[0];
-            const data = JSON.parse(splitOnData[1]);
-            return {
-              principal: principal,
-              timestamp: timestamp,
-              type: type,
-              data: data,
-            };
-          } else {
-            return {
-              principal: principal,
-              timestamp: timestamp,
-              type: "",
-              data: "",
-            };
-          }
-        } else {
-          return {
-            principal: "",
-            timestamp: timestamp,
-            type: "",
-            data: "",
-          };
+  data() {
+    return {
+      principal: "",
+      timestamp: "",
+      type: "",
+      data: "",
+    };
+  },
+  mounted() {
+    const splitOnPrincipal = this.logLine.split("\nprincipal: ");
+    if (splitOnPrincipal?.length > 1) {
+      this.timestamp = new Date(
+        splitOnPrincipal[0].replace("timestamp: ", "")
+      ).toUTCString();
+      const splitOnType = splitOnPrincipal[1].split("\ntype: ");
+      if (splitOnType?.length > 1) {
+        this.principal = splitOnType[0];
+        const splitOnData = splitOnType[1].split("\ndata: ");
+        if (splitOnData?.length > 1) {
+          this.type = splitOnData[0];
+          this.data = JSON.parse(splitOnData[1]);
         }
-      } else {
-        return {
-          principal: "",
-          timestamp: "",
-          type: "",
-          data: "",
-        };
       }
-    },
+    }
   },
 };
 </script>

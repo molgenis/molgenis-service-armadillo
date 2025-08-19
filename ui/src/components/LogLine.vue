@@ -10,8 +10,8 @@
         v-else-if="messageType === 'failure'"
       ></i>
       <i class="bi bi-info-circle-fill text-info" v-else></i>
-      {{ content.serverTime }}: <span class="fw-bold">{{ content.type }}</span>
-      <span v-if="content.principal"> [{{ content.principal }}]</span>
+      {{ serverTime }}: <span class="fw-bold">{{ type }}</span>
+      <span v-if="principal"> [{{ principal }}]</span>
       <button class="btn" @click="toggleCollapsed">
         <i class="bi bi-caret-down" v-if="collapsed"></i>
         <i class="bi bi-caret-up" v-else></i>
@@ -19,24 +19,24 @@
     </div>
     <div class="card-body" :class="collapsed ? 'd-none' : 'd-inline'">
       <p class="m-0">
-        <i class="bi bi-clock"></i> {{ content.serverTime }}
-        <span v-if="content.principal">({{ content.timestamp }})</span>
+        <i class="bi bi-clock"></i> {{ serverTime }}
+        <span v-if="principal">({{ timestamp }})</span>
       </p>
-      <p class="m-0" v-if="content.principal">
-        <i class="bi bi-person-fill"></i> {{ content.principal }}
+      <p class="m-0" v-if="principal">
+        <i class="bi bi-person-fill"></i> {{ principal }}
       </p>
-      <p class="m-0" v-if="content.logger">
-        <i class="bi bi-file-text"></i> {{ content.logger }} [<span
+      <p class="m-0" v-if="logger">
+        <i class="bi bi-file-text"></i> {{ logger }} [<span
           class="fst-italic"
-          >{{ content.status }}</span
+          >{{ status }}</span
         >]
       </p>
-      <p clas s="m-0" v-if="content.event">
-        <i class="bi bi-calendar-event"></i> {{ content.event }}
+      <p clas s="m-0" v-if="event">
+        <i class="bi bi-calendar-event"></i> {{ event }}
       </p>
-      <div class="m-0" v-if="content.data">
+      <div class="m-0" v-if="data">
         <h5>Info</h5>
-        <p v-for="(value, key) in content.data" class="m-0">
+        <p v-for="(value, key) in data" class="m-0">
           <span class="fw-bold">{{ key }}:</span> {{ value }}
         </p>
       </div>
@@ -61,7 +61,47 @@ export default {
   data() {
     return {
       collapsed: true,
+      serverTime: "",
+      info: "",
+      status: "",
+      logger: "",
+      event: "",
+      timestamp: "",
+      principal: "",
+      type: "",
+      message: "",
+      data: {},
     };
+  },
+  mounted() {
+    const firstSplit = this.logLine.split(" [");
+    this.serverTime = firstSplit[0];
+    if (firstSplit.length > 1) {
+      const secondSplit = firstSplit[1].split("] ");
+      this.info = secondSplit[0];
+      const thirdSplit = this.logLine.split("  ");
+      if (thirdSplit.length > 1) {
+        this.status = thirdSplit[0].split("]")[1].replace(" ", "");
+        const fourthSplit = thirdSplit[1].split(" - ");
+        try {
+          this.logger = fourthSplit[0];
+          const fifthSplit = fourthSplit[1].split(" [");
+          this.event = fifthSplit[0];
+          const sixthSplit = fifthSplit[1].split(", principal=");
+          this.timestamp = new Date(
+            sixthSplit[0].replace("timestamp=", "")
+          ).toUTCString();
+          const seventhSplit = sixthSplit[1].split(", type=");
+          this.principal = seventhSplit[0];
+          const eighthSplit = seventhSplit[1].split(", data=");
+          this.type = eighthSplit[0];
+          this.data = this.formatData(fourthSplit[1].split(", data=")[1]);
+        } catch {
+          this.type = fourthSplit[0];
+          this.message = fourthSplit[1];
+        }
+      }
+    }
   },
   methods: {
     toggleCollapsed() {
@@ -119,73 +159,11 @@ export default {
   },
   computed: {
     messageType() {
-      return this.content.type.includes("FAILURE")
+      return this.type.includes("FAILURE")
         ? "failure"
-        : this.content.type.includes("SUCCESS")
+        : this.type.includes("SUCCESS")
         ? "success"
         : "";
-    },
-    content() {
-      const firstSplit = this.logLine.split(" [");
-      const serverTime = firstSplit[0];
-      if (firstSplit.length > 1) {
-        const secondSplit = firstSplit[1].split("] ");
-        const info = secondSplit[0];
-        const thirdSplit = this.logLine.split("  ");
-        if (thirdSplit.length > 1) {
-          const status = thirdSplit[0].split("]")[1].replace(" ", "");
-          const fourthSplit = thirdSplit[1].split(" - ");
-          try {
-            const logger = fourthSplit[0];
-            const fifthSplit = fourthSplit[1].split(" [");
-            const event = fifthSplit[0];
-            const sixthSplit = fifthSplit[1].split(", principal=");
-            const timestamp = new Date(sixthSplit[0].replace("timestamp=", ""));
-            const seventhSplit = sixthSplit[1].split(", type=");
-            const principal = seventhSplit[0];
-            const eighthSplit = seventhSplit[1].split(", data=");
-            const type = eighthSplit[0];
-            const data = fourthSplit[1].split(", data=")[1];
-            return {
-              serverTime: serverTime,
-              info: info,
-              status: status,
-              logger: logger,
-              event: event,
-              timestamp: timestamp.toUTCString(),
-              principal: principal,
-              type: type,
-              data: this.formatData(data),
-            };
-          } catch {
-            const type = fourthSplit[0];
-            const message = fourthSplit[1];
-            return {
-              serverTime: serverTime,
-              info: info,
-              status: status,
-              message: message,
-              type: type,
-            };
-          }
-        } else {
-          return {
-            serverTime: serverTime,
-            info: info,
-            status: "",
-            message: "",
-            type: "",
-          };
-        }
-      } else {
-        return {
-          serverTime: serverTime,
-          info: "",
-          status: "",
-          message: "",
-          type: "",
-        };
-      }
     },
   },
 };
