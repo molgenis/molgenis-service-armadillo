@@ -13,65 +13,14 @@
         <div class="col-2 p-0 offset-1">
           <SearchBar id="searchbox" v-model="filterValue" />
         </div>
-        <div class="col-2">
-          <div class="row text-center">
-            <div v-if="numberOfLines > -1" class="text-secondary fst-italic">
-              <span>{{ currentFocus + 1 }} / {{ numberOfLines }}</span>
-            </div>
-            <div
-              v-else-if="filterValue != ''"
-              class="text-secondary fst-italic"
-            >
-              <span>No search results</span>
-            </div>
-            <div v-else>
-              <div class="text-white">-</div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col ps-1">
-              <div
-                class="btn-group"
-                role="group"
-                aria-label="navigation"
-                v-if="true || (filterValue && matchedLines.length > 0)"
-              >
-                <button
-                  type="button"
-                  :disabled="numberOfLines < 1"
-                  class="btn btn-primary"
-                  @click="navigate('first')"
-                >
-                  <i class="bi bi-skip-backward-fill"></i>
-                </button>
-                <button
-                  type="button"
-                  :disabled="numberOfLines < 1"
-                  class="btn btn-primary"
-                  @click="navigate('prev')"
-                >
-                  <i class="bi bi-skip-start-fill"></i>
-                </button>
-                <button
-                  type="button"
-                  :disabled="numberOfLines < 1"
-                  class="btn btn-primary"
-                  @click="navigate('next')"
-                >
-                  <i class="bi bi-skip-end-fill"></i>
-                </button>
-                <button
-                  type="button"
-                  :disabled="numberOfLines < 1"
-                  class="btn btn-primary"
-                  @click="navigate('last')"
-                >
-                  <i class="bi bi-skip-forward-fill"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SearchNavigation
+          class="col-2"
+          :numberOfLines="numberOfLines"
+          :currentFocus="currentFocus"
+          :filterValue="filterValue"
+          :matchedLines="matchedLines"
+          :navigationFunction="navigate"
+        />
         <div class="col-2 offset-1">
           <div class="row">
             <div class="col">Sort page on:</div>
@@ -197,6 +146,7 @@ import { convertBytes } from "@/helpers/utils";
 import AuditLogLine from "./AuditLogLine.vue";
 import LogLine from "./LogLine.vue";
 import ShowSwitch from "./ShowSwitch.vue";
+import SearchNavigation from "./SearchNavigation.vue";
 
 export default {
   name: "RemoteFile",
@@ -206,6 +156,7 @@ export default {
     AuditLogLine,
     LogLine,
     ShowSwitch,
+    SearchNavigation,
   },
   emits: ["resetReload"],
   props: {
