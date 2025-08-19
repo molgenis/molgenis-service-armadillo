@@ -13,13 +13,29 @@
         <div class="col-2 p-0 offset-1">
           <SearchBar id="searchbox" v-model="filterValue" />
         </div>
-        <SearchNavigation
+        <NavigationButtons
           class="col-2"
-          :numberOfLines="numberOfLines"
-          :currentFocus="currentFocus"
-          :filterValue="filterValue"
-          :matchedLines="matchedLines"
-          :navigationFunction="navigate"
+          :currentValue="
+            numberOfLines != -1 ? `${currentFocus + 1} / ${numberOfLines}` : ''
+          "
+          :icons="{
+            first: 'skip-backward-fill',
+            prev: 'skip-start-fill',
+            next: 'skip-end-fill',
+            last: 'skip-forward-fill',
+          }"
+          :functions="{
+            first: () => navigate('first'),
+            prev: () => navigate('prev'),
+            next: () => navigate('next'),
+            last: () => navigate('last'),
+          }"
+          :disabled="{
+            first: numberOfLines < 1 || currentFocus === 0,
+            prev: numberOfLines < 1 || currentFocus === 0,
+            next: numberOfLines < 1 || currentFocus === numberOfLines - 1,
+            last: numberOfLines < 1 || currentFocus === numberOfLines - 1,
+          }"
         />
         <div class="col-2 offset-1">
           <div class="row">
@@ -146,7 +162,7 @@ import { convertBytes } from "@/helpers/utils";
 import AuditLogLine from "./AuditLogLine.vue";
 import LogLine from "./LogLine.vue";
 import ShowSwitch from "./ShowSwitch.vue";
-import SearchNavigation from "./SearchNavigation.vue";
+import NavigationButtons from "./NavigationButtons.vue";
 
 export default {
   name: "RemoteFile",
@@ -156,7 +172,7 @@ export default {
     AuditLogLine,
     LogLine,
     ShowSwitch,
-    SearchNavigation,
+    NavigationButtons,
   },
   emits: ["resetReload"],
   props: {
