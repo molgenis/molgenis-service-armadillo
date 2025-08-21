@@ -1,10 +1,13 @@
 <template>
   <div v-if="file">
-    <div class="row">
+    <div class="row fs-6">
       <div class="col-3">
         <p class="m-0 fst-italic">
           Log file size: {{ fileInfo?.convertedSize }}
         </p>
+      </div>
+      <div class="col-3 text-secondary">
+        <p class="m-0 fst-italic">Last reload: {{ fileInfo?.reloadTime }}</p>
       </div>
     </div>
     <div class="row mb-1 mt-0">
