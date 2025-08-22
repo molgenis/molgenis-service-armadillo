@@ -145,6 +145,7 @@ export default {
     const lines = ref<Array<string>>([]);
     const fromBeginOrEnd = ref<string>("end");
     const currentFocus = ref(0);
+    const errorMessage = ref("");
 
     function resetStates() {
       file.value = null;
