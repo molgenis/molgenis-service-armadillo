@@ -45,29 +45,11 @@
             last: numberOfLines < 1 || currentFocus === numberOfLines - 1,
           }"
         />
-        <div class="col-2 offset-1">
-          <div class="row">
-            <div class="col">Sort page on:</div>
-            <div class="col-3">
-              <i
-                v-if="sortType == 'timeDesc'"
-                class="bi bi-sort-numeric-up-alt"
-              ></i>
-              <i
-                v-else-if="sortType == 'timeAsc'"
-                class="bi bi-sort-numeric-down-alt"
-              ></i>
-            </div>
-          </div>
-          <select
-            v-model="sortType"
-            @change="changeSelected"
-            class="form-select form-select-sm mt-1"
-          >
-            <option value="timeDesc">Time (new -> old)</option>
-            <option value="timeAsc">Time (old -> new)</option>
-          </select>
-        </div>
+        <PageSorter
+          :sortType="sortType"
+          class="col-2 offset-1"
+          @selectChanged="changeSelected"
+        />
         <NavigationButtons
           class="col-1 p-0"
           :isSmall="true"
@@ -95,46 +77,32 @@
     </div>
     <div class="row">
       <div class="col">
-        <div class="content">
-          <div
-            v-if="
-              showOnlyErrors &&
-              lines.filter((line) => line.includes('_FAILURE')).length == 0
-            "
-            class="fst-italic mb-3"
-          >
-            No lines found containing errors on page {{ file.page_num + 1 }}
-          </div>
-          <span class="m-0" v-for="(line, index) in lines" :key="index" v-else>
-            <LogLine
-              v-if="
-                file.id === 'LOG_FILE' &&
-                (!showOnlyErrors || line.includes('_FAILURE'))
-              "
-              :logLine="line"
-              :class="{ 'text-primary': isMatchedLine(index) }"
-            >
-              {{ line }}
-            </LogLine>
-            <AuditLogLine
-              v-else-if="!showOnlyErrors || line.includes('_FAILURE')"
-              :logLine="line"
-              :class="{ 'text-primary': isMatchedLine(index) }"
-            />
-          </span>
-          <button
-            class="btn btn-primary"
-            @click="loadMore()"
-            v-if="file.page_num != maxNumberOfPages - 1"
-          >
-            <i class="bi bi-arrow-clockwise"></i> Load more
-          </button>
+        <div
+          v-if="showOnlyErrors && errorLines.length === 0"
+          class="fst-italic mb-3"
+        >
+          No lines found containing errors on page {{ file.page_num + 1 }}
         </div>
+        <span v-else class="m-0" v-for="(line, index) in lines" :key="index">
+          <LogLine
+            v-if="showLine(line)"
+            :fileId="file.id"
+            :isMatchedLine="isMatchedLine(index)"
+            :logLine="line"
+          />
+        </span>
+        <button
+          class="btn btn-primary"
+          @click="loadMore()"
+          v-if="file.page_num != maxNumberOfPages - 1"
+        >
+          <i class="bi bi-arrow-clockwise"></i> Load more
+        </button>
       </div>
     </div>
   </div>
   <div v-else>
-    <LoadingSpinner></LoadingSpinner>
+    <LoadingSpinner />
   </div>
 </template>
 
@@ -146,20 +114,20 @@ import SearchBar from "./SearchBar.vue";
 import { RemoteFileDetail } from "@/types/api";
 import { auditJsonLinesToLines, matchedLineIndices } from "@/helpers/insight";
 import { convertBytes } from "@/helpers/utils";
-import AuditLogLine from "./AuditLogLine.vue";
 import LogLine from "./LogLine.vue";
 import ShowSwitch from "./ShowSwitch.vue";
 import NavigationButtons from "./NavigationButtons.vue";
+import PageSorter from "./PageSorter.vue";
 
 export default {
   name: "RemoteFile",
   components: {
     SearchBar,
     LoadingSpinner,
-    AuditLogLine,
     LogLine,
     ShowSwitch,
     NavigationButtons,
+    PageSorter,
   },
   emits: ["resetReload"],
   props: {
@@ -241,6 +209,9 @@ export default {
     };
   },
   computed: {
+    errorLines() {
+      return this.lines.filter((line) => this.isErrorLine(line));
+    },
     pages() {
       return [...Array(this.maxNumberOfPages).keys()];
     },
@@ -257,10 +228,6 @@ export default {
     },
     maxNumberOfPages() {
       return this.fileInfo ? Math.ceil(this.fileInfo.size / 10000) : 0;
-    },
-    isMatchedLine() {
-      return (lineNo: number) =>
-        !(this.numberOfLines === -1) && this.matchedLines.includes(lineNo);
     },
   },
   watch: {
@@ -282,6 +249,19 @@ export default {
     },
   },
   methods: {
+    isMatchedLine(index: number) {
+      return (
+        !(this.numberOfLines === -1) &&
+        this.matchedLines.includes(index) &&
+        (!this.showOnlyErrors || this.isErrorLine(this.lines[index]))
+      );
+    },
+    showLine(line: string) {
+      return !this.showOnlyErrors || this.isErrorLine(line);
+    },
+    isErrorLine(line: string) {
+      return line.includes("_FAILURE");
+    },
     switchShowAll(eventValue: boolean) {
       this.showOnlyErrors = eventValue;
     },
@@ -317,7 +297,11 @@ export default {
     filterLines() {
       // find filter value in lines
       const searchFor = this.filterValue.toLowerCase();
-      this.matchedLines = matchedLineIndices(this.lines, searchFor);
+      this.matchedLines = matchedLineIndices(this.lines, searchFor).filter(
+        (index) => {
+          return this.errorLines.includes(this.lines[index]);
+        }
+      );
 
       this.numberOfLines = this.matchedLines.length || -1;
       setTimeout(this.setFocusOnLine, 20, 0);
@@ -353,7 +337,9 @@ export default {
         if (item >= this.matchedLines.length)
           item = this.matchedLines.length - 1;
         this.currentFocus = item;
-        elements[item].scrollIntoView();
+        if (this.filterValue !== "" && elements[item]) {
+          elements[item].scrollIntoView();
+        }
       }
     },
   },
