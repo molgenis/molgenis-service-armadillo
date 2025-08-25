@@ -11,12 +11,15 @@ import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse.ContainerState;
+import com.github.dockerjava.api.command.InspectImageCmd;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.command.RemoveImageCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.ContainerConfig;
 import com.github.dockerjava.api.model.Image;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
@@ -465,5 +468,135 @@ class DockerServiceTest {
     verify(dockerClient).listImagesCmd();
     verify(listImagesCmd).withShowAll(true);
     verify(listImagesCmd).exec();
+  }
+
+  @Test
+  void updateImageMetaData_setsInstallDateWhenNewImage() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+    ContainerConfig cfg = mock(ContainerConfig.class);
+
+    when(dockerClient.inspectImageCmd("newImage")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getSize()).thenReturn(42L);
+    when(resp.getConfig()).thenReturn(cfg);
+    when(cfg.getLabels())
+        .thenReturn(
+            Map.of(
+                "org.opencontainers.image.version", "1.0",
+                "org.opencontainers.image.created", "2025-01-01T00:00:00Z"));
+
+    dockerService.updateImageMetaData("profile1", null, "newImage");
+
+    verify(profileService)
+        .updateImageMetaData(
+            eq("profile1"),
+            eq("newImage"),
+            eq("1.0"),
+            eq(42L),
+            eq("2025-01-01T00:00:00Z"),
+            anyString() // dynamically generated installDate
+            );
+  }
+
+  @Test
+  void updateImageMetaData_setsNullInstallDateWhenSameImage() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+    ContainerConfig cfg = mock(ContainerConfig.class);
+
+    when(dockerClient.inspectImageCmd("sameImage")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getSize()).thenReturn(123L);
+    when(resp.getConfig()).thenReturn(cfg);
+    when(cfg.getLabels())
+        .thenReturn(
+            Map.of(
+                "org.opencontainers.image.version", "2.0",
+                "org.opencontainers.image.created", "2025-02-02T00:00:00Z"));
+
+    dockerService.updateImageMetaData("profile2", "sameImage", "sameImage");
+
+    verify(profileService)
+        .updateImageMetaData(
+            eq("profile2"),
+            eq("sameImage"),
+            eq("2.0"),
+            eq(123L),
+            eq("2025-02-02T00:00:00Z"),
+            isNull() // no installDate when image ID unchanged
+            );
+  }
+
+  @Test
+  void getImageCreationDate_returnsLabelValue() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+    ContainerConfig cfg = mock(ContainerConfig.class);
+
+    when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getConfig()).thenReturn(cfg);
+    when(cfg.getLabels()).thenReturn(Map.of("org.opencontainers.image.created", "2025-03-03"));
+
+    assertEquals("2025-03-03", dockerService.getImageCreationDate("img"));
+  }
+
+  @Test
+  void getImageCreationDate_returnsNullOnException() {
+    when(dockerClient.inspectImageCmd("bad")).thenThrow(new RuntimeException("fail"));
+    assertNull(dockerService.getImageCreationDate("bad"));
+  }
+
+  @Test
+  void getImageSize_returnsSize() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+
+    when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getSize()).thenReturn(9876L);
+
+    assertEquals(9876L, dockerService.getImageSize("img"));
+  }
+
+  @Test
+  void getImageSize_returnsNullOnException() {
+    when(dockerClient.inspectImageCmd("oops")).thenThrow(new RuntimeException("fail"));
+    assertNull(dockerService.getImageSize("oops"));
+  }
+
+  @Test
+  void getOpenContainersImageVersion_returnsLabelValue() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+    ContainerConfig cfg = mock(ContainerConfig.class);
+
+    when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getConfig()).thenReturn(cfg);
+    when(cfg.getLabels()).thenReturn(Map.of("org.opencontainers.image.version", "vX.Y.Z"));
+
+    assertEquals("vX.Y.Z", dockerService.getOpenContainersImageVersion("img"));
+  }
+
+  @Test
+  void getOpenContainersImageVersion_returnsUnknownWhenMissingLabel() {
+    InspectImageCmd cmd = mock(InspectImageCmd.class);
+    InspectImageResponse resp = mock(InspectImageResponse.class);
+    ContainerConfig cfg = mock(ContainerConfig.class);
+
+    when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(resp);
+    when(resp.getConfig()).thenReturn(cfg);
+    when(cfg.getLabels()).thenReturn(Map.of()); // no version label
+
+    assertEquals("Unknown Version", dockerService.getOpenContainersImageVersion("img"));
+  }
+
+  @Test
+  void getOpenContainersImageVersion_returnsNullOnException() {
+    when(dockerClient.inspectImageCmd("oops")).thenThrow(new RuntimeException("boom"));
+    assertNull(dockerService.getOpenContainersImageVersion("oops"));
   }
 }
