@@ -1,5 +1,4 @@
 <template>
-  <h2>Insight</h2>
   <div class="row">
     <div class="col-2">
       <button

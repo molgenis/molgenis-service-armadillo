@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2 class="mt-3">Projects</h2>
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
