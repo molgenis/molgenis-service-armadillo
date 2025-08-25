@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2 class="mt-3">Insight</h2>
     <div class="row">
       <div class="col mt-1">
         <button
