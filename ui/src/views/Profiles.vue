@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <LoadingSpinner v-if="profilesLoading" />
+    <LoadingSpinner v-if="profilesLoading" class="mt-5" />
     <!-- Actual table -->
     <Table
       v-else
