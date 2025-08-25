@@ -2,7 +2,7 @@
   <div v-if="file">
     <div class="row fs-6">
       <div class="col-3">
-        <p class="m-0 fst-italic">
+        <p class="m-0 fst-italic ms-2">
           Log file size: {{ fileInfo?.convertedSize }}
         </p>
       </div>
@@ -10,7 +10,7 @@
         <p class="m-0 fst-italic">Last reload: {{ fileInfo?.reloadTime }}</p>
       </div>
     </div>
-    <div class="row mb-1 mt-0 ms-1">
+    <div class="row mb-1 mt-0 ms-2">
       <div class="row align-items-end">
         <ShowSwitch class="col-3" @switched="switchShowAll($event)" />
         <div class="col-2 p-0 offset-1">
