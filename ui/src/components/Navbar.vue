@@ -22,8 +22,7 @@
               <i
                 class="bi bi-chevron-double-right"
                 v-show="selectedPage == item.toLowerCase()"
-              />
-              <i :class="`bi bi-${icons[index]}`"></i>
+              />&nbsp; <i :class="`bi bi-${icons[index]}`" />&nbsp;
               <span
                 :class="
                   selectedPage == item.toLowerCase()
