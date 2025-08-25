@@ -33,7 +33,7 @@
       </div>
     </div>
     <!-- Loading spinner -->
-    <LoadingSpinne class="mt-5" v-if="loading"></LoadingSpinne>
+    <LoadingSpinner class="mt-5" v-if="loading"></LoadingSpinner>
     <!-- Actual table -->
     <Table
       v-else
