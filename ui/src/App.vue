@@ -7,6 +7,8 @@
           :username="username"
           @logout="logoutUser"
           :showLogin="false"
+          :menu="tabs"
+          :icons="tabIcons"
         />
         <div class="container">
           <div class="row mt-2">

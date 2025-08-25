@@ -11,38 +11,27 @@
         Armadillo portal <small class="text-secondary">{{ version }}</small>
       </a>
       <form class="align-self-start mt-2">
-        <span>
-          <router-link :to="{ name: 'projects' }">
+        <span
+          v-for="(item, index) in menu"
+          class="nav-item"
+          :key="index"
+          v-if="username && !showLogin"
+        >
+          <router-link :to="{ name: item.toLowerCase() }">
             <button class="btn btn-dark">
-              <i class="bi bi-clipboard-data"></i> Projects
-            </button>
-          </router-link>
-        </span>
-        <span>
-          <router-link :to="{ name: 'users' }">
-            <button class="btn btn-dark">
-              <i class="bi bi-people-fill"></i> Users
-            </button>
-          </router-link>
-        </span>
-        <span>
-          <router-link :to="{ name: 'workspaces' }">
-            <button class="btn btn-dark">
-              <i class="bi bi-person-workspace"></i> Workspaces
-            </button>
-          </router-link>
-        </span>
-        <span>
-          <router-link :to="{ name: 'profiles' }">
-            <button class="btn btn-dark">
-              <i class="bi bi-shield-shaded"></i> Profiles
-            </button>
-          </router-link>
-        </span>
-        <span>
-          <router-link :to="{ name: 'insight' }">
-            <button class="btn btn-dark">
-              <i class="bi bi-brilliance"></i> Insight
+              <i
+                class="bi bi-chevron-double-right"
+                v-show="selectedPage == item.toLowerCase()"
+              />
+              <i :class="`bi bi-${icons[index]}`"></i>
+              <span
+                :class="
+                  selectedPage == item.toLowerCase()
+                    ? 'text-decoration-underline'
+                    : ''
+                "
+                >{{ item }}</span
+              >
             </button>
           </router-link>
         </span>
@@ -79,7 +68,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { StringArray } from "@/types/types";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "Navbar",
@@ -87,7 +77,19 @@ export default defineComponent({
     version: String,
     username: String,
     showLogin: Boolean,
+    menu: { type: Array as PropType<StringArray>, required: true },
+    icons: { type: Array as PropType<StringArray>, required: true },
   },
   emits: ["logout"],
+  methods: {
+    isSelectedPage(page: string) {
+      return page.toLowerCase() === this.selectedPage;
+    },
+  },
+  computed: {
+    selectedPage() {
+      return this.$route.fullPath.split("/")[1];
+    },
+  },
 });
 </script>
