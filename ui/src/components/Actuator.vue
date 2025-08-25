@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="row mt-1">
     <div class="col mt-3" v-if="isLoading">
       <LoadingSpinner />
       <FeedbackMessage
