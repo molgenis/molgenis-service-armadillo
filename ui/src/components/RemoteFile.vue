@@ -10,7 +10,7 @@
         <p class="m-0 fst-italic">Last reload: {{ fileInfo?.reloadTime }}</p>
       </div>
     </div>
-    <div class="row mb-1 mt-0">
+    <div class="row mb-1 mt-0 ms-1">
       <div class="row align-items-end">
         <ShowSwitch class="col-3" @switched="switchShowAll($event)" />
         <div class="col-2 p-0 offset-1">
