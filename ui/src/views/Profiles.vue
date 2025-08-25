@@ -369,7 +369,6 @@ export default defineComponent({
         InstallDate: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
-        host: "string",
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
