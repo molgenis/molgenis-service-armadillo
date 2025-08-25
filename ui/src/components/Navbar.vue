@@ -10,6 +10,43 @@
         />
         Armadillo portal <small class="text-secondary">{{ version }}</small>
       </a>
+      <form class="align-self-start mt-2">
+        <span>
+          <router-link :to="{ name: 'projects' }">
+            <button class="btn btn-dark">
+              <i class="bi bi-clipboard-data"></i> Projects
+            </button>
+          </router-link>
+        </span>
+        <span>
+          <router-link :to="{ name: 'users' }">
+            <button class="btn btn-dark">
+              <i class="bi bi-people-fill"></i> Users
+            </button>
+          </router-link>
+        </span>
+        <span>
+          <router-link :to="{ name: 'workspaces' }">
+            <button class="btn btn-dark">
+              <i class="bi bi-person-workspace"></i> Workspaces
+            </button>
+          </router-link>
+        </span>
+        <span>
+          <router-link :to="{ name: 'profiles' }">
+            <button class="btn btn-dark">
+              <i class="bi bi-shield-shaded"></i> Profiles
+            </button>
+          </router-link>
+        </span>
+        <span>
+          <router-link :to="{ name: 'insight' }">
+            <button class="btn btn-dark">
+              <i class="bi bi-brilliance"></i> Insight
+            </button>
+          </router-link>
+        </span>
+      </form>
       <form class="d-flex mt-1">
         <span>
           <a
