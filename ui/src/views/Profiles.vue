@@ -387,7 +387,7 @@ export default defineComponent({
         "versionId",
         "ImageSize",
         "CreationDate",
-        "installDate",
+        "InstallDate",
       ];
 
       if (this.profileToEditIndex !== -1) {
