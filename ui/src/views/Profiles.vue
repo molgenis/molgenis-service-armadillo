@@ -101,7 +101,11 @@
           </div>
         </div>
         <div
-          v-else-if="objectProps.row.autoUpdateSchedule === objectProps.data"
+          v-else-if="
+            objectProps.row.autoUpdate &&
+            objectProps.data &&
+            objectProps.data.frequency
+          "
         >
           <span>
             {{
@@ -111,6 +115,15 @@
             }}
           </span>
         </div>
+        <div
+          v-else-if="
+            !objectProps.row.autoUpdate &&
+            objectProps.data &&
+            'frequency' in objectProps.data &&
+            'day' in objectProps.data &&
+            'time' in objectProps.data
+          "
+        ></div>
         <div v-else>
           <div v-for="(value, key) in objectProps.data" :key="key">
             {{ key }} = {{ value }}
