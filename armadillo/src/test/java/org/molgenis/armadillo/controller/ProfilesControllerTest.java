@@ -70,6 +70,9 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 emptySet(),
                 emptyMap(),
                 null,
+                null,
+                null,
+                null,
                 null));
     settings
         .getProfiles()
@@ -85,6 +88,9 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
+                null,
+                null,
+                null,
                 null,
                 null));
     return settings;
@@ -127,6 +133,9 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
             Set.of("dsBase"),
             emptySet(),
             Map.of(),
+            null,
+            null,
+            null,
             null,
             null);
 

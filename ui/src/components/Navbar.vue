@@ -10,6 +10,31 @@
         />
         Armadillo portal <small class="text-secondary">{{ version }}</small>
       </a>
+      <form class="align-self-start mt-2">
+        <span
+          v-for="(item, index) in menu"
+          class="nav-item"
+          :key="index"
+          v-if="username && !showLogin"
+        >
+          <router-link :to="{ name: item.toLowerCase() }">
+            <button class="btn btn-dark">
+              <i
+                class="bi bi-chevron-double-right"
+                v-show="selectedPage == item.toLowerCase()"
+              />&nbsp; <i :class="`bi bi-${icons[index]}`" />&nbsp;
+              <span
+                :class="
+                  selectedPage == item.toLowerCase()
+                    ? 'text-decoration-underline'
+                    : ''
+                "
+                >{{ item }}</span
+              >
+            </button>
+          </router-link>
+        </span>
+      </form>
       <form class="d-flex mt-1">
         <span>
           <a
@@ -42,7 +67,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { StringArray } from "@/types/types";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "Navbar",
@@ -50,7 +76,19 @@ export default defineComponent({
     version: String,
     username: String,
     showLogin: Boolean,
+    menu: { type: Array as PropType<StringArray>, required: true },
+    icons: { type: Array as PropType<StringArray>, required: true },
   },
   emits: ["logout"],
+  methods: {
+    isSelectedPage(page: string) {
+      return page.toLowerCase() === this.selectedPage;
+    },
+  },
+  computed: {
+    selectedPage() {
+      return this.$route.fullPath.split("/")[1];
+    },
+  },
 });
 </script>

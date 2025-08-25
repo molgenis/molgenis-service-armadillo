@@ -29,6 +29,9 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
+            null,
+            null,
+            null,
             null);
     EnvironmentConfigProps actual = config.toEnvironmentConfigProps();
     assertEquals(img, actual.getImage());
@@ -48,6 +51,9 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
+            null,
+            null,
+            null,
             null);
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
@@ -66,6 +72,9 @@ public class ProfileConfigTest {
             new HashSet<>(),
             new HashMap<>(),
             null,
+            null,
+            null,
+            null,
             null);
     assertEquals("localhost", config.getHost());
   }
@@ -82,6 +91,9 @@ public class ProfileConfigTest {
             6311,
             new HashSet<>(),
             new HashSet<>(),
+            null,
+            null,
+            null,
             null,
             null,
             null);

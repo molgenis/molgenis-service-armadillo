@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2 class="mt-3">Profiles</h2>
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
@@ -19,7 +18,7 @@
       </div>
     </div>
 
-    <LoadingSpinner v-if="profilesLoading" />
+    <LoadingSpinner v-if="profilesLoading" class="mt-5" />
     <!-- Actual table -->
     <Table
       v-else
@@ -235,6 +234,7 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
+import { convertBytes } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Profiles",
@@ -261,26 +261,38 @@ export default defineComponent({
       profiles.value = await getProfiles()
         .then((profiles) => {
           dockerManagementEnabled.value = "container" in profiles[0];
-          for (var profile_index in profiles) {
-            // Extract options.datashield.seed into proper column
-            profiles[profile_index].datashieldSeed =
-              profiles[profile_index].options["datashield.seed"];
-            // Delete required or else shows when creating or editing profiles
-            delete profiles[profile_index].options["datashield.seed"];
-            profiles[profile_index].autoUpdateSchedule = profiles[profile_index]
-              .autoUpdateSchedule || {
-              frequency: "weekly",
-              day: "Sunday",
-              time: "01:00",
+
+          return profiles.map((profile) => {
+            // Extract datashieldSeed
+            const datashieldSeed = profile.options["datashield.seed"];
+            delete profile.options["datashield.seed"];
+
+            return {
+              ...profile,
+              datashieldSeed,
+              autoUpdateSchedule: profile.autoUpdateSchedule || {
+                frequency: "weekly",
+                day: "Sunday",
+                time: "01:00",
+              },
+              ImageSize: profile.imageSize
+                ? convertBytes(profile.imageSize)
+                : "",
+              CreationDate: profile.creationDate
+                ? new Date(profile.creationDate).toLocaleDateString()
+                : "",
+              InstallDate: profile.installDate
+                ? new Date(profile.installDate).toLocaleDateString()
+                : "",
             };
-          }
-          profilesLoading.value = false;
-          return profiles;
+          });
         })
         .catch((error: string) => {
           errorMessage.value = processErrorMessages(error, "profiles", router);
           return [];
         });
+
+      profilesLoading.value = false;
     };
     return {
       profilesLoading,
@@ -351,9 +363,11 @@ export default defineComponent({
         name: "string",
         image: "string",
         versionId: "string",
+        ImageSize: "number",
+        CreationDate: "string",
+        InstallDate: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
-        host: "string",
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
@@ -365,10 +379,19 @@ export default defineComponent({
         columns["container"] = "object";
       }
 
+      const toHideInEdit = [
+        "container",
+        "autoUpdateSchedule",
+        "versionId",
+        "ImageSize",
+        "CreationDate",
+        "InstallDate",
+      ];
+
       if (this.profileToEditIndex !== -1) {
-        delete columns.container;
-        delete columns.autoUpdateSchedule;
-        delete columns.versionId;
+        toHideInEdit.forEach((key) => {
+          delete columns[key as keyof TypeObject];
+        });
       }
 
       return columns;

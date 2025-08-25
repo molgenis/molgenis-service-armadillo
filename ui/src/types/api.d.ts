@@ -15,6 +15,7 @@ export type RemoteFileDetail = {
   name: string;
   fetched: string;
   content: string;
+  content_type: string;
   page_num: number;
   page_size: number;
 };
@@ -65,6 +66,9 @@ export type Profile = {
   name: string;
   image: string;
   versionId?: string;
+  imageSize?: number;
+  creationDate?: string;
+  installDate?: string;
   host: string;
   port: number;
   packageWhitelist: StringArray;
@@ -79,6 +83,12 @@ export type Profile = {
   };
   autoUpdate?: boolean;
   autoUpdateSchedule?: AutoUpdateSchedule;
+};
+
+type FormattedProfile = Profile & {
+  formattedImageSize: string;
+  formattedCreationDate: string;
+  formattedInstallDate: string;
 };
 
 export type Auth = { user: string; pwd: string };

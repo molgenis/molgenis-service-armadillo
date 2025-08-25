@@ -15,6 +15,8 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -159,15 +161,58 @@ public class DockerService {
     String currentImageId =
         dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
 
-    if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+    if (previousImageId == null) {
+      LOG.info(
+          "No previous image ID recorded for {}. This may be the first run or from before image tracking was added.",
+          profileName);
+    } else if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
       try {
         removeImageIfUnused(previousImageId);
       } catch (ImageRemoveFailedException e) {
         LOG.info(e.getMessage());
       }
     }
-    String openContainersID = getOpenContainersImageVersion(currentImageId);
-    profileService.updateImageMetaData(profileName, currentImageId, openContainersID);
+
+    updateImageMetaData(profileName, previousImageId, currentImageId);
+  }
+
+  void updateImageMetaData(String profileName, String previousImageId, String currentImageId) {
+    String openContainersId = getOpenContainersImageVersion(currentImageId);
+    Long imageSize = getImageSize(currentImageId);
+    String creationDate = getImageCreationDate(currentImageId);
+
+    String installDate;
+    if ((previousImageId == null && currentImageId != null)
+        || hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+      installDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+    } else {
+      installDate = null;
+    }
+    profileService.updateImageMetaData(
+        profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
+  }
+
+  String getImageCreationDate(String imageId) {
+    try {
+      return dockerClient
+          .inspectImageCmd(imageId)
+          .exec()
+          .getConfig()
+          .getLabels()
+          .get("org.opencontainers.image.created");
+    } catch (Exception e) {
+      LOG.error("Error retrieving creation date of image: {}", imageId, e);
+      return null;
+    }
+  }
+
+  Long getImageSize(String imageId) {
+    try {
+      return dockerClient.inspectImageCmd(imageId).exec().getSize();
+    } catch (Exception e) {
+      LOG.error("Error retrieving size of image: {}", imageId, e);
+      return null;
+    }
   }
 
   public String getOpenContainersImageVersion(String imageName) {
