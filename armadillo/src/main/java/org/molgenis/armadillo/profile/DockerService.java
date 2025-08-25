@@ -188,9 +188,6 @@ public class DockerService {
     } else {
       installDate = null;
     }
-    System.out.println("Previous imageId is: " + previousImageId);
-    System.out.println("Current imageId is: " + currentImageId);
-    System.out.println("Install date is: " + installDate);
     profileService.updateImageMetaData(
         profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
   }
