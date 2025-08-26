@@ -150,17 +150,11 @@
           :row="rowProps.row"
           :save="saveEditedProfile"
           :cancel="clearProfileToEdit"
-          :hideColumns="[
-            'versionId',
-            'autoUpdateSchedule',
-            'container',
-            'autoUpdateSchedule',
-          ]"
           :dataStructure="profilesDataStructure"
         />
         <tr v-if="rowProps.row.autoUpdate">
           <td colspan="100%">
-            <strong>Auto-update schedule:</strong>
+            <strong>Update schedule:</strong>
             <div
               class="form-check form-check-inline"
               v-for="option in ['daily', 'weekly']"
@@ -171,7 +165,7 @@
                 type="radio"
                 :id="`freq-${option}`"
                 :value="option"
-                v-model="rowProps.row.autoUpdateSchedule.frequency"
+                v-model="rowProps.row.updateSchedule.frequency"
               />
               <label class="form-check-label" :for="`freq-${option}`">
                 {{ option }}
@@ -180,11 +174,9 @@
             <div class="mt-2">
               <label class="form-label me-2">Day:</label>
               <select
-                v-model="rowProps.row.autoUpdateSchedule.day"
+                v-model="rowProps.row.updateSchedule.day"
                 class="form-select d-inline-block w-auto"
-                :disabled="
-                  rowProps.row.autoUpdateSchedule.frequency === 'daily'
-                "
+                :disabled="rowProps.row.updateSchedule.frequency === 'daily'"
               >
                 <option value="" disabled>Select day</option>
                 <option
@@ -206,7 +198,7 @@
               <label class="form-label ms-3 me-2">Time:</label>
               <input
                 type="time"
-                v-model="rowProps.row.autoUpdateSchedule.time"
+                v-model="rowProps.row.updateSchedule.time"
                 class="form-control d-inline-block w-auto"
                 :disabled="!rowProps.row.autoUpdate"
               />
@@ -388,7 +380,7 @@ export default defineComponent({
         creationDate: "string",
         installDate: "string",
         autoUpdate: "boolean",
-        autoUpdateSchedule: "object",
+        updateSchedule: "object",
         port: "string",
         packageWhitelist: "array",
         functionBlacklist: "array",
@@ -402,7 +394,7 @@ export default defineComponent({
 
       const toHideInEdit = [
         "container",
-        "autoUpdateSchedule",
+        "updateSchedule",
         "versionId",
         "imageSize",
         "creationDate",
@@ -426,10 +418,10 @@ export default defineComponent({
       handler(newProfiles) {
         newProfiles.forEach((profile: Profile) => {
           if (
-            profile.autoUpdateSchedule &&
-            profile.autoUpdateSchedule.frequency === "daily"
+            profile.updateSchedule &&
+            profile.updateSchedule.frequency === "daily"
           ) {
-            profile.autoUpdateSchedule.day = "";
+            profile.updateSchedule.day = "";
           }
         });
       },
@@ -556,7 +548,7 @@ export default defineComponent({
         image: "datashield/rock-base:latest",
         versionId: "",
         autoUpdate: false,
-        autoUpdateSchedule: {
+        updateSchedule: {
           frequency: "daily",
           day: "",
           time: "03:00",

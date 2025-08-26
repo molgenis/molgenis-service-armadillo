@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.controller.ProfilesDockerController;
-import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,8 +47,8 @@ public class ProfileScheduler {
   public void reschedule(ProfileConfig profile) {
     cancel(profile.getName());
 
-    if (Boolean.TRUE.equals(profile.getAutoUpdate()) && profile.getAutoUpdateSchedule() != null) {
-      String cron = toCron(profile.getAutoUpdateSchedule());
+    if (Boolean.TRUE.equals(profile.getAutoUpdate()) && profile.getUpdateSchedule() != null) {
+      String cron = toCron(profile.getUpdateSchedule());
       Runnable task = () -> runAsSystem(() -> runUpdateForProfile(profile));
       ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
       scheduledTasks.put(profile.getName(), future);
@@ -65,7 +65,7 @@ public class ProfileScheduler {
     }
   }
 
-  private String toCron(AutoUpdateSchedule schedule) {
+  private String toCron(UpdateSchedule schedule) {
     String time = schedule.time() != null ? schedule.time() : "01:00";
     String frequency = schedule.frequency() != null ? schedule.frequency() : "weekly";
     String day = schedule.day();
