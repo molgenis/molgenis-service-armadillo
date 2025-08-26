@@ -618,7 +618,7 @@ export default defineComponent({
 });
 </script>
 
-<style :scoped>
+<style scoped>
 * {
   box-sizing: content-box !important;
 }
