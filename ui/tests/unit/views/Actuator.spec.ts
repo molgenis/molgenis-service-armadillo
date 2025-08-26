@@ -10,7 +10,7 @@ jest.mock('@/helpers/errorProcessing', () => ({
 }));
 
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import Actuator from "@/components/Actuator.vue";
+import Actuator from "@/views/Actuator.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import * as _api from "@/api/api";
 import * as _errors from "@/helpers/errorProcessing";
