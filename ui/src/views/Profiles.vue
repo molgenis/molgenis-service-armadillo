@@ -404,9 +404,9 @@ export default defineComponent({
         "container",
         "autoUpdateSchedule",
         "versionId",
-        "ImageSize",
-        "CreationDate",
-        "InstallDate",
+        "imageSize",
+        "creationDate",
+        "installDate",
       ];
 
       if (this.profileToEditIndex !== -1) {
