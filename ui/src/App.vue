@@ -122,7 +122,13 @@ export default defineComponent({
   data() {
     return {
       loading: false,
-      tabs: ["Projects", "Users", "Workspaces", "Profiles", "Insight"],
+      tabs: {
+        Projects: "string",
+        Users: "string",
+        Workspaces: "string",
+        Profiles: "string",
+        Insight: ["Metrics", "Logs"],
+      },
       tabIcons: [
         "clipboard2-data",
         "people-fill",

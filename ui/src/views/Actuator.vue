@@ -10,12 +10,13 @@
     </div>
     <div class="col" v-else>
       <div class="row">
-        <div class="col-sm-3 align-self-end">
+        <div class="offset-3 col-sm-3 align-self-end">
           <SearchBar id="searchbox" v-model="searchString" />
         </div>
-        <div class="col">
+        <div class="col-2">
           <button
-            class="btn btn-primary float-end"
+            class="btn btn-primary float-end me-1"
+            style="width: 100%"
             v-if="metrics"
             @click="downloadMetrics"
           >
@@ -83,10 +84,10 @@ import { objectDeepCopy, convertBytes } from "@/helpers/utils";
 import { useRouter } from "vue-router";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import SearchBar from "@/components/SearchBar.vue";
-import LoadingSpinner from "./LoadingSpinner.vue";
-import FeedbackMessage from "./FeedbackMessage.vue";
-import MetricsCard from "./MetricsCard.vue";
-import ExtraMetricsEndpoint from "./ExtraMetricsEndpoint.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import MetricsCard from "@/components/MetricsCard.vue";
+import ExtraMetricsEndpoint from "@/components/ExtraMetricsEndpoint.vue";
 
 export default defineComponent({
   name: "Actuator",
