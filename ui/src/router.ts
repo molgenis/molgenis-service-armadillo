@@ -4,8 +4,9 @@ import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
 import Profiles from "@/views/Profiles.vue";
 import Login from "@/views/Login.vue";
-import Insight from "./views/Insight.vue";
-import Workspaces from "./views/Workspaces.vue";
+import Actuator from "@/views/Actuator.vue";
+import Workspaces from "@/views/Workspaces.vue";
+import RemoteFiles from "@/views/RemoteFiles.vue";
 
 const routes = [
   {
@@ -43,9 +44,14 @@ const routes = [
     component: Profiles,
   },
   {
-    path: "/insight",
-    name: "insight",
-    component: Insight,
+    path: "/metrics",
+    name: "metrics",
+    component: Actuator,
+  },
+  {
+    path: "/logs",
+    name: "logs",
+    component: RemoteFiles,
   },
 ];
 

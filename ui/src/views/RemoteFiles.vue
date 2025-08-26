@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="row mt-1">
     <p v-if="!remoteFiles">Loading...</p>
     <div class="col" v-else>
       <div class="row">
