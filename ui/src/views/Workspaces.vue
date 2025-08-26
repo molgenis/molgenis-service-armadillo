@@ -28,7 +28,6 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <h2 class="mt-3">Workspaces</h2>
         <button
           class="btn btn-danger"
           :disabled="!selectedUser || selectedUser === 'All workspaces'"
