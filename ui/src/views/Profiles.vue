@@ -27,6 +27,7 @@
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
       :isSmall="true"
+      :customColumns="['imageSize', 'creationDate', 'installDate']"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add profile button) -->
@@ -222,6 +223,20 @@
           :disabled="profileToEditIndex !== profiles.indexOf(boolProps.row)"
         />
       </template>
+      <template #customType="{ data, row }">
+        <span
+          v-if="typeof data === 'number' && row.hasOwnProperty('imageSize')"
+        >
+          {{ convertBytes(data) }}
+        </span>
+        <span v-else-if="row.hasOwnProperty('creationDate') && data">
+          {{ new Date(data).toLocaleDateString() }}
+        </span>
+        <span v-else-if="row.hasOwnProperty('installDate') && data">
+          {{ new Date(data).toLocaleDateString() }}
+        </span>
+        <span v-else>{{ data }}</span>
+      </template>
     </Table>
   </div>
 </template>
@@ -289,15 +304,6 @@ export default defineComponent({
                 day: "Sunday",
                 time: "01:00",
               },
-              ImageSize: profile.imageSize
-                ? convertBytes(profile.imageSize)
-                : "",
-              CreationDate: profile.creationDate
-                ? new Date(profile.creationDate).toLocaleDateString()
-                : "",
-              InstallDate: profile.installDate
-                ? new Date(profile.installDate).toLocaleDateString()
-                : "",
             };
           });
         })
@@ -314,6 +320,7 @@ export default defineComponent({
       errorMessage,
       loadProfiles,
       dockerManagementEnabled,
+      convertBytes,
     };
   },
   data(): ProfilesData {
@@ -377,9 +384,9 @@ export default defineComponent({
         name: "string",
         image: "string",
         versionId: "string",
-        ImageSize: "number",
-        CreationDate: "string",
-        InstallDate: "string",
+        imageSize: "number",
+        creationDate: "string",
+        installDate: "string",
         autoUpdate: "boolean",
         autoUpdateSchedule: "object",
         port: "string",
@@ -397,9 +404,9 @@ export default defineComponent({
         "container",
         "autoUpdateSchedule",
         "versionId",
-        "ImageSize",
-        "CreationDate",
-        "InstallDate",
+        "imageSize",
+        "creationDate",
+        "installDate",
       ];
 
       if (this.profileToEditIndex !== -1) {
