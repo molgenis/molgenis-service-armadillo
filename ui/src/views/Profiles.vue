@@ -26,6 +26,7 @@
       :allData="profiles"
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
+      :isSmall="true"
     >
       <template v-slot:extraHeader>
         <!-- Add extra header for buttons (add profile button) -->
@@ -46,11 +47,11 @@
             objectProps.data &&
             statusMapping[objectProps.data.status as keyof typeof statusMapping]
           "
-          class="row"
+          class="row p-0"
         >
-          <div class="col-6">
+          <div class="col-6 p-0">
             <span
-              class="badge"
+              class="badge mt-3"
               :class="`bg-${
                 statusMapping[
                   objectProps.data.status as keyof typeof statusMapping
@@ -64,7 +65,7 @@
               }}
             </span>
           </div>
-          <div class="col-6">
+          <div class="col-6 p-0">
             <ProfileStatus
               :disabled="true"
               v-if="objectProps.row.name === loadingProfile"
@@ -616,3 +617,9 @@ export default defineComponent({
   },
 });
 </script>
+
+<style :scoped>
+* {
+  box-sizing: content-box !important;
+}
+</style>
