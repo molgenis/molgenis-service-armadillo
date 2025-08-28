@@ -20,7 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
@@ -43,6 +46,7 @@ public class DockerService {
 
   private final DockerClient dockerClient;
   private final ProfileService profileService;
+  private final ProfileStatusService profileStatusService;
 
   @Value("${armadillo.docker-run-in-container:false}")
   private boolean inContainer;
@@ -50,9 +54,13 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
-  public DockerService(DockerClient dockerClient, ProfileService profileService) {
+  public DockerService(
+      DockerClient dockerClient,
+      ProfileService profileService,
+      ProfileStatusService profileStatusService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
+    this.profileStatusService = profileStatusService;
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
@@ -151,7 +159,10 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
-    pullImage(profileConfig);
+    profileStatusService.updateStatus(profileName, "PULLING", 0, 0, 0);
+    pullImage(profileConfig); // this now updates progress percentages
+
+    profileStatusService.updateStatus(profileName, "STARTING", 100, null, null);
     stopContainer(containerName);
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
@@ -311,12 +322,59 @@ public class DockerService {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getName());
     }
+    // Track discovered and completed layers
+    Set<String> allLayers = ConcurrentHashMap.newKeySet();
+    Set<String> completedLayers = ConcurrentHashMap.newKeySet();
+
+    // Only emit when N or M changes (reduces spam)
+    AtomicInteger lastN = new AtomicInteger(-1);
+    AtomicInteger lastM = new AtomicInteger(-1);
 
     try {
       dockerClient
           .pullImageCmd(profileConfig.getImage())
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(5, TimeUnit.MINUTES);
+          .exec(
+              new PullImageResultCallback() {
+                @Override
+                public void onNext(PullResponseItem item) {
+                  if (item.getId() != null) {
+                    allLayers.add(item.getId());
+
+                    // Mark complete for pulled or cached layers
+                    String status = item.getStatus();
+                    if ("Pull complete".equalsIgnoreCase(status)
+                        || "Already exists".equalsIgnoreCase(status)) {
+                      completedLayers.add(item.getId());
+                    }
+
+                    int n = completedLayers.size();
+                    int m = allLayers.size();
+
+                    // Only log/update when N or M actually changes
+                    if (n != lastN.get() || m != lastM.get()) {
+                      LOG.info(
+                          "Status update for {}: PULLING ({} of {} layers)",
+                          profileConfig.getName(),
+                          n,
+                          m);
+
+                      // Keep percent if your DTO expects it; UI can display "n/m"
+                      int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
+                      profileStatusService.updateStatus(
+                          profileConfig.getName(), "PULLING", percent, n, m);
+
+                      lastN.set(n);
+                      lastM.set(m);
+                    }
+                  }
+                  super.onNext(item);
+                }
+              })
+          .awaitCompletion(10, TimeUnit.MINUTES);
+
+      // Ensure final completion
+      profileStatusService.updateStatus(profileConfig.getName(), "PULLING", 100);
+
     } catch (NotFoundException e) {
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     } catch (RuntimeException e) {

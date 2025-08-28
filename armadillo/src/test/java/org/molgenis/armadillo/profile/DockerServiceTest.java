@@ -49,6 +49,8 @@ class DockerServiceTest {
   @Mock private ProfileService profileService;
   private DockerService dockerService;
 
+  @Mock private ProfileStatusService profileStatusService;
+
   /** Test-only callback that never blocks. */
   private static class NonBlockingCallback extends PullImageResultCallback {
     @Override
@@ -64,7 +66,7 @@ class DockerServiceTest {
 
   @BeforeEach
   void setup() {
-    dockerService = new DockerService(dockerClient, profileService);
+    dockerService = new DockerService(dockerClient, profileService, profileStatusService);
 
     // lenient so tests that don't pull images won't fail strict-stubbing checks
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
@@ -401,7 +403,7 @@ class DockerServiceTest {
     when(profileService.getByName(profileName)).thenReturn(config);
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, profileService));
+    var spyService = spy(new DockerService(dockerClient, profileService, profileStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doNothing().when(spyService).removeImageIfUnused(imageId);
 
@@ -426,7 +428,7 @@ class DockerServiceTest {
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, profileService));
+    var spyService = spy(new DockerService(dockerClient, profileService, profileStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doThrow(ImageRemoveFailedException.class).when(spyService).removeImageIfUnused(imageId);
 
