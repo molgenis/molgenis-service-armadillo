@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/profiles")
+@RequestMapping("/ds-profiles")
 public class ProfileStartStatusController {
 
   private final ProfileStatusService statusService;
