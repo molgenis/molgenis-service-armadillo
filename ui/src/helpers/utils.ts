@@ -4,7 +4,9 @@ import {
   StringArray,
 } from "@/types/types";
 
-import { ref, watchEffect, onMounted, onUnmounted } from "vue";
+import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
+
+import { getProfileStatus } from "@/api/api";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -315,18 +317,14 @@ export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
 
-export function useProfileStatus(
-  getProfileName: () => string,
-  intervalMs = 1000
-) {
+export function useProfileStatus(profileName: Ref<string>, intervalMs = 1000) {
   const status = ref<any | null>(null);
   let timer: number | undefined;
 
   async function fetchStatus(name: string) {
     if (!name) return;
     try {
-      const res = await fetch(`/profiles/${encodeURIComponent(name)}/status`);
-      if (res.ok) status.value = await res.json();
+      status.value = await getProfileStatus(name);
     } catch (e) {
       console.error("Failed to fetch profile status", e);
     }
@@ -339,14 +337,8 @@ export function useProfileStatus(
     timer = window.setInterval(() => fetchStatus(name), intervalMs);
   }
 
-  onMounted(() => {
-    startPolling(getProfileName());
-  });
-
-  watchEffect(() => {
-    startPolling(getProfileName());
-  });
-
+  onMounted(() => startPolling(profileName.value));
+  watchEffect(() => startPolling(profileName.value));
   onUnmounted(() => {
     if (timer) clearInterval(timer);
   });
