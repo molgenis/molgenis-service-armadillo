@@ -144,3 +144,10 @@ export type Workspace = {
   lastModified: string;
   checked?: boolean;
 };
+
+export type ProfileStartStatus = {
+  state: string;
+  percent: number;
+  completedLayers: number | null;
+  totalLayers: number | null;
+};

@@ -7,6 +7,15 @@
           :successMessage="successMessage"
           :errorMessage="errorMessage"
         ></FeedbackMessage>
+        <div v-if="profileStatus" class="alert alert-info mt-2">
+          {{ profileStatus.state }} - {{ profileStatus.percent }}%
+          <span v-if="profileStatus.completedLayers !== null">
+            ({{ profileStatus.completedLayers }}/{{
+              profileStatus.totalLayers
+            }}
+            layers)
+          </span>
+        </div>
         <ConfirmationDialog
           v-if="recordToDelete !== ''"
           :record="recordToDelete"
@@ -255,7 +264,7 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { convertBytes } from "@/helpers/utils";
+import { convertBytes, useProfileStatus } from "@/helpers/utils";
 
 export default defineComponent({
   name: "Profiles",
@@ -274,6 +283,8 @@ export default defineComponent({
     const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
+    const loadingProfile = ref("");
+    const { status: profileStatus } = useProfileStatus(loadingProfile);
     const router = useRouter();
     onMounted(async () => {
       await loadProfiles();
@@ -313,6 +324,7 @@ export default defineComponent({
       loadProfiles,
       dockerManagementEnabled,
       convertBytes,
+      profileStatus,
     };
   },
   data(): ProfilesData {

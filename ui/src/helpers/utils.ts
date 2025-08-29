@@ -4,6 +4,8 @@ import {
   StringArray,
 } from "@/types/types";
 
+import { ref, watchEffect, onMounted, onUnmounted } from "vue";
+
 export function stringIncludesOtherString(
   completeString: string,
   substring: string
@@ -311,4 +313,43 @@ export function convertBytes(bytes: number): string {
 
 export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
+}
+
+export function useProfileStatus(
+  getProfileName: () => string,
+  intervalMs = 1000
+) {
+  const status = ref<any | null>(null);
+  let timer: number | undefined;
+
+  async function fetchStatus(name: string) {
+    if (!name) return;
+    try {
+      const res = await fetch(`/profiles/${encodeURIComponent(name)}/status`);
+      if (res.ok) status.value = await res.json();
+    } catch (e) {
+      console.error("Failed to fetch profile status", e);
+    }
+  }
+
+  function startPolling(name: string) {
+    if (timer) clearInterval(timer);
+    if (!name) return;
+    fetchStatus(name);
+    timer = window.setInterval(() => fetchStatus(name), intervalMs);
+  }
+
+  onMounted(() => {
+    startPolling(getProfileName());
+  });
+
+  watchEffect(() => {
+    startPolling(getProfileName());
+  });
+
+  onUnmounted(() => {
+    if (timer) clearInterval(timer);
+  });
+
+  return { status };
 }
