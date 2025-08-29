@@ -57,6 +57,7 @@ nav:
   - Install, Setup and Management:
       - pages/install_management/index.md
       - "Armadillo Installation": pages/install_management/armadillo_install.md
+      - "Armadillo Docker Quicksetup": pages/install_management/armadillo_docker_install.md
       - "Armadillo Management": pages/install_management/armadillo_management.md
       - "Armadillo Minor Release Update": pages/install_management/armadillo_minor_release_update.md
       - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md

@@ -1,0 +1,65 @@
+
+services:
+ armadillo:
+   image: molgenis/molgenis-armadillo:latest
+   platform: linux/amd64
+   environment:
+     LOGGING_CONFIG: 'classpath:logback-file.xml'
+     AUDIT_LOG_PATH: '/app/logs/audit.log'
+     SPRING_SECURITY_USER_PASSWORD: 'admin'
+     SPRING_RSERVER_URL: 'http://rserver:6311'
+     DEBUG: "TRUE"
+   ports:
+     - "8000:8080"
+   volumes:
+     - ./logs:/app/logs
+     - ./data:/data
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./config:/config
+   networks:
+     - armadillo-net
+   depends_on:
+     keycloak:
+       condition: service_healthy
+
+ rserver:
+   image: datashield/rock-base:latest
+   platform: linux/amd64
+   environment:
+     DEBUG: "TRUE"
+   ports:
+     - "6311:6311"
+   networks:
+     - armadillo-net
+
+ keycloak:
+   image: quay.io/keycloak/keycloak:25.0.2
+   platform: linux/amd64
+   command:
+     - start-dev
+     - "--features=scripts"
+     - "--health-enabled=true"
+     - "--http-management-port=9000"
+     - "--hostname=keycloak"
+     - "--import-realm"
+   environment:
+     KEYCLOAK_ADMIN: admin
+     KEYCLOAK_ADMIN_PASSWORD: admin
+   ports:
+     - "8080:8080"
+     - "9000:9000"   # Management port (health/metrics)
+
+   volumes:
+     - ./keycloak/realms:/opt/keycloak/data/import
+   networks:
+     - armadillo-net
+   healthcheck:
+         test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\n\r\n' >&3 && grep -q '200' <&3"]
+         interval: 20s
+         timeout: 5s
+         retries: 10
+         start_period: 30s
+
+networks:
+  armadillo-net:
+    driver: bridge
