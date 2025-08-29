@@ -363,3 +363,7 @@ export async function deleteUserWorkspace(user: string, workspace: string) {
 export async function deleteWorkspaceDirectory(userDirectory: string) {
   return delete_("/workspaces/directory/", `${userDirectory}`);
 }
+
+export async function getProfileStatus(name: string) {
+  return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
+}
