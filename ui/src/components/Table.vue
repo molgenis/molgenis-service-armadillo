@@ -1,5 +1,5 @@
 <template>
-  <table class="table">
+  <table class="table" :class="isSmall ? 'table-sm' : ''">
     <thead>
       <tr>
         <slot name="extraHeader"></slot>
@@ -106,6 +106,10 @@ export default defineComponent({
     highlightedRowIndex: {
       type: Number,
       default: -1,
+    },
+    isSmall: {
+      type: Boolean,
+      default: false,
     },
   },
   computed: {
