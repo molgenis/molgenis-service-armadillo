@@ -34,21 +34,69 @@ docker compose up
 
 This starts:
 
-- Armadillo → http://localhost:8080
-- Keycloak → http://localhost:8081
+- Armadillo → http://localhost:8000
+- Keycloak → http://localhost:8080
  (admin console)
 - RServer → localhost:6311
 
 Logs and data are stored in ./logs and ./data.
 
+## Host File Setup
 
+For local development, the services need to resolve each other by hostname.  
+We recommend adding the following entries to your **hosts file**.
+---
+
+### Linux / macOS
+
+Edit `/etc/hosts` with sudo:
+
+```bash
+sudo nano /etc/hosts
+```
+
+add these lines: 
+```
+127.0.0.1   armadillo
+127.0.0.1   keycloak
+127.0.0.1   rserver
+```
+### Windows
+
+- open *notepad* as Administrator
+- Open the file:
+```
+C:\Windows\System32\drivers\etc\hosts
+```
+
+Add the following lines:
+
+
+```
+127.0.0.1   armadillo
+127.0.0.1   keycloak
+127.0.0.1   rserver
+```
+
+### Verify
+
+```
+ping keycloak
+```
+
+you should see it resolve to 127.0.0.1
+
+### Why?
+- Armadillo config expects to talk to http://keycloak:8080
+- Keycloak redirects back to http://armadillo:8080
+- RServer is contacted by Armadillo at http://rserver:6311
 
 ## Keycloak Setup
 
 After starting with `docker compose up`, Keycloak is available at:
 
 - Admin console: [http://localhost:8081](http://localhost:8081)  
-- Logini credentials: `admin / admin`
+- Login credentials: `admin / admin`
 
 ---
 
