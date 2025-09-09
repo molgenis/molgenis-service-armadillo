@@ -3,6 +3,7 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
+        <ProfileStatusMessage :status="profileStatus" />
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
@@ -263,7 +264,8 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { convertBytes } from "@/helpers/utils";
+import { convertBytes, useProfileStatus } from "@/helpers/utils";
+import ProfileStatusMessage from "@/components/ProfileStatusMessage.vue";
 
 export default defineComponent({
   name: "Profiles",
@@ -276,12 +278,15 @@ export default defineComponent({
     Table,
     ButtonGroup,
     ProfileStatus,
+    ProfileStatusMessage,
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
     const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
+    const loadingProfile = ref("donkey");
+    const { status: profileStatus } = useProfileStatus(loadingProfile);
     const router = useRouter();
     onMounted(async () => {
       await loadProfiles();
@@ -321,6 +326,7 @@ export default defineComponent({
       loadProfiles,
       dockerManagementEnabled,
       convertBytes,
+      profileStatus,
     };
   },
   data(): ProfilesData {
