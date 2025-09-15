@@ -16,10 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.metadata.AutoUpdateSchedule;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.metadata.*;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -35,21 +32,21 @@ class ProfileSchedulerTest {
 
   @Test
   void testToCronWeekly() throws Exception {
-    var schedule = new AutoUpdateSchedule("weekly", "Monday", "10:30");
+    var schedule = new UpdateSchedule("weekly", "Monday", "10:30");
     var cron = invokeToCron(schedule);
     assertEquals("0 30 10 * * 1", cron);
   }
 
   @Test
   void testToCronDailyFallback() throws Exception {
-    var schedule = new AutoUpdateSchedule("daily", null, "08:15");
+    var schedule = new UpdateSchedule("daily", null, "08:15");
     var cron = invokeToCron(schedule);
     assertEquals("0 15 08 * * *", cron);
   }
 
   @Test
   void testToCronWithNullValuesUsesDefaults() throws Exception {
-    var schedule = new AutoUpdateSchedule(null, null, null); // all null
+    var schedule = new UpdateSchedule(null, null, null); // all null
     var cron = invokeToCron(schedule);
     // Defaults: time = "01:00", frequency = "weekly", day = "Sunday" (mapped to 0)
     assertEquals("0 00 01 * * 0", cron);
@@ -76,8 +73,7 @@ class ProfileSchedulerTest {
     var profile = mock(ProfileConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
-    when(profile.getAutoUpdateSchedule())
-        .thenReturn(new AutoUpdateSchedule("daily", null, "09:00"));
+    when(profile.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
 
     var scheduler = profileScheduler.taskScheduler();
     var spyScheduler = spy(scheduler);
@@ -238,8 +234,8 @@ class ProfileSchedulerTest {
   }
 
   // --- Helper methods to invoke private methods ---
-  private String invokeToCron(AutoUpdateSchedule schedule) throws Exception {
-    var method = ProfileScheduler.class.getDeclaredMethod("toCron", AutoUpdateSchedule.class);
+  private String invokeToCron(UpdateSchedule schedule) throws Exception {
+    var method = ProfileScheduler.class.getDeclaredMethod("toCron", UpdateSchedule.class);
     method.setAccessible(true);
     return (String) method.invoke(profileScheduler, schedule);
   }
