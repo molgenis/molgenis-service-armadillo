@@ -3,7 +3,7 @@
     <p v-if="!remoteFiles">Loading...</p>
     <div class="col" v-else>
       <div class="row">
-        <div class="col-3">
+        <div class="col-3 col-sm-6 col-xs-6">
           <select v-model="selectedFileId" class="form-select">
             <option v-for="file in remoteFiles" :key="file.id" :value="file.id">
               {{ file.name }}

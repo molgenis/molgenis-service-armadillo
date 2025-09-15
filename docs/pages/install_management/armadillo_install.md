@@ -189,7 +189,7 @@ A good start for data backup is the `/usr/share/armadillo` and `/etc/armadillo`.
 ## Install alternatives
 
 - On local machine using java
-- Armidillo running as a Docker container.
+- Armidillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
 - [Apache](#apache)
 
 ## What's next?
