@@ -34,10 +34,3 @@ For developing and contributing see [our dev guides](https://molgenis.github.io/
 and paste it in a file called `application.yml`, in the same folder as the downloaded jar. 
 3. To start the application, run: `java -jar molgenis-armadillo-x.yy.zz.jar`.
 4. Go to `http://localhost:8080` to see the Armadillo UI.
-
-#### Docker
-For testing without having to installing Java you can run using docker:
-1. Install [docker-compose](https://docs.docker.com/compose/install/).
-2. Download this [docker-compose.yml](docker-compose.yml).
-3. Execute `docker-compose up`.
-4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
