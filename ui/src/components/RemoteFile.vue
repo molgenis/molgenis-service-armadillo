@@ -1,7 +1,7 @@
 <template>
   <div v-if="file">
     <div class="row fs-6">
-      <div class="col-3">
+      <div class="col-3 col-sm-6 col-xs-6">
         <p class="m-0 fst-italic ms-2">
           Log file size: {{ fileInfo?.convertedSize }}
         </p>
@@ -12,12 +12,15 @@
     </div>
     <div class="row mb-1 mt-0 ms-2">
       <div class="row align-items-end">
-        <ShowSwitch class="col-3" @switched="switchShowAll($event)" />
-        <div class="col-2 p-0 offset-1">
+        <ShowSwitch
+          class="col-md-3 offset-sm-2 mt-sm-2"
+          @switched="switchShowAll($event)"
+        />
+        <div class="col-md-2 p-0 offset-md-1 col-sm-4 col-xs-6 offset-sm-2">
           <SearchBar id="searchbox" v-model="filterValue" />
         </div>
         <NavigationButtons
-          class="col-2"
+          class="col-md-2 col-sm-6 col-xs-6"
           :currentValue="
             numberOfLines != -1
               ? `${currentFocus + 1} / ${numberOfLines}`
@@ -47,11 +50,11 @@
         />
         <PageSorter
           :sortType="sortType"
-          class="col-2 offset-1"
+          class="col-md-2 offset-md-1 col-sm-7 col-xs-12"
           @selectChanged="changeSelected"
         />
         <NavigationButtons
-          class="col-1 p-0"
+          class="col-1 p-0 col-sm-3 col-xs-6"
           :isSmall="true"
           :currentValue="`Page ${file.page_num + 1}`"
           :icons="{
