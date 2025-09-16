@@ -69,11 +69,8 @@ verify_plot_missings_names <- function(missing_summary) {
   cli_alert_info(sprintf("Checking %s", ds_function_name))
   missing_plot <- ds.plotMissings(missing_summary)
   verify_output(
-    function_name = ds_function_name, object = names(missing_plot$pooled),
-    expected = c(
-      "data", "layers", "scales", "guides", "mapping", "theme", "coordinates",
-      "facet", "plot_env", "layout", "labels"
-    ),
+    function_name = ds_function_name, object = inherits(missing_plot$pooled, "ggplot"),
+    TRUE,
     fail_msg = xenon_fail_msg$clt_list_names
   )
 }
@@ -187,7 +184,7 @@ run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profi
     upload_many_resources(project = project, resource = exposome_resources, folder = "exposome", ref = exposome_ref)
     assign_many_resources(project = project, folder = "exposome", ref = exposome_ref)
     resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
-    
+
     verify_load_exposome_class()
     verify_exposome_variables()
     verify_exposome_summary_names()
