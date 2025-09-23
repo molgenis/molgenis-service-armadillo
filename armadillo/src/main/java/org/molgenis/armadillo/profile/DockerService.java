@@ -360,8 +360,12 @@ public class DockerService {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
-      LOG.warn("Couldn't inspect image", e);
-      // getting image tags is non-essential, don't throw error
+      if (e instanceof NotFoundException) {
+        LOG.warn("Couldn't inspect image, because: " + e.getMessage());
+      } else {
+        LOG.warn("Couldn't inspect image", e);
+        // getting image tags is non-essential, don't throw error
+      }
     }
     return emptyList();
   }
