@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.*;
+import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,6 +29,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
   @Autowired ProfileService profileService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean ProfilesLoader profilesLoader;
+  @MockitoBean ProfileScheduler profileScheduler;
 
   @BeforeEach
   void before() {
@@ -45,11 +47,18 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
             ProfileConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
+                false,
+                null,
                 "localhost",
                 6311,
                 Set.of("dsBase"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                null,
+                null,
+                null,
+                null,
+                null));
     settings
         .getProfiles()
         .put(
@@ -57,11 +66,18 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
             ProfileConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
+                false,
+                null,
                 "localhost",
                 6312,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                null,
+                null,
+                null,
+                null,
+                null));
     return settings;
   }
 

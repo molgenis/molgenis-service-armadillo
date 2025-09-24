@@ -16,6 +16,7 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ProfileConfig {
+
   @JsonProperty("name")
   @NotEmpty
   public abstract String getName();
@@ -23,6 +24,14 @@ public abstract class ProfileConfig {
   @JsonProperty("image")
   @Nullable // only required when docker enabled
   public abstract String getImage();
+
+  @JsonProperty("autoUpdate")
+  @Nullable
+  public abstract Boolean getAutoUpdate();
+
+  @JsonProperty("updateSchedule")
+  @Nullable
+  public abstract UpdateSchedule getUpdateSchedule();
 
   @JsonProperty("host")
   @Nullable // defaults to localhost
@@ -42,34 +51,75 @@ public abstract class ProfileConfig {
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
+  @JsonProperty("lastImageId")
+  @Nullable
+  public abstract String getLastImageId();
+
+  @JsonProperty("versionId")
+  @Nullable
+  public abstract String getVersionId();
+
+  @JsonProperty("imageSize")
+  @Nullable
+  public abstract Long getImageSize();
+
+  @JsonProperty("CreationDate")
+  @Nullable
+  public abstract String getCreationDate();
+
+  @JsonProperty("InstallDate")
+  @Nullable
+  public abstract String getInstallDate();
+
   @JsonCreator
   public static ProfileConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
+      @JsonProperty("autoUpdate") Boolean autoUpdate,
+      @JsonProperty("updateSchedule") UpdateSchedule updateSchedule,
       @JsonProperty("host") String newHost,
       @JsonProperty("port") Integer newPort,
       @JsonProperty("packageWhitelist") Set<String> newPackageWhitelist,
       @JsonProperty("functionBlacklist") Set<String> newFunctionBlacklist,
-      @JsonProperty("options") Map<String, String> newOptions) {
+      @JsonProperty("options") Map<String, String> newOptions,
+      @JsonProperty("lastImageId") @Nullable String newLastImageId,
+      @JsonProperty("versionId") @Nullable String newVersionId,
+      @JsonProperty("imageSize") @Nullable Long newImageSize,
+      @JsonProperty("creationDate") @Nullable String newCreationDate,
+      @JsonProperty("installDate") @Nullable String newInstallDate) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
+        autoUpdate,
+        updateSchedule,
         newHost != null ? newHost : "localhost",
         newPort,
-        newPackageWhitelist,
-        newFunctionBlacklist,
-        newOptions != null ? newOptions : Map.of());
+        newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
+        newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
+        newOptions != null ? newOptions : Map.of(),
+        newLastImageId,
+        newVersionId,
+        newImageSize,
+        newCreationDate,
+        newInstallDate);
   }
 
   public static ProfileConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",
+        false,
+        null,
         "localhost",
         6311,
         Set.of("dsBase"),
         emptySet(),
-        Map.of("datashield.seed", "342325352"));
+        Map.of("datashield.seed", "342325352"),
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {

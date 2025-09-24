@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -28,6 +29,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -42,9 +44,11 @@ class LocalStorageServiceTest {
 
   @Mock ObjectMetadata workspaceMetaData;
 
+  String tmpDir;
+
   @BeforeEach
   void beforeEach() throws IOException {
-    String tmpDir = Files.createTempDirectory("armadilloStorageTest").toFile().getAbsolutePath();
+    tmpDir = Files.createTempDirectory("armadilloStorageTest").toFile().getAbsolutePath();
     localStorageService = new LocalStorageService(tmpDir);
   }
 
@@ -375,49 +379,57 @@ class LocalStorageServiceTest {
   }
 
   @Test
-  void testMoveWorkspace() {
-    // Setup test data: Create a workspace in the old bucket
-    String oldBucketName = "old-bucket";
-    String newBucketName = "new-bucket";
+  void testGetMetaDataForLinkfile_shouldReturnFilteredMetadata() throws IOException {
+    MockedStatic<ParquetUtils> mockedParquetUtils = Mockito.mockStatic(ParquetUtils.class);
 
-    localStorageService.createBucketIfNotExists(oldBucketName);
+    String bucket = "shared-my-bucket";
+    String object = "my-table.parquet";
+    String linkBucket = "shared-user-admin";
+    String linkObject = "blah.alf";
 
-    // Create a workspace in the old bucket
+    // Ensure bucket directory exists
+    Files.createDirectories(Paths.get(localStorageService.rootDir, bucket));
+
+    // Create dummy parquet file
+    Path parquetPath = Paths.get(localStorageService.rootDir, bucket, object);
+    Files.writeString(parquetPath, "dummy parquet content");
+
+    // Create and save the link file
+    String testData =
+        "{\"sourceObject\":\"my-table\",\"sourceProject\":\"my-bucket\",\"variables\":\"id,place\"}";
     localStorageService.save(
-        new ByteArrayInputStream("workspace content".getBytes()),
-        oldBucketName,
-        WORKSPACE_NAME,
-        MediaType.APPLICATION_OCTET_STREAM);
+        new ByteArrayInputStream(testData.getBytes()),
+        linkBucket,
+        linkObject,
+        MediaType.TEXT_PLAIN);
 
-    // Initialize the mock ObjectMetadata and define its behavior
-    workspaceMetaData = mock(ObjectMetadata.class); // Ensure workspaceMetaData is not null
-    when(workspaceMetaData.name()).thenReturn(WORKSPACE_NAME); // Mock name() method
+    // Mock Parquet metadata
+    Map<String, Map<String, String>> mockMetadata = new HashMap<>();
 
-    // Call the moveWorkspace method
-    localStorageService.moveWorkspace(workspaceMetaData, principal, oldBucketName, newBucketName);
+    Map<String, String> idMeta = new HashMap<>();
+    idMeta.put("label", "ID label");
 
-    // Verify both workspaces are there (we don't want to remove the old one in case not everything
-    // is moved)
-    assertTrue(localStorageService.objectExists(newBucketName, WORKSPACE_NAME));
-    assertTrue(localStorageService.objectExists(oldBucketName, WORKSPACE_NAME));
-  }
+    Map<String, String> placeMeta = new HashMap<>();
+    placeMeta.put("label", "Place label");
 
-  @Test
-  void testMoveWorkspaceFileDoesNotExistInOldBucket() {
-    // Setup test data: Create workspace in old bucket
-    String oldBucketName = "old-bucket";
-    String newBucketName = "new-bucket";
+    mockMetadata.put("id", idMeta);
+    mockMetadata.put("place", placeMeta);
+    mockMetadata.put("age", Map.of("label", "Age label")); // should be filtered out
 
-    localStorageService.createBucketIfNotExists(newBucketName);
+    mockedParquetUtils
+        .when(() -> ParquetUtils.getColumnMetaData(parquetPath))
+        .thenReturn(mockMetadata);
 
-    // Initialize the mock ObjectMetadata and define its behavior
-    workspaceMetaData = mock(ObjectMetadata.class); // Ensure workspaceMetaData is not null
-    when(workspaceMetaData.name()).thenReturn(WORKSPACE_NAME); // Mock name() method
+    // Call the method under test
+    Map<String, ArmadilloColumnMetaData> result =
+        localStorageService.getMetadataFromTablePath(linkBucket, linkObject);
 
-    assertThrows(
-        StorageException.class,
-        () ->
-            localStorageService.moveWorkspace(
-                workspaceMetaData, principal, oldBucketName, newBucketName));
+    // Assertions
+    assertEquals(2, result.size());
+    assertTrue(result.containsKey("id"));
+    assertTrue(result.containsKey("place"));
+    assertFalse(result.containsKey("age"));
+
+    mockedParquetUtils.close();
   }
 }

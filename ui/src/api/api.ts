@@ -40,6 +40,8 @@ export async function get(url: string, auth: Auth | undefined = undefined) {
     return outcome;
   } else if (response.status === 403 || response.status === 401) {
     return outcome;
+  } else if (response.status === 404) {
+    return outcome;
   } else {
     return response.json();
   }
@@ -96,12 +98,17 @@ export async function handleResponse(response: Response) {
     } else if (response.status === 403 || response.status === 401) {
       error.message =
         "You are logged in, but you don't have permissions to access the Armadillo user interface";
+    } else if (response.status === 404) {
+      error.message = "Not found";
     } else {
-      const json = await response.json();
-
-      if (json.message) {
-        error.message = json.message;
-      } else {
+      try {
+        const json = await response.json();
+        if (json.message) {
+          error.message = json.message;
+        } else {
+          error.message = response.statusText;
+        }
+      } catch (e) {
         error.message = response.statusText;
       }
     }
@@ -213,11 +220,10 @@ export async function getFiles(): Promise<RemoteFileInfo[]> {
 export async function getFileDetail(
   file_id: string,
   page_num: number,
-  page_size: number,
   direction: string
 ): Promise<RemoteFileDetail> {
   return get(
-    `/insight/files/${file_id}?page_num=${page_num}&page_size=${page_size}&direction=${direction}`
+    `/insight/files/${file_id}?page_num=${page_num}&page_size=10000&direction=${direction}`
   );
 }
 
@@ -266,6 +272,19 @@ export async function uploadIntoProject(
   formData.append("file", fileToUpload);
   formData.append("object", `${object}/${fileToUpload.name}`);
   return postFormData(`/storage/projects/${project}/objects`, formData);
+}
+
+export async function uploadCsvIntoProject(
+  fileToUpload: File,
+  object: string,
+  project: string,
+  typeRows: number
+) {
+  let formData = new FormData();
+  formData.append("file", fileToUpload);
+  formData.append("object", `${object}/${fileToUpload.name}`);
+  formData.append("numberOfRowsToDetermineTypeBy", typeRows.toString());
+  return postFormData(`/storage/projects/${project}/csv`, formData);
 }
 
 export async function previewObject(projectId: string, object: string) {

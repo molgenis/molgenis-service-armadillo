@@ -1,5 +1,5 @@
 <template>
-  <table class="table">
+  <table class="table" :class="isSmall ? 'table-sm' : ''">
     <thead>
       <tr>
         <slot name="extraHeader"></slot>
@@ -24,7 +24,7 @@
           <slot name="extraColumn" :item="dataRow"></slot>
           <td
             v-for="(type, propertyName) in dataStructure"
-            :key="type"
+            :key="propertyName"
             class="table-column"
           >
             <span v-if="customColumns.includes(propertyName)">
@@ -106,6 +106,10 @@ export default defineComponent({
     highlightedRowIndex: {
       type: Number,
       default: -1,
+    },
+    isSmall: {
+      type: Boolean,
+      default: false,
     },
   },
   computed: {

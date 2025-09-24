@@ -141,3 +141,9 @@ export type FormattedWorkspace = {
 };
 
 export type FormattedWorkspaces = Record<string, FormattedWorkspace[]>;
+
+export type EndpointObject = {
+  key: string;
+  href: string;
+  templated: boolean;
+};

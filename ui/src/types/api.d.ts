@@ -15,6 +15,7 @@ export type RemoteFileDetail = {
   name: string;
   fetched: string;
   content: string;
+  content_type: string;
   page_num: number;
   page_size: number;
 };
@@ -55,9 +56,19 @@ export type Principal = {
   } | null;
 };
 
+export type UpdateSchedule = {
+  frequency: string; // e.g., 'daily' | 'weekly' | 'monthly'
+  day?: string; // optional: e.g., 'Monday', '01' (depending on frequency)
+  time: string; // e.g., '01:00'
+};
+
 export type Profile = {
   name: string;
   image: string;
+  versionId?: string;
+  imageSize?: number;
+  creationDate?: string;
+  installDate?: string;
   host: string;
   port: number;
   packageWhitelist: StringArray;
@@ -70,6 +81,14 @@ export type Profile = {
     tags: StringArray;
     status: string;
   };
+  autoUpdate?: boolean;
+  updateSchedule?: UpdateSchedule;
+};
+
+type FormattedProfile = Profile & {
+  formattedImageSize: string;
+  formattedCreationDate: string;
+  formattedInstallDate: string;
 };
 
 export type Auth = { user: string; pwd: string };
@@ -82,6 +101,7 @@ export type Auth = { user: string; pwd: string };
 interface ActuatorLink {
   href: string;
   templated?: boolean;
+  key?: string;
 }
 
 interface HalLinks {
