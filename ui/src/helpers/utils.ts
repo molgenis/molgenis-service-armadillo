@@ -4,6 +4,10 @@ import {
   StringArray,
 } from "@/types/types";
 
+import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
+
+import { getProfileStatus } from "@/api/api";
+
 export function stringIncludesOtherString(
   completeString: string,
   substring: string
@@ -307,4 +311,33 @@ export function convertBytes(bytes: number): string {
   }
 
   return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+}
+
+export function useProfileStatus(profileName: Ref<string>, intervalMs = 1000) {
+  const status = ref<any | null>(null);
+  let timer: number | undefined;
+
+  async function fetchStatus(name: string) {
+    if (!name) return;
+    try {
+      status.value = await getProfileStatus(name);
+    } catch (e) {
+      console.error("Failed to fetch profile status", e);
+    }
+  }
+
+  function startPolling(name: string) {
+    if (timer) clearInterval(timer);
+    if (!name) return;
+    fetchStatus(name);
+    timer = window.setInterval(() => fetchStatus(name), intervalMs);
+  }
+
+  onMounted(() => startPolling(profileName.value));
+  watchEffect(() => startPolling(profileName.value));
+  onUnmounted(() => {
+    if (timer) clearInterval(timer);
+  });
+
+  return { status };
 }
