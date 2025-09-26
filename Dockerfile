@@ -4,6 +4,11 @@ VOLUME /data
 VOLUME /config
 VOLUME /logs
 
+RUN apt-get update && apt-get install -y \
+    libc6 \
+    libsnappy1v5 \
+    && rm -rf /var/lib/apt/lists/*
+
 ARG JAR_FILE
 EXPOSE 8080
 COPY ${JAR_FILE} /app.jar
