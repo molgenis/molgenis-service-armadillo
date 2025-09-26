@@ -3,6 +3,8 @@ FROM --platform=linux/amd64 eclipse-temurin:21-jre-alpine
 VOLUME /data
 VOLUME /config
 VOLUME /logs
+ENV org_xerial_snappy_disable=true
+
 
 ARG JAR_FILE
 EXPOSE 8080
