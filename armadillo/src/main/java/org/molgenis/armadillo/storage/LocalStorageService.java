@@ -9,8 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.IllegalPathException;
 import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -172,7 +174,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  String getFileSizeInUnit(long fileSize) {
+  public static String getFileSizeInUnit(long fileSize) {
     int sizeOfUnit = 1024;
     String[] units = new String[] {"bytes", "KB", "MB", "GB"};
     for (String unit : units) {
@@ -212,7 +214,7 @@ public class LocalStorageService implements StorageService {
     }
   }
 
-  private ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
+  ArmadilloLinkFile getArmadilloLinkFileFromName(String bucketName, String objectName) {
     InputStream armadilloLinkFileStream = load(bucketName, objectName);
     return new ArmadilloLinkFile(armadilloLinkFileStream, bucketName, objectName);
   }
@@ -221,8 +223,47 @@ public class LocalStorageService implements StorageService {
     return new ArmadilloWorkspace(is);
   }
 
-  private FileInfo getFileInfoForLinkFile(
-      String bucketName, String objectName, String fileSizeWithUnit) throws FileNotFoundException {
+  Map<String, ArmadilloColumnMetaData> getMetaDataForLinkfile(String bucketName, String objectName)
+      throws IOException {
+    ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
+    List<String> columns = Arrays.asList(linkFile.getVariables().split(","));
+    Path srcObjectPath =
+        getPathIfObjectExists(
+            SHARED_PREFIX + linkFile.getSourceProject(), linkFile.getSourceObject() + PARQUET);
+    Map<String, ArmadilloColumnMetaData> metadata = ParquetUtils.getColumnMetaData(srcObjectPath);
+    return metadata.entrySet().stream()
+        .filter(
+            map -> {
+              String key = map.getKey();
+              return columns.contains(key);
+            })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  @Override
+  public Map<String, ArmadilloColumnMetaData> getMetadataFromTablePath(
+      String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+      Path objectPath = getPathIfObjectExists(bucketName, objectName);
+      if (objectPath.toString().endsWith(PARQUET)) {
+        return ParquetUtils.getColumnMetaData(objectPath);
+      } else if (objectPath.toString().endsWith(LINK_FILE)) {
+        return getMetaDataForLinkfile(bucketName, objectName);
+      } else {
+        throw new StorageException(
+            format(
+                "Object [%s/%s] is not a table, cannot determine metadata.",
+                bucketName, objectName));
+      }
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+  }
+
+  FileInfo getFileInfoForLinkFile(String bucketName, String objectName, String fileSizeWithUnit)
+      throws FileNotFoundException {
     ArmadilloLinkFile linkFile = getArmadilloLinkFileFromName(bucketName, objectName);
     Path srcObjectPath =
         getPathIfObjectExists(

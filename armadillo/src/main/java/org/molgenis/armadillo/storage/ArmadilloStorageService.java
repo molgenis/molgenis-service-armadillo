@@ -9,6 +9,7 @@ import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByte
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ArmadilloStorageService {
@@ -43,9 +46,12 @@ public class ArmadilloStorageService {
   private final StorageService storageService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
+  private final LocalStorageService localStorageService;
 
-  public ArmadilloStorageService(StorageService storageService) {
+  public ArmadilloStorageService(
+      StorageService storageService, LocalStorageService localStorageService) {
     this.storageService = storageService;
+    this.localStorageService = localStorageService;
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -382,6 +388,16 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
+  public Map<String, ArmadilloColumnMetaData> getMetadata(String project, String object) {
+    throwIfUnknown(project, object);
+    try {
+      return storageService.getMetadataFromTablePath(SHARED_PREFIX + project, object);
+    } catch (StorageException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
   public List<String> getVariables(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getVariables(SHARED_PREFIX + project, object);
@@ -391,5 +407,32 @@ public class ArmadilloStorageService {
   public FileInfo getInfo(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getInfo(SHARED_PREFIX + project, object);
+  }
+
+  @PreAuthorize("hasRole('ROLE_SU')")
+  public void writeParquetFromCsv(
+      String project, String object, MultipartFile file, int numberOfRowsToDetermineTypeBy)
+      throws CsvValidationException, IOException {
+    String objectParquet = removeExtension(object) + PARQUET;
+    throwIfDuplicate(project, objectParquet);
+    CharacterSeparatedFile characterSeparatedFile = new CharacterSeparatedFile(file);
+    characterSeparatedFile.setNumberOfRowsToDetermineTypeBy(numberOfRowsToDetermineTypeBy);
+    Path path = localStorageService.getObjectPathSafely(SHARED_PREFIX + project, objectParquet);
+    try {
+      localStorageService.createBucketIfNotExists(SHARED_PREFIX + project);
+
+      // create parent dirs if needed
+      //noinspection ResultOfMethodCallIgnored
+      path.toFile().getParentFile().mkdirs();
+      characterSeparatedFile.writeParquet(
+          storageService.getRootDir()
+              + File.separator
+              + SHARED_PREFIX
+              + project
+              + File.separator
+              + objectParquet);
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
   }
 }

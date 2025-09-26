@@ -32,7 +32,9 @@ This domain is needed for the installation script.
 
 ## Authentication
 
-Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo on the DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager (who gets access and who don't get access) within your armadillo installation.
+Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo with an authentication server. *This part of the documentation is still under construction. If you would like instructions on how to set up an authentication server, please [contact](../contact.md) us.*
+ 
+If you are already a partner in a consortium we are part of, we offer the option to register with our DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager (who gets access and who don't get access) within your armadillo installation.
 
 To register you will need to [contact](../contact.md) us with the [chosen domains](#domain) and the e-mail address of the Data Manager who is granted admin permissions in Armadillo. Also add to the mail that you want to register for the the DataSHIELD authentication server and if you belong to a project like Lifecycle, Athlete or Longitools.
 
@@ -187,7 +189,7 @@ A good start for data backup is the `/usr/share/armadillo` and `/etc/armadillo`.
 ## Install alternatives
 
 - On local machine using java
-- Armidillo running as a Docker container.
+- Armidillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
 - [Apache](#apache)
 
 ## What's next?

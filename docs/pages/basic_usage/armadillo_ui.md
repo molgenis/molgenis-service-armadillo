@@ -170,3 +170,8 @@ Possible images can be found on [dockerhub](https://hub.docker.com/search?q=data
 Although the default `port` setting should find an available port, please keep in mind that the port has to be unique, otherwise you cannot start your profile and will receive an error message.
 
 R packages can be whitelisted by adding them to the `package whitelist` column so researchers can use them. 'Whitelisting' a package allows analysts to use it. If you want to whitelist a package, you need to make sure it is installed on the image you selected. Additionally, it is possible to blacklist certain R functions in the `blacklist function` column. This can be useful if certain functions are not allowed to be used on certain data or within certain cohorts.
+
+Sometimes profiles are updated, for example if new features are added or security updates are applied. To manually update a profile, you just need to start and stop the profile and the new version will be installed. 
+
+From Armadillo v.5.2.0 and higher, it is also possible to automatically update profiles. Edit the profile, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
+![Automaticall update profile](../../img/ui/update-profile.png)
