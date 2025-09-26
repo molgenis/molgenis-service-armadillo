@@ -308,3 +308,7 @@ export function convertBytes(bytes: number): string {
 
   return `${bytes.toFixed(2)} ${units[unitIndex]}`;
 }
+
+export function toPercentage(amount: number, total: number) {
+  return (100 * amount) / total;
+}

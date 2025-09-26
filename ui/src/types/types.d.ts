@@ -43,6 +43,7 @@ export type ProjectsExplorerData = {
   loading: boolean;
   successMessage: string;
   filePreview: Array<any>;
+  fileMetaData: Object;
   fileInfo: {
     fileSize: string;
     dataSizeRows: number;
@@ -52,6 +53,7 @@ export type ProjectsExplorerData = {
   };
   createNewFolder: boolean;
   loading_preview: boolean;
+  loading_metadata: boolean;
   projectContent: Record<string, string[]>;
   selectedFile: string;
   selectedFolder: string;
