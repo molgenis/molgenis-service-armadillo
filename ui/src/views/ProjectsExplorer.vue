@@ -199,6 +199,7 @@
                     ? '+ ' + (columnNames.length - 10) + ' variables: '
                     : columnNames.length + ' variables: '
                 "
+                :metadata="fileMetaData"
               >
               </ColumnNamesPreview>
             </div>
@@ -229,6 +230,7 @@ import {
   getFileDetails,
   createLinkFile,
   getTableVariables,
+  getMetaData,
 } from "@/api/api";
 import {
   isEmptyObject,
@@ -303,8 +305,10 @@ export default defineComponent({
       projectToEditIndex: -1,
       loading: false,
       loading_preview: false,
+      loading_metadata: false,
       successMessage: "",
       filePreview: [{}],
+      fileMetaData: {},
       createNewFolder: false,
       projectContent: {},
       fileInfo: {
@@ -332,7 +336,7 @@ export default defineComponent({
           this.isLinkFileType(this.selectedFile)
         ) {
           this.loading_preview = true;
-          previewObject(this.projectId, `${this.selectedObject}`)
+          previewObject(this.projectId, this.selectedObject)
             .then((data) => {
               this.filePreview = data;
               this.loading_preview = false;
@@ -342,7 +346,13 @@ export default defineComponent({
               this.clearFilePreview();
               this.loading_preview = false;
             });
-
+          getMetaData(this.projectId, this.selectedObject)
+            .then((metadata) => {
+              this.fileMetaData = metadata;
+            })
+            .catch((error) => {
+              this.errorMessage = `Cannot load metadata for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+            });
           this.setFileDetails();
         }
       }
@@ -359,7 +369,7 @@ export default defineComponent({
     projectFolders(): StringArray {
       return Object.keys(this.projectContent) as StringArray;
     },
-    selectedObject(): String {
+    selectedObject(): string {
       return `${this.selectedFolder}/${this.selectedFile}`;
     },
   },
@@ -378,7 +388,7 @@ export default defineComponent({
           if (isLinkFileType(this.selectedFile)) {
             this.columnNames = this.fileInfo.variables;
           } else {
-            this.setTableColumnNames(this.projectId, `${this.selectedObject}`);
+            this.setTableColumnNames(this.projectId, this.selectedObject);
           }
         })
         .catch((error) => {
@@ -461,7 +471,7 @@ export default defineComponent({
       const splittedFileAndFolder = fileAndFolder.split("/");
       const file = splittedFileAndFolder[1];
       const folder = splittedFileAndFolder[0];
-      const response = deleteObject(this.projectId, `${this.selectedObject}`);
+      const response = deleteObject(this.projectId, this.selectedObject);
       response
         .then(() => {
           this.selectedFile = "";
