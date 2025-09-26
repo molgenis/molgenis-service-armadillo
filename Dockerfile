@@ -4,7 +4,7 @@ VOLUME /data
 VOLUME /config
 VOLUME /logs
 
-RUN apt-get update && apt-get install -y \
+RUN apt get update && apt get install -y \
     libc6 \
     libsnappy1v5 \
     && rm -rf /var/lib/apt/lists/*
