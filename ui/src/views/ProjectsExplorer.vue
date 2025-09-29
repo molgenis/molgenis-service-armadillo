@@ -192,7 +192,7 @@
                 :n-rows="fileInfo.dataSizeRows"
               ></DataPreviewTable>
               <ColumnNamesPreview
-                v-if="!editView && !createLinkFromSrc"
+                v-if="!editView && !createLinkFromSrc && !loading_metadata"
                 :columnNames="columnNames"
                 :buttonName="
                   columnNames.length > 10
@@ -202,6 +202,7 @@
                 :metadata="fileMetaData"
               >
               </ColumnNamesPreview>
+              <LoadingSpinner v-else-if="loading_metadata" />
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">
@@ -336,6 +337,7 @@ export default defineComponent({
           this.isLinkFileType(this.selectedFile)
         ) {
           this.loading_preview = true;
+          this.loading_metadata = true;
           previewObject(this.projectId, this.selectedObject)
             .then((data) => {
               this.filePreview = data;
@@ -349,9 +351,11 @@ export default defineComponent({
           getMetaData(this.projectId, this.selectedObject)
             .then((metadata) => {
               this.fileMetaData = metadata;
+              this.loading_metadata = false;
             })
             .catch((error) => {
               this.errorMessage = `Cannot load metadata for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+              this.loading_metadata = false;
             });
           this.setFileDetails();
         }
