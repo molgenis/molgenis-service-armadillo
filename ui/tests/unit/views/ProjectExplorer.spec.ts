@@ -67,22 +67,6 @@ describe("ProjectsExplorer", () => {
                 "type": "BINARY",
                 "missing": "0/243"
             },
-            "patient_cohort": {
-                "type": "BINARY",
-                "missing": "0/243",
-                "levels": [
-                "Cohort1"
-                ]
-            },
-            "sample_origin": {
-                "type": "BINARY",
-                "missing": "0/243",
-                "levels": [
-                "BPTB",
-                "ESP",
-                "LIV"
-                ]
-            },
             "age": {
                 "type": "DOUBLE",
                 "missing": "0/243"
@@ -117,34 +101,9 @@ describe("ProjectsExplorer", () => {
                 "IV"
                 ]
             },
-            "benign_sample_diagnosis": {
-                "type": "BINARY",
-                "missing": "243/243",
-                "levels": []
-            },
             "plasma_CA19_9": {
                 "type": "DOUBLE",
                 "missing": "80/243"
-            },
-            "creatinine": {
-                "type": "DOUBLE",
-                "missing": "0/243"
-            },
-            "LYVE1": {
-                "type": "DOUBLE",
-                "missing": "0/243"
-            },
-            "REG1B": {
-                "type": "DOUBLE",
-                "missing": "0/243"
-            },
-            "TFF1": {
-                "type": "DOUBLE",
-                "missing": "0/243"
-            },
-            "REG1A": {
-                "type": "DOUBLE",
-                "missing": "24/243"
             }
             };
 
