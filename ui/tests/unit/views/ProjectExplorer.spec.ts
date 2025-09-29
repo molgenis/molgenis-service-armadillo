@@ -2,7 +2,7 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import * as _api from "@/api/api";
-import { StringArray, StringObject } from "@/types/types";
+import { StringObject } from "@/types/types";
 
 const api = _api as any;
 
