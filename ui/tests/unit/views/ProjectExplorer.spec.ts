@@ -2,6 +2,7 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import * as _api from "@/api/api";
+import { StringArray, StringObject } from "@/types/types";
 
 const api = _api as any;
 
@@ -9,6 +10,7 @@ jest.mock("@/api/api");
 
 describe("ProjectsExplorer", () => {
     let testData: Array<string>;
+    let metaData: Record<string, StringObject>;
 
     const mock_routes = [
         {
@@ -60,9 +62,99 @@ describe("ProjectsExplorer", () => {
             "some-project/folder-c-three/file1.parquet"
         ];
 
+        metaData = {
+            "sample_id": {
+                "type": "BINARY",
+                "missing": "0/243"
+            },
+            "patient_cohort": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "Cohort1"
+                ]
+            },
+            "sample_origin": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "BPTB",
+                "ESP",
+                "LIV"
+                ]
+            },
+            "age": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "sex": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "female",
+                "male"
+                ]
+            },
+            "diagnosis": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "benign",
+                "cancer"
+                ]
+            },
+            "stage": {
+                "type": "BINARY",
+                "missing": "81/243",
+                "levels": [
+                "II",
+                "IIA",
+                "IIB",
+                "IA",
+                "III",
+                "I",
+                "IB",
+                "IV"
+                ]
+            },
+            "benign_sample_diagnosis": {
+                "type": "BINARY",
+                "missing": "243/243",
+                "levels": []
+            },
+            "plasma_CA19_9": {
+                "type": "DOUBLE",
+                "missing": "80/243"
+            },
+            "creatinine": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "LYVE1": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "REG1B": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "TFF1": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "REG1A": {
+                "type": "DOUBLE",
+                "missing": "24/243"
+            }
+            };
+
         api.getProject.mockImplementationOnce(() => {
             return Promise.resolve(testData);
         });
+
+        api.getMetaData.mockImplementationOnce(() => {
+            return Promise.resolve(metaData);
+        })
 
         wrapper = shallowMount(ProjectsExplorer, {
             global: {
