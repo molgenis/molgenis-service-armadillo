@@ -4,6 +4,8 @@ VOLUME /data
 VOLUME /config
 VOLUME /logs
 
+RUN apk update && apk add --no-cache libc6-compat
+
 ARG JAR_FILE
 EXPOSE 8080
 COPY ${JAR_FILE} /app.jar
