@@ -6,6 +6,9 @@ VOLUME /logs
 ENV org_xerial_snappy_disable=true
 
 
+RUN apk update && apk add --no-cache libc6-compat \
+ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
+
 ARG JAR_FILE
 EXPOSE 8080
 COPY ${JAR_FILE} /app.jar
