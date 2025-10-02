@@ -67,6 +67,7 @@ jobs:
             git config user.email "molgenis@gmail.com"
             git config user.name "molgenis-jenkins"
             git config url.https://.insteadOf git://
+            git fetch --all --tags
 
       - run:
           name: Build Armadillo and R CICD image
