@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - checkout
-
+      - run: git fetch --all --tags
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
