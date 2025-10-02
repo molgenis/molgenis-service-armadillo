@@ -186,10 +186,69 @@ To secure the communication using https we have a [nginx example](https://raw.gi
 
 A good start for data backup is the `/usr/share/armadillo` and `/etc/armadillo`. If you gave another datadir as setup option you also should backup this directory. For disaster backups you should contact your IT department.
 
+## Metrics 
+
+Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics` and `/actuator/prometheus`).  
+You can use this in your monitoring application like prometheus.
+(Config example for prometheus)
+```yaml
+scrape_configs:
+  - job_name: 'my-armadillo-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['armadilo.url-example.com:8080']
+```
+### Disable or restrict Metrics 
+
+Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics`).  
+Below are ways to **disable** or **restrict** it.
+
+---
+
+#### 1. Disable Metrics 
+
+To remove `/actuator/metrics` from HTTP exposure, add this to `application.yml`:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: metrics
+```
+
+- ✅ Other endpoints (like `/actuator/health`, `/actuator/info`) remain available  
+- ❌ `/actuator/metrics` returns `404 Not Found`  
+
+If you want to disable **all metrics collection** (Micrometer), add:
+
+```yaml
+management:
+  metrics:
+    enable:
+      all: false
+```
+
+---
+
+#### 2. Restrict Metrics: **Nginx as a Reverse Proxy**
+At the infrastructure level, you can block or whitelist IPs for Actuator endpoints.
+
+```nginx
+location /actuator/metrics {
+    allow 192.168.1.0/24;   # whitelist internal network
+    deny all;               # block others
+    proxy_pass http://localhost:8080/actuator/metrics;
+}
+
+location /actuator/ {
+    proxy_pass http://localhost:8080/actuator/;
+}
+```
 ## Install alternatives
 
 - On local machine using java
-- Armidillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
+- Armadillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
 - [Apache](#apache)
 
 ## What's next?
