@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
@@ -55,11 +56,33 @@ public class AuthConfig {
   @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
   private String oidcClientId;
 
-  @Bean
+  //  @Bean(name = "tokenAuth")
+  //  @Order(1)
+  //  protected SecurityFilterChain tokenAuth(HttpSecurity http) throws Exception {
+  //    http.csrf(AbstractHttpConfigurer::disable)
+  //        .authorizeHttpRequests(
+  //            authorizationManagerRequestMatcherRegistry ->
+  //                authorizationManagerRequestMatcherRegistry
+  //                    .requestMatchers("/actuator/prometheus")
+  //                    .authenticated())
+  //        .httpBasic(Customizer.withDefaults())
+  //        .sessionManagement(
+  //            httpSecuritySessionManagementConfigurer ->
+  //                httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
+  //                    SessionCreationPolicy.STATELESS))
+  //        .addFilterBefore(new AuthenticationFilter(),
+  // UsernamePasswordAuthenticationFilter.class);
+  //    return http.build();
+  //  }
+
   @Order(1)
+  @Bean
   protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
+    http.csrf(AbstractHttpConfigurer::disable);
+    http.cors(Customizer.withDefaults());
     http.authorizeHttpRequests(
         requests ->
+            //                requests.requestMatchers("/**").authenticated());
             requests
                 .requestMatchers(
                     "/",
@@ -76,15 +99,13 @@ public class AuthConfig {
                     "/swagger-ui/**",
                     "/ui/**",
                     "/ds-profiles/status",
-                    "/actuator/prometheus",
+                    //                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                 .permitAll()
                 .anyRequest()
                 .authenticated());
-    http.csrf(AbstractHttpConfigurer::disable);
-    http.cors(Customizer.withDefaults());
     http.httpBasic(
         httpBasicConfigurer ->
             httpBasicConfigurer
@@ -113,6 +134,11 @@ public class AuthConfig {
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
+    //    http.sessionManagement(
+    //                        httpSecuritySessionManagementConfigurer ->
+    //                            httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
+    //                                SessionCreationPolicy.STATELESS));
+    http.addFilterBefore(new AuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
