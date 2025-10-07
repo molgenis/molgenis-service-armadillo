@@ -191,7 +191,7 @@
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
               ></DataPreviewTable>
-              <ColumnNamesPreview
+              <MetaDataPreview
                 v-if="!editView && !createLinkFromSrc && !loading_metadata"
                 :columnNames="columnNames"
                 :buttonName="
@@ -201,7 +201,7 @@
                 "
                 :metadata="fileMetaData"
               >
-              </ColumnNamesPreview>
+              </MetaDataPreview>
               <LoadingSpinner v-else-if="loading_metadata" />
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
@@ -223,7 +223,6 @@ import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import ColumnNamesPreview from "@/components/ColumnNamesPreview.vue";
 import {
   getProject,
   deleteObject,
@@ -248,6 +247,7 @@ import FileExplorer from "@/components/FileExplorer.vue";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import ViewEditor from "@/components/ViewEditor.vue";
+import MetaDataPreview from "@/components/MetaDataPreview.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -263,7 +263,7 @@ export default defineComponent({
     FolderInput,
     DataPreviewTable,
     ViewEditor,
-    ColumnNamesPreview,
+    MetaDataPreview,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);

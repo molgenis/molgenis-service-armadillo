@@ -87,7 +87,7 @@ import { defineComponent } from "vue";
 import Dropdown from "./Dropdown.vue";
 
 export default defineComponent({
-  name: "ColumnNamesPreview",
+  name: "MetaDataPreview",
   components: {
     Dropdown
   },

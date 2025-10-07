@@ -1,11 +1,11 @@
 import { shallowMount, VueWrapper } from "@vue/test-utils";
-import ColumnNamesPreview from "@/components/ColumnNamesPreview.vue";
+import MetaDataPreview from "@/components/MetaDataPreview.vue";
 
-describe("ColumnNamesPreview", () => {
+describe("MetaDataPreview", () => {
   let wrapper: VueWrapper<any>;
 
   beforeEach(() => {
-    wrapper = shallowMount(ColumnNamesPreview, {
+    wrapper = shallowMount(MetaDataPreview, {
       props: {
         columnNames: ["col1", "col2"],
         buttonName: "+ 2 more columns",
