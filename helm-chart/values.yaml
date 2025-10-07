@@ -45,7 +45,7 @@ config:
 
       - name: lemon-donkey 
         image: datashield/lemon-donkey:latest
-        host: lemon-donkey-molgenis-lemon-donkey.svc
+        host: lemon-donkey-molgenis-lemon-donkey.svc.svc.cluster.local
         port: 8085
         package-whitelist:
           - dsBase
