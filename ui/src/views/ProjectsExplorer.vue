@@ -411,13 +411,17 @@ export default defineComponent({
     },
     addNewFolder(folderName: string) {
       if (folderName) {
-        if (!folderName.includes("/")) {
-          this.project.push(folderName.toLocaleLowerCase() + "/");
+        if (folderName.includes("/")) {
+          this.errorMessage = "Folder name cannot contain /";
+        } else if (Object.keys(this.projectContent).includes(folderName)) {
+          this.errorMessage = `Folder with name [${folderName}] already exists.`;
+        } else {
+          this.project.push(
+            this.projectId + "/" + folderName.toLocaleLowerCase() + "/"
+          );
           this.successMessage = `Succesfully created folder: [${folderName.toLocaleLowerCase()}]. Please be aware the folder will only persist if you upload files in them.`;
           this.setProjectContent();
           this.cancelNewFolder();
-        } else {
-          this.errorMessage = "Folder name cannot contain /";
         }
       } else {
         this.errorMessage = "Folder name cannot be empty";
@@ -467,7 +471,7 @@ export default defineComponent({
           this.selectedFile = "";
           this.reloadProject(() => {
             if (this.projectFolders.length === 0) {
-              this.project.push(folder + "/");
+              this.project.push(this.projectId + "/" + folder + "/");
             }
             this.setProjectContent();
           });
