@@ -12,22 +12,10 @@ config:
     container-prefix: 'dev-'
     profiles:
       - name: default 
-      #  image: datashield/rock-base:latest
-      #  #host: rock-molgenis-rock.armadillo-rock.svc
-      #  host: rock-molgenis-rock.armadillo-rock.svc
-      #  image: datashield/rock-dolomite-xenon:latest
-      #  host: xenon-molgenis-xenon.armadillo-xenon.svc
-        image: datashield/lemon-donkey:latest
-        host: lemon-donkey-molgenis-lemon-donkey.armadillo-lemon-donkey.svc 
-        port: 8085 
-        package-whitelist:
-          - dsBase
-          - resourcer
-        function-blacklist: [ ]
-        options:
-          datashield:
-            # the seed can only be 9 digits
-            seed: 342325352
+        image: datashield/rock-base:latest
+        #host: rock-molgenis-rock.armadillo-rock.svc
+        host: rock-molgenis-rock.armadillo-rock.svc
+        image: datashield/rock-dolomite-xenon:latest
       - name: xenon
         image: datashield/rock-dolomite-xenon:latest
         host: xenon-molgenis-xenon.armadillo-xenon.svc
@@ -47,7 +35,7 @@ config:
 
       - name: lemon-donkey 
         image: datashield/lemon-donkey:latest
-        host: lemon-donkey-molgenis-lemon-donkey.armadillo-lemon-donkey.svc 
+        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
         port: 8085
         package-whitelist:
           - dsBase
