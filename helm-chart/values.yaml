@@ -32,8 +32,7 @@ config:
           datashield:
             # the seed can only be 9 digits
             seed: 342325352
-
-      - name: lemon-donkey 
+      - name: donkey 
         image: datashield/lemon-donkey:latest
         host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
         port: 8085
@@ -44,7 +43,6 @@ config:
           - dsMTLBase
           - dsSurvival
           - dsOmics
-          - dsTidyverse
         function-blacklist: [ ]
         options:
           datashield:
