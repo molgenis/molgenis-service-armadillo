@@ -102,6 +102,7 @@ jobs:
       - run:
           name: Docker-Scout scanning on cves, break on critical.
           command: |
+            export $( cat build/ci.properties | xargs )
             docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical
 
 
