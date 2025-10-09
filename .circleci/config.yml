@@ -26,7 +26,8 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
+
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -38,7 +39,8 @@ definitions:
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
+
 
     working_directory: ~/repo
     resource_class: large
@@ -96,6 +98,13 @@ jobs:
                   -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
                 dockerPush
             fi
+      
+      - run:
+          name: Docker-Scout scanning on cves, break on critical.
+          command: |
+            docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical
+
+
 
       - run:
           name: deploy preview to Azure
@@ -152,7 +161,7 @@ jobs:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
 
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
 
     working_directory: ~/repo
     resource_class: large
