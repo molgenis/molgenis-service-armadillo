@@ -16,22 +16,22 @@ config:
         #host: rock-molgenis-rock.armadillo-rock.svc
         host: rock-molgenis-rock.armadillo-rock.svc
         image: datashield/rock-dolomite-xenon:latest
-      - name: xenon
-        image: datashield/rock-dolomite-xenon:latest
-        host: xenon-molgenis-xenon.armadillo-xenon.svc
-        port: 8085
-        package-whitelist:
-          - dsBase
-          - resourcer
-          - dsMediation
-          - dsMTLBase
-          - dsSurvival
-          - dsOmics
-        function-blacklist: [ ]
-        options:
-          datashield:
-            # the seed can only be 9 digits
-            seed: 342325352
+      #- name: xenon
+      #  image: datashield/rock-dolomite-xenon:latest
+      #  host: xenon-molgenis-xenon.armadillo-xenon.svc
+      #  port: 8085
+      #  package-whitelist:
+      #    - dsBase
+      #    - resourcer
+      #    - dsMediation
+      #    - dsMTLBase
+      #    - dsSurvival
+      #    - dsOmics
+      #  function-blacklist: [ ]
+      #  options:
+      #    datashield:
+      #      # the seed can only be 9 digits
+      #      seed: 342325352
       - name: donkey 
         image: datashield/lemon-donkey:latest
         host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
