@@ -59,6 +59,7 @@ export type ProjectsExplorerData = {
   selectedFolder: string;
   createLinkFromTarget: boolean;
   createLinkFromSrc: boolean;
+  currentTab: string;
   columnNames: Array<string>;
 };
 

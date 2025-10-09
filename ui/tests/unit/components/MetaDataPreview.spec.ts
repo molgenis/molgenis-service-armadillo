@@ -7,24 +7,12 @@ describe("MetaDataPreview", () => {
   beforeEach(() => {
     wrapper = shallowMount(MetaDataPreview, {
       props: {
-        columnNames: ["col1", "col2"],
-        buttonName: "+ 2 more columns",
         metadata: {
           col1: { type: "STRING", missing: "2/10", levels: [] },
           col2: { type: "BINARY", missing: "1/5", levels: ["Yes", "No"] },
         },
       },
     });
-  });
-
-  test("Toggle column names", () => {
-    expect(wrapper.vm.isCollapsed).toBe(false);
-    wrapper.vm.toggleColumnNames();
-    expect(wrapper.vm.isCollapsed).toBe(true);
-  });
-
-  test("Join column names with comma", () => {
-    expect(wrapper.vm.columnNamesString).toBe("col1, col2");
   });
 
   test("Toggle missing filter operator", () => {

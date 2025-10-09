@@ -1,14 +1,6 @@
 <template>
   <div>
-    <button
-      type="button"
-      class="btn btn-secondary"
-      @click="toggleColumnNames()"
-    >
-      {{ buttonName }} <i class="bi bi-chevron-down" v-if="!isCollapsed"></i>
-      <i class="bi bi-chevron-up" v-else></i>
-    </button>
-    <div class="fst-italic text-secondary" v-show="isCollapsed">
+    <div class="fst-italic text-secondary mt-1">
       <div class="filter float-end">
         <div class="row">
           <div class="col">
@@ -92,14 +84,11 @@ export default defineComponent({
     Dropdown
   },
   props: {
-    columnNames: { type: Array, required: true },
-    buttonName: String,
     metadata: Object 
   },
-  data(): {isFilterCollapsed: boolean, isCollapsed: boolean, filterColumn: string, missingFilter: string, missingFilterValue: null|number, selectedType: string, columnFilter: string} {
+  data(): {isFilterCollapsed: boolean, filterColumn: string, missingFilter: string, missingFilterValue: null|number, selectedType: string, columnFilter: string} {
     return {
       isFilterCollapsed: true,
-      isCollapsed: false,
       filterColumn: "none",
       missingFilter: '>',
       missingFilterValue: null,
@@ -118,9 +107,6 @@ export default defineComponent({
         });
       }
       return options;
-    },
-    columnNamesString() {
-      return this.columnNames.join(", ");
     },
   },
   methods: {
@@ -165,10 +151,7 @@ export default defineComponent({
     getPercentageOfMissing(missingString: string): number {
       const missingInfo = missingString.split('/');
       return Number(toPercentage(Number(missingInfo[0]), Number(missingInfo[1])).toFixed(1));
-    },
-    toggleColumnNames() {
-      this.isCollapsed = !this.isCollapsed;
-    },
+    }
   },
 });
 </script>

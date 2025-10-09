@@ -166,6 +166,25 @@
                   <i class="bi bi-x"></i> Cancel
                 </button>
               </div>
+              <ul class="nav nav-tabs" v-if="createLinkFromSrc === false">
+                <li class="nav-item">
+                  <a
+                    class="nav-link"
+                    :class="currentTab === 'data' ? 'active' : ''"
+                    @click="setTab('data')"
+                    >Data preview</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a
+                    class="nav-link"
+                    :class="currentTab === 'metadata' ? 'active' : ''"
+                    @click="setTab('metadata')"
+                    >Metadata preview</a
+                  >
+                </li>
+              </ul>
+
               <ViewEditor
                 v-if="createLinkFromSrc === true"
                 :sourceFolder="selectedFolder"
@@ -186,13 +205,18 @@
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
               <DataPreviewTable
-                v-else
+                v-else-if="currentTab === 'data'"
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
               ></DataPreviewTable>
               <MetaDataPreview
-                v-if="!editView && !createLinkFromSrc && !loading_metadata"
+                v-if="
+                  !editView &&
+                  !createLinkFromSrc &&
+                  !loading_metadata &&
+                  currentTab == 'metadata'
+                "
                 :columnNames="columnNames"
                 :buttonName="
                   columnNames.length > 10
@@ -312,6 +336,7 @@ export default defineComponent({
       fileMetaData: {},
       createNewFolder: false,
       projectContent: {},
+      currentTab: "data",
       fileInfo: {
         fileSize: "",
         dataSizeRows: 0,
@@ -381,6 +406,9 @@ export default defineComponent({
     isTableType,
     isLinkFileType,
     isNonTableType,
+    setTab(tabName: string) {
+      this.currentTab = tabName;
+    },
     setFileDetails() {
       getFileDetails(this.projectId, `${this.selectedObject}`)
         .then((data) => {
