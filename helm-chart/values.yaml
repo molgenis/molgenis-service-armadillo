@@ -34,7 +34,7 @@ config:
       #      seed: 342325352
       - name: donkey 
         image: datashield/lemon-donkey:latest
-        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
+        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc.cluster.local 
         port: 8085
         package-whitelist:
           - dsBase
