@@ -172,7 +172,7 @@
                     class="nav-link"
                     :class="currentTab === 'data' ? 'active' : ''"
                     @click="setTab('data')"
-                    >Data preview</a
+                    ><i class="bi bi-table"></i> Data preview</a
                   >
                 </li>
                 <li class="nav-item">
@@ -180,7 +180,8 @@
                     class="nav-link"
                     :class="currentTab === 'metadata' ? 'active' : ''"
                     @click="setTab('metadata')"
-                    >Metadata preview</a
+                    ><i class="bi bi-database-fill-gear"></i> Metadata
+                    preview</a
                   >
                 </li>
               </ul>
@@ -209,6 +210,7 @@
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
+                class="mt-2"
               ></DataPreviewTable>
               <MetaDataPreview
                 v-if="
@@ -656,3 +658,8 @@ export default defineComponent({
   },
 });
 </script>
+<style scoped>
+.nav-item:hover {
+  cursor: pointer;
+}
+</style>
