@@ -228,7 +228,10 @@
                 :metadata="fileMetaData"
               >
               </MetaDataPreview>
-              <LoadingSpinner v-else-if="loading_metadata" />
+              <LoadingSpinner
+                v-else-if="loading_metadata && currentTab == 'metadata'"
+                class="mt-5"
+              />
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="fst-italic text-secondary mt-1">
+    <div class="text-secondary mt-1">
       <div class="filter float-end">
         <div class="row">
           <div class="col">
@@ -63,7 +63,7 @@
         <tr v-for="(value, key) in metadata" :key="key" 
         v-show="showLine(key, value.type, value.missing)">
           <td>{{key}}</td>
-          <td>{{value.type}}</td>
+          <td>{{getEmxDataType(value.type, value.levels)}}<br/> <span class="badge text-bg-secondary">{{value.type}}</span></td>
           <td>{{value.missing}} ({{ getPercentageOfMissing(value.missing) }}%)</td>
           <td  v-if="typeOptions.includes('BINARY')">{{value.levels?.join(", ")}}</td>
         </tr>
@@ -77,6 +77,7 @@
 import { toPercentage } from "@/helpers/utils";
 import { defineComponent } from "vue";
 import Dropdown from "./Dropdown.vue";
+import { StringArray } from "@/types/types";
 
 export default defineComponent({
   name: "MetaDataPreview",
@@ -107,7 +108,7 @@ export default defineComponent({
         });
       }
       return options;
-    },
+    }
   },
   methods: {
     updateSelectedType() {
@@ -146,6 +147,23 @@ export default defineComponent({
             return percentage <= this.missingFilterValue;
           } 
         }
+      }
+    },
+    getEmxDataType(datatype: string, levels: StringArray | undefined) {
+      if (datatype === "BINARY") {
+        if (levels !== undefined && levels.length > 0) {
+          return "Foreign key";
+        } else {
+          return "String";
+        }
+      } else if ( datatype === "INT32") {
+        return "Integer";
+      } else if ( datatype === "DOUBLE") {
+        return "Decimal";
+      } else if ( datatype === "BOOLEAN") {
+        return "Boolean";
+      } else {
+        return datatype;
       }
     },
     getPercentageOfMissing(missingString: string): number {
