@@ -29,6 +29,16 @@ describe("MetaDataPreview", () => {
     expect(wrapper.vm.getPercentageOfMissing("1/4")).toBe(25);
   });
 
+  test("Get emx data type of the parquet equivalent", () => {
+    expect(wrapper.vm.getEmxDataType("BINARY", undefined)).toBe("String");
+    expect(wrapper.vm.getEmxDataType("BINARY", ["a", "b", "c"])).toBe("Categorical");
+    expect(wrapper.vm.getEmxDataType("INT32", undefined)).toBe("Integer");
+    expect(wrapper.vm.getEmxDataType("DOUBLE", undefined)).toBe("Decimal");
+    expect(wrapper.vm.getEmxDataType("BOOLEAN", undefined)).toBe("Boolean");
+    // edge case, should never happen, but in case it does, just present what it got
+    expect(wrapper.vm.getEmxDataType("NOT CONVERTIBLE", undefined)).toBe("NOT CONVERTIBLE");
+  });
+
   describe("showLine method", () => {
     test("Filter = none => always true", () => {
       wrapper.setData({ filterColumn: "none" });
