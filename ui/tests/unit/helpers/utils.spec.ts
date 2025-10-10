@@ -21,7 +21,8 @@ import {
   diskSpaceBelowThreshold,
   isEmpty,
   convertStringToBytes,
-  isDate
+  isDate,
+  toPercentage
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 
@@ -437,22 +438,28 @@ describe("utils", () => {
   });
 
   describe('isDate', () => {
-  // Valid ISO 8601 date strings
-  it('should return true for valid ISO 8601 date strings', () => {
-    expect(isDate('2023-01-31T15:45:00Z')).toBe(true); // UTC with Z
-    expect(isDate('2023-01-31T15:45:00+02:00')).toBe(true); // With timezone offset
-    expect(isDate('2023-01-31T15:45:00-05:00')).toBe(true); // With negative timezone offset
-    expect(isDate('2023-01-31T15:45:00.123Z')).toBe(true); // With milliseconds and UTC
-    expect(isDate('2023-01-31T15:45:00.123+01:00')).toBe(true); // With milliseconds and timezone offset
+    // Valid ISO 8601 date strings
+    it('should return true for valid ISO 8601 date strings', () => {
+      expect(isDate('2023-01-31T15:45:00Z')).toBe(true); // UTC with Z
+      expect(isDate('2023-01-31T15:45:00+02:00')).toBe(true); // With timezone offset
+      expect(isDate('2023-01-31T15:45:00-05:00')).toBe(true); // With negative timezone offset
+      expect(isDate('2023-01-31T15:45:00.123Z')).toBe(true); // With milliseconds and UTC
+      expect(isDate('2023-01-31T15:45:00.123+01:00')).toBe(true); // With milliseconds and timezone offset
+    });
+
+    // Empty strings and non-date inputs
+    it('should return false for empty strings or non-date values', () => {
+      expect(isDate('')).toBe(false); // Empty string
+      expect(isDate('Hello, world!')).toBe(false); // Random text
+      expect(isDate('12345')).toBe(false); // Random number as string
+    });
   });
 
-  // Empty strings and non-date inputs
-  it('should return false for empty strings or non-date values', () => {
-    expect(isDate('')).toBe(false); // Empty string
-    expect(isDate('Hello, world!')).toBe(false); // Random text
-    expect(isDate('12345')).toBe(false); // Random number as string
+  describe('toPercentage', () => {
+    it('calculates percentage', () => {
+      expect(toPercentage(236, 4598)).toEqual(5.132666376685515); 
+    });
   });
-});
 });
 
   

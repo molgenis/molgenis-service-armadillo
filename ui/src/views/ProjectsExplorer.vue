@@ -166,6 +166,26 @@
                   <i class="bi bi-x"></i> Cancel
                 </button>
               </div>
+              <ul class="nav nav-tabs" v-if="createLinkFromSrc === false">
+                <li class="nav-item">
+                  <a
+                    class="nav-link"
+                    :class="currentTab === 'data' ? 'active' : ''"
+                    @click="setTab('data')"
+                    ><i class="bi bi-table"></i> Data preview</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a
+                    class="nav-link"
+                    :class="currentTab === 'metadata' ? 'active' : ''"
+                    @click="setTab('metadata')"
+                    ><i class="bi bi-database-fill-gear"></i> Metadata
+                    preview</a
+                  >
+                </li>
+              </ul>
+
               <ViewEditor
                 v-if="createLinkFromSrc === true"
                 :sourceFolder="selectedFolder"
@@ -186,21 +206,32 @@
                 :onSave="doCreateLinkFile"
               ></ViewEditor>
               <DataPreviewTable
-                v-else
+                v-else-if="currentTab === 'data'"
                 :data="filePreview"
                 :maxWidth="previewContainerWidth"
                 :n-rows="fileInfo.dataSizeRows"
+                class="mt-2"
               ></DataPreviewTable>
-              <ColumnNamesPreview
-                v-if="!editView && !createLinkFromSrc"
+              <MetaDataPreview
+                v-if="
+                  !editView &&
+                  !createLinkFromSrc &&
+                  !loading_metadata &&
+                  currentTab == 'metadata'
+                "
                 :columnNames="columnNames"
                 :buttonName="
                   columnNames.length > 10
                     ? '+ ' + (columnNames.length - 10) + ' variables: '
                     : columnNames.length + ' variables: '
                 "
+                :metadata="fileMetaData"
               >
-              </ColumnNamesPreview>
+              </MetaDataPreview>
+              <LoadingSpinner
+                v-else-if="loading_metadata && currentTab == 'metadata'"
+                class="mt-5"
+              />
             </div>
             <div v-else-if="!loading_preview && askIfPreviewIsEmpty()">
               <div class="fst-italic">
@@ -221,7 +252,6 @@ import FolderInput from "@/components/FolderInput.vue";
 import ListGroup from "@/components/ListGroup.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import ColumnNamesPreview from "@/components/ColumnNamesPreview.vue";
 import {
   getProject,
   deleteObject,
@@ -229,6 +259,7 @@ import {
   getFileDetails,
   createLinkFile,
   getTableVariables,
+  getMetaData,
 } from "@/api/api";
 import {
   isEmptyObject,
@@ -245,6 +276,7 @@ import FileExplorer from "@/components/FileExplorer.vue";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import ViewEditor from "@/components/ViewEditor.vue";
+import MetaDataPreview from "@/components/MetaDataPreview.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
@@ -260,7 +292,7 @@ export default defineComponent({
     FolderInput,
     DataPreviewTable,
     ViewEditor,
-    ColumnNamesPreview,
+    MetaDataPreview,
   },
   setup() {
     const project: Ref<StringArray> = ref([]);
@@ -303,10 +335,13 @@ export default defineComponent({
       projectToEditIndex: -1,
       loading: false,
       loading_preview: false,
+      loading_metadata: false,
       successMessage: "",
       filePreview: [{}],
+      fileMetaData: {},
       createNewFolder: false,
       projectContent: {},
+      currentTab: "data",
       fileInfo: {
         fileSize: "",
         dataSizeRows: 0,
@@ -332,7 +367,8 @@ export default defineComponent({
           this.isLinkFileType(this.selectedFile)
         ) {
           this.loading_preview = true;
-          previewObject(this.projectId, `${this.selectedObject}`)
+          this.loading_metadata = true;
+          previewObject(this.projectId, this.selectedObject)
             .then((data) => {
               this.filePreview = data;
               this.loading_preview = false;
@@ -342,7 +378,15 @@ export default defineComponent({
               this.clearFilePreview();
               this.loading_preview = false;
             });
-
+          getMetaData(this.projectId, this.selectedObject)
+            .then((metadata) => {
+              this.fileMetaData = metadata;
+              this.loading_metadata = false;
+            })
+            .catch((error) => {
+              this.errorMessage = `Cannot load metadata for [${this.selectedObject}] of project [${this.projectId}]. Because: ${error}.`;
+              this.loading_metadata = false;
+            });
           this.setFileDetails();
         }
       }
@@ -359,7 +403,7 @@ export default defineComponent({
     projectFolders(): StringArray {
       return Object.keys(this.projectContent) as StringArray;
     },
-    selectedObject(): String {
+    selectedObject(): string {
       return `${this.selectedFolder}/${this.selectedFile}`;
     },
   },
@@ -367,6 +411,9 @@ export default defineComponent({
     isTableType,
     isLinkFileType,
     isNonTableType,
+    setTab(tabName: string) {
+      this.currentTab = tabName;
+    },
     setFileDetails() {
       getFileDetails(this.projectId, `${this.selectedObject}`)
         .then((data) => {
@@ -378,7 +425,7 @@ export default defineComponent({
           if (isLinkFileType(this.selectedFile)) {
             this.columnNames = this.fileInfo.variables;
           } else {
-            this.setTableColumnNames(this.projectId, `${this.selectedObject}`);
+            this.setTableColumnNames(this.projectId, this.selectedObject);
           }
         })
         .catch((error) => {
@@ -465,7 +512,7 @@ export default defineComponent({
       const splittedFileAndFolder = fileAndFolder.split("/");
       const file = splittedFileAndFolder[1];
       const folder = splittedFileAndFolder[0];
-      const response = deleteObject(this.projectId, `${this.selectedObject}`);
+      const response = deleteObject(this.projectId, this.selectedObject);
       response
         .then(() => {
           this.selectedFile = "";
@@ -614,3 +661,8 @@ export default defineComponent({
   },
 });
 </script>
+<style scoped>
+.nav-item:hover {
+  cursor: pointer;
+}
+</style>
