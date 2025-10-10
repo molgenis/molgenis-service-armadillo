@@ -152,7 +152,7 @@ export default defineComponent({
     getEmxDataType(datatype: string, levels: StringArray | undefined) {
       if (datatype === "BINARY") {
         if (levels !== undefined && levels.length > 0) {
-          return "Foreign key";
+          return "Categorical";
         } else {
           return "String";
         }
