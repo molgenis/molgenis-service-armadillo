@@ -1,4 +1,3 @@
-
 services:
  armadillo:
    image: molgenis/molgenis-armadillo:latest
@@ -45,12 +44,16 @@ services:
    environment:
      KEYCLOAK_ADMIN: admin
      KEYCLOAK_ADMIN_PASSWORD: admin
+     ARMADILLO_URL: ${ARMADILLO_URL:-http://armadillo:8080}  # default: internal
+     ARMADILLO_PATH: /access/users
+     ARMADILLO_BASIC_USER: ${ARMADILLO_BASIC_USER:-admin}
+     ARMADILLO_BASIC_PASS: ${ARMADILLO_BASIC_PASS:-admin}
    ports:
      - "8080:8080"
      - "9000:9000"   # Management port (health/metrics)
-
    volumes:
      - ./keycloak/realms:/opt/keycloak/data/import
+     - ./keycloak/plugin:/opt/keycloak/providers
    networks:
      - armadillo-net
    healthcheck:
