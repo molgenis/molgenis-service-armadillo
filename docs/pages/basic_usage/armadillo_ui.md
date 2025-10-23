@@ -78,6 +78,14 @@ Here you can upload files to that folder, or click on the tables (files) to prev
 
 ![Armadillo project file preview](../../img/ui/preview-file.png)
 
+You can also see the metadata of the file you uploaded. For each column, the datatype will be shown in two ways: 
+a more general term (string, integer, decimal, boolean, categorical) and the datatype as it is saved in armadillo 
+(binary for string/categorical, boolean, int32 for integer, double for decimal). For all columns, the number and 
+percentage of missing values will be shown. For categorical values, the different categorical options will be shown in
+the 'levels' column.
+
+![preview-metadata.png](../../img/ui/preview-metadata.png)
+
 To upload files, either drag a file from your file browser to the file upload area, or click the area and select the
 file.
 
