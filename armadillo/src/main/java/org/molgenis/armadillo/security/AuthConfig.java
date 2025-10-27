@@ -21,8 +21,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -62,16 +60,12 @@ public class AuthConfig {
   @Bean
   protected SecurityFilterChain oauthAndBasic(
       HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable);
-    http.cors(Customizer.withDefaults());
     http.authorizeHttpRequests(
         requests ->
             //                requests.requestMatchers("/**").authenticated());
             requests
                 .requestMatchers(
                     "/",
-                    "/_docs/**",
-                    "/info",
                     "/index.html",
                     "/logout",
                     "/basic-login",
@@ -83,13 +77,18 @@ public class AuthConfig {
                     "/swagger-ui/**",
                     "/ui/**",
                     "/ds-profiles/status",
-                    //                    "/actuator/prometheus",
+                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                 .permitAll()
                 .anyRequest()
                 .authenticated());
+    http.csrf(AbstractHttpConfigurer::disable);
+    http.cors(Customizer.withDefaults());
+    AuthenticationFilter authFilter = new AuthenticationFilter();
+    authFilter.setAuthToken(authToken);
+    http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
     http.httpBasic(
         httpBasicConfigurer ->
             httpBasicConfigurer
@@ -117,17 +116,6 @@ public class AuthConfig {
       http.oauth2ResourceServer(
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
-    }
-    try {
-      SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-      SecurityContextHolder.setContext(ctx);
-      AuthenticationFilter authFilter = new AuthenticationFilter();
-      authFilter.setAuthToken(authToken);
-      http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
-      // Do what ever you want to do
-
-    } finally {
-      SecurityContextHolder.clearContext();
     }
 
     return http.build();
