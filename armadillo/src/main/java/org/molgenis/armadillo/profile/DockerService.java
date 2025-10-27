@@ -322,68 +322,63 @@ public class DockerService {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getName());
     }
-    // Track discovered and completed layers
-    Set<String> allLayers = ConcurrentHashMap.newKeySet();
-    Set<String> completedLayers = ConcurrentHashMap.newKeySet();
-
-    // Only emit when N or M changes (reduces spam)
-    AtomicInteger lastN = new AtomicInteger(-1);
-    AtomicInteger lastM = new AtomicInteger(-1);
 
     try {
       dockerClient
           .pullImageCmd(profileConfig.getImage())
-          .exec(
-              new PullImageResultCallback() {
-                @Override
-                public void onNext(PullResponseItem item) {
-                  if (item.getId() != null) {
-                    allLayers.add(item.getId());
-
-                    // Mark complete for pulled or cached layers
-                    String status = item.getStatus();
-                    if ("Pull complete".equalsIgnoreCase(status)
-                        || "Already exists".equalsIgnoreCase(status)) {
-                      completedLayers.add(item.getId());
-                    }
-
-                    int n = completedLayers.size();
-                    int m = allLayers.size();
-
-                    // Only log/update when N or M actually changes
-                    if (n != lastN.get() || m != lastM.get()) {
-                      LOG.info(
-                          "Status update for {}: PULLING ({} of {} layers)",
-                          profileConfig.getName(),
-                          n,
-                          m);
-
-                      // Keep percent if your DTO expects it; UI can display "n/m"
-                      int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
-                      profileStatusService.updateStatus(
-                          profileConfig.getName(), "PULLING", percent, n, m);
-
-                      lastN.set(n);
-                      lastM.set(m);
-                    }
-                  }
-                  super.onNext(item);
-                }
-              })
+          .exec(getPullProgress(profileConfig))
           .awaitCompletion(10, TimeUnit.MINUTES);
 
-      // Ensure final completion
       profileStatusService.updateStatus(profileConfig.getName(), "PULLING", 100);
 
     } catch (NotFoundException e) {
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     } catch (RuntimeException e) {
       LOG.warn("Couldn't pull image", e);
-      // typically, network offline, for local use we can continue.
+      // Typically, network offline; for local use we can continue.
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     }
+  }
+
+  private PullImageResultCallback getPullProgress(ProfileConfig profileConfig) {
+    Set<String> allLayers = ConcurrentHashMap.newKeySet();
+    Set<String> completedLayers = ConcurrentHashMap.newKeySet();
+
+    AtomicInteger lastN = new AtomicInteger(-1);
+    AtomicInteger lastM = new AtomicInteger(-1);
+
+    return new PullImageResultCallback() {
+      @Override
+      public void onNext(PullResponseItem item) {
+        if (item.getId() != null) {
+          allLayers.add(item.getId());
+
+          String status = item.getStatus();
+          if ("Pull complete".equalsIgnoreCase(status)
+              || "Already exists".equalsIgnoreCase(status)) {
+            completedLayers.add(item.getId());
+          }
+
+          int n = completedLayers.size();
+          int m = allLayers.size();
+
+          // Only log/update when N or M actually changes
+          if (n != lastN.get() || m != lastM.get()) {
+            LOG.info(
+                "Status update for {}: PULLING ({} of {} layers)", profileConfig.getName(), n, m);
+
+            int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
+            profileStatusService.updateStatus(profileConfig.getName(), "PULLING", percent, n, m);
+
+            lastN.set(n);
+            lastM.set(m);
+          }
+        }
+        super.onNext(item);
+      }
+    };
   }
 
   public void removeProfile(String profileName) {
