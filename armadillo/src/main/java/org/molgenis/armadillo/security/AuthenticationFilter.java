@@ -14,6 +14,12 @@ import org.springframework.web.filter.GenericFilterBean;
 
 public class AuthenticationFilter extends GenericFilterBean {
 
+  private String AUTH_TOKEN;
+
+  public void setAuthToken(String authToken) {
+    AUTH_TOKEN = authToken;
+  }
+
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) {
     try {
@@ -25,7 +31,7 @@ public class AuthenticationFilter extends GenericFilterBean {
             && !URI.equals("/actuator/info")
             && !URI.equals("/actuator/health")) {
           Authentication authentication =
-              AuthenticationService.getAuthentication((HttpServletRequest) request);
+              AuthenticationService.getAuthentication((HttpServletRequest) request, AUTH_TOKEN);
           SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

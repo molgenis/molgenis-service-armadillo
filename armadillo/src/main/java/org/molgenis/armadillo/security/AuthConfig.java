@@ -21,6 +21,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -56,28 +58,10 @@ public class AuthConfig {
   @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
   private String oidcClientId;
 
-  //  @Bean(name = "tokenAuth")
-  //  @Order(1)
-  //  protected SecurityFilterChain tokenAuth(HttpSecurity http) throws Exception {
-  //    http.csrf(AbstractHttpConfigurer::disable)
-  //        .authorizeHttpRequests(
-  //            authorizationManagerRequestMatcherRegistry ->
-  //                authorizationManagerRequestMatcherRegistry
-  //                    .requestMatchers("/actuator/prometheus")
-  //                    .authenticated())
-  //        .httpBasic(Customizer.withDefaults())
-  //        .sessionManagement(
-  //            httpSecuritySessionManagementConfigurer ->
-  //                httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
-  //                    SessionCreationPolicy.STATELESS))
-  //        .addFilterBefore(new AuthenticationFilter(),
-  // UsernamePasswordAuthenticationFilter.class);
-  //    return http.build();
-  //  }
-
   @Order(1)
   @Bean
-  protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
+  protected SecurityFilterChain oauthAndBasic(
+      HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
     http.authorizeHttpRequests(
@@ -134,11 +118,18 @@ public class AuthConfig {
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
-    //    http.sessionManagement(
-    //                        httpSecuritySessionManagementConfigurer ->
-    //                            httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
-    //                                SessionCreationPolicy.STATELESS));
-    http.addFilterBefore(new AuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+    try {
+      SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+      SecurityContextHolder.setContext(ctx);
+      AuthenticationFilter authFilter = new AuthenticationFilter();
+      authFilter.setAuthToken(authToken);
+      http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
+      // Do what ever you want to do
+
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
+
     return http.build();
   }
 
