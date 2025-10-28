@@ -1,8 +1,18 @@
 <template>
-  <div v-if="visible" class="alert alert-info mt-2">
-    {{ props.status?.state }} - {{ props.status?.percent }}%
+  <div
+    v-if="visible && props.status?.globalStatus === 'Installing'"
+    class="alert alert-info mt-2"
+    style="display: flex; align-items: center"
+  >
+    {{ props.status?.globalStatus }}&nbsp;
     <span v-if="props.status && props.status.completedLayers !== null">
-      ({{ props.status.completedLayers }}/{{ props.status.totalLayers }} layers)
+      layer {{ props.status.completedLayers }}/{{
+        props.status.totalLayers
+      }}
+      ({{ props.status?.totalPercent }}%)
+    </span>
+    <span v-if="props.status?.layerStatus && props.status?.layerPercent">
+      &nbsp;| {{ props.status?.layerStatus }}
     </span>
   </div>
 </template>
@@ -10,6 +20,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { ProfileStartStatus } from "@/types/api";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -27,7 +38,7 @@ watch(
   () => props.status,
   (newVal) => {
     // suppress repeated 100% without touching the hide timer
-    if (newVal && newVal.percent === 100 && shownComplete.value) return;
+    if (newVal && newVal.totalPercent === 100 && shownComplete.value) return;
 
     // clear pending timer for other updates
     if (hideTimer.value !== null) {
@@ -36,7 +47,7 @@ watch(
     }
 
     if (newVal) {
-      if (newVal.percent < 100) {
+      if (newVal.totalPercent < 100) {
         // in progress: keep visible continuously
         visible.value = true;
         shownComplete.value = false; // reset for next cycle

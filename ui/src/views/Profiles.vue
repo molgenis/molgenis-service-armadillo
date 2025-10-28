@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
-        <ProfileStatusMessage :status="profileStatus" />
+        <ProfileStatusMessage :status="profileStatus.value" />
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
@@ -277,9 +277,9 @@ export default defineComponent({
     const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
-    const loadingProfile = ref("donkey");
-    const { status: profileStatus } = useProfileStatus(loadingProfile);
     const router = useRouter();
+    const loadingProfile = ref(""); // reactive profile name
+    const { status: profileStatus } = useProfileStatus(loadingProfile);
     onMounted(async () => {
       await loadProfiles();
     });
@@ -318,7 +318,6 @@ export default defineComponent({
       loadProfiles,
       dockerManagementEnabled,
       convertBytes,
-      profileStatus,
     };
   },
   data(): ProfilesData {
@@ -414,6 +413,9 @@ export default defineComponent({
       }
 
       return columns;
+    },
+    profileStatus(): ReturnType<typeof useProfileStatus>["status"] {
+      return useProfileStatus(ref(this.loadingProfile)).status;
     },
   },
   watch: {

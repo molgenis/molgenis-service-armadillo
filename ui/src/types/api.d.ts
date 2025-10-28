@@ -146,8 +146,10 @@ export type Workspace = {
 };
 
 export type ProfileStartStatus = {
-  state: string;
-  percent: number;
+  globalStatus: string;
+  totalPercent: number;
   completedLayers: number | null;
   totalLayers: number | null;
+  layerStatus: string;
+  layerPercent: number;
 };
