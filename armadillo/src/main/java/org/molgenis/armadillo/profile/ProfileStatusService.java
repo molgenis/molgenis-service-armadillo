@@ -13,8 +13,8 @@ public class ProfileStatusService {
   // New: full update (percent + layers)
   public void updateStatus(
       String profileName,
-      String state,
-      int percent,
+      String globalStatus,
+      int totalPercent,
       Integer completedLayers,
       Integer totalLayers,
       String layerStatus,
@@ -22,12 +22,12 @@ public class ProfileStatusService {
     statuses.put(
         profileName,
         new ProfileStartStatus(
-            state, percent, completedLayers, totalLayers, layerStatus, layerPercent));
+            globalStatus, totalPercent, completedLayers, totalLayers, layerStatus, layerPercent));
   }
 
   // Back-compat helper if you ever call without layer counts
-  public void updateStatus(String profileName, String state, int percent) {
-    updateStatus(profileName, state, percent, null, null, null, null);
+  public void updateStatus(String profileName, String globalStatus, int totalPercent) {
+    updateStatus(profileName, globalStatus, totalPercent, null, null, null, null);
   }
 
   public ProfileStartStatus getStatus(String profileName) {

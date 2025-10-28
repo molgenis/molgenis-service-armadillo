@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.metadata;
 
 public class ProfileStartStatus {
-  private String globalState;
+  private String globalStatus;
   private int totalPercent;
   private Integer completedLayers; // null when not applicable
   private Integer totalLayers; // null when not applicable
@@ -9,13 +9,13 @@ public class ProfileStartStatus {
   private Integer layerPercent;
 
   public ProfileStartStatus(
-      String globalState,
+      String globalStatus,
       int totalPercent,
       Integer completedLayers,
       Integer totalLayers,
       String layerStatus,
       Integer layerPercent) {
-    this.globalState = globalState;
+    this.globalStatus = globalStatus;
     this.totalPercent = totalPercent;
     this.completedLayers = completedLayers;
     this.totalLayers = totalLayers;
@@ -23,8 +23,8 @@ public class ProfileStartStatus {
     this.layerPercent = layerPercent;
   }
 
-  public String getState() {
-    return globalState;
+  public String getGlobalStatus() {
+    return globalStatus;
   }
 
   public int getPercent() {
@@ -47,8 +47,8 @@ public class ProfileStartStatus {
     return layerPercent;
   }
 
-  public void setState(String state) {
-    this.globalState = state;
+  public void setState(String globalStatus) {
+    this.globalStatus = globalStatus;
   }
 
   public void setPercent(int percent) {
