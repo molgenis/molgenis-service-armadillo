@@ -27,7 +27,7 @@ public class ProfileStartStatus {
     return globalStatus;
   }
 
-  public int getPercent() {
+  public int getTotalPercent() {
     return totalPercent;
   }
 
@@ -51,8 +51,8 @@ public class ProfileStartStatus {
     this.globalStatus = globalStatus;
   }
 
-  public void setPercent(int percent) {
-    this.totalPercent = percent;
+  public void setPercent(int totalPercent) {
+    this.totalPercent = totalPercent;
   }
 
   public void setCompletedLayers(Integer completedLayers) {

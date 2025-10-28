@@ -158,10 +158,7 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
-    profileStatusService.updateStatus(profileName, "PULLING", 0, 0, 0, "DOWNLOADING", 0);
     pullImage(profileConfig); // this now updates progress percentages
-
-    profileStatusService.updateStatus(profileName, "STARTING", 100, null, null, "COMPLETED", 100);
     stopContainer(containerName);
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
@@ -382,13 +379,9 @@ public class DockerService {
           int n = completedLayers.size();
           int m = allLayers.size();
 
-          LOG.info(
-              "Status update for {}: PULLING ({} of {} layers)", profileConfig.getName(), n, m);
-
           int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
           profileStatusService.updateStatus(
-              profileConfig.getName(), "PULLING", percent, n, m, status, progressPercent);
-          LOG.info("Profile status update call completed");
+              profileConfig.getName(), "Installing", percent, n, m, status, progressPercent);
         }
         super.onNext(item);
       }
