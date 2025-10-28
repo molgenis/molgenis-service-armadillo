@@ -30,7 +30,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
@@ -62,7 +61,6 @@ public class AuthConfig {
       HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
     http.authorizeHttpRequests(
         requests ->
-            //                requests.requestMatchers("/**").authenticated());
             requests
                 .requestMatchers(
                     "/",
@@ -88,7 +86,7 @@ public class AuthConfig {
     http.cors(Customizer.withDefaults());
     AuthenticationFilter authFilter = new AuthenticationFilter();
     authFilter.setAuthToken(authToken);
-    http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
+    http.addFilterAfter(authFilter, BasicAuthenticationFilter.class);
     http.httpBasic(
         httpBasicConfigurer ->
             httpBasicConfigurer
