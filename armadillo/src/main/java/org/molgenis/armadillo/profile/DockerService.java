@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
@@ -159,10 +158,10 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
-    profileStatusService.updateStatus(profileName, "PULLING", 0, 0, 0);
+    profileStatusService.updateStatus(profileName, "PULLING", 0, 0, 0, "DOWNLOADING", 0);
     pullImage(profileConfig); // this now updates progress percentages
 
-    profileStatusService.updateStatus(profileName, "STARTING", 100, null, null);
+    profileStatusService.updateStatus(profileName, "STARTING", 100, null, null, "COMPLETED", 100);
     stopContainer(containerName);
     removeContainer(containerName); // for reinstall
     installImage(profileConfig);
@@ -346,9 +345,6 @@ public class DockerService {
     Set<String> allLayers = ConcurrentHashMap.newKeySet();
     Set<String> completedLayers = ConcurrentHashMap.newKeySet();
 
-    AtomicInteger lastN = new AtomicInteger(-1);
-    AtomicInteger lastM = new AtomicInteger(-1);
-
     return new PullImageResultCallback() {
       @Override
       public void onNext(PullResponseItem item) {
@@ -356,6 +352,28 @@ public class DockerService {
           allLayers.add(item.getId());
 
           String status = item.getStatus();
+
+          // Calculate per-layer download percentage if available
+          int progressPercent = 0;
+          if (item.getProgressDetail() != null
+              && item.getProgressDetail().getTotal() != null
+              && item.getProgressDetail().getTotal() > 0) {
+            long current =
+                item.getProgressDetail().getCurrent() != null
+                    ? item.getProgressDetail().getCurrent()
+                    : 0;
+            long total = item.getProgressDetail().getTotal();
+            progressPercent = (int) Math.floor((current * 100.0) / total);
+          }
+
+          // Log per-layer status with percentage
+          LOG.info(
+              "Layer {}/{} status: {}{}",
+              completedLayers.size() + 1, // approximate layer number
+              allLayers.size(),
+              status,
+              progressPercent > 0 ? " (" + progressPercent + "%)" : "");
+
           if ("Pull complete".equalsIgnoreCase(status)
               || "Already exists".equalsIgnoreCase(status)) {
             completedLayers.add(item.getId());
@@ -364,17 +382,13 @@ public class DockerService {
           int n = completedLayers.size();
           int m = allLayers.size();
 
-          // Only log/update when N or M actually changes
-          if (n != lastN.get() || m != lastM.get()) {
-            LOG.info(
-                "Status update for {}: PULLING ({} of {} layers)", profileConfig.getName(), n, m);
+          LOG.info(
+              "Status update for {}: PULLING ({} of {} layers)", profileConfig.getName(), n, m);
 
-            int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
-            profileStatusService.updateStatus(profileConfig.getName(), "PULLING", percent, n, m);
-
-            lastN.set(n);
-            lastM.set(m);
-          }
+          int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
+          profileStatusService.updateStatus(
+              profileConfig.getName(), "PULLING", percent, n, m, status, progressPercent);
+          LOG.info("Profile status update call completed");
         }
         super.onNext(item);
       }

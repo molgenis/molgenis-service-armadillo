@@ -1,25 +1,34 @@
 package org.molgenis.armadillo.metadata;
 
 public class ProfileStartStatus {
-  private String state; // "PULLING", "STARTING", "UNKNOWN"
-  private int percent; // 0–100
+  private String globalState;
+  private int totalPercent;
   private Integer completedLayers; // null when not applicable
   private Integer totalLayers; // null when not applicable
+  private String layerStatus;
+  private Integer layerPercent;
 
   public ProfileStartStatus(
-      String state, int percent, Integer completedLayers, Integer totalLayers) {
-    this.state = state;
-    this.percent = percent;
+      String globalState,
+      int totalPercent,
+      Integer completedLayers,
+      Integer totalLayers,
+      String layerStatus,
+      Integer layerPercent) {
+    this.globalState = globalState;
+    this.totalPercent = totalPercent;
     this.completedLayers = completedLayers;
     this.totalLayers = totalLayers;
+    this.layerStatus = layerStatus;
+    this.layerPercent = layerPercent;
   }
 
   public String getState() {
-    return state;
+    return globalState;
   }
 
   public int getPercent() {
-    return percent;
+    return totalPercent;
   }
 
   public Integer getCompletedLayers() {
@@ -30,12 +39,20 @@ public class ProfileStartStatus {
     return totalLayers;
   }
 
+  public String getLayerStatus() {
+    return layerStatus;
+  }
+
+  public Integer getLayerPercent() {
+    return layerPercent;
+  }
+
   public void setState(String state) {
-    this.state = state;
+    this.globalState = state;
   }
 
   public void setPercent(int percent) {
-    this.percent = percent;
+    this.totalPercent = percent;
   }
 
   public void setCompletedLayers(Integer completedLayers) {
@@ -44,5 +61,13 @@ public class ProfileStartStatus {
 
   public void setTotalLayers(Integer totalLayers) {
     this.totalLayers = totalLayers;
+  }
+
+  public void setLayerStatus(String layerStatus) {
+    this.layerStatus = layerStatus;
+  }
+
+  public void setLayerPercent(Integer layerPercent) {
+    this.layerPercent = layerPercent;
   }
 }
