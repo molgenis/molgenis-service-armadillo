@@ -3,7 +3,10 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
-        <ProfileStatusMessage :status="profileStatus.value" />
+        <ProfileStatusMessage
+          :status="profileStatus.value"
+          :profileName="loadingProfile"
+        />
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"

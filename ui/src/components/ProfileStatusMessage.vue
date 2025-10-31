@@ -1,10 +1,10 @@
 <template>
   <div
-    v-if="visible && props.status?.globalStatus === 'Installing'"
+    v-if="visible && props.status?.globalStatus === 'Installing profile'"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center"
   >
-    {{ props.status?.globalStatus }}&nbsp;
+    {{ props.status?.globalStatus }} "{{ props.profileName }}" &nbsp;
     <span v-if="props.status && props.status.completedLayers !== null">
       layer {{ props.status.completedLayers }}/{{
         props.status.totalLayers
@@ -26,6 +26,7 @@ const props = withDefaults(
   defineProps<{
     status: ProfileStartStatus | null;
     timeout?: number;
+    profileName: string;
   }>(),
   { timeout: 2000 }
 );
