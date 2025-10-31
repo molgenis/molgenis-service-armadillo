@@ -75,7 +75,6 @@ public class AuthConfig {
                     "/swagger-ui/**",
                     "/ui/**",
                     "/ds-profiles/status",
-                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
