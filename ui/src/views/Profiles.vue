@@ -37,7 +37,9 @@
             type="button"
             class="btn btn-sm me-1 btn-primary bg-primary"
             @click="addNewProfile"
-            :disabled="profileToEdit !== '' || profileToEditIndex === 0"
+            :disabled="
+              profileToEdit !== '' || profileToEditIndex === 0 || loading
+            "
           >
             <i class="bi bi-plus-lg"></i>
           </button>
