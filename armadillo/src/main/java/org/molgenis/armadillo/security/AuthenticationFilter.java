@@ -34,9 +34,9 @@ public class AuthenticationFilter extends GenericFilterBean {
               AuthenticationService.getAuthentication((HttpServletRequest) request, AUTH_TOKEN);
           SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response);
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        filterChain.doFilter(request, response);
       }
     } catch (Exception exp) {
       HttpServletResponse httpResponse = (HttpServletResponse) response;

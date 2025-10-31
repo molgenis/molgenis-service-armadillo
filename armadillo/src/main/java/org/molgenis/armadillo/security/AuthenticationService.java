@@ -15,19 +15,14 @@ public class AuthenticationService {
     SecurityContextImpl context =
         (SecurityContextImpl) request.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
 
-    // TODO: Why doesn't prometheus work anymore? Actually, I get 401 now! (why?!) it's better
-    // though!
-
     if (authHeader != null) {
-      if (authHeader.startsWith("Bearer ")) {
-        // TODO: check if context is available when using token authentication, maybe this if else
-        // can go if context is there
-        System.out.println("OAuth!");
-      } else if (authHeader.startsWith("Basic ")) {
-        System.out.println("Basic auth!");
+      if (authHeader.startsWith("Bearer ") || authHeader.startsWith("Basic ")) {
+        // TODO: Do we need to set authorities?
+        return new ApiKeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES);
       }
-      return new ApiKeyAuthentication(authHeader, context.getAuthentication().getAuthorities());
-    } else if (context.getAuthentication().getPrincipal() != null
+    } else if (context != null
+        && context.getAuthentication() != null
+        && context.getAuthentication().getPrincipal() != null
         && context.getAuthentication().getPrincipal() != "anonymousUser"
         && context.getAuthentication().isAuthenticated()) {
       // TODO: check if this is sufficient (rename ApiKeyAuthentication???)
