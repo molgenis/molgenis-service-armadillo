@@ -13,6 +13,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.time.Instant;
@@ -23,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
@@ -337,57 +339,68 @@ public class DockerService {
   }
 
   private PullImageResultCallback getPullProgress(ProfileConfig profileConfig) {
-    Set<String> allLayers = ConcurrentHashMap.newKeySet();
-    Set<String> completedLayers = ConcurrentHashMap.newKeySet();
+    final Set<String> seen = ConcurrentHashMap.newKeySet();
+    final Set<String> done = ConcurrentHashMap.newKeySet(); // Pull complete
+    final Set<String> cached = ConcurrentHashMap.newKeySet(); // Already exists
+    final AtomicInteger lastPct = new AtomicInteger(0);
 
     return new PullImageResultCallback() {
       @Override
       public void onNext(PullResponseItem item) {
-        if (item.getId() != null) {
-          allLayers.add(item.getId());
-
-          String status = item.getStatus();
-
-          // Calculate per-layer download percentage if available
-          int progressPercent = 0;
-          if (item.getProgressDetail() != null
-              && item.getProgressDetail().getTotal() != null
-              && item.getProgressDetail().getTotal() > 0) {
-            long current =
-                item.getProgressDetail().getCurrent() != null
-                    ? item.getProgressDetail().getCurrent()
-                    : 0;
-            long total = item.getProgressDetail().getTotal();
-            progressPercent = (int) Math.floor((current * 100.0) / total);
-          }
-
-          // Log per-layer status with percentage
-          LOG.info(
-              "Layer {}/{} status: {}{}",
-              completedLayers.size() + 1, // approximate layer number
-              allLayers.size(),
-              status,
-              progressPercent > 0 ? " (" + progressPercent + "%)" : "");
-
-          if ("Pull complete".equalsIgnoreCase(status)
-              || "Already exists".equalsIgnoreCase(status)) {
-            completedLayers.add(item.getId());
-          }
-
-          int n = completedLayers.size();
-          int m = allLayers.size();
-
-          int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
-          profileStatusService.updateStatus(
-              profileConfig.getName(),
-              "Installing profile",
-              percent,
-              n,
-              m,
-              status,
-              progressPercent);
+        final String id = item.getId();
+        if (id == null) {
+          super.onNext(item);
+          return;
         }
+
+        seen.add(id);
+        final String status = String.valueOf(item.getStatus());
+
+        if ("Pull complete".equalsIgnoreCase(status)) {
+          done.add(id);
+        } else if ("Already exists".equalsIgnoreCase(status)) {
+          cached.add(id);
+        }
+
+        int completed = done.size() + cached.size();
+        int total = Math.max(1, seen.size());
+        int pct = (int) Math.floor((completed * 100.0) / total);
+
+        // monotonic, cap at 99 in-stream
+        pct = Math.min(99, Math.max(lastPct.get(), pct));
+        lastPct.set(pct);
+
+        profileStatusService.updateStatus(
+            profileConfig.getName(),
+            "Installing profile",
+            pct,
+            completed,
+            total,
+            status,
+            0 /* per-layer % not used */);
+
         super.onNext(item);
+      }
+
+      @Override
+      public void onComplete() {
+        lastPct.set(100);
+        profileStatusService.updateStatus(
+            profileConfig.getName(), "Profile installed", 100, 0, 0, "Complete", 100);
+        super.onComplete();
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        profileStatusService.updateStatus(
+            profileConfig.getName(),
+            "Install failed",
+            Math.min(99, lastPct.get()),
+            0,
+            0,
+            "Error",
+            0);
+        super.onError(t);
       }
     };
   }
