@@ -2,18 +2,27 @@
   <div
     v-if="visible && props.status?.globalStatus === 'Installing profile'"
     class="alert alert-info mt-2"
-    style="display: flex; align-items: center"
+    style="display: flex; align-items: center; gap: 0.5rem"
   >
-    {{ props.status?.globalStatus }} "{{ props.profileName }}" &nbsp;
-    <span v-if="props.status && props.status.completedLayers !== null">
-      layer {{ props.status.completedLayers }}/{{
-        props.status.totalLayers
-      }}
-      ({{ props.status?.totalPercent }}%)
-    </span>
-    <span v-if="props.status?.layerStatus && props.status?.layerPercent">
-      &nbsp;| {{ props.status?.layerStatus }}
-    </span>
+    {{ props.status.globalStatus }} '{{ props.profileName }}'
+
+    <div
+      class="progress flex-grow-1"
+      role="progressbar"
+      aria-label="Progress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      style="height: 1rem"
+    >
+      <div
+        class="progress-bar"
+        role="progressbar"
+        :aria-valuenow="props.status.totalPercent"
+        :style="{ width: props.status.totalPercent + '%' }"
+      >
+        {{ props.status.totalPercent }}%
+      </div>
+    </div>
   </div>
 </template>
 
