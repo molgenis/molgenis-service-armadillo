@@ -317,31 +317,51 @@ export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
 
-export function useProfileStatus(profileName: Ref<string>, intervalMs = 1000) {
-  const status = ref<any | null>(null);
+import type { ProfileStartStatus } from "@/types/api";
+
+export function useProfileStatus() {
+  const status: Ref<ProfileStartStatus | null> = ref(null);
   let timer: number | undefined;
+  let lastPercent = 0; // <-- track highest percent this session
 
   async function fetchStatus(name: string) {
     if (!name) return;
     try {
-      status.value = await getProfileStatus(name);
+      const result = await getProfileStatus(name);
+
+      // Coerce percent and clamp to monotonic
+      const raw = Math.max(0, Math.min(100, Number(result?.totalPercent ?? 0)));
+      const monotonic = Math.max(lastPercent, raw);
+      lastPercent = monotonic;
+
+      status.value = {
+        ...result,
+        totalPercent: monotonic,
+      } as ProfileStartStatus;
+
+      if (monotonic === 100) stopPolling();
     } catch (e) {
       console.error("Failed to fetch profile status", e);
+      stopPolling();
     }
   }
 
-  function startPolling(name: string) {
-    if (timer) clearInterval(timer);
+  function startPolling(name: string, intervalMs = 1000) {
+    stopPolling();
     if (!name) return;
+    lastPercent = 0; // <-- reset for a new run
+    status.value = null;
     fetchStatus(name);
     timer = window.setInterval(() => fetchStatus(name), intervalMs);
   }
 
-  onMounted(() => startPolling(profileName.value));
-  watchEffect(() => startPolling(profileName.value));
-  onUnmounted(() => {
-    if (timer) clearInterval(timer);
-  });
+  function stopPolling() {
+    if (timer !== undefined) {
+      clearInterval(timer);
+      timer = undefined;
+    }
+  }
 
-  return { status };
+  onUnmounted(() => stopPolling());
+  return { status, startPolling, stopPolling };
 }

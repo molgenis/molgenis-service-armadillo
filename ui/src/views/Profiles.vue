@@ -4,7 +4,7 @@
       <div class="col">
         <!-- Error messages will appear here -->
         <ProfileStatusMessage
-          :status="profileStatus.value"
+          :status="profileStatus"
           :profileName="loadingProfile"
         />
         <FeedbackMessage
@@ -284,7 +284,11 @@ export default defineComponent({
     const dockerManagementEnabled: Ref<boolean> = ref(false);
     const router = useRouter();
     const loadingProfile = ref(""); // reactive profile name
-    const { status: profileStatus } = useProfileStatus(loadingProfile);
+    const {
+      status: profileStatus,
+      startPolling,
+      stopPolling,
+    } = useProfileStatus();
     onMounted(async () => {
       await loadProfiles();
     });
@@ -323,6 +327,9 @@ export default defineComponent({
       loadProfiles,
       dockerManagementEnabled,
       convertBytes,
+      profileStatus,
+      startPolling,
+      stopPolling,
     };
   },
   data(): ProfilesData {
@@ -418,9 +425,6 @@ export default defineComponent({
       }
 
       return columns;
-    },
-    profileStatus(): ReturnType<typeof useProfileStatus>["status"] {
-      return useProfileStatus(ref(this.loadingProfile)).status;
     },
   },
   watch: {
@@ -581,17 +585,21 @@ export default defineComponent({
       this.errorMessage = "";
     },
     startProfile(name: string) {
+      console.log("Calling startPolling for profile:", name);
       this.clearUserMessages();
       this.loading = true;
       this.loadingProfile = name;
+      this.startPolling(name);
       startProfile(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully started.`;
           this.reloadProfiles();
+          this.stopPolling();
         })
         .catch((error) => {
           this.errorMessage = `Could not start [${name}]: ${error}.`;
           this.clearLoading();
+          this.stopPolling();
         });
     },
     stopProfile(name: string) {
@@ -606,6 +614,7 @@ export default defineComponent({
         .catch((error) => {
           this.errorMessage = `Could not stop [${name}]: ${error}.`;
           this.clearLoading();
+          this.stopPolling();
         });
     },
     updateAutoUpdate(profile: Profile, currentValue: boolean) {
