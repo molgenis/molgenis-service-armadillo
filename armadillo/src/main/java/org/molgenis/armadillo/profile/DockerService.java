@@ -325,8 +325,6 @@ public class DockerService {
           .exec(getPullProgress(profileConfig))
           .awaitCompletion(10, TimeUnit.MINUTES);
 
-      profileStatusService.updateStatus(profileConfig.getName(), "PULLING", 100);
-
     } catch (NotFoundException e) {
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     } catch (RuntimeException e) {
@@ -381,7 +379,13 @@ public class DockerService {
 
           int percent = (m == 0) ? 0 : (int) Math.floor((n * 100.0) / m);
           profileStatusService.updateStatus(
-              profileConfig.getName(), "Installing", percent, n, m, status, progressPercent);
+              profileConfig.getName(),
+              "Installing profile",
+              percent,
+              n,
+              m,
+              status,
+              progressPercent);
         }
         super.onNext(item);
       }
