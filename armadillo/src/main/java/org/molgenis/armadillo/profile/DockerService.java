@@ -364,7 +364,6 @@ public class DockerService {
 
         int completed = done.size();
         int total = Math.max(1, seen.size());
-        int pct = (int) Math.floor((done.size() * 100.0) / total);
 
         profileStatusService.updateStatus(
             profileConfig.getName(), "Installing profile", completed, total);
