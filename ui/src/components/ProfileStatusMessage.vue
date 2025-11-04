@@ -17,10 +17,10 @@
       <div
         class="progress-bar"
         role="progressbar"
-        :aria-valuenow="current?.totalPercent ?? 0"
-        :style="{ width: (current?.totalPercent ?? 0) + '%' }"
+        :aria-valuenow="perc"
+        :style="{ width: perc + '%' }"
       >
-        {{ current?.totalPercent ?? 0 }}%
+        {{ perc }}%
       </div>
     </div>
   </div>
@@ -46,6 +46,13 @@ const current = computed<ProfileStartStatus | null>(() => unref(props.status));
 const visible = ref(false);
 const shownComplete = ref(false);
 const hideTimer = ref<number | null>(null);
+const perc = computed(() =>
+  Math.round(
+    ((current.value?.completedLayers ?? 0) /
+      (current.value?.totalLayers || 1)) *
+      100
+  )
+);
 
 watch(
   () => current.value,
