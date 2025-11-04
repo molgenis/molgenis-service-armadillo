@@ -594,12 +594,10 @@ export default defineComponent({
         .then(() => {
           this.successMessage = `[${name}] was successfully started.`;
           this.reloadProfiles();
-          this.stopPolling();
         })
         .catch((error) => {
           this.errorMessage = `Could not start [${name}]: ${error}.`;
           this.clearLoading();
-          this.stopPolling();
         });
     },
     stopProfile(name: string) {
