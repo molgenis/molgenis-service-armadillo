@@ -374,8 +374,8 @@ public class DockerService {
       @Override
       public void onComplete() {
         lastPct.set(100);
-        profileStatusService.updateStatus(profileConfig.getName(), "Installing profile", 100, 0);
-        profileStatusService.updateStatus(profileConfig.getName(), "Profile installed", 100, 0);
+        profileStatusService.updateStatus(profileConfig.getName(), "Installing profile");
+        profileStatusService.updateStatus(profileConfig.getName(), "Profile installed");
         super.onComplete();
       }
     };
