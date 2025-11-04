@@ -322,6 +322,9 @@ public class DockerService {
     }
 
     try {
+      profileStatusService.updateStatus(
+          profileConfig.getName(), "Preparing to install profile", 0, 0);
+
       dockerClient
           .pullImageCmd(profileConfig.getImage())
           .exec(getPullProgress(profileConfig))
@@ -340,8 +343,7 @@ public class DockerService {
 
   private PullImageResultCallback getPullProgress(ProfileConfig profileConfig) {
     final Set<String> seen = ConcurrentHashMap.newKeySet();
-    final Set<String> done = ConcurrentHashMap.newKeySet(); // Pull complete
-    final Set<String> cached = ConcurrentHashMap.newKeySet(); // Already exists
+    final Set<String> done = ConcurrentHashMap.newKeySet();
     final AtomicInteger lastPct = new AtomicInteger(0);
 
     return new PullImageResultCallback() {
@@ -356,28 +358,16 @@ public class DockerService {
         seen.add(id);
         final String status = String.valueOf(item.getStatus());
 
-        if ("Pull complete".equalsIgnoreCase(status)) {
+        if ("Pull complete".equalsIgnoreCase(status) || "Already exists".equalsIgnoreCase(status)) {
           done.add(id);
-        } else if ("Already exists".equalsIgnoreCase(status)) {
-          cached.add(id);
         }
 
-        int completed = done.size() + cached.size();
+        int completed = done.size();
         int total = Math.max(1, seen.size());
-        int pct = (int) Math.floor((completed * 100.0) / total);
-
-        // monotonic, cap at 99 in-stream
-        pct = Math.min(99, Math.max(lastPct.get(), pct));
-        lastPct.set(pct);
+        int pct = (int) Math.floor((done.size() * 100.0) / total);
 
         profileStatusService.updateStatus(
-            profileConfig.getName(),
-            "Installing profile",
-            pct,
-            completed,
-            total,
-            status,
-            0 /* per-layer % not used */);
+            profileConfig.getName(), "Installing profile", completed, total);
 
         super.onNext(item);
       }
@@ -385,22 +375,9 @@ public class DockerService {
       @Override
       public void onComplete() {
         lastPct.set(100);
-        profileStatusService.updateStatus(
-            profileConfig.getName(), "Profile installed", 100, 0, 0, "Complete", 100);
+        profileStatusService.updateStatus(profileConfig.getName(), "Installing profile", 100, 0);
+        profileStatusService.updateStatus(profileConfig.getName(), "Profile installed", 100, 0);
         super.onComplete();
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        profileStatusService.updateStatus(
-            profileConfig.getName(),
-            "Install failed",
-            Math.min(99, lastPct.get()),
-            0,
-            0,
-            "Error",
-            0);
-        super.onError(t);
       }
     };
   }

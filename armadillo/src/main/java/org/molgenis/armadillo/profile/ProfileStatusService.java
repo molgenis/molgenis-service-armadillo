@@ -10,28 +10,14 @@ public class ProfileStatusService {
 
   private final Map<String, ProfileStartStatus> statuses = new ConcurrentHashMap<>();
 
-  // New: full update (percent + layers)
   public void updateStatus(
-      String profileName,
-      String globalStatus,
-      int totalPercent,
-      Integer completedLayers,
-      Integer totalLayers,
-      String layerStatus,
-      Integer layerPercent) {
+      String profileName, String status, Integer completedLayers, Integer totalLayers) {
     statuses.put(
-        profileName,
-        new ProfileStartStatus(
-            globalStatus, totalPercent, completedLayers, totalLayers, layerStatus, layerPercent));
-  }
-
-  // Back-compat helper if you ever call without layer counts
-  public void updateStatus(String profileName, String globalStatus, int totalPercent) {
-    updateStatus(profileName, globalStatus, totalPercent, null, null, null, null);
+        profileName, new ProfileStartStatus(profileName, status, completedLayers, totalLayers));
   }
 
   public ProfileStartStatus getStatus(String profileName) {
     return statuses.getOrDefault(
-        profileName, new ProfileStartStatus("UNKNOWN", 0, null, null, null, null));
+        profileName, new ProfileStartStatus("UNKNOWN", "UNKNOWN", null, null));
   }
 }

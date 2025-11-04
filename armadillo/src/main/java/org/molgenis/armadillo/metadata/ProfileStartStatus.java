@@ -1,34 +1,25 @@
 package org.molgenis.armadillo.metadata;
 
 public class ProfileStartStatus {
-  private String globalStatus;
-  private int totalPercent;
-  private Integer completedLayers; // null when not applicable
-  private Integer totalLayers; // null when not applicable
-  private String layerStatus;
-  private Integer layerPercent;
+  private String profileName;
+  private String status;
+  private Integer completedLayers;
+  private Integer totalLayers;
 
   public ProfileStartStatus(
-      String globalStatus,
-      int totalPercent,
-      Integer completedLayers,
-      Integer totalLayers,
-      String layerStatus,
-      Integer layerPercent) {
-    this.globalStatus = globalStatus;
-    this.totalPercent = totalPercent;
+      String profileName, String status, Integer completedLayers, Integer totalLayers) {
+    this.profileName = profileName;
+    this.status = status;
     this.completedLayers = completedLayers;
     this.totalLayers = totalLayers;
-    this.layerStatus = layerStatus;
-    this.layerPercent = layerPercent;
   }
 
-  public String getGlobalStatus() {
-    return globalStatus;
+  public String getProfileName() {
+    return profileName;
   }
 
-  public int getTotalPercent() {
-    return totalPercent;
+  public String getStatus() {
+    return status;
   }
 
   public Integer getCompletedLayers() {
@@ -39,20 +30,12 @@ public class ProfileStartStatus {
     return totalLayers;
   }
 
-  public String getLayerStatus() {
-    return layerStatus;
+  public void setProfileName(String profileName) {
+    this.profileName = profileName;
   }
 
-  public Integer getLayerPercent() {
-    return layerPercent;
-  }
-
-  public void setState(String globalStatus) {
-    this.globalStatus = globalStatus;
-  }
-
-  public void setPercent(int totalPercent) {
-    this.totalPercent = totalPercent;
+  public void setStatus(String status) {
+    this.status = status;
   }
 
   public void setCompletedLayers(Integer completedLayers) {
@@ -61,13 +44,5 @@ public class ProfileStartStatus {
 
   public void setTotalLayers(Integer totalLayers) {
     this.totalLayers = totalLayers;
-  }
-
-  public void setLayerStatus(String layerStatus) {
-    this.layerStatus = layerStatus;
-  }
-
-  public void setLayerPercent(Integer layerPercent) {
-    this.layerPercent = layerPercent;
   }
 }
