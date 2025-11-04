@@ -160,9 +160,11 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
-    pullImage(profileConfig); // this now updates progress percentages
+    profileStatusService.updateStatus(profileName, null, null, null);
+    pullImage(profileConfig);
+    profileStatusService.updateStatus(profileName, "Profile installed", null, null);
     stopContainer(containerName);
-    removeContainer(containerName); // for reinstall
+    removeContainer(containerName);
     installImage(profileConfig);
     startContainer(containerName);
 
@@ -322,9 +324,6 @@ public class DockerService {
     }
 
     try {
-      profileStatusService.updateStatus(
-          profileConfig.getName(), "Preparing to install profile", 0, 0);
-
       dockerClient
           .pullImageCmd(profileConfig.getImage())
           .exec(getPullProgress(profileConfig))
@@ -369,14 +368,6 @@ public class DockerService {
             profileConfig.getName(), "Installing profile", completed, total);
 
         super.onNext(item);
-      }
-
-      @Override
-      public void onComplete() {
-        lastPct.set(100);
-        profileStatusService.updateStatus(profileConfig.getName(), "Installing profile");
-        profileStatusService.updateStatus(profileConfig.getName(), "Profile installed");
-        super.onComplete();
       }
     };
   }

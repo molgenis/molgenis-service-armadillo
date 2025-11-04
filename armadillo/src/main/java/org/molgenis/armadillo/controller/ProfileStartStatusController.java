@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/ds-profiles")
 public class ProfileStartStatusController {
-
   private final ProfileStatusService statusService;
 
   public ProfileStartStatusController(ProfileStatusService statusService) {

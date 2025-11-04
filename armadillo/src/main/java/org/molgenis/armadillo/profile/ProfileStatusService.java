@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ProfileStatusService {
-
   private final Map<String, ProfileStartStatus> statuses = new ConcurrentHashMap<>();
 
   public void updateStatus(
@@ -16,12 +15,7 @@ public class ProfileStatusService {
         profileName, new ProfileStartStatus(profileName, status, completedLayers, totalLayers));
   }
 
-  public void updateStatus(String profileName, String status) {
-    updateStatus(profileName, status, null, null);
-  }
-
   public ProfileStartStatus getStatus(String profileName) {
-    return statuses.getOrDefault(
-        profileName, new ProfileStartStatus("UNKNOWN", "UNKNOWN", null, null));
+    return statuses.getOrDefault(profileName, new ProfileStartStatus(null, null, null, null));
   }
 }
