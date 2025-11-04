@@ -1,10 +1,10 @@
 <template>
   <div
-    v-if="visible && current?.globalStatus === 'Installing profile'"
+    v-if="visible && current?.status === 'Installing profile'"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center; gap: 0.5rem"
   >
-    {{ current?.globalStatus }} '{{ props.profileName }}'
+    {{ current?.status }} '{{ props.profileName }}'
 
     <div
       class="progress flex-grow-1"
