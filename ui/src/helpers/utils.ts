@@ -322,24 +322,13 @@ import type { ProfileStartStatus } from "@/types/api";
 export function useProfileStatus() {
   const status: Ref<ProfileStartStatus | null> = ref(null);
   let timer: number | undefined;
-  let lastPercent = 0; // <-- track highest percent this session
 
   async function fetchStatus(name: string) {
     if (!name) return;
     try {
-      const result = await getProfileStatus(name);
+      status.value = (await getProfileStatus(name)) as ProfileStartStatus;
 
-      // Coerce percent and clamp to monotonic
-      const raw = Math.max(0, Math.min(100, Number(result?.totalPercent ?? 0)));
-      const monotonic = Math.max(lastPercent, raw);
-      lastPercent = monotonic;
-
-      status.value = {
-        ...result,
-        totalPercent: monotonic,
-      } as ProfileStartStatus;
-
-      if (monotonic === 100) stopPolling();
+      if (status.value?.status === "Profile Installed") stopPolling();
     } catch (e) {
       console.error("Failed to fetch profile status", e);
       stopPolling();
@@ -349,7 +338,6 @@ export function useProfileStatus() {
   function startPolling(name: string, intervalMs = 1000) {
     stopPolling();
     if (!name) return;
-    lastPercent = 0; // <-- reset for a new run
     status.value = null;
     fetchStatus(name);
     timer = window.setInterval(() => fetchStatus(name), intervalMs);
