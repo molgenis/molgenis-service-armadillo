@@ -1,6 +1,45 @@
+<script setup lang="ts">
+import { computed, ref, unref, watch, type Ref } from "vue";
+import type { ProfileStartStatus } from "@/types/api";
+
+const props = defineProps<{
+  status: ProfileStartStatus | null | Ref<ProfileStartStatus | null>;
+  profileName: string;
+}>();
+
+const current = computed<ProfileStartStatus | null>(() => unref(props.status));
+
+const serverPerc = computed(() => {
+  const s = current.value;
+  if (!s) return 0;
+  const total = s.totalLayers ?? 0;
+  const completed = s.completedLayers ?? 0;
+  return total > 0 ? Math.round((completed / total) * 100) : 0;
+});
+
+const smoothedPerc = ref(0);
+const displayedPerc = computed(() => Math.round(smoothedPerc.value));
+
+function smoothServerPercentage() {
+  const cap = serverPerc.value === 100 ? 100 : 99;
+
+  smoothedPerc.value = Math.max(smoothedPerc.value, serverPerc.value);
+
+  if (smoothedPerc.value < cap) {
+    const remaining = cap - smoothedPerc.value;
+    const base = 0.3;
+    const taper = 0.25 + 0.75 * (remaining / cap);
+    const step = Math.max(0.1, base * taper);
+    smoothedPerc.value = Math.min(cap, smoothedPerc.value + step);
+  }
+}
+
+watch(() => current.value, smoothServerPercentage, { immediate: true });
+</script>
+
 <template>
   <div
-    v-if="visible && current?.status === 'Installing profile'"
+    v-if="current?.status === 'Installing profile'"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center; gap: 0.5rem"
   >
@@ -9,80 +48,17 @@
     <div
       class="progress flex-grow-1"
       role="progressbar"
-      aria-label="Progress"
       aria-valuemin="0"
       aria-valuemax="100"
       style="height: 1rem"
     >
       <div
         class="progress-bar"
-        role="progressbar"
-        :aria-valuenow="perc"
-        :style="{ width: perc + '%' }"
+        :aria-valuenow="displayedPerc"
+        :style="{ width: displayedPerc + '%' }"
       >
-        {{ perc }}%
+        {{ displayedPerc }}%
       </div>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, watch, unref, computed, type Ref } from "vue";
-import type { ProfileStartStatus } from "@/types/api";
-
-const props = withDefaults(
-  defineProps<{
-    // Accept either a plain object or a Ref to one
-    status: ProfileStartStatus | null | Ref<ProfileStartStatus | null>;
-    timeout?: number;
-    profileName: string;
-  }>(),
-  { timeout: 2000 }
-);
-
-// Always work with a plain value
-const current = computed<ProfileStartStatus | null>(() => unref(props.status));
-
-const visible = ref(false);
-const shownComplete = ref(false);
-const hideTimer = ref<number | null>(null);
-const perc = computed(() =>
-  Math.round(
-    ((current.value?.completedLayers ?? 0) /
-      (current.value?.totalLayers || 1)) *
-      100
-  )
-);
-
-watch(
-  () => current.value,
-  (status) => {
-    console.log("Child status update:", status);
-
-    if (status && status.totalPercent === 100 && shownComplete.value) return;
-
-    if (hideTimer.value !== null) {
-      clearTimeout(hideTimer.value);
-      hideTimer.value = null;
-    }
-
-    if (status) {
-      if ((status.totalPercent ?? 0) < 100) {
-        visible.value = true;
-        shownComplete.value = false;
-      } else {
-        visible.value = true;
-        hideTimer.value = window.setTimeout(() => {
-          visible.value = false;
-          hideTimer.value = null;
-        }, props.timeout);
-        shownComplete.value = true;
-      }
-    } else {
-      visible.value = false;
-      shownComplete.value = false;
-    }
-  },
-  { deep: true, immediate: true }
-);
-</script>
