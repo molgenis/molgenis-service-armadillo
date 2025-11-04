@@ -35,8 +35,7 @@ public class AuthenticationService {
       // name=Mariska Slofstra (medgen), roles=[SU], sub=677a49c1-8702-42fe-8a71-3e922536a76a}]
       // TODO: test with oauth user non admin
       return new ApiKeyAuthentication(
-          context.getAuthentication().getPrincipal().toString(),
-          context.getAuthentication().getAuthorities());
+          context.getAuthentication().getPrincipal(), context.getAuthentication().getAuthorities());
     } else if (apiKey != null && apiKey.equals(authToken)) {
       // TODO: Do we need to set authorities here?
       return new ApiKeyAuthentication(apiKey, AuthorityUtils.NO_AUTHORITIES);
