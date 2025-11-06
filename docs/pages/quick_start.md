@@ -2,7 +2,10 @@
 MOLGENIS Armadillo facilitates federated analysis using <a href="https://datashield.org/" target="_blank">DataSHIELD</a>. 
 To learn more about DataSHIELD, visit their website or our <a href="/pages/basic_concepts/" >Basic Concepts page</a>.
 
-First we need to determine what kind of user you are:
+## Playground server
+If you have not yet installed Armadillo but would like to check it out, you can access our <a href="https://armadillo-playground.molgenis.net/" target="_blank">playground server</a>. Click on 'Institute Account' and 'Register' (located at the bottom). Once you have submitted your details, you will receive a confirmation email. Click on the link in the email, and you will then have access to the server. Return to the URL, and login via 'Institute Acccount'.
+
+Below we provide a quick start for each type of user:
 
 1. :material-file-table: [Data Manager](#data-manager)
 
@@ -16,7 +19,7 @@ First we need to determine what kind of user you are:
 Data management can be done in different ways: the Armadillo User Interface, the MolgenisArmadillo R client, or using DsUpload. 
 
 ### User interface
-In the armadillo user interface, data managers can login and manage users, projects and profiles. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [usage examples page](examples_usage.md).
+In the armadillo user interface, data managers can login and manage users, projects, workspaces and profiles. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [usage examples page](examples_usage.md).
 
 ![ui-projects.png](../img/ui-projects.png){ width="1000" }
 
@@ -37,7 +40,7 @@ remotes::install.packages('MolgenisArmadillo')
 library('MolgenisArmadillo')
 
 # Login
-armadillo.login("https://armadillo-url-example.org")
+armadillo.login("https://armadillo-playground.molgenis.net/")
 
 # Load the iris dataset to upload as test
 library(datasets)
@@ -80,7 +83,7 @@ library(dsBaseClient)
 ```
 With these libraries, you can now login to Armadillo:
 ```R
-url <- "https://armadillo-demo.molgenis.net/"
+url <- "https://armadillo-playground.molgenis.net//"
 token <- armadillo.get_token(url)
 builder <- DSI::newDSLoginBuilder()
 
