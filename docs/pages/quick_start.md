@@ -3,7 +3,7 @@ MOLGENIS Armadillo facilitates federated analysis using <a href="https://datashi
 To learn more about DataSHIELD, visit their website or our <a href="/pages/basic_concepts/" >Basic Concepts page</a>.
 
 ## Playground server
-If you have not yet installed Armadillo but would like to check it out, you can access our <a href="https://armadillo-playground.molgenis.net/" target="_blank">playground server</a>. Click on 'Institute Account' and 'Register' (located at the bottom). Once you have submitted your details, you will receive a confirmation email. Click on the link in the email, and you will then have access to the server. Return to the URL, and login via 'Institute Acccount'.
+If you have not yet installed Armadillo but would like to try it out, you can access our <a href="https://armadillo-playground.molgenis.net/" target="_blank">playground server</a>. Click on 'Institute Account' and 'Register' (located at the bottom). Once you have submitted your details, you will receive a confirmation email. Click on the link in the email, and you will then have access to the server. Return to the URL, and login via 'Institute Acccount'.
 
 Below we provide a quick start for each type of user:
 
