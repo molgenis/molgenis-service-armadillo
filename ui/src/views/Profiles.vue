@@ -585,7 +585,6 @@ export default defineComponent({
       this.errorMessage = "";
     },
     startProfile(name: string) {
-      console.log("Calling startPolling for profile:", name);
       this.clearUserMessages();
       this.loading = true;
       this.loadingProfile = name;
