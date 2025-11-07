@@ -72,34 +72,74 @@ test("does not regress when totals are missing (stays at previous %)", async () 
   expect(after).toBeLessThanOrEqual(99);
 });
 
-
-  test("accepts a Ref status and updates on change", async () => {
-    const statusRef = ref<any>({
-      status: "Installing profile",
-      totalLayers: 4,
-      completedLayers: 1, // 25%
-    });
-
-    wrapper.unmount();
-    wrapper = mount(FeedbackMessage, {
-      props: { profileName: "RefProfile", status: statusRef },
-    });
-
-    let bar = wrapper.get(".progress-bar");
-    let now = Number(bar.attributes("aria-valuenow"));
-    expect(now).toBeGreaterThanOrEqual(25);
-
-    // Update ref -> 75%
-    statusRef.value = {
-      status: "Installing profile",
-      totalLayers: 4,
-      completedLayers: 3,
-    };
-    await nextTick();
-
-    bar = wrapper.get(".progress-bar");
-    now = Number(bar.attributes("aria-valuenow"));
-    expect(now).toBeGreaterThanOrEqual(75);
-    expect(now).toBeLessThanOrEqual(99);
+test("accepts a Ref status and updates on change", async () => {
+  const statusRef = ref<any>({
+    status: "Installing profile",
+    totalLayers: 4,
+    completedLayers: 1, // 25%
   });
+
+  wrapper.unmount();
+  wrapper = mount(FeedbackMessage, {
+    props: { profileName: "RefProfile", status: statusRef },
+  });
+
+  let bar = wrapper.get(".progress-bar");
+  let now = Number(bar.attributes("aria-valuenow"));
+  expect(now).toBeGreaterThanOrEqual(25);
+
+  // Update ref -> 75%
+  statusRef.value = {
+    status: "Installing profile",
+    totalLayers: 4,
+    completedLayers: 3,
+  };
+  await nextTick();
+
+  bar = wrapper.get(".progress-bar");
+  now = Number(bar.attributes("aria-valuenow"));
+  expect(now).toBeGreaterThanOrEqual(75);
+  expect(now).toBeLessThanOrEqual(99);
+});
+
+test("smoothServerPercentage is monotonic and respects cap behavior", async () => {
+  const callSmooth = async () => {
+    (wrapper.vm as any).smoothServerPercentage();
+    await nextTick();
+    return Number(wrapper.get(".progress-bar").attributes("aria-valuenow"));
+  };
+
+  // Start from initial (≈50%+)
+  const first = Number(
+    wrapper.get(".progress-bar").attributes("aria-valuenow"),
+  );
+
+  // Same server percentage + extra smoothing tick -> must not go down, must stay < 99
+  const second = await callSmooth();
+  expect(second).toBeGreaterThanOrEqual(first);
+  expect(second).toBeLessThanOrEqual(99);
+
+  // Drop server-reported progress -> smoothed should NOT decrease
+  await wrapper.setProps({
+    status: {
+      status: "Installing profile",
+      totalLayers: 10,
+      completedLayers: 3, // 30% server, visual must not regress
+    },
+  });
+  const third = await callSmooth();
+  expect(third).toBeGreaterThanOrEqual(second);
+  expect(third).toBeLessThanOrEqual(99);
+
+  // Jump to completion -> should snap to 100 (cap=100 when serverPerc=100)
+  await wrapper.setProps({
+    status: {
+      status: "Installing profile",
+      totalLayers: 10,
+      completedLayers: 10,
+    },
+  });
+  const fourth = await callSmooth();
+  expect(fourth).toBe(100);
+});
 });
