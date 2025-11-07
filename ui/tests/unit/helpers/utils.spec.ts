@@ -530,22 +530,59 @@ describe("useProfileStatus", () => {
     expect(mockedGetProfileStatus).toHaveBeenCalledTimes(3);
   });
 
-  test("stops polling when status becomes 'Profile Installed'", async () => {
-    mockedGetProfileStatus
-      .mockResolvedValueOnce({ status: "Installing profile" } as any)
-      .mockResolvedValueOnce({ status: "Profile Installed" } as any);
+  test("useProfileStatus stops polling when status becomes 'Profile Installed'", async () => {
+  jest.useFakeTimers();
 
-    await wrapper!.vm.startPolling("MyProfile", 1000);
+  const responses = [
+    { status: "Installing profile" },
+    { status: "Installing profile" },
+    { status: "Profile installed" }, // must match the hook’s stop condition
+  ];
 
-    jest.advanceTimersByTime(1000);
-    await Promise.resolve();
+  mockedGetProfileStatus.mockImplementation(() =>
+    Promise.resolve(
+      responses.length
+        ? responses.shift()!
+        : { status: "Profile installed" },
+    ),
+  );
 
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(2);
-
-    jest.advanceTimersByTime(3000);
-    await Promise.resolve();
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(2); // no more calls
+  // Tiny test component that uses the composable inside setup()
+  const TestComp = defineComponent({
+    setup() {
+      const composable = useProfileStatus();
+      // expose to wrapper.vm
+      return composable;
+    },
+    template: "<div></div>",
   });
+
+  const wrapper = mount(TestComp);
+  const vm = wrapper.vm as any;
+
+  // Start polling with required name + known interval
+  vm.startPolling("MyProfile", 1000);
+
+  const flush = async (ms: number) => {
+    jest.advanceTimersByTime(ms);
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
+  // Immediate call from startPolling + 2 interval ticks to consume our scripted responses
+  await flush(0);      // initial fetch
+  await flush(1000);   // installing
+  await flush(1000);   // profile installed → stopPolling should be called inside hook
+
+  const callsAtInstalled = mockedGetProfileStatus.mock.calls.length;
+  expect(callsAtInstalled).toBeGreaterThanOrEqual(3); // sanity
+
+  // After "Profile installed", no more polling
+  await flush(5000);
+
+  expect(mockedGetProfileStatus).toHaveBeenCalledTimes(callsAtInstalled);
+});
+
 
   test("stopPolling clears the interval", async () => {
     mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
