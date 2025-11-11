@@ -263,25 +263,63 @@ public class DockerService {
     }
   }
 
+  private List<String> toEnvList(ProfileConfig profileConfig) {
+    return profileConfig.getOptions().isEmpty()
+        ? List.of("DEBUG=FALSE")
+        : profileConfig.getOptions().entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .toList();
+  }
+
+  private void buildFlowerStartCommand(CreateContainerCmd cmd, Map<String, String> opts) {
+    // At the moment specify defaults, but long-run we probably want to integrate this into the UI
+    String superlink = opts.getOrDefault("SUPERLINK_ADDRESS", "host.docker.internal:9092");
+    String nodeConfig = opts.getOrDefault("NODE_CONFIG", "partition-id=0 num-partitions=1");
+    cmd.withCmd(
+        "--insecure",
+        "--superlink",
+        superlink,
+        "--clientappio-api-address",
+        "0.0.0.0:9094",
+        "--isolation",
+        "process",
+        "--node-config",
+        nodeConfig);
+  }
+
   void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
     }
 
-    // if rock is in the image name, it's rock
+    var env = toEnvList(profileConfig);
+
     int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
+
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
+
       cmd.withExposedPorts(exposed)
           .withHostConfig(
               new HostConfig()
                   .withPortBindings(portBindings)
                   .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
           .withName(profileConfig.getName())
-          .withEnv("DEBUG=FALSE")
-          .exec();
+          .withEnv(env);
+
+      // detect and configure Flower SuperNode, need to pass options when starting
+      Map<String, String> opts = profileConfig.getOptions();
+      boolean isFlowerSupernode = "true".equalsIgnoreCase(opts.get("flwr.supernode"));
+
+      if (isFlowerSupernode) {
+        buildFlowerStartCommand(cmd, opts);
+      }
+
+      // Execute container creation
+      cmd.exec();
+
     } catch (DockerException e) {
       throw new ImageStartFailedException(profileConfig.getImage(), e);
     }
