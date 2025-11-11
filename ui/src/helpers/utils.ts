@@ -328,7 +328,7 @@ export function useProfileStatus() {
     try {
       status.value = (await getProfileStatus(name)) as ProfileStartStatus;
 
-      if (status.value?.status === "Profile Installed") stopPolling();
+      if (status.value?.status === "Profile installed") stopPolling();
     } catch (e) {
       console.error("Failed to fetch profile status", e);
       stopPolling();
