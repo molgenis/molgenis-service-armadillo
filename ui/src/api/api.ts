@@ -371,3 +371,7 @@ export async function getMetaData(project: string, object: string) {
     )}/metadata`
   );
 }
+
+export async function getProfileStatus(name: string) {
+  return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
+}
