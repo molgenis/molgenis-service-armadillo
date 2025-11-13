@@ -32,19 +32,51 @@ This domain is needed for the installation script.
 
 ## Authentication
 
-Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo with an authentication server. *This part of the documentation is still under construction. If you would like instructions on how to set up an authentication server, please [contact](../contact.md) us.*
- 
-If you are already a partner in a consortium we are part of, we offer the option to register with our DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager (who gets access and who don't get access) within your armadillo installation.
 
-To register you will need to [contact](../contact.md) us with the [chosen domains](#domain) and the e-mail address of the Data Manager who is granted admin permissions in Armadillo. Also add to the mail that you want to register for the the DataSHIELD authentication server and if you belong to a project like Lifecycle, Athlete or Longitools.
+Before deploying **Armadillo**, you need to register the domain that your Armadillo instance will use with an **authentication server**.  
+This ensures that users can securely sign in and that authorization decisions (who can access what) remain under the control of the **Data Manager** within your Armadillo installation.
 
-When the Armadillo domain is processed you will get an email back with data that need to be inserted in step 2.
+---
 
-The values needed are:
+### Supported Authentication Providers
 
-    - OIDC service url i.e. https://lifecycle-auth.molgenis.org
-    - OIDC Client ID
-    - OIDC Client Secret
+Armadillo supports integration with different OpenID Connect (OIDC)–compatible authentication servers, such as:
+
+- [Keycloak](https://www.keycloak.org/)
+- [FusionAuth](https://fusionauth.io/)
+- Other OIDC-compliant identity providers (e.g. Azure AD, Google Identity, etc.)
+
+---
+
+### Example: Local Keycloak Setup
+
+If you want to run Armadillo locally or test your deployment, you can use the **Keycloak + Armadillo** quick setup provided in our Docker setup.
+
+You’ll find an example in our [documentation](https://molgenis.github.io/molgenis-service-armadillo/pages/install_management/armadillo_docker_install/), which starts both Keycloak and Armadillo and automatically configures OIDC integration.
+
+### Registering with a consortium authentication server (DataSHIELD)
+
+If your organization is part of a consortium that offers a shared authentication server (for example the **DataSHIELD authentication server**), you can register your Armadillo domain with them. This delegates authentication and user management to the central server while your Data Manager continues to control authorization inside Armadillo.
+
+#### What to send when registering
+
+Send an email to the consortium contact (or `support@example.org` if you use our central contact) containing:
+
+- The domain(s) for your Armadillo instance (e.g. `armadillo.example.org`)
+- The **email address** of the Data Manager who should receive admin permissions
+- A note that you want to register for the **DataSHIELD authentication server**
+- (Optional) Which project you belong to (e.g. `LIFECYCLE`, `ATHLETE`, `LONGITOOLS`)
+
+After processing, you will receive the details you need to configure Armadillo, typically:
+
+- **OIDC Service URL** (example: `https://lifecycle-auth.molgenis.org`)
+- **OIDC Client ID**
+- **OIDC Client Secret**
+
+These values are then inserted into your deployment configuration (see step 2.p in the deployment guide).
+
+---
+
 
 ## Securing the connection
 
