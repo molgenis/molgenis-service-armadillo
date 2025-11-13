@@ -55,6 +55,24 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
+  @Value("${flower.docker-flower-network:''}")
+  private String flowerNetwork;
+
+  @Value("${flower.armadillo-url:''}")
+  private String armadilloUrl;
+
+  @Value("${flower.superlink-address:''}")
+  private String superlinkAddress;
+
+  @Value("${flower.appio-address:''}")
+  private String appioAddress;
+
+  @Value("${flower.partition-id:''}")
+  private String partitionId;
+
+  @Value("${flower.num-partitions:''}")
+  private String numPartitions;
+
   public DockerService(
       DockerClient dockerClient,
       ProfileService profileService,
@@ -271,20 +289,29 @@ public class DockerService {
             .toList();
   }
 
-  private void buildFlowerStartCommand(CreateContainerCmd cmd, Map<String, String> opts) {
-    // At the moment specify defaults, but long-run we probably want to integrate this into the UI
-    String superlink = opts.getOrDefault("SUPERLINK_ADDRESS", "host.docker.internal:9092");
-    String nodeConfig = opts.getOrDefault("NODE_CONFIG", "partition-id=0 num-partitions=1");
+  private void buildFlowerNodeStartCommand(
+      CreateContainerCmd cmd, String superlinkAddress, String partitionId, String numPartitions) {
+    String nodeConfig =
+        String.format("partition-id=%s num-partitions=%s", partitionId, numPartitions);
+
     cmd.withCmd(
         "--insecure",
         "--superlink",
-        superlink,
+        superlinkAddress,
         "--clientappio-api-address",
         "0.0.0.0:9094",
         "--isolation",
         "process",
         "--node-config",
         nodeConfig);
+  }
+
+  private void buildFlowerExecStartCommand(CreateContainerCmd cmd, String appioAddress) {
+    cmd.withCmd("--plugin-type", "clientapp", "--appio-api-address", appioAddress, "--insecure");
+  }
+
+  private void createFlowerNetwork(String flowerNetwork) {
+    dockerClient.createNetworkCmd().withName(flowerNetwork).withDriver("bridge").exec();
   }
 
   void installImage(ProfileConfig profileConfig) {
@@ -312,9 +339,14 @@ public class DockerService {
       // detect and configure Flower SuperNode, need to pass options when starting
       Map<String, String> opts = profileConfig.getOptions();
       boolean isFlowerSupernode = "true".equalsIgnoreCase(opts.get("flwr.supernode"));
+      boolean isFlowerSuperexec = "true".equalsIgnoreCase(opts.get("flwr.superexec"));
 
       if (isFlowerSupernode) {
-        buildFlowerStartCommand(cmd, opts);
+        buildFlowerNodeStartCommand(cmd, superlinkAddress, partitionId, numPartitions);
+      }
+
+      if (isFlowerSuperexec) {
+        buildFlowerExecStartCommand(cmd, appioAddress);
       }
 
       // Execute container creation
