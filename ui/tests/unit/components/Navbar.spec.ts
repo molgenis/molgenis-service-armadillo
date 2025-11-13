@@ -6,6 +6,9 @@ describe("Navbar", () => {
     const wrapper = shallowMount(Navbar, {
       props: {
         username: "Bofke",
+        version: "10.4.0",
+        menu: {},
+        icons: []
       },
       global: {
         stubs: ["router-link"],
