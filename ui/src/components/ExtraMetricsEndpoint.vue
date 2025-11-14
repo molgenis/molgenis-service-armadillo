@@ -36,8 +36,8 @@
           </button>
         </div>
         <pre>
-          <code> 
-            {{ JSON.stringify(result, null, 2) }}
+          <code>
+            {{ result }}
           </code>
         </pre>
       </div>
@@ -101,9 +101,17 @@ export default defineComponent({
         .then((response) => {
           this.isLoading = false;
           this.errorMsg = "";
-          response.text().then((txt) => {
-            this.result = txt;
-          });
+          const contentType = response.headers.get("content-type");
+          console.log(contentType);
+          if (contentType && contentType.indexOf("json") !== -1) {
+            return response.json().then((data) => {
+              this.result = data;
+            });
+          } else {
+            return response.text().then((text) => {
+              this.result = text;
+            });
+          }
         })
         .catch((error) => {
           this.isLoading = false;
