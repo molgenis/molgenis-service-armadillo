@@ -183,7 +183,20 @@ public class DockerService {
     profileStatusService.updateStatus(profileName, "Profile installed", null, null);
     stopContainer(containerName);
     removeContainer(containerName);
-    installImage(profileConfig);
+
+    // detect and configure Flower SuperNode, need to pass options when starting
+    Map<String, String> opts = profileConfig.getOptions();
+    boolean isFlowerSupernode = "true".equalsIgnoreCase(opts.get("flwr.supernode"));
+    boolean isFlowerSuperexec = "true".equalsIgnoreCase(opts.get("flwr.superexec"));
+
+    if (isFlowerSupernode) {
+      installSuperNode(profileConfig, superlinkAddress, partitionId, numPartitions, flowerNetwork);
+    } else if (isFlowerSuperexec) {
+      installSuperExec(profileConfig, flowerNetwork, appioAddress);
+    } else {
+      installImage(profileConfig);
+    }
+
     startContainer(containerName);
 
     String previousImageId = profileConfig.getLastImageId();
@@ -299,12 +312,6 @@ public class DockerService {
     }
   } // Maybe britle as we need it to always be a 'bridge' style network.
 
-  // detect and configure Flower SuperNode, need to pass options when starting
-  // Map<String, String> opts = profileConfig.getOptions();
-  // boolean isFlowerSupernode = "true".equalsIgnoreCase(opts.get("flwr.supernode"));
-  // boolean isFlowerSuperexec = "true".equalsIgnoreCase(opts.get("flwr.superexec"));
-  // var env = toEnvList(profileConfig);
-
   void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
       throw new MissingImageException(profileConfig.getImage());
@@ -322,8 +329,7 @@ public class DockerService {
               new HostConfig()
                   .withPortBindings(portBindings)
                   .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withName(profileConfig.getName())
-          .withEnv(env);
+          .withName(profileConfig.getName());
 
       // Execute container creation
       cmd.exec();
@@ -350,8 +356,8 @@ public class DockerService {
 
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       cmd.withHostConfig(new HostConfig().withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withNetworkMode(flowerNetwork)
-          .withName(profileConfig.getName());
+          .withName(profileConfig.getName())
+          .withNetworkMode(flowerNetwork);
       cmd.withCmd(
           "--insecure",
           "--superlink",
@@ -375,10 +381,12 @@ public class DockerService {
       throw new MissingImageException(profileConfig.getImage());
     }
 
+    createFlowerNetworkIfDoesNotExist(flowerNetwork);
+
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       cmd.withHostConfig(new HostConfig().withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withNetworkMode(flowerNetwork)
-          .withName(profileConfig.getName());
+          .withName(profileConfig.getName())
+          .withNetworkMode(flowerNetwork);
       cmd.withCmd("--plugin-type", "clientapp", "--appio-api-address", appioAddress, "--insecure");
 
       cmd.exec();
