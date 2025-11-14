@@ -55,7 +55,7 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
-  @Value("${flower.docker-flower-network:''}")
+  @Value("${flower.docker-network-name:''}")
   private String flowerNetwork;
 
   @Value("${flower.armadillo-url:''}")
@@ -310,9 +310,15 @@ public class DockerService {
     cmd.withCmd("--plugin-type", "clientapp", "--appio-api-address", appioAddress, "--insecure");
   }
 
-  private void createFlowerNetwork(String flowerNetwork) {
-    dockerClient.createNetworkCmd().withName(flowerNetwork).withDriver("bridge").exec();
-  }
+  private void createFlowerNetworkIfDoesNotExist(String flowerNetwork) {
+    List<Network> networks = dockerClient.listNetworksCmd().withNameFilter(flowerNetwork).exec();
+    if (networks.isEmpty()) {
+      LOG.info("Creating docker network '{}'", flowerNetwork);
+      dockerClient.createNetworkCmd().withName(flowerNetwork).withDriver("bridge").exec();
+    } else {
+      LOG.info("Docker network '{}' already exists", flowerNetwork);
+    }
+  } // Maybe britle as we need it to be a 'bridge' style network.
 
   void installImage(ProfileConfig profileConfig) {
     if (profileConfig.getImage() == null) {
@@ -342,10 +348,12 @@ public class DockerService {
       boolean isFlowerSuperexec = "true".equalsIgnoreCase(opts.get("flwr.superexec"));
 
       if (isFlowerSupernode) {
+        createFlowerNetworkIfDoesNotExist(flowerNetwork);
         buildFlowerNodeStartCommand(cmd, superlinkAddress, partitionId, numPartitions);
       }
 
       if (isFlowerSuperexec) {
+        createFlowerNetworkIfDoesNotExist(flowerNetwork);
         buildFlowerExecStartCommand(cmd, appioAddress);
       }
 
