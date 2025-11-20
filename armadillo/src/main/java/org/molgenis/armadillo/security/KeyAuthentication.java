@@ -7,14 +7,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-public class ApiKeyAuthentication extends AbstractAuthenticationToken {
-  private final Object apiKey;
+public class KeyAuthentication extends AbstractAuthenticationToken {
+  private final Object key;
   private final Object principal;
 
-  public ApiKeyAuthentication(
-      Object apiKey, Collection<? extends GrantedAuthority> authorities, Object principal) {
+  public KeyAuthentication(
+      Object key, Collection<? extends GrantedAuthority> authorities, Object principal) {
     super(authorities);
-    this.apiKey = apiKey;
+    this.key = key;
     this.principal = principal;
     setAuthenticated(true);
   }
@@ -24,7 +24,6 @@ public class ApiKeyAuthentication extends AbstractAuthenticationToken {
     return null;
   }
 
-  // TODO: we are misusing principal here. Use get name(?) and set proper token for this class
   @Override
   public Object getPrincipal() {
     String user = principal.toString();

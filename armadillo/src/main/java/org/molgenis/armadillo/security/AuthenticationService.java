@@ -21,23 +21,22 @@ public class AuthenticationService {
         // TODO: Do we need to set authorities + authentication? -> get authentication from
         // header???
         final String jwtToken = authHeader.substring(7);
-        return new ApiKeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES, jwtToken);
+        return new KeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES, jwtToken);
       }
     } else if (context != null
         && context.getAuthentication() != null
         && context.getAuthentication().getPrincipal() != null
         && context.getAuthentication().getPrincipal() != "anonymousUser"
         && context.getAuthentication().isAuthenticated()) {
-      // TODO: check if this is sufficient (rename ApiKeyAuthentication???)
-      // TODO: test with oauth user non admin
-      return new ApiKeyAuthentication(
+      return new KeyAuthentication(
           context.getAuthentication().getCredentials(),
           context.getAuthentication().getAuthorities(),
           context.getAuthentication().getPrincipal());
     } else if (apiKey != null && apiKey.equals(authToken)) {
       // TODO: Do we need to set authorities here?
-      return new ApiKeyAuthentication(
+      return new KeyAuthentication(
           apiKey,
+          //              AuthorityUtils.createAuthorityList("ROLE_SU"),
           AuthorityUtils.NO_AUTHORITIES,
           new Principal() {
             @Override
