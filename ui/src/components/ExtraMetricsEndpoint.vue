@@ -102,7 +102,6 @@ export default defineComponent({
           this.isLoading = false;
           this.errorMsg = "";
           const contentType = response.headers.get("content-type");
-          console.log(contentType);
           if (contentType && contentType.indexOf("json") !== -1) {
             return response.json().then((data) => {
               this.result = data;
