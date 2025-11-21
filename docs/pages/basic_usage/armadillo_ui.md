@@ -23,6 +23,7 @@ To grant a user superuser permissions simply search for that user in the `Users`
 
 ![Grant user superuser rights](../../img/ui/admin.png)
 
+
 ## Projects
 
 Once you're logged in, you will be redirected to the `Projects` page. On this page you can add and edit projects.
@@ -153,6 +154,12 @@ By clicking on the plus button ![Armadillo user add](../../img/ui/add.png){width
 ![Armadillo user add](../../img/ui/add-user.png){width="650"}
 
 Users can be added before they have logged in previously. These users can be added to projects, which will grant them permission to use the data from those projects upon their first login. Researchers should not be set as admin.
+
+## Workspaces
+
+When users conduct analyses with DataSHIELD, they can save R workspaces on the server which saves any new objects they've created in their analysis. These workspaces take up space, and you may want to delete them once a researcher has finished their project. To do so, you can select a workspace and click the 'delete' button. You also have the option to delete all workspaces for one particular user.
+
+![Manage workspaces](../../img/ui/workspaces.png)
 
 ## Analysis Profiles
 
