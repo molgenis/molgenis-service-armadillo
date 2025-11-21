@@ -87,10 +87,6 @@ describe('ExtraMetricsEndpoint.vue', () => {
   it('calls get() and shows result on button click', async () => {
     const wrapper = mountComponent(templatedEndpoint);
     await wrapper.setData({ argumentInput: 'world' });
-    await nextTick();
-    await nextTick();
-    await nextTick();
-
     await wrapper.find('button.btn-success').trigger('click');
     expect(fetch).toHaveBeenCalledWith('/api/search/world', {"headers": APISettings.headers, "method": "GET"});
 
