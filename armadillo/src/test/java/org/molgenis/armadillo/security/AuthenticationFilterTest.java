@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 
-public class AuthenticationFilterTest {
+class AuthenticationFilterTest {
 
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
@@ -63,7 +63,7 @@ public class AuthenticationFilterTest {
   }
 
   @Test
-  void testDoFilter_ExceptionHandling_ReturnsUnauthorized() throws Exception {
+  void testDoFilter_ExceptionHandling_ReturnsUnauthorized() {
     when(request.getRequestURI()).thenThrow(new RuntimeException("Test Exception"));
 
     filter.doFilter(request, response, filterChain);

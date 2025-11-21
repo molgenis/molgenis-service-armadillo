@@ -14,7 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextImpl;
 
-public class AuthenticationServiceTest {
+class AuthenticationServiceTest {
 
   @Mock private HttpServletRequest request;
   @Mock private HttpSession session;

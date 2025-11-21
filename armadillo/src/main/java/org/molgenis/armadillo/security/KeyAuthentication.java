@@ -36,6 +36,8 @@ public class KeyAuthentication extends AbstractAuthenticationToken {
         try {
           user = ((Principal) principal).getName();
         } catch (Exception ignored) {
+          // first try getting the name of the principal, if that doesn't work, the to string is
+          // already set, so we dont need to do anything
         }
       }
     }
