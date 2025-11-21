@@ -33,17 +33,11 @@ public class AuthenticationService {
           context.getAuthentication().getAuthorities(),
           context.getAuthentication().getPrincipal());
     } else if (apiKey != null && apiKey.equals(authToken)) {
-      // TODO: Do we need to set authorities here?
       return new KeyAuthentication(
           apiKey,
           //              AuthorityUtils.createAuthorityList("ROLE_SU"),
           AuthorityUtils.NO_AUTHORITIES,
-          new Principal() {
-            @Override
-            public String getName() {
-              return "API_KEY";
-            }
-          });
+          (Principal) () -> "API_KEY");
     }
     return null;
   }

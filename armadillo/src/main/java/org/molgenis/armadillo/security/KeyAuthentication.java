@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.security;
 
+import java.security.Principal;
 import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,7 +22,7 @@ public class KeyAuthentication extends AbstractAuthenticationToken {
 
   @Override
   public Object getCredentials() {
-    return null;
+    return key;
   }
 
   @Override
@@ -31,7 +32,12 @@ public class KeyAuthentication extends AbstractAuthenticationToken {
       case DefaultOAuth2User defaultOAuth2User -> user = defaultOAuth2User.getAttribute("email");
       case OAuth2User oAuth2User -> user = oAuth2User.getAttribute("email");
       case User user1 -> user = user1.getUsername();
-      default -> {}
+      default -> {
+        try {
+          user = ((Principal) principal).getName();
+        } catch (Exception ignored) {
+        }
+      }
     }
     return user;
   }
