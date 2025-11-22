@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.controller;
 
+import org.molgenis.armadillo.container.ContainerStatusService;
 import org.molgenis.armadillo.metadata.ContainerStartStatus;
-import org.molgenis.armadillo.profile.ContainerStatusService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -15,7 +15,7 @@
 // import org.molgenis.armadillo.metadata.ArmadilloMetadata;
 // import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 // <<<<<<< HEAD
-// import org.molgenis.armadillo.profile.ContainerService;
+// import org.molgenis.armadillo.container.ContainerService;
 // =======
 // import org.molgenis.armadillo.metadata.MetadataLoader;
 // import org.molgenis.armadillo.metadata.ProjectDetails;

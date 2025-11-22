@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyList;
@@ -102,7 +102,7 @@ public class DockerService {
    * <p>Both the profiles and/or Armadillo can be part of a docker-compose.yml. You can check with
    * `docker container ps` to see this name structure.
    *
-   * @param profileName the profile name set by DataManager.
+   * @param profileName the container name set by DataManager.
    * @return adjusted container name if applicable.
    */
   String asContainerName(String profileName) {
@@ -135,7 +135,7 @@ public class DockerService {
   }
 
   public ContainerInfo getProfileStatus(String profileName) {
-    // check profile exists
+    // check container exists
     containerService.getByName(profileName);
 
     String containerName = asContainerName(profileName);
@@ -251,14 +251,14 @@ public class DockerService {
 
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
       LOG.info(
-          "Image ID for profile '{}' changed from '{}' to '{}'",
+          "Image ID for container '{}' changed from '{}' to '{}'",
           escapedProfile,
           escapedPreviousId,
           escapedCurrentId);
       return true;
     } else {
       LOG.info(
-          "Image ID for profile '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
+          "Image ID for container '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
       return false;
     }
   }
@@ -308,7 +308,7 @@ public class DockerService {
           throw new ImageStopFailedException(profileName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop profile '{}' because it doesn't exist", profileName);
+        LOG.info("Failed to stop container '{}' because it doesn't exist", profileName);
         // not a problem, its gone
       } catch (Exception e2) {
         throw new ImageStopFailedException(profileName, e);
@@ -365,7 +365,7 @@ public class DockerService {
         int total = Math.max(1, seen.size());
 
         containerStatusService.updateStatus(
-            containerConfig.getName(), "Installing profile", completed, total);
+            containerConfig.getName(), "Installing container", completed, total);
 
         super.onNext(item);
       }
@@ -373,7 +373,7 @@ public class DockerService {
   }
 
   public void removeProfile(String profileName) {
-    // check profile exists
+    // check container exists
     containerService.getByName(profileName);
     stopContainer(profileName);
     removeContainer(profileName);

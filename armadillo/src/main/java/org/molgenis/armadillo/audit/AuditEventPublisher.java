@@ -94,7 +94,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
-  public static final String PROFILE = "profile";
+  public static final String PROFILE = "container";
   public static final String OBJECT = "object";
   public static final String EMAIL = "email";
   public static final String MESSAGE = "message";

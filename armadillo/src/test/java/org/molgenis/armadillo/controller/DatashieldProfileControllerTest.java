@@ -74,7 +74,7 @@
 //        .andDo(
 //            handler ->
 //                System.out.println(
-//                    "delete profile returned: " + handler.getResponse().getContentAsString()));
+//                    "delete container returned: " + handler.getResponse().getContentAsString()));
 //
 //    mockMvc
 //        .perform(delete("/profileConfigs/exposome"))
@@ -82,7 +82,7 @@
 //        .andDo(
 //            handler ->
 //                System.out.println(
-//                    "delete profile returned: " + handler.getResponse().getContentAsString()));
+//                    "delete container returned: " + handler.getResponse().getContentAsString()));
 //
 //    // check listing is empty
 //    mockMvc
@@ -103,7 +103,7 @@
 //        .andDo(
 //            handler ->
 //                System.out.println(
-//                    "post profile returned: " + handler.getResponse().getContentAsString()));
+//                    "post container returned: " + handler.getResponse().getContentAsString()));
 //
 //    // check listing contains armadillo
 //    mockMvc
@@ -118,7 +118,7 @@
 //        .andDo(
 //            handler ->
 //                System.out.println(
-//                    "delete profile returned: " + handler.getResponse().getContentAsString()));
+//                    "delete container returned: " + handler.getResponse().getContentAsString()));
 //
 //    // check listing contains armadillo
 //    mockMvc

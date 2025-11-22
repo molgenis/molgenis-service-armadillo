@@ -8,8 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.container.ContainerStatusService;
 import org.molgenis.armadillo.metadata.ContainerStartStatus;
-import org.molgenis.armadillo.profile.ContainerStatusService;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerStartStatusControllerMockitoTest {
@@ -21,7 +21,7 @@ class ContainerStartStatusControllerMockitoTest {
   @Test
   void getStatus_returnsServiceResult() {
     // arrange
-    var expected = new ContainerStartStatus("donkey", "Installing profile", 22, 24);
+    var expected = new ContainerStartStatus("donkey", "Installing container", 22, 24);
     when(statusService.getStatus("donkey")).thenReturn(expected);
 
     // act

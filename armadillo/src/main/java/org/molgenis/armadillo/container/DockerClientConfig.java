@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 

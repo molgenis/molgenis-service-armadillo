@@ -4,8 +4,8 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
+import org.molgenis.armadillo.container.annotation.ProfileScope;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;

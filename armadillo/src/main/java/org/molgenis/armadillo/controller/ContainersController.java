@@ -26,11 +26,11 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.container.ContainerInfo;
+import org.molgenis.armadillo.container.ContainerScheduler;
+import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ContainerInfo;
-import org.molgenis.armadillo.profile.ContainerScheduler;
-import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,7 +69,7 @@ public class ContainersController {
       summary = "List profiles",
       description =
           """
-                If Docker management is enabled, this will also display each profile's Docker
+                If Docker management is enabled, this will also display each container's Docker
                 container status.
                 """)
   @ApiResponses(
@@ -96,7 +96,7 @@ public class ContainersController {
       summary = "List profiles",
       description =
           """
-                        If Docker management is enabled, this will also display each profile's Docker
+                        If Docker management is enabled, this will also display each container's Docker
                         container status.
                         """)
   @ApiResponses(
@@ -160,10 +160,10 @@ public class ContainersController {
   }
 
   @Operation(
-      summary = "Get profile by name",
+      summary = "Get container by name",
       description =
           """
-              If Docker management is enabled, this will also display the profile's Docker
+              If Docker management is enabled, this will also display the container's Docker
               container status.
               """)
   @ApiResponses(
@@ -195,7 +195,7 @@ public class ContainersController {
     return ContainerResponse.create(profiles.getByName(name), container);
   }
 
-  @Operation(summary = "Add or update profile")
+  @Operation(summary = "Add or update container")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile added or updated"),
@@ -210,7 +210,7 @@ public class ContainersController {
       Principal principal, @Valid @RequestBody ContainerConfig containerConfig) {
     auditor.audit(
         () -> {
-          profiles.upsert(containerConfig); // Save profile
+          profiles.upsert(containerConfig); // Save container
           containerScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
           return null;
         },
@@ -220,10 +220,10 @@ public class ContainersController {
   }
 
   @Operation(
-      summary = "Delete profile",
+      summary = "Delete container",
       description =
           """
-              If Docker management is enabled, this will also stop and delete the profile's
+              If Docker management is enabled, this will also stop and delete the container's
               Docker container.
               """)
   @ApiResponses(
@@ -235,11 +235,11 @@ public class ContainersController {
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "409",
-            description = "Attempted to delete default profile",
+            description = "Attempted to delete default container",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "500",
-            description = "Couldn't remove profile's container (Docker error)",
+            description = "Couldn't remove container's container (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)

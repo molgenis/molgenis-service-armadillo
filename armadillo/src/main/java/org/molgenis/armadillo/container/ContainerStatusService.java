@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

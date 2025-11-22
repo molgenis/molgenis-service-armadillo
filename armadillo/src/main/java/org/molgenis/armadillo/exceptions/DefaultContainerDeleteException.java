@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class DefaultContainerDeleteException extends RuntimeException {
 
   public DefaultContainerDeleteException() {
-    super("The default profile can't be deleted");
+    super("The default container can't be deleted");
   }
 }

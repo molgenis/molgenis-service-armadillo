@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -615,7 +615,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_emitsProgressUpdates_toProfileStatusService() {
-    // Arrange profile returned by service
+    // Arrange container returned by service
     var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
@@ -642,21 +642,21 @@ class DockerServiceTest {
     when(it1.getStatus()).thenReturn("Downloading");
     cb.onNext(it1);
     verify(containerStatusService, atLeastOnce())
-        .updateStatus(eq("donkey"), eq("Installing profile"), eq(0), eq(1));
+        .updateStatus(eq("donkey"), eq("Installing container"), eq(0), eq(1));
 
     PullResponseItem it2 = mock(PullResponseItem.class);
     when(it2.getId()).thenReturn("layer1");
     when(it2.getStatus()).thenReturn("Pull complete");
     cb.onNext(it2);
     verify(containerStatusService, atLeastOnce())
-        .updateStatus(eq("donkey"), eq("Installing profile"), eq(1), eq(1));
+        .updateStatus(eq("donkey"), eq("Installing container"), eq(1), eq(1));
 
     PullResponseItem it3 = mock(PullResponseItem.class);
     when(it3.getId()).thenReturn("layer2");
     when(it3.getStatus()).thenReturn("Already exists");
     cb.onNext(it3);
     verify(containerStatusService, atLeastOnce())
-        .updateStatus(eq("donkey"), eq("Installing profile"), eq(2), eq(2));
+        .updateStatus(eq("donkey"), eq("Installing container"), eq(2), eq(2));
   }
 
   @Test
@@ -685,7 +685,7 @@ class DockerServiceTest {
 
     // since id == null, it should skip calling updateStatus
     verify(containerStatusService, never())
-        .updateStatus(eq("donkey"), eq("Installing profile"), any(), any());
+        .updateStatus(eq("donkey"), eq("Installing container"), any(), any());
   }
 
   @Test

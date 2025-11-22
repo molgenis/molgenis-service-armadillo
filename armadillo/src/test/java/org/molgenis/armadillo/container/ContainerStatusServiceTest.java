@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,12 +25,12 @@ class ContainerStatusServiceTest {
   void updateStatus_storesValuesCorrectly() {
     ContainerStatusService service = new ContainerStatusService();
 
-    service.updateStatus("donkey", "Installing profile", 10, 24);
+    service.updateStatus("donkey", "Installing container", 10, 24);
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
         () -> assertEquals("donkey", result.getProfileName()),
-        () -> assertEquals("Installing profile", result.getStatus()),
+        () -> assertEquals("Installing container", result.getStatus()),
         () -> assertEquals(10, result.getCompletedLayers()),
         () -> assertEquals(24, result.getTotalLayers()));
   }
@@ -39,7 +39,7 @@ class ContainerStatusServiceTest {
   void updateStatus_overwritesPreviousValue() {
     ContainerStatusService service = new ContainerStatusService();
 
-    service.updateStatus("donkey", "Installing profile", 5, 24);
+    service.updateStatus("donkey", "Installing container", 5, 24);
     service.updateStatus("donkey", "Profile installed", 24, 24);
     ContainerStartStatus result = service.getStatus("donkey");
 

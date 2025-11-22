@@ -8,10 +8,10 @@ class ContainerStartStatusTest {
 
   @Test
   void constructor_setsAllFields() {
-    ContainerStartStatus s = new ContainerStartStatus("donkey", "Installing profile", 22, 24);
+    ContainerStartStatus s = new ContainerStartStatus("donkey", "Installing container", 22, 24);
 
     assertEquals("donkey", s.getProfileName());
-    assertEquals("Installing profile", s.getStatus());
+    assertEquals("Installing container", s.getStatus());
     assertEquals(22, s.getCompletedLayers());
     assertEquals(24, s.getTotalLayers());
   }

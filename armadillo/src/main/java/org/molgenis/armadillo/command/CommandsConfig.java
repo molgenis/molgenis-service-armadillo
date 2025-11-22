@@ -3,7 +3,7 @@ package org.molgenis.armadillo.command;
 import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 import java.util.concurrent.Executors;
-import org.molgenis.armadillo.profile.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,7 +17,7 @@ public class CommandsConfig {
 
   /**
    * Added TaskExecutor instead of the ExecutorService to copy the request attributes (in particular
-   * the profile definition) from the request to the thread executing the R-command.
+   * the container definition) from the request to the thread executing the R-command.
    */
   @Bean
   @Primary

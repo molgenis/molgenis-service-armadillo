@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
-import static org.molgenis.armadillo.profile.ActiveContainerNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveProfileName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -24,10 +24,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +35,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "developer", description = "API only available for admin users or in profile=test")
+@Tag(name = "developer", description = "API only available for admin users or in container=test")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
@@ -63,7 +63,7 @@ public class DevelopmentController {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Operation(
       summary = "Install a package",
-      description = "Install a package in the currently selected profile")
+      description = "Install a package in the currently selected container")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),

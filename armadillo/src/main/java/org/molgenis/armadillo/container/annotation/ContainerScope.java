@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile.annotation;
+package org.molgenis.armadillo.container.annotation;
 
 import java.lang.annotation.*;
 import org.springframework.context.annotation.Scope;
@@ -8,7 +8,7 @@ import org.springframework.core.annotation.AliasFor;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Scope("profile")
+@Scope("container")
 public @interface ContainerScope {
 
   /**

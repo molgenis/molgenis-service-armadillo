@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import org.molgenis.armadillo.controller.ContainerDockerController;
 import org.molgenis.armadillo.metadata.ContainerConfig;

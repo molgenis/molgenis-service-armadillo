@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.profile.ContainerScope;
+import org.molgenis.armadillo.container.ContainerScope;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerServiceTest {
@@ -66,7 +66,7 @@ class ContainerServiceTest {
     String newCreationDate = "2025-08-05T12:34:56Z";
     String newInstallDate = "2025-10-05T12:34:56Z";
 
-    // Create an existing profile config with oldImageId
+    // Create an existing container config with oldImageId
     ContainerConfig existingProfile =
         ContainerConfig.create(
             profileName,
@@ -84,7 +84,7 @@ class ContainerServiceTest {
             null,
             null);
 
-    // Setup ContainersMetadata and add existing profile
+    // Setup ContainersMetadata and add existing container
     ContainersMetadata metadata = ContainersMetadata.create();
     metadata.getProfiles().put(profileName, existingProfile);
 
@@ -104,7 +104,7 @@ class ContainerServiceTest {
     containerService.updateImageMetaData(
         profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
-    // Assert that the profile has been updated
+    // Assert that the container has been updated
     ContainerConfig updated = containerService.getByName(profileName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());

@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class ContainerScope implements Scope {
   private static final Logger LOGGER = LoggerFactory.getLogger(ContainerScope.class);
 
-  /** Contains all profile scoped beans for all profiles */
+  /** Contains all container scoped beans for all profiles */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
   @Override
@@ -20,7 +20,7 @@ public class ContainerScope implements Scope {
     return scopedBeans.computeIfAbsent(
         getFullyQualifiedBeanName(beanName),
         name -> {
-          LOGGER.info("Creating profile bean with name {}", name);
+          LOGGER.info("Creating container bean with name {}", name);
           return objectFactory.getObject();
         });
   }

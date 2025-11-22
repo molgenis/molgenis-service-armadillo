@@ -3,9 +3,9 @@ package org.molgenis.armadillo;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ContainerScope;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;

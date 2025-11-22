@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.service;
 
+import org.molgenis.armadillo.container.annotation.ProfileScope;
 import org.molgenis.armadillo.exceptions.ExpressionException;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.NoSuchDSMethodException;

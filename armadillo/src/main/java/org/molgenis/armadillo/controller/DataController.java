@@ -362,7 +362,7 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
-  @PostMapping(value = "select-profile")
+  @PostMapping(value = "select-container")
   @ResponseStatus(NO_CONTENT)
   public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
     auditEventPublisher.audit(

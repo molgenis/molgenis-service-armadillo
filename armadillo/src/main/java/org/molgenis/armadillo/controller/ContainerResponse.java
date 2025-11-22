@@ -7,9 +7,9 @@ import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
+import org.molgenis.armadillo.container.ContainerInfo;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
-import org.molgenis.armadillo.profile.ContainerInfo;
 
 @AutoValue
 @JsonInclude(Include.NON_NULL)

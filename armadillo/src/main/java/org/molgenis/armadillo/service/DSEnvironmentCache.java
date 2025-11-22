@@ -7,10 +7,10 @@ import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Stream;
+import org.molgenis.armadillo.container.annotation.ProfileScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/** Caches the datashield environments for one profile. */
+/** Caches the datashield environments for one container. */
 @Component
 @ProfileScope
 public class DSEnvironmentCache {

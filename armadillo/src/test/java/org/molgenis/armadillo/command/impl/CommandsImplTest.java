@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ActiveContainerNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -257,7 +257,7 @@ class CommandsImplTest {
             null);
     when(containerService.getByName("exposome")).thenReturn(containerConfig);
     commands.selectProfile("exposome");
-    verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
+    verify(attrs).setAttribute("container", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
   }
 

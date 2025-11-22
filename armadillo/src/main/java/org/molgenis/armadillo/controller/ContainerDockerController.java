@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.container.DockerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,7 +47,7 @@ public class ContainerDockerController {
   }
 
   @Operation(
-      summary = "Start a profile's Docker container",
+      summary = "Start a container's Docker container",
       description = "This will create a new container, or recreate an existing container.")
   @ApiResponses(
       value = {
@@ -76,7 +76,7 @@ public class ContainerDockerController {
         () -> dockerService.startProfile(name), principal, START_PROFILE, Map.of(PROFILE, name));
   }
 
-  @Operation(summary = "Stop and remove a profile's Docker container")
+  @Operation(summary = "Stop and remove a container's Docker container")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Profile container stopped"),

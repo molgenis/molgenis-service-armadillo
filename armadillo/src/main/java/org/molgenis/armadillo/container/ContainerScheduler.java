@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
@@ -43,7 +43,7 @@ public class ContainerScheduler {
     return this.taskScheduler;
   }
 
-  /** Reschedule or create a scheduled update task for a profile. */
+  /** Reschedule or create a scheduled update task for a container. */
   public void reschedule(ContainerConfig profile) {
     cancel(profile.getName());
 
@@ -52,16 +52,16 @@ public class ContainerScheduler {
       Runnable task = () -> runAsSystem(() -> runUpdateForProfile(profile));
       ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
       scheduledTasks.put(profile.getName(), future);
-      LOG.info("Scheduled auto-update for profile '{}' with cron '{}'", profile.getName(), cron);
+      LOG.info("Scheduled auto-update for container '{}' with cron '{}'", profile.getName(), cron);
     }
   }
 
-  /** Cancel the scheduled task for a given profile name, if any. */
+  /** Cancel the scheduled task for a given container name, if any. */
   public void cancel(String profileName) {
     ScheduledFuture<?> existing = scheduledTasks.remove(profileName);
     if (existing != null) {
       existing.cancel(false);
-      LOG.info("Cancelled auto-update task for profile '{}'", profileName);
+      LOG.info("Cancelled auto-update task for container '{}'", profileName);
     }
   }
 
@@ -97,7 +97,7 @@ public class ContainerScheduler {
 
   private void runUpdateForProfile(ContainerConfig profile) {
     try {
-      // Get container status directly using profile name
+      // Get container status directly using container name
       var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());
 
       // Only proceed if container is running and auto-update is enabled
@@ -105,7 +105,7 @@ public class ContainerScheduler {
           && containerInfo.getStatus() == ContainerStatus.RUNNING
           && Boolean.TRUE.equals(profile.getAutoUpdate())) {
 
-        // Retrieve the previous image ID and current image name from the profile
+        // Retrieve the previous image ID and current image name from the container
         String previousImageId = profile.getLastImageId();
         String imageName = profile.getImage();
 
@@ -125,14 +125,15 @@ public class ContainerScheduler {
           }
         } else {
           LOG.error(
-              "Image name is null or empty for profile '{}'. Skipping update.", profile.getName());
+              "Image name is null or empty for container '{}'. Skipping update.",
+              profile.getName());
         }
       }
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt(); // Preserve interrupt status
-      LOG.error("Thread interrupted while updating profile '{}'", profile.getName(), ie);
+      LOG.error("Thread interrupted while updating container '{}'", profile.getName(), ie);
     } catch (Exception e) {
-      LOG.error("Error while checking profile '{}': {}", profile.getName(), e.getMessage(), e);
+      LOG.error("Error while checking container '{}': {}", profile.getName(), e.getMessage(), e);
     }
   }
 }

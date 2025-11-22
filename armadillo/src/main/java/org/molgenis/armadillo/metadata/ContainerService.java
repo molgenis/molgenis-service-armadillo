@@ -1,14 +1,14 @@
 package org.molgenis.armadillo.metadata;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.armadillo.profile.ActiveContainerNameAccessor.DEFAULT;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
-import org.molgenis.armadillo.profile.ContainerScope;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

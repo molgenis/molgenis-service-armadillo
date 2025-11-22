@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.profile;
+package org.molgenis.armadillo.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -122,7 +122,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForProfileImageChanged() throws Exception {
-    // Mock profile
+    // Mock container
     var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);

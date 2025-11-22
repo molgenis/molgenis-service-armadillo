@@ -19,10 +19,10 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
+import org.molgenis.armadillo.container.ContainerInfo;
+import org.molgenis.armadillo.container.ContainerScheduler;
+import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.*;
-import org.molgenis.armadillo.profile.ContainerInfo;
-import org.molgenis.armadillo.profile.ContainerScheduler;
-import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -200,7 +200,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     when(dockerService.getProfileEnvironmentConfig("default")).thenReturn(config);
 
-    // Perform the GET request to fetch the profile status
+    // Perform the GET request to fetch the container status
     mockMvc
         .perform(get("/ds-profiles/status"))
         .andExpect(status().isOk())
