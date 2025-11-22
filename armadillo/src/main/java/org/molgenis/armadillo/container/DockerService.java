@@ -122,7 +122,7 @@ public class DockerService {
 
   public String[] getContainerEnvironmentConfig(String containerName) {
     containerService.getByName(containerName);
-    String dockerContainerName = asContainerName(dockerContainerName);
+    String dockerContainerName = asContainerName(containerName);
     InspectContainerResponse containerInfo =
         dockerClient.inspectContainerCmd(dockerContainerName).exec();
     return containerInfo.getConfig().getEnv();

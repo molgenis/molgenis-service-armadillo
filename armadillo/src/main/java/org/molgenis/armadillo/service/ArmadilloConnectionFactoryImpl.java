@@ -4,7 +4,7 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.container.annotation.ProfileScope;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
@@ -15,7 +15,7 @@ import org.molgenis.r.service.PackageService;
 import org.springframework.stereotype.Component;
 
 @Component
-@ProfileScope
+@ContainerScope
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;

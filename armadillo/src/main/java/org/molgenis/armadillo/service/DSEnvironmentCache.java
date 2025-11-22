@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Stream;
-import org.molgenis.armadillo.container.annotation.ProfileScope;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 
 /** Caches the datashield environments for one container. */
 @Component
-@ProfileScope
+@ContainerScope
 public class DSEnvironmentCache {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);

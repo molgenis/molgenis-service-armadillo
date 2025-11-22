@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.molgenis.armadillo.container.annotation.ProfileScope;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@ProfileScope
+@ContainerScope
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
   private final ContainerConfig containerConfig;
