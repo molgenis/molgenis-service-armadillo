@@ -39,8 +39,8 @@ const routes = [
     component: ProjectsExplorer,
   },
   {
-    path: "/containers",
-    name: "containers",
+    path: "/profiles",
+    name: "profiles",
     component: Profiles,
   },
   {
