@@ -130,7 +130,7 @@ class ProfileSchedulerTest {
     when(profile.getLastImageId()).thenReturn("oldImage");
 
     // Mock container status (RUNNING so update check proceeds)
-    when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
+    when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
     var profileStatusMap = Map.of("testProfile", containerInfo);
     when(dockerService.getAllProfileStatuses()).thenReturn(profileStatusMap);
 
@@ -176,7 +176,7 @@ class ProfileSchedulerTest {
 
     // Only stub container info and its status
     var containerInfo = mock(ContainerInfo.class);
-    when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
+    when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
     when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
 
     invokeRunUpdateForProfile(profile);
@@ -194,7 +194,7 @@ class ProfileSchedulerTest {
     when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
     when(profile.getLastImageId()).thenReturn("oldImage");
 
-    when(containerInfo.getStatus()).thenReturn(ProfileStatus.RUNNING);
+    when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
     when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
 
     // Mock pull and inspect

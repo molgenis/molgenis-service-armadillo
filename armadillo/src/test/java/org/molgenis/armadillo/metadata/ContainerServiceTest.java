@@ -26,7 +26,7 @@ class ContainerServiceTest {
 
   @Test
   void addToWhitelist() {
-    var profilesMetadata = ProfilesMetadata.create();
+    var profilesMetadata = ContainersMetadata.create();
     var defaultProfile =
         ContainerConfig.create(
             "default",
@@ -44,7 +44,7 @@ class ContainerServiceTest {
             null,
             null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
-    var profilesLoader = new DummyProfilesLoader(profilesMetadata);
+    var profilesLoader = new DummyContainersLoader(profilesMetadata);
     var profileService = new ContainerService(profilesLoader, initialProfileConfigs, profileScope);
 
     profileService.initialize();
@@ -83,12 +83,12 @@ class ContainerServiceTest {
             null,
             null);
 
-    // Setup ProfilesMetadata and add existing profile
-    ProfilesMetadata metadata = ProfilesMetadata.create();
+    // Setup ContainersMetadata and add existing profile
+    ContainersMetadata metadata = ContainersMetadata.create();
     metadata.getProfiles().put(profileName, existingProfile);
 
     // Mock loader and dependencies
-    ProfilesLoader loader = mock(ProfilesLoader.class);
+    ContainersLoader loader = mock(ContainersLoader.class);
     InitialProfileConfigs initialProfiles = mock(InitialProfileConfigs.class);
     ProfileScope mockProfileScope = mock(ProfileScope.class);
 

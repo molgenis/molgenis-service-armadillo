@@ -28,18 +28,18 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
 
   @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
-  @MockitoBean ProfilesLoader profilesLoader;
+  @MockitoBean ContainersLoader containersLoader;
   @MockitoBean ProfileScheduler profileScheduler;
 
   @BeforeEach
   void before() {
     var settings = createExampleSettings();
-    when(profilesLoader.load()).thenReturn(settings);
+    when(containersLoader.load()).thenReturn(settings);
     runAsSystem(() -> containerService.initialize());
   }
 
-  private ProfilesMetadata createExampleSettings() {
-    var settings = ProfilesMetadata.create();
+  private ContainersMetadata createExampleSettings() {
+    var settings = ContainersMetadata.create();
     settings
         .getProfiles()
         .put(

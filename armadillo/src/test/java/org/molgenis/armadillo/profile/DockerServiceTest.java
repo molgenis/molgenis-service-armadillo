@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
-import static org.molgenis.armadillo.metadata.ProfileStatus.RUNNING;
+import static org.molgenis.armadillo.metadata.ContainerStatus.RUNNING;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -42,7 +42,7 @@ import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +106,7 @@ class DockerServiceTest {
   @Test
   void testGetProfileStatusNotFound() {
     when(dockerClient.inspectContainerCmd("default").exec()).thenThrow(new NotFoundException(""));
-    var expected = ContainerInfo.create(ProfileStatus.NOT_FOUND);
+    var expected = ContainerInfo.create(ContainerStatus.NOT_FOUND);
 
     var containerInfo = dockerService.getProfileStatus("default");
 
@@ -118,7 +118,7 @@ class DockerServiceTest {
   void testGetProfileStatusDockerOffline() {
     when(dockerClient.inspectContainerCmd("default").exec())
         .thenThrow(new ProcessingException(new SocketException()));
-    var expected = ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
+    var expected = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
 
     var containerInfo = dockerService.getProfileStatus("default");
 
@@ -146,7 +146,7 @@ class DockerServiceTest {
             "default",
             ContainerInfo.create(tags, RUNNING),
             "omics",
-            ContainerInfo.create(ProfileStatus.NOT_FOUND));
+            ContainerInfo.create(ContainerStatus.NOT_FOUND));
 
     var result = dockerService.getAllProfileStatuses();
 

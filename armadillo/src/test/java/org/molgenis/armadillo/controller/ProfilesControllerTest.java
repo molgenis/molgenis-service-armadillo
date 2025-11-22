@@ -43,18 +43,18 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean DockerService dockerService;
-  @MockitoBean ProfilesLoader profilesLoader;
+  @MockitoBean ContainersLoader containersLoader;
   @MockitoBean ProfileScheduler profileScheduler;
 
   @BeforeEach
   public void before() {
     var settings = createExampleSettings();
-    when(profilesLoader.load()).thenReturn(settings);
+    when(containersLoader.load()).thenReturn(settings);
     runAsSystem(() -> containerService.initialize());
   }
 
-  private ProfilesMetadata createExampleSettings() {
-    var settings = ProfilesMetadata.create();
+  private ContainersMetadata createExampleSettings() {
+    var settings = ContainersMetadata.create();
     settings
         .getProfiles()
         .put(
@@ -149,7 +149,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
 
     var expected = createExampleSettings();
     expected.getProfiles().put("dummy", containerConfig);
-    verify(profilesLoader).save(expected);
+    verify(containersLoader).save(expected);
   }
 
   @Test
@@ -157,7 +157,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   void profiles_DELETE_default() throws Exception {
     mockMvc.perform(delete("/ds-profiles/default")).andExpect(status().isConflict());
 
-    verify(profilesLoader, never()).save(any());
+    verify(containersLoader, never()).save(any());
   }
 
   @Test
@@ -167,14 +167,14 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
 
     var expected = createExampleSettings();
     expected.getProfiles().remove("omics");
-    verify(profilesLoader).save(expected);
+    verify(containersLoader).save(expected);
   }
 
   @Test
   @WithAnonymousUser
   void getProfileStatus_GET() throws Exception {
-    ContainerInfo runningContainer = ContainerInfo.create(ProfileStatus.RUNNING);
-    ContainerInfo offlineContainer = ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
+    ContainerInfo runningContainer = ContainerInfo.create(ContainerStatus.RUNNING);
+    ContainerInfo offlineContainer = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
     // Mock DockerService to return a specific status
     when(dockerService.getProfileStatus("default"))
         .thenReturn(runningContainer); // Example of a running container

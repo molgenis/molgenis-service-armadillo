@@ -52,8 +52,8 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ProfilesLoader profilesLoader() {
-    return new DummyProfilesLoader();
+  ContainersLoader profilesLoader() {
+    return new DummyContainersLoader();
   }
 
   @Bean
@@ -77,11 +77,11 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ContainerService profileService(ProfilesLoader profilesLoader, ProfileScope profileScope) {
+  ContainerService profileService(ContainersLoader containersLoader, ProfileScope profileScope) {
     var initialProfiles = new InitialProfileConfigs();
     initialProfiles.setProfiles(emptyList());
 
-    return new ContainerService(profilesLoader, initialProfiles, profileScope);
+    return new ContainerService(containersLoader, initialProfiles, profileScope);
   }
 
   @Bean
