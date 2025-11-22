@@ -10,7 +10,7 @@ class ContainerStatusServiceTest {
 
   @Test
   void getStatus_returnsAllNulls_whenProfileUnknown() {
-    ProfileStatusService service = new ProfileStatusService();
+    ContainerStatusService service = new ContainerStatusService();
 
     ContainerStartStatus result = service.getStatus("missing");
 
@@ -23,7 +23,7 @@ class ContainerStatusServiceTest {
 
   @Test
   void updateStatus_storesValuesCorrectly() {
-    ProfileStatusService service = new ProfileStatusService();
+    ContainerStatusService service = new ContainerStatusService();
 
     service.updateStatus("donkey", "Installing profile", 10, 24);
     ContainerStartStatus result = service.getStatus("donkey");
@@ -37,7 +37,7 @@ class ContainerStatusServiceTest {
 
   @Test
   void updateStatus_overwritesPreviousValue() {
-    ProfileStatusService service = new ProfileStatusService();
+    ContainerStatusService service = new ContainerStatusService();
 
     service.updateStatus("donkey", "Installing profile", 5, 24);
     service.updateStatus("donkey", "Profile installed", 24, 24);
@@ -52,7 +52,7 @@ class ContainerStatusServiceTest {
 
   @Test
   void updateStatus_handlesNullValues() {
-    ProfileStatusService service = new ProfileStatusService();
+    ContainerStatusService service = new ContainerStatusService();
 
     service.updateStatus("shrek", null, null, null);
     ContainerStartStatus result = service.getStatus("shrek");
@@ -66,7 +66,7 @@ class ContainerStatusServiceTest {
 
   @Test
   void concurrentUpdates_remainConsistent() throws Exception {
-    ProfileStatusService service = new ProfileStatusService();
+    ContainerStatusService service = new ContainerStatusService();
     ExecutorService executor = Executors.newFixedThreadPool(8);
     int n = 100;
 

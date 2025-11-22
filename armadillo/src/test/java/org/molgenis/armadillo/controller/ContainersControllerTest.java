@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.profile.ContainerInfo;
+import org.molgenis.armadillo.profile.ContainerScheduler;
 import org.molgenis.armadillo.profile.DockerService;
-import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -44,7 +44,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean DockerService dockerService;
   @MockitoBean ContainersLoader containersLoader;
-  @MockitoBean ProfileScheduler profileScheduler;
+  @MockitoBean ContainerScheduler containerScheduler;
 
   @BeforeEach
   public void before() {

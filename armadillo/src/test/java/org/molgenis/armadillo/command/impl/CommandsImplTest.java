@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.profile.ActiveContainerNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -223,17 +223,17 @@ class CommandsImplTest {
 
   @Test
   void testGetActiveProfileDefault() {
-    ActiveProfileNameAccessor.resetActiveProfileName();
+    ActiveContainerNameAccessor.resetActiveProfileName();
     String profileName = commands.getActiveProfileName();
-    assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
+    assertEquals(ActiveContainerNameAccessor.DEFAULT, profileName);
   }
 
   @Test
   void testGetActiveProfile() {
-    ActiveProfileNameAccessor.setActiveProfileName("exposome");
+    ActiveContainerNameAccessor.setActiveProfileName("exposome");
     String profileName = commands.getActiveProfileName();
     assertEquals("exposome", profileName);
-    ActiveProfileNameAccessor.resetActiveProfileName();
+    ActiveContainerNameAccessor.resetActiveProfileName();
   }
 
   @Test

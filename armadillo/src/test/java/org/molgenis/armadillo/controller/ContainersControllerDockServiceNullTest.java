@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.metadata.*;
-import org.molgenis.armadillo.profile.ProfileScheduler;
+import org.molgenis.armadillo.profile.ContainerScheduler;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -29,7 +29,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
   @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean ContainersLoader containersLoader;
-  @MockitoBean ProfileScheduler profileScheduler;
+  @MockitoBean ContainerScheduler containerScheduler;
 
   @BeforeEach
   void before() {

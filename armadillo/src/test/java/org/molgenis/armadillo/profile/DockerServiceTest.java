@@ -55,7 +55,7 @@ class DockerServiceTest {
   @Mock private ContainerService containerService;
   private DockerService dockerService;
 
-  @Mock private ProfileStatusService profileStatusService;
+  @Mock private ContainerStatusService containerStatusService;
 
   /** Test-only callback that never blocks. */
   private static class NonBlockingCallback extends PullImageResultCallback {
@@ -72,7 +72,7 @@ class DockerServiceTest {
 
   @BeforeEach
   void setup() {
-    dockerService = new DockerService(dockerClient, containerService, profileStatusService);
+    dockerService = new DockerService(dockerClient, containerService, containerStatusService);
 
     // lenient so tests that don't pull images won't fail strict-stubbing checks
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
@@ -409,7 +409,7 @@ class DockerServiceTest {
     when(containerService.getByName(profileName)).thenReturn(config);
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, containerService, profileStatusService));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doNothing().when(spyService).removeImageIfUnused(imageId);
 
@@ -434,7 +434,7 @@ class DockerServiceTest {
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, containerService, profileStatusService));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doThrow(ImageRemoveFailedException.class).when(spyService).removeImageIfUnused(imageId);
 
@@ -641,21 +641,21 @@ class DockerServiceTest {
     when(it1.getId()).thenReturn("layer1");
     when(it1.getStatus()).thenReturn("Downloading");
     cb.onNext(it1);
-    verify(profileStatusService, atLeastOnce())
+    verify(containerStatusService, atLeastOnce())
         .updateStatus(eq("donkey"), eq("Installing profile"), eq(0), eq(1));
 
     PullResponseItem it2 = mock(PullResponseItem.class);
     when(it2.getId()).thenReturn("layer1");
     when(it2.getStatus()).thenReturn("Pull complete");
     cb.onNext(it2);
-    verify(profileStatusService, atLeastOnce())
+    verify(containerStatusService, atLeastOnce())
         .updateStatus(eq("donkey"), eq("Installing profile"), eq(1), eq(1));
 
     PullResponseItem it3 = mock(PullResponseItem.class);
     when(it3.getId()).thenReturn("layer2");
     when(it3.getStatus()).thenReturn("Already exists");
     cb.onNext(it3);
-    verify(profileStatusService, atLeastOnce())
+    verify(containerStatusService, atLeastOnce())
         .updateStatus(eq("donkey"), eq("Installing profile"), eq(2), eq(2));
   }
 
@@ -684,7 +684,7 @@ class DockerServiceTest {
     cb.onNext(noId);
 
     // since id == null, it should skip calling updateStatus
-    verify(profileStatusService, never())
+    verify(containerStatusService, never())
         .updateStatus(eq("donkey"), eq("Installing profile"), any(), any());
   }
 

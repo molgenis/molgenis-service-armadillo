@@ -5,7 +5,7 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.profile.ContainerScope;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
@@ -57,8 +57,8 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ProfileScope profileScope() {
-    return new ProfileScope();
+  ContainerScope profileScope() {
+    return new ContainerScope();
   }
 
   @Bean
@@ -77,11 +77,12 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ContainerService profileService(ContainersLoader containersLoader, ProfileScope profileScope) {
+  ContainerService profileService(
+      ContainersLoader containersLoader, ContainerScope containerScope) {
     var initialProfiles = new InitialContainerConfigs();
     initialProfiles.setProfiles(emptyList());
 
-    return new ContainerService(containersLoader, initialProfiles, profileScope);
+    return new ContainerService(containersLoader, initialProfiles, containerScope);
   }
 
   @Bean

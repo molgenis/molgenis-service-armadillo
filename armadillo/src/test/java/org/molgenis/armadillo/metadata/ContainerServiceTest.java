@@ -15,12 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.profile.ContainerScope;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerServiceTest {
 
-  @Mock private ProfileScope profileScope;
+  @Mock private ContainerScope containerScope;
 
   @Mock private InitialContainerConfigs initialContainerConfigs;
 
@@ -46,13 +46,13 @@ class ContainerServiceTest {
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyContainersLoader(profilesMetadata);
     var profileService =
-        new ContainerService(profilesLoader, initialContainerConfigs, profileScope);
+        new ContainerService(profilesLoader, initialContainerConfigs, containerScope);
 
     profileService.initialize();
 
     profileService.addToWhitelist("default", "dsOmics");
 
-    verify(profileScope).removeAllProfileBeans("default");
+    verify(containerScope).removeAllProfileBeans("default");
     assertTrue(profileService.getByName("default").getPackageWhitelist().contains("dsOmics"));
   }
 
@@ -91,13 +91,13 @@ class ContainerServiceTest {
     // Mock loader and dependencies
     ContainersLoader loader = mock(ContainersLoader.class);
     InitialContainerConfigs initialProfiles = mock(InitialContainerConfigs.class);
-    ProfileScope mockProfileScope = mock(ProfileScope.class);
+    ContainerScope mockContainerScope = mock(ContainerScope.class);
 
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     ContainerService containerService =
-        new ContainerService(loader, initialProfiles, mockProfileScope);
+        new ContainerService(loader, initialProfiles, mockContainerScope);
     containerService.initialize();
 
     // Act: update the image id, version, and size
@@ -111,7 +111,7 @@ class ContainerServiceTest {
     assertEquals(newImageSize, updated.getImageSize());
 
     // Verify flush and save were called
-    verify(mockProfileScope).removeAllProfileBeans(profileName);
+    verify(mockContainerScope).removeAllProfileBeans(profileName);
     verify(loader).save(any());
   }
 }

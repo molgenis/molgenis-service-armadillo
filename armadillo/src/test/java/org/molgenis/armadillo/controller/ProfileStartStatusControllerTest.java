@@ -9,12 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.metadata.ContainerStartStatus;
-import org.molgenis.armadillo.profile.ProfileStatusService;
+import org.molgenis.armadillo.profile.ContainerStatusService;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerStartStatusControllerMockitoTest {
 
-  @Mock private ProfileStatusService statusService;
+  @Mock private ContainerStatusService statusService;
 
   @InjectMocks private ContainerStartStatusController controller;
 

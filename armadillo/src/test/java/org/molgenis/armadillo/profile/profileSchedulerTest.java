@@ -21,14 +21,14 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileSchedulerTest {
+class ContainerSchedulerTest {
 
   @Mock private DockerService dockerService;
   @Mock private ContainerService containerService;
   @Mock private DockerClient dockerClient;
   @Mock private ScheduledFuture<?> scheduledFuture;
 
-  @InjectMocks private ProfileScheduler profileScheduler;
+  @InjectMocks private ContainerScheduler containerScheduler;
 
   @Test
   void testToCronWeekly() throws Exception {
@@ -75,24 +75,24 @@ class ProfileSchedulerTest {
     when(profile.getAutoUpdate()).thenReturn(true);
     when(profile.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
 
-    var scheduler = profileScheduler.taskScheduler();
+    var scheduler = containerScheduler.taskScheduler();
     var spyScheduler = spy(scheduler);
-    ReflectionTestUtils.setField(profileScheduler, "taskScheduler", spyScheduler);
+    ReflectionTestUtils.setField(containerScheduler, "taskScheduler", spyScheduler);
 
     doReturn(scheduledFuture)
         .when(spyScheduler)
         .schedule(any(Runnable.class), any(CronTrigger.class));
 
-    profileScheduler.reschedule(profile);
+    containerScheduler.reschedule(profile);
 
     verify(spyScheduler).schedule(any(Runnable.class), any(CronTrigger.class));
   }
 
   @Test
   void testScheduleWithDateOverload() {
-    var scheduler = profileScheduler.taskScheduler();
+    var scheduler = containerScheduler.taskScheduler();
     var spyScheduler = spy(scheduler);
-    ReflectionTestUtils.setField(profileScheduler, "taskScheduler", spyScheduler);
+    ReflectionTestUtils.setField(containerScheduler, "taskScheduler", spyScheduler);
 
     Date startTime = new Date();
 
@@ -105,15 +105,15 @@ class ProfileSchedulerTest {
 
   @Test
   void testCancelRemovesTask() {
-    var scheduler = profileScheduler.taskScheduler();
-    ReflectionTestUtils.setField(profileScheduler, "taskScheduler", scheduler);
+    var scheduler = containerScheduler.taskScheduler();
+    ReflectionTestUtils.setField(containerScheduler, "taskScheduler", scheduler);
 
     var tasksMap =
         (Map<String, ScheduledFuture<?>>)
-            ReflectionTestUtils.getField(profileScheduler, "scheduledTasks");
+            ReflectionTestUtils.getField(containerScheduler, "scheduledTasks");
     tasksMap.put("testProfile", scheduledFuture);
 
-    profileScheduler.cancel("testProfile");
+    containerScheduler.cancel("testProfile");
 
     verify(scheduledFuture).cancel(false);
   }
@@ -235,23 +235,23 @@ class ProfileSchedulerTest {
 
   // --- Helper methods to invoke private methods ---
   private String invokeToCron(UpdateSchedule schedule) throws Exception {
-    var method = ProfileScheduler.class.getDeclaredMethod("toCron", UpdateSchedule.class);
+    var method = ContainerScheduler.class.getDeclaredMethod("toCron", UpdateSchedule.class);
     method.setAccessible(true);
-    return (String) method.invoke(profileScheduler, schedule);
+    return (String) method.invoke(containerScheduler, schedule);
   }
 
   private int invokeDayToCronNumber(String day) throws Exception {
-    var method = ProfileScheduler.class.getDeclaredMethod("convertDayToCronNumber", String.class);
+    var method = ContainerScheduler.class.getDeclaredMethod("convertDayToCronNumber", String.class);
     method.setAccessible(true);
-    return (int) method.invoke(profileScheduler, day);
+    return (int) method.invoke(containerScheduler, day);
   }
 
   private void invokeRunUpdateForProfile(ContainerConfig profile) {
     try {
       var method =
-          ProfileScheduler.class.getDeclaredMethod("runUpdateForProfile", ContainerConfig.class);
+          ContainerScheduler.class.getDeclaredMethod("runUpdateForProfile", ContainerConfig.class);
       method.setAccessible(true);
-      method.invoke(profileScheduler, profile);
+      method.invoke(containerScheduler, profile);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
