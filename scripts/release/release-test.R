@@ -59,7 +59,7 @@ cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
 prepare_resources(resource_path = test_config$rda_dir, url = test_config$rda_url, skip_tests = test_config$skip_tests)
 
-profiles <- unlist(stri_split_fixed(test_config$profile, ","))
+containers <- unlist(stri_split_fixed(test_config$profile, ","))
 
 
 run_tests_for_profile <- function(profile) {
@@ -70,8 +70,8 @@ run_tests_for_profile <- function(profile) {
     source("test-cases/set-admin-mode.R")
     token <- set_admin_or_get_token(admin_pwd = test_config$admin_pwd, url = test_config$armadillo_url, skip_tests = test_config$skip_test, ADMIN_MODE = test_config$ADMIN_MODE)
 
-    cli_h2("Configuring profiles")
-    source("test-cases/setup-profiles.R")
+    cli_h2("Configuring containers")
+    source("test-cases/setup-containers.R")
     profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = profile, user = test_config$user, interactive = test_config$interactive, profile_defaults = test_config$profile_defaults)
 
     cli_h1("Starting release test")
@@ -117,7 +117,7 @@ run_tests_for_profile <- function(profile) {
     source("test-cases/researcher-login.R")
     conns <<- researcher_login(url = test_config$armadillo_url, profile = profile, admin_pwd = test_config$admin_pwd, token = token, table = "2_1-core-1_0/nonrep", project = project1, object = "nonrep", variables = "coh_country", ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
-    cli_h2("Verifying connecting to profiles possible")
+    cli_h2("Verifying connecting to containers possible")
     source("test-cases/verify-profile.R")
     verify_profiles(admin_pwd = test_config$admin_pwd, token = token, url = test_config$armadillo_url, profile = profile, ADMIN_MODE = test_config$ADMIN_MODE, skip_tests = test_config$skip_tests)
 
@@ -181,4 +181,4 @@ run_tests_for_profile <- function(profile) {
     print(paste0("Running tests for profile [", profile, "] took: ", end_time - start_time))
 }
 
-lapply(profiles, run_tests_for_profile)
+lapply(containers, run_tests_for_profile)

@@ -7,7 +7,7 @@ generate_project_port <- function(current_project_ports) {
 }
 
 obtain_existing_profile_information <- function(key, auth_type) {
-  responses <- get_from_api_with_header("ds-profiles", key, auth_type)
+  responses <- get_from_api_with_header("ds-containers", key, auth_type)
   response_df <- data.frame(matrix(ncol = 5, nrow = 0, dimnames = list(NULL, c("name", "container", "port", "seed", "online"))))
   for (response in responses) {
     if ("datashield.seed" %in% names(response$options)) {
@@ -46,7 +46,7 @@ create_profile <- function(profile_name, key, auth_type, profile_defaults) {
       functionBlacklist = return_list_without_empty(blacklist),
       options = list(datashield.seed = new_profile_seed)
     )
-    response <- put_to_api("ds-profiles", key, auth_type, body_args = args)
+    response <- put_to_api("ds-containers", key, auth_type, body_args = args)
     if (response$status_code == 204) {
       cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
       start_profile(profile_name, key, auth_type)
@@ -76,7 +76,7 @@ create_profile_if_not_available <- function(profile_name, available_profiles, ke
 }
 
 start_profile_if_not_running <- function(profile_name, key, auth_type) {
-  response <- get_from_api_with_header(paste0("ds-profiles/", profile_name), key, auth_type)
+  response <- get_from_api_with_header(paste0("ds-containers/", profile_name), key, auth_type)
   if (!response$container$status == "RUNNING") {
     cli_alert_info(sprintf("Detected profile %s not running", profile_name))
     start_profile(profile_name, key, auth_type)
@@ -87,7 +87,7 @@ start_profile <- function(profile_name, key, auth_type) {
   auth_header <- get_auth_header(auth_type, key)
   cli_alert_info(sprintf("Attempting to start profile: %s", profile_name))
   response <- POST(
-    sprintf("%sds-profiles/%s/start", armadillo_url, profile_name),
+    sprintf("%sds-containers/%s/start", armadillo_url, profile_name),
     config = c(httr::add_headers(auth_header))
   )
   if (!response$status_code == 204) {
@@ -99,20 +99,20 @@ start_profile <- function(profile_name, key, auth_type) {
 
 
 setup_profiles <- function(token, auth_type, url, as_docker_container, skip_tests, profile, user, interactive, profile_defaults) {
-  test_name <- "setup-profiles"
+  test_name <- "setup-containers"
   if (do_skip_test(test_name, skip_tests)) {
     return()
   }
 
-  cat("\nAvailable profiles: \n")
-  profiles <- get_from_api_with_header("profiles", token, auth_type, url, user)
+  cat("\nAvailable containers: \n")
+  containers <- get_from_api_with_header("containers", token, auth_type, url, user)
 
   cli_alert_info("Checking if profile is prepared for all tests")
 
   if (!as_docker_container) {
-    create_profile_if_not_available(profile, profiles$available, token, auth_type, profile_defaults)
+    create_profile_if_not_available(profile, containers$available, token, auth_type, profile_defaults)
   }
-  profile_info <- get_from_api_with_header(paste0("ds-profiles/", profile), token, auth_type, url, user)
+  profile_info <- get_from_api_with_header(paste0("ds-containers/", profile), token, auth_type, url, user)
   if (!as_docker_container) {
     start_profile_if_not_running("default", token, auth_type)
   }
