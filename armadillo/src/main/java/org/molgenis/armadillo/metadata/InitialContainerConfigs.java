@@ -5,19 +5,19 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-/** Collects the profiles that are passed as configuration parameters. */
+/** Collects the containers that are passed as configuration parameters. */
 @ConfigurationProperties(prefix = "armadillo")
 @Component
 @Valid
 public class InitialContainerConfigs {
 
-  private List<InitialContainerConfig> profiles;
+  private List<InitialContainerConfig> containers;
 
-  public void setProfiles(List<InitialContainerConfig> profiles) {
-    this.profiles = profiles;
+  public void setContainers(List<InitialContainerConfig> containers) {
+    this.containers = containers;
   }
 
-  public List<InitialContainerConfig> getProfiles() {
-    return profiles;
+  public List<InitialContainerConfig> getContainers() {
+    return containers;
   }
 }

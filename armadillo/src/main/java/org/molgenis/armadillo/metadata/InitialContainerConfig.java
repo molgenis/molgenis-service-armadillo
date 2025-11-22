@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Profile that is passed as configuration parameters. Don't use at runtime.
+ * Container that is passed as configuration parameters. Don't use at runtime.
  *
  * <p>This class can't be @AutoValue'd because Spring's @ConfigurationProperties can't bind to it
  * without setters.
@@ -20,7 +20,7 @@ public class InitialContainerConfig {
   private Set<String> functionBlacklist;
   private Map<String, String> options;
 
-  public ContainerConfig toProfileConfig() {
+  public ContainerConfig toContainerConfig() {
     return ContainerConfig.create(
         name,
         image,

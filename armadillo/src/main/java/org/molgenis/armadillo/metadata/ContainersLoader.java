@@ -17,6 +17,6 @@ public class ContainersLoader extends StorageJsonLoader<ContainersMetadata> {
 
   @Override
   public String getJsonFilename() {
-    return "profiles.json";
+    return "containers.json";
   }
 }

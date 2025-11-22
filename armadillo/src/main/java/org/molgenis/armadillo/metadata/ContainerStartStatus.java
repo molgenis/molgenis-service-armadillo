@@ -1,21 +1,21 @@
 package org.molgenis.armadillo.metadata;
 
 public class ContainerStartStatus {
-  private String profileName;
+  private String containerName;
   private String status;
   private Integer completedLayers;
   private Integer totalLayers;
 
   public ContainerStartStatus(
-      String profileName, String status, Integer completedLayers, Integer totalLayers) {
-    this.profileName = profileName;
+      String containerName, String status, Integer completedLayers, Integer totalLayers) {
+    this.containerName = containerName;
     this.status = status;
     this.completedLayers = completedLayers;
     this.totalLayers = totalLayers;
   }
 
-  public String getProfileName() {
-    return profileName;
+  public String getContainerName() {
+    return containerName;
   }
 
   public String getStatus() {
@@ -30,8 +30,8 @@ public class ContainerStartStatus {
     return totalLayers;
   }
 
-  public void setProfileName(String profileName) {
-    this.profileName = profileName;
+  public void setContainerName(String containerName) {
+    this.containerName = containerName;
   }
 
   public void setStatus(String status) {

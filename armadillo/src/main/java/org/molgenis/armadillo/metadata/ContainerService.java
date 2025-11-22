@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class ContainerService {
 
   private final ContainersLoader loader;
-  private final InitialContainerConfigs initialProfiles;
+  private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
   private ContainersMetadata settings;
 
@@ -27,7 +27,7 @@ public class ContainerService {
       InitialContainerConfigs initialContainerConfigs,
       ContainerScope containerScope) {
     this.loader = requireNonNull(containersLoader);
-    initialProfiles = requireNonNull(initialContainerConfigs);
+    initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
     runAsSystem(this::initialize);
   }
@@ -42,24 +42,24 @@ public class ContainerService {
   }
 
   public List<ContainerConfig> getAll() {
-    return new ArrayList<>(settings.getProfiles().values());
+    return new ArrayList<>(settings.getContainers().values());
   }
 
-  public ContainerConfig getByName(String profileName) {
-    if (!settings.getProfiles().containsKey(profileName)) {
-      throw new UnknownContainerException(profileName);
+  public ContainerConfig getByName(String containerName) {
+    if (!settings.getContainers().containsKey(containerName)) {
+      throw new UnknownContainerException(containerName);
     }
-    return settings.getProfiles().get(profileName);
+    return settings.getContainers().get(containerName);
   }
 
   public void upsert(ContainerConfig containerConfig) {
-    String profileName = containerConfig.getName();
+    String containerName = containerConfig.getName();
     settings
-        .getProfiles()
+        .getContainers()
         .put(
-            profileName,
+            containerName,
             ContainerConfig.create(
-                profileName,
+                containerName,
                 containerConfig.getImage(),
                 containerConfig.getAutoUpdate(),
                 containerConfig.getUpdateSchedule(),
@@ -73,28 +73,28 @@ public class ContainerService {
                 containerConfig.getImageSize(),
                 containerConfig.getCreationDate(),
                 containerConfig.getInstallDate()));
-    flushProfileBeans(profileName);
+    flushContainerBeans(containerName);
     save();
   }
 
-  public void addToWhitelist(String profileName, String pack) {
-    getByName(profileName).getPackageWhitelist().add(pack);
-    flushProfileBeans(profileName);
+  public void addToWhitelist(String containerName, String pack) {
+    getByName(containerName).getPackageWhitelist().add(pack);
+    flushContainerBeans(containerName);
     save();
   }
 
-  public void delete(String profileName) {
-    if (profileName.equals(DEFAULT)) {
+  public void delete(String containerName) {
+    if (containerName.equals(DEFAULT)) {
       throw new DefaultContainerDeleteException();
     }
 
-    settings.getProfiles().remove(profileName);
-    flushProfileBeans(profileName);
+    settings.getContainers().remove(containerName);
+    flushContainerBeans(containerName);
     save();
   }
 
-  private void flushProfileBeans(String profileName) {
-    containerScope.removeAllContainerBeans(profileName);
+  private void flushContainerBeans(String containerName) {
+    containerScope.removeAllContainerBeans(containerName);
   }
 
   private void save() {
@@ -106,26 +106,26 @@ public class ContainerService {
       return;
     }
 
-    if (initialProfiles.getProfiles() != null) {
-      initialProfiles.getProfiles().stream()
-          .map(InitialContainerConfig::toProfileConfig)
-          .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
+    if (initialContainer.getContainers() != null) {
+      initialContainer.getContainers().stream()
+          .map(InitialContainerConfig::toContainerConfig)
+          .filter(container -> !settings.getContainers().containsKey(container.getName()))
           .forEach(this::upsert);
     }
 
-    if (!settings.getProfiles().containsKey(DEFAULT)) {
+    if (!settings.getContainers().containsKey(DEFAULT)) {
       upsert(ContainerConfig.createDefault());
     }
   }
 
   public void updateImageMetaData(
-      String profileName,
+      String containerName,
       String newImageId,
       String newVersionId,
       Long newImageSize,
       String newCreationDate,
       @Nullable String newInstallDate) {
-    ContainerConfig existing = getByName(profileName);
+    ContainerConfig existing = getByName(containerName);
 
     ContainerConfig updated =
         ContainerConfig.create(
@@ -144,8 +144,8 @@ public class ContainerService {
             newCreationDate,
             newInstallDate != null ? newInstallDate : existing.getInstallDate());
 
-    settings.getProfiles().put(profileName, updated);
-    flushProfileBeans(profileName);
+    settings.getContainers().put(containerName, updated);
+    flushContainerBeans(containerName);
     save();
   }
 }
