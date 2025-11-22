@@ -46,7 +46,7 @@ start() {
         error "$0 needs profile name. Or try ${0}All"
     fi
 
-    profile="$1"
+    container="$1"
     cmd="$ARMADILLO_URL/ds-profiles/$profile/start"
     echo "Starting '$profile' on $cmd"
 
@@ -58,7 +58,7 @@ stop() {
         error "$0 needs profile name. Or try ${0}All"
     fi
 
-    profile="$1"
+    container="$1"
     cmd="$ARMADILLO_URL/ds-profiles/$profile/stop"
     echo "Stopping '$profile' on $cmd"
 
@@ -70,7 +70,7 @@ restart() {
         error "$0 needs profile name. Or try ${0}All"
     fi
 
-    profile=$1
+    container=$1
     echo "Restarting $profile"
     stop "$profile"
     sleep 5

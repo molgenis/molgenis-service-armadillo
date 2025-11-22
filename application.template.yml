@@ -1,5 +1,5 @@
 armadillo:
-  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
+  # set this false if you DON'T want Armadillo to create/edit/delete container docker images via the user interface
   docker-management-enabled: true
 
   # set this true if you want Armadillo runs as a docker container
