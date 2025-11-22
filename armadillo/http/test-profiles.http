@@ -2,16 +2,16 @@
 POST {{host}}/logout
 
 ### authenticate with basic auth
-GET {{host}}/profiles
+GET {{host}}/containers
 Authorization: Basic admin admin
 
 ###
-POST {{host}}/select-profile
+POST {{host}}/select-container
 
 default
 
 ###
-POST {{host}}/select-profile
+POST {{host}}/select-container
 
 exposome
 
