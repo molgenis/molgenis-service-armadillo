@@ -99,8 +99,8 @@ information to get you started and help you get familiarised with our code and w
     4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
 
     The command must run in the same directory as the downloaded docker file. 
-    We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. 
-    Alternatively you must include the datashield profiles into this docker-compose. 
+    We made docker available via 'docker.sock' so we can start/stop DataSHIELD containers. 
+    Alternatively you must include the datashield containers into this docker-compose. 
     You can override all application.yml settings via environment variables (see commented code in docker-compose file).
 
     <h3>IntelliJ</h3>
