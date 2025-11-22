@@ -1,7 +1,7 @@
 armadillo:
   docker-management-enabled: false
   docker-run-in-container: true
-  profiles:
+  containers:
     - name: default
       image: datashield/rock-base:latest
       port: 6311 
