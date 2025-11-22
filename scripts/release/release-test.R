@@ -59,12 +59,12 @@ cli_h2("Preparing resource for tests")
 source("test-cases/download-resources.R")
 prepare_resources(resource_path = test_config$rda_dir, url = test_config$rda_url, skip_tests = test_config$skip_tests)
 
-containers <- unlist(stri_split_fixed(test_config$profile, ","))
+containers <- unlist(stri_split_fixed(test_config$container, ","))
 
 
-run_tests_for_profile <- function(profile) {
+run_tests_for_container <- function(container) {
     start_time <- Sys.time()
-    cli_h2(paste0("Running for profile: ", profile))
+    cli_h2(paste0("Running for container: ", container))
 
     cli_h2("Determining whether to run with password or token")
     source("test-cases/set-admin-mode.R")
@@ -72,7 +72,7 @@ run_tests_for_profile <- function(profile) {
 
     cli_h2("Configuring containers")
     source("test-cases/setup-containers.R")
-    profile_info <- setup_profiles(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = profile, user = test_config$user, interactive = test_config$interactive, profile_defaults = test_config$profile_defaults)
+    container_info <- setup_containers(auth_type = test_config$auth_type, token = token, skip_tests = test_config$skip_tests, url = test_config$armadillo_url, as_docker_container = test_config$as_docker_container, profile = profile, user = test_config$user, interactive = test_config$interactive, profile_defaults = test_config$profile_defaults)
 
     cli_h1("Starting release test")
     source("lib/release-test-info.R")

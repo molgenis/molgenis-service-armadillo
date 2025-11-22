@@ -12,7 +12,7 @@ Data managers can use the permission screen to give email addresses access to th
 
 ## Configure DataSHIELD containers
 
-To analyse data, users must choose a datashield profile. Armadillo owners can use the web user interface to configure new containers. Assuming you installed docker you can also start/stop these images. Alternatively you can use docker-compose for that. We recommend selecting one of the DataSHIELD standard containers.
+To analyse data, users must choose a datashield container. Armadillo owners can use the web user interface to configure new containers. Assuming you installed docker you can also start/stop these images. Alternatively you can use docker-compose for that. We recommend selecting one of the DataSHIELD standard containers.
 
 ## End users can use Armadillo as any other DataSHIELD server
 

@@ -5,7 +5,7 @@ armadillo:
   # uncomment this to configure a default admin user
   # oidc-admin-user: @ADMIN_EMAIL@
 
-  profiles:
+  containers:
     - name: default
       image: datashield/rock-base:latest
       port: 6311
