@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
@@ -263,7 +263,7 @@ class CommandsImplTest {
 
   @Test
   void testSelectUnknownProfile() {
-    when(containerService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
-    assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+    when(containerService.getByName("unknown")).thenThrow(new UnknownContainerException("unknown"));
+    assertThrows(UnknownContainerException.class, () -> commands.selectProfile("unknown"));
   }
 }
