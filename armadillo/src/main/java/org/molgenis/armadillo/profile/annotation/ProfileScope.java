@@ -9,7 +9,7 @@ import org.springframework.core.annotation.AliasFor;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Scope("profile")
-public @interface ProfileScope {
+public @interface ContainerScope {
 
   /**
    * Alias for {@link Scope#proxyMode}.
