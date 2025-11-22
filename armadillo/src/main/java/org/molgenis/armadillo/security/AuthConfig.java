@@ -75,7 +75,7 @@ public class AuthConfig {
                     "/v3/**",
                     "/swagger-ui/**",
                     "/ui/**",
-                    "/ds-profiles/status",
+                    "/ds-containers/status",
                     "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
