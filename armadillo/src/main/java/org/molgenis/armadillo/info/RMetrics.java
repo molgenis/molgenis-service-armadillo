@@ -4,7 +4,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +19,7 @@ public class RMetrics {
         runAsSystem(
             () ->
                 profileService.getAll().stream()
-                    .map(ProfileConfig::getName)
+                    .map(ContainerConfig::getName)
                     .forEach(
                         environment ->
                             Gauge.builder(

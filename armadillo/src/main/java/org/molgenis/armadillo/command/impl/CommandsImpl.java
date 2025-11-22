@@ -17,7 +17,7 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
@@ -83,7 +83,8 @@ class CommandsImpl implements Commands {
 
   @Override
   public List<String> listProfiles() {
-    return runAsSystem(() -> profileService.getAll().stream().map(ProfileConfig::getName).toList());
+    return runAsSystem(
+        () -> profileService.getAll().stream().map(ContainerConfig::getName).toList());
   }
 
   @Override

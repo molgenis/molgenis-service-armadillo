@@ -41,38 +41,38 @@ public class ProfileService {
     bootstrap();
   }
 
-  public List<ProfileConfig> getAll() {
+  public List<ContainerConfig> getAll() {
     return new ArrayList<>(settings.getProfiles().values());
   }
 
-  public ProfileConfig getByName(String profileName) {
+  public ContainerConfig getByName(String profileName) {
     if (!settings.getProfiles().containsKey(profileName)) {
       throw new UnknownProfileException(profileName);
     }
     return settings.getProfiles().get(profileName);
   }
 
-  public void upsert(ProfileConfig profileConfig) {
-    String profileName = profileConfig.getName();
+  public void upsert(ContainerConfig containerConfig) {
+    String profileName = containerConfig.getName();
     settings
         .getProfiles()
         .put(
             profileName,
-            ProfileConfig.create(
+            ContainerConfig.create(
                 profileName,
-                profileConfig.getImage(),
-                profileConfig.getAutoUpdate(),
-                profileConfig.getUpdateSchedule(),
-                profileConfig.getHost(),
-                profileConfig.getPort(),
-                profileConfig.getPackageWhitelist(),
-                profileConfig.getFunctionBlacklist(),
-                profileConfig.getOptions(),
-                profileConfig.getLastImageId(),
-                profileConfig.getVersionId(),
-                profileConfig.getImageSize(),
-                profileConfig.getCreationDate(),
-                profileConfig.getInstallDate()));
+                containerConfig.getImage(),
+                containerConfig.getAutoUpdate(),
+                containerConfig.getUpdateSchedule(),
+                containerConfig.getHost(),
+                containerConfig.getPort(),
+                containerConfig.getPackageWhitelist(),
+                containerConfig.getFunctionBlacklist(),
+                containerConfig.getOptions(),
+                containerConfig.getLastImageId(),
+                containerConfig.getVersionId(),
+                containerConfig.getImageSize(),
+                containerConfig.getCreationDate(),
+                containerConfig.getInstallDate()));
     flushProfileBeans(profileName);
     save();
   }
@@ -114,7 +114,7 @@ public class ProfileService {
     }
 
     if (!settings.getProfiles().containsKey(DEFAULT)) {
-      upsert(ProfileConfig.createDefault());
+      upsert(ContainerConfig.createDefault());
     }
   }
 
@@ -125,10 +125,10 @@ public class ProfileService {
       Long newImageSize,
       String newCreationDate,
       @Nullable String newInstallDate) {
-    ProfileConfig existing = getByName(profileName);
+    ContainerConfig existing = getByName(profileName);
 
-    ProfileConfig updated =
-        ProfileConfig.create(
+    ContainerConfig updated =
+        ContainerConfig.create(
             existing.getName(),
             existing.getImage(),
             existing.getAutoUpdate(),

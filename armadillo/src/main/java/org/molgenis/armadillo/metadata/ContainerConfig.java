@@ -15,7 +15,7 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class ProfileConfig {
+public abstract class ContainerConfig {
 
   @JsonProperty("name")
   @NotEmpty
@@ -72,7 +72,7 @@ public abstract class ProfileConfig {
   public abstract String getInstallDate();
 
   @JsonCreator
-  public static ProfileConfig create(
+  public static ContainerConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("autoUpdate") Boolean autoUpdate,
@@ -87,7 +87,7 @@ public abstract class ProfileConfig {
       @JsonProperty("imageSize") @Nullable Long newImageSize,
       @JsonProperty("creationDate") @Nullable String newCreationDate,
       @JsonProperty("installDate") @Nullable String newInstallDate) {
-    return new AutoValue_ProfileConfig(
+    return new AutoValue_ContainerConfig(
         newName,
         newImage,
         autoUpdate,
@@ -104,7 +104,7 @@ public abstract class ProfileConfig {
         newInstallDate);
   }
 
-  public static ProfileConfig createDefault() {
+  public static ContainerConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",

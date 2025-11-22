@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.core.io.ByteArrayResource;
@@ -125,11 +125,11 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ProfileConfig currentConfig = profiles.getByName(getActiveProfileName());
+    ContainerConfig currentConfig = profiles.getByName(getActiveProfileName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    ContainerConfig containerConfig =
+        ContainerConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),
             currentConfig.getAutoUpdate(),
@@ -145,10 +145,10 @@ public class DevelopmentController {
             currentConfig.getCreationDate(),
             currentConfig.getInstallDate());
     auditEventPublisher.audit(
-        () -> profiles.upsert(profileConfig),
+        () -> profiles.upsert(containerConfig),
         principal,
         UPSERT_PROFILE,
-        Map.of(PROFILE, profileConfig));
+        Map.of(PROFILE, containerConfig));
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")

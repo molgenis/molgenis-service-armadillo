@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
@@ -65,7 +65,7 @@ public class DockerService {
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
-    var names = profileService.getAll().stream().map(ProfileConfig::getName).toList();
+    var names = profileService.getAll().stream().map(ContainerConfig::getName).toList();
 
     var statuses =
         names.stream()
@@ -263,27 +263,27 @@ public class DockerService {
     }
   }
 
-  void installImage(ProfileConfig profileConfig) {
-    if (profileConfig.getImage() == null) {
-      throw new MissingImageException(profileConfig.getImage());
+  void installImage(ContainerConfig containerConfig) {
+    if (containerConfig.getImage() == null) {
+      throw new MissingImageException(containerConfig.getImage());
     }
 
     // if rock is in the image name, it's rock
-    int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
+    int imageExposed = containerConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
-    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
+    portBindings.bind(exposed, Ports.Binding.bindPort(containerConfig.getPort()));
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(containerConfig.getImage())) {
       cmd.withExposedPorts(exposed)
           .withHostConfig(
               new HostConfig()
                   .withPortBindings(portBindings)
                   .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withName(profileConfig.getName())
+          .withName(containerConfig.getName())
           .withEnv("DEBUG=FALSE")
           .exec();
     } catch (DockerException e) {
-      throw new ImageStartFailedException(profileConfig.getImage(), e);
+      throw new ImageStartFailedException(containerConfig.getImage(), e);
     }
   }
 
@@ -318,29 +318,29 @@ public class DockerService {
     }
   }
 
-  private void pullImage(ProfileConfig profileConfig) {
-    if (profileConfig.getImage() == null) {
-      throw new MissingImageException(profileConfig.getName());
+  private void pullImage(ContainerConfig containerConfig) {
+    if (containerConfig.getImage() == null) {
+      throw new MissingImageException(containerConfig.getName());
     }
 
     try {
       dockerClient
-          .pullImageCmd(profileConfig.getImage())
-          .exec(getPullProgress(profileConfig))
+          .pullImageCmd(containerConfig.getImage())
+          .exec(getPullProgress(containerConfig))
           .awaitCompletion(10, TimeUnit.MINUTES);
 
     } catch (NotFoundException e) {
-      throw new ImagePullFailedException(profileConfig.getImage(), e);
+      throw new ImagePullFailedException(containerConfig.getImage(), e);
     } catch (RuntimeException e) {
       LOG.warn("Couldn't pull image", e);
       // Typically, network offline; for local use we can continue.
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ImagePullFailedException(profileConfig.getImage(), e);
+      throw new ImagePullFailedException(containerConfig.getImage(), e);
     }
   }
 
-  private PullImageResultCallback getPullProgress(ProfileConfig profileConfig) {
+  private PullImageResultCallback getPullProgress(ContainerConfig containerConfig) {
     final Set<String> seen = ConcurrentHashMap.newKeySet();
     final Set<String> done = ConcurrentHashMap.newKeySet();
     final AtomicInteger lastPct = new AtomicInteger(0);
@@ -365,7 +365,7 @@ public class DockerService {
         int total = Math.max(1, seen.size());
 
         profileStatusService.updateStatus(
-            profileConfig.getName(), "Installing profile", completed, total);
+            containerConfig.getName(), "Installing profile", completed, total);
 
         super.onNext(item);
       }

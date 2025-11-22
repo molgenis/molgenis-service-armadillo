@@ -5,7 +5,7 @@ import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActive
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnectionFactory;
@@ -18,7 +18,7 @@ public class ProfileScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
-  public ProfileConfig profileConfig(ProfileService profileService) {
+  public ContainerConfig profileConfig(ProfileService profileService) {
     var activeProfileName = getActiveProfileName();
     try {
       return runAsSystem(() -> profileService.getByName(activeProfileName));
@@ -30,8 +30,8 @@ public class ProfileScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
-  public RConnectionFactory rConnectionFactory(ProfileConfig profileConfig) {
-    return new RServerConnectionFactory(profileConfig.toEnvironmentConfigProps());
+  public RConnectionFactory rConnectionFactory(ContainerConfig containerConfig) {
+    return new RServerConnectionFactory(containerConfig.toEnvironmentConfigProps());
   }
 
   @Bean

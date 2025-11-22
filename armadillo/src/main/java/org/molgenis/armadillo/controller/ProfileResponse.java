@@ -7,7 +7,7 @@ import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.molgenis.armadillo.profile.ContainerInfo;
 
@@ -61,22 +61,23 @@ public abstract class ProfileResponse {
   @Nullable
   public abstract String getInstallDate();
 
-  public static ProfileResponse create(ProfileConfig profileConfig, ContainerInfo containerInfo) {
+  public static ProfileResponse create(
+      ContainerConfig containerConfig, ContainerInfo containerInfo) {
     return new AutoValue_ProfileResponse(
-        profileConfig.getName(),
-        profileConfig.getImage(),
-        profileConfig.getAutoUpdate(),
-        profileConfig.getUpdateSchedule(),
-        profileConfig.getHost(),
-        profileConfig.getPort(),
-        profileConfig.getPackageWhitelist(),
-        profileConfig.getFunctionBlacklist(),
-        profileConfig.getOptions(),
+        containerConfig.getName(),
+        containerConfig.getImage(),
+        containerConfig.getAutoUpdate(),
+        containerConfig.getUpdateSchedule(),
+        containerConfig.getHost(),
+        containerConfig.getPort(),
+        containerConfig.getPackageWhitelist(),
+        containerConfig.getFunctionBlacklist(),
+        containerConfig.getOptions(),
         containerInfo,
-        profileConfig.getLastImageId(),
-        profileConfig.getVersionId(),
-        profileConfig.getImageSize(),
-        profileConfig.getCreationDate(),
-        profileConfig.getInstallDate());
+        containerConfig.getLastImageId(),
+        containerConfig.getVersionId(),
+        containerConfig.getImageSize(),
+        containerConfig.getCreationDate(),
+        containerConfig.getInstallDate());
   }
 }

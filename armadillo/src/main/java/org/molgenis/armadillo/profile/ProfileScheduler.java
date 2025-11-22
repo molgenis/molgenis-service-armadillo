@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.controller.ProfilesDockerController;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class ProfileScheduler {
   }
 
   /** Reschedule or create a scheduled update task for a profile. */
-  public void reschedule(ProfileConfig profile) {
+  public void reschedule(ContainerConfig profile) {
     cancel(profile.getName());
 
     if (Boolean.TRUE.equals(profile.getAutoUpdate()) && profile.getUpdateSchedule() != null) {
@@ -95,7 +95,7 @@ public class ProfileScheduler {
     };
   }
 
-  private void runUpdateForProfile(ProfileConfig profile) {
+  private void runUpdateForProfile(ContainerConfig profile) {
     try {
       // Get container status directly using profile name
       var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());

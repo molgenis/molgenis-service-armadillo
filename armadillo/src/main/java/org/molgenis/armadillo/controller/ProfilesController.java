@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
@@ -170,7 +170,7 @@ public class ProfilesController {
         @ApiResponse(
             responseCode = "200",
             description = "Profile listed",
-            content = @Content(schema = @Schema(implementation = ProfileConfig.class))),
+            content = @Content(schema = @Schema(implementation = ContainerConfig.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Profile does not exist",
@@ -205,16 +205,17 @@ public class ProfilesController {
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
+  public void profileUpsert(
+      Principal principal, @Valid @RequestBody ContainerConfig containerConfig) {
     auditor.audit(
         () -> {
-          profiles.upsert(profileConfig); // Save profile
-          profileScheduler.reschedule(profileConfig); // 🔁 Trigger scheduling
+          profiles.upsert(containerConfig); // Save profile
+          profileScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
           return null;
         },
         principal,
         UPSERT_PROFILE,
-        Map.of(PROFILE, profileConfig));
+        Map.of(PROFILE, containerConfig));
   }
 
   @Operation(

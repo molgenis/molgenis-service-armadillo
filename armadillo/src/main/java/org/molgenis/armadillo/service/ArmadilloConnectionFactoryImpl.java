@@ -4,7 +4,7 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
@@ -19,17 +19,17 @@ import org.springframework.stereotype.Component;
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;
-  private final ProfileConfig profileConfig;
+  private final ContainerConfig containerConfig;
   private final DataShieldOptions dataShieldOptions;
   private final RConnectionFactory rConnectionFactory;
 
   public ArmadilloConnectionFactoryImpl(
       PackageService packageService,
-      ProfileConfig profileConfig,
+      ContainerConfig containerConfig,
       DataShieldOptions dataShieldOptions,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
-    this.profileConfig = profileConfig;
+    this.containerConfig = containerConfig;
     this.dataShieldOptions = dataShieldOptions;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -47,7 +47,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   private void loadPackages(RServerConnection connection) {
-    packageService.loadPackages(connection, profileConfig.getPackageWhitelist());
+    packageService.loadPackages(connection, containerConfig.getPackageWhitelist());
   }
 
   private void setDataShieldOptions(RServerConnection connection) throws RServerException {

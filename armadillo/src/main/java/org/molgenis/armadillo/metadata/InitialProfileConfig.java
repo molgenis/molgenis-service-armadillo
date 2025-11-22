@@ -20,8 +20,8 @@ public class InitialProfileConfig {
   private Set<String> functionBlacklist;
   private Map<String, String> options;
 
-  public ProfileConfig toProfileConfig() {
-    return ProfileConfig.create(
+  public ContainerConfig toProfileConfig() {
+    return ContainerConfig.create(
         name,
         image,
         autoUpdate,

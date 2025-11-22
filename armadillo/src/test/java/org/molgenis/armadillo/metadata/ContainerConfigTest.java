@@ -2,14 +2,14 @@ package org.molgenis.armadillo.metadata;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.molgenis.armadillo.metadata.ProfileConfig.create;
+import static org.molgenis.armadillo.metadata.ContainerConfig.create;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
-public class ProfileConfigTest {
+public class ContainerConfigTest {
 
   @Test
   public void testToEnvironmentConfigProps() {
@@ -17,7 +17,7 @@ public class ProfileConfigTest {
     String img = "myImage";
     String host = "localhost";
     int port = 6311;
-    ProfileConfig config =
+    ContainerConfig config =
         create(
             name,
             img,
@@ -39,7 +39,7 @@ public class ProfileConfigTest {
 
   @Test
   public void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
-    ProfileConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,
@@ -60,7 +60,7 @@ public class ProfileConfigTest {
 
   @Test
   public void testCreateEmptyHost() {
-    ProfileConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,
@@ -81,7 +81,7 @@ public class ProfileConfigTest {
 
   @Test
   public void testCreateEmptyOptions() {
-    ProfileConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,

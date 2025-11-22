@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.profile;
 
 import org.molgenis.armadillo.controller.ProfilesDockerController;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ public class ProfileSchedulerFallbackConfig {
   public ProfileScheduler noOpProfileScheduler() {
     return new ProfileScheduler(null, null) {
       @Override
-      public void reschedule(ProfileConfig profile) {
+      public void reschedule(ContainerConfig profile) {
         // no-op
       }
 
