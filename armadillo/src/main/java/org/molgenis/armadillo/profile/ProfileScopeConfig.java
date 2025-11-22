@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RConnectionFactory;
@@ -22,7 +22,7 @@ public class ProfileScopeConfig {
     var activeProfileName = getActiveProfileName();
     try {
       return runAsSystem(() -> containerService.getByName(activeProfileName));
-    } catch (UnknownProfileException e) {
+    } catch (UnknownContainerException e) {
       throw new IllegalStateException(
           format("Missing profile configuration for active profile '%s'.", activeProfileName));
     }

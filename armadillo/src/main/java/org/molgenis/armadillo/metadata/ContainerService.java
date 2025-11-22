@@ -6,8 +6,8 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.molgenis.armadillo.exceptions.DefaultProfileDeleteException;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +47,7 @@ public class ContainerService {
 
   public ContainerConfig getByName(String profileName) {
     if (!settings.getProfiles().containsKey(profileName)) {
-      throw new UnknownProfileException(profileName);
+      throw new UnknownContainerException(profileName);
     }
     return settings.getProfiles().get(profileName);
   }
@@ -85,7 +85,7 @@ public class ContainerService {
 
   public void delete(String profileName) {
     if (profileName.equals(DEFAULT)) {
-      throw new DefaultProfileDeleteException();
+      throw new DefaultContainerDeleteException();
     }
 
     settings.getProfiles().remove(profileName);

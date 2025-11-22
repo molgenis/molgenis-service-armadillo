@@ -5,9 +5,9 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(CONFLICT)
-public class DefaultProfileDeleteException extends RuntimeException {
+public class DefaultContainerDeleteException extends RuntimeException {
 
-  public DefaultProfileDeleteException() {
+  public DefaultContainerDeleteException() {
     super("The default profile can't be deleted");
   }
 }
