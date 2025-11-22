@@ -7,17 +7,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @AutoValue
-public abstract class ProfilesMetadata implements Persistable {
+public abstract class ContainersMetadata implements Persistable {
   @JsonProperty("profiles")
   public abstract ConcurrentMap<String, ContainerConfig> getProfiles();
 
-  public static ProfilesMetadata create() {
-    return new AutoValue_ProfilesMetadata(new ConcurrentHashMap<>());
+  public static ContainersMetadata create() {
+    return new AutoValue_ContainersMetadata(new ConcurrentHashMap<>());
   }
 
   @JsonCreator
-  public static ProfilesMetadata create(
+  public static ContainersMetadata create(
       @JsonProperty("profiles") ConcurrentMap<String, ContainerConfig> newProfiles) {
-    return new AutoValue_ProfilesMetadata(newProfiles);
+    return new AutoValue_ContainersMetadata(newProfiles);
   }
 }

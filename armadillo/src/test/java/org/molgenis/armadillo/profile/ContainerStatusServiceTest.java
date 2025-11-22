@@ -4,15 +4,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.*;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.metadata.ProfileStartStatus;
+import org.molgenis.armadillo.metadata.ContainerStartStatus;
 
-class ProfileStatusServiceTest {
+class ContainerStatusServiceTest {
 
   @Test
   void getStatus_returnsAllNulls_whenProfileUnknown() {
     ProfileStatusService service = new ProfileStatusService();
 
-    ProfileStartStatus result = service.getStatus("missing");
+    ContainerStartStatus result = service.getStatus("missing");
 
     assertAll(
         () -> assertNull(result.getProfileName()),
@@ -26,7 +26,7 @@ class ProfileStatusServiceTest {
     ProfileStatusService service = new ProfileStatusService();
 
     service.updateStatus("donkey", "Installing profile", 10, 24);
-    ProfileStartStatus result = service.getStatus("donkey");
+    ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
         () -> assertEquals("donkey", result.getProfileName()),
@@ -41,7 +41,7 @@ class ProfileStatusServiceTest {
 
     service.updateStatus("donkey", "Installing profile", 5, 24);
     service.updateStatus("donkey", "Profile installed", 24, 24);
-    ProfileStartStatus result = service.getStatus("donkey");
+    ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
         () -> assertEquals("donkey", result.getProfileName()),
@@ -55,7 +55,7 @@ class ProfileStatusServiceTest {
     ProfileStatusService service = new ProfileStatusService();
 
     service.updateStatus("shrek", null, null, null);
-    ProfileStartStatus result = service.getStatus("shrek");
+    ContainerStartStatus result = service.getStatus("shrek");
 
     assertAll(
         () -> assertEquals("shrek", result.getProfileName()),
@@ -82,7 +82,7 @@ class ProfileStatusServiceTest {
       final int idx = i;
       final int total = n;
 
-      ProfileStartStatus s = service.getStatus("p" + idx);
+      ContainerStartStatus s = service.getStatus("p" + idx);
 
       assertAll(
           () -> assertEquals("p" + idx, s.getProfileName()),

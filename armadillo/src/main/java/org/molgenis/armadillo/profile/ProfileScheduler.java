@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.controller.ProfilesDockerController;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +102,7 @@ public class ProfileScheduler {
 
       // Only proceed if container is running and auto-update is enabled
       if (containerInfo != null
-          && containerInfo.getStatus() == ProfileStatus.RUNNING
+          && containerInfo.getStatus() == ContainerStatus.RUNNING
           && Boolean.TRUE.equals(profile.getAutoUpdate())) {
 
         // Retrieve the previous image ID and current image name from the profile

@@ -1,12 +1,12 @@
 package org.molgenis.armadillo.metadata;
 
-public class ProfileStartStatus {
+public class ContainerStartStatus {
   private String profileName;
   private String status;
   private Integer completedLayers;
   private Integer totalLayers;
 
-  public ProfileStartStatus(
+  public ContainerStartStatus(
       String profileName, String status, Integer completedLayers, Integer totalLayers) {
     this.profileName = profileName;
     this.status = status;

@@ -29,7 +29,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.metadata.ProfileStatus;
+import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public class DockerService {
 
     var statuses =
         names.stream()
-            .collect(toMap(name -> name, name -> ContainerInfo.create(ProfileStatus.NOT_FOUND)));
+            .collect(toMap(name -> name, name -> ContainerInfo.create(ContainerStatus.NOT_FOUND)));
 
     try {
       dockerClient
@@ -83,10 +83,10 @@ public class DockerService {
                       container.getNames()[0].substring(1),
                       ContainerInfo.create(
                           getImageTags(container.getImageId()),
-                          ProfileStatus.of(container.getState()))));
+                          ContainerStatus.of(container.getState()))));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
-        statuses.replaceAll((key, value) -> ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE));
+        statuses.replaceAll((key, value) -> ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE));
       } else {
         throw e;
       }
@@ -143,15 +143,15 @@ public class DockerService {
       InspectContainerResponse containerInfo =
           dockerClient.inspectContainerCmd(containerName).exec();
       var tags = getImageTags(containerInfo.getName());
-      return ContainerInfo.create(tags, ProfileStatus.of(containerInfo.getState()));
+      return ContainerInfo.create(tags, ContainerStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
       if (e.getCause() instanceof SocketException) {
-        return ContainerInfo.create(ProfileStatus.DOCKER_OFFLINE);
+        return ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
       } else {
         throw e;
       }
     } catch (NotFoundException e) {
-      return ContainerInfo.create(ProfileStatus.NOT_FOUND);
+      return ContainerInfo.create(ContainerStatus.NOT_FOUND);
     }
   }
 

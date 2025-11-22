@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import org.molgenis.armadillo.metadata.ProfileStartStatus;
+import org.molgenis.armadillo.metadata.ContainerStartStatus;
 import org.molgenis.armadillo.profile.ProfileStatusService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +17,7 @@ public class ProfileStartStatusController {
   }
 
   @GetMapping("/{profileName}/status")
-  public ProfileStartStatus getStatus(@PathVariable String profileName) {
+  public ContainerStartStatus getStatus(@PathVariable String profileName) {
     return statusService.getStatus(profileName);
   }
 }

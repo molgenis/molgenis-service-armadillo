@@ -17,16 +17,16 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ContainerService {
 
-  private final ProfilesLoader loader;
+  private final ContainersLoader loader;
   private final InitialProfileConfigs initialProfiles;
   private final ProfileScope profileScope;
-  private ProfilesMetadata settings;
+  private ContainersMetadata settings;
 
   public ContainerService(
-      ProfilesLoader profilesLoader,
+      ContainersLoader containersLoader,
       InitialProfileConfigs initialProfileConfigs,
       ProfileScope profileScope) {
-    this.loader = requireNonNull(profilesLoader);
+    this.loader = requireNonNull(containersLoader);
     initialProfiles = requireNonNull(initialProfileConfigs);
     this.profileScope = requireNonNull(profileScope);
     runAsSystem(this::initialize);

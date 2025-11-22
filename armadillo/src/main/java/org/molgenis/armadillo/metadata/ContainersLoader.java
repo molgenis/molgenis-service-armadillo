@@ -3,16 +3,16 @@ package org.molgenis.armadillo.metadata;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProfilesLoader extends StorageJsonLoader<ProfilesMetadata> {
+public class ContainersLoader extends StorageJsonLoader<ContainersMetadata> {
 
   @Override
-  public ProfilesMetadata createDefault() {
-    return ProfilesMetadata.create();
+  public ContainersMetadata createDefault() {
+    return ContainersMetadata.create();
   }
 
   @Override
   public Class<? extends Persistable> getTargetClass() {
-    return ProfilesMetadata.class;
+    return ContainersMetadata.class;
   }
 
   @Override

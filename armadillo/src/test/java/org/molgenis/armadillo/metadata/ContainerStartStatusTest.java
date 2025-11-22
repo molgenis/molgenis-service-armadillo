@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-class ProfileStartStatusTest {
+class ContainerStartStatusTest {
 
   @Test
   void constructor_setsAllFields() {
-    ProfileStartStatus s = new ProfileStartStatus("donkey", "Installing profile", 22, 24);
+    ContainerStartStatus s = new ContainerStartStatus("donkey", "Installing profile", 22, 24);
 
     assertEquals("donkey", s.getProfileName());
     assertEquals("Installing profile", s.getStatus());
@@ -18,7 +18,7 @@ class ProfileStartStatusTest {
 
   @Test
   void setters_updateFields() {
-    ProfileStartStatus s = new ProfileStartStatus(null, null, null, null);
+    ContainerStartStatus s = new ContainerStartStatus(null, null, null, null);
 
     s.setProfileName("shrek");
     s.setStatus("Profile installed");
@@ -34,7 +34,7 @@ class ProfileStartStatusTest {
 
   @Test
   void allowsNullValues() {
-    ProfileStartStatus s = new ProfileStartStatus(null, null, null, null);
+    ContainerStartStatus s = new ContainerStartStatus(null, null, null, null);
 
     assertNull(s.getProfileName());
     assertNull(s.getStatus());
@@ -61,7 +61,8 @@ class ProfileStartStatusTest {
 
   @Test
   void supportsEdgeNumbers() {
-    ProfileStartStatus s = new ProfileStartStatus("p", "x", Integer.MAX_VALUE, Integer.MIN_VALUE);
+    ContainerStartStatus s =
+        new ContainerStartStatus("p", "x", Integer.MAX_VALUE, Integer.MIN_VALUE);
 
     assertEquals(Integer.MAX_VALUE, s.getCompletedLayers());
     assertEquals(Integer.MIN_VALUE, s.getTotalLayers());
