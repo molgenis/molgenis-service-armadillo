@@ -120,13 +120,6 @@ public class DockerService {
     return containerPrefix + containerName + "-1";
   }
 
-  String asProfileName(String containerName) {
-    if (inContainer) {
-      return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
-    }
-    return containerName;
-  }
-
   public String[] getContainerEnvironmentConfig(String containerName) {
     containerService.getByName(containerName);
     String dockerContainerName = asContainerName(dockerContainerName);
