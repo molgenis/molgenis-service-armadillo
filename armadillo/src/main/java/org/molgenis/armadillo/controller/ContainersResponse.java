@@ -7,8 +7,8 @@ import jakarta.annotation.Nullable;
 import java.util.List;
 
 @AutoValue
-@JsonSerialize(as = ProfilesResponse.class)
-public abstract class ProfilesResponse {
+@JsonSerialize(as = ContainersResponse.class)
+public abstract class ContainersResponse {
   @JsonProperty("available")
   public abstract List<String> available();
 
@@ -16,7 +16,7 @@ public abstract class ProfilesResponse {
   @Nullable
   public abstract String current();
 
-  public static ProfilesResponse create(List<String> available, String current) {
-    return new AutoValue_ProfilesResponse(available, current);
+  public static ContainersResponse create(List<String> available, String current) {
+    return new AutoValue_ContainersResponse(available, current);
   }
 }

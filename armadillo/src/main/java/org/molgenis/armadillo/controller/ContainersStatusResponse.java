@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-@JsonSerialize(as = ProfilesStatusResponse.class)
-public abstract class ProfilesStatusResponse {
+@JsonSerialize(as = ContainersStatusResponse.class)
+public abstract class ContainersStatusResponse {
   @JsonProperty("image")
   public abstract String image();
 
@@ -19,12 +19,12 @@ public abstract class ProfilesStatusResponse {
   @JsonProperty("status")
   public abstract String status();
 
-  public static ProfilesStatusResponse create(
+  public static ContainersStatusResponse create(
       String image, String name, String config, String status) {
-    return new AutoValue_ProfilesStatusResponse(image, name, config, status);
+    return new AutoValue_ContainersStatusResponse(image, name, config, status);
   }
 
-  public static ProfilesStatusResponse create(String image, String name) {
-    return new AutoValue_ProfilesStatusResponse(image, name, "[]", "DOCKER_MANAGEMENT_DISABLED");
+  public static ContainersStatusResponse create(String image, String name) {
+    return new AutoValue_ContainersStatusResponse(image, name, "[]", "DOCKER_MANAGEMENT_DISABLED");
   }
 }

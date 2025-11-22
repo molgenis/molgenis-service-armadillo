@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/ds-profiles")
-public class ProfileStartStatusController {
+public class ContainerStartStatusController {
   private final ProfileStatusService statusService;
 
-  public ProfileStartStatusController(ProfileStatusService statusService) {
+  public ContainerStartStatusController(ProfileStatusService statusService) {
     this.statusService = statusService;
   }
 

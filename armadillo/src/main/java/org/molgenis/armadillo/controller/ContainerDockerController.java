@@ -3,7 +3,7 @@ package org.molgenis.armadillo.controller;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.START_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.STOP_PROFILE;
-import static org.molgenis.armadillo.controller.ProfilesDockerController.DOCKER_MANAGEMENT_ENABLED;
+import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("ds-profiles")
-public class ProfilesDockerController {
+public class ContainerDockerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
   public static final String DOCKER_RUN_IN_CONTAINER = "armadillo.docker-run-in-container";
@@ -41,7 +41,7 @@ public class ProfilesDockerController {
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
 
-  public ProfilesDockerController(DockerService dockerService, AuditEventPublisher auditor) {
+  public ContainerDockerController(DockerService dockerService, AuditEventPublisher auditor) {
     this.dockerService = dockerService;
     this.auditor = auditor;
   }

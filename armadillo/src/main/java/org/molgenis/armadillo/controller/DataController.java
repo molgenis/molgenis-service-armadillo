@@ -373,9 +373,9 @@ public class DataController {
   }
 
   @GetMapping(value = "profiles")
-  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
+  public @ResponseBody ContainersResponse listProfiles(Principal principal) {
     return auditEventPublisher.audit(
-        () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
+        () -> ContainersResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
         principal,
         PROFILES,
         Map.of());

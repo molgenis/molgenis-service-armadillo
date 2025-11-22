@@ -22,9 +22,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@WebMvcTest(ProfilesController.class)
+@WebMvcTest(ContainersController.class)
 @Import({TestSecurityConfig.class})
-class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase {
+class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBase {
 
   @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;

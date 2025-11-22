@@ -31,9 +31,9 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@WebMvcTest(ProfilesController.class)
+@WebMvcTest(ContainersController.class)
 @Import({TestSecurityConfig.class})
-class ProfilesControllerTest extends ArmadilloControllerTestBase {
+class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_PROFILE =
       "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";

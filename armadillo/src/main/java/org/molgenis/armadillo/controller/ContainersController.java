@@ -46,14 +46,14 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
 @RequestMapping("ds-profiles")
-public class ProfilesController {
+public class ContainersController {
 
   private final ContainerService profiles;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
   private final ProfileScheduler profileScheduler;
 
-  public ProfilesController(
+  public ContainersController(
       ContainerService containerService,
       @Nullable DockerService dockerService,
       AuditEventPublisher auditor,
@@ -80,7 +80,7 @@ public class ProfilesController {
             content =
                 @Content(
                     array =
-                        @ArraySchema(schema = @Schema(implementation = ProfileResponse.class)))),
+                        @ArraySchema(schema = @Schema(implementation = ContainerResponse.class)))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -88,7 +88,7 @@ public class ProfilesController {
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ProfileResponse> profileList(Principal principal) {
+  public List<ContainerResponse> profileList(Principal principal) {
     return auditor.audit(this::getProfiles, principal, LIST_PROFILES);
   }
 
@@ -106,17 +106,18 @@ public class ProfilesController {
             description = "All profiles listed",
             content =
                 @Content(
-                    array = @ArraySchema(schema = @Schema(implementation = ProfileResponse.class))))
+                    array =
+                        @ArraySchema(schema = @Schema(implementation = ContainerResponse.class))))
       })
   @GetMapping(value = "status", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ProfilesStatusResponse> getProfileStatus(Principal principal) {
+  public List<ContainersStatusResponse> getProfileStatus(Principal principal) {
     return auditor.audit(this::getDockerProfileInformation, principal, LIST_PROFILES_STATUS);
   }
 
-  private List<ProfilesStatusResponse> getDockerProfileInformation() {
-    List<ProfileResponse> profiles = runAsSystem(this::getProfiles);
-    List<ProfilesStatusResponse> result = new ArrayList<>();
+  private List<ContainersStatusResponse> getDockerProfileInformation() {
+    List<ContainerResponse> profiles = runAsSystem(this::getProfiles);
+    List<ContainersStatusResponse> result = new ArrayList<>();
     profiles.forEach(
         (profile) -> {
           String profileName = profile.getName();
@@ -137,15 +138,15 @@ public class ProfilesController {
               versions = "[]";
             }
             result.add(
-                ProfilesStatusResponse.create(profile.getImage(), profileName, versions, status));
+                ContainersStatusResponse.create(profile.getImage(), profileName, versions, status));
           } else {
-            result.add(ProfilesStatusResponse.create(profile.getImage(), profileName));
+            result.add(ContainersStatusResponse.create(profile.getImage(), profileName));
           }
         });
     return result;
   }
 
-  private List<ProfileResponse> getProfiles() {
+  private List<ContainerResponse> getProfiles() {
     var statuses = new HashMap<String, ContainerInfo>();
     if (dockerService != null) {
       statuses.putAll(dockerService.getAllProfileStatuses());
@@ -154,7 +155,7 @@ public class ProfilesController {
     return profiles.getAll().stream()
         .map(
             profile ->
-                ProfileResponse.create(profile, statuses.getOrDefault(profile.getName(), null)))
+                ContainerResponse.create(profile, statuses.getOrDefault(profile.getName(), null)))
         .toList();
   }
 
@@ -182,16 +183,16 @@ public class ProfilesController {
       })
   @GetMapping(value = "{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ProfileResponse profileGetByProfileName(Principal principal, @PathVariable String name) {
+  public ContainerResponse profileGetByProfileName(Principal principal, @PathVariable String name) {
     return auditor.audit(() -> getProfile(name), principal, GET_PROFILE, Map.of(PROFILE, name));
   }
 
-  private ProfileResponse getProfile(String name) {
+  private ContainerResponse getProfile(String name) {
     ContainerInfo container = null;
     if (dockerService != null) {
       container = dockerService.getProfileStatus(name);
     }
-    return ProfileResponse.create(profiles.getByName(name), container);
+    return ContainerResponse.create(profiles.getByName(name), container);
   }
 
   @Operation(summary = "Add or update profile")
