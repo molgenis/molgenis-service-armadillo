@@ -244,23 +244,23 @@ export async function deleteObject(project: string, name: string) {
 }
 
 export async function getProfiles(): Promise<Profile[]> {
-  return get("/ds-profiles");
+  return get("/ds-containers");
 }
 
 export async function deleteProfile(name: string) {
-  return delete_("/ds-profiles", name);
+  return delete_("/ds-containers", name);
 }
 
 export async function putProfile(profileJson: Profile) {
-  return put("/ds-profiles", profileJson);
+  return put("/ds-containers", profileJson);
 }
 
 export async function startProfile(name: string) {
-  return post(`/ds-profiles/${name}/start`);
+  return post(`/ds-containers/${name}/start`);
 }
 
 export async function stopProfile(name: string) {
-  return post(`/ds-profiles/${name}/stop`);
+  return post(`/ds-containers/${name}/stop`);
 }
 
 export async function uploadIntoProject(
@@ -373,5 +373,5 @@ export async function getMetaData(project: string, object: string) {
 }
 
 export async function getProfileStatus(name: string) {
-  return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
+  return get(`/ds-containers/${encodeURIComponent(name)}/status`);
 }
