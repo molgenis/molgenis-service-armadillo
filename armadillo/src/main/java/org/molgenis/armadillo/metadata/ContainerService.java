@@ -18,16 +18,16 @@ import org.springframework.stereotype.Service;
 public class ContainerService {
 
   private final ContainersLoader loader;
-  private final InitialProfileConfigs initialProfiles;
+  private final InitialContainerConfigs initialProfiles;
   private final ProfileScope profileScope;
   private ContainersMetadata settings;
 
   public ContainerService(
       ContainersLoader containersLoader,
-      InitialProfileConfigs initialProfileConfigs,
+      InitialContainerConfigs initialContainerConfigs,
       ProfileScope profileScope) {
     this.loader = requireNonNull(containersLoader);
-    initialProfiles = requireNonNull(initialProfileConfigs);
+    initialProfiles = requireNonNull(initialContainerConfigs);
     this.profileScope = requireNonNull(profileScope);
     runAsSystem(this::initialize);
   }
@@ -108,7 +108,7 @@ public class ContainerService {
 
     if (initialProfiles.getProfiles() != null) {
       initialProfiles.getProfiles().stream()
-          .map(InitialProfileConfig::toProfileConfig)
+          .map(InitialContainerConfig::toProfileConfig)
           .filter(profile -> !settings.getProfiles().containsKey(profile.getName()))
           .forEach(this::upsert);
     }

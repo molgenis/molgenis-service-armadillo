@@ -9,15 +9,15 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "armadillo")
 @Component
 @Valid
-public class InitialProfileConfigs {
+public class InitialContainerConfigs {
 
-  private List<InitialProfileConfig> profiles;
+  private List<InitialContainerConfig> profiles;
 
-  public void setProfiles(List<InitialProfileConfig> profiles) {
+  public void setProfiles(List<InitialContainerConfig> profiles) {
     this.profiles = profiles;
   }
 
-  public List<InitialProfileConfig> getProfiles() {
+  public List<InitialContainerConfig> getProfiles() {
     return profiles;
   }
 }

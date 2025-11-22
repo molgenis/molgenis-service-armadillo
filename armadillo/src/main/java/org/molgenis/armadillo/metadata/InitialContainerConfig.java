@@ -9,7 +9,7 @@ import java.util.Set;
  * <p>This class can't be @AutoValue'd because Spring's @ConfigurationProperties can't bind to it
  * without setters.
  */
-public class InitialProfileConfig {
+public class InitialContainerConfig {
   private String name;
   private String image;
   private boolean autoUpdate;
