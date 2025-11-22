@@ -16,7 +16,7 @@ class ContainerStartStatusControllerMockitoTest {
 
   @Mock private ProfileStatusService statusService;
 
-  @InjectMocks private ProfileStartStatusController controller;
+  @InjectMocks private ContainerStartStatusController controller;
 
   @Test
   void getStatus_returnsServiceResult() {
