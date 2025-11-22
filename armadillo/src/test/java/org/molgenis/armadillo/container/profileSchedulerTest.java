@@ -70,10 +70,10 @@ class ContainerSchedulerTest {
 
   @Test
   void testRescheduleCreatesTaskWithCronTrigger() {
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile");
-    when(profile.getAutoUpdate()).thenReturn(true);
-    when(profile.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
 
     var scheduler = containerScheduler.taskScheduler();
     var spyScheduler = spy(scheduler);
@@ -83,7 +83,7 @@ class ContainerSchedulerTest {
         .when(spyScheduler)
         .schedule(any(Runnable.class), any(CronTrigger.class));
 
-    containerScheduler.reschedule(profile);
+    containerScheduler.reschedule(container);
 
     verify(spyScheduler).schedule(any(Runnable.class), any(CronTrigger.class));
   }
@@ -111,9 +111,9 @@ class ContainerSchedulerTest {
     var tasksMap =
         (Map<String, ScheduledFuture<?>>)
             ReflectionTestUtils.getField(containerScheduler, "scheduledTasks");
-    tasksMap.put("testProfile", scheduledFuture);
+    tasksMap.put("testContainer", scheduledFuture);
 
-    containerScheduler.cancel("testProfile");
+    containerScheduler.cancel("testContainer");
 
     verify(scheduledFuture).cancel(false);
   }
@@ -121,18 +121,18 @@ class ContainerSchedulerTest {
   @Mock private ContainerInfo containerInfo; // Add this mock
 
   @Test
-  void testRunUpdateForProfileImageChanged() throws Exception {
+  void testRunUpdateForContainerImageChanged() throws Exception {
     // Mock container
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile");
-    when(profile.getAutoUpdate()).thenReturn(true);
-    when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
-    when(profile.getLastImageId()).thenReturn("oldImage");
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getImage()).thenReturn("timmyjc/mytest:latest");
+    when(container.getLastImageId()).thenReturn("oldImage");
 
     // Mock container status (RUNNING so update check proceeds)
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
-    var profileStatusMap = Map.of("testProfile", containerInfo);
-    when(dockerService.getAllContainerStatuses()).thenReturn(profileStatusMap);
+    var containerStatusMap = Map.of("testContainer", containerInfo);
+    when(dockerService.getAllContainerStatuses()).thenReturn(containerStatusMap);
 
     // Mock dockerClient.pullImageCmd
     var pullImageCmd = mock(PullImageCmd.class);
@@ -149,37 +149,38 @@ class ContainerSchedulerTest {
     when(inspectImageResponse.getId()).thenReturn("newImage");
 
     // Mock hasImageIdChanged -> true so restart triggers
-    when(dockerService.hasImageIdChanged("testProfile", "oldImage", "newImage")).thenReturn(true);
+    when(dockerService.hasImageIdChanged("testContainer", "oldImage", "newImage")).thenReturn(true);
 
     // Execute
-    invokeRunUpdateForProfile(profile);
+    invokeRunUpdateForContainer(container);
 
     // Verify pullImageStartContainer is invoked
-    verify(dockerService).pullImageStartContainer("testProfile");
+    verify(dockerService).pullImageStartContainer("testContainer");
   }
 
   @Test
-  void testRunUpdateForProfileNoContainerInfo() {
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile"); // ✅ Still needed
+  void testRunUpdateForContainerNoInfo() {
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer"); // ✅ Still needed
     when(dockerService.getAllContainerStatuses()).thenReturn(Map.of()); // No container info
-    invokeRunUpdateForProfile(profile);
+    invokeRunUpdateForContainer(container);
     verify(dockerService, never()).pullImageStartContainer(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
   }
 
   @Test
-  void testRunUpdateForProfileAutoUpdateDisabled() {
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile");
-    when(profile.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
+  void testRunUpdateForContainerAutoUpdateDisabled() {
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
 
     // Only stub container info and its status
     var containerInfo = mock(ContainerInfo.class);
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
-    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+    when(dockerService.getAllContainerStatuses())
+        .thenReturn(Map.of("testContainer", containerInfo));
 
-    invokeRunUpdateForProfile(profile);
+    invokeRunUpdateForContainer(container);
 
     verify(dockerService, never()).pullImageStartContainer(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
@@ -187,15 +188,16 @@ class ContainerSchedulerTest {
   }
 
   @Test
-  void testRunUpdateForProfileImageUnchanged() throws Exception {
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile");
-    when(profile.getAutoUpdate()).thenReturn(true);
-    when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
-    when(profile.getLastImageId()).thenReturn("oldImage");
+  void testRunUpdateForContainerImageUnchanged() throws Exception {
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getImage()).thenReturn("timmyjc/mytest:latest");
+    when(container.getLastImageId()).thenReturn("oldImage");
 
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
-    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+    when(dockerService.getAllContainerStatuses())
+        .thenReturn(Map.of("testContainer", containerInfo));
 
     // Mock pull and inspect
     var pullImageCmd = mock(PullImageCmd.class);
@@ -210,23 +212,24 @@ class ContainerSchedulerTest {
     when(inspectImageCmd.exec()).thenReturn(inspectImageResponse);
     when(inspectImageResponse.getId()).thenReturn("oldImage"); // Same ID -> unchanged
 
-    when(dockerService.hasImageIdChanged("testProfile", "oldImage", "oldImage")).thenReturn(false);
+    when(dockerService.hasImageIdChanged("testContainer", "oldImage", "oldImage"))
+        .thenReturn(false);
 
-    invokeRunUpdateForProfile(profile);
+    invokeRunUpdateForContainer(container);
 
     // Verify NO restart
     verify(dockerService, never()).pullImageStartContainer(any());
   }
 
   @Test
-  void testRunUpdateForProfileHandlesException() {
-    var profile = mock(ContainerConfig.class);
-    when(profile.getName()).thenReturn("testProfile"); // needed for logging
+  void testRunUpdateForContainerHandlesException() {
+    var container = mock(ContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer"); // needed for logging
 
     // Throw exception when fetching container info (caught inside try/catch)
     when(dockerService.getAllContainerStatuses()).thenThrow(new RuntimeException("Test exception"));
 
-    invokeRunUpdateForProfile(profile); // Should log error but not rethrow
+    invokeRunUpdateForContainer(container); // Should log error but not rethrow
 
     // Verify: nothing else was called
     verify(containerService, never()).getByName(any());
@@ -246,12 +249,13 @@ class ContainerSchedulerTest {
     return (int) method.invoke(containerScheduler, day);
   }
 
-  private void invokeRunUpdateForProfile(ContainerConfig profile) {
+  private void invokeRunUpdateForContainer(ContainerConfig container) {
     try {
       var method =
-          ContainerScheduler.class.getDeclaredMethod("runUpdateForProfile", ContainerConfig.class);
+          ContainerScheduler.class.getDeclaredMethod(
+              "runUpdateForContainer", ContainerConfig.class);
       method.setAccessible(true);
-      method.invoke(containerScheduler, profile);
+      method.invoke(containerScheduler, container);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

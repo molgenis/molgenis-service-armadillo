@@ -17,8 +17,8 @@ import org.molgenis.r.service.ProcessService;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {
-  @Mock private ContainerConfig profile1;
-  @Mock private ContainerConfig profile2;
+  @Mock private ContainerConfig container1;
+  @Mock private ContainerConfig container2;
   @Mock private EnvironmentConfigProps environment2;
   @Mock private ProcessService processService;
   @Mock private ContainerService containerService;
@@ -37,13 +37,13 @@ class RProcessEndpointTest {
           }
         };
 
-    when(containerService.getAll()).thenReturn(List.of(profile1, profile2));
-    when(profile1.getName()).thenReturn("kick");
-    when(profile2.getName()).thenReturn("windsock");
-    when(profile2.toEnvironmentConfigProps()).thenReturn(environment2);
+    when(containerService.getAll()).thenReturn(List.of(container1, container2));
+    when(container1.getName()).thenReturn("kick");
+    when(container2.getName()).thenReturn("windsock");
+    when(container2.toEnvironmentConfigProps()).thenReturn(environment2);
     when(environment2.getName()).thenReturn("windsock");
 
     assertSame(connection, endpoint.doWithConnection("windsock", connection -> connection));
-    assertEquals(profile2.getName(), endpoint.selectedEnvironment.getName());
+    assertEquals(container2.getName(), endpoint.selectedEnvironment.getName());
   }
 }

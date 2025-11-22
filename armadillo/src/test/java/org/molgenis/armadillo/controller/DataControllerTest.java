@@ -91,12 +91,12 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testListProfiles() throws Exception {
+  void testListContainers() throws Exception {
     when(commands.listContainers()).thenReturn(List.of("a", "b", "c"));
     when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
-        .perform(get("/profiles"))
+        .perform(get("/containers"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
@@ -104,14 +104,14 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testSelectProfile() throws Exception {
+  void testSelectContainer() throws Exception {
     mockMvc.perform(post("/select-container").content("b")).andExpect(status().isNoContent());
     verify(commands).selectContainer("b");
   }
 
   @Test
   @WithMockUser
-  void testSelectUnknownProfile() throws Exception {
+  void testSelectUnknownContainer() throws Exception {
     doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
     mockMvc.perform(post("/select-container").content("unknown")).andExpect(status().isNotFound());
   }

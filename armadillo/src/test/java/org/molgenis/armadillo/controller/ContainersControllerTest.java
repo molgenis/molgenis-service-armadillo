@@ -35,9 +35,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Import({TestSecurityConfig.class})
 class ContainersControllerTest extends ArmadilloControllerTestBase {
 
-  public static final String DEFAULT_PROFILE =
+  public static final String DEFAULT_CONTAINER =
       "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";
-  public static final String OMICS_PROFILE =
+  public static final String OMICS_CONTAINER =
       "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
 
   @Autowired ContainerService containerService;
@@ -98,19 +98,19 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser(roles = "SU")
-  void profiles_GET() throws Exception {
+  void containers_GET() throws Exception {
     mockMvc
-        .perform(get("/ds-profiles"))
+        .perform(get("/ds-containers"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[" + DEFAULT_PROFILE + "," + OMICS_PROFILE + "]"));
+        .andExpect(content().json("[" + DEFAULT_CONTAINER + "," + OMICS_CONTAINER + "]"));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  void profiles_name_GET() throws Exception {
+  void containers_name_GET() throws Exception {
     mockMvc
-        .perform(get("/ds-profiles/default"))
+        .perform(get("/ds-containers/default"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -121,7 +121,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser(roles = "SU")
-  void profiles_PUT() throws Exception {
+  void containers_PUT() throws Exception {
     ContainerConfig containerConfig =
         ContainerConfig.create(
             "dummy",
@@ -141,7 +141,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            put("/ds-profiles")
+            put("/ds-containers")
                 .content(new Gson().toJson(containerConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -154,16 +154,16 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser(roles = "SU")
-  void profiles_DELETE_default() throws Exception {
-    mockMvc.perform(delete("/ds-profiles/default")).andExpect(status().isConflict());
+  void containers_DELETE_default() throws Exception {
+    mockMvc.perform(delete("/ds-containers/default")).andExpect(status().isConflict());
 
     verify(containersLoader, never()).save(any());
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  void profiles_DELETE() throws Exception {
-    mockMvc.perform(delete("/ds-profiles/omics")).andExpect(status().isNoContent());
+  void containers_DELETE() throws Exception {
+    mockMvc.perform(delete("/ds-containers/omics")).andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
     expected.getContainers().remove("omics");
@@ -172,7 +172,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithAnonymousUser
-  void getProfileStatus_GET() throws Exception {
+  void getContainerStatus_GET() throws Exception {
     ContainerInfo runningContainer = ContainerInfo.create(ContainerStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
     // Mock DockerService to return a specific status
@@ -202,7 +202,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     // Perform the GET request to fetch the container status
     mockMvc
-        .perform(get("/ds-profiles/status"))
+        .perform(get("/ds-containers/status"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(

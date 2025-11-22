@@ -17,7 +17,7 @@
 // import org.mockito.Mock;
 // import org.mockito.junit.jupiter.MockitoExtension;
 // import org.molgenis.armadillo.audit.AuditEventPublisher;
-// import org.molgenis.armadillo.config.ProfileConfigProps;
+// import org.molgenis.armadillo.config.ContainerfileConfigProps;
 // import org.molgenis.armadillo.storage.ArmadilloStorageService;
 // import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,14 +26,14 @@
 // import org.springframework.context.annotation.Import;
 // import org.springframework.mock.web.MockHttpSession;
 // import org.springframework.security.test.context.support.WithMockUser;
-// import org.springframework.test.context.ActiveProfiles;
+// import org.springframework.test.context.ActiveContainers;
 // import org.springframework.test.web.servlet.MockMvc;
 //
-// @WebMvcTest(DatashieldProfileController.class)
+// @WebMvcTest(DatashieldContainersController.class)
 // @ExtendWith(MockitoExtension.class)
-// @ActiveProfiles("test")
+// @ActiveContainers("test")
 // @Import(AuditEventPublisher.class)
-// public class DatashieldProfileControllerTest {
+// public class DatashieldContainerControllerTest {
 //  @Autowired private MockMvc mockMvc;
 //  @Autowired AuditEventPublisher auditEventPublisher;
 //  @MockBean private ArmadilloStorageService armadilloStorageService;
@@ -59,17 +59,17 @@
 //  public void createAndList() throws Exception {
 //    // list
 //    mockMvc
-//        .perform(get("/profileConfigs"))
+//        .perform(get("/containerConfigs"))
 //        .andExpect(status().isOk())
 //        .andExpect(content().contentType(APPLICATION_JSON))
 //        .andDo(
 //            handler ->
 //                System.out.println(
-//                    "list profiles returned: " + handler.getResponse().getContentAsString()));
+//                    "list containers returned: " + handler.getResponse().getContentAsString()));
 //
 //    // delete if exists
 //    mockMvc
-//        .perform(delete("/profileConfigs/armadillo"))
+//        .perform(delete("/containerConfigs/armadillo"))
 //        .andExpect(status().isOk())
 //        .andDo(
 //            handler ->
@@ -77,7 +77,7 @@
 //                    "delete container returned: " + handler.getResponse().getContentAsString()));
 //
 //    mockMvc
-//        .perform(delete("/profileConfigs/exposome"))
+//        .perform(delete("/containerConfigs/exposome"))
 //        .andExpect(status().isOk())
 //        .andDo(
 //            handler ->
@@ -86,18 +86,18 @@
 //
 //    // check listing is empty
 //    mockMvc
-//        .perform(get("/profileConfigs"))
+//        .perform(get("/containerConfigs"))
 //        .andExpect(status().isOk())
 //        .andExpect(content().string(not(containsString("armadillo"))));
 //
-//    // post new profiles
-//    ProfileConfigProps props = new ProfileConfigProps();
+//    // post new Containers
+//    ContainerConfigProps props = new ContainerConfigProps();
 //    props.setName("armadillo");
 //    props.setDockerImage("datashield/armadillo-rserver:2.0.0");
 //    props.setPort(6312);
 //    mockMvc
 //        .perform(
-//            put("/profileConfigs").content(new
+//            put("/containerConfigs").content(new
 // Gson().toJson(props)).contentType(APPLICATION_JSON))
 //        .andExpect(status().isOk())
 //        .andDo(
@@ -107,13 +107,13 @@
 //
 //    // check listing contains armadillo
 //    mockMvc
-//        .perform(get("/profileConfigs"))
+//        .perform(get("/containerConfigs"))
 //        .andExpect(status().isOk())
 //        .andExpect(content().string(containsString("armadillo")));
 //
 //    // delete if exists
 //    mockMvc
-//        .perform(delete("/profileConfigs/armadillo"))
+//        .perform(delete("/containerConfigs/armadillo"))
 //        .andExpect(status().isOk())
 //        .andDo(
 //            handler ->
@@ -122,7 +122,7 @@
 //
 //    // check listing contains armadillo
 //    mockMvc
-//        .perform(get("/profileConfigs"))
+//        .perform(get("/containerConfigs"))
 //        .andExpect(status().isOk())
 //        .andExpect(content().string(not(containsString("armadillo"))));
 //  }

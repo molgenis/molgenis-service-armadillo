@@ -222,22 +222,22 @@ class CommandsImplTest {
   }
 
   @Test
-  void testGetActiveProfileDefault() {
+  void testGetActiveContainerDefault() {
     ActiveContainerNameAccessor.resetActiveContainerName();
-    String profileName = commands.getActiveContainerName();
-    assertEquals(ActiveContainerNameAccessor.DEFAULT, profileName);
+    String containerName = commands.getActiveContainerName();
+    assertEquals(ActiveContainerNameAccessor.DEFAULT, containerName);
   }
 
   @Test
-  void testGetActiveProfile() {
+  void testGetActiveContainer() {
     ActiveContainerNameAccessor.setActiveContainerName("exposome");
-    String profileName = commands.getActiveContainerName();
-    assertEquals("exposome", profileName);
+    String containerName = commands.getActiveContainerName();
+    assertEquals("exposome", containerName);
     ActiveContainerNameAccessor.resetActiveContainerName();
   }
 
   @Test
-  void testSelectProfileWritesToSession() {
+  void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
     ContainerConfig containerConfig =
         ContainerConfig.create(
@@ -262,7 +262,7 @@ class CommandsImplTest {
   }
 
   @Test
-  void testSelectUnknownProfile() {
+  void testSelectUnknownContainer() {
     when(containerService.getByName("unknown")).thenThrow(new UnknownContainerException("unknown"));
     assertThrows(UnknownContainerException.class, () -> commands.selectContainer("unknown"));
   }

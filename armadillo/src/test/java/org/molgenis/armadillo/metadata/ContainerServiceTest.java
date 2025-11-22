@@ -26,8 +26,8 @@ class ContainerServiceTest {
 
   @Test
   void addToWhitelist() {
-    var profilesMetadata = ContainersMetadata.create();
-    var defaultProfile =
+    var containersMetadata = ContainersMetadata.create();
+    var defaultContainer =
         ContainerConfig.create(
             "default",
             "test",
@@ -43,22 +43,22 @@ class ContainerServiceTest {
             null,
             null,
             null);
-    profilesMetadata.getContainers().put("default", defaultProfile);
-    var profilesLoader = new DummyContainersLoader(profilesMetadata);
-    var profileService =
-        new ContainerService(profilesLoader, initialContainerConfigs, containerScope);
+    containersMetadata.getContainers().put("default", defaultContainer);
+    var containersLoader = new DummyContainersLoader(containersMetadata);
+    var containerService =
+        new ContainerService(containersLoader, initialContainerConfigs, containerScope);
 
-    profileService.initialize();
+    containerService.initialize();
 
-    profileService.addToWhitelist("default", "dsOmics");
+    containerService.addToWhitelist("default", "dsOmics");
 
     verify(containerScope).removeAllContainerBeans("default");
-    assertTrue(profileService.getByName("default").getPackageWhitelist().contains("dsOmics"));
+    assertTrue(containerService.getByName("default").getPackageWhitelist().contains("dsOmics"));
   }
 
   @Test
   void testUpdateMetaData() {
-    String profileName = "default";
+    String containerName = "default";
     String oldImageId = "sha256:old";
     String newImageId = "sha256:new";
     String newVersionId = "0.0.1";
@@ -67,9 +67,9 @@ class ContainerServiceTest {
     String newInstallDate = "2025-10-05T12:34:56Z";
 
     // Create an existing container config with oldImageId
-    ContainerConfig existingProfile =
+    ContainerConfig existingContainer =
         ContainerConfig.create(
-            profileName,
+            containerName,
             "someImage",
             false,
             null,
@@ -86,32 +86,32 @@ class ContainerServiceTest {
 
     // Setup ContainersMetadata and add existing container
     ContainersMetadata metadata = ContainersMetadata.create();
-    metadata.getContainers().put(profileName, existingProfile);
+    metadata.getContainers().put(containerName, existingContainer);
 
     // Mock loader and dependencies
     ContainersLoader loader = mock(ContainersLoader.class);
-    InitialContainerConfigs initialProfiles = mock(InitialContainerConfigs.class);
+    InitialContainerConfigs initialContainers = mock(InitialContainerConfigs.class);
     ContainerScope mockContainerScope = mock(ContainerScope.class);
 
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     ContainerService containerService =
-        new ContainerService(loader, initialProfiles, mockContainerScope);
+        new ContainerService(loader, initialContainers, mockContainerScope);
     containerService.initialize();
 
     // Act: update the image id, version, and size
     containerService.updateImageMetaData(
-        profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
+        containerName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
     // Assert that the container has been updated
-    ContainerConfig updated = containerService.getByName(profileName);
+    ContainerConfig updated = containerService.getByName(containerName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());
 
     // Verify flush and save were called
-    verify(mockContainerScope).removeAllContainerBeans(profileName);
+    verify(mockContainerScope).removeAllContainerBeans(containerName);
     verify(loader).save(any());
   }
 }
