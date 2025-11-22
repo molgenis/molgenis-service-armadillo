@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/ds-profiles")
+@RequestMapping("/ds-containers")
 public class ContainerStartStatusController {
   private final ContainerStatusService statusService;
 
@@ -16,8 +16,8 @@ public class ContainerStartStatusController {
     this.statusService = statusService;
   }
 
-  @GetMapping("/{profileName}/status")
-  public ContainerStartStatus getStatus(@PathVariable String profileName) {
-    return statusService.getStatus(profileName);
+  @GetMapping("/{containerName}/status")
+  public ContainerStartStatus getStatus(@PathVariable String containerName) {
+    return statusService.getStatus(containerName);
   }
 }

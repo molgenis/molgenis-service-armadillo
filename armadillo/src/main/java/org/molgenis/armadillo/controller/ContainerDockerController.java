@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.START_PROFILE;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.STOP_PROFILE;
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "profiles")
+@Tag(name = "containers")
 @RestController
 @Valid
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("ds-profiles")
+@RequestMapping("ds-containers")
 public class ContainerDockerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
@@ -47,18 +47,18 @@ public class ContainerDockerController {
   }
 
   @Operation(
-      summary = "Start a container's Docker container",
+      summary = "Start a Docker container",
       description = "This will create a new container, or recreate an existing container.")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Profile started"),
+        @ApiResponse(responseCode = "204", description = "Container started"),
         @ApiResponse(
             responseCode = "404",
-            description = "Profile does not exist",
+            description = "Container does not exist",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "405",
-            description = "Profile configuration is incomplete",
+            description = "Container configuration is incomplete",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "401",
@@ -66,39 +66,39 @@ public class ContainerDockerController {
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "500",
-            description = "Profile's container couldn't be started (Docker error)",
+            description = "Container could not be started (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PostMapping("{name}/start")
   @ResponseStatus(NO_CONTENT)
-  public void startProfileContainer(Principal principal, @PathVariable String name) {
+  public void startContainer(Principal principal, @PathVariable String name) {
     auditor.audit(
         () -> dockerService.pullImageStartContainer(name),
         principal,
         START_PROFILE,
-        Map.of(PROFILE, name));
+        Map.of(CONTAINER, name));
   }
 
-  @Operation(summary = "Stop and remove a container's Docker container")
+  @Operation(summary = "Stop and remove a Docker container")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Profile container stopped"),
+        @ApiResponse(responseCode = "204", description = "Docker container stopped and removed"),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "500",
-            description = "Profile's container couldn't be stopped (Docker error)",
+            description = "Docker container could not be stopped (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @PostMapping("{name}/stop")
   @ResponseStatus(NO_CONTENT)
-  public void stopProfileContainer(Principal principal, @PathVariable String name) {
+  public void stopContainer(Principal principal, @PathVariable String name) {
     auditor.audit(
         () -> dockerService.stopAndRemoveContainer(name),
         principal,
         STOP_PROFILE,
-        Map.of(PROFILE, name));
+        Map.of(CONTAINER, name));
   }
 }

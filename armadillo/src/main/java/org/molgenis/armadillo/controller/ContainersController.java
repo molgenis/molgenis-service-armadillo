@@ -1,12 +1,12 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROFILES_STATUS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_CONTAINER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_CONTAINER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_CONTAINERS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_CONTAINERS_STATUS;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_CONTAINER;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -40,15 +40,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "profiles", description = "API to manage DataSHIELD profiles")
+@Tag(name = "containers", description = "API to manage Docker containers")
 @RestController
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("ds-profiles")
+@RequestMapping("ds-containers")
 public class ContainersController {
 
-  private final ContainerService profiles;
+  private final ContainerService containers;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
   private final ContainerScheduler containerScheduler;
@@ -59,14 +59,14 @@ public class ContainersController {
       AuditEventPublisher auditor,
       ContainerScheduler containerScheduler) {
 
-    this.profiles = requireNonNull(containerService);
+    this.containers = requireNonNull(containerService);
     this.dockerService = dockerService;
     this.auditor = requireNonNull(auditor);
     this.containerScheduler = requireNonNull(containerScheduler);
   }
 
   @Operation(
-      summary = "List profiles",
+      summary = "List containers",
       description =
           """
                 If Docker management is enabled, this will also display each container's Docker
@@ -76,7 +76,7 @@ public class ContainersController {
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "All profiles listed",
+            description = "All containers listed",
             content =
                 @Content(
                     array =
@@ -88,22 +88,21 @@ public class ContainersController {
       })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ContainerResponse> profileList(Principal principal) {
-    return auditor.audit(this::getProfiles, principal, LIST_PROFILES);
+  public List<ContainerResponse> containerList(Principal principal) {
+    return auditor.audit(this::getContainers, principal, LIST_CONTAINERS);
   }
 
   @Operation(
-      summary = "List profiles",
+      summary = "List containers",
       description =
           """
-                        If Docker management is enabled, this will also display each container's Docker
-                        container status.
+                        If Docker management is enabled, this will also display each container's status.
                         """)
   @ApiResponses(
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "All profiles listed",
+            description = "All containers listed",
             content =
                 @Content(
                     array =
@@ -111,24 +110,24 @@ public class ContainersController {
       })
   @GetMapping(value = "status", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public List<ContainersStatusResponse> getProfileStatus(Principal principal) {
-    return auditor.audit(this::getDockerProfileInformation, principal, LIST_PROFILES_STATUS);
+  public List<ContainersStatusResponse> getContainerStatus(Principal principal) {
+    return auditor.audit(this::getDockerContainerInformation, principal, LIST_CONTAINERS_STATUS);
   }
 
-  private List<ContainersStatusResponse> getDockerProfileInformation() {
-    List<ContainerResponse> profiles = runAsSystem(this::getProfiles);
+  private List<ContainersStatusResponse> getDockerContainerInformation() {
+    List<ContainerResponse> containers = runAsSystem(this::getContainers);
     List<ContainersStatusResponse> result = new ArrayList<>();
-    profiles.forEach(
-        (profile) -> {
-          String profileName = profile.getName();
+    containers.forEach(
+        (container) -> {
+          String containerName = container.getName();
           if (dockerService != null) {
             String status =
                 runAsSystem(
-                    () -> dockerService.getContainerStatus(profileName).getStatus().toString());
+                    () -> dockerService.getContainerStatus(containerName).getStatus().toString());
             String versions = "";
             if (Objects.equals(status, "RUNNING")) {
               String[] config =
-                  runAsSystem(() -> dockerService.getContainerEnvironmentConfig(profileName));
+                  runAsSystem(() -> dockerService.getContainerEnvironmentConfig(containerName));
               versions =
                   Arrays.toString(
                       Arrays.stream(config)
@@ -138,24 +137,26 @@ public class ContainersController {
               versions = "[]";
             }
             result.add(
-                ContainersStatusResponse.create(profile.getImage(), profileName, versions, status));
+                ContainersStatusResponse.create(
+                    container.getImage(), containerName, versions, status));
           } else {
-            result.add(ContainersStatusResponse.create(profile.getImage(), profileName));
+            result.add(ContainersStatusResponse.create(container.getImage(), containerName));
           }
         });
     return result;
   }
 
-  private List<ContainerResponse> getProfiles() {
+  private List<ContainerResponse> getContainers() {
     var statuses = new HashMap<String, ContainerInfo>();
     if (dockerService != null) {
       statuses.putAll(dockerService.getAllContainerStatuses());
     }
 
-    return profiles.getAll().stream()
+    return containers.getAll().stream()
         .map(
-            profile ->
-                ContainerResponse.create(profile, statuses.getOrDefault(profile.getName(), null)))
+            container ->
+                ContainerResponse.create(
+                    container, statuses.getOrDefault(container.getName(), null)))
         .toList();
   }
 
@@ -170,11 +171,11 @@ public class ContainersController {
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Profile listed",
+            description = "Container listed",
             content = @Content(schema = @Schema(implementation = ContainerConfig.class))),
         @ApiResponse(
             responseCode = "404",
-            description = "Profile does not exist",
+            description = "Container does not exist",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "401",
@@ -183,22 +184,23 @@ public class ContainersController {
       })
   @GetMapping(value = "{name}", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(OK)
-  public ContainerResponse profileGetByProfileName(Principal principal, @PathVariable String name) {
-    return auditor.audit(() -> getProfile(name), principal, GET_PROFILE, Map.of(PROFILE, name));
+  public ContainerResponse containerGetByName(Principal principal, @PathVariable String name) {
+    return auditor.audit(
+        () -> getContainer(name), principal, GET_CONTAINER, Map.of(CONTAINER, name));
   }
 
-  private ContainerResponse getProfile(String name) {
+  private ContainerResponse getContainer(String name) {
     ContainerInfo container = null;
     if (dockerService != null) {
       container = dockerService.getContainerStatus(name);
     }
-    return ContainerResponse.create(profiles.getByName(name), container);
+    return ContainerResponse.create(containers.getByName(name), container);
   }
 
   @Operation(summary = "Add or update container")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Profile added or updated"),
+        @ApiResponse(responseCode = "204", description = "Container added or updated"),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -206,17 +208,17 @@ public class ContainersController {
       })
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void profileUpsert(
+  public void containerUpsert(
       Principal principal, @Valid @RequestBody ContainerConfig containerConfig) {
     auditor.audit(
         () -> {
-          profiles.upsert(containerConfig); // Save container
+          containers.upsert(containerConfig); // Save container
           containerScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
           return null;
         },
         principal,
-        UPSERT_PROFILE,
-        Map.of(PROFILE, containerConfig));
+        UPSERT_CONTAINER,
+        Map.of(CONTAINER, containerConfig));
   }
 
   @Operation(
@@ -228,7 +230,7 @@ public class ContainersController {
               """)
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Profile deleted"),
+        @ApiResponse(responseCode = "204", description = "Container deleted"),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
@@ -239,19 +241,20 @@ public class ContainersController {
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "500",
-            description = "Couldn't remove container's container (Docker error)",
+            description = "Couldn't remove container (Docker error)",
             content = @Content(schema = @Schema(hidden = true)))
       })
   @DeleteMapping(value = "{name}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void profileDelete(Principal principal, @PathVariable String name) {
-    auditor.audit(() -> deleteProfile(name), principal, DELETE_PROFILE, Map.of(PROFILE, name));
+  public void containerDelete(Principal principal, @PathVariable String name) {
+    auditor.audit(
+        () -> deleteContainer(name), principal, DELETE_CONTAINER, Map.of(CONTAINER, name));
   }
 
-  private void deleteProfile(String name) {
+  private void deleteContainer(String name) {
     if (dockerService != null) {
       dockerService.removeContainerDeleteImage(name);
     }
-    profiles.delete(name);
+    containers.delete(name);
   }
 }

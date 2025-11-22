@@ -3,7 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -46,7 +46,7 @@ public class DevelopmentController {
 
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
-  private final ContainerService profiles;
+  private final ContainerService containers;
   private final DockerService dockerService;
 
   public DevelopmentController(
@@ -56,7 +56,7 @@ public class DevelopmentController {
       @Nullable DockerService dockerService) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
-    this.profiles = requireNonNull(containerService);
+    this.containers = requireNonNull(containerService);
     this.dockerService = dockerService;
   }
 
@@ -100,7 +100,7 @@ public class DevelopmentController {
       return result
           .thenApply(
               body -> {
-                profiles.addToWhitelist(getActiveContainerName(), packageName);
+                containers.addToWhitelist(getActiveContainerName(), packageName);
                 return ResponseEntity.ok(body);
               })
           .exceptionally(
@@ -113,7 +113,7 @@ public class DevelopmentController {
   @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return profiles.getByName(getActiveContainerName()).getPackageWhitelist();
+    return containers.getByName(getActiveContainerName()).getPackageWhitelist();
   }
 
   @Operation(
@@ -125,7 +125,7 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ContainerConfig currentConfig = profiles.getByName(getActiveContainerName());
+    ContainerConfig currentConfig = containers.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
     ContainerConfig containerConfig =
@@ -145,10 +145,10 @@ public class DevelopmentController {
             currentConfig.getCreationDate(),
             currentConfig.getInstallDate());
     auditEventPublisher.audit(
-        () -> profiles.upsert(containerConfig),
+        () -> containers.upsert(containerConfig),
         principal,
-        UPSERT_PROFILE,
-        Map.of(PROFILE, containerConfig));
+        UPSERT_CONTAINER,
+        Map.of(CONTAINER, containerConfig));
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")
