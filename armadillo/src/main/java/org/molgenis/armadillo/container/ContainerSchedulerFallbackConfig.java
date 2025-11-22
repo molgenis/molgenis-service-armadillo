@@ -18,12 +18,12 @@ public class ContainerSchedulerFallbackConfig {
   public ContainerScheduler noOpProfileScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
-      public void reschedule(ContainerConfig profile) {
+      public void reschedule(ContainerConfig container) {
         // no-op
       }
 
       @Override
-      public void cancel(String profileName) {
+      public void cancel(String containerName) {
         // no-op
       }
     };

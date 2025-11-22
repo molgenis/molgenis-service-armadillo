@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
-import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -100,7 +100,7 @@ public class DevelopmentController {
       return result
           .thenApply(
               body -> {
-                profiles.addToWhitelist(getActiveProfileName(), packageName);
+                profiles.addToWhitelist(getActiveContainerName(), packageName);
                 return ResponseEntity.ok(body);
               })
           .exceptionally(
@@ -113,7 +113,7 @@ public class DevelopmentController {
   @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return profiles.getByName(getActiveProfileName()).getPackageWhitelist();
+    return profiles.getByName(getActiveContainerName()).getPackageWhitelist();
   }
 
   @Operation(
@@ -125,7 +125,7 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ContainerConfig currentConfig = profiles.getByName(getActiveProfileName());
+    ContainerConfig currentConfig = profiles.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
     ContainerConfig containerConfig =
@@ -163,7 +163,7 @@ public class DevelopmentController {
   public void deleteDockerImage(Principal principal, @RequestParam String imageId) {
     assert dockerService != null;
     auditEventPublisher.audit(
-        () -> dockerService.removeImageIfUnused(imageId),
+        () -> dockerService.deleteImageIfUnused(imageId),
         principal,
         DELETE_DOCKER_IMAGE,
         Map.of(DELETE_DOCKER_IMAGE, imageId));

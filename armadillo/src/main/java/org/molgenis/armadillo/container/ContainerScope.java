@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class ContainerScope implements Scope {
   private static final Logger LOGGER = LoggerFactory.getLogger(ContainerScope.class);
 
-  /** Contains all container scoped beans for all profiles */
+  /** Contains all container scoped beans for all containers */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
   @Override
@@ -30,13 +30,13 @@ public class ContainerScope implements Scope {
     return scopedBeans.remove(getFullyQualifiedBeanName(beanName));
   }
 
-  public void removeAllProfileBeans(String profileName) {
+  public void removeAllContainerBeans(String containerName) {
     scopedBeans
         .keys()
         .asIterator()
         .forEachRemaining(
             key -> {
-              if (key.startsWith(profileName)) {
+              if (key.startsWith(containerName)) {
                 scopedBeans.remove(key);
               }
             });
@@ -58,6 +58,6 @@ public class ContainerScope implements Scope {
   }
 
   private String getFullyQualifiedBeanName(String beanName) {
-    return ActiveContainerNameAccessor.getActiveProfileName() + "." + beanName;
+    return ActiveContainerNameAccessor.getActiveContainerName() + "." + beanName;
   }
 }

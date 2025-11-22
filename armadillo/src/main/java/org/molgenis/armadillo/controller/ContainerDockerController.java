@@ -73,7 +73,10 @@ public class ContainerDockerController {
   @ResponseStatus(NO_CONTENT)
   public void startProfileContainer(Principal principal, @PathVariable String name) {
     auditor.audit(
-        () -> dockerService.startProfile(name), principal, START_PROFILE, Map.of(PROFILE, name));
+        () -> dockerService.pullImageStartContainer(name),
+        principal,
+        START_PROFILE,
+        Map.of(PROFILE, name));
   }
 
   @Operation(summary = "Stop and remove a container's Docker container")
@@ -93,6 +96,9 @@ public class ContainerDockerController {
   @ResponseStatus(NO_CONTENT)
   public void stopProfileContainer(Principal principal, @PathVariable String name) {
     auditor.audit(
-        () -> dockerService.removeProfile(name), principal, STOP_PROFILE, Map.of(PROFILE, name));
+        () -> dockerService.stopAndRemoveContainer(name),
+        principal,
+        STOP_PROFILE,
+        Map.of(PROFILE, name));
   }
 }

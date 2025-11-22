@@ -94,7 +94,7 @@ public class ContainerService {
   }
 
   private void flushProfileBeans(String profileName) {
-    containerScope.removeAllProfileBeans(profileName);
+    containerScope.removeAllContainerBeans(profileName);
   }
 
   private void save() {

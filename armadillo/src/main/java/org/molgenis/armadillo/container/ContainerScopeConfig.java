@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.container;
 
 import static java.lang.String.format;
-import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
@@ -17,19 +17,20 @@ import org.springframework.context.annotation.Configuration;
 public class ContainerScopeConfig {
 
   @Bean
-  @org.molgenis.armadillo.container.annotation.ProfileScope
-  public ContainerConfig profileConfig(ContainerService containerService) {
-    var activeProfileName = getActiveProfileName();
+  @org.molgenis.armadillo.container.annotation.ContainerScope
+  public ContainerConfig containerConfig(ContainerService containerService) {
+    var activeContainerName = getActiveContainerName();
     try {
-      return runAsSystem(() -> containerService.getByName(activeProfileName));
+      return runAsSystem(() -> containerService.getByName(activeContainerName));
     } catch (UnknownContainerException e) {
       throw new IllegalStateException(
-          format("Missing container configuration for active container '%s'.", activeProfileName));
+          format(
+              "Missing container configuration for active container '%s'.", activeContainerName));
     }
   }
 
   @Bean
-  @org.molgenis.armadillo.container.annotation.ProfileScope
+  @org.molgenis.armadillo.container.annotation.ContainerScope
   public RConnectionFactory rConnectionFactory(ContainerConfig containerConfig) {
     return new RServerConnectionFactory(containerConfig.toEnvironmentConfigProps());
   }

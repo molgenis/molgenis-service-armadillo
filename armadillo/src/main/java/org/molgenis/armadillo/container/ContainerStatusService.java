@@ -10,12 +10,13 @@ public class ContainerStatusService {
   private final Map<String, ContainerStartStatus> statuses = new ConcurrentHashMap<>();
 
   public void updateStatus(
-      String profileName, String status, Integer completedLayers, Integer totalLayers) {
+      String containerName, String status, Integer completedLayers, Integer totalLayers) {
     statuses.put(
-        profileName, new ContainerStartStatus(profileName, status, completedLayers, totalLayers));
+        containerName,
+        new ContainerStartStatus(containerName, status, completedLayers, totalLayers));
   }
 
-  public ContainerStartStatus getStatus(String profileName) {
-    return statuses.getOrDefault(profileName, new ContainerStartStatus(null, null, null, null));
+  public ContainerStartStatus getStatus(String containerName) {
+    return statuses.getOrDefault(containerName, new ContainerStartStatus(null, null, null, null));
   }
 }

@@ -38,30 +38,31 @@ public class ContainerScheduler {
   public ThreadPoolTaskScheduler taskScheduler() {
     this.taskScheduler = new ThreadPoolTaskScheduler();
     this.taskScheduler.setPoolSize(10);
-    this.taskScheduler.setThreadNamePrefix("ProfileUpdater-");
+    this.taskScheduler.setThreadNamePrefix("ContainerUpdater-");
     this.taskScheduler.initialize();
     return this.taskScheduler;
   }
 
   /** Reschedule or create a scheduled update task for a container. */
-  public void reschedule(ContainerConfig profile) {
-    cancel(profile.getName());
+  public void reschedule(ContainerConfig container) {
+    cancel(container.getName());
 
-    if (Boolean.TRUE.equals(profile.getAutoUpdate()) && profile.getUpdateSchedule() != null) {
-      String cron = toCron(profile.getUpdateSchedule());
-      Runnable task = () -> runAsSystem(() -> runUpdateForProfile(profile));
+    if (Boolean.TRUE.equals(container.getAutoUpdate()) && container.getUpdateSchedule() != null) {
+      String cron = toCron(container.getUpdateSchedule());
+      Runnable task = () -> runAsSystem(() -> runUpdateForContainer(container));
       ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
-      scheduledTasks.put(profile.getName(), future);
-      LOG.info("Scheduled auto-update for container '{}' with cron '{}'", profile.getName(), cron);
+      scheduledTasks.put(container.getName(), future);
+      LOG.info(
+          "Scheduled auto-update for container '{}' with cron '{}'", container.getName(), cron);
     }
   }
 
   /** Cancel the scheduled task for a given container name, if any. */
-  public void cancel(String profileName) {
-    ScheduledFuture<?> existing = scheduledTasks.remove(profileName);
+  public void cancel(String containerName) {
+    ScheduledFuture<?> existing = scheduledTasks.remove(containerName);
     if (existing != null) {
       existing.cancel(false);
-      LOG.info("Cancelled auto-update task for container '{}'", profileName);
+      LOG.info("Cancelled auto-update task for container '{}'", containerName);
     }
   }
 
@@ -95,19 +96,19 @@ public class ContainerScheduler {
     };
   }
 
-  private void runUpdateForProfile(ContainerConfig profile) {
+  private void runUpdateForContainer(ContainerConfig container) {
     try {
       // Get container status directly using container name
-      var containerInfo = dockerService.getAllProfileStatuses().get(profile.getName());
+      var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
 
       // Only proceed if container is running and auto-update is enabled
       if (containerInfo != null
           && containerInfo.getStatus() == ContainerStatus.RUNNING
-          && Boolean.TRUE.equals(profile.getAutoUpdate())) {
+          && Boolean.TRUE.equals(container.getAutoUpdate())) {
 
         // Retrieve the previous image ID and current image name from the container
-        String previousImageId = profile.getLastImageId();
-        String imageName = profile.getImage();
+        String previousImageId = container.getLastImageId();
+        String imageName = container.getImage();
 
         // Ensure imageName is not null or empty
         if (imageName != null && !imageName.isEmpty()) {
@@ -117,23 +118,24 @@ public class ContainerScheduler {
           LOG.info("Latest imageId is {}", latestImageId);
 
           // Check if the image has changed
-          if (dockerService.hasImageIdChanged(profile.getName(), previousImageId, latestImageId)) {
-            LOG.info("Image updated for '{}', restarting...", profile.getName());
-            dockerService.startProfile(profile.getName());
+          if (dockerService.hasImageIdChanged(
+              container.getName(), previousImageId, latestImageId)) {
+            LOG.info("Image updated for '{}', restarting...", container.getName());
+            dockerService.pullImageStartContainer(container.getName());
           } else {
-            LOG.info("No image update for '{}', skipping restart", profile.getName());
+            LOG.info("No image update for '{}', skipping restart", container.getName());
           }
         } else {
           LOG.error(
               "Image name is null or empty for container '{}'. Skipping update.",
-              profile.getName());
+              container.getName());
         }
       }
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt(); // Preserve interrupt status
-      LOG.error("Thread interrupted while updating container '{}'", profile.getName(), ie);
+      LOG.error("Thread interrupted while updating container '{}'", container.getName(), ie);
     } catch (Exception e) {
-      LOG.error("Error while checking container '{}': {}", profile.getName(), e.getMessage(), e);
+      LOG.error("Error while checking container '{}': {}", container.getName(), e.getMessage(), e);
     }
   }
 }

@@ -124,11 +124,11 @@ public class ContainersController {
           if (dockerService != null) {
             String status =
                 runAsSystem(
-                    () -> dockerService.getProfileStatus(profileName).getStatus().toString());
+                    () -> dockerService.getContainerStatus(profileName).getStatus().toString());
             String versions = "";
             if (Objects.equals(status, "RUNNING")) {
               String[] config =
-                  runAsSystem(() -> dockerService.getProfileEnvironmentConfig(profileName));
+                  runAsSystem(() -> dockerService.getContainerEnvironmentConfig(profileName));
               versions =
                   Arrays.toString(
                       Arrays.stream(config)
@@ -149,7 +149,7 @@ public class ContainersController {
   private List<ContainerResponse> getProfiles() {
     var statuses = new HashMap<String, ContainerInfo>();
     if (dockerService != null) {
-      statuses.putAll(dockerService.getAllProfileStatuses());
+      statuses.putAll(dockerService.getAllContainerStatuses());
     }
 
     return profiles.getAll().stream()
@@ -190,7 +190,7 @@ public class ContainersController {
   private ContainerResponse getProfile(String name) {
     ContainerInfo container = null;
     if (dockerService != null) {
-      container = dockerService.getProfileStatus(name);
+      container = dockerService.getContainerStatus(name);
     }
     return ContainerResponse.create(profiles.getByName(name), container);
   }
@@ -250,7 +250,7 @@ public class ContainersController {
 
   private void deleteProfile(String name) {
     if (dockerService != null) {
-      dockerService.deleteProfile(name);
+      dockerService.removeContainerDeleteImage(name);
     }
     profiles.delete(name);
   }
