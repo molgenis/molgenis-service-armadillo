@@ -28,13 +28,13 @@ public class CommandsConfig {
         runnable -> {
           // this runs in the calling thread
           final SecurityContext securityContext = SecurityContextHolder.getContext();
-          final String profile = ActiveContainerNameAccessor.getActiveProfileName();
+          final String container = ActiveContainerNameAccessor.getActiveContainerName();
           return () -> {
             // this runs in the task thread
             final SecurityContext originalSecurityContext = SecurityContextHolder.getContext();
             try {
               SecurityContextHolder.setContext(securityContext);
-              ActiveContainerNameAccessor.setActiveProfileName(profile);
+              ActiveContainerNameAccessor.setActiveContainerName(container);
               runnable.run();
             } finally {
               SecurityContext emptyContext = createEmptyContext();
@@ -43,7 +43,7 @@ public class CommandsConfig {
               } else {
                 setContext(originalSecurityContext);
               }
-              ActiveContainerNameAccessor.resetActiveProfileName();
+              ActiveContainerNameAccessor.resetActiveContainerName();
             }
           };
         });

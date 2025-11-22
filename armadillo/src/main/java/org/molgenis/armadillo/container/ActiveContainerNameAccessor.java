@@ -24,7 +24,7 @@ public class ActiveContainerNameAccessor {
    * @param activeProfileName the container name to select
    * @throws IllegalStateException if no RequestAttributes object is bound to the current thread
    */
-  public static void setActiveProfileName(String activeProfileName) {
+  public static void setActiveContainerName(String activeProfileName) {
     Optional.ofNullable(getRequestAttributes())
         .ifPresentOrElse(
             requestAttributes ->
@@ -37,13 +37,13 @@ public class ActiveContainerNameAccessor {
    * Retrieves the active container name, either from the user session if a RequestAttributes object
    * is bound to the current thread, or the value bound to the current thread.
    */
-  public static String getActiveProfileName() {
+  public static String getActiveContainerName() {
     return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
         .map(it -> (String) it.getAttribute(PROFILE_CONTEXT_KEY, SCOPE_SESSION))
         .orElseGet(ACTIVE_PROFILE::get);
   }
 
-  public static void resetActiveProfileName() {
+  public static void resetActiveContainerName() {
     ACTIVE_PROFILE.remove();
   }
 }

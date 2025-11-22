@@ -64,7 +64,7 @@ public class DockerService {
     this.containerStatusService = containerStatusService;
   }
 
-  public Map<String, ContainerInfo> getAllProfileStatuses() {
+  public Map<String, ContainerInfo> getAllContainerStatuses() {
     var names = containerService.getAll().stream().map(ContainerConfig::getName).toList();
 
     var statuses =
@@ -99,25 +99,25 @@ public class DockerService {
   /**
    * The container can run in its own network/compose.
    *
-   * <p>Both the profiles and/or Armadillo can be part of a docker-compose.yml. You can check with
+   * <p>Both the containers and/or Armadillo can be part of a docker-compose.yml. You can check with
    * `docker container ps` to see this name structure.
    *
-   * @param profileName the container name set by DataManager.
+   * @param containerName the container name set by DataManager.
    * @return adjusted container name if applicable.
    */
-  String asContainerName(String profileName) {
+  String asContainerName(String containerName) {
     if (!inContainer) {
-      LOG.warn("Profile not running in docker container: " + profileName);
-      return profileName;
+      LOG.warn("Image not running in docker container: " + containerName);
+      return containerName;
     }
 
     if (containerPrefix.isEmpty()) {
-      LOG.error("Running in container without prefix: " + profileName);
-      return profileName;
+      LOG.error("Running in container without prefix: " + containerName);
+      return containerName;
     }
 
-    LOG.warn("Profile running in docker container: " + profileName);
-    return containerPrefix + profileName + "-1";
+    LOG.warn("Image running in docker container: " + containerName);
+    return containerPrefix + containerName + "-1";
   }
 
   String asProfileName(String containerName) {
@@ -127,21 +127,22 @@ public class DockerService {
     return containerName;
   }
 
-  public String[] getProfileEnvironmentConfig(String profileName) {
-    containerService.getByName(profileName);
-    String containerName = asContainerName(profileName);
-    InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerName).exec();
+  public String[] getContainerEnvironmentConfig(String containerName) {
+    containerService.getByName(containerName);
+    String dockerContainerName = asContainerName(dockerContainerName);
+    InspectContainerResponse containerInfo =
+        dockerClient.inspectContainerCmd(dockerContainerName).exec();
     return containerInfo.getConfig().getEnv();
   }
 
-  public ContainerInfo getProfileStatus(String profileName) {
+  public ContainerInfo getContainerStatus(String containerName) {
     // check container exists
-    containerService.getByName(profileName);
+    containerService.getByName(containerName);
 
-    String containerName = asContainerName(profileName);
+    String dockerContainerName = asContainerName(containerName);
     try {
       InspectContainerResponse containerInfo =
-          dockerClient.inspectContainerCmd(containerName).exec();
+          dockerClient.inspectContainerCmd(dockerContainerName).exec();
       var tags = getImageTags(containerInfo.getName());
       return ContainerInfo.create(tags, ContainerStatus.of(containerInfo.getState()));
     } catch (ProcessingException e) {
@@ -155,52 +156,52 @@ public class DockerService {
     }
   }
 
-  public void startProfile(String profileName) {
-    String containerName = asContainerName(profileName);
-    LOG.info(profileName + " : " + containerName);
+  public void pullImageStartContainer(String containerName) {
+    String dockerContainerName = asContainerName(containerName);
+    LOG.info(containerName + " : " + dockerContainerName);
 
-    var profileConfig = containerService.getByName(profileName);
-    containerStatusService.updateStatus(profileName, null, null, null);
-    pullImage(profileConfig);
-    containerStatusService.updateStatus(profileName, "Profile installed", null, null);
-    stopContainer(containerName);
-    removeContainer(containerName);
-    installImage(profileConfig);
-    startContainer(containerName);
+    var containerConfig = containerService.getByName(containerName);
+    containerStatusService.updateStatus(containerName, null, null, null);
+    pullImage(containerConfig);
+    containerStatusService.updateStatus(containerName, "Profile installed", null, null);
+    stopContainer(dockerContainerName);
+    removeContainer(dockerContainerName);
+    installImage(containerConfig);
+    startContainer(dockerContainerName);
 
-    String previousImageId = profileConfig.getLastImageId();
+    String previousImageId = containerConfig.getLastImageId();
     String currentImageId =
-        dockerClient.inspectContainerCmd(asContainerName(profileName)).exec().getImageId();
+        dockerClient.inspectContainerCmd(asContainerName(containerName)).exec().getImageId();
 
     if (previousImageId == null) {
       LOG.info(
           "No previous image ID recorded for {}. This may be the first run or from before image tracking was added.",
-          profileName);
-    } else if (hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+          containerName);
+    } else if (hasImageIdChanged(containerName, previousImageId, currentImageId)) {
       try {
-        removeImageIfUnused(previousImageId);
+        deleteImageIfUnused(previousImageId);
       } catch (ImageRemoveFailedException e) {
         LOG.info(e.getMessage());
       }
     }
 
-    updateImageMetaData(profileName, previousImageId, currentImageId);
+    updateImageMetaData(containerName, previousImageId, currentImageId);
   }
 
-  void updateImageMetaData(String profileName, String previousImageId, String currentImageId) {
+  void updateImageMetaData(String containerName, String previousImageId, String currentImageId) {
     String openContainersId = getOpenContainersImageVersion(currentImageId);
     Long imageSize = getImageSize(currentImageId);
     String creationDate = getImageCreationDate(currentImageId);
 
     String installDate;
     if ((previousImageId == null && currentImageId != null)
-        || hasImageIdChanged(profileName, previousImageId, currentImageId)) {
+        || hasImageIdChanged(containerName, previousImageId, currentImageId)) {
       installDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
     } else {
       installDate = null;
     }
     containerService.updateImageMetaData(
-        profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
+        containerName, currentImageId, openContainersId, imageSize, creationDate, installDate);
   }
 
   String getImageCreationDate(String imageId) {
@@ -243,8 +244,8 @@ public class DockerService {
     }
   }
 
-  boolean hasImageIdChanged(String profileName, String previousImageId, String currentImageId) {
-    String escapedProfile = StringEscapeUtils.escapeJava(profileName);
+  boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
+    String escapedContainer = StringEscapeUtils.escapeJava(containerName);
     String escapedPreviousId =
         previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
     String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
@@ -252,13 +253,13 @@ public class DockerService {
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
       LOG.info(
           "Image ID for container '{}' changed from '{}' to '{}'",
-          escapedProfile,
+          escapedContainer,
           escapedPreviousId,
           escapedCurrentId);
       return true;
     } else {
       LOG.info(
-          "Image ID for container '{}' unchanged (still '{}')", escapedProfile, escapedCurrentId);
+          "Image ID for container '{}' unchanged (still '{}')", escapedContainer, escapedCurrentId);
       return false;
     }
   }
@@ -295,26 +296,27 @@ public class DockerService {
     }
   }
 
-  private void stopContainer(String containerName) {
-    String profileName = "stoppingContainer has not profileName: " + containerName;
+  private void stopContainer(String dockerContainerName) {
+    String containerIdForLog =
+        "stoppingContainer has not containerIdForLog: " + dockerContainerName;
     try {
-      dockerClient.stopContainerCmd(containerName).exec();
+      dockerClient.stopContainerCmd(dockerContainerName).exec();
     } catch (DockerException e) {
       try {
         InspectContainerResponse containerInfo =
-            dockerClient.inspectContainerCmd(containerName).exec();
+            dockerClient.inspectContainerCmd(dockerContainerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(profileName, e);
+          throw new ImageStopFailedException(containerIdForLog, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop container '{}' because it doesn't exist", profileName);
+        LOG.info("Failed to stop container '{}' because it doesn't exist", containerIdForLog);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(profileName, e);
+        throw new ImageStopFailedException(containerIdForLog, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(profileName, e);
+      throw new ImageStopFailedException(containerIdForLog, e);
     }
   }
 
@@ -372,18 +374,18 @@ public class DockerService {
     };
   }
 
-  public void removeProfile(String profileName) {
+  public void stopAndRemoveContainer(String containerName) {
     // check container exists
-    containerService.getByName(profileName);
-    stopContainer(profileName);
-    removeContainer(profileName);
+    containerService.getByName(containerName);
+    stopContainer(containerName);
+    removeContainer(containerName);
   }
 
-  public void deleteProfile(String profileName) {
-    removeProfile(profileName);
-    String imageId = containerService.getByName(profileName).getLastImageId();
+  public void removeContainerDeleteImage(String containerName) {
+    stopAndRemoveContainer(containerName);
+    String imageId = containerService.getByName(containerName).getLastImageId();
     try {
-      removeImageIfUnused(imageId);
+      deleteImageIfUnused(imageId);
     } catch (ImageRemoveFailedException e) {
       LOG.info(e.getMessage());
     }
@@ -416,7 +418,7 @@ public class DockerService {
         .toList();
   }
 
-  public void removeImageIfUnused(String imageId) {
+  public void deleteImageIfUnused(String imageId) {
     if (imageId == null) {
       LOG.info("No image ID provided; skipping image removal");
       return;

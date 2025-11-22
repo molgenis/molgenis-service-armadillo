@@ -366,7 +366,7 @@ public class DataController {
   @ResponseStatus(NO_CONTENT)
   public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
     auditEventPublisher.audit(
-        () -> commands.selectProfile(profileName.trim()),
+        () -> commands.selectContainer(profileName.trim()),
         principal,
         SELECT_PROFILE,
         Map.of(SELECTED_PROFILE, profileName));
@@ -375,7 +375,8 @@ public class DataController {
   @GetMapping(value = "profiles")
   public @ResponseBody ContainersResponse listProfiles(Principal principal) {
     return auditEventPublisher.audit(
-        () -> ContainersResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
+        () ->
+            ContainersResponse.create(commands.listContainers(), commands.getActiveContainerName()),
         principal,
         PROFILES,
         Map.of());

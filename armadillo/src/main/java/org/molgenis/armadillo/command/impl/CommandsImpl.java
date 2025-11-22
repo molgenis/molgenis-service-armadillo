@@ -69,20 +69,20 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public String getActiveProfileName() {
-    return ActiveContainerNameAccessor.getActiveProfileName();
+  public String getActiveContainerName() {
+    return ActiveContainerNameAccessor.getActiveContainerName();
   }
 
   @Override
-  public void selectProfile(String profileName) {
-    runAsSystem(() -> containerService.getByName(profileName));
+  public void selectContainer(String containerName) {
+    runAsSystem(() -> containerService.getByName(containerName));
     if (armadilloSession != null) armadilloSession.sessionCleanup();
-    ActiveContainerNameAccessor.setActiveProfileName(profileName);
+    ActiveContainerNameAccessor.setActiveContainerName(containerName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
-  public List<String> listProfiles() {
+  public List<String> listContainers() {
     return runAsSystem(
         () -> containerService.getAll().stream().map(ContainerConfig::getName).toList());
   }
