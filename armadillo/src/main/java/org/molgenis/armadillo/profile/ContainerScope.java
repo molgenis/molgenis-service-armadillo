@@ -9,8 +9,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProfileScope implements Scope {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProfileScope.class);
+public class ContainerScope implements Scope {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ContainerScope.class);
 
   /** Contains all profile scoped beans for all profiles */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
@@ -58,6 +58,6 @@ public class ProfileScope implements Scope {
   }
 
   private String getFullyQualifiedBeanName(String beanName) {
-    return ActiveProfileNameAccessor.getActiveProfileName() + "." + beanName;
+    return ActiveContainerNameAccessor.getActiveProfileName() + "." + beanName;
   }
 }

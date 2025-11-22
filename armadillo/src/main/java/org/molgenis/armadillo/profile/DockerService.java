@@ -47,7 +47,7 @@ public class DockerService {
 
   private final DockerClient dockerClient;
   private final ContainerService containerService;
-  private final ProfileStatusService profileStatusService;
+  private final ContainerStatusService containerStatusService;
 
   @Value("${armadillo.docker-run-in-container:false}")
   private boolean inContainer;
@@ -58,10 +58,10 @@ public class DockerService {
   public DockerService(
       DockerClient dockerClient,
       ContainerService containerService,
-      ProfileStatusService profileStatusService) {
+      ContainerStatusService containerStatusService) {
     this.dockerClient = dockerClient;
     this.containerService = containerService;
-    this.profileStatusService = profileStatusService;
+    this.containerStatusService = containerStatusService;
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
@@ -160,9 +160,9 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = containerService.getByName(profileName);
-    profileStatusService.updateStatus(profileName, null, null, null);
+    containerStatusService.updateStatus(profileName, null, null, null);
     pullImage(profileConfig);
-    profileStatusService.updateStatus(profileName, "Profile installed", null, null);
+    containerStatusService.updateStatus(profileName, "Profile installed", null, null);
     stopContainer(containerName);
     removeContainer(containerName);
     installImage(profileConfig);
@@ -364,7 +364,7 @@ public class DockerService {
         int completed = done.size();
         int total = Math.max(1, seen.size());
 
-        profileStatusService.updateStatus(
+        containerStatusService.updateStatus(
             containerConfig.getName(), "Installing profile", completed, total);
 
         super.onNext(item);

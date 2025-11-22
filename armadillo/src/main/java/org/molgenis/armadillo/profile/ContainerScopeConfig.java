@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.profile;
 
 import static java.lang.String.format;
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.profile.ActiveContainerNameAccessor.getActiveProfileName;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ProfileScopeConfig {
+public class ContainerScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
@@ -35,7 +35,7 @@ public class ProfileScopeConfig {
   }
 
   @Bean
-  public static BeanFactoryPostProcessor beanFactoryPostProcessor(ProfileScope profileScope) {
-    return beanFactory -> beanFactory.registerScope("profile", profileScope);
+  public static BeanFactoryPostProcessor beanFactoryPostProcessor(ContainerScope containerScope) {
+    return beanFactory -> beanFactory.registerScope("profile", containerScope);
   }
 }

@@ -1,14 +1,14 @@
 package org.molgenis.armadillo.metadata;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.DEFAULT;
+import static org.molgenis.armadillo.profile.ActiveContainerNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
-import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.profile.ContainerScope;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,16 @@ public class ContainerService {
 
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialProfiles;
-  private final ProfileScope profileScope;
+  private final ContainerScope containerScope;
   private ContainersMetadata settings;
 
   public ContainerService(
       ContainersLoader containersLoader,
       InitialContainerConfigs initialContainerConfigs,
-      ProfileScope profileScope) {
+      ContainerScope containerScope) {
     this.loader = requireNonNull(containersLoader);
     initialProfiles = requireNonNull(initialContainerConfigs);
-    this.profileScope = requireNonNull(profileScope);
+    this.containerScope = requireNonNull(containerScope);
     runAsSystem(this::initialize);
   }
 
@@ -94,7 +94,7 @@ public class ContainerService {
   }
 
   private void flushProfileBeans(String profileName) {
-    profileScope.removeAllProfileBeans(profileName);
+    containerScope.removeAllProfileBeans(profileName);
   }
 
   private void save() {

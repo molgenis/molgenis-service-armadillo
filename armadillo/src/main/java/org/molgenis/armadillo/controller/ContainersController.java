@@ -29,8 +29,8 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ContainerInfo;
+import org.molgenis.armadillo.profile.ContainerScheduler;
 import org.molgenis.armadillo.profile.DockerService;
-import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,18 +51,18 @@ public class ContainersController {
   private final ContainerService profiles;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
-  private final ProfileScheduler profileScheduler;
+  private final ContainerScheduler containerScheduler;
 
   public ContainersController(
       ContainerService containerService,
       @Nullable DockerService dockerService,
       AuditEventPublisher auditor,
-      ProfileScheduler profileScheduler) {
+      ContainerScheduler containerScheduler) {
 
     this.profiles = requireNonNull(containerService);
     this.dockerService = dockerService;
     this.auditor = requireNonNull(auditor);
-    this.profileScheduler = requireNonNull(profileScheduler);
+    this.containerScheduler = requireNonNull(containerScheduler);
   }
 
   @Operation(
@@ -211,7 +211,7 @@ public class ContainersController {
     auditor.audit(
         () -> {
           profiles.upsert(containerConfig); // Save profile
-          profileScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
+          containerScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
           return null;
         },
         principal,

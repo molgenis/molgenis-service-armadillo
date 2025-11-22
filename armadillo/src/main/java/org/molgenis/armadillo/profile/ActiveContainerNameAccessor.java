@@ -6,14 +6,14 @@ import static org.springframework.web.context.request.RequestContextHolder.getRe
 import java.util.Optional;
 import org.springframework.web.context.request.RequestContextHolder;
 
-public class ActiveProfileNameAccessor {
+public class ActiveContainerNameAccessor {
 
   public static final String DEFAULT = "default";
   private static final String PROFILE_CONTEXT_KEY = "profile";
 
   private static final ThreadLocal<String> ACTIVE_PROFILE = ThreadLocal.withInitial(() -> DEFAULT);
 
-  private ActiveProfileNameAccessor() {
+  private ActiveContainerNameAccessor() {
     throw new UnsupportedOperationException("Do not instantiate");
   }
 

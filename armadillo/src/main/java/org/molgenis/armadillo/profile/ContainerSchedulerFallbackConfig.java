@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ProfileSchedulerFallbackConfig {
+public class ContainerSchedulerFallbackConfig {
 
   @Bean
   @ConditionalOnProperty(
@@ -15,8 +15,8 @@ public class ProfileSchedulerFallbackConfig {
       havingValue = "false",
       matchIfMissing = true // Also covers missing property
       )
-  public ProfileScheduler noOpProfileScheduler() {
-    return new ProfileScheduler(null, null) {
+  public ContainerScheduler noOpProfileScheduler() {
+    return new ContainerScheduler(null, null) {
       @Override
       public void reschedule(ContainerConfig profile) {
         // no-op

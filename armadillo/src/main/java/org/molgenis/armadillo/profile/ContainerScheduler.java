@@ -20,16 +20,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 @ConditionalOnProperty(ContainerDockerController.DOCKER_MANAGEMENT_ENABLED)
-public class ProfileScheduler {
+public class ContainerScheduler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ProfileScheduler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ContainerScheduler.class);
 
   private final DockerService dockerService;
   private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
   private ThreadPoolTaskScheduler taskScheduler;
   private final DockerClient dockerClient;
 
-  public ProfileScheduler(DockerService dockerService, DockerClient dockerClient) {
+  public ContainerScheduler(DockerService dockerService, DockerClient dockerClient) {
     this.dockerService = dockerService;
     this.dockerClient = dockerClient;
   }

@@ -19,7 +19,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.profile.ActiveContainerNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -70,14 +70,14 @@ class CommandsImpl implements Commands {
 
   @Override
   public String getActiveProfileName() {
-    return ActiveProfileNameAccessor.getActiveProfileName();
+    return ActiveContainerNameAccessor.getActiveProfileName();
   }
 
   @Override
   public void selectProfile(String profileName) {
     runAsSystem(() -> containerService.getByName(profileName));
     if (armadilloSession != null) armadilloSession.sessionCleanup();
-    ActiveProfileNameAccessor.setActiveProfileName(profileName);
+    ActiveContainerNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 

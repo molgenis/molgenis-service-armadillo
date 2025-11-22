@@ -6,7 +6,7 @@ import org.molgenis.armadillo.metadata.ContainerStartStatus;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProfileStatusService {
+public class ContainerStatusService {
   private final Map<String, ContainerStartStatus> statuses = new ConcurrentHashMap<>();
 
   public void updateStatus(

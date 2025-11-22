@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.profile.ActiveContainerNameAccessor.getActiveProfileName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
