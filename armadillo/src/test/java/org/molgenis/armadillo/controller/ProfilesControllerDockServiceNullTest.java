@@ -26,7 +26,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Import({TestSecurityConfig.class})
 class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase {
 
-  @Autowired ProfileService profileService;
+  @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean ProfilesLoader profilesLoader;
   @MockitoBean ProfileScheduler profileScheduler;
@@ -35,7 +35,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
   void before() {
     var settings = createExampleSettings();
     when(profilesLoader.load()).thenReturn(settings);
-    runAsSystem(() -> profileService.initialize());
+    runAsSystem(() -> containerService.initialize());
   }
 
   private ProfilesMetadata createExampleSettings() {
@@ -44,7 +44,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
         .getProfiles()
         .put(
             "default",
-            ProfileConfig.create(
+            ContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 false,
@@ -63,7 +63,7 @@ class ProfilesControllerDockServiceNullTest extends ArmadilloControllerTestBase 
         .getProfiles()
         .put(
             "omics",
-            ProfileConfig.create(
+            ContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 false,

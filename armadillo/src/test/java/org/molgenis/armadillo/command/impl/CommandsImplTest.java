@@ -20,8 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -45,7 +45,7 @@ class CommandsImplTest {
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
-  @Mock ProfileService profileService;
+  @Mock ContainerService containerService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -72,7 +72,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            containerService);
   }
 
   @Test
@@ -239,8 +239,8 @@ class CommandsImplTest {
   @Test
   void testSelectProfileWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    ContainerConfig containerConfig =
+        ContainerConfig.create(
             "exposome",
             "dummy",
             false,
@@ -255,7 +255,7 @@ class CommandsImplTest {
             null,
             null,
             null);
-    when(profileService.getByName("exposome")).thenReturn(profileConfig);
+    when(containerService.getByName("exposome")).thenReturn(containerConfig);
     commands.selectProfile("exposome");
     verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
@@ -263,7 +263,7 @@ class CommandsImplTest {
 
   @Test
   void testSelectUnknownProfile() {
-    when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
+    when(containerService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
   }
 }

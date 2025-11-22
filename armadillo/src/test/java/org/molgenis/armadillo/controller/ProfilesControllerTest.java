@@ -40,7 +40,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   public static final String OMICS_PROFILE =
       "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
 
-  @Autowired ProfileService profileService;
+  @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
   @MockitoBean DockerService dockerService;
   @MockitoBean ProfilesLoader profilesLoader;
@@ -50,7 +50,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   public void before() {
     var settings = createExampleSettings();
     when(profilesLoader.load()).thenReturn(settings);
-    runAsSystem(() -> profileService.initialize());
+    runAsSystem(() -> containerService.initialize());
   }
 
   private ProfilesMetadata createExampleSettings() {
@@ -59,7 +59,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .getProfiles()
         .put(
             "default",
-            ProfileConfig.create(
+            ContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 false,
@@ -78,7 +78,7 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
         .getProfiles()
         .put(
             "omics",
-            ProfileConfig.create(
+            ContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 false,
@@ -122,8 +122,8 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void profiles_PUT() throws Exception {
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    ContainerConfig containerConfig =
+        ContainerConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",
             false,
@@ -142,13 +142,13 @@ class ProfilesControllerTest extends ArmadilloControllerTestBase {
     mockMvc
         .perform(
             put("/ds-profiles")
-                .content(new Gson().toJson(profileConfig))
+                .content(new Gson().toJson(containerConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
-    expected.getProfiles().put("dummy", profileConfig);
+    expected.getProfiles().put("dummy", containerConfig);
     verify(profilesLoader).save(expected);
   }
 

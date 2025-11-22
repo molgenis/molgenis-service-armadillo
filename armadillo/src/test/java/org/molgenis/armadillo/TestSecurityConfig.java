@@ -3,14 +3,8 @@ package org.molgenis.armadillo;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
-import org.molgenis.armadillo.metadata.AccessLoader;
-import org.molgenis.armadillo.metadata.AccessService;
-import org.molgenis.armadillo.metadata.DummyAccessLoader;
-import org.molgenis.armadillo.metadata.DummyProfilesLoader;
-import org.molgenis.armadillo.metadata.InitialProfileConfigs;
-import org.molgenis.armadillo.metadata.InsightService;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.metadata.ProfilesLoader;
+import org.molgenis.armadillo.metadata.*;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -83,11 +77,11 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ProfileService profileService(ProfilesLoader profilesLoader, ProfileScope profileScope) {
+  ContainerService profileService(ProfilesLoader profilesLoader, ProfileScope profileScope) {
     var initialProfiles = new InitialProfileConfigs();
     initialProfiles.setProfiles(emptyList());
 
-    return new ProfileService(profilesLoader, initialProfiles, profileScope);
+    return new ContainerService(profilesLoader, initialProfiles, profileScope);
   }
 
   @Bean

@@ -24,7 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class ProfileSchedulerTest {
 
   @Mock private DockerService dockerService;
-  @Mock private ProfileService profileService;
+  @Mock private ContainerService containerService;
   @Mock private DockerClient dockerClient;
   @Mock private ScheduledFuture<?> scheduledFuture;
 
@@ -70,7 +70,7 @@ class ProfileSchedulerTest {
 
   @Test
   void testRescheduleCreatesTaskWithCronTrigger() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
     when(profile.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
@@ -123,7 +123,7 @@ class ProfileSchedulerTest {
   @Test
   void testRunUpdateForProfileImageChanged() throws Exception {
     // Mock profile
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
     when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
@@ -160,7 +160,7 @@ class ProfileSchedulerTest {
 
   @Test
   void testRunUpdateForProfileNoContainerInfo() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile"); // ✅ Still needed
     when(dockerService.getAllProfileStatuses()).thenReturn(Map.of()); // No container info
     invokeRunUpdateForProfile(profile);
@@ -170,7 +170,7 @@ class ProfileSchedulerTest {
 
   @Test
   void testRunUpdateForProfileAutoUpdateDisabled() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
 
@@ -183,12 +183,12 @@ class ProfileSchedulerTest {
 
     verify(dockerService, never()).startProfile(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
-    verify(profileService, never()).getByName(any());
+    verify(containerService, never()).getByName(any());
   }
 
   @Test
   void testRunUpdateForProfileImageUnchanged() throws Exception {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile");
     when(profile.getAutoUpdate()).thenReturn(true);
     when(profile.getImage()).thenReturn("timmyjc/mytest:latest");
@@ -220,7 +220,7 @@ class ProfileSchedulerTest {
 
   @Test
   void testRunUpdateForProfileHandlesException() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile"); // needed for logging
 
     // Throw exception when fetching container info (caught inside try/catch)
@@ -229,7 +229,7 @@ class ProfileSchedulerTest {
     invokeRunUpdateForProfile(profile); // Should log error but not rethrow
 
     // Verify: nothing else was called
-    verify(profileService, never()).getByName(any());
+    verify(containerService, never()).getByName(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
   }
 
@@ -246,10 +246,10 @@ class ProfileSchedulerTest {
     return (int) method.invoke(profileScheduler, day);
   }
 
-  private void invokeRunUpdateForProfile(ProfileConfig profile) {
+  private void invokeRunUpdateForProfile(ContainerConfig profile) {
     try {
       var method =
-          ProfileScheduler.class.getDeclaredMethod("runUpdateForProfile", ProfileConfig.class);
+          ProfileScheduler.class.getDeclaredMethod("runUpdateForProfile", ContainerConfig.class);
       method.setAccessible(true);
       method.invoke(profileScheduler, profile);
     } catch (Exception e) {

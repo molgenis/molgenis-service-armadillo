@@ -20,7 +20,6 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.command.RemoveImageCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.ContainerConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
@@ -41,8 +40,8 @@ import org.mockito.quality.Strictness;
 import org.molgenis.armadillo.exceptions.ImagePullFailedException;
 import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
 
@@ -53,7 +52,7 @@ class DockerServiceTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   DockerClient dockerClient;
 
-  @Mock private ProfileService profileService;
+  @Mock private ContainerService containerService;
   private DockerService dockerService;
 
   @Mock private ProfileStatusService profileStatusService;
@@ -73,7 +72,7 @@ class DockerServiceTest {
 
   @BeforeEach
   void setup() {
-    dockerService = new DockerService(dockerClient, profileService, profileStatusService);
+    dockerService = new DockerService(dockerClient, containerService, profileStatusService);
 
     // lenient so tests that don't pull images won't fail strict-stubbing checks
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
@@ -101,7 +100,7 @@ class DockerServiceTest {
     var containerInfo = dockerService.getProfileStatus("default");
 
     assertEquals(expected, containerInfo);
-    verify(profileService).getByName("default");
+    verify(containerService).getByName("default");
   }
 
   @Test
@@ -112,7 +111,7 @@ class DockerServiceTest {
     var containerInfo = dockerService.getProfileStatus("default");
 
     assertEquals(expected, containerInfo);
-    verify(profileService).getByName("default");
+    verify(containerService).getByName("default");
   }
 
   @Test
@@ -124,12 +123,12 @@ class DockerServiceTest {
     var containerInfo = dockerService.getProfileStatus("default");
 
     assertEquals(expected, containerInfo);
-    verify(profileService).getByName("default");
+    verify(containerService).getByName("default");
   }
 
   @Test
   void testGetAllProfileStatuses() {
-    when(profileService.getAll()).thenReturn(createExampleSettings());
+    when(containerService.getAll()).thenReturn(createExampleSettings());
     var tags = List.of("2.0.0", "latest");
     var names = List.of("default", "omics");
     var containerDefault = mock(Container.class);
@@ -156,34 +155,34 @@ class DockerServiceTest {
 
   @Test
   void testStartProfileNoImage() {
-    var profileConfig = mock(ProfileConfig.class);
-    when(profileService.getByName("default")).thenReturn(profileConfig);
+    var profileConfig = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(profileConfig);
 
     assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
   }
 
   @Test
   void testInstallImageNull() {
-    ProfileConfig profileConfig = mock(ProfileConfig.class);
-    when(profileConfig.getImage()).thenReturn(null);
-    assertThrows(MissingImageException.class, () -> dockerService.installImage(profileConfig));
+    ContainerConfig containerConfig = mock(ContainerConfig.class);
+    when(containerConfig.getImage()).thenReturn(null);
+    assertThrows(MissingImageException.class, () -> dockerService.installImage(containerConfig));
   }
 
   @Test
   void testInstallImage() {
-    ProfileConfig profileConfig = mock(ProfileConfig.class);
+    ContainerConfig containerConfig = mock(ContainerConfig.class);
     String image = "datashield/rock-something-something:latest";
-    when(profileConfig.getImage()).thenReturn(image);
-    when(profileConfig.getPort()).thenReturn(6311);
-    assertDoesNotThrow(() -> dockerService.installImage(profileConfig));
+    when(containerConfig.getImage()).thenReturn(image);
+    when(containerConfig.getPort()).thenReturn(6311);
+    assertDoesNotThrow(() -> dockerService.installImage(containerConfig));
     verify(dockerClient).createContainerCmd(image);
   }
 
   @SuppressWarnings("ConstantConditions")
   @Test
   void testStartProfile() {
-    var profileConfig = ProfileConfig.createDefault();
-    when(profileService.getByName("default")).thenReturn(profileConfig);
+    var profileConfig = ContainerConfig.createDefault();
+    when(containerService.getByName("default")).thenReturn(profileConfig);
 
     // Stub inspectContainerCmd to return an image ID
     var inspectResponse = mock(InspectContainerResponse.class);
@@ -208,7 +207,7 @@ class DockerServiceTest {
     verify(dockerClient).createContainerCmd(profileConfig.getImage());
     verify(dockerClient).startContainerCmd("default");
 
-    verify(profileService)
+    verify(containerService)
         .updateImageMetaData(
             eq("default"),
             eq("sha256:abcd"),
@@ -221,8 +220,8 @@ class DockerServiceTest {
 
   @Test
   void testStartImageRemovalWhenIdChanges() {
-    var profileCfg = mock(ProfileConfig.class);
-    when(profileService.getByName("default")).thenReturn(profileCfg);
+    var profileCfg = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(profileCfg);
     when(profileCfg.getImage()).thenReturn("datashield/armadillo-rserver");
     when(profileCfg.getLastImageId()).thenReturn("sha256:old");
 
@@ -262,7 +261,7 @@ class DockerServiceTest {
     verify(rmCmd).exec();
 
     //
-    verify(profileService)
+    verify(containerService)
         .updateImageMetaData(
             eq("default"),
             eq("sha256:new"),
@@ -275,8 +274,8 @@ class DockerServiceTest {
 
   @Test
   void testStartImageNotRemovedWhenIdUnchanged() {
-    var mockProfileConfig = mock(ProfileConfig.class);
-    when(profileService.getByName("default")).thenReturn(mockProfileConfig);
+    var mockProfileConfig = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(mockProfileConfig);
     when(mockProfileConfig.getImage()).thenReturn("datashield/armadillo-rserver");
     when(mockProfileConfig.getLastImageId()).thenReturn("sha256:same");
 
@@ -300,7 +299,7 @@ class DockerServiceTest {
     verify(dockerClient, never()).removeImageCmd(anyString());
 
     // Verify metadata update includes image size and a null install date (no change in image ID)
-    verify(profileService)
+    verify(containerService)
         .updateImageMetaData(
             eq("default"),
             eq("sha256:same"),
@@ -311,10 +310,10 @@ class DockerServiceTest {
             );
   }
 
-  private List<ProfileConfig> createExampleSettings() {
-    var profile1 = ProfileConfig.createDefault();
+  private List<ContainerConfig> createExampleSettings() {
+    var profile1 = ContainerConfig.createDefault();
     var profile2 =
-        ProfileConfig.create(
+        ContainerConfig.create(
             "omics",
             "datashield/armadillo-rserver-omics",
             false,
@@ -405,12 +404,12 @@ class DockerServiceTest {
     var imageId = "sha256:test";
 
     // mock config with image ID
-    var config = mock(ProfileConfig.class);
+    var config = mock(ContainerConfig.class);
     when(config.getLastImageId()).thenReturn(imageId);
-    when(profileService.getByName(profileName)).thenReturn(config);
+    when(containerService.getByName(profileName)).thenReturn(config);
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, profileService, profileStatusService));
+    var spyService = spy(new DockerService(dockerClient, containerService, profileStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doNothing().when(spyService).removeImageIfUnused(imageId);
 
@@ -419,7 +418,7 @@ class DockerServiceTest {
 
     // verify interactions
     verify(spyService).removeProfile(profileName);
-    verify(profileService).getByName(profileName);
+    verify(containerService).getByName(profileName);
     verify(spyService).removeImageIfUnused(imageId);
   }
 
@@ -429,13 +428,13 @@ class DockerServiceTest {
     var imageId = "sha256:test";
 
     // mock config with image ID
-    var config = mock(ProfileConfig.class);
+    var config = mock(ContainerConfig.class);
     when(config.getLastImageId()).thenReturn(imageId);
-    when(profileService.getByName(profileName)).thenReturn(config);
+    when(containerService.getByName(profileName)).thenReturn(config);
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
 
     // spy DockerService to verify internal method calls
-    var spyService = spy(new DockerService(dockerClient, profileService, profileStatusService));
+    var spyService = spy(new DockerService(dockerClient, containerService, profileStatusService));
     doNothing().when(spyService).removeProfile(profileName);
     doThrow(ImageRemoveFailedException.class).when(spyService).removeImageIfUnused(imageId);
 
@@ -483,7 +482,8 @@ class DockerServiceTest {
   void updateImageMetaData_setsInstallDateWhenNewImage() {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    ContainerConfig cfg = mock(ContainerConfig.class);
+    com.github.dockerjava.api.model.ContainerConfig cfg =
+        mock(com.github.dockerjava.api.model.ContainerConfig.class);
 
     when(dockerClient.inspectImageCmd("newImage")).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
@@ -497,7 +497,7 @@ class DockerServiceTest {
 
     dockerService.updateImageMetaData("profile1", null, "newImage");
 
-    verify(profileService)
+    verify(containerService)
         .updateImageMetaData(
             eq("profile1"),
             eq("newImage"),
@@ -512,7 +512,8 @@ class DockerServiceTest {
   void updateImageMetaData_setsNullInstallDateWhenSameImage() {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    ContainerConfig cfg = mock(ContainerConfig.class);
+    com.github.dockerjava.api.model.ContainerConfig cfg =
+        mock(com.github.dockerjava.api.model.ContainerConfig.class);
 
     when(dockerClient.inspectImageCmd("sameImage")).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
@@ -526,7 +527,7 @@ class DockerServiceTest {
 
     dockerService.updateImageMetaData("profile2", "sameImage", "sameImage");
 
-    verify(profileService)
+    verify(containerService)
         .updateImageMetaData(
             eq("profile2"),
             eq("sameImage"),
@@ -541,7 +542,8 @@ class DockerServiceTest {
   void getImageCreationDate_returnsLabelValue() {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    ContainerConfig cfg = mock(ContainerConfig.class);
+    com.github.dockerjava.api.model.ContainerConfig cfg =
+        mock(com.github.dockerjava.api.model.ContainerConfig.class);
 
     when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
@@ -579,7 +581,8 @@ class DockerServiceTest {
   void getOpenContainersImageVersion_returnsLabelValue() {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    ContainerConfig cfg = mock(ContainerConfig.class);
+    com.github.dockerjava.api.model.ContainerConfig cfg =
+        mock(com.github.dockerjava.api.model.ContainerConfig.class);
 
     when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
@@ -593,7 +596,8 @@ class DockerServiceTest {
   void getOpenContainersImageVersion_returnsUnknownWhenMissingLabel() {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    ContainerConfig cfg = mock(ContainerConfig.class);
+    com.github.dockerjava.api.model.ContainerConfig cfg =
+        mock(com.github.dockerjava.api.model.ContainerConfig.class);
 
     when(dockerClient.inspectImageCmd("img")).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
@@ -612,10 +616,10 @@ class DockerServiceTest {
   @Test
   void pullImage_emitsProgressUpdates_toProfileStatusService() {
     // Arrange profile returned by service
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     // Stub pullImageCmd + capture the callback
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
@@ -657,10 +661,10 @@ class DockerServiceTest {
 
   @Test
   void pullImage_ignoresItemsWithoutId() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);
@@ -686,20 +690,20 @@ class DockerServiceTest {
 
   @Test
   void pullImage_throwsMissingImage_whenConfigImageNull() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn(null);
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
   }
 
   @Test
   void pullImage_mapsNotFound_toImagePullFailed() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);
@@ -711,10 +715,10 @@ class DockerServiceTest {
 
   @Test
   void pullImage_runtimeException_isSwallowedAndDoesNotThrow() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);
@@ -726,10 +730,10 @@ class DockerServiceTest {
 
   @Test
   void pullImage_interruptedException_setsInterruptFlag_andThrows() {
-    var profile = mock(ProfileConfig.class);
+    var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("donkey");
     when(profile.getImage()).thenReturn("repo/image:tag");
-    when(profileService.getByName("default")).thenReturn(profile);
+    when(containerService.getByName("default")).thenReturn(profile);
 
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);

@@ -15,7 +15,7 @@
 // import org.molgenis.armadillo.metadata.ArmadilloMetadata;
 // import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 // <<<<<<< HEAD
-// import org.molgenis.armadillo.profile.ProfileService;
+// import org.molgenis.armadillo.profile.ContainerService;
 // =======
 // import org.molgenis.armadillo.metadata.MetadataLoader;
 // import org.molgenis.armadillo.metadata.ProjectDetails;
@@ -33,7 +33,7 @@
 //  @Mock Jwt jwt;
 //  @Mock ArmadilloStorageService armadilloStorage;
 // <<<<<<< HEAD
-//  @Mock ProfileService profileService;
+//  @Mock ContainerService profileService;
 // =======
 //  @Mock MetadataLoader metadataLoader;
 // >>>>>>> 7116458d5c90bb7d947200a3b014e573be12bc7d
