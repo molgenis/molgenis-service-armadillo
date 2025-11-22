@@ -41,7 +41,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
   private ContainersMetadata createExampleSettings() {
     var settings = ContainersMetadata.create();
     settings
-        .getProfiles()
+        .getContainers()
         .put(
             "default",
             ContainerConfig.create(
@@ -60,7 +60,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
                 null,
                 null));
     settings
-        .getProfiles()
+        .getContainers()
         .put(
             "omics",
             ContainerConfig.create(

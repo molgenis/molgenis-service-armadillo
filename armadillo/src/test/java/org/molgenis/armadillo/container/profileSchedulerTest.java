@@ -132,7 +132,7 @@ class ContainerSchedulerTest {
     // Mock container status (RUNNING so update check proceeds)
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
     var profileStatusMap = Map.of("testProfile", containerInfo);
-    when(dockerService.getAllProfileStatuses()).thenReturn(profileStatusMap);
+    when(dockerService.getAllContainerStatuses()).thenReturn(profileStatusMap);
 
     // Mock dockerClient.pullImageCmd
     var pullImageCmd = mock(PullImageCmd.class);
@@ -154,17 +154,17 @@ class ContainerSchedulerTest {
     // Execute
     invokeRunUpdateForProfile(profile);
 
-    // Verify startProfile is invoked
-    verify(dockerService).startProfile("testProfile");
+    // Verify pullImageStartContainer is invoked
+    verify(dockerService).pullImageStartContainer("testProfile");
   }
 
   @Test
   void testRunUpdateForProfileNoContainerInfo() {
     var profile = mock(ContainerConfig.class);
     when(profile.getName()).thenReturn("testProfile"); // ✅ Still needed
-    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of()); // No container info
+    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of()); // No container info
     invokeRunUpdateForProfile(profile);
-    verify(dockerService, never()).startProfile(any());
+    verify(dockerService, never()).pullImageStartContainer(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
   }
 
@@ -177,11 +177,11 @@ class ContainerSchedulerTest {
     // Only stub container info and its status
     var containerInfo = mock(ContainerInfo.class);
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
-    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of("testProfile", containerInfo));
 
     invokeRunUpdateForProfile(profile);
 
-    verify(dockerService, never()).startProfile(any());
+    verify(dockerService, never()).pullImageStartContainer(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
     verify(containerService, never()).getByName(any());
   }
@@ -195,7 +195,7 @@ class ContainerSchedulerTest {
     when(profile.getLastImageId()).thenReturn("oldImage");
 
     when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
-    when(dockerService.getAllProfileStatuses()).thenReturn(Map.of("testProfile", containerInfo));
+    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of("testProfile", containerInfo));
 
     // Mock pull and inspect
     var pullImageCmd = mock(PullImageCmd.class);
@@ -215,7 +215,7 @@ class ContainerSchedulerTest {
     invokeRunUpdateForProfile(profile);
 
     // Verify NO restart
-    verify(dockerService, never()).startProfile(any());
+    verify(dockerService, never()).pullImageStartContainer(any());
   }
 
   @Test
@@ -224,7 +224,7 @@ class ContainerSchedulerTest {
     when(profile.getName()).thenReturn("testProfile"); // needed for logging
 
     // Throw exception when fetching container info (caught inside try/catch)
-    when(dockerService.getAllProfileStatuses()).thenThrow(new RuntimeException("Test exception"));
+    when(dockerService.getAllContainerStatuses()).thenThrow(new RuntimeException("Test exception"));
 
     invokeRunUpdateForProfile(profile); // Should log error but not rethrow
 

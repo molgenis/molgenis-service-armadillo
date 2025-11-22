@@ -43,7 +43,7 @@ class ContainerServiceTest {
             null,
             null,
             null);
-    profilesMetadata.getProfiles().put("default", defaultProfile);
+    profilesMetadata.getContainers().put("default", defaultProfile);
     var profilesLoader = new DummyContainersLoader(profilesMetadata);
     var profileService =
         new ContainerService(profilesLoader, initialContainerConfigs, containerScope);
@@ -52,7 +52,7 @@ class ContainerServiceTest {
 
     profileService.addToWhitelist("default", "dsOmics");
 
-    verify(containerScope).removeAllProfileBeans("default");
+    verify(containerScope).removeAllContainerBeans("default");
     assertTrue(profileService.getByName("default").getPackageWhitelist().contains("dsOmics"));
   }
 
@@ -86,7 +86,7 @@ class ContainerServiceTest {
 
     // Setup ContainersMetadata and add existing container
     ContainersMetadata metadata = ContainersMetadata.create();
-    metadata.getProfiles().put(profileName, existingProfile);
+    metadata.getContainers().put(profileName, existingProfile);
 
     // Mock loader and dependencies
     ContainersLoader loader = mock(ContainersLoader.class);
@@ -111,7 +111,7 @@ class ContainerServiceTest {
     assertEquals(newImageSize, updated.getImageSize());
 
     // Verify flush and save were called
-    verify(mockContainerScope).removeAllProfileBeans(profileName);
+    verify(mockContainerScope).removeAllContainerBeans(profileName);
     verify(loader).save(any());
   }
 }

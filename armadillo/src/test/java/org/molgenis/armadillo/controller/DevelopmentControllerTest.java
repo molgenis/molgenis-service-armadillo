@@ -132,15 +132,15 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   void testDeleteDockerImage() throws Exception {
     String imageId = "some-image-id";
 
-    // We mock the dockerService.removeImageIfUnused to do nothing (void method)
+    // We mock the dockerService.deleteImageIfUnused to do nothing (void method)
     // You can verify later if needed.
-    doNothing().when(dockerService).removeImageIfUnused(imageId);
+    doNothing().when(dockerService).deleteImageIfUnused(imageId);
 
     mockMvc
         .perform(MockMvcRequestBuilders.delete("/delete-docker-image").param("imageId", imageId))
         .andExpect(status().isNoContent());
 
-    // Verify that dockerService.removeImageIfUnused was called with the correct imageId
-    verify(dockerService).removeImageIfUnused(imageId);
+    // Verify that dockerService.deleteImageIfUnused was called with the correct imageId
+    verify(dockerService).deleteImageIfUnused(imageId);
   }
 }

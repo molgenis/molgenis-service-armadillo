@@ -97,7 +97,7 @@ class DockerServiceTest {
 
     var expected = ContainerInfo.create(tags, RUNNING);
 
-    var containerInfo = dockerService.getProfileStatus("default");
+    var containerInfo = dockerService.getContainerStatus("default");
 
     assertEquals(expected, containerInfo);
     verify(containerService).getByName("default");
@@ -108,7 +108,7 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenThrow(new NotFoundException(""));
     var expected = ContainerInfo.create(ContainerStatus.NOT_FOUND);
 
-    var containerInfo = dockerService.getProfileStatus("default");
+    var containerInfo = dockerService.getContainerStatus("default");
 
     assertEquals(expected, containerInfo);
     verify(containerService).getByName("default");
@@ -120,7 +120,7 @@ class DockerServiceTest {
         .thenThrow(new ProcessingException(new SocketException()));
     var expected = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
 
-    var containerInfo = dockerService.getProfileStatus("default");
+    var containerInfo = dockerService.getContainerStatus("default");
 
     assertEquals(expected, containerInfo);
     verify(containerService).getByName("default");
@@ -148,7 +148,7 @@ class DockerServiceTest {
             "omics",
             ContainerInfo.create(ContainerStatus.NOT_FOUND));
 
-    var result = dockerService.getAllProfileStatuses();
+    var result = dockerService.getAllContainerStatuses();
 
     assertEquals(expected, result);
   }
@@ -158,7 +158,8 @@ class DockerServiceTest {
     var profileConfig = mock(ContainerConfig.class);
     when(containerService.getByName("default")).thenReturn(profileConfig);
 
-    assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
+    assertThrows(
+        MissingImageException.class, () -> dockerService.pullImageStartContainer("default"));
   }
 
   @Test
@@ -198,7 +199,7 @@ class DockerServiceTest {
     // Mock image creation date retrieval
     when(dockerService.getImageCreationDate("sha256:abcd")).thenReturn("2025-08-05T12:34:56Z");
 
-    dockerService.startProfile("default");
+    dockerService.pullImageStartContainer("default");
 
     // Verify Docker operations
     verify(dockerClient).pullImageCmd(profileConfig.getImage());
@@ -253,7 +254,7 @@ class DockerServiceTest {
     doNothing().when(rmCmd).exec();
 
     // Act
-    dockerService.startProfile("default");
+    dockerService.pullImageStartContainer("default");
 
     // Assert
     verify(dockerClient).removeImageCmd("sha256:old");
@@ -293,7 +294,7 @@ class DockerServiceTest {
     when(dockerService.getImageCreationDate("sha256:same")).thenReturn("2025-08-05T12:34:56Z");
 
     // Call the method under test
-    assertDoesNotThrow(() -> dockerService.startProfile("default"));
+    assertDoesNotThrow(() -> dockerService.pullImageStartContainer("default"));
 
     // Verify no image removal called
     verify(dockerClient, never()).removeImageCmd(anyString());
@@ -333,7 +334,7 @@ class DockerServiceTest {
 
   @Test
   void removeImageIfUnused_skipsWhenImageIdIsNull() {
-    assertDoesNotThrow(() -> dockerService.removeImageIfUnused(null));
+    assertDoesNotThrow(() -> dockerService.deleteImageIfUnused(null));
 
     verify(dockerClient, never()).inspectImageCmd(anyString());
     verify(dockerClient, never()).removeImageCmd(anyString());
@@ -349,7 +350,7 @@ class DockerServiceTest {
     when(listCmd.exec()).thenReturn(List.of(container));
 
     assertThrows(
-        ImageRemoveFailedException.class, () -> dockerService.removeImageIfUnused("sha256:inuse"));
+        ImageRemoveFailedException.class, () -> dockerService.deleteImageIfUnused("sha256:inuse"));
   }
 
   @Test
@@ -362,7 +363,7 @@ class DockerServiceTest {
     when(listCmd.exec()).thenReturn(List.of(container));
 
     assertThrows(
-        ImageRemoveFailedException.class, () -> dockerService.removeImageIfUnused("sha256:inuse"));
+        ImageRemoveFailedException.class, () -> dockerService.deleteImageIfUnused("sha256:inuse"));
   }
 
   @Test
@@ -378,7 +379,7 @@ class DockerServiceTest {
     when(rmCmd.withForce(true)).thenReturn(rmCmd);
     doNothing().when(rmCmd).exec();
 
-    dockerService.removeImageIfUnused(imageId);
+    dockerService.deleteImageIfUnused(imageId);
 
     verify(dockerClient).removeImageCmd(imageId);
     verify(rmCmd).withForce(true);
@@ -395,7 +396,7 @@ class DockerServiceTest {
 
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
 
-    assertDoesNotThrow(() -> dockerService.removeImageIfUnused(imageId));
+    assertDoesNotThrow(() -> dockerService.deleteImageIfUnused(imageId));
   }
 
   @Test
@@ -410,16 +411,16 @@ class DockerServiceTest {
 
     // spy DockerService to verify internal method calls
     var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
-    doNothing().when(spyService).removeProfile(profileName);
-    doNothing().when(spyService).removeImageIfUnused(imageId);
+    doNothing().when(spyService).stopAndRemoveContainer(profileName);
+    doNothing().when(spyService).deleteImageIfUnused(imageId);
 
     // execute
-    spyService.deleteProfile(profileName);
+    spyService.removeContainerDeleteImage(profileName);
 
     // verify interactions
-    verify(spyService).removeProfile(profileName);
+    verify(spyService).stopAndRemoveContainer(profileName);
     verify(containerService).getByName(profileName);
-    verify(spyService).removeImageIfUnused(imageId);
+    verify(spyService).deleteImageIfUnused(imageId);
   }
 
   @Test
@@ -435,11 +436,11 @@ class DockerServiceTest {
 
     // spy DockerService to verify internal method calls
     var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
-    doNothing().when(spyService).removeProfile(profileName);
-    doThrow(ImageRemoveFailedException.class).when(spyService).removeImageIfUnused(imageId);
+    doNothing().when(spyService).stopAndRemoveContainer(profileName);
+    doThrow(ImageRemoveFailedException.class).when(spyService).deleteImageIfUnused(imageId);
 
     // execute
-    assertDoesNotThrow(() -> spyService.deleteProfile(profileName));
+    assertDoesNotThrow(() -> spyService.removeContainerDeleteImage(profileName));
   }
 
   @Test
@@ -631,7 +632,7 @@ class DockerServiceTest {
     when(pullImageCmd.exec(cbCap.capture())).thenReturn(new NonBlockingCallback());
 
     // Act: triggers pullImage() internally
-    assertDoesNotThrow(() -> dockerService.startProfile("default"));
+    assertDoesNotThrow(() -> dockerService.pullImageStartContainer("default"));
 
     // Get the captured callback
     PullImageResultCallback cb = cbCap.getValue();
@@ -672,7 +673,7 @@ class DockerServiceTest {
         ArgumentCaptor.forClass(PullImageResultCallback.class);
     when(pullImageCmd.exec(cbCap.capture())).thenAnswer(inv -> new NonBlockingCallback());
 
-    assertDoesNotThrow(() -> dockerService.startProfile("default"));
+    assertDoesNotThrow(() -> dockerService.pullImageStartContainer("default"));
 
     PullImageResultCallback cb = cbCap.getValue();
 
@@ -695,7 +696,8 @@ class DockerServiceTest {
     when(profile.getImage()).thenReturn(null);
     when(containerService.getByName("default")).thenReturn(profile);
 
-    assertThrows(MissingImageException.class, () -> dockerService.startProfile("default"));
+    assertThrows(
+        MissingImageException.class, () -> dockerService.pullImageStartContainer("default"));
   }
 
   @Test
@@ -710,7 +712,8 @@ class DockerServiceTest {
     // make exec() throw NotFound so pullImage catches and maps
     when(pullImageCmd.exec(any())).thenThrow(new NotFoundException("nope"));
 
-    assertThrows(ImagePullFailedException.class, () -> dockerService.startProfile("default"));
+    assertThrows(
+        ImagePullFailedException.class, () -> dockerService.pullImageStartContainer("default"));
   }
 
   @Test
@@ -725,7 +728,7 @@ class DockerServiceTest {
     when(pullImageCmd.exec(any())).thenThrow(new RuntimeException("network down"));
 
     // per code, runtime is logged and tolerated
-    assertDoesNotThrow(() -> dockerService.startProfile("default"));
+    assertDoesNotThrow(() -> dockerService.pullImageStartContainer("default"));
   }
 
   @Test
@@ -753,7 +756,8 @@ class DockerServiceTest {
               }
             });
 
-    assertThrows(ImagePullFailedException.class, () -> dockerService.startProfile("default"));
+    assertThrows(
+        ImagePullFailedException.class, () -> dockerService.pullImageStartContainer("default"));
     // optional: assert interrupted flag is set on current thread
     assertTrue(Thread.currentThread().isInterrupted(), "thread interrupt flag should be set");
   }

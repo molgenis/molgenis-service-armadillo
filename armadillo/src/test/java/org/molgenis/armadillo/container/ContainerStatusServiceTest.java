@@ -15,7 +15,7 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("missing");
 
     assertAll(
-        () -> assertNull(result.getProfileName()),
+        () -> assertNull(result.getContainerName()),
         () -> assertNull(result.getStatus()),
         () -> assertNull(result.getCompletedLayers()),
         () -> assertNull(result.getTotalLayers()));
@@ -29,7 +29,7 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
-        () -> assertEquals("donkey", result.getProfileName()),
+        () -> assertEquals("donkey", result.getContainerName()),
         () -> assertEquals("Installing container", result.getStatus()),
         () -> assertEquals(10, result.getCompletedLayers()),
         () -> assertEquals(24, result.getTotalLayers()));
@@ -44,7 +44,7 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
-        () -> assertEquals("donkey", result.getProfileName()),
+        () -> assertEquals("donkey", result.getContainerName()),
         () -> assertEquals("Profile installed", result.getStatus()),
         () -> assertEquals(24, result.getCompletedLayers()),
         () -> assertEquals(24, result.getTotalLayers()));
@@ -58,7 +58,7 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("shrek");
 
     assertAll(
-        () -> assertEquals("shrek", result.getProfileName()),
+        () -> assertEquals("shrek", result.getContainerName()),
         () -> assertNull(result.getStatus()),
         () -> assertNull(result.getCompletedLayers()),
         () -> assertNull(result.getTotalLayers()));
@@ -85,7 +85,7 @@ class ContainerStatusServiceTest {
       ContainerStartStatus s = service.getStatus("p" + idx);
 
       assertAll(
-          () -> assertEquals("p" + idx, s.getProfileName()),
+          () -> assertEquals("p" + idx, s.getContainerName()),
           () -> assertEquals("Installing", s.getStatus()),
           () -> assertEquals(idx, s.getCompletedLayers()),
           () -> assertEquals(total, s.getTotalLayers()));

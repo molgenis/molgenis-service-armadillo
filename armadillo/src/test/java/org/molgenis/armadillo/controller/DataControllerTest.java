@@ -92,8 +92,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testListProfiles() throws Exception {
-    when(commands.listProfiles()).thenReturn(List.of("a", "b", "c"));
-    when(commands.getActiveProfileName()).thenReturn("b");
+    when(commands.listContainers()).thenReturn(List.of("a", "b", "c"));
+    when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
         .perform(get("/profiles"))
@@ -106,13 +106,13 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testSelectProfile() throws Exception {
     mockMvc.perform(post("/select-container").content("b")).andExpect(status().isNoContent());
-    verify(commands).selectProfile("b");
+    verify(commands).selectContainer("b");
   }
 
   @Test
   @WithMockUser
   void testSelectUnknownProfile() throws Exception {
-    doThrow(new UnknownContainerException("unknown")).when(commands).selectProfile("unknown");
+    doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
     mockMvc.perform(post("/select-container").content("unknown")).andExpect(status().isNotFound());
   }
 

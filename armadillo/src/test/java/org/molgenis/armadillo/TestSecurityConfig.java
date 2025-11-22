@@ -35,7 +35,7 @@ public class TestSecurityConfig {
     return http.authorizeHttpRequests(
             requests ->
                 requests
-                    .requestMatchers("/ds-profiles/status")
+                    .requestMatchers("/ds-containers/status")
                     .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()
@@ -52,12 +52,12 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ContainersLoader profilesLoader() {
+  ContainersLoader containersLoader() {
     return new DummyContainersLoader();
   }
 
   @Bean
-  ContainerScope profileScope() {
+  ContainerScope containerScope() {
     return new ContainerScope();
   }
 
@@ -77,12 +77,12 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ContainerService profileService(
+  ContainerService containerService(
       ContainersLoader containersLoader, ContainerScope containerScope) {
-    var initialProfiles = new InitialContainerConfigs();
-    initialProfiles.setProfiles(emptyList());
+    var initialContainers = new InitialContainerConfigs();
+    initialContainers.setContainers(emptyList());
 
-    return new ContainerService(containersLoader, initialProfiles, containerScope);
+    return new ContainerService(containersLoader, initialContainers, containerScope);
   }
 
   @Bean

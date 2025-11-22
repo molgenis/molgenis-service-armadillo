@@ -44,7 +44,7 @@ class ContainerStartStatusControllerMockitoTest {
 
     // assert
     assertNotNull(actual);
-    assertNull(actual.getProfileName());
+    assertNull(actual.getContainerName());
     assertNull(actual.getStatus());
     assertNull(actual.getCompletedLayers());
     assertNull(actual.getTotalLayers());
@@ -62,7 +62,7 @@ class ContainerStartStatusControllerMockitoTest {
     ContainerStartStatus actual = controller.getStatus("ShReK");
 
     // assert
-    assertEquals("ShReK", actual.getProfileName());
+    assertEquals("ShReK", actual.getContainerName());
     assertEquals("Profile installed", actual.getStatus());
     verify(statusService).getStatus("ShReK");
     verifyNoMoreInteractions(statusService);

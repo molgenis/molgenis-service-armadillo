@@ -56,7 +56,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   private ContainersMetadata createExampleSettings() {
     var settings = ContainersMetadata.create();
     settings
-        .getProfiles()
+        .getContainers()
         .put(
             "default",
             ContainerConfig.create(
@@ -75,7 +75,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 null,
                 null));
     settings
-        .getProfiles()
+        .getContainers()
         .put(
             "omics",
             ContainerConfig.create(
@@ -148,7 +148,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
-    expected.getProfiles().put("dummy", containerConfig);
+    expected.getContainers().put("dummy", containerConfig);
     verify(containersLoader).save(expected);
   }
 
@@ -166,7 +166,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     mockMvc.perform(delete("/ds-profiles/omics")).andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
-    expected.getProfiles().remove("omics");
+    expected.getContainers().remove("omics");
     verify(containersLoader).save(expected);
   }
 
@@ -176,9 +176,9 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     ContainerInfo runningContainer = ContainerInfo.create(ContainerStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
     // Mock DockerService to return a specific status
-    when(dockerService.getProfileStatus("default"))
+    when(dockerService.getContainerStatus("default"))
         .thenReturn(runningContainer); // Example of a running container
-    when(dockerService.getProfileStatus("omics"))
+    when(dockerService.getContainerStatus("omics"))
         .thenReturn(offlineContainer); // Example of a stopped container
     String[] config = {
       "DEBUG=FALSE",
@@ -198,7 +198,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
       "DSSURVIVAL_VERSION=v2.1.3"
     };
 
-    when(dockerService.getProfileEnvironmentConfig("default")).thenReturn(config);
+    when(dockerService.getContainerEnvironmentConfig("default")).thenReturn(config);
 
     // Perform the GET request to fetch the container status
     mockMvc
