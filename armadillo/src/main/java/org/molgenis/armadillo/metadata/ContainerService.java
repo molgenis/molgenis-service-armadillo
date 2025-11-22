@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
-public class ProfileService {
+public class ContainerService {
 
   private final ProfilesLoader loader;
   private final InitialProfileConfigs initialProfiles;
   private final ProfileScope profileScope;
   private ProfilesMetadata settings;
 
-  public ProfileService(
+  public ContainerService(
       ProfilesLoader profilesLoader,
       InitialProfileConfigs initialProfileConfigs,
       ProfileScope profileScope) {

@@ -27,7 +27,7 @@ import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.profile.ProfileScheduler;
@@ -48,18 +48,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("ds-profiles")
 public class ProfilesController {
 
-  private final ProfileService profiles;
+  private final ContainerService profiles;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
   private final ProfileScheduler profileScheduler;
 
   public ProfilesController(
-      ProfileService profileService,
+      ContainerService containerService,
       @Nullable DockerService dockerService,
       AuditEventPublisher auditor,
       ProfileScheduler profileScheduler) {
 
-    this.profiles = requireNonNull(profileService);
+    this.profiles = requireNonNull(containerService);
     this.dockerService = dockerService;
     this.auditor = requireNonNull(auditor);
     this.profileScheduler = requireNonNull(profileScheduler);

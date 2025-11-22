@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ProfileStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class DockerService {
   private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
 
   private final DockerClient dockerClient;
-  private final ProfileService profileService;
+  private final ContainerService containerService;
   private final ProfileStatusService profileStatusService;
 
   @Value("${armadillo.docker-run-in-container:false}")
@@ -57,15 +57,15 @@ public class DockerService {
 
   public DockerService(
       DockerClient dockerClient,
-      ProfileService profileService,
+      ContainerService containerService,
       ProfileStatusService profileStatusService) {
     this.dockerClient = dockerClient;
-    this.profileService = profileService;
+    this.containerService = containerService;
     this.profileStatusService = profileStatusService;
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
-    var names = profileService.getAll().stream().map(ContainerConfig::getName).toList();
+    var names = containerService.getAll().stream().map(ContainerConfig::getName).toList();
 
     var statuses =
         names.stream()
@@ -128,7 +128,7 @@ public class DockerService {
   }
 
   public String[] getProfileEnvironmentConfig(String profileName) {
-    profileService.getByName(profileName);
+    containerService.getByName(profileName);
     String containerName = asContainerName(profileName);
     InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerName).exec();
     return containerInfo.getConfig().getEnv();
@@ -136,7 +136,7 @@ public class DockerService {
 
   public ContainerInfo getProfileStatus(String profileName) {
     // check profile exists
-    profileService.getByName(profileName);
+    containerService.getByName(profileName);
 
     String containerName = asContainerName(profileName);
     try {
@@ -159,7 +159,7 @@ public class DockerService {
     String containerName = asContainerName(profileName);
     LOG.info(profileName + " : " + containerName);
 
-    var profileConfig = profileService.getByName(profileName);
+    var profileConfig = containerService.getByName(profileName);
     profileStatusService.updateStatus(profileName, null, null, null);
     pullImage(profileConfig);
     profileStatusService.updateStatus(profileName, "Profile installed", null, null);
@@ -199,7 +199,7 @@ public class DockerService {
     } else {
       installDate = null;
     }
-    profileService.updateImageMetaData(
+    containerService.updateImageMetaData(
         profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
   }
 
@@ -374,14 +374,14 @@ public class DockerService {
 
   public void removeProfile(String profileName) {
     // check profile exists
-    profileService.getByName(profileName);
+    containerService.getByName(profileName);
     stopContainer(profileName);
     removeContainer(profileName);
   }
 
   public void deleteProfile(String profileName) {
     removeProfile(profileName);
-    String imageId = profileService.getByName(profileName).getLastImageId();
+    String imageId = containerService.getByName(profileName).getLastImageId();
     try {
       removeImageIfUnused(imageId);
     } catch (ImageRemoveFailedException e) {

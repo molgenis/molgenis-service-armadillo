@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.profile.ProfileScope;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileServiceTest {
+class ContainerServiceTest {
 
   @Mock private ProfileScope profileScope;
 
@@ -28,7 +28,7 @@ class ProfileServiceTest {
   void addToWhitelist() {
     var profilesMetadata = ProfilesMetadata.create();
     var defaultProfile =
-        ProfileConfig.create(
+        ContainerConfig.create(
             "default",
             "test",
             false,
@@ -45,7 +45,7 @@ class ProfileServiceTest {
             null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
-    var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
+    var profileService = new ContainerService(profilesLoader, initialProfileConfigs, profileScope);
 
     profileService.initialize();
 
@@ -66,8 +66,8 @@ class ProfileServiceTest {
     String newInstallDate = "2025-10-05T12:34:56Z";
 
     // Create an existing profile config with oldImageId
-    ProfileConfig existingProfile =
-        ProfileConfig.create(
+    ContainerConfig existingProfile =
+        ContainerConfig.create(
             profileName,
             "someImage",
             false,
@@ -95,15 +95,16 @@ class ProfileServiceTest {
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    ProfileService profileService = new ProfileService(loader, initialProfiles, mockProfileScope);
-    profileService.initialize();
+    ContainerService containerService =
+        new ContainerService(loader, initialProfiles, mockProfileScope);
+    containerService.initialize();
 
     // Act: update the image id, version, and size
-    profileService.updateImageMetaData(
+    containerService.updateImageMetaData(
         profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
     // Assert that the profile has been updated
-    ProfileConfig updated = profileService.getByName(profileName);
+    ContainerConfig updated = containerService.getByName(profileName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());

@@ -6,7 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnectionFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -18,10 +18,10 @@ public class ProfileScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.profile.annotation.ProfileScope
-  public ContainerConfig profileConfig(ProfileService profileService) {
+  public ContainerConfig profileConfig(ContainerService containerService) {
     var activeProfileName = getActiveProfileName();
     try {
-      return runAsSystem(() -> profileService.getByName(activeProfileName));
+      return runAsSystem(() -> containerService.getByName(activeProfileName));
     } catch (UnknownProfileException e) {
       throw new IllegalStateException(
           format("Missing profile configuration for active profile '%s'.", activeProfileName));

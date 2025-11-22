@@ -26,7 +26,7 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.DockerService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -46,17 +46,17 @@ public class DevelopmentController {
 
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
-  private final ProfileService profiles;
+  private final ContainerService profiles;
   private final DockerService dockerService;
 
   public DevelopmentController(
       Commands commands,
       AuditEventPublisher auditEventPublisher,
-      ProfileService profileService,
+      ContainerService containerService,
       @Nullable DockerService dockerService) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
-    this.profiles = requireNonNull(profileService);
+    this.profiles = requireNonNull(containerService);
     this.dockerService = dockerService;
   }
 

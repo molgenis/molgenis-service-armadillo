@@ -18,7 +18,7 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -44,7 +44,7 @@ class CommandsImpl implements Commands {
   private final TaskExecutor taskExecutor;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final ProfileService profileService;
+  private final ContainerService containerService;
 
   private ArmadilloSession armadilloSession;
 
@@ -58,14 +58,14 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ProfileService profileService) {
+      ContainerService containerService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.taskExecutor = taskExecutor;
     this.connectionFactory = connectionFactory;
     this.processService = processService;
-    this.profileService = profileService;
+    this.containerService = containerService;
   }
 
   @Override
@@ -75,7 +75,7 @@ class CommandsImpl implements Commands {
 
   @Override
   public void selectProfile(String profileName) {
-    runAsSystem(() -> profileService.getByName(profileName));
+    runAsSystem(() -> containerService.getByName(profileName));
     if (armadilloSession != null) armadilloSession.sessionCleanup();
     ActiveProfileNameAccessor.setActiveProfileName(profileName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
@@ -84,7 +84,7 @@ class CommandsImpl implements Commands {
   @Override
   public List<String> listProfiles() {
     return runAsSystem(
-        () -> profileService.getAll().stream().map(ContainerConfig::getName).toList());
+        () -> containerService.getAll().stream().map(ContainerConfig::getName).toList());
   }
 
   @Override
