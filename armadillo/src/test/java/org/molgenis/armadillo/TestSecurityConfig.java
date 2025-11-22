@@ -78,7 +78,7 @@ public class TestSecurityConfig {
 
   @Bean
   ContainerService profileService(ContainersLoader containersLoader, ProfileScope profileScope) {
-    var initialProfiles = new InitialProfileConfigs();
+    var initialProfiles = new InitialContainerConfigs();
     initialProfiles.setProfiles(emptyList());
 
     return new ContainerService(containersLoader, initialProfiles, profileScope);
