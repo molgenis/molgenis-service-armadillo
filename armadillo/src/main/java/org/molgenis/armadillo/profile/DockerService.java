@@ -289,7 +289,6 @@ public class DockerService {
   }
 
   private void stopContainer(String containerName) {
-    String profileName = "stoppingContainer has not profileName: " + containerName;
     try {
       dockerClient.stopContainerCmd(containerName).exec();
     } catch (DockerException e) {
@@ -298,16 +297,16 @@ public class DockerService {
             dockerClient.inspectContainerCmd(containerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(profileName, e);
+          throw new ImageStopFailedException(containerName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop profile '{}' because it doesn't exist", profileName);
+        LOG.info("Failed to stop profile '{}' because it doesn't exist", containerName);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(profileName, e);
+        throw new ImageStopFailedException(containerName, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(profileName, e);
+      throw new ImageStopFailedException(containerName, e);
     }
   }
 
