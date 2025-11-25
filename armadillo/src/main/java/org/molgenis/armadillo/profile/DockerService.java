@@ -107,24 +107,17 @@ public class DockerService {
    */
   String asContainerName(String profileName) {
     if (!inContainer) {
-      LOG.warn("Profile not running in docker container: " + profileName);
+      LOG.warn(String.format("Profile not running in docker container: %s", profileName));
       return profileName;
     }
 
     if (containerPrefix.isEmpty()) {
-      LOG.error("Running in container without prefix: " + profileName);
+      LOG.error(String.format("Running in container without prefix:: %s", profileName));
       return profileName;
     }
 
-    LOG.warn("Profile running in docker container: " + profileName);
+    LOG.warn(String.format("Profile running in docker container: %s", profileName));
     return containerPrefix + profileName + "-1";
-  }
-
-  String asProfileName(String containerName) {
-    if (inContainer) {
-      return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
-    }
-    return containerName;
   }
 
   public String[] getProfileEnvironmentConfig(String profileName) {
