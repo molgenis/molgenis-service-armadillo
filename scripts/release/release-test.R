@@ -61,7 +61,6 @@ prepare_resources(resource_path = test_config$rda_dir, url = test_config$rda_url
 
 containers <- unlist(stri_split_fixed(test_config$container, ","))
 
-
 run_tests_for_container <- function(container) {
     start_time <- Sys.time()
     cli_h2(paste0("Running for container: ", container))

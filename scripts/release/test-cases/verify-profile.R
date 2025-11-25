@@ -1,4 +1,4 @@
-create_ds_connection <- function(password, token, profile, url, ADMIN_MODE) {
+create_ds_connection <- function(password, token, container, url, ADMIN_MODE) {
   cli_alert_info("Creating new datashield connection")
   if (ADMIN_MODE) {
     cli_alert_info("Creating connection as admin")
@@ -8,7 +8,7 @@ create_ds_connection <- function(password, token, profile, url, ADMIN_MODE) {
       user = "admin",
       password = password,
       url = url,
-      profile = profile
+      profile = container
     )
   } else {
     cli_alert_info("Creating connection using token")
@@ -17,25 +17,25 @@ create_ds_connection <- function(password, token, profile, url, ADMIN_MODE) {
       name = "armadillo",
       token = token,
       url = url,
-      profile = profile
+      profile = container
     )
   }
   return(con)
 }
 
-verify_specific_profile <- function(password, token, url, profile, ADMIN_MODE) {
-  cli_alert_info("Verify connecting to specified profile works")
-  con <- create_ds_connection(password = password, token = token, url = url, profile = profile, ADMIN_MODE)
+verify_specific_container <- function(password, token, url, container, ADMIN_MODE) {
+  cli_alert_info("Verify connecting to specified container works")
+  con <- create_ds_connection(password = password, token = token, url = url, profile = container, ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
   } else {
-    exit_test("Connection to specific profile failed")
+    exit_test("Connection to specific container failed")
   }
   dsDisconnect(con)
 }
 
-verify_no_profile_specified <- function(password, token, url, ADMIN_MODE) {
-  cli_alert_info("Verify if default profile works without specifying profile")
+verify_no_container_specified <- function(password, token, url, ADMIN_MODE) {
+  cli_alert_info("Verify if default container works without specifying container")
   con <- create_ds_connection(password = password, token = token, url = url, profile = "", ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
@@ -45,8 +45,8 @@ verify_no_profile_specified <- function(password, token, url, ADMIN_MODE) {
   dsDisconnect(con)
 }
 
-verify_default_profile <- function(password, token, url, ADMIN_MODE) {
-  cli_alert_info("Verify if default profile works when specifying profile")
+verify_default_container <- function(password, token, url, ADMIN_MODE) {
+  cli_alert_info("Verify if default container works")
   con <- create_ds_connection(password = password, token = token, url = url, profile = "default", ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
@@ -56,14 +56,14 @@ verify_default_profile <- function(password, token, url, ADMIN_MODE) {
   dsDisconnect(con)
 }
 
-verify_profiles <- function(token, url, profile, ADMIN_MODE, admin_pwd, skip_tests) {
-  test_name <- "verify-profile"
+verify_containers <- function(token, url, container, ADMIN_MODE, admin_pwd, skip_tests) {
+  test_name <- "verify-container"
   if (do_skip_test(test_name, skip_tests)) {
     return()
   }
 
-  verify_specific_profile(admin_pwd, token, url, profile, ADMIN_MODE)
-  verify_no_profile_specified(admin_pwd, token, url, ADMIN_MODE)
-  verify_default_profile(admin_pwd, token, url, ADMIN_MODE)
+  verify_specific_container(admin_pwd, token, url, container, ADMIN_MODE)
+  verify_no_container_specified(admin_pwd, token, url, ADMIN_MODE)
+  verify_default_container(admin_pwd, token, url, ADMIN_MODE)
   cli_alert_success(sprintf("%s passed!", test_name))
 }
