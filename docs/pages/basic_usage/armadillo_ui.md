@@ -23,6 +23,7 @@ To grant a user superuser permissions simply search for that user in the `Users`
 
 ![Grant user superuser rights](../../img/ui/admin.png)
 
+
 ## Projects
 
 Once you're logged in, you will be redirected to the `Projects` page. On this page you can add and edit projects.
@@ -77,6 +78,14 @@ If you click on a folder, it will open.
 Here you can upload files to that folder, or click on the tables (files) to preview their contents.
 
 ![Armadillo project file preview](../../img/ui/preview-file.png)
+
+You can also see the metadata of the file you uploaded. For each column, the datatype will be shown in two ways: 
+a more general term (string, integer, decimal, boolean, categorical) and the datatype as it is saved in armadillo 
+(binary for string/categorical, boolean, int32 for integer, double for decimal). For all columns, the number and 
+percentage of missing values will be shown. For categorical values, the different categorical options will be shown in
+the 'levels' column.
+
+![preview-metadata.png](../../img/ui/preview-metadata.png)
 
 To upload files, either drag a file from your file browser to the file upload area, or click the area and select the
 file.
@@ -145,6 +154,12 @@ By clicking on the plus button ![Armadillo user add](../../img/ui/add.png){width
 ![Armadillo user add](../../img/ui/add-user.png){width="650"}
 
 Users can be added before they have logged in previously. These users can be added to projects, which will grant them permission to use the data from those projects upon their first login. Researchers should not be set as admin.
+
+## Workspaces
+
+When users conduct analyses with DataSHIELD, they can save R workspaces on the server which saves any new objects they've created in their analysis. These workspaces take up space, and you may want to delete them once a researcher has finished their project. To do so, you can select a workspace and click the 'delete' button. You also have the option to delete all workspaces for one particular user.
+
+![Manage workspaces](../../img/ui/workspaces.png)
 
 ## Analysis Profiles
 

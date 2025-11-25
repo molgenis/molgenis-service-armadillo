@@ -32,19 +32,51 @@ This domain is needed for the installation script.
 
 ## Authentication
 
-Before we start with the deployment of Armadillo you will need to register your domain that you are going to use with your Armadillo with an authentication server. *This part of the documentation is still under construction. If you would like instructions on how to set up an authentication server, please [contact](../contact.md) us.*
- 
-If you are already a partner in a consortium we are part of, we offer the option to register with our DataSHIELD authentication server. This allows you to delegate the authentication and user management. The authorization will still be under the control of the Data Manager (who gets access and who don't get access) within your armadillo installation.
 
-To register you will need to [contact](../contact.md) us with the [chosen domains](#domain) and the e-mail address of the Data Manager who is granted admin permissions in Armadillo. Also add to the mail that you want to register for the the DataSHIELD authentication server and if you belong to a project like Lifecycle, Athlete or Longitools.
+Before deploying **Armadillo**, you need to register the domain that your Armadillo instance will use with an **authentication server**.  
+This ensures that users can securely sign in and that authorization decisions (who can access what) remain under the control of the **Data Manager** within your Armadillo installation.
 
-When the Armadillo domain is processed you will get an email back with data that need to be inserted in step 2.
+---
 
-The values needed are:
+### Supported Authentication Providers
 
-    - OIDC service url i.e. https://lifecycle-auth.molgenis.org
-    - OIDC Client ID
-    - OIDC Client Secret
+Armadillo supports integration with different OpenID Connect (OIDC)–compatible authentication servers, such as:
+
+- [Keycloak](https://www.keycloak.org/)
+- [FusionAuth](https://fusionauth.io/)
+- Other OIDC-compliant identity providers (e.g. Azure AD, Google Identity, etc.)
+
+---
+
+### Example: Local Keycloak Setup
+
+If you want to run Armadillo locally or test your deployment, you can use the **Keycloak + Armadillo** quick setup provided in our Docker setup.
+
+You’ll find an example in our [documentation](https://molgenis.github.io/molgenis-service-armadillo/pages/install_management/armadillo_docker_install/), which starts both Keycloak and Armadillo and automatically configures OIDC integration.
+
+### Registering with a consortium authentication server (DataSHIELD)
+
+If your organization is part of a consortium that offers a shared authentication server (for example the **DataSHIELD authentication server**), you can register your Armadillo domain with them. This delegates authentication and user management to the central server while your Data Manager continues to control authorization inside Armadillo.
+
+#### What to send when registering
+
+Send an email to the consortium contact (or `support@example.org` if you use our central contact) containing:
+
+- The domain(s) for your Armadillo instance (e.g. `armadillo.example.org`)
+- The **email address** of the Data Manager who should receive admin permissions
+- A note that you want to register for the **DataSHIELD authentication server**
+- (Optional) Which project you belong to (e.g. `LIFECYCLE`, `ATHLETE`, `LONGITOOLS`)
+
+After processing, you will receive the details you need to configure Armadillo, typically:
+
+- **OIDC Service URL** (example: `https://lifecycle-auth.molgenis.org`)
+- **OIDC Client ID**
+- **OIDC Client Secret**
+
+These values are then inserted into your deployment configuration (see step 2.p in the deployment guide).
+
+---
+
 
 ## Securing the connection
 
@@ -64,7 +96,7 @@ We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets re
 
 ```bash
 apt update
-apt install openjdk-19-jre-headless
+apt install openjdk-21-jre-headless
 apt install docker.io 
 ```
 
@@ -186,10 +218,69 @@ To secure the communication using https we have a [nginx example](https://raw.gi
 
 A good start for data backup is the `/usr/share/armadillo` and `/etc/armadillo`. If you gave another datadir as setup option you also should backup this directory. For disaster backups you should contact your IT department.
 
+## Metrics 
+
+Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics` and `/actuator/prometheus`).  
+You can use this in your monitoring application like prometheus.
+(Config example for prometheus)
+```yaml
+scrape_configs:
+  - job_name: 'my-armadillo-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['armadilo.url-example.com:8080']
+```
+### Disable or restrict Metrics 
+
+Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics`).  
+Below are ways to **disable** or **restrict** it.
+
+---
+
+#### 1. Disable Metrics 
+
+To remove `/actuator/metrics` from HTTP exposure, add this to `application.yml`:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: metrics
+```
+
+- ✅ Other endpoints (like `/actuator/health`, `/actuator/info`) remain available  
+- ❌ `/actuator/metrics` returns `404 Not Found`  
+
+If you want to disable **all metrics collection** (Micrometer), add:
+
+```yaml
+management:
+  metrics:
+    enable:
+      all: false
+```
+
+---
+
+#### 2. Restrict Metrics: **Nginx as a Reverse Proxy**
+At the infrastructure level, you can block or whitelist IPs for Actuator endpoints.
+
+```nginx
+location /actuator/metrics {
+    allow 192.168.1.0/24;   # whitelist internal network
+    deny all;               # block others
+    proxy_pass http://localhost:8080/actuator/metrics;
+}
+
+location /actuator/ {
+    proxy_pass http://localhost:8080/actuator/;
+}
+```
 ## Install alternatives
 
 - On local machine using java
-- Armidillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
+- Armadillo running as a [Docker](../install_management/armadillo_docker_install.md) container.
 - [Apache](#apache)
 
 ## What's next?

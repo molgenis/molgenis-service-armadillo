@@ -3,6 +3,10 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
+        <ProfileStatusMessage
+          :status="profileStatus"
+          :profileName="loadingProfile"
+        />
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
@@ -36,7 +40,9 @@
             type="button"
             class="btn btn-sm me-1 btn-primary bg-primary"
             @click="addNewProfile"
-            :disabled="profileToEdit !== '' || profileToEditIndex === 0"
+            :disabled="
+              profileToEdit !== '' || profileToEditIndex === 0 || loading
+            "
           >
             <i class="bi bi-plus-lg"></i>
           </button>
@@ -255,7 +261,8 @@ import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { convertBytes } from "@/helpers/utils";
+import { convertBytes, useProfileStatus } from "@/helpers/utils";
+import ProfileStatusMessage from "@/components/ProfileStatusMessage.vue";
 
 export default defineComponent({
   name: "Profiles",
@@ -268,6 +275,7 @@ export default defineComponent({
     Table,
     ButtonGroup,
     ProfileStatus,
+    ProfileStatusMessage,
   },
   setup() {
     const profiles: Ref<Profile[]> = ref([]);
@@ -275,6 +283,12 @@ export default defineComponent({
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
     const router = useRouter();
+    const loadingProfile = ref(""); // reactive profile name
+    const {
+      status: profileStatus,
+      startPolling,
+      stopPolling,
+    } = useProfileStatus();
     onMounted(async () => {
       await loadProfiles();
     });
@@ -313,6 +327,9 @@ export default defineComponent({
       loadProfiles,
       dockerManagementEnabled,
       convertBytes,
+      profileStatus,
+      startPolling,
+      stopPolling,
     };
   },
   data(): ProfilesData {
@@ -571,6 +588,7 @@ export default defineComponent({
       this.clearUserMessages();
       this.loading = true;
       this.loadingProfile = name;
+      this.startPolling(name);
       startProfile(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully started.`;
@@ -593,6 +611,7 @@ export default defineComponent({
         .catch((error) => {
           this.errorMessage = `Could not stop [${name}]: ${error}.`;
           this.clearLoading();
+          this.stopPolling();
         });
     },
     updateAutoUpdate(profile: Profile, currentValue: boolean) {
