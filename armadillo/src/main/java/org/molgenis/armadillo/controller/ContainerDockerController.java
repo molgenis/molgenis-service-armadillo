@@ -1,8 +1,8 @@
 package org.molgenis.armadillo.controller;
 
 import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.START_PROFILE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.STOP_PROFILE;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.START_CONTAINER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.STOP_CONTAINER;
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("ds-containers")
+@RequestMapping("/containers")
 public class ContainerDockerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
@@ -75,7 +75,7 @@ public class ContainerDockerController {
     auditor.audit(
         () -> dockerService.pullImageStartContainer(name),
         principal,
-        START_PROFILE,
+        START_CONTAINER,
         Map.of(CONTAINER, name));
   }
 
@@ -98,7 +98,7 @@ public class ContainerDockerController {
     auditor.audit(
         () -> dockerService.stopAndRemoveContainer(name),
         principal,
-        STOP_PROFILE,
+        STOP_CONTAINER,
         Map.of(CONTAINER, name));
   }
 }
