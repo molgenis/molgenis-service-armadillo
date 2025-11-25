@@ -36,8 +36,8 @@
           </button>
         </div>
         <pre>
-          <code> 
-            {{ JSON.stringify(result, null, 2) }}
+          <code>
+            {{ result }}
           </code>
         </pre>
       </div>
@@ -45,11 +45,11 @@
   </div>
 </template>
 <script lang="ts">
-import { get } from "@/api/api";
 import { defineComponent, PropType } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 import FeedbackMessage from "./FeedbackMessage.vue";
 import { ActuatorLink } from "@/types/api";
+import { APISettings } from "@/api/config";
 
 export default defineComponent({
   name: "ExtraMetricsEndpoint",
@@ -94,11 +94,23 @@ export default defineComponent({
           this.splittedEndpoint[2];
       }
       this.isLoading = true;
-      get(endpoint)
-        .then((endpointResult: string) => {
+      await fetch(endpoint, {
+        method: "GET",
+        headers: APISettings.headers,
+      })
+        .then((response) => {
           this.isLoading = false;
           this.errorMsg = "";
-          this.result = endpointResult;
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("json") !== -1) {
+            return response.json().then((data) => {
+              this.result = data;
+            });
+          } else {
+            return response.text().then((text) => {
+              this.result = text;
+            });
+          }
         })
         .catch((error) => {
           this.isLoading = false;
