@@ -15,7 +15,7 @@ public class ContainerSchedulerFallbackConfig {
       havingValue = "false",
       matchIfMissing = true // Also covers missing property
       )
-  public ContainerScheduler noOpProfileScheduler() {
+  public ContainerScheduler noOpContainerScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
       public void reschedule(ContainerConfig container) {

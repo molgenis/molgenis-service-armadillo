@@ -67,8 +67,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String UPSERT_CONTAINER = "UPSERT_CONTAINER";
   public static final String DELETE_CONTAINER = "DELETE_CONTAINER";
   public static final String GET_CONTAINER = "GET_CONTAINER";
-  public static final String START_PROFILE = "START_PROFILE";
-  public static final String STOP_PROFILE = "STOP_PROFILE";
+  public static final String START_CONTAINER = "START_CONTAINER";
+  public static final String STOP_CONTAINER = "STOP_CONTAINER";
   public static final String LIST_OBJECTS = "LIST_OBJECTS";
   public static final String UPLOAD_OBJECT = "UPLOAD_OBJECT";
   public static final String COPY_OBJECT = "COPY_OBJECT";
