@@ -126,7 +126,7 @@ export default defineComponent({
         Projects: "string",
         Users: "string",
         Workspaces: "string",
-        Profiles: "string",
+        Containers: "string",
         Insight: ["Metrics", "Logs"],
       },
       tabIcons: [
