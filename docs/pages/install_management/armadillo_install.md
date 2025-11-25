@@ -96,7 +96,7 @@ We run Armadillo in production as a Linux service on Ubuntu, ensuring it gets re
 
 ```bash
 apt update
-apt install openjdk-19-jre-headless
+apt install openjdk-21-jre-headless
 apt install docker.io 
 ```
 
