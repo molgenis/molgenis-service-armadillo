@@ -52,7 +52,8 @@ jobs:
       TERM: dumb
 
     steps:
-      - checkout
+      - checkout:
+          method: full
       - run: git fetch --all --tags
       - setup_remote_docker:
           version: previous
