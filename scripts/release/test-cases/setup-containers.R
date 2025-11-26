@@ -7,7 +7,7 @@ generate_project_port <- function(current_project_ports) {
 }
 
 obtain_existing_container_information <- function(key, auth_type) {
-  responses <- get_from_api_with_header("ds-containers", key, auth_type)
+  responses <- get_from_api_with_header("containers", key, auth_type)
   response_df <- data.frame(matrix(ncol = 5, nrow = 0, dimnames = list(NULL, c("name", "container", "port", "seed", "online"))))
   for (response in responses) {
     if ("datashield.seed" %in% names(response$options)) {
@@ -46,7 +46,7 @@ create_container <- function(container_name, key, auth_type, container_defaults)
       functionBlacklist = return_list_without_empty(blacklist),
       options = list(datashield.seed = new_container_seed)
     )
-    response <- put_to_api("ds-containers", key, auth_type, body_args = args)
+    response <- put_to_api("containers", key, auth_type, body_args = args)
     if (response$status_code == 204) {
       cli_alert_success(sprintf("container %s successfully created.", container_name))
       start_container(container_name, key, auth_type)
@@ -76,7 +76,7 @@ create_container_if_not_available <- function(container_name, available_containe
 }
 
 start_container_if_not_running <- function(container_name, key, auth_type) {
-  response <- get_from_api_with_header(paste0("ds-containers/", container_name), key, auth_type)
+  response <- get_from_api_with_header(paste0("containers/", container_name), key, auth_type)
   if (!response$container$status == "RUNNING") {
     cli_alert_info(sprintf("Detected container %s not running", container_name))
     start_container(container_name, key, auth_type)
@@ -87,7 +87,7 @@ start_container <- function(container_name, key, auth_type) {
   auth_header <- get_auth_header(auth_type, key)
   cli_alert_info(sprintf("Attempting to start container: %s", container_name))
   response <- POST(
-    sprintf("%sds-containers/%s/start", armadillo_url, container_name),
+    sprintf("%scontainers/%s/start", armadillo_url, container_name),
     config = c(httr::add_headers(auth_header))
   )
   if (!response$status_code == 204) {
@@ -112,7 +112,7 @@ setup_containers <- function(token, auth_type, url, as_docker_container, skip_te
   if (!as_docker_container) {
     create_container_if_not_available(container, containers$available, token, auth_type, container_defaults)
   }
-  container_info <- get_from_api_with_header(paste0("ds-containers/", container), token, auth_type, url, user)
+  container_info <- get_from_api_with_header(paste0("containers/", container), token, auth_type, url, user)
   if (!as_docker_container) {
     start_container_if_not_running("default", token, auth_type)
   }

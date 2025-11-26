@@ -25,7 +25,7 @@ create_ds_connection <- function(password, token, container, url, ADMIN_MODE) {
 
 verify_specific_container <- function(password, token, url, container, ADMIN_MODE) {
   cli_alert_info("Verify connecting to specified container works")
-  con <- create_ds_connection(password = password, token = token, url = url, profile = container, ADMIN_MODE)
+  con <- create_ds_connection(password = password, token = token, url = url, container = container, ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
   } else {
@@ -36,7 +36,7 @@ verify_specific_container <- function(password, token, url, container, ADMIN_MOD
 
 verify_no_container_specified <- function(password, token, url, ADMIN_MODE) {
   cli_alert_info("Verify if default container works without specifying container")
-  con <- create_ds_connection(password = password, token = token, url = url, profile = "", ADMIN_MODE)
+  con <- create_ds_connection(password = password, token = token, url = url, container = "", ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
   } else {
@@ -47,7 +47,7 @@ verify_no_container_specified <- function(password, token, url, ADMIN_MODE) {
 
 verify_default_container <- function(password, token, url, ADMIN_MODE) {
   cli_alert_info("Verify if default container works")
-  con <- create_ds_connection(password = password, token = token, url = url, profile = "default", ADMIN_MODE)
+  con <- create_ds_connection(password = password, token = token, url = url, container = "default", ADMIN_MODE)
   if (con@name == "armadillo") {
     cli_alert_success("Succesfully connected")
   } else {
