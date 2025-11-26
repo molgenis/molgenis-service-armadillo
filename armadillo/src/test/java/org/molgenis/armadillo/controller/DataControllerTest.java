@@ -96,7 +96,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
-        .perform(get("/containers"))
+        .perform(get("/profiles"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
@@ -105,7 +105,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testSelectContainer() throws Exception {
-    mockMvc.perform(post("/select-container").content("b")).andExpect(status().isNoContent());
+    mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
     verify(commands).selectContainer("b");
   }
 

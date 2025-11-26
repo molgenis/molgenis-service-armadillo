@@ -362,7 +362,7 @@ public class DataController {
     return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
-  @PostMapping(value = "select-container")
+  @PostMapping(value = "select-profile")
   @ResponseStatus(NO_CONTENT)
   public void selectContainer(Principal principal, @RequestBody @NotBlank String containerName) {
     auditEventPublisher.audit(
@@ -372,7 +372,7 @@ public class DataController {
         Map.of(SELECTED_CONTAINER, containerName));
   }
 
-  @GetMapping(value = "containers")
+  @GetMapping(value = "profiles")
   public @ResponseBody ContainersResponse listContainers(Principal principal) {
     return auditEventPublisher.audit(
         () ->
