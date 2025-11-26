@@ -35,7 +35,7 @@ public class TestSecurityConfig {
     return http.authorizeHttpRequests(
             requests ->
                 requests
-                    .requestMatchers("/ds-containers/status")
+                    .requestMatchers("/containers/status")
                     .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()
