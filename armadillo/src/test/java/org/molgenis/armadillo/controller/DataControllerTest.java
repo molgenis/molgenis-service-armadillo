@@ -35,7 +35,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -91,9 +91,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testListProfiles() throws Exception {
-    when(commands.listProfiles()).thenReturn(List.of("a", "b", "c"));
-    when(commands.getActiveProfileName()).thenReturn("b");
+  void testListContainers() throws Exception {
+    when(commands.listContainers()).thenReturn(List.of("a", "b", "c"));
+    when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
         .perform(get("/profiles"))
@@ -104,16 +104,16 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testSelectProfile() throws Exception {
+  void testSelectContainer() throws Exception {
     mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
-    verify(commands).selectProfile("b");
+    verify(commands).selectContainer("b");
   }
 
   @Test
   @WithMockUser
-  void testSelectUnknownProfile() throws Exception {
-    doThrow(new UnknownProfileException("unknown")).when(commands).selectProfile("unknown");
-    mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
+  void testSelectUnknownContainer() throws Exception {
+    doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
+    mockMvc.perform(post("/select-container").content("unknown")).andExpect(status().isNotFound());
   }
 
   @Test
