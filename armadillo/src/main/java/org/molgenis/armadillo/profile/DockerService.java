@@ -107,24 +107,17 @@ public class DockerService {
    */
   String asContainerName(String profileName) {
     if (!inContainer) {
-      LOG.warn("Profile not running in docker container: " + profileName);
+      LOG.warn(String.format("Profile not running in docker container: %s", profileName));
       return profileName;
     }
 
     if (containerPrefix.isEmpty()) {
-      LOG.error("Running in container without prefix: " + profileName);
+      LOG.error(String.format("Running in container without prefix:: %s", profileName));
       return profileName;
     }
 
-    LOG.warn("Profile running in docker container: " + profileName);
+    LOG.warn(String.format("Profile running in docker container: %s", profileName));
     return containerPrefix + profileName + "-1";
-  }
-
-  String asProfileName(String containerName) {
-    if (inContainer) {
-      return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
-    }
-    return containerName;
   }
 
   public String[] getProfileEnvironmentConfig(String profileName) {
@@ -296,7 +289,6 @@ public class DockerService {
   }
 
   private void stopContainer(String containerName) {
-    String profileName = "stoppingContainer has not profileName: " + containerName;
     try {
       dockerClient.stopContainerCmd(containerName).exec();
     } catch (DockerException e) {
@@ -305,16 +297,16 @@ public class DockerService {
             dockerClient.inspectContainerCmd(containerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(profileName, e);
+          throw new ImageStopFailedException(containerName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop profile '{}' because it doesn't exist", profileName);
+        LOG.info("Failed to stop profile '{}' because it doesn't exist", containerName);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(profileName, e);
+        throw new ImageStopFailedException(containerName, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(profileName, e);
+      throw new ImageStopFailedException(containerName, e);
     }
   }
 
@@ -404,8 +396,12 @@ public class DockerService {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
-      LOG.warn("Couldn't inspect image", e);
-      // getting image tags is non-essential, don't throw error
+      if (e instanceof NotFoundException) {
+        LOG.warn("Couldn't inspect image, because: " + e.getMessage());
+      } else {
+        LOG.warn("Couldn't inspect image", e);
+        // getting image tags is non-essential, don't throw error
+      }
     }
     return emptyList();
   }
