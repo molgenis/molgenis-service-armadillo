@@ -34,7 +34,7 @@ verify_assign_expression <- function() {
   )
 }
 
-verify_resources <- function(project, resource_path, ADMIN_MODE, profile, profile_info, skip_tests) {
+verify_resources <- function(project, resource_path, ADMIN_MODE, container, container_info, skip_tests) {
   test_name <- "verify-resources"
   if (do_skip_test(test_name, skip_tests)) {
     return()
@@ -42,8 +42,8 @@ verify_resources <- function(project, resource_path, ADMIN_MODE, profile, profil
 
   if (ADMIN_MODE) {
     cli_alert_warning("Cannot test working with resources as basic authenticated admin")
-  } else if (!"resourcer" %in% profile_info$packageWhitelist) {
-    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
+  } else if (!"resourcer" %in% container_info$packageWhitelist) {
+    cli_alert_warning(sprintf("Resourcer not available for container: %s, skipping testing using resources.", container))
   } else {
     cli_h2("Using resources as regular user")
     cli_h2("Verifying resources")
