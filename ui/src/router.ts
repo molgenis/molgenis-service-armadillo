@@ -7,55 +7,58 @@ import Actuator from "@/views/Actuator.vue";
 import Workspaces from "@/views/Workspaces.vue";
 import RemoteFiles from "@/views/RemoteFiles.vue";
 import Containers from "@/views/Containers.vue";
-import Profiles from "./views/Profiles.vue";
 
 const routes = [
   {
     path: "/",
-    redirect: "/projects",
+    redirect: "/ui",
   },
   {
-    path: "/users",
+    path: "/ui",
+    redirect: "/ui/projects",
+  },
+  {
+    path: "/ui/users",
     name: "users",
     component: Users,
   },
   {
-    path: "/workspaces",
+    path: "/ui/workspaces",
     name: "workspaces",
     component: Workspaces,
   },
   {
-    path: "/projects",
+    path: "/ui/projects",
     name: "projects",
     component: Projects,
   },
   {
-    path: "/login",
+    path: "/ui/login",
     name: "login",
     component: Login,
   },
   {
-    path: "/projects-explorer/:projectId/:folderId?/:fileId?",
+    path: "/ui/projects-explorer/:projectId/:folderId?/:fileId?",
     name: "projects-explorer",
     component: ProjectsExplorer,
   },
+  // {
+  //   path: "/profiles",
+  //   name: "profiles",
+  //   component: Profiles,
+  // },
   {
-    path: "/profiles",
-    name: "profiles",
-    component: Profiles,
-  },
-  {
-    path: "/containers",
+    path: "/ui/containers",
     name: "containers",
     component: Containers,
   },
   {
-    path: "/metrics",
+    path: "/ui/metrics",
     name: "metrics",
     component: Actuator,
   },
   {
-    path: "/logs",
+    path: "/ui/logs",
     name: "logs",
     component: RemoteFiles,
   },

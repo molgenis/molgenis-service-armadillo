@@ -46,7 +46,7 @@
     >
       <template #customType="customProps">
         {{ customProps.data }}
-        <router-link :to="`/projects-explorer/${customProps.data}`">
+        <router-link :to="`/ui/projects-explorer/${customProps.data}`">
           <button class="btn btn-link">
             <i class="bi bi-table"></i><i class="bi bi-pencil"></i>
           </button>

@@ -21,7 +21,7 @@
       <div class="col-12">
         <h2 class="mt-3">
           <button type="button" class="btn btn-sm me-1 btn-primary bg-primary">
-            <router-link to="/projects">
+            <router-link to="/ui/projects">
               <i class="bi bi-arrow-left text-light"></i>
             </router-link>
           </button>
