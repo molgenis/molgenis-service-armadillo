@@ -17,9 +17,9 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -44,7 +44,7 @@ class CommandsImpl implements Commands {
   private final TaskExecutor taskExecutor;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final ProfileService profileService;
+  private final ContainerService containerService;
 
   private ArmadilloSession armadilloSession;
 
@@ -58,32 +58,33 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ProfileService profileService) {
+      ContainerService containerService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
     this.taskExecutor = taskExecutor;
     this.connectionFactory = connectionFactory;
     this.processService = processService;
-    this.profileService = profileService;
+    this.containerService = containerService;
   }
 
   @Override
-  public String getActiveProfileName() {
-    return ActiveProfileNameAccessor.getActiveProfileName();
+  public String getActiveContainerName() {
+    return ActiveContainerNameAccessor.getActiveContainerName();
   }
 
   @Override
-  public void selectProfile(String profileName) {
-    runAsSystem(() -> profileService.getByName(profileName));
+  public void selectContainer(String containerName) {
+    runAsSystem(() -> containerService.getByName(containerName));
     if (armadilloSession != null) armadilloSession.sessionCleanup();
-    ActiveProfileNameAccessor.setActiveProfileName(profileName);
+    ActiveContainerNameAccessor.setActiveContainerName(containerName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
-  public List<String> listProfiles() {
-    return runAsSystem(() -> profileService.getAll().stream().map(ProfileConfig::getName).toList());
+  public List<String> listContainers() {
+    return runAsSystem(
+        () -> containerService.getAll().stream().map(ContainerConfig::getName).toList());
   }
 
   @Override

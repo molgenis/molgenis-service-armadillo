@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.service;
 
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.exceptions.ExpressionException;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.obiba.datashield.core.DSEnvironment;
 import org.obiba.datashield.core.DSMethodType;
 import org.obiba.datashield.core.NoSuchDSMethodException;
@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@ProfileScope
+@ContainerScope
 @Component
 public class ExpressionRewriterImpl implements ExpressionRewriter {
 

@@ -42,7 +42,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 // we have three configs that enable jwt, formLogin and oauth2Login respectively.
 // they are ordered, so jwt config is most dominant and oauth2Login least dominant
-// in 'test' profile they are not enabled
+// in 'test' container they are not enabled
 public class AuthConfig {
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
@@ -74,7 +74,8 @@ public class AuthConfig {
                     "/v3/**",
                     "/swagger-ui/**",
                     "/ui/**",
-                    "/ds-profiles/status",
+                    "/containers/status",
+                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
@@ -145,7 +146,7 @@ public class AuthConfig {
     };
   }
 
-  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
+  /** Allow CORS requests, needed for swagger UI to work, if the development container is active. */
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
