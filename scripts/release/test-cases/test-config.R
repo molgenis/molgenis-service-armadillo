@@ -129,12 +129,12 @@ configure_test <- function() {
     interactive <- FALSE
   }
 
-  profile <- Sys.getenv("PROFILE")
-  if (profile == "") {
-    cli_alert_warning("Profile not set, defaulting to xenon.")
-    profile <- "xenon"
+  container <- Sys.getenv("CONTAINER")
+  if (container == "") {
+    cli_alert_warning("Container not set, defaulting to xenon.")
+    container <- "xenon"
   } else {
-    cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
+    cli_alert_info(paste0("CONTAINER from '.env' file: ", container))
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
@@ -146,8 +146,8 @@ configure_test <- function() {
 
   cli_alert_success(sprintf("%s passed!", test_name))
 
-  # default profile settings in case a profile is missing
-  profile_defaults <- data.frame(
+  # default container settings in case a container is missing
+  container_defaults <- data.frame(
     name = c("xenon", "rock"),
     container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
     port = c("", ""),
@@ -163,7 +163,7 @@ configure_test <- function() {
     skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
     admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
     app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
-    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
-    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
+    ADMIN_MODE = ADMIN_MODE, container = container, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
+    update_auto = update_auto, container_defaults = container_defaults, rda_url = rda_url
   ))
 }

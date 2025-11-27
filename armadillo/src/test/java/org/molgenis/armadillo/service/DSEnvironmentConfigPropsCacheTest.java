@@ -17,7 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
@@ -32,17 +32,18 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock ProfileConfig profileConfig;
+  @Mock ContainerConfig containerConfig;
   private DSEnvironmentCache dsEnvironmentCache;
 
   @BeforeEach
   void beforeEach() {
-    dsEnvironmentCache = new DSEnvironmentCache(packageService, rConnectionFactory, profileConfig);
+    dsEnvironmentCache =
+        new DSEnvironmentCache(packageService, rConnectionFactory, containerConfig);
   }
 
   @Test
   void testGetAggregateEnvironment() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(
         ImmutableSet.of("scatterPlotDs", "is.character=base::is.character"), ImmutableSet.of());
 
@@ -55,7 +56,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testGetAssignEnvironment() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     populateEnvironment(ImmutableSet.of(), ImmutableSet.of("meanDS", "dim=base::dim"));
 
     DSEnvironment environment = dsEnvironmentCache.getEnvironment(DSMethodType.ASSIGN);
@@ -75,7 +76,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateIllegalMethodName() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     final var aggregateMethods = ImmutableSet.of("method=base::method=base::method");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
@@ -85,7 +86,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateDuplicateMethodName() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim", "dim=other::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     assertThrows(
@@ -95,7 +96,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateMethodFromNonWhitelistedPackage() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("otherPackage"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("otherPackage"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     populateEnvironment(aggregateMethods, assignMethods);
@@ -106,8 +107,8 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Test
   void testPopulateBlacklistedMethod() {
-    when(profileConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
-    when(profileConfig.getFunctionBlacklist()).thenReturn(Set.of("dim"));
+    when(containerConfig.getPackageWhitelist()).thenReturn(Set.of("dsBase"));
+    when(containerConfig.getFunctionBlacklist()).thenReturn(Set.of("dim"));
     final var aggregateMethods = ImmutableSet.of("dim=base::dim");
     final ImmutableSet<String> assignMethods = ImmutableSet.of();
     populateEnvironment(aggregateMethods, assignMethods);

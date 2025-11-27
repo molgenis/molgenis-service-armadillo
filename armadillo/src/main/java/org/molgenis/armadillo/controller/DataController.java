@@ -364,20 +364,21 @@ public class DataController {
 
   @PostMapping(value = "select-profile")
   @ResponseStatus(NO_CONTENT)
-  public void selectProfile(Principal principal, @RequestBody @NotBlank String profileName) {
+  public void selectContainer(Principal principal, @RequestBody @NotBlank String containerName) {
     auditEventPublisher.audit(
-        () -> commands.selectProfile(profileName.trim()),
+        () -> commands.selectContainer(containerName.trim()),
         principal,
-        SELECT_PROFILE,
-        Map.of(SELECTED_PROFILE, profileName));
+        SELECT_CONTAINER,
+        Map.of(SELECTED_CONTAINER, containerName));
   }
 
   @GetMapping(value = "profiles")
-  public @ResponseBody ProfilesResponse listProfiles(Principal principal) {
+  public @ResponseBody ContainersResponse listContainers(Principal principal) {
     return auditEventPublisher.audit(
-        () -> ProfilesResponse.create(commands.listProfiles(), commands.getActiveProfileName()),
+        () ->
+            ContainersResponse.create(commands.listContainers(), commands.getActiveContainerName()),
         principal,
-        PROFILES,
+        CONTAINERS,
         Map.of());
   }
 
