@@ -12,22 +12,15 @@ public class UserInformationRetriever {
   static final String ANONYMOUS = "ANONYMOUS";
 
   public static String getUser(Object principal) {
-    if (principal == null) {
-      return ANONYMOUS;
-    } else if (principal instanceof OAuth2AuthenticationToken token) {
-      return token.getPrincipal().getAttribute(EMAIL);
-    } else if (principal instanceof JwtAuthenticationToken token) {
-      return token.getTokenAttributes().get(EMAIL).toString();
-    } else if (principal instanceof DefaultOAuth2User user) {
-      return user.getAttributes().get(EMAIL).toString();
-    } else if (principal instanceof Jwt jwt) {
-      return jwt.getClaims().get(EMAIL).toString();
-    } else if (principal instanceof User user) {
-      return user.getUsername();
-    } else if (principal instanceof Principal p) {
-      return p.getName();
-    } else {
-      return principal.toString();
-    }
+    return switch (principal) {
+      case null -> ANONYMOUS;
+      case OAuth2AuthenticationToken token -> token.getPrincipal().getAttribute(EMAIL);
+      case JwtAuthenticationToken token -> token.getTokenAttributes().get(EMAIL).toString();
+      case DefaultOAuth2User user -> user.getAttribute(EMAIL);
+      case Jwt jwt -> jwt.getClaims().get(EMAIL).toString();
+      case User user -> user.getUsername();
+      case Principal p -> p.getName();
+      default -> principal.toString();
+    };
   }
 }

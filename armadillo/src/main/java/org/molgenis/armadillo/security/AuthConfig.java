@@ -55,16 +55,15 @@ public class AuthConfig {
   @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
   private String oidcClientId;
 
-  @Bean
   @Order(1)
-  protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
+  @Bean
+  protected SecurityFilterChain oauthAndBasic(
+      HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
     http.authorizeHttpRequests(
         requests ->
             requests
                 .requestMatchers(
                     "/",
-                    "/_docs/**",
-                    "/info",
                     "/index.html",
                     "/logout",
                     "/basic-login",
@@ -76,7 +75,6 @@ public class AuthConfig {
                     "/swagger-ui/**",
                     "/ui/**",
                     "/containers/status",
-                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
@@ -85,6 +83,9 @@ public class AuthConfig {
                 .authenticated());
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
+    AuthenticationFilter authFilter = new AuthenticationFilter();
+    authFilter.setAuthToken(authToken);
+    http.addFilterAfter(authFilter, BasicAuthenticationFilter.class);
     http.httpBasic(
         httpBasicConfigurer ->
             httpBasicConfigurer
@@ -113,6 +114,7 @@ public class AuthConfig {
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
+
     return http.build();
   }
 

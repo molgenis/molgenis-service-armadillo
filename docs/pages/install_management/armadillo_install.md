@@ -220,7 +220,20 @@ A good start for data backup is the `/usr/share/armadillo` and `/etc/armadillo`.
 
 ## Metrics 
 
-Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics` and `/actuator/prometheus`).  
+The Spring Boot Actuator endpoint is by default open to all authenticated users (the health and info endpoint are open to all). To allow for monitoring as well, we added the possibility of configuring an api-token that will give access to the actuator endpoint without logging in otherwise.
+To configure this api key, an addition will have to be made to the `application.yml` of Armadillo (just like how the local admin user and password are configured):
+```yaml
+armadillo:
+  api-key: my-secret-api-key
+```
+After configuring this, the endpoint can be reached:
+``` bash
+curl 'http://localhost:8080/actuator/prometheus' -i -X GET \ v
+ -H 'Accept: text/plain' --header 'X-API-KEY: my-secret-api-key'
+```
+
+The endpoint will still be available via basicauth and oauth as well, either logging in and then accessing via the browser or by passing Authorization headers with the correct authorization details.
+
 You can use this in your monitoring application like prometheus.
 (Config example for prometheus)
 ```yaml
@@ -230,9 +243,10 @@ scrape_configs:
     static_configs:
       - targets: ['armadilo.url-example.com:8080']
 ```
+
 ### Disable or restrict Metrics 
 
-Spring Boot Actuator is enabled by default in our project (including `/actuator/metrics`).  
+Spring Boot Actuator is accessible for all users in our project (including `/actuator/metrics`).  
 Below are ways to **disable** or **restrict** it.
 
 ---
