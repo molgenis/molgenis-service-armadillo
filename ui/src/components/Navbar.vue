@@ -99,7 +99,7 @@
           >
             Log out
           </button>
-          <router-link to="/ui/login" v-else-if="showLogin">
+          <router-link to="/login" v-else-if="showLogin">
             <button type="button" class="btn btn-primary">Log in</button>
           </router-link>
         </span>
@@ -140,7 +140,7 @@ export default defineComponent({
   },
   computed: {
     selectedPage() {
-      return this.$route.fullPath.split("/")[2];
+      return this.$route.fullPath.split("/")[1];
     },
   },
 });

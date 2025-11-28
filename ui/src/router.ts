@@ -11,54 +11,45 @@ import Containers from "@/views/Containers.vue";
 const routes = [
   {
     path: "/",
-    redirect: "/ui",
+    redirect: "/projects",
   },
   {
-    path: "/ui",
-    redirect: "/ui/projects",
-  },
-  {
-    path: "/ui/users",
+    path: "/users",
     name: "users",
     component: Users,
   },
   {
-    path: "/ui/workspaces",
+    path: "/workspaces",
     name: "workspaces",
     component: Workspaces,
   },
   {
-    path: "/ui/projects",
+    path: "/projects",
     name: "projects",
     component: Projects,
   },
   {
-    path: "/ui/login",
+    path: "/login",
     name: "login",
     component: Login,
   },
   {
-    path: "/ui/projects-explorer/:projectId/:folderId?/:fileId?",
+    path: "/projects-explorer/:projectId/:folderId?/:fileId?",
     name: "projects-explorer",
     component: ProjectsExplorer,
   },
-  // {
-  //   path: "/profiles",
-  //   name: "profiles",
-  //   component: Profiles,
-  // },
   {
-    path: "/ui/containers",
+    path: "/containers",
     name: "containers",
     component: Containers,
   },
   {
-    path: "/ui/metrics",
+    path: "/metrics",
     name: "metrics",
     component: Actuator,
   },
   {
-    path: "/ui/logs",
+    path: "/logs",
     name: "logs",
     component: RemoteFiles,
   },
