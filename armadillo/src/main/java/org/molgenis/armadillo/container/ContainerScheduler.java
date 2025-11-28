@@ -6,7 +6,7 @@ import com.github.dockerjava.api.DockerClient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import org.molgenis.armadillo.controller.ContainerDockerController;
+import org.molgenis.armadillo.controller.DockerContainerController;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
@@ -19,7 +19,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnProperty(ContainerDockerController.DOCKER_MANAGEMENT_ENABLED)
+@ConditionalOnProperty(DockerContainerController.DOCKER_MANAGEMENT_ENABLED)
 public class ContainerScheduler {
 
   private static final Logger LOG = LoggerFactory.getLogger(ContainerScheduler.class);

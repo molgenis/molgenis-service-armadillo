@@ -3,7 +3,7 @@ package org.molgenis.armadillo.controller;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.START_CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.STOP_CONTAINER;
-import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
+import static org.molgenis.armadillo.controller.DockerContainerController.DOCKER_MANAGEMENT_ENABLED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("containers")
-public class ContainerDockerController {
+@RequestMapping("/docker/containers")
+public class DockerContainerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
   public static final String DOCKER_RUN_IN_CONTAINER = "armadillo.docker-run-in-container";
@@ -41,7 +41,7 @@ public class ContainerDockerController {
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
 
-  public ContainerDockerController(DockerService dockerService, AuditEventPublisher auditor) {
+  public DockerContainerController(DockerService dockerService, AuditEventPublisher auditor) {
     this.dockerService = dockerService;
     this.auditor = auditor;
   }

@@ -6,7 +6,7 @@ import {
 } from "@/helpers/utils";
 import {
   Principal,
-  Profile,
+  Container,
   Project,
   User,
   Auth,
@@ -243,24 +243,24 @@ export async function deleteObject(project: string, name: string) {
   );
 }
 
-export async function getProfiles(): Promise<Profile[]> {
-  return get("/containers");
+export async function getContainers(): Promise<Container[]> {
+  return get("/docker/containers");
 }
 
-export async function deleteProfile(name: string) {
-  return delete_("/containers", name);
+export async function deleteContainer(name: string) {
+  return delete_("/docker/containers", name);
 }
 
-export async function putProfile(profileJson: Profile) {
-  return put("/containers", profileJson);
+export async function putContainer(profileJson: Container) {
+  return put("/docker/containers", profileJson);
 }
 
-export async function startProfile(name: string) {
-  return post(`/containers/${name}/start`);
+export async function startContainer(name: string) {
+  return post(`/docker/containers/${name}/start`);
 }
 
-export async function stopProfile(name: string) {
-  return post(`/containers/${name}/stop`);
+export async function stopContainer(name: string) {
+  return post(`/docker/containers/${name}/stop`);
 }
 
 export async function uploadIntoProject(
@@ -353,15 +353,15 @@ export async function getFreeDiskSpace(): Promise<number> {
 }
 
 export async function getWorkspaceDetails(): Promise<Workspaces> {
-  return get("/all-workspaces");
+  return get("/ds/all-workspaces");
 }
 
 export async function deleteUserWorkspace(user: string, workspace: string) {
-  return delete_("/workspaces", `${user}/${workspace}`);
+  return delete_("/ds/workspaces", `${user}/${workspace}`);
 }
 
 export async function deleteWorkspaceDirectory(userDirectory: string) {
-  return delete_("/workspaces/directory/", `${userDirectory}`);
+  return delete_("/ds/workspaces/directory/", `${userDirectory}`);
 }
 
 export async function getMetaData(project: string, object: string) {
@@ -372,6 +372,6 @@ export async function getMetaData(project: string, object: string) {
   );
 }
 
-export async function getProfileStatus(name: string) {
-  return get(`/containers/${encodeURIComponent(name)}/status`);
+export async function getContainerStatus(name: string) {
+  return get(`/docker/containers/${encodeURIComponent(name)}/status`);
 }

@@ -100,7 +100,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void containers_GET() throws Exception {
     mockMvc
-        .perform(get("/containers"))
+        .perform(get("/docker/containers"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[" + DEFAULT_CONTAINER + "," + OMICS_CONTAINER + "]"));
@@ -141,7 +141,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            put("/containers")
+            put("/docker/containers")
                 .content(new Gson().toJson(containerConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -202,7 +202,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     // Perform the GET request to fetch the container status
     mockMvc
-        .perform(get("/containers/status"))
+        .perform(get("/docker/containers/status"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(

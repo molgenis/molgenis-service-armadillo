@@ -42,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @Validated
 @PreAuthorize("hasRole('ROLE_SU')")
+@RequestMapping("dev")
 public class DevelopmentController {
 
   private final Commands commands;
