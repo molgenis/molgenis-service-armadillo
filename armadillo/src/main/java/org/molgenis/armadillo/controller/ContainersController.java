@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("containers")
+@RequestMapping("/docker/containers")
 public class ContainersController {
 
   private final ContainerService containers;
