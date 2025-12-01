@@ -60,6 +60,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/manage": {
+        target: {
+          protocol: "http:",
+          host: "localhost",
+          port: 8080,
+        },
+      },
       "^/ds-profile": {
         target: {
           protocol: "http:",

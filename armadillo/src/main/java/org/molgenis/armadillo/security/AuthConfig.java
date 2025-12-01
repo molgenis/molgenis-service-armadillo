@@ -74,7 +74,7 @@ public class AuthConfig {
                     "/v3/**",
                     "/swagger-ui/**",
                     "/ui/**",
-                    "/docker/containers/status",
+                    "/manage/docker-containers/status",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))

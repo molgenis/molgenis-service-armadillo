@@ -244,23 +244,23 @@ export async function deleteObject(project: string, name: string) {
 }
 
 export async function getContainers(): Promise<Container[]> {
-  return get("/docker/containers");
+  return get("/manage/docker-containers");
 }
 
 export async function deleteContainer(name: string) {
-  return delete_("/docker/containers", name);
+  return delete_("/manage/docker-containers", name);
 }
 
 export async function putContainer(profileJson: Container) {
-  return put("/docker/containers", profileJson);
+  return put("/manage/docker-containers", profileJson);
 }
 
 export async function startContainer(name: string) {
-  return post(`/docker/containers/${name}/start`);
+  return post(`/manage/docker-containers/${name}/start`);
 }
 
 export async function stopContainer(name: string) {
-  return post(`/docker/containers/${name}/stop`);
+  return post(`/manage/docker-containers/${name}/stop`);
 }
 
 export async function uploadIntoProject(
@@ -373,5 +373,5 @@ export async function getMetaData(project: string, object: string) {
 }
 
 export async function getContainerStatus(name: string) {
-  return get(`/docker/containers/${encodeURIComponent(name)}/status`);
+  return get(`/manage/docker-containers/${encodeURIComponent(name)}/status`);
 }

@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("/docker/containers")
+@RequestMapping("/manage/docker-containers")
 public class DockerContainerController {
 
   public static final String DOCKER_MANAGEMENT_ENABLED = "armadillo.docker-management-enabled";
