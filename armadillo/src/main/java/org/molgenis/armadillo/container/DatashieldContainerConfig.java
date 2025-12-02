@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Positive;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
-import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -121,14 +120,5 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
         null,
         null,
         null);
-  }
-
-  public EnvironmentConfigProps toEnvironmentConfigProps() {
-    var props = new EnvironmentConfigProps();
-    props.setName(getName());
-    props.setHost(getHost());
-    props.setPort(getPort());
-    props.setImage(getImage());
-    return props;
   }
 }

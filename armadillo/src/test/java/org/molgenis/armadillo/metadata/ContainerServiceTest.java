@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ContainerScope;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerServiceTest {
@@ -28,7 +29,7 @@ class ContainerServiceTest {
   void addToWhitelist() {
     var containersMetadata = ContainersMetadata.create();
     var defaultContainer =
-        ContainerConfig.create(
+        DatashieldContainerConfig.create(
             "default",
             "test",
             false,
@@ -67,8 +68,8 @@ class ContainerServiceTest {
     String newInstallDate = "2025-10-05T12:34:56Z";
 
     // Create an existing container config with oldImageId
-    ContainerConfig existingContainer =
-        ContainerConfig.create(
+    DatashieldContainerConfig existingContainer =
+        DatashieldContainerConfig.create(
             containerName,
             "someImage",
             false,
@@ -105,7 +106,7 @@ class ContainerServiceTest {
         containerName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
     // Assert that the container has been updated
-    ContainerConfig updated = containerService.getByName(containerName);
+    DatashieldContainerConfig updated = containerService.getByName(containerName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());

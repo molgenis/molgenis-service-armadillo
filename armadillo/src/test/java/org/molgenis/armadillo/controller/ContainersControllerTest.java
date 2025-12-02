@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
 import org.molgenis.armadillo.container.ContainerScheduler;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -59,7 +60,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .getContainers()
         .put(
             "default",
-            ContainerConfig.create(
+            DatashieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 false,
@@ -78,7 +79,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .getContainers()
         .put(
             "omics",
-            ContainerConfig.create(
+            DatashieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 false,
@@ -122,8 +123,8 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_PUT() throws Exception {
-    ContainerConfig containerConfig =
-        ContainerConfig.create(
+    DatashieldContainerConfig datashieldContainerConfig =
+        DatashieldContainerConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",
             false,
@@ -142,13 +143,13 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     mockMvc
         .perform(
             put("/containers")
-                .content(new Gson().toJson(containerConfig))
+                .content(new Gson().toJson(datashieldContainerConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
-    expected.getContainers().put("dummy", containerConfig);
+    expected.getContainers().put("dummy", datashieldContainerConfig);
     verify(containersLoader).save(expected);
   }
 

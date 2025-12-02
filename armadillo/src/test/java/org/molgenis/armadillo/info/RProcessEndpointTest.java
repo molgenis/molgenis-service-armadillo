@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -17,8 +17,8 @@ import org.molgenis.r.service.ProcessService;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {
-  @Mock private ContainerConfig container1;
-  @Mock private ContainerConfig container2;
+  @Mock private DatashieldContainerConfig container1;
+  @Mock private DatashieldContainerConfig container2;
   @Mock private EnvironmentConfigProps environment2;
   @Mock private ProcessService processService;
   @Mock private ContainerService containerService;
