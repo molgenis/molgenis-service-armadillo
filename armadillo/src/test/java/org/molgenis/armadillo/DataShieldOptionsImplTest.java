@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
@@ -38,7 +39,7 @@ class DataShieldOptionsImplTest {
   void init() {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
-    DatashieldContainerConfig datashieldContainerConfig =
+    ContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             "dummy",
             "dummy",

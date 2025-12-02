@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.slf4j.MDC;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -117,7 +118,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public void audit(
       Principal principal,
       String type,
-      Map<String, Object> data,
+      Map<String, ContainerConfig> data,
       String sessionId,
       List<String> roles) {
     Map<String, Object> sessionData = new HashMap<>(data);
@@ -128,13 +129,16 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
         new AuditApplicationEvent(clock.instant(), user, type, sessionData));
   }
 
-  public void audit(Principal principal, String type, Map<String, Object> data) {
+  public void audit(Principal principal, String type, Map<String, ContainerConfig> data) {
     audit(principal, type, data, MDC.get(MDC_SESSION_ID), getRoles());
   }
 
   /** Audits a CompletableFuture. */
   public <T> CompletableFuture<T> audit(
-      CompletableFuture<T> future, Principal principal, String type, Map<String, Object> data) {
+      CompletableFuture<T> future,
+      Principal principal,
+      String type,
+      Map<String, ContainerConfig> data) {
     // remember context to fill it in when future completes
     final var sessionId = MDC.get(MDC_SESSION_ID);
     final var roles = getRoles();
@@ -150,7 +154,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   }
 
   /** Audits a function with a return value. */
-  public <T> T audit(Supplier<T> c, Principal principal, String type, Map<String, Object> data) {
+  public <T> T audit(
+      Supplier<T> c, Principal principal, String type, Map<String, ContainerConfig> data) {
     try {
       var result = c.get();
       audit(principal, type, data);
@@ -167,7 +172,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   }
 
   /** Audits a void function. */
-  public void audit(Runnable runnable, Principal principal, String type, Map<String, Object> data) {
+  public void audit(
+      Runnable runnable, Principal principal, String type, Map<String, ContainerConfig> data) {
     try {
       runnable.run();
       audit(principal, type, data);
@@ -183,18 +189,18 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   }
 
   private void auditFailure(
-      Principal principal, String type, Map<String, Object> data, Throwable failure) {
+      Principal principal, String type, Map<String, ContainerConfig> data, Throwable failure) {
     auditFailure(principal, type, data, failure, MDC.get(MDC_SESSION_ID), getRoles());
   }
 
   private void auditFailure(
       Principal principal,
       String type,
-      Map<String, Object> data,
+      Map<String, ContainerConfig> data,
       Throwable failure,
       String sessionId,
       List<String> roles) {
-    Map<String, Object> errorData = new HashMap<>(data);
+    Map<String, ContainerConfig> errorData = new HashMap<>(data);
     errorData.put(MESSAGE, failure.getMessage());
     errorData.put(TYPE, failure.getClass().getName());
     audit(principal, type + "_FAILURE", errorData, sessionId, roles);

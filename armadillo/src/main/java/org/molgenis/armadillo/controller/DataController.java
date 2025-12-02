@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -152,13 +153,13 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      @RequestParam ContainerConfig symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
     java.util.regex.Pattern tableResourcePattern =
         java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
-    HashMap<String, Object> data = getMatchedData(tableResourcePattern, table, TABLE);
+    HashMap<String, ContainerConfig> data = getMatchedData(tableResourcePattern, table, TABLE);
     data.put(SYMBOL, symbol);
     String project = (String) data.get(PROJECT);
     String objectName = String.format(PATH_FORMAT, data.get(FOLDER), data.get(TABLE));
@@ -222,11 +223,11 @@ public class DataController {
   @PostMapping(value = "/load-resource")
   public CompletableFuture<ResponseEntity<Void>> loadResource(
       Principal principal,
-      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
+      @RequestParam ContainerConfig symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
       @RequestParam(defaultValue = "false") boolean async) {
     var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
-    Map<String, Object> data = getMatchedData(pattern, resource, RESOURCE);
+    Map<String, ContainerConfig> data = getMatchedData(pattern, resource, RESOURCE);
     data.put(SYMBOL, symbol);
     if (!storage.resourceExists(
         (String) data.get(PROJECT),
@@ -278,7 +279,7 @@ public class DataController {
       @Valid @Pattern(regexp = SYMBOL_RE) @PathVariable String symbol,
       @RequestBody String expression,
       @RequestParam(defaultValue = "false") boolean async) {
-    Map<String, Object> data = Map.of(SYMBOL, symbol, EXPRESSION, expression);
+    Map<String, ContainerConfig> data = Map.of(SYMBOL, symbol, EXPRESSION, expression);
     try {
       String rewrittenExpression = expressionRewriter.rewriteAssign(expression);
       CompletableFuture<Void> result =
@@ -309,7 +310,7 @@ public class DataController {
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
           @RequestParam(defaultValue = "false")
           boolean async) {
-    Map<String, Object> data = Map.of(EXPRESSION, expression);
+    Map<String, ContainerConfig> data = Map.of(EXPRESSION, expression);
     try {
       String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
       CompletableFuture<RServerResult> result =
@@ -519,12 +520,12 @@ public class DataController {
         .get();
   }
 
-  HashMap<String, Object> getMatchedData(
+  HashMap<String, ContainerConfig> getMatchedData(
       java.util.regex.Pattern pattern, String value, String resource) {
     var matcher = pattern.matcher(value);
     //noinspection ResultOfMethodCallIgnored
     matcher.find();
-    HashMap<String, Object> groups = new HashMap<>();
+    HashMap<String, ContainerConfig> groups = new HashMap<>();
     groups.put(PROJECT, matcher.group(1));
     groups.put(FOLDER, matcher.group(2));
     groups.put(resource, matcher.group(3));
@@ -539,11 +540,11 @@ public class DataController {
   }
 
   private CompletableFuture<ResponseEntity<Void>> doLoadTable(
-      String symbol,
+      ContainerConfig symbol,
       String table,
       List<String> variableList,
       Principal principal,
-      Map<String, Object> data,
+      Map<String, ContainerConfig> data,
       Boolean async) {
     var result =
         auditEventPublisher.audit(
@@ -583,8 +584,8 @@ public class DataController {
       String objectName,
       String variables,
       Principal principal,
-      HashMap<String, Object> data,
-      String symbol,
+      HashMap<String, ContainerConfig> data,
+      ContainerConfig symbol,
       Boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =
@@ -593,7 +594,7 @@ public class DataController {
     String sourceObject = linkFile.getSourceObject();
     if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {
       List<String> variableList = getLinkedVariables(linkFile, variables);
-      HashMap<String, Object> finalData = data;
+      HashMap<String, ContainerConfig> finalData = data;
       return runAsSystem(
           () ->
               doLoadTable(

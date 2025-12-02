@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
@@ -239,7 +240,7 @@ class CommandsImplTest {
   @Test
   void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    DatashieldContainerConfig datashieldContainerConfig =
+    ContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             "exposome",
             "dummy",

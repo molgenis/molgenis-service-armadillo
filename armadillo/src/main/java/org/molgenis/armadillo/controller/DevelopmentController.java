@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
@@ -78,7 +79,7 @@ public class DevelopmentController {
       Principal principal, @RequestParam MultipartFile file) {
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
-      Map<String, Object> data = new HashMap<>();
+      Map<String, ContainerConfig> data = new HashMap<>();
       data.put(MESSAGE, "Filename is null or empty");
       auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
@@ -128,7 +129,7 @@ public class DevelopmentController {
     DatashieldContainerConfig currentConfig = containers.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
-    DatashieldContainerConfig datashieldContainerConfig =
+    ContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),

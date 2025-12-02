@@ -34,6 +34,7 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
@@ -1125,7 +1126,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String regex = "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-    HashMap<String, Object> matchedData =
+    HashMap<String, ContainerConfig> matchedData =
         dataController.getMatchedData(
             pattern, "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
     HashMap<String, Object> expected = new HashMap<>();
