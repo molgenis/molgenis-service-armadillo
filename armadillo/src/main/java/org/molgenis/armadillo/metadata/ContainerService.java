@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
@@ -53,7 +54,7 @@ public class ContainerService {
     return settings.getContainers().get(containerName);
   }
 
-  public void upsert(DatashieldContainerConfig datashieldContainerConfig) {
+  public void upsert(ContainerConfig datashieldContainerConfig) {
     String containerName = datashieldContainerConfig.getName();
     settings
         .getContainers()
@@ -128,7 +129,7 @@ public class ContainerService {
       @Nullable String newInstallDate) {
     DatashieldContainerConfig existing = getByName(containerName);
 
-    DatashieldContainerConfig updated =
+    ContainerConfig updated =
         DatashieldContainerConfig.create(
             existing.getName(),
             existing.getImage(),

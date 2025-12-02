@@ -18,6 +18,7 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
@@ -153,7 +154,8 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables) {
+  public CompletableFuture<Void> loadTable(
+      ContainerConfig symbol, String table, List<String> variables) {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
@@ -174,7 +176,8 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource) {
+  public CompletableFuture<Void> loadResource(
+      Principal principal, ContainerConfig symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);

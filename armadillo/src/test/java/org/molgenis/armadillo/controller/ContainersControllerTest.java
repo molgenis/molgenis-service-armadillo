@@ -19,10 +19,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
-import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.ContainerScheduler;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.DockerService;
+import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,7 +120,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_PUT() throws Exception {
-    DatashieldContainerConfig datashieldContainerConfig =
+    ContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",

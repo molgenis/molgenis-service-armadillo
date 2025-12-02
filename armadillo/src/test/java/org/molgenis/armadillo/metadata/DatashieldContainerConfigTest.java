@@ -7,7 +7,7 @@ import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 public class DatashieldContainerConfigTest {
@@ -18,7 +18,7 @@ public class DatashieldContainerConfigTest {
     String img = "myImage";
     String host = "localhost";
     int port = 6311;
-    DatashieldContainerConfig config =
+    ContainerConfig config =
         create(
             name,
             img,
@@ -40,7 +40,7 @@ public class DatashieldContainerConfigTest {
 
   @Test
   public void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
-    DatashieldContainerConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,
@@ -61,7 +61,7 @@ public class DatashieldContainerConfigTest {
 
   @Test
   public void testCreateEmptyHost() {
-    DatashieldContainerConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,
@@ -82,7 +82,7 @@ public class DatashieldContainerConfigTest {
 
   @Test
   public void testCreateEmptyOptions() {
-    DatashieldContainerConfig config =
+    ContainerConfig config =
         create(
             "myName",
             null,

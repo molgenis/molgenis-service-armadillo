@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
@@ -28,7 +29,7 @@ class ContainerServiceTest {
   @Test
   void addToWhitelist() {
     var containersMetadata = ContainersMetadata.create();
-    var defaultContainer =
+    ContainerConfig defaultContainer =
         DatashieldContainerConfig.create(
             "default",
             "test",
@@ -68,7 +69,7 @@ class ContainerServiceTest {
     String newInstallDate = "2025-10-05T12:34:56Z";
 
     // Create an existing container config with oldImageId
-    DatashieldContainerConfig existingContainer =
+    ContainerConfig existingContainer =
         DatashieldContainerConfig.create(
             containerName,
             "someImage",

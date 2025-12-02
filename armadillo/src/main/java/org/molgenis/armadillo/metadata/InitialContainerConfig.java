@@ -2,6 +2,7 @@ package org.molgenis.armadillo.metadata;
 
 import java.util.Map;
 import java.util.Set;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
 /**
@@ -21,7 +22,7 @@ public class InitialContainerConfig {
   private Set<String> functionBlacklist;
   private Map<String, String> options;
 
-  public DatashieldContainerConfig toContainerConfig() {
+  public ContainerConfig toContainerConfig() {
     return DatashieldContainerConfig.create(
         name,
         image,

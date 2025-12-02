@@ -182,7 +182,7 @@ class DockerServiceTest {
   @SuppressWarnings("ConstantConditions")
   @Test
   void testStartContainer() {
-    var containerConfig = DatashieldContainerConfig.createDefault();
+    ContainerConfig containerConfig = DatashieldContainerConfig.createDefault();
     when(containerService.getByName("default")).thenReturn(containerConfig);
 
     // Stub inspectContainerCmd to return an image ID
@@ -311,9 +311,9 @@ class DockerServiceTest {
             );
   }
 
-  private List<DatashieldContainerConfig> createExampleSettings() {
-    var container1 = DatashieldContainerConfig.createDefault();
-    var container2 =
+  private List<ContainerConfig> createExampleSettings() {
+    ContainerConfig container1 = DatashieldContainerConfig.createDefault();
+    ContainerConfig container2 =
         DatashieldContainerConfig.create(
             "omics",
             "datashield/armadillo-rserver-omics",
