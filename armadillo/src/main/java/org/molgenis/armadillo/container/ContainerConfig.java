@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.container;
 
-public interface ContainerRuntimeConfig {
+public interface ContainerConfig {
 
   String getName();
 

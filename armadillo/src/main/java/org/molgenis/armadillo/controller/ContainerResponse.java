@@ -8,7 +8,7 @@ import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 
 @AutoValue
@@ -62,22 +62,22 @@ public abstract class ContainerResponse {
   public abstract String getInstallDate();
 
   public static ContainerResponse create(
-      ContainerConfig containerConfig, ContainerInfo containerInfo) {
+      DatashieldContainerConfig datashieldContainerConfig, ContainerInfo containerInfo) {
     return new AutoValue_ContainerResponse(
-        containerConfig.getName(),
-        containerConfig.getImage(),
-        containerConfig.getAutoUpdate(),
-        containerConfig.getUpdateSchedule(),
-        containerConfig.getHost(),
-        containerConfig.getPort(),
-        containerConfig.getPackageWhitelist(),
-        containerConfig.getFunctionBlacklist(),
-        containerConfig.getOptions(),
+        datashieldContainerConfig.getName(),
+        datashieldContainerConfig.getImage(),
+        datashieldContainerConfig.getAutoUpdate(),
+        datashieldContainerConfig.getUpdateSchedule(),
+        datashieldContainerConfig.getHost(),
+        datashieldContainerConfig.getPort(),
+        datashieldContainerConfig.getPackageWhitelist(),
+        datashieldContainerConfig.getFunctionBlacklist(),
+        datashieldContainerConfig.getOptions(),
         containerInfo,
-        containerConfig.getLastImageId(),
-        containerConfig.getVersionId(),
-        containerConfig.getImageSize(),
-        containerConfig.getCreationDate(),
-        containerConfig.getInstallDate());
+        datashieldContainerConfig.getLastImageId(),
+        datashieldContainerConfig.getVersionId(),
+        datashieldContainerConfig.getImageSize(),
+        datashieldContainerConfig.getCreationDate(),
+        datashieldContainerConfig.getInstallDate());
   }
 }

@@ -2,6 +2,7 @@ package org.molgenis.armadillo.metadata;
 
 import java.util.Map;
 import java.util.Set;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
 /**
  * Container that is passed as configuration parameters. Don't use at runtime.
@@ -20,8 +21,8 @@ public class InitialContainerConfig {
   private Set<String> functionBlacklist;
   private Map<String, String> options;
 
-  public ContainerConfig toContainerConfig() {
-    return ContainerConfig.create(
+  public DatashieldContainerConfig toContainerConfig() {
+    return DatashieldContainerConfig.create(
         name,
         image,
         autoUpdate,

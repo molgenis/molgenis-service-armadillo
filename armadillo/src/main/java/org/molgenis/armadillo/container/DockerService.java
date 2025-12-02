@@ -64,7 +64,7 @@ public class DockerService {
   }
 
   public Map<String, ContainerInfo> getAllContainerStatuses() {
-    var names = containerService.getAll().stream().map(ContainerConfig::getName).toList();
+    var names = containerService.getAll().stream().map(DatashieldContainerConfig::getName).toList();
 
     var statuses =
         names.stream()
@@ -256,27 +256,28 @@ public class DockerService {
     }
   }
 
-  void installImage(ContainerConfig containerConfig) {
-    if (containerConfig.getImage() == null) {
-      throw new MissingImageException(containerConfig.getImage());
+  void installImage(DatashieldContainerConfig datashieldContainerConfig) {
+    if (datashieldContainerConfig.getImage() == null) {
+      throw new MissingImageException(datashieldContainerConfig.getImage());
     }
 
     // if rock is in the image name, it's rock
-    int imageExposed = containerConfig.getImage().contains("rock") ? 8085 : 6311;
+    int imageExposed = datashieldContainerConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(containerConfig.getPort()));
-    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(containerConfig.getImage())) {
+    portBindings.bind(exposed, Ports.Binding.bindPort(datashieldContainerConfig.getPort()));
+    try (CreateContainerCmd cmd =
+        dockerClient.createContainerCmd(datashieldContainerConfig.getImage())) {
       cmd.withExposedPorts(exposed)
           .withHostConfig(
               new HostConfig()
                   .withPortBindings(portBindings)
                   .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withName(containerConfig.getName())
+          .withName(datashieldContainerConfig.getName())
           .withEnv("DEBUG=FALSE")
           .exec();
     } catch (DockerException e) {
-      throw new ImageStartFailedException(containerConfig.getImage(), e);
+      throw new ImageStartFailedException(datashieldContainerConfig.getImage(), e);
     }
   }
 
@@ -312,29 +313,30 @@ public class DockerService {
     }
   }
 
-  private void pullImage(ContainerConfig containerConfig) {
-    if (containerConfig.getImage() == null) {
-      throw new MissingImageException(containerConfig.getName());
+  private void pullImage(DatashieldContainerConfig datashieldContainerConfig) {
+    if (datashieldContainerConfig.getImage() == null) {
+      throw new MissingImageException(datashieldContainerConfig.getName());
     }
 
     try {
       dockerClient
-          .pullImageCmd(containerConfig.getImage())
-          .exec(getPullProgress(containerConfig))
+          .pullImageCmd(datashieldContainerConfig.getImage())
+          .exec(getPullProgress(datashieldContainerConfig))
           .awaitCompletion(10, TimeUnit.MINUTES);
 
     } catch (NotFoundException e) {
-      throw new ImagePullFailedException(containerConfig.getImage(), e);
+      throw new ImagePullFailedException(datashieldContainerConfig.getImage(), e);
     } catch (RuntimeException e) {
       LOG.warn("Couldn't pull image", e);
       // Typically, network offline; for local use we can continue.
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ImagePullFailedException(containerConfig.getImage(), e);
+      throw new ImagePullFailedException(datashieldContainerConfig.getImage(), e);
     }
   }
 
-  private PullImageResultCallback getPullProgress(ContainerConfig containerConfig) {
+  private PullImageResultCallback getPullProgress(
+      DatashieldContainerConfig datashieldContainerConfig) {
     final Set<String> seen = ConcurrentHashMap.newKeySet();
     final Set<String> done = ConcurrentHashMap.newKeySet();
     final AtomicInteger lastPct = new AtomicInteger(0);
@@ -359,7 +361,7 @@ public class DockerService {
         int total = Math.max(1, seen.size());
 
         containerStatusService.updateStatus(
-            containerConfig.getName(), "Installing container", completed, total);
+            datashieldContainerConfig.getName(), "Installing container", completed, total);
 
         super.onNext(item);
       }

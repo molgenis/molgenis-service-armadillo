@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.metadata;
+package org.molgenis.armadillo.container;
 
 import static java.util.Collections.emptySet;
 
@@ -11,11 +11,12 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import java.util.Map;
 import java.util.Set;
+import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class ContainerConfig {
+public abstract class DatashieldContainerConfig extends AbstractContainerConfig {
 
   @JsonProperty("name")
   @NotEmpty
@@ -72,7 +73,7 @@ public abstract class ContainerConfig {
   public abstract String getInstallDate();
 
   @JsonCreator
-  public static ContainerConfig create(
+  public static DatashieldContainerConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("autoUpdate") Boolean autoUpdate,
@@ -87,7 +88,7 @@ public abstract class ContainerConfig {
       @JsonProperty("imageSize") @Nullable Long newImageSize,
       @JsonProperty("creationDate") @Nullable String newCreationDate,
       @JsonProperty("installDate") @Nullable String newInstallDate) {
-    return new AutoValue_ContainerConfig(
+    return new AutoValue_DatashieldContainerConfig(
         newName,
         newImage,
         autoUpdate,
@@ -104,7 +105,7 @@ public abstract class ContainerConfig {
         newInstallDate);
   }
 
-  public static ContainerConfig createDefault() {
+  public static DatashieldContainerConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",

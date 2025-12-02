@@ -7,6 +7,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.armadillo.container.ContainerScope;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
@@ -41,38 +42,38 @@ public class ContainerService {
     bootstrap();
   }
 
-  public List<ContainerConfig> getAll() {
+  public List<DatashieldContainerConfig> getAll() {
     return new ArrayList<>(settings.getContainers().values());
   }
 
-  public ContainerConfig getByName(String containerName) {
+  public DatashieldContainerConfig getByName(String containerName) {
     if (!settings.getContainers().containsKey(containerName)) {
       throw new UnknownContainerException(containerName);
     }
     return settings.getContainers().get(containerName);
   }
 
-  public void upsert(ContainerConfig containerConfig) {
-    String containerName = containerConfig.getName();
+  public void upsert(DatashieldContainerConfig datashieldContainerConfig) {
+    String containerName = datashieldContainerConfig.getName();
     settings
         .getContainers()
         .put(
             containerName,
-            ContainerConfig.create(
+            DatashieldContainerConfig.create(
                 containerName,
-                containerConfig.getImage(),
-                containerConfig.getAutoUpdate(),
-                containerConfig.getUpdateSchedule(),
-                containerConfig.getHost(),
-                containerConfig.getPort(),
-                containerConfig.getPackageWhitelist(),
-                containerConfig.getFunctionBlacklist(),
-                containerConfig.getOptions(),
-                containerConfig.getLastImageId(),
-                containerConfig.getVersionId(),
-                containerConfig.getImageSize(),
-                containerConfig.getCreationDate(),
-                containerConfig.getInstallDate()));
+                datashieldContainerConfig.getImage(),
+                datashieldContainerConfig.getAutoUpdate(),
+                datashieldContainerConfig.getUpdateSchedule(),
+                datashieldContainerConfig.getHost(),
+                datashieldContainerConfig.getPort(),
+                datashieldContainerConfig.getPackageWhitelist(),
+                datashieldContainerConfig.getFunctionBlacklist(),
+                datashieldContainerConfig.getOptions(),
+                datashieldContainerConfig.getLastImageId(),
+                datashieldContainerConfig.getVersionId(),
+                datashieldContainerConfig.getImageSize(),
+                datashieldContainerConfig.getCreationDate(),
+                datashieldContainerConfig.getInstallDate()));
     flushContainerBeans(containerName);
     save();
   }
@@ -114,7 +115,7 @@ public class ContainerService {
     }
 
     if (!settings.getContainers().containsKey(DEFAULT)) {
-      upsert(ContainerConfig.createDefault());
+      upsert(DatashieldContainerConfig.createDefault());
     }
   }
 
@@ -125,10 +126,10 @@ public class ContainerService {
       Long newImageSize,
       String newCreationDate,
       @Nullable String newInstallDate) {
-    ContainerConfig existing = getByName(containerName);
+    DatashieldContainerConfig existing = getByName(containerName);
 
-    ContainerConfig updated =
-        ContainerConfig.create(
+    DatashieldContainerConfig updated =
+        DatashieldContainerConfig.create(
             existing.getName(),
             existing.getImage(),
             existing.getAutoUpdate(),

@@ -4,8 +4,8 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.annotation.ContainerScope;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
@@ -19,17 +19,17 @@ import org.springframework.stereotype.Component;
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;
-  private final ContainerConfig containerConfig;
+  private final DatashieldContainerConfig datashieldContainerConfig;
   private final DataShieldOptions dataShieldOptions;
   private final RConnectionFactory rConnectionFactory;
 
   public ArmadilloConnectionFactoryImpl(
       PackageService packageService,
-      ContainerConfig containerConfig,
+      DatashieldContainerConfig datashieldContainerConfig,
       DataShieldOptions dataShieldOptions,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
-    this.containerConfig = containerConfig;
+    this.datashieldContainerConfig = datashieldContainerConfig;
     this.dataShieldOptions = dataShieldOptions;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -47,7 +47,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   private void loadPackages(RServerConnection connection) {
-    packageService.loadPackages(connection, containerConfig.getPackageWhitelist());
+    packageService.loadPackages(connection, datashieldContainerConfig.getPackageWhitelist());
   }
 
   private void setDataShieldOptions(RServerConnection connection) throws RServerException {

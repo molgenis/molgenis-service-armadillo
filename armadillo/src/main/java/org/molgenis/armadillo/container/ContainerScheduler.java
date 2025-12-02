@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.molgenis.armadillo.controller.ContainerDockerController;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public class ContainerScheduler {
   }
 
   /** Reschedule or create a scheduled update task for a container. */
-  public void reschedule(ContainerConfig container) {
+  public void reschedule(DatashieldContainerConfig container) {
     cancel(container.getName());
 
     if (Boolean.TRUE.equals(container.getAutoUpdate()) && container.getUpdateSchedule() != null) {
@@ -96,7 +95,7 @@ public class ContainerScheduler {
     };
   }
 
-  private void runUpdateForContainer(ContainerConfig container) {
+  private void runUpdateForContainer(DatashieldContainerConfig container) {
     try {
       // Get container status directly using container name
       var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
