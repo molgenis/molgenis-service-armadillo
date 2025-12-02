@@ -5,7 +5,6 @@ import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getAc
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnectionFactory;
@@ -18,7 +17,7 @@ public class ContainerScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
-  public ContainerConfig containerConfig(ContainerService containerService) {
+  public DatashieldContainerConfig containerConfig(ContainerService containerService) {
     var activeContainerName = getActiveContainerName();
     try {
       return runAsSystem(() -> containerService.getByName(activeContainerName));
@@ -31,8 +30,9 @@ public class ContainerScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
-  public RConnectionFactory rConnectionFactory(ContainerConfig containerConfig) {
-    return new RServerConnectionFactory(containerConfig.toEnvironmentConfigProps());
+  public RConnectionFactory rConnectionFactory(
+      DatashieldContainerConfig datashieldContainerConfig) {
+    return new RServerConnectionFactory(datashieldContainerConfig.toEnvironmentConfigProps());
   }
 
   @Bean

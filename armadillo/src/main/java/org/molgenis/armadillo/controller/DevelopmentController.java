@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -125,11 +125,11 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ContainerConfig currentConfig = containers.getByName(getActiveContainerName());
+    DatashieldContainerConfig currentConfig = containers.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
-    ContainerConfig containerConfig =
-        ContainerConfig.create(
+    DatashieldContainerConfig datashieldContainerConfig =
+        DatashieldContainerConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),
             currentConfig.getAutoUpdate(),
@@ -145,10 +145,10 @@ public class DevelopmentController {
             currentConfig.getCreationDate(),
             currentConfig.getInstallDate());
     auditEventPublisher.audit(
-        () -> containers.upsert(containerConfig),
+        () -> containers.upsert(datashieldContainerConfig),
         principal,
         UPSERT_CONTAINER,
-        Map.of(CONTAINER, containerConfig));
+        Map.of(CONTAINER, datashieldContainerConfig));
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")

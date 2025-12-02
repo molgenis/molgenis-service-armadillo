@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.container;
 
 import org.molgenis.armadillo.controller.ContainerDockerController;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,7 @@ public class ContainerSchedulerFallbackConfig {
   public ContainerScheduler noOpContainerScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
-      public void reschedule(ContainerConfig container) {
+      public void reschedule(DatashieldContainerConfig container) {
         // no-op
       }
 
