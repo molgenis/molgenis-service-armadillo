@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
@@ -17,14 +15,6 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class DatashieldContainerConfig extends AbstractContainerConfig {
 
-  @JsonProperty("name")
-  @NotEmpty
-  public abstract String getName();
-
-  @JsonProperty("image")
-  @Nullable // only required when docker enabled
-  public abstract String getImage();
-
   @JsonProperty("autoUpdate")
   @Nullable
   public abstract Boolean getAutoUpdate();
@@ -32,15 +22,6 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
   @JsonProperty("updateSchedule")
   @Nullable
   public abstract UpdateSchedule getUpdateSchedule();
-
-  @JsonProperty("host")
-  @Nullable // defaults to localhost
-  @NotEmpty
-  public abstract String getHost();
-
-  @JsonProperty("port")
-  @Positive
-  public abstract Integer getPort();
 
   @JsonProperty("packageWhitelist")
   public abstract Set<String> getPackageWhitelist();
@@ -51,25 +32,13 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
 
-  @JsonProperty("lastImageId")
-  @Nullable
-  public abstract String getLastImageId();
-
   @JsonProperty("versionId")
   @Nullable
   public abstract String getVersionId();
 
-  @JsonProperty("imageSize")
-  @Nullable
-  public abstract Long getImageSize();
-
   @JsonProperty("CreationDate")
   @Nullable
   public abstract String getCreationDate();
-
-  @JsonProperty("InstallDate")
-  @Nullable
-  public abstract String getInstallDate();
 
   @JsonCreator
   public static DatashieldContainerConfig create(
