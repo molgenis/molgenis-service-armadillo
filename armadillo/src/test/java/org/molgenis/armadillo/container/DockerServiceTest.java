@@ -40,7 +40,6 @@ import org.mockito.quality.Strictness;
 import org.molgenis.armadillo.exceptions.ImagePullFailedException;
 import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
@@ -155,7 +154,7 @@ class DockerServiceTest {
 
   @Test
   void testStartContainerNoImage() {
-    var containerConfig = mock(ContainerConfig.class);
+    var containerConfig = mock(DatashieldContainerConfig.class);
     when(containerService.getByName("default")).thenReturn(containerConfig);
 
     assertThrows(
@@ -164,25 +163,26 @@ class DockerServiceTest {
 
   @Test
   void testInstallImageNull() {
-    ContainerConfig containerConfig = mock(ContainerConfig.class);
-    when(containerConfig.getImage()).thenReturn(null);
-    assertThrows(MissingImageException.class, () -> dockerService.installImage(containerConfig));
+    DatashieldContainerConfig datashieldContainerConfig = mock(DatashieldContainerConfig.class);
+    when(datashieldContainerConfig.getImage()).thenReturn(null);
+    assertThrows(
+        MissingImageException.class, () -> dockerService.installImage(datashieldContainerConfig));
   }
 
   @Test
   void testInstallImage() {
-    ContainerConfig containerConfig = mock(ContainerConfig.class);
+    DatashieldContainerConfig datashieldContainerConfig = mock(DatashieldContainerConfig.class);
     String image = "datashield/rock-something-something:latest";
-    when(containerConfig.getImage()).thenReturn(image);
-    when(containerConfig.getPort()).thenReturn(6311);
-    assertDoesNotThrow(() -> dockerService.installImage(containerConfig));
+    when(datashieldContainerConfig.getImage()).thenReturn(image);
+    when(datashieldContainerConfig.getPort()).thenReturn(6311);
+    assertDoesNotThrow(() -> dockerService.installImage(datashieldContainerConfig));
     verify(dockerClient).createContainerCmd(image);
   }
 
   @SuppressWarnings("ConstantConditions")
   @Test
   void testStartContainer() {
-    var containerConfig = ContainerConfig.createDefault();
+    var containerConfig = DatashieldContainerConfig.createDefault();
     when(containerService.getByName("default")).thenReturn(containerConfig);
 
     // Stub inspectContainerCmd to return an image ID
@@ -221,7 +221,7 @@ class DockerServiceTest {
 
   @Test
   void testStartImageRemovalWhenIdChanges() {
-    var containerCfg = mock(ContainerConfig.class);
+    var containerCfg = mock(DatashieldContainerConfig.class);
     when(containerService.getByName("default")).thenReturn(containerCfg);
     when(containerCfg.getImage()).thenReturn("datashield/armadillo-rserver");
     when(containerCfg.getLastImageId()).thenReturn("sha256:old");
@@ -275,7 +275,7 @@ class DockerServiceTest {
 
   @Test
   void testStartImageNotRemovedWhenIdUnchanged() {
-    var mockContainerConfig = mock(ContainerConfig.class);
+    var mockContainerConfig = mock(DatashieldContainerConfig.class);
     when(containerService.getByName("default")).thenReturn(mockContainerConfig);
     when(mockContainerConfig.getImage()).thenReturn("datashield/armadillo-rserver");
     when(mockContainerConfig.getLastImageId()).thenReturn("sha256:same");
@@ -311,10 +311,10 @@ class DockerServiceTest {
             );
   }
 
-  private List<ContainerConfig> createExampleSettings() {
-    var container1 = ContainerConfig.createDefault();
+  private List<DatashieldContainerConfig> createExampleSettings() {
+    var container1 = DatashieldContainerConfig.createDefault();
     var container2 =
-        ContainerConfig.create(
+        DatashieldContainerConfig.create(
             "omics",
             "datashield/armadillo-rserver-omics",
             false,
@@ -405,7 +405,7 @@ class DockerServiceTest {
     var imageId = "sha256:test";
 
     // mock config with image ID
-    var config = mock(ContainerConfig.class);
+    var config = mock(DatashieldContainerConfig.class);
     when(config.getLastImageId()).thenReturn(imageId);
     when(containerService.getByName(containerName)).thenReturn(config);
 
@@ -429,7 +429,7 @@ class DockerServiceTest {
     var imageId = "sha256:test";
 
     // mock config with image ID
-    var config = mock(ContainerConfig.class);
+    var config = mock(DatashieldContainerConfig.class);
     when(config.getLastImageId()).thenReturn(imageId);
     when(containerService.getByName(containerName)).thenReturn(config);
     when(dockerClient.inspectImageCmd(imageId)).thenThrow(new NotFoundException(""));
@@ -617,7 +617,7 @@ class DockerServiceTest {
   @Test
   void pullImage_emitsProgressUpdates_toContainerStatusService() {
     // Arrange container returned by service
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
@@ -662,7 +662,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_ignoresItemsWithoutId() {
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
@@ -691,7 +691,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_throwsMissingImage_whenConfigImageNull() {
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn(null);
     when(containerService.getByName("default")).thenReturn(container);
@@ -702,7 +702,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_mapsNotFound_toImagePullFailed() {
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
@@ -718,7 +718,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_runtimeException_isSwallowedAndDoesNotThrow() {
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
@@ -733,7 +733,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_interruptedException_setsInterruptFlag_andThrows() {
-    var container = mock(ContainerConfig.class);
+    var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);

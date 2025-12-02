@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerException;
@@ -27,7 +27,7 @@ class ArmadilloConnectionFactoryImplTest {
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
   @Mock RServerConnection rConnection;
-  @Mock ContainerConfig containerConfig;
+  @Mock DatashieldContainerConfig datashieldContainerConfig;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
 
@@ -36,7 +36,7 @@ class ArmadilloConnectionFactoryImplTest {
 
     armadilloConnectionFactory =
         new ArmadilloConnectionFactoryImpl(
-            packageService, containerConfig, dataShieldOptions, rConnectionFactory);
+            packageService, datashieldContainerConfig, dataShieldOptions, rConnectionFactory);
   }
 
   @Test

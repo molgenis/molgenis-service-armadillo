@@ -9,4 +9,10 @@ public interface ContainerConfig {
   String getHost();
 
   Integer getPort();
+
+  String getLastImageId();
+
+  Long getImageSize();
+
+  String getInstallDate();
 }

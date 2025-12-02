@@ -12,6 +12,12 @@ public abstract class AbstractContainerConfig implements ContainerConfig {
 
   public abstract Integer getPort();
 
+  public abstract String getLastImageId();
+
+  public abstract Long getImageSize();
+
+  public abstract String getInstallDate();
+
   public EnvironmentConfigProps toEnvironmentConfigProps() {
     var props = new EnvironmentConfigProps();
     props.setName(getName());
