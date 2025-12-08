@@ -3,9 +3,9 @@
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
-        <ProfileStatusMessage
-          :status="profileStatus"
-          :profileName="loadingProfile"
+        <ContainerStatusMessage
+          :status="containerStatus"
+          :containerName="loadingContainer"
         />
         <FeedbackMessage
           :successMessage="successMessage"
@@ -15,227 +15,44 @@
           v-if="recordToDelete !== ''"
           :record="recordToDelete"
           action="delete"
-          recordType="project"
+          recordType="container"
           @proceed="proceedDelete"
           @cancel="clearRecordToDelete"
         ></ConfirmationDialog>
       </div>
     </div>
-
-    <LoadingSpinner v-if="profilesLoading" class="mt-5" />
-    <!-- Actual table -->
-    <Table
-      v-else
-      :dataToShow="profiles"
-      :allData="profiles"
-      :indexToEdit="profileToEditIndex"
-      :dataStructure="profilesDataStructure"
-      :isSmall="true"
-      :customColumns="['imageSize', 'creationDate', 'installDate']"
-    >
-      <template v-slot:extraHeader>
-        <!-- Add extra header for buttons (add profile button) -->
-        <th>
-          <button
-            type="button"
-            class="btn btn-sm me-1 btn-primary bg-primary"
-            @click="addNewProfile"
-            :disabled="
-              profileToEdit !== '' || profileToEditIndex === 0 || loading
-            "
-          >
-            <i class="bi bi-plus-lg"></i>
-          </button>
-        </th>
-      </template>
-      <template #objectType="objectProps">
-        <div
-          v-if="
-            objectProps.data &&
-            statusMapping[objectProps.data.status as keyof typeof statusMapping]
+    <LoadingSpinner v-if="containersLoading" class="mt-5" />
+    <div v-else>
+      <span v-for="container in containers" :ref="container.name">
+        <ContainerCard
+          :name="container.name"
+          :image="container.image"
+          :version="'versionId' in container ? container.versionId : 'Unknown'"
+          :size="convertBytes(container.imageSize)"
+          :port="container.port"
+          :isLoading="loading && loadingContainer === container.name"
+          :loadingEnabled="loading"
+          :status="
+            statusMapping[
+              container.container.status as keyof typeof statusMapping
+            ]
           "
-          class="row p-0"
-        >
-          <div class="col-6 p-0">
-            <span
-              class="badge mt-3"
-              :class="`bg-${
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].color
-              }`"
-            >
-              {{
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].status
-              }}
-            </span>
-          </div>
-          <div class="col-6 p-0">
-            <ProfileStatus
-              :disabled="true"
-              v-if="objectProps.row.name === loadingProfile"
-              :text="
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].status === 'OFFLINE'
-                  ? 'Starting'
-                  : 'Stopping'
-              "
-              icon="spinner"
-            ></ProfileStatus>
-            <ProfileStatus
-              v-else
-              :disabled="loading"
-              :text="
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].text
-              "
-              @click.prevent="
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].status === 'ONLINE'
-                  ? stopProfile(objectProps.row.name)
-                  : startProfile(objectProps.row.name)
-              "
-              :icon="
-                statusMapping[
-                  objectProps.data.status as keyof typeof statusMapping
-                ].icon
-              "
-            ></ProfileStatus>
-          </div>
-        </div>
-        <div
-          v-else-if="
-            objectProps.row.autoUpdate &&
-            objectProps.data &&
-            objectProps.data.frequency
+          :template="
+            container.image.startsWith('datashield/') ? 'ds' : 'default'
           "
+          :deleteFunction="removeContainer"
+          :startFunction="startDockerContainer"
+          :stopFunction="stopDockerContainer"
         >
-          <span>
-            {{
-              objectProps.data.frequency === "daily"
-                ? `Daily at ${objectProps.data.time}`
-                : `Weekly, ${objectProps.data.day} at ${objectProps.data.time}`
-            }}
-          </span>
-        </div>
-        <div
-          v-else-if="
-            !objectProps.row.autoUpdate &&
-            objectProps.data &&
-            'frequency' in objectProps.data &&
-            'day' in objectProps.data &&
-            'time' in objectProps.data
-          "
-        ></div>
-        <div v-else>
-          <div v-for="(value, key) in objectProps.data" :key="key">
-            {{ key }} = {{ value }}
-          </div>
-        </div>
-      </template>
-      <template #extraColumn="columnProps">
-        <!-- Add buttons for editing/deleting profiles -->
-        <th scope="row">
-          <ButtonGroup
-            :buttonIcons="['pencil-fill', 'trash-fill']"
-            :buttonColors="['primary', 'danger']"
-            :clickCallbacks="[editProfile, removeProfile]"
-            :callbackArguments="[columnProps.item, columnProps.item]"
-            :disabled="profileToEdit !== '' || profileToEditIndex === 0"
-          ></ButtonGroup>
-        </th>
-      </template>
-      <template #editRow="rowProps">
-        <InlineRowEdit
-          :immutable="addProfile ? [] : ['name']"
-          :row="rowProps.row"
-          :save="saveEditedProfile"
-          :cancel="clearProfileToEdit"
-          :dataStructure="profilesDataStructure"
-        />
-        <tr v-if="rowProps.row.autoUpdate">
-          <td colspan="100%">
-            <strong>Update schedule:</strong>
-            <div
-              class="form-check form-check-inline"
-              v-for="option in ['daily', 'weekly']"
-              :key="option"
-            >
-              <input
-                class="form-check-input"
-                type="radio"
-                :id="`freq-${option}`"
-                :value="option"
-                v-model="rowProps.row.updateSchedule.frequency"
-              />
-              <label class="form-check-label" :for="`freq-${option}`">
-                {{ option }}
-              </label>
-            </div>
-            <div class="mt-2">
-              <label class="form-label me-2">Day:</label>
-              <select
-                v-model="rowProps.row.updateSchedule.day"
-                class="form-select d-inline-block w-auto"
-                :disabled="rowProps.row.updateSchedule.frequency === 'daily'"
-              >
-                <option value="" disabled>Select day</option>
-                <option
-                  v-for="day in [
-                    'Sunday',
-                    'Monday',
-                    'Tuesday',
-                    'Wednesday',
-                    'Thursday',
-                    'Friday',
-                    'Saturday',
-                  ]"
-                  :key="day"
-                  :value="day"
-                >
-                  {{ day }}
-                </option>
-              </select>
-              <label class="form-label ms-3 me-2">Time:</label>
-              <input
-                type="time"
-                v-model="rowProps.row.updateSchedule.time"
-                class="form-control d-inline-block w-auto"
-                :disabled="!rowProps.row.autoUpdate"
-              />
-            </div>
-          </td>
-        </tr>
-      </template>
-      <template #boolType="boolProps">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          :checked="boolProps.data"
-          @change="updateAutoUpdate(boolProps.row, boolProps.data)"
-          :disabled="profileToEditIndex !== profiles.indexOf(boolProps.row)"
-        />
-      </template>
-      <template #customType="{ data, row }">
-        <span
-          v-if="typeof data === 'number' && row.hasOwnProperty('imageSize')"
-        >
-          {{ convertBytes(data) }}
-        </span>
-        <span v-else-if="row.hasOwnProperty('creationDate') && data">
-          {{ new Date(data).toLocaleDateString() }}
-        </span>
-        <span v-else-if="row.hasOwnProperty('installDate') && data">
-          {{ new Date(data).toLocaleDateString() }}
-        </span>
-        <span v-else>{{ data }}</span>
-      </template>
-    </Table>
+          <DataShieldContainerInfo
+            v-if="container.image.startsWith('datashield/')"
+            :packageWhitelist="container.packageWhitelist"
+            :functionBlacklist="container.functionBlacklist"
+            :options="container.options"
+          />
+        </ContainerCard>
+      </span>
+    </div>
   </div>
 </template>
 
@@ -244,29 +61,33 @@ import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import { defineComponent, onMounted, Ref, ref } from "vue";
-import { Profile } from "@/types/api";
+import { Container } from "@/types/api";
 import {
-  deleteProfile,
-  getProfiles,
-  putProfile,
-  startProfile,
-  stopProfile,
+  deleteContainer,
+  getContainers,
+  putContainer,
+  startContainer,
+  stopContainer,
 } from "@/api/api";
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
-import ProfileStatus from "@/components/ProfileStatus.vue";
+import ContainerStatus from "@/components/ContainerStatus.vue";
 import Badge from "@/components/Badge.vue";
-import { ProfilesData, TypeObject } from "@/types/types";
+import { ContainersData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";
 import { isDuplicate } from "@/helpers/utils";
 import { processErrorMessages } from "@/helpers/errorProcessing";
-import { convertBytes, useProfileStatus } from "@/helpers/utils";
-import ProfileStatusMessage from "@/components/ProfileStatusMessage.vue";
+import { convertBytes, useContainerStatus } from "@/helpers/utils";
+import ContainerStatusMessage from "@/components/ContainerStatusMessage.vue";
+import containerStatus from "@/components/ContainerStatus.vue";
+import ContainerCard from "@/components/ContainerCard.vue";
+import DataShieldContainerInfo from "@/components/DataShieldContainerInfo.vue";
 
 export default defineComponent({
   name: "Containers",
   components: {
+    DataShieldContainerInfo,
     Badge,
     ConfirmationDialog,
     FeedbackMessage,
@@ -274,38 +95,39 @@ export default defineComponent({
     LoadingSpinner,
     Table,
     ButtonGroup,
-    ProfileStatus,
-    ProfileStatusMessage,
+    ContainerStatus,
+    ContainerStatusMessage,
+    ContainerCard,
   },
   setup() {
-    const profiles: Ref<Profile[]> = ref([]);
-    const profilesLoading: Ref<Boolean> = ref(true);
+    const containers: Ref<Container[]> = ref([]);
+    const containersLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
     const router = useRouter();
-    const loadingProfile = ref(""); // reactive profile name
+    const loadingContainer = ref(""); // reactive container name
     const {
-      status: profileStatus,
+      status: containerStatus,
       startPolling,
       stopPolling,
-    } = useProfileStatus();
+    } = useContainerStatus();
     onMounted(async () => {
-      await loadProfiles();
+      await loadContainers();
     });
-    const loadProfiles = async () => {
-      profiles.value = await getProfiles()
-        .then((profiles) => {
-          dockerManagementEnabled.value = "container" in profiles[0];
+    const loadContainers = async () => {
+      containers.value = await getContainers()
+        .then((containers) => {
+          dockerManagementEnabled.value = "container" in containers[0];
 
-          return profiles.map((profile) => {
+          return containers.map((container) => {
             // Extract datashieldSeed
-            const datashieldSeed = profile.options["datashield.seed"];
-            delete profile.options["datashield.seed"];
+            const datashieldSeed = container.options["datashield.seed"];
+            delete container.options["datashield.seed"];
 
             return {
-              ...profile,
+              ...container,
               datashieldSeed,
-              autoUpdateSchedule: profile.autoUpdateSchedule || {
+              autoUpdateSchedule: container.autoUpdateSchedule || {
                 frequency: "weekly",
                 day: "Sunday",
                 time: "01:00",
@@ -314,33 +136,37 @@ export default defineComponent({
           });
         })
         .catch((error: string) => {
-          errorMessage.value = processErrorMessages(error, "profiles", router);
+          errorMessage.value = processErrorMessages(
+            error,
+            "containers",
+            router
+          );
           return [];
         });
 
-      profilesLoading.value = false;
+      containersLoading.value = false;
     };
     return {
-      profilesLoading,
-      profiles,
+      containersLoading,
+      containers,
       errorMessage,
-      loadProfiles,
+      loadContainers,
       dockerManagementEnabled,
       convertBytes,
-      profileStatus,
+      containerStatus,
       startPolling,
       stopPolling,
     };
   },
-  data(): ProfilesData {
+  data(): ContainersData {
     return {
-      addProfile: false,
+      addContainer: false,
       recordToDelete: "",
       loading: false,
-      loadingProfile: "",
+      loadingContainer: "",
       successMessage: "",
-      profileToEditIndex: -1,
-      profileToEdit: "",
+      containerToEditIndex: -1,
+      containerToEdit: "",
       statusMapping: {
         NOT_FOUND: {
           status: "OFFLINE",
@@ -370,9 +196,12 @@ export default defineComponent({
     };
   },
   computed: {
+    containerStatus() {
+      return containerStatus;
+    },
     firstFreePort(): number {
       let port = 6311;
-      while (this.profiles.find((profile) => profile.port === port)) {
+      while (this.containers.find((container) => container.port === port)) {
         port++;
       }
       return port;
@@ -380,15 +209,15 @@ export default defineComponent({
     firstFreeSeed(): string {
       let seed = 100000000;
       while (
-        this.profiles.find(
-          (profile) => profile.datashieldSeed == seed.toString()
+        this.containers.find(
+          (container) => container.datashieldSeed == seed.toString()
         )
       ) {
         seed++;
       }
       return String(seed);
     },
-    profilesDataStructure(): TypeObject {
+    containersDataStructure(): TypeObject {
       let columns: TypeObject = {
         name: "string",
         image: "string",
@@ -418,7 +247,7 @@ export default defineComponent({
         "installDate",
       ];
 
-      if (this.profileToEditIndex !== -1) {
+      if (this.containerToEditIndex !== -1) {
         toHideInEdit.forEach((key) => {
           delete columns[key as keyof TypeObject];
         });
@@ -428,17 +257,17 @@ export default defineComponent({
     },
   },
   watch: {
-    profileToEdit() {
-      this.profileToEditIndex = this.getEditIndex();
+    containerToEdit() {
+      this.containerToEditIndex = this.getEditIndex();
     },
-    profiles: {
-      handler(newProfiles) {
-        newProfiles.forEach((profile: Profile) => {
+    containers: {
+      handler(newContainers) {
+        newContainers.forEach((container: Container) => {
           if (
-            profile.updateSchedule &&
-            profile.updateSchedule.frequency === "daily"
+            container.updateSchedule &&
+            container.updateSchedule.frequency === "daily"
           ) {
-            profile.updateSchedule.day = "";
+            container.updateSchedule.day = "";
           }
         });
       },
@@ -446,45 +275,45 @@ export default defineComponent({
     },
   },
   methods: {
-    proceedDelete(profileName: string) {
+    proceedDelete(containerName: string) {
       this.clearRecordToDelete();
-      deleteProfile(profileName)
+      deleteContainer(containerName)
         .then(() => {
-          this.successMessage = `[${profileName}] was successfully deleted.`;
-          this.reloadProfiles();
+          this.successMessage = `[${containerName}] was successfully deleted.`;
+          this.reloadContainers();
         })
         .catch((error) => {
-          this.errorMessage = `Could not delete [${profileName}]: ${error}.`;
+          this.errorMessage = `Could not delete [${containerName}]: ${error}.`;
         });
     },
     clearRecordToDelete() {
       this.recordToDelete = "";
     },
-    editProfile(profile: Profile) {
-      this.profileToEdit = profile.name;
+    editContainer(container: Container) {
+      this.containerToEdit = container.name;
     },
-    saveEditedProfile() {
+    saveEditedContainer() {
       this.clearUserMessages();
-      const profile: Profile = this.profiles[this.profileToEditIndex];
-      const profileNames = this.profiles.map((profile) => {
-        return profile.name;
+      const container: Container = this.containers[this.containerToEditIndex];
+      const containerNames = this.containers.map((container) => {
+        return container.name;
       });
 
-      const imageParts = profile.image.split(":");
+      const imageParts = container.image.split(":");
       if (imageParts.length == 1) {
-        this.errorMessage = `Save failed: [${profile.image}] needs a version added. Try [${profile.image}:latest]`;
+        this.errorMessage = `Save failed: [${container.image}] needs a version added. Try [${container.image}:latest]`;
         return;
       }
       if (imageParts.length > 2) {
-        this.errorMessage = `Save failed: [${profile.image}] needs a version added. Try [${imageParts[0]}:latest]`;
+        this.errorMessage = `Save failed: [${container.image}] needs a version added. Try [${imageParts[0]}:latest]`;
         return;
       }
 
-      const hostPortCombo = `${profile.host}:${profile.port}`;
+      const hostPortCombo = `${container.host}:${container.port}`;
 
-      const hasDuplicates = this.profiles.some(
+      const hasDuplicates = this.containers.some(
         (prof) =>
-          prof !== profile && `${prof.host}:${prof.port}` === hostPortCombo
+          prof !== container && `${prof.host}:${prof.port}` === hostPortCombo
       );
 
       if (hasDuplicates) {
@@ -493,74 +322,74 @@ export default defineComponent({
       }
 
       if (
-        this.profileToEdit === "default" &&
-        profile.name != this.profileToEdit
+        this.containerToEdit === "default" &&
+        container.name != this.containerToEdit
       ) {
         this.errorMessage = "Save failed: cannot rename 'default' package.";
         return;
-      } else if (profile.name === "") {
-        this.errorMessage = "Cannot create profile with empty name.";
+      } else if (container.name === "") {
+        this.errorMessage = "Cannot create container with empty name.";
         return;
-      } else if (isDuplicate(profile.name, profileNames)) {
-        this.errorMessage = `Profile with name [${profile.name}] already exists.`;
+      } else if (isDuplicate(container.name, containerNames)) {
+        this.errorMessage = `Container with name [${container.name}] already exists.`;
         return;
       } else {
-        this.proceedEdit(profile);
+        this.proceedEdit(container);
       }
     },
-    proceedEdit(profile: Profile) {
-      this.addProfile = false;
-      profile.options["datashield.seed"] = profile.datashieldSeed;
+    proceedEdit(container: Container) {
+      this.addContainer = false;
+      container.options["datashield.seed"] = container.datashieldSeed;
       //add/update
-      this.loadingProfile = profile.name;
-      putProfile(profile)
+      this.loadingContainer = container.name;
+      putContainer(container)
         .then(() => {
-          this.successMessage = `[${profile.name}] was successfully saved.`;
-          this.clearProfileToEdit();
-          this.profileToEditIndex = -1;
+          this.successMessage = `[${container.name}] was successfully saved.`;
+          this.clearContainerToEdit();
+          this.containerToEditIndex = -1;
         })
         .catch((error) => {
-          this.errorMessage = `Save failed: Could not save [${profile.name}]: ${error}.`;
+          this.errorMessage = `Save failed: Could not save [${container.name}]: ${error}.`;
           this.clearLoading();
         });
       //check if new name
-      if (this.profileToEdit && profile.name !== this.profileToEdit) {
-        deleteProfile(this.profileToEdit)
-          .then(() => this.reloadProfiles())
+      if (this.containerToEdit && container.name !== this.containerToEdit) {
+        deleteContainer(this.containerToEdit)
+          .then(() => this.reloadContainers())
           .catch((error) => {
-            this.errorMessage = `Could not rename: delete previous profile [${profile.name}]: ${error}.`;
+            this.errorMessage = `Could not rename: delete previous container [${container.name}]: ${error}.`;
             this.clearLoading();
           });
       }
     },
-    removeProfile(profile: Profile) {
+    removeContainer(containerName: String) {
       this.clearUserMessages();
-      this.recordToDelete = profile.name;
+      this.recordToDelete = containerName;
     },
     clearLoading() {
       this.loading = false;
-      this.loadingProfile = "";
+      this.loadingContainer = "";
     },
-    clearProfileToEdit() {
-      this.reloadProfiles();
-      this.profileToEditIndex = -1;
-      this.profileToEdit = "";
-      this.addProfile = false;
+    clearContainerToEdit() {
+      this.reloadContainers();
+      this.containerToEditIndex = -1;
+      this.containerToEdit = "";
+      this.addContainer = false;
     },
     getEditIndex() {
-      const index = this.profiles.findIndex((profile: Profile) => {
-        return profile.name === this.profileToEdit;
+      const index = this.containers.findIndex((container: Container) => {
+        return container.name === this.containerToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when name is altered
-      if (this.profileToEdit === "" || index !== -1) {
+      if (this.containerToEdit === "" || index !== -1) {
         return index;
-      } else return this.profileToEditIndex;
+      } else return this.containerToEditIndex;
     },
-    addNewProfile() {
-      this.addProfile = true;
+    addNewContainer() {
+      this.addContainer = true;
       this.clearUserMessages();
 
-      this.profiles.unshift({
+      this.containers.unshift({
         name: "",
         image: "datashield/rock-base:latest",
         versionId: "",
@@ -578,35 +407,35 @@ export default defineComponent({
         options: {},
         container: { tags: [], status: "unknown" },
       });
-      this.profileToEditIndex = 0;
+      this.containerToEditIndex = 0;
     },
     clearUserMessages() {
       this.successMessage = "";
       this.errorMessage = "";
     },
-    startProfile(name: string) {
+    startDockerContainer(name: string) {
       this.clearUserMessages();
       this.loading = true;
-      this.loadingProfile = name;
+      this.loadingContainer = name;
       this.startPolling(name);
-      startProfile(name)
+      startContainer(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully started.`;
-          this.reloadProfiles();
+          this.reloadContainers();
         })
         .catch((error) => {
           this.errorMessage = `Could not start [${name}]: ${error}.`;
           this.clearLoading();
         });
     },
-    stopProfile(name: string) {
+    stopDockerContainer(name: string) {
       this.clearUserMessages();
       this.loading = true;
-      this.loadingProfile = name;
-      stopProfile(name)
+      this.loadingContainer = name;
+      stopContainer(name)
         .then(() => {
           this.successMessage = `[${name}] was successfully stopped.`;
-          this.reloadProfiles();
+          this.reloadContainers();
         })
         .catch((error) => {
           this.errorMessage = `Could not stop [${name}]: ${error}.`;
@@ -614,22 +443,22 @@ export default defineComponent({
           this.stopPolling();
         });
     },
-    updateAutoUpdate(profile: Profile, currentValue: boolean) {
-      profile.autoUpdate = !currentValue;
-      putProfile(profile).catch((error) => {
-        this.errorMessage = `Could not update auto-update for [${profile.name}]: ${error}.`;
+    updateAutoUpdate(container: Container, currentValue: boolean) {
+      container.autoUpdate = !currentValue;
+      putContainer(container).catch((error) => {
+        this.errorMessage = `Could not update auto-update for [${container.name}]: ${error}.`;
         // Revert checkbox on failure
-        profile.autoUpdate = currentValue;
+        container.autoUpdate = currentValue;
       });
     },
-    async reloadProfiles() {
+    async reloadContainers() {
       this.loading = true;
       try {
-        await this.loadProfiles();
+        await this.loadContainers();
         this.clearLoading();
       } catch (error) {
         this.clearLoading();
-        this.errorMessage = `Could not load profiles: ${error}.`;
+        this.errorMessage = `Could not load containers: ${error}.`;
       }
     },
   },
