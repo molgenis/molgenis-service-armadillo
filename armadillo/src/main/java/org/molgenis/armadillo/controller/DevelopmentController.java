@@ -114,7 +114,8 @@ public class DevelopmentController {
   @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return containers.getByName(getActiveContainerName()).getPackageWhitelist();
+    return ((DatashieldContainerConfig) containers.getByName(getActiveContainerName()))
+        .getPackageWhitelist();
   }
 
   @Operation(
@@ -126,7 +127,8 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    DatashieldContainerConfig currentConfig = containers.getByName(getActiveContainerName());
+    DatashieldContainerConfig currentConfig =
+        (DatashieldContainerConfig) containers.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
     ContainerConfig datashieldContainerConfig =
