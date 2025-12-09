@@ -20,7 +20,8 @@ public class ContainerScopeConfig {
   public DatashieldContainerConfig containerConfig(ContainerService containerService) {
     var activeContainerName = getActiveContainerName();
     try {
-      return runAsSystem(() -> containerService.getByName(activeContainerName));
+      return runAsSystem(
+          () -> (DatashieldContainerConfig) containerService.getByName(activeContainerName));
     } catch (UnknownContainerException e) {
       throw new IllegalStateException(
           format(

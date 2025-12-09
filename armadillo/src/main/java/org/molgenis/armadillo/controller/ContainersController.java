@@ -194,7 +194,8 @@ public class ContainersController {
     if (dockerService != null) {
       container = dockerService.getContainerStatus(name);
     }
-    return ContainerResponse.create(containers.getByName(name), container);
+    return ContainerResponse.create(
+        (DatashieldContainerConfig) containers.getByName(name), container);
   }
 
   @Operation(summary = "Add or update container")

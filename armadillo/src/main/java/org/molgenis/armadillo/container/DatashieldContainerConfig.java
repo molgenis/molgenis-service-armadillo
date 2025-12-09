@@ -41,7 +41,7 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
   public abstract String getCreationDate();
 
   @JsonCreator
-  public static ContainerConfig create(
+  public static DatashieldContainerConfig create(
       @JsonProperty("name") String newName,
       @JsonProperty("image") String newImage,
       @JsonProperty("autoUpdate") Boolean autoUpdate,
@@ -73,7 +73,7 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
         newInstallDate);
   }
 
-  public static ContainerConfig createDefault() {
+  public static DatashieldContainerConfig createDefault() {
     return create(
         "default",
         "datashield/armadillo-rserver",
