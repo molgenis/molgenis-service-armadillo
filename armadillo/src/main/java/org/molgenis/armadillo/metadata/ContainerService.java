@@ -6,9 +6,9 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.molgenis.armadillo.container.ContainerConfig;
-import org.molgenis.armadillo.container.ContainerScope;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
@@ -22,15 +22,38 @@ public class ContainerService {
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
+  private final Map<Class<? extends AbstractContainerConfig>, ContainerUpdater> updaters;
   private ContainersMetadata settings;
 
   public ContainerService(
       ContainersLoader containersLoader,
       InitialContainerConfigs initialContainerConfigs,
-      ContainerScope containerScope) {
+      ContainerScope containerScope,
+      List<ContainerUpdater> allUpdaters) { // <-- NEW PARAMETER
     this.loader = requireNonNull(containersLoader);
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
+
+    this.updaters =
+        allUpdaters.stream()
+            .collect(
+                Collectors.toMap(
+                    updater -> {
+                      // We use instanceof checks to map the updater implementation to its Config
+                      // class
+                      if (updater instanceof DatashieldContainerUpdater) {
+                        return DatashieldContainerConfig.class;
+                      }
+                      if (updater instanceof DefaultContainerUpdater) {
+                        return DefaultContainerConfig.class;
+                      }
+                      // Handle future container types here
+                      throw new IllegalStateException(
+                          "Unknown ContainerUpdater implementation: "
+                              + updater.getClass().getName());
+                    },
+                    updater -> updater));
+
     runAsSystem(this::initialize);
   }
 
@@ -43,38 +66,25 @@ public class ContainerService {
     bootstrap();
   }
 
-  public List<DatashieldContainerConfig> getAll() {
+  public List<ContainerConfig> getAll() {
     return new ArrayList<>(settings.getContainers().values());
   }
 
-  public DatashieldContainerConfig getByName(String containerName) {
+  public ContainerConfig getByName(String containerName) {
     if (!settings.getContainers().containsKey(containerName)) {
       throw new UnknownContainerException(containerName);
     }
     return settings.getContainers().get(containerName);
   }
 
-  public void upsert(ContainerConfig datashieldContainerConfig) {
-    String containerName = datashieldContainerConfig.getName();
+  public void upsert(ContainerConfig containerConfig) {
+
+    String containerName = containerConfig.getName();
+
     settings
         .getContainers()
-        .put(
-            containerName,
-            DatashieldContainerConfig.create(
-                containerName,
-                datashieldContainerConfig.getImage(),
-                datashieldContainerConfig.getAutoUpdate(),
-                datashieldContainerConfig.getUpdateSchedule(),
-                datashieldContainerConfig.getHost(),
-                datashieldContainerConfig.getPort(),
-                datashieldContainerConfig.getPackageWhitelist(),
-                datashieldContainerConfig.getFunctionBlacklist(),
-                datashieldContainerConfig.getOptions(),
-                datashieldContainerConfig.getLastImageId(),
-                datashieldContainerConfig.getVersionId(),
-                datashieldContainerConfig.getImageSize(),
-                datashieldContainerConfig.getCreationDate(),
-                datashieldContainerConfig.getInstallDate()));
+        .put(containerName, containerConfig); // Stores any subclass instance directly
+
     flushContainerBeans(containerName);
     save();
   }
@@ -120,6 +130,8 @@ public class ContainerService {
     }
   }
 
+  // In ContainerService.java
+
   public void updateImageMetaData(
       String containerName,
       String newImageId,
@@ -127,25 +139,22 @@ public class ContainerService {
       Long newImageSize,
       String newCreationDate,
       @Nullable String newInstallDate) {
-    DatashieldContainerConfig existing = getByName(containerName);
+
+    ContainerConfig existing = getByName(containerName);
+
+    ContainerUpdater updater = updaters.get(existing.getClass());
+
+    if (updater == null) {
+      throw new UnsupportedOperationException(
+          "No image metadata updater found for container type: "
+              + existing.getClass().getSimpleName());
+    }
 
     ContainerConfig updated =
-        DatashieldContainerConfig.create(
-            existing.getName(),
-            existing.getImage(),
-            existing.getAutoUpdate(),
-            existing.getUpdateSchedule(),
-            existing.getHost(),
-            existing.getPort(),
-            existing.getPackageWhitelist(),
-            existing.getFunctionBlacklist(),
-            existing.getOptions(),
-            newImageId,
-            newVersionId,
-            newImageSize,
-            newCreationDate,
-            newInstallDate != null ? newInstallDate : existing.getInstallDate());
+        updater.updateImageMetaData(
+            existing, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
+    // 3. Storage remains generic
     settings.getContainers().put(containerName, updated);
     flushContainerBeans(containerName);
     save();
