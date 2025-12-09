@@ -6,7 +6,7 @@ import {
 
 import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
 
-import { getProfileStatus } from "@/api/api";
+import { getContainerStatus } from "@/api/api";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -317,20 +317,20 @@ export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
 
-import type { ProfileStartStatus } from "@/types/api";
+import type { ContainerStartStatus } from "@/types/api";
 
-export function useProfileStatus() {
-  const status: Ref<ProfileStartStatus | null> = ref(null);
+export function useContainerStatus() {
+  const status: Ref<ContainerStartStatus | null> = ref(null);
   let timer: number | undefined;
 
   async function fetchStatus(name: string) {
     if (!name) return;
     try {
-      status.value = (await getProfileStatus(name)) as ProfileStartStatus;
+      status.value = (await getContainerStatus(name)) as ContainerStartStatus;
 
-      if (status.value?.status === "Profile installed") stopPolling();
+      if (status.value?.status === "Container installed") stopPolling();
     } catch (e) {
-      console.error("Failed to fetch profile status", e);
+      console.error("Failed to fetch container status", e);
       stopPolling();
     }
   }

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, unref, watch, type Ref } from "vue";
-import type { ProfileStartStatus } from "@/types/api";
+import type { ContainerStartStatus } from "@/types/api";
 
 const props = defineProps<{
-  status: ProfileStartStatus | null | Ref<ProfileStartStatus | null>;
-  profileName: string;
+  status: ContainerStartStatus | null | Ref<ContainerStartStatus | null>;
+  containerName: string;
 }>();
 
-const current = computed<ProfileStartStatus | null>(() => unref(props.status));
+const current = computed<ContainerStartStatus | null>(() =>
+  unref(props.status)
+);
 
 const serverPerc = computed(() => {
   const s = current.value;
@@ -39,11 +41,11 @@ watch(() => current.value, smoothServerPercentage, { immediate: true });
 
 <template>
   <div
-    v-if="current?.status === 'Installing profile'"
+    v-if="current?.status === 'Installing container'"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center; gap: 0.5rem"
   >
-    {{ current?.status }} '{{ props.profileName }}'
+    {{ current?.status }} '{{ props.containerName }}'
 
     <div
       class="progress flex-grow-1"

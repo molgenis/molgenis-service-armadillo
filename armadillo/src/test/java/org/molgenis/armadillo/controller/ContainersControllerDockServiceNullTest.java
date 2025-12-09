@@ -85,7 +85,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
   @WithAnonymousUser
   void getContainerStatusWithoutDocker_GET() throws Exception {
     mockMvc
-        .perform(get("/containers/status"))
+        .perform(get("/manage/docker-containers/status"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
