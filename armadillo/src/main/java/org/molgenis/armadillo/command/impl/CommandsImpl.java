@@ -19,7 +19,6 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
 import org.molgenis.armadillo.container.ContainerConfig;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -85,7 +84,7 @@ class CommandsImpl implements Commands {
   @Override
   public List<String> listContainers() {
     return runAsSystem(
-        () -> containerService.getAll().stream().map(DatashieldContainerConfig::getName).toList());
+        () -> containerService.getAll().stream().map(ContainerConfig::getName).toList());
   }
 
   @Override
@@ -168,7 +167,7 @@ class CommandsImpl implements Commands {
                 connection,
                 new InputStreamResource(inputStream),
                 table + PARQUET,
-                symbol,
+                symbol.getName(),
                 variables);
             return null;
           }
@@ -191,7 +190,7 @@ class CommandsImpl implements Commands {
                 connection,
                 new InputStreamResource(inputStream),
                 resource + RDS,
-                symbol);
+                symbol.getName());
             return null;
           }
         });
