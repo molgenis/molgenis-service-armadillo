@@ -90,4 +90,20 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
         null,
         null);
   }
+
+  @Override
+  public Map<String, Object> getSpecificContainerData() {
+
+    Map<String, Object> specificData = new java.util.HashMap<>();
+
+    specificData.put("autoUpdate", getAutoUpdate());
+    specificData.put("updateSchedule", getUpdateSchedule());
+    specificData.put("packageWhitelist", getPackageWhitelist());
+    specificData.put("functionBlacklist", getFunctionBlacklist());
+    specificData.put("options", getOptions());
+    specificData.put("versionId", getVersionId());
+    specificData.put("creationDate", getCreationDate());
+
+    return specificData;
+  }
 }
