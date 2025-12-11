@@ -4,6 +4,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,8 @@ public class RMetrics {
         runAsSystem(
             () ->
                 containerService.getAll().stream()
-                    .map(DatashieldContainerConfig::getName)
+                    .filter(DatashieldContainerConfig.class::isInstance)
+                    .map(ContainerConfig::getName)
                     .forEach(
                         environment ->
                             Gauge.builder(
