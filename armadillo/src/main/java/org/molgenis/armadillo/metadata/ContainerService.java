@@ -24,8 +24,9 @@ public class ContainerService {
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
-  private final Map<Class<? extends AbstractContainerConfig>, ContainerUpdater> updaters;
+  private final Map<Class<? extends ContainerConfig>, ContainerUpdater> updaters;
   private final Map<Class<? extends ContainerConfig>, ContainerWhitelister> whitelisters;
+
   private ContainersMetadata settings;
 
   public ContainerService(
@@ -38,25 +39,10 @@ public class ContainerService {
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
 
+    // REFACTORED BLOCK START
     this.updaters =
         allUpdaters.stream()
-            .collect(
-                Collectors.toMap(
-                    updater -> {
-                      // We use instanceof checks to map the updater implementation to its Config
-                      // class
-                      if (updater instanceof DatashieldContainerUpdater) {
-                        return DatashieldContainerConfig.class;
-                      }
-                      if (updater instanceof DefaultContainerUpdater) {
-                        return DefaultContainerConfig.class;
-                      }
-                      // Handle future container types here
-                      throw new IllegalStateException(
-                          "Unknown ContainerUpdater implementation: "
-                              + updater.getClass().getName());
-                    },
-                    updater -> updater));
+            .collect(Collectors.toMap(ContainerUpdater::supportsConfigType, updater -> updater));
 
     runAsSystem(this::initialize);
 
@@ -109,9 +95,7 @@ public class ContainerService {
 
     String containerName = containerConfig.getName();
 
-    settings
-        .getContainers()
-        .put(containerName, containerConfig); // Stores any subclass instance directly
+    settings.getContainers().put(containerName, containerConfig);
 
     flushContainerBeans(containerName);
     save();

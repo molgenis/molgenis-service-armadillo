@@ -4,43 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
 import java.util.Map;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class DefaultContainerConfig extends AbstractContainerConfig {
-
-  @JsonProperty("name")
-  @NotEmpty
-  public abstract String getName();
-
-  @JsonProperty("image")
-  @Nullable
-  public abstract String getImage();
-
-  @JsonProperty("host")
-  @Nullable
-  @NotEmpty
-  public abstract String getHost();
-
-  @JsonProperty("port")
-  @Positive
-  public abstract Integer getPort();
-
-  @JsonProperty("lastImageId")
-  @Nullable
-  public abstract String getLastImageId();
-
-  @JsonProperty("imageSize")
-  @Nullable
-  public abstract Long getImageSize();
-
-  @JsonProperty("InstallDate")
-  @Nullable
-  public abstract String getInstallDate();
 
   @JsonCreator
   public static DefaultContainerConfig create(
@@ -51,18 +21,50 @@ public abstract class DefaultContainerConfig extends AbstractContainerConfig {
       @JsonProperty("lastImageId") @Nullable String newLastImageId,
       @JsonProperty("imageSize") @Nullable Long newImageSize,
       @JsonProperty("installDate") @Nullable String newInstallDate) {
-    return new AutoValue_DefaultContainerConfig(
-        newName,
-        newImage,
-        newHost != null ? newHost : "localhost",
-        newPort,
-        newLastImageId,
-        newImageSize,
-        newInstallDate);
+
+    return builder()
+        .name(newName)
+        .image(newImage)
+        .host(newHost != null ? newHost : "localhost")
+        .port(newPort)
+        .lastImageId(newLastImageId)
+        .imageSize(newImageSize)
+        .installDate(newInstallDate)
+        .build();
   }
 
   public static DefaultContainerConfig createDefault() {
-    return create("default", null, "localhost", 6311, null, null, null);
+    return builder()
+        .name("default")
+        .host("localhost") // Set by name
+        .port(6311) // Set by name
+        .build();
+  }
+
+  public static DefaultContainerConfig.Builder builder() {
+    return new AutoValue_DefaultContainerConfig.Builder();
+  }
+
+  public abstract Builder toBuilder();
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder name(String name);
+
+    public abstract Builder image(@Nullable String image);
+
+    public abstract Builder host(String host);
+
+    public abstract Builder port(Integer port);
+
+    public abstract Builder lastImageId(@Nullable String lastImageId);
+
+    public abstract Builder imageSize(@Nullable Long imageSize);
+
+    public abstract Builder installDate(@Nullable String installDate);
+
+    public abstract DefaultContainerConfig build();
   }
 
   @Override

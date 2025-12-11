@@ -7,6 +7,11 @@ import org.springframework.stereotype.Component;
 public class DefaultContainerUpdater implements ContainerUpdater {
 
   @Override
+  public Class<? extends ContainerConfig> supportsConfigType() {
+    return DefaultContainerConfig.class; // <-- Identifies its target type
+  }
+
+  @Override
   public ContainerConfig updateImageMetaData(
       ContainerConfig existingConfig,
       String newImageId,
