@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.container;
 
+import java.util.Map;
+
 public interface ContainerConfig {
 
   String getName();
@@ -15,4 +17,6 @@ public interface ContainerConfig {
   Long getImageSize();
 
   String getInstallDate();
+
+  Map<String, Object> getSpecificContainerData();
 }

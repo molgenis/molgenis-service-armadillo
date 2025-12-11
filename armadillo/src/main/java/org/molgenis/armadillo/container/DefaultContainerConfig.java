@@ -7,6 +7,7 @@ import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
+import java.util.Map;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -62,5 +63,10 @@ public abstract class DefaultContainerConfig extends AbstractContainerConfig {
 
   public static DefaultContainerConfig createDefault() {
     return create("default", null, "localhost", 6311, null, null, null);
+  }
+
+  @Override
+  public Map<String, Object> getSpecificContainerData() {
+    return Map.of();
   }
 }

@@ -6,78 +6,70 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
-import java.util.Set;
+// Keep if needed for other generic purposes, otherwise can be removed
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.metadata.UpdateSchedule;
+
+// import org.molgenis.armadillo.container.DatashieldContainerConfig; // REMOVED: No longer needed
+// for casting
+// REMOVED: No longer needed (unless part of
+
+// a generic property)
 
 @AutoValue
 @JsonInclude(Include.NON_NULL)
 public abstract class ContainerResponse {
+
   public abstract String getName();
 
-  @Nullable // only required when docker enabled
+  @Nullable
   public abstract String getImage();
-
-  @Nullable
-  @JsonProperty("autoUpdate")
-  public abstract Boolean getAutoUpdate();
-
-  @Nullable
-  @JsonProperty("updateSchedule")
-  public abstract UpdateSchedule getUpdateSchedule();
 
   public abstract String getHost();
 
   public abstract Integer getPort();
 
-  public abstract Set<String> getPackageWhitelist();
-
-  public abstract Set<String> getFunctionBlacklist();
-
-  public abstract Map<String, String> getOptions();
-
-  @JsonProperty("container")
-  @Nullable // only present when docker management is enabled and Docker is online
-  public abstract ContainerInfo getContainer();
-
   @Nullable
-  @JsonProperty("lastImageId") // Add this line to include lastImageId in the response
+  @JsonProperty("lastImageId")
   public abstract String getLastImageId();
-
-  @Nullable
-  @JsonProperty("versionId") //
-  public abstract String getVersionId();
 
   @JsonProperty("imageSize")
   @Nullable
   public abstract Long getImageSize();
 
-  @JsonProperty("creationDate")
-  @Nullable
-  public abstract String getCreationDate();
-
   @JsonProperty("installDate")
   @Nullable
   public abstract String getInstallDate();
 
+  // --- CONTAINER STATUS FIELD ---
+
+  @JsonProperty("container")
+  @Nullable // only present when docker management is enabled and Docker is online
+  public abstract ContainerInfo getContainer();
+
+  // --- GENERIC FIELD FOR SPECIFIC/UNIQUE DATA ---
+
+  /**
+   * Contains all properties that are unique to the specific container type (e.g., packageWhitelist,
+   * autoUpdate for Datashield).
+   */
+  @JsonProperty("specificContainerData")
+  public abstract Map<String, Object> getSpecificContainerData();
+
   public static ContainerResponse create(
-      DatashieldContainerConfig datashieldContainerConfig, ContainerInfo containerInfo) {
+      ContainerConfig containerConfig, ContainerInfo containerInfo) {
+
     return new AutoValue_ContainerResponse(
-        datashieldContainerConfig.getName(),
-        datashieldContainerConfig.getImage(),
-        datashieldContainerConfig.getAutoUpdate(),
-        datashieldContainerConfig.getUpdateSchedule(),
-        datashieldContainerConfig.getHost(),
-        datashieldContainerConfig.getPort(),
-        datashieldContainerConfig.getPackageWhitelist(),
-        datashieldContainerConfig.getFunctionBlacklist(),
-        datashieldContainerConfig.getOptions(),
+        containerConfig.getName(),
+        containerConfig.getImage(),
+        containerConfig.getHost(),
+        containerConfig.getPort(),
         containerInfo,
-        datashieldContainerConfig.getLastImageId(),
-        datashieldContainerConfig.getVersionId(),
-        datashieldContainerConfig.getImageSize(),
-        datashieldContainerConfig.getCreationDate(),
-        datashieldContainerConfig.getInstallDate());
+        containerConfig.getLastImageId(),
+        containerConfig.getImageSize(),
+        containerConfig.getInstallDate(),
+
+        // Pass the generic map that holds all specific data:
+        containerConfig.getSpecificContainerData());
   }
 }
