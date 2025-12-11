@@ -5,6 +5,8 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.molgenis.armadillo.container.AbstractContainerConfig;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RServerConnection;
@@ -32,7 +34,8 @@ public class RProcessEndpoint {
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
     return containerService.getAll().stream()
-        .map(DatashieldContainerConfig::getName)
+        .filter(DatashieldContainerConfig.class::isInstance)
+        .map(ContainerConfig::getName)
         .map(
             environmentName ->
                 REnvironment.create(
@@ -45,7 +48,9 @@ public class RProcessEndpoint {
     var environment =
         runAsSystem(containerService::getAll).stream()
             .filter(it -> environmentName.equals(it.getName()))
-            .map(DatashieldContainerConfig::toEnvironmentConfigProps)
+            .filter(DatashieldContainerConfig.class::isInstance)
+            .map(DatashieldContainerConfig.class::cast)
+            .map(AbstractContainerConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow();
     RServerConnection connection = connect(environment);
