@@ -79,7 +79,7 @@ public class DevelopmentController {
       Principal principal, @RequestParam MultipartFile file) {
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
-      Map<String, ContainerConfig> data = new HashMap<>();
+      Map<String, Object> data = new HashMap<>();
       data.put(MESSAGE, "Filename is null or empty");
       auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());

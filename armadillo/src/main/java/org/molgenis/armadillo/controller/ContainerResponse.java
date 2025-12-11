@@ -64,12 +64,10 @@ public abstract class ContainerResponse {
         containerConfig.getImage(),
         containerConfig.getHost(),
         containerConfig.getPort(),
-        containerInfo,
         containerConfig.getLastImageId(),
         containerConfig.getImageSize(),
         containerConfig.getInstallDate(),
-
-        // Pass the generic map that holds all specific data:
+        containerInfo,
         containerConfig.getSpecificContainerData());
   }
 }
