@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -56,39 +57,75 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig 
       @JsonProperty("imageSize") @Nullable Long newImageSize,
       @JsonProperty("creationDate") @Nullable String newCreationDate,
       @JsonProperty("installDate") @Nullable String newInstallDate) {
-    return new AutoValue_DatashieldContainerConfig(
-        newName,
-        newImage,
-        autoUpdate,
-        updateSchedule,
-        newHost != null ? newHost : "localhost",
-        newPort,
-        newPackageWhitelist != null ? newPackageWhitelist : Set.of(),
-        newFunctionBlacklist != null ? newFunctionBlacklist : Set.of(),
-        newOptions != null ? newOptions : Map.of(),
-        newLastImageId,
-        newVersionId,
-        newImageSize,
-        newCreationDate,
-        newInstallDate);
+    return builder()
+        .name(newName)
+        .image(newImage)
+        .autoUpdate(autoUpdate)
+        .updateSchedule(updateSchedule)
+        .host(newHost != null ? newHost : "localhost")
+        .port(newPort)
+        .packageWhitelist(newPackageWhitelist != null ? newPackageWhitelist : Set.of())
+        .functionBlacklist(newFunctionBlacklist != null ? newFunctionBlacklist : Set.of())
+        .options(newOptions != null ? newOptions : Map.of())
+        .lastImageId(newLastImageId)
+        .versionId(newVersionId)
+        .imageSize(newImageSize)
+        .creationDate(newCreationDate)
+        .installDate(newInstallDate)
+        .build();
   }
 
   public static DatashieldContainerConfig createDefault() {
-    return create(
-        "default",
-        "datashield/armadillo-rserver",
-        false,
-        null,
-        "localhost",
-        6311,
-        Set.of("dsBase"),
-        emptySet(),
-        Map.of("datashield.seed", "342325352"),
-        null,
-        null,
-        null,
-        null,
-        null);
+    // Start the build process
+    return builder()
+        .name("default")
+        .image("datashield/armadillo-rserver")
+        .autoUpdate(false)
+        .host("localhost")
+        .port(6311)
+        .packageWhitelist(Set.of("dsBase"))
+        .functionBlacklist(emptySet())
+        .options(Map.of("datashield.seed", "342325352"))
+        .build();
+  }
+
+  public abstract Builder toBuilder();
+
+  public static Builder builder() {
+    return new AutoValue_DatashieldContainerConfig.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract Builder name(String name);
+
+    public abstract Builder image(@Nullable String image);
+
+    public abstract Builder host(String host);
+
+    public abstract Builder port(Integer port);
+
+    public abstract Builder lastImageId(@Nullable String lastImageId);
+
+    public abstract Builder imageSize(@Nullable Long imageSize);
+
+    public abstract Builder installDate(@Nullable String installDate);
+
+    public abstract Builder autoUpdate(@Nullable Boolean autoUpdate);
+
+    public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
+
+    public abstract Builder packageWhitelist(Set<String> packageWhitelist);
+
+    public abstract Builder functionBlacklist(Set<String> functionBlacklist);
+
+    public abstract Builder options(Map<String, String> options);
+
+    public abstract Builder versionId(@Nullable String versionId);
+
+    public abstract Builder creationDate(@Nullable String creationDate);
+
+    public abstract DatashieldContainerConfig build();
   }
 
   @Override

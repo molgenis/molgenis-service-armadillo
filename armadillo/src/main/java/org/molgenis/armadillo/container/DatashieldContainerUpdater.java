@@ -7,6 +7,11 @@ import org.springframework.stereotype.Component;
 public class DatashieldContainerUpdater implements ContainerUpdater {
 
   @Override
+  public Class<? extends ContainerConfig> supportsConfigType() {
+    return DatashieldContainerConfig.class; // <-- Self-identifies its target type
+  }
+
+  @Override
   public ContainerConfig updateImageMetaData(
       ContainerConfig existingConfig,
       String newImageId,
@@ -15,27 +20,16 @@ public class DatashieldContainerUpdater implements ContainerUpdater {
       String newCreationDate,
       @Nullable String newInstallDate) {
 
-    if (!(existingConfig instanceof DatashieldContainerConfig)) {
+    if (!(existingConfig instanceof DatashieldContainerConfig specificExisting)) {
       throw new IllegalArgumentException("Updater only handles DatashieldContainerConfig.");
     }
-    DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
 
-    return DatashieldContainerConfig.create(
-        specificExisting.getName(),
-        specificExisting.getImage(),
-        specificExisting.getAutoUpdate(),
-        specificExisting.getUpdateSchedule(),
-        specificExisting.getHost(),
-        specificExisting.getPort(),
-        specificExisting.getPackageWhitelist(),
-        specificExisting.getFunctionBlacklist(),
-        specificExisting.getOptions(),
-
-        // --- Apply the 6 input parameters ---
-        newImageId,
-        newVersionId,
-        newImageSize,
-        newCreationDate,
-        newInstallDate != null ? newInstallDate : specificExisting.getInstallDate());
+    return specificExisting.toBuilder()
+        .lastImageId(newImageId)
+        .versionId(newVersionId)
+        .imageSize(newImageSize)
+        .creationDate(newCreationDate)
+        .installDate(newInstallDate != null ? newInstallDate : specificExisting.getInstallDate())
+        .build();
   }
 }

@@ -3,6 +3,8 @@ package org.molgenis.armadillo.container;
 import jakarta.annotation.Nullable;
 
 public interface ContainerUpdater {
+  Class<? extends ContainerConfig> supportsConfigType();
+
   ContainerConfig updateImageMetaData(
       ContainerConfig existingConfig,
       String currentImageId,
