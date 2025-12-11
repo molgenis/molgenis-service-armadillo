@@ -5,10 +5,12 @@ import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAU
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.*;
+import org.molgenis.armadillo.container.ContainerWhitelister;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
@@ -23,13 +25,15 @@ public class ContainerService {
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
   private final Map<Class<? extends AbstractContainerConfig>, ContainerUpdater> updaters;
+  private final Map<Class<? extends ContainerConfig>, ContainerWhitelister> whitelisters;
   private ContainersMetadata settings;
 
   public ContainerService(
       ContainersLoader containersLoader,
       InitialContainerConfigs initialContainerConfigs,
       ContainerScope containerScope,
-      List<ContainerUpdater> allUpdaters) { // <-- NEW PARAMETER
+      List<ContainerUpdater> allUpdaters,
+      List<ContainerWhitelister> allWhitelisters) {
     this.loader = requireNonNull(containersLoader);
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
@@ -55,6 +59,30 @@ public class ContainerService {
                     updater -> updater));
 
     runAsSystem(this::initialize);
+
+    this.whitelisters = initializeWhitelisters(allWhitelisters);
+  }
+
+  private Map<Class<? extends ContainerConfig>, ContainerWhitelister> initializeWhitelisters(
+      List<ContainerWhitelister> allWhitelisters) {
+
+    Map<Class<? extends ContainerConfig>, ContainerWhitelister> map = new HashMap<>();
+    ContainerWhitelister nullWhitelister = null;
+
+    for (ContainerWhitelister whitelister : allWhitelisters) {
+
+      map.put(whitelister.supportsConfigType(), whitelister);
+
+      if (whitelister instanceof NullContainerWhitelister) {
+        nullWhitelister = whitelister;
+      }
+    }
+
+    if (nullWhitelister != null) {
+      map.put(DefaultContainerConfig.class, nullWhitelister);
+    }
+
+    return map;
   }
 
   /**
@@ -90,7 +118,14 @@ public class ContainerService {
   }
 
   public void addToWhitelist(String containerName, String pack) {
-    getByName(containerName).getPackageWhitelist().add(pack);
+
+    ContainerConfig existing = getByName(containerName);
+
+    ContainerWhitelister whitelister =
+        whitelisters.getOrDefault(
+            existing.getClass(), whitelisters.get(DefaultContainerConfig.class));
+
+    whitelister.addToWhitelist(existing, pack);
     flushContainerBeans(containerName);
     save();
   }
