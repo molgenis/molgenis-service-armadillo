@@ -26,10 +26,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.ContainerScheduler;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.DockerService;
+import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -172,7 +169,7 @@ public class ContainersController {
         @ApiResponse(
             responseCode = "200",
             description = "Container listed",
-            content = @Content(schema = @Schema(implementation = DatashieldContainerConfig.class))),
+            content = @Content(schema = @Schema(implementation = ContainerConfig.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Container does not exist",
@@ -194,8 +191,7 @@ public class ContainersController {
     if (dockerService != null) {
       container = dockerService.getContainerStatus(name);
     }
-    return ContainerResponse.create(
-        (DatashieldContainerConfig) containers.getByName(name), container);
+    return ContainerResponse.create(containers.getByName(name), container);
   }
 
   @Operation(summary = "Add or update container")
@@ -210,17 +206,16 @@ public class ContainersController {
   @PutMapping(produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void containerUpsert(
-      Principal principal,
-      @Valid @RequestBody DatashieldContainerConfig datashieldContainerConfig) {
+      Principal principal, @Valid @RequestBody ContainerConfig containerConfig) {
     auditor.audit(
         () -> {
-          containers.upsert(datashieldContainerConfig); // Save container
-          containerScheduler.reschedule(datashieldContainerConfig); // 🔁 Trigger scheduling
+          containers.upsert(containerConfig); // Save container
+          containerScheduler.reschedule(containerConfig); // 🔁 Trigger scheduling
           return null;
         },
         principal,
         UPSERT_CONTAINER,
-        Map.of(CONTAINER, datashieldContainerConfig));
+        Map.of(CONTAINER, containerConfig));
   }
 
   @Operation(
