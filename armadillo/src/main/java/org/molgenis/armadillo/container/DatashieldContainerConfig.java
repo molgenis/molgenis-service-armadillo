@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +14,7 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class DatashieldContainerConfig extends AbstractContainerConfig
-    implements UpdatableContainerConfig {
+    implements UpdatableContainerConfig, OpenContainersConfig {
 
   @JsonProperty("autoUpdate")
   @Nullable
@@ -33,14 +32,6 @@ public abstract class DatashieldContainerConfig extends AbstractContainerConfig
 
   @JsonProperty("options")
   public abstract Map<String, String> getOptions();
-
-  @JsonProperty("versionId")
-  @Nullable
-  public abstract String getVersionId();
-
-  @JsonProperty("CreationDate")
-  @Nullable
-  public abstract String getCreationDate();
 
   @JsonCreator
   public static DatashieldContainerConfig create(

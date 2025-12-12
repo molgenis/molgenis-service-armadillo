@@ -1,15 +1,10 @@
 package org.molgenis.armadillo.container;
 
-import jakarta.annotation.Nullable;
+import org.molgenis.armadillo.metadata.DefaultImageMetaData;
 
 public interface ContainerUpdater {
   Class<? extends ContainerConfig> supportsConfigType();
 
-  ContainerConfig updateImageMetaData(
-      ContainerConfig existingConfig,
-      String currentImageId,
-      String openContainersId, // Specific
-      Long imageSize,
-      String creationDate, // Specific
-      @Nullable String installDate);
+  ContainerConfig updateDefaultImageMetaData(
+      ContainerConfig existingConfig, DefaultImageMetaData metadata);
 }
