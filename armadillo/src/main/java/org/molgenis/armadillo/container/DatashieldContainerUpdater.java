@@ -20,9 +20,7 @@ public class DatashieldContainerUpdater implements ContainerUpdater {
       String newCreationDate,
       @Nullable String newInstallDate) {
 
-    if (!(existingConfig instanceof DatashieldContainerConfig specificExisting)) {
-      throw new IllegalArgumentException("Updater only handles DatashieldContainerConfig.");
-    }
+    DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
 
     return specificExisting.toBuilder()
         .lastImageId(newImageId)

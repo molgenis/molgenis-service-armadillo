@@ -20,9 +20,6 @@ public class DefaultContainerUpdater implements ContainerUpdater {
       String newCreationDate,
       @Nullable String newInstallDate) {
 
-    if (!(existingConfig instanceof DefaultContainerConfig)) {
-      throw new IllegalArgumentException("Updater only handles DefaultContainerConfig.");
-    }
     DefaultContainerConfig specificExisting = (DefaultContainerConfig) existingConfig;
 
     return specificExisting.toBuilder()
