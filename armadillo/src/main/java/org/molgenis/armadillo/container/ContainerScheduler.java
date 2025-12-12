@@ -43,16 +43,20 @@ public class ContainerScheduler {
   }
 
   /** Reschedule or create a scheduled update task for a container. */
-  public void reschedule(DatashieldContainerConfig container) {
+  public void reschedule(ContainerConfig container) {
     cancel(container.getName());
 
-    if (Boolean.TRUE.equals(container.getAutoUpdate()) && container.getUpdateSchedule() != null) {
-      String cron = toCron(container.getUpdateSchedule());
-      Runnable task = () -> runAsSystem(() -> runUpdateForContainer(container));
-      ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
-      scheduledTasks.put(container.getName(), future);
-      LOG.info(
-          "Scheduled auto-update for container '{}' with cron '{}'", container.getName(), cron);
+    if (container instanceof UpdatableContainerConfig updatableContainer) {
+
+      if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())
+          && updatableContainer.getUpdateSchedule() != null) {
+        String cron = toCron(updatableContainer.getUpdateSchedule());
+        Runnable task = () -> runAsSystem(() -> runUpdateForContainer(container));
+        ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
+        scheduledTasks.put(container.getName(), future);
+        LOG.info(
+            "Scheduled auto-update for container '{}' with cron '{}'", container.getName(), cron);
+      }
     }
   }
 
@@ -95,39 +99,46 @@ public class ContainerScheduler {
     };
   }
 
-  private void runUpdateForContainer(DatashieldContainerConfig container) {
+  private void runUpdateForContainer(ContainerConfig container) {
     try {
       // Get container status directly using container name
       var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
 
       // Only proceed if container is running and auto-update is enabled
-      if (containerInfo != null
-          && containerInfo.getStatus() == ContainerStatus.RUNNING
-          && Boolean.TRUE.equals(container.getAutoUpdate())) {
+      if (containerInfo != null && containerInfo.getStatus() == ContainerStatus.RUNNING) {
 
-        // Retrieve the previous image ID and current image name from the container
-        String previousImageId = container.getLastImageId();
-        String imageName = container.getImage();
+        if (container instanceof UpdatableContainerConfig updatableContainer) {
 
-        // Ensure imageName is not null or empty
-        if (imageName != null && !imageName.isEmpty()) {
-          // Retrieve the latest image ID for the remote image
-          dockerClient.pullImageCmd(imageName).start().awaitCompletion(); // Pull image if necessary
-          String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
-          LOG.info("Latest imageId is {}", latestImageId);
+          if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
 
-          // Check if the image has changed
-          if (dockerService.hasImageIdChanged(
-              container.getName(), previousImageId, latestImageId)) {
-            LOG.info("Image updated for '{}', restarting...", container.getName());
-            dockerService.pullImageStartContainer(container.getName());
-          } else {
-            LOG.info("No image update for '{}', skipping restart", container.getName());
+            // Retrieve the previous image ID and current image name from the container
+            String previousImageId = container.getLastImageId();
+            String imageName = container.getImage();
+
+            // Ensure imageName is not null or empty
+            if (imageName != null && !imageName.isEmpty()) {
+              // Retrieve the latest image ID for the remote image
+              dockerClient
+                  .pullImageCmd(imageName)
+                  .start()
+                  .awaitCompletion(); // Pull image if necessary
+              String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
+              LOG.info("Latest imageId is {}", latestImageId);
+
+              // Check if the image has changed
+              if (dockerService.hasImageIdChanged(
+                  container.getName(), previousImageId, latestImageId)) {
+                LOG.info("Image updated for '{}', restarting...", container.getName());
+                dockerService.pullImageStartContainer(container.getName());
+              } else {
+                LOG.info("No image update for '{}', skipping restart", container.getName());
+              }
+            } else {
+              LOG.error(
+                  "Image name is null or empty for container '{}'. Skipping update.",
+                  container.getName());
+            }
           }
-        } else {
-          LOG.error(
-              "Image name is null or empty for container '{}'. Skipping update.",
-              container.getName());
         }
       }
     } catch (InterruptedException ie) {

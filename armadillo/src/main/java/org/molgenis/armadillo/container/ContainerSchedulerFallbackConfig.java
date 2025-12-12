@@ -17,7 +17,7 @@ public class ContainerSchedulerFallbackConfig {
   public ContainerScheduler noOpContainerScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
-      public void reschedule(DatashieldContainerConfig container) {
+      public void reschedule(ContainerConfig container) {
         // no-op
       }
 
