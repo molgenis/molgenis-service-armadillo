@@ -14,7 +14,8 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class DatashieldContainerConfig extends AbstractContainerConfig {
+public abstract class DatashieldContainerConfig extends AbstractContainerConfig
+    implements UpdatableContainerConfig {
 
   @JsonProperty("autoUpdate")
   @Nullable
