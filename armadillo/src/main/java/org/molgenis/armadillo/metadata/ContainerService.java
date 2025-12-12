@@ -101,6 +101,16 @@ public class ContainerService {
     save();
   }
 
+  public java.util.Set<String> getPackageWhitelist(String containerName) {
+    ContainerConfig config = getByName(containerName);
+
+    if (config instanceof DatashieldContainerConfig dsConfig) {
+      return dsConfig.getPackageWhitelist();
+    }
+
+    return java.util.Set.of();
+  }
+
   public void addToWhitelist(String containerName, String pack) {
 
     ContainerConfig existing = getByName(containerName);
@@ -108,6 +118,12 @@ public class ContainerService {
     ContainerWhitelister whitelister =
         whitelisters.getOrDefault(
             existing.getClass(), whitelisters.get(DefaultContainerConfig.class));
+
+    if (whitelister instanceof NullContainerWhitelister) {
+      throw new UnsupportedOperationException(
+          "Whitelisting is only supported for DataSHIELD containers (and types with a dedicated whitelister). Found type: "
+              + existing.getClass().getSimpleName());
+    }
 
     whitelister.addToWhitelist(existing, pack);
     flushContainerBeans(containerName);
