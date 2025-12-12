@@ -25,13 +25,10 @@ public class DefaultContainerUpdater implements ContainerUpdater {
     }
     DefaultContainerConfig specificExisting = (DefaultContainerConfig) existingConfig;
 
-    return DefaultContainerConfig.create(
-        specificExisting.getName(),
-        specificExisting.getImage(),
-        specificExisting.getHost(),
-        specificExisting.getPort(),
-        newImageId,
-        newImageSize,
-        newInstallDate != null ? newInstallDate : specificExisting.getInstallDate());
+    return specificExisting.toBuilder()
+        .lastImageId(newImageId)
+        .imageSize(newImageSize)
+        .installDate(newInstallDate != null ? newInstallDate : specificExisting.getInstallDate())
+        .build();
   }
 }
