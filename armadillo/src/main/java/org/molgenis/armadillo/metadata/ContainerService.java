@@ -27,6 +27,7 @@ public class ContainerService {
   private final Map<Class<? extends ContainerConfig>, ContainerUpdater> updaters;
   private final Map<Class<? extends ContainerConfig>, ContainerWhitelister> whitelisters;
   private final DefaultContainerFactory defaultContainerFactory;
+  private final Map<String, InitialConfigBuilder> initialConfigBuilders;
   private ContainersMetadata settings;
 
   public ContainerService(
@@ -35,11 +36,16 @@ public class ContainerService {
       ContainerScope containerScope,
       List<ContainerUpdater> allUpdaters,
       List<ContainerWhitelister> allWhitelisters,
-      DefaultContainerFactory defaultContainerFactory) {
+      DefaultContainerFactory defaultContainerFactory,
+      List<InitialConfigBuilder> allInitialConfigBuilders) {
     this.loader = requireNonNull(containersLoader);
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
     this.defaultContainerFactory = requireNonNull(defaultContainerFactory);
+
+    this.initialConfigBuilders =
+        allInitialConfigBuilders.stream()
+            .collect(Collectors.toMap(InitialConfigBuilder::getType, builder -> builder));
 
     this.updaters =
         allUpdaters.stream()
@@ -156,7 +162,7 @@ public class ContainerService {
 
     if (initialContainer.getContainers() != null) {
       initialContainer.getContainers().stream()
-          .map(InitialContainerConfig::toContainerConfig)
+          .map(config -> config.toContainerConfig(initialConfigBuilders))
           .filter(container -> !settings.getContainers().containsKey(container.getName()))
           .forEach(this::upsert);
     }
