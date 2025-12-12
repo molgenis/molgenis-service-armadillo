@@ -26,7 +26,7 @@ public class ContainerService {
   private final ContainerScope containerScope;
   private final Map<Class<? extends ContainerConfig>, ContainerUpdater> updaters;
   private final Map<Class<? extends ContainerConfig>, ContainerWhitelister> whitelisters;
-
+  private final DefaultContainerFactory defaultContainerFactory;
   private ContainersMetadata settings;
 
   public ContainerService(
@@ -34,12 +34,13 @@ public class ContainerService {
       InitialContainerConfigs initialContainerConfigs,
       ContainerScope containerScope,
       List<ContainerUpdater> allUpdaters,
-      List<ContainerWhitelister> allWhitelisters) {
+      List<ContainerWhitelister> allWhitelisters,
+      DefaultContainerFactory defaultContainerFactory) {
     this.loader = requireNonNull(containersLoader);
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
+    this.defaultContainerFactory = requireNonNull(defaultContainerFactory);
 
-    // REFACTORED BLOCK START
     this.updaters =
         allUpdaters.stream()
             .collect(Collectors.toMap(ContainerUpdater::supportsConfigType, updater -> updater));
@@ -161,7 +162,7 @@ public class ContainerService {
     }
 
     if (!settings.getContainers().containsKey(DEFAULT)) {
-      upsert(DatashieldContainerConfig.createDefault());
+      upsert(defaultContainerFactory.createDefault());
     }
   }
 
