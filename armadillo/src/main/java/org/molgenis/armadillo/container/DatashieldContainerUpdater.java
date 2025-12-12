@@ -1,10 +1,11 @@
 package org.molgenis.armadillo.container;
 
-import jakarta.annotation.Nullable;
+import org.molgenis.armadillo.metadata.DefaultImageMetaData;
+import org.molgenis.armadillo.metadata.OpenContainersImageMetaData;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DatashieldContainerUpdater implements ContainerUpdater {
+public class DatashieldContainerUpdater implements ContainerUpdater, OpenContainersUpdater {
 
   @Override
   public Class<? extends ContainerConfig> supportsConfigType() {
@@ -12,22 +13,30 @@ public class DatashieldContainerUpdater implements ContainerUpdater {
   }
 
   @Override
-  public ContainerConfig updateImageMetaData(
-      ContainerConfig existingConfig,
-      String newImageId,
-      String newVersionId,
-      Long newImageSize,
-      String newCreationDate,
-      @Nullable String newInstallDate) {
+  public ContainerConfig updateDefaultImageMetaData(
+      ContainerConfig existingConfig, DefaultImageMetaData metadata) {
 
     DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
 
     return specificExisting.toBuilder()
-        .lastImageId(newImageId)
-        .versionId(newVersionId)
-        .imageSize(newImageSize)
-        .creationDate(newCreationDate)
-        .installDate(newInstallDate != null ? newInstallDate : specificExisting.getInstallDate())
+        .lastImageId(metadata.currentImageId())
+        .imageSize(metadata.imageSize())
+        .installDate(
+            metadata.installDate() != null
+                ? metadata.installDate()
+                : specificExisting.getInstallDate())
+        .build();
+  }
+
+  @Override
+  public ContainerConfig updateOpenContainersMetaData(
+      ContainerConfig existingConfig, OpenContainersImageMetaData metadata) {
+
+    DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
+
+    return specificExisting.toBuilder()
+        .versionId(metadata.openContainersId())
+        .creationDate(metadata.creationDate())
         .build();
   }
 }

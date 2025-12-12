@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.container;
 
-import jakarta.annotation.Nullable;
+import org.molgenis.armadillo.metadata.DefaultImageMetaData;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,20 +12,18 @@ public class DefaultContainerUpdater implements ContainerUpdater {
   }
 
   @Override
-  public ContainerConfig updateImageMetaData(
-      ContainerConfig existingConfig,
-      String newImageId,
-      String newVersionId,
-      Long newImageSize,
-      String newCreationDate,
-      @Nullable String newInstallDate) {
+  public ContainerConfig updateDefaultImageMetaData(
+      ContainerConfig existingConfig, DefaultImageMetaData metadata) {
 
     DefaultContainerConfig specificExisting = (DefaultContainerConfig) existingConfig;
 
     return specificExisting.toBuilder()
-        .lastImageId(newImageId)
-        .imageSize(newImageSize)
-        .installDate(newInstallDate != null ? newInstallDate : specificExisting.getInstallDate())
+        .lastImageId(metadata.currentImageId())
+        .imageSize(metadata.imageSize())
+        .installDate(
+            metadata.installDate() != null
+                ? metadata.installDate()
+                : specificExisting.getInstallDate())
         .build();
   }
 }
