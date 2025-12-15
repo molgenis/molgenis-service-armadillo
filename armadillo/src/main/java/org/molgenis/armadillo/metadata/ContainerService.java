@@ -172,8 +172,6 @@ public class ContainerService {
     }
   }
 
-  // In ContainerService.java
-
   public void updateImageMetaData(
       String containerName,
       String newImageId,
@@ -192,11 +190,19 @@ public class ContainerService {
               + existing.getClass().getSimpleName());
     }
 
-    ContainerConfig updated =
-        updater.updateImageMetaData(
-            existing, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
+    DefaultImageMetaData defaultMetaData =
+        new DefaultImageMetaData(newImageId, newImageSize, newInstallDate);
 
-    // 3. Storage remains generic
+    ContainerConfig updated = updater.updateDefaultImageMetaData(existing, defaultMetaData);
+
+    if (updater instanceof OpenContainersUpdater openUpdater) {
+
+      OpenContainersImageMetaData openMetaData =
+          new OpenContainersImageMetaData(newVersionId, newCreationDate);
+
+      updated = openUpdater.updateOpenContainersMetaData(updated, openMetaData);
+    }
+
     settings.getContainers().put(containerName, updated);
     flushContainerBeans(containerName);
     save();

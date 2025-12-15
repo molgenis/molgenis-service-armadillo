@@ -68,6 +68,6 @@ public abstract class ContainerResponse {
         containerConfig.getImageSize(),
         containerConfig.getInstallDate(),
         containerInfo,
-        containerConfig.getSpecificContainerData());
+        containerConfig.getSpecificContainerConfig());
   }
 }
