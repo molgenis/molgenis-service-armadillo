@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.container;
 
+import jakarta.annotation.Nullable;
 import java.util.Map;
 
 public interface ContainerConfig {
@@ -18,5 +19,11 @@ public interface ContainerConfig {
 
   String getInstallDate();
 
-  Map<String, Object> getSpecificContainerData();
+  @Nullable
+  OpenContainersConfig getOpenContainersConfig();
+
+  @Nullable
+  UpdatableContainerConfig getUpdatableContainerConfig();
+
+  Map<String, Object> getSpecificContainerConfig();
 }
