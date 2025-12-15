@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
+import java.util.Map;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 public abstract class AbstractContainerConfig implements ContainerConfig {
@@ -36,6 +37,24 @@ public abstract class AbstractContainerConfig implements ContainerConfig {
   @JsonProperty("InstallDate")
   @Nullable
   public abstract String getInstallDate();
+
+  @Override
+  @Nullable
+  public OpenContainersConfig getOpenContainersConfig() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public UpdatableContainerConfig getUpdatableContainerConfig() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public Map<String, Object> getSpecificContainerConfig() {
+    return Map.of();
+  }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {
     var props = new EnvironmentConfigProps();

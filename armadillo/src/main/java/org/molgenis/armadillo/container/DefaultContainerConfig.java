@@ -34,11 +34,7 @@ public abstract class DefaultContainerConfig extends AbstractContainerConfig {
   }
 
   public static DefaultContainerConfig createDefault() {
-    return builder()
-        .name("default")
-        .host("localhost") // Set by name
-        .port(6311) // Set by name
-        .build();
+    return builder().name("default").host("localhost").port(6311).build();
   }
 
   public static DefaultContainerConfig.Builder builder() {
@@ -68,7 +64,7 @@ public abstract class DefaultContainerConfig extends AbstractContainerConfig {
   }
 
   @Override
-  public Map<String, Object> getSpecificContainerData() {
+  public Map<String, Object> getSpecificContainerConfig() {
     return Map.of();
   }
 }
