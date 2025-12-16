@@ -16,14 +16,6 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 public abstract class DatashieldContainerConfig extends AbstractContainerConfig
     implements UpdatableContainerConfig, OpenContainersConfig {
 
-  @JsonProperty("autoUpdate")
-  @Nullable
-  public abstract Boolean getAutoUpdate();
-
-  @JsonProperty("updateSchedule")
-  @Nullable
-  public abstract UpdateSchedule getUpdateSchedule();
-
   @JsonProperty("packageWhitelist")
   public abstract Set<String> getPackageWhitelist();
 
