@@ -5,7 +5,6 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.molgenis.armadillo.container.AbstractContainerConfig;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
@@ -50,7 +49,7 @@ public class RProcessEndpoint {
             .filter(it -> environmentName.equals(it.getName()))
             .filter(DatashieldContainerConfig.class::isInstance)
             .map(DatashieldContainerConfig.class::cast)
-            .map(AbstractContainerConfig::toEnvironmentConfigProps)
+            .map(DatashieldContainerConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow();
     RServerConnection connection = connect(environment);
