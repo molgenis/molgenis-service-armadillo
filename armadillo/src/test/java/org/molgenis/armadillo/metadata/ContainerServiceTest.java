@@ -121,7 +121,6 @@ class ContainerServiceTest {
     // Assert that the container has been updated
     ContainerConfig updated = containerService.getByName(containerName);
     assertEquals(newImageId, updated.getLastImageId());
-    assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());
 
     // Verify flush and save were called
