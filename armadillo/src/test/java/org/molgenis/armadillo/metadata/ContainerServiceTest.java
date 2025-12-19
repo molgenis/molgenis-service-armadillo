@@ -7,10 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -18,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DefaultContainerFactory;
 
 @ExtendWith(MockitoExtension.class)
 class ContainerServiceTest {
@@ -48,7 +46,14 @@ class ContainerServiceTest {
     containersMetadata.getContainers().put("default", defaultContainer);
     var containersLoader = new DummyContainersLoader(containersMetadata);
     var containerService =
-        new ContainerService(containersLoader, initialContainerConfigs, containerScope);
+        new ContainerService(
+            containersLoader,
+            initialContainerConfigs,
+            containerScope,
+            List.of(),
+            List.of(),
+            mock(DefaultContainerFactory.class),
+            List.of());
 
     containerService.initialize();
 
@@ -99,7 +104,14 @@ class ContainerServiceTest {
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     ContainerService containerService =
-        new ContainerService(loader, initialContainers, mockContainerScope);
+        new ContainerService(
+            loader,
+            initialContainers,
+            mockContainerScope,
+            List.of(),
+            List.of(),
+            mock(DefaultContainerFactory.class),
+            List.of());
     containerService.initialize();
 
     // Act: update the image id, version, and size
@@ -107,7 +119,7 @@ class ContainerServiceTest {
         containerName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
 
     // Assert that the container has been updated
-    DatashieldContainerConfig updated = containerService.getByName(containerName);
+    ContainerConfig updated = containerService.getByName(containerName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());
