@@ -34,7 +34,6 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
-import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
@@ -757,7 +756,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTable() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", emptyList()))
+    when(commands.loadTable(
+            argThat(c -> "D".equals(c.getName())), eq("project/folder/table"), eq(emptyList())))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -804,9 +804,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
     when(commands.loadTable(
-            "D",
-            sourceProject + "/" + sourceObject,
-            new ArrayList<>(Arrays.asList(variables.split(",")))))
+            argThat(c -> "D".equals(c.getName())),
+            eq(sourceProject + "/" + sourceObject),
+            eq(new ArrayList<>(Arrays.asList(variables.split(","))))))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -855,7 +855,10 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getSourceProject()).thenReturn(sourceProject);
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
-    when(commands.loadTable("D", sourceProject + "/" + sourceObject, selectedVariables))
+    when(commands.loadTable(
+            argThat(c -> "D".equals(c.getName())),
+            eq(sourceProject + "/" + sourceObject),
+            eq(selectedVariables)))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -928,7 +931,10 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
+    when(commands.loadTable(
+            argThat(c -> "D".equals(c.getName())),
+            eq("project/folder/table"),
+            eq(List.of("age", "weight"))))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -1031,7 +1037,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadResource() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
     when(commands.loadResource(
-            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-resource-1")))
+            any(Principal.class),
+            argThat(c -> "hpc_res".equals(c.getName())),
+            eq("gecko/2_1-core-1_1/hpc-resource-1")))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -1126,7 +1134,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String regex = "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-    HashMap<String, ContainerConfig> matchedData =
+    HashMap<String, Object> matchedData =
         dataController.getMatchedData(
             pattern, "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
     HashMap<String, Object> expected = new HashMap<>();
