@@ -249,11 +249,11 @@ class ContainerSchedulerTest {
     return (int) method.invoke(containerScheduler, day);
   }
 
-  private void invokeRunUpdateForContainer(DatashieldContainerConfig container) {
+  private void invokeRunUpdateForContainer(ContainerConfig container) {
     try {
       var method =
           ContainerScheduler.class.getDeclaredMethod(
-              "runUpdateForContainer", DatashieldContainerConfig.class);
+              "runUpdateForContainer", ContainerConfig.class); // Changed to the interface
       method.setAccessible(true);
       method.invoke(containerScheduler, container);
     } catch (Exception e) {

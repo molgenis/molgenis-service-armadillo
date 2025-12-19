@@ -246,22 +246,22 @@ class CommandsImplTest {
   @Test
   void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ContainerConfig datashieldContainerConfig =
+    DatashieldContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             "exposome",
             "dummy",
-            false,
-            null,
             "localhost",
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             Set.of(),
             Set.of(),
-            Map.of(),
-            null,
-            null,
-            null,
-            null,
-            null);
+            Map.of());
     when(containerService.getByName("exposome")).thenReturn(datashieldContainerConfig);
     commands.selectContainer("exposome");
     verify(attrs).setAttribute("container", "exposome", SCOPE_SESSION);

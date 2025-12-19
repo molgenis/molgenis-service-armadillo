@@ -1,6 +1,5 @@
 package org.molgenis.armadillo;
 
-import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -39,22 +38,24 @@ class DataShieldOptionsImplTest {
   void init() {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
+
     ContainerConfig datashieldContainerConfig =
         DatashieldContainerConfig.create(
             "dummy",
             "dummy",
-            false,
-            null,
             "localhost",
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             Set.of(),
-            emptySet(),
-            configOptions,
-            null,
-            null,
-            null,
-            null,
-            null);
+            Set.of(),
+            configOptions);
+
     options = new DataShieldOptionsImpl(datashieldContainerConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
@@ -67,10 +68,12 @@ class DataShieldOptionsImplTest {
             .setLibPath("/var/lib/R")
             .setOptions(packageOptions)
             .build();
+
     when(packageService.getInstalledPackages(rConnection))
         .thenReturn(ImmutableList.of(datashieldPackage, BASE));
+
     assertEquals(
-        options.getValue(rConnectionFactory.tryCreateConnection()),
-        ImmutableMap.of("a", "overrideA", "b", "defaultB", "c", "overrideC"));
+        ImmutableMap.of("a", "overrideA", "b", "defaultB", "c", "overrideC"),
+        options.getValue(rConnectionFactory.tryCreateConnection()));
   }
 }

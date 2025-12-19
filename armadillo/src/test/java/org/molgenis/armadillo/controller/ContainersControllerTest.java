@@ -60,18 +60,18 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
             DatashieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
-                false,
-                null,
                 "localhost",
                 6311,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase"),
                 emptySet(),
-                emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                emptyMap()));
     settings
         .getContainers()
         .put(
@@ -79,18 +79,18 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
             DatashieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
-                false,
-                null,
                 "localhost",
                 6312,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
-                emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                emptyMap()));
     return settings;
   }
 
@@ -124,18 +124,18 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         DatashieldContainerConfig.create(
             "dummy",
             "dummy/armadillo:2.0.0",
-            false,
-            null,
             "localhost",
             6312,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             Set.of("dsBase"),
             emptySet(),
-            Map.of(),
-            null,
-            null,
-            null,
-            null,
-            null);
+            Map.of());
 
     mockMvc
         .perform(
@@ -173,11 +173,8 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   void getContainerStatus_GET() throws Exception {
     ContainerInfo runningContainer = ContainerInfo.create(ContainerStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
-    // Mock DockerService to return a specific status
-    when(dockerService.getContainerStatus("default"))
-        .thenReturn(runningContainer); // Example of a running container
-    when(dockerService.getContainerStatus("omics"))
-        .thenReturn(offlineContainer); // Example of a stopped container
+    when(dockerService.getContainerStatus("default")).thenReturn(runningContainer);
+    when(dockerService.getContainerStatus("omics")).thenReturn(offlineContainer);
     String[] config = {
       "DEBUG=FALSE",
       "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -198,7 +195,6 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     when(dockerService.getContainerEnvironmentConfig("default")).thenReturn(config);
 
-    // Perform the GET request to fetch the container status
     mockMvc
         .perform(get("/containers/status"))
         .andExpect(status().isOk())

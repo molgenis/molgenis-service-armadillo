@@ -48,18 +48,18 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
             DatashieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
-                false,
-                null,
                 "localhost",
                 6311,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase"),
                 emptySet(),
-                emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                emptyMap()));
     settings
         .getContainers()
         .put(
@@ -67,18 +67,18 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
             DatashieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
-                false,
-                null,
                 "localhost",
                 6312,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
-                emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                emptyMap()));
     return settings;
   }
 
