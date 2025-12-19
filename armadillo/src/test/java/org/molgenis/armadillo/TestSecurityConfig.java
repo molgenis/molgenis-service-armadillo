@@ -82,7 +82,14 @@ public class TestSecurityConfig {
     var initialContainers = new InitialContainerConfigs();
     initialContainers.setContainers(emptyList());
 
-    return new ContainerService(containersLoader, initialContainers, containerScope);
+    return new ContainerService(
+        containersLoader,
+        initialContainers,
+        containerScope,
+        java.util.List.of(),
+        java.util.List.of(),
+        org.mockito.Mockito.mock(org.molgenis.armadillo.container.DefaultContainerFactory.class),
+        java.util.List.of());
   }
 
   @Bean
