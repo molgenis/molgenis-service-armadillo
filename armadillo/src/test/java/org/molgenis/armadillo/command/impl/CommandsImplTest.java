@@ -162,11 +162,14 @@ class CommandsImplTest {
 
   @Test
   void testLoadTable() throws Exception {
+    ContainerConfig config = mock(ContainerConfig.class);
+    when(config.getName()).thenReturn("D");
+
     when(armadilloStorage.loadTable("project", "folder/table")).thenReturn(inputStream);
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
 
-    commands.loadTable("D", "project/folder/table", List.of("col1", "col2")).get();
+    commands.loadTable(config, "project/folder/table", List.of("col1", "col2")).get();
 
     verify(rExecutorService)
         .loadTable(
@@ -206,12 +209,15 @@ class CommandsImplTest {
 
   @Test
   void testLoadResource() throws Exception {
+    ContainerConfig config = mock(ContainerConfig.class);
+    when(config.getName()).thenReturn("core_nonrep");
+
     when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
         .thenReturn(inputStream);
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
 
-    commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    commands.loadResource(principal, config, "gecko/2_1-core-1_0/hpc-resource").get();
 
     verify(rExecutorService)
         .loadResource(
