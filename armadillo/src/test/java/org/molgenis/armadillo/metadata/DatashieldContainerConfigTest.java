@@ -7,7 +7,7 @@ import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.container.ContainerConfig;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 public class DatashieldContainerConfigTest {
@@ -18,85 +18,85 @@ public class DatashieldContainerConfigTest {
     String img = "myImage";
     String host = "localhost";
     int port = 6311;
-    ContainerConfig config =
+    DatashieldContainerConfig config =
         create(
             name,
             img,
-            false,
-            null,
             host,
             port,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>(),
-            null,
-            null,
-            null,
-            null,
-            null);
+            new HashMap<>());
     EnvironmentConfigProps actual = config.toEnvironmentConfigProps();
     assertEquals(img, actual.getImage());
   }
 
   @Test
   public void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
-    ContainerConfig config =
+    DatashieldContainerConfig config =
         create(
             "myName",
             null,
-            false,
-            null,
             "localhost",
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>(),
-            null,
-            null,
-            null,
-            null,
-            null);
+            new HashMap<>());
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
 
   @Test
   public void testCreateEmptyHost() {
-    ContainerConfig config =
+    DatashieldContainerConfig config =
         create(
             "myName",
             null,
-            false,
-            null,
             null,
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>(),
-            null,
-            null,
-            null,
-            null,
-            null);
+            new HashMap<>());
     assertEquals("localhost", config.getHost());
   }
 
   @Test
   public void testCreateEmptyOptions() {
-    ContainerConfig config =
+    DatashieldContainerConfig config =
         create(
             "myName",
             null,
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            null,
+            null,
             false,
             null,
-            null,
-            6311,
             new HashSet<>(),
             new HashSet<>(),
-            null,
-            null,
-            null,
-            null,
-            null,
             null);
     assertEquals("java.util.ImmutableCollections$MapN", config.getOptions().getClass().getName());
   }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
 
-public interface UpdatableContainerConfig {
+public interface UpdatableContainer {
   @JsonProperty("autoUpdate")
   @Nullable
   Boolean getAutoUpdate();

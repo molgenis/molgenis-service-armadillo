@@ -46,7 +46,7 @@ public class ContainerScheduler {
   public void reschedule(ContainerConfig container) {
     cancel(container.getName());
 
-    if (container instanceof UpdatableContainerConfig updatableContainer) {
+    if (container instanceof UpdatableContainer updatableContainer) {
 
       if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())
           && updatableContainer.getUpdateSchedule() != null) {
@@ -107,7 +107,7 @@ public class ContainerScheduler {
       // Only proceed if container is running and auto-update is enabled
       if (containerInfo != null && containerInfo.getStatus() == ContainerStatus.RUNNING) {
 
-        if (container instanceof UpdatableContainerConfig updatableContainer) {
+        if (container instanceof UpdatableContainer updatableContainer) {
 
           if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
 

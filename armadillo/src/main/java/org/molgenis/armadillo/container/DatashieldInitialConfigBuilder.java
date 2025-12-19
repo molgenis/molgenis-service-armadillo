@@ -16,17 +16,17 @@ public class DatashieldInitialConfigBuilder implements InitialConfigBuilder {
     return DatashieldContainerConfig.create(
         initialConfig.getName(),
         initialConfig.getImage(),
-        initialConfig.getAutoUpdate(),
-        initialConfig.getUpdateSchedule(),
         initialConfig.getHost(),
         initialConfig.getPort(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        initialConfig.getAutoUpdate(),
+        initialConfig.getUpdateSchedule(),
         initialConfig.getPackageWhitelist(),
         initialConfig.getFunctionBlacklist(),
-        initialConfig.getOptions(),
-        null,
-        null,
-        null,
-        null,
-        null);
+        initialConfig.getOptions());
   }
 }
