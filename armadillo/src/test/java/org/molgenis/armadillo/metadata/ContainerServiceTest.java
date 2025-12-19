@@ -51,7 +51,7 @@ class ContainerServiceTest {
             initialContainerConfigs,
             containerScope,
             List.of(),
-            List.of(),
+            List.of(new org.molgenis.armadillo.container.DatashieldContainerWhitelister()),
             mock(DefaultContainerFactory.class),
             List.of());
 
@@ -60,7 +60,10 @@ class ContainerServiceTest {
     containerService.addToWhitelist("default", "dsOmics");
 
     verify(containerScope).removeAllContainerBeans("default");
-    assertTrue(containerService.getByName("default").getPackageWhitelist().contains("dsOmics"));
+    assertTrue(
+        ((DatashieldContainerConfig) containerService.getByName("default"))
+            .getPackageWhitelist()
+            .contains("dsOmics"));
   }
 
   @Test
