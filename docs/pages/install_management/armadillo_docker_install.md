@@ -95,7 +95,7 @@ you should see it resolve to 127.0.0.1
 
 After starting with `docker compose up`, Keycloak is available at:
 
-- Admin console: [http://localhost:8081](http://localhost:8081)  
+- Admin console: [http://localhost:8080](http://localhost:8080)  
 - Login credentials: `admin / admin`
 
 ---
