@@ -5,11 +5,14 @@ import static org.mockito.Mockito.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.util.Collection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 class AuthenticationServiceTest {
 
@@ -24,15 +27,15 @@ class AuthenticationServiceTest {
     when(request.getSession().getAttribute("SPRING_SECURITY_CONTEXT")).thenReturn(null);
   }
 
-  //  @Test
-  //  void testGetAuthentication_BearerToken() {
-  //    when(request.getHeader("Authorization")).thenReturn("Bearer abcdef123456");
-  //
-  //    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
-  //
-  //    assertNotNull(auth);
-  //    assertEquals("Bearer abcdef123456", auth.getCredentials());
-  //  }
+  @Test
+  void testGetAuthentication_BearerToken() {
+    when(request.getHeader("Authorization")).thenReturn("Bearer abcdef123456");
+
+    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
+
+    assertNotNull(auth);
+    assertEquals("Bearer abcdef123456", auth.getCredentials());
+  }
 
   @Test
   void testGetAuthentication_BasicAuth() {
