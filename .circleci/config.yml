@@ -57,7 +57,7 @@ jobs:
           name: Force full git history
           command: |
             git config --global --add safe.directory '*'
-            git fetch --force --prune --unshallow || git fetch --force --prune --all --tags
+            git fetch --depth=2147483647 --no-filter --force --prune --tags origin
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
