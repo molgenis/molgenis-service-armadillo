@@ -29,9 +29,10 @@ class AuthenticationServiceTest {
 
   @Test
   void testGetAuthentication_BearerToken() {
-    when(request.getHeader("Authorization")).thenReturn("Bearer abcdef123456");
-    System.out.println(request.getHeader("Authorization"));
+    doReturn("Bearer abcdef123456").when(request).getHeader("Authorization");
+
     Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
+
     assertNotNull(auth);
     assertEquals("Bearer abcdef123456", auth.getCredentials());
   }
