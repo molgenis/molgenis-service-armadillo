@@ -3,7 +3,8 @@
     <!-- Title-->
     <h5 class="card-header">
       <span class="row">
-        <span class="col-3 position-relative">
+        <span class="col-3 mt-2 position-relative">
+          <!--          <CollapseButton ref="collapseButton" @update="updateIsCollapsed"/>-->
           <button
             class="btn-sm ms-0 btn btn-secondary me-2"
             @click="isCollapsed = !isCollapsed"
@@ -13,24 +14,14 @@
           </button>
           {{ name }}
         </span>
-        <span class="col-5 position-relative">
+        <span class="col-5 mt-1 position-relative">
           <span class="container-info">
-            <span class="row fst-italic font-monospace">{{ image }}</span>
-            <span class="row">Port: {{ port }}</span>
+            <span class="row fw-semibold font-monospace">{{ image }}</span>
+            <small class="row font-monospace mt-1">Port: {{ port }}</small>
           </span>
         </span>
         <span class="col-1 ps-0 position-relative">
-          <DsLogo :height="25" v-if="template === 'ds'" />
-          <FlowerLogo
-            class="position-absolute top-50 start-50 translate-middle"
-            :height="20"
-            v-else-if="template.includes('flwr') || name.startsWith('flower')"
-          />
-          <DockerLogo
-            class="position-absolute top-50 start-50 translate-middle"
-            :height="25"
-            v-else
-          />
+          <ContainerTypeLogo :name="name" :template="template" />
         </span>
         <span class="col-1 ps-1 pe-1 position-relative">
           <OnlineStatus
@@ -39,39 +30,31 @@
           />
         </span>
         <span class="col-1">
-          <button
-            class="btn p-0 btn-link"
-            :class="`${
-              status.text === 'Start' ? 'text-success' : 'text-danger'
-            }`"
-            @click="
-              status.text === 'Start' ? startFunction(name) : stopFunction(name)
-            "
-            :disabled="loadingEnabled"
-          >
-            <LoadingSpinner
-              v-if="isLoading"
-              imageWidth="40"
-              class="m-0 mt-1 p-0"
-            />
-            <h2 class="ms-2 m-0 p-0" v-else>
-              <i :class="`bi bi-${status.icon}`"></i>
-            </h2>
-          </button>
+          <ContainerStartButton
+            :name="name"
+            :status="status"
+            :startFunction="startFunction"
+            :stopFunction="stopFunction"
+            :isDisabled="loadingEnabled"
+            :isLoading="isLoading"
+          />
         </span>
         <span class="col-1 position-relative">
           <div
             class="btn-group position-absolute top-50 start-50 translate-middle"
             role="group"
           >
-            <button class="btn btn-sm btn-primary bg-primary">
+            <button
+              class="btn btn-sm btn-primary bg-primary"
+              @click="$emit('showEditContainer', name)"
+            >
               <!-- pencil -->
               <i class="bi bi-pencil-fill"></i>
             </button>
             <button
               type="button"
               class="btn btn-sm btn-danger bg-danger"
-              @click="deleteFunction(this.name)"
+              @click="deleteFunction(name)"
             >
               <!-- trashcan -->
               <i class="bi bi-trash-fill"></i>
@@ -89,6 +72,11 @@
       :port="port"
       :status="status"
       :template="template"
+      :creationDate="creationDate"
+      :installationDate="installationDate"
+      :updateSchedule="updateSchedule"
+      :options="options"
+      :autoUpdate="autoUpdate"
     >
       <slot></slot>
     </ExpandedContainerCard>
@@ -102,13 +90,15 @@ import { ContainerType, StatusMappingType } from "@/types/types";
 import DsLogo from "@/components/DsLogo.vue";
 import DockerLogo from "@/components/DockerLogo.vue";
 import FlowerLogo from "@/components/FlowerLogo.vue";
-import { stopContainer } from "@/api/api";
 import containers from "@/views/Containers.vue";
 import OnlineStatus from "@/components/OnlineStatus.vue";
 import ExpandedContainerCard from "@/components/ExpandedContainerCard.vue";
-import ExpandedDSContainerCard from "@/components/ExpandedDSContainerCard.vue";
 import DataShieldContainerInfo from "@/components/DataShieldContainerInfo.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ContainerStartButton from "@/components/ContainerStartButton.vue";
+import ContainerTypeLogo from "@/components/ContainerTypeLogo.vue";
+import CollapseButton from "@/components/CollapseButton.vue";
+import { UpdateSchedule } from "@/types/api";
 
 export default defineComponent({
   name: "ContainersCard",
@@ -117,12 +107,11 @@ export default defineComponent({
       return containers;
     },
   },
-  data() {
-    return {
-      isCollapsed: true,
-    };
-  },
+  emits: ["showEditContainer"],
   components: {
+    CollapseButton,
+    ContainerTypeLogo,
+    ContainerStartButton,
     LoadingSpinner,
     DataShieldContainerInfo,
     ExpandedContainerCard,
@@ -148,6 +137,29 @@ export default defineComponent({
     deleteFunction: { type: Function, required: true },
     startFunction: { type: Function, required: true },
     stopFunction: { type: Function, required: true },
+    installationDate: { type: String, default: "-" },
+    creationDate: { type: String, default: "-" },
+    autoUpdate: { type: Boolean },
+    updateSchedule: { type: Object as PropType<UpdateSchedule>, default: {} },
+    options: { type: Object, default: {} },
+  },
+  data() {
+    return {
+      isCollapsed: true,
+    };
+  },
+  methods: {
+    updateIsCollapsed() {
+      this.isCollapsed =
+        this.$refs.collapseButton &&
+        (this.$refs.collapseButton as any).isCollapsed
+          ? (this.$refs.collapseButton as any).isCollapsed
+          : true;
+      console.log(
+        this.isCollapsed,
+        (this.$refs.collapseButton as any).isCollapsed
+      );
+    },
   },
 });
 </script>

@@ -22,9 +22,14 @@
       </div>
     </div>
     <LoadingSpinner v-if="containersLoading" class="mt-5" />
+    <EditContainerCard
+      v-else-if="containerToEdit != ''"
+      :container="getContainerByName(containerToEdit)"
+    />
     <div v-else>
       <span v-for="container in containers" :ref="container.name">
         <ContainerCard
+          @showEditContainer="setEditContainer"
           :name="container.name"
           :image="container.image"
           :version="'versionId' in container ? container.versionId : 'Unknown'"
@@ -43,6 +48,11 @@
           :deleteFunction="removeContainer"
           :startFunction="startDockerContainer"
           :stopFunction="stopDockerContainer"
+          :creationDate="container.creationDate"
+          :installationDate="container.installDate"
+          :autoUpdate="container.autoUpdate"
+          :updateSchedule="container.updateSchedule"
+          :options="getOtherOptions(container.options)"
         >
           <DataShieldContainerInfo
             v-if="container.image.startsWith('datashield/')"
@@ -50,6 +60,7 @@
             :functionBlacklist="container.functionBlacklist"
             :options="container.options"
           />
+          <!-- Add component for different types here -->
         </ContainerCard>
       </span>
     </div>
@@ -83,10 +94,13 @@ import ContainerStatusMessage from "@/components/ContainerStatusMessage.vue";
 import containerStatus from "@/components/ContainerStatus.vue";
 import ContainerCard from "@/components/ContainerCard.vue";
 import DataShieldContainerInfo from "@/components/DataShieldContainerInfo.vue";
+import EditContainerCard from "@/components/EditContainerCard.vue";
+import containerCard from "@/components/ContainerCard.vue";
 
 export default defineComponent({
   name: "Containers",
   components: {
+    EditContainerCard,
     DataShieldContainerInfo,
     Badge,
     ConfirmationDialog,
@@ -167,6 +181,18 @@ export default defineComponent({
       successMessage: "",
       containerToEditIndex: -1,
       containerToEdit: "",
+      dsOptions: {
+        "nfilter.tab": "",
+        "nfiler.subset": "",
+        "nfilter.glm": "",
+        "nfilter.string": "",
+        "nfilter.stringShort": "",
+        "nfilter.kNN": "",
+        "nfilter.levels.density": "",
+        "nfilter.levels.max": "",
+        "nfilter.noise": "",
+        "datashield.privacyControlLevel": "",
+      },
       statusMapping: {
         NOT_FOUND: {
           status: "OFFLINE",
@@ -196,6 +222,9 @@ export default defineComponent({
     };
   },
   computed: {
+    containerCard() {
+      return containerCard;
+    },
     containerStatus() {
       return containerStatus;
     },
@@ -275,6 +304,13 @@ export default defineComponent({
     },
   },
   methods: {
+    getContainerByName(name) {
+      return this.containers.filter((container) => container.name === name)[0];
+    },
+    setEditContainer(container) {
+      console.log(container);
+      this.containerToEdit = container;
+    },
     proceedDelete(containerName: string) {
       this.clearRecordToDelete();
       deleteContainer(containerName)
@@ -450,6 +486,14 @@ export default defineComponent({
         // Revert checkbox on failure
         container.autoUpdate = currentValue;
       });
+    },
+    getOtherOptions(options) {
+      return Object.keys(options)
+        .filter((key) => !Object.keys(this.dsOptions).includes(key))
+        .reduce((obj, key) => {
+          obj[key] = options[key];
+          return obj;
+        }, {});
     },
     async reloadContainers() {
       this.loading = true;

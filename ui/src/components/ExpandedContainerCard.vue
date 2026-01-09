@@ -1,75 +1,60 @@
 <template>
   <div class="card-body">
     <div class="row">
-      <div class="col-5">
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <DockerLogo :height="20" />
-            <b class="ms-4">Image</b>
-          </div>
-          <div class="col font-monospace">{{ image }}</div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-file-diff"></i>
-            <b class="ms-4">Version</b>
-          </div>
-          <div class="col">
-            {{ version }}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-arrows-angle-expand"></i>
-            <b class="ms-4">Size</b>
-          </div>
-          <div class="col">
-            {{ size }}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-usb-symbol"></i>
-            <b class="ms-4">Port</b>
-          </div>
-          <div class="col">
-            {{ port }}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-calendar-plus"></i>
-            <b class="ms-4">Creation date</b>
-          </div>
-          <div class="col">21/09/2025</div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-calendar"></i>
-            <b class="ms-4">Installation date</b>
-          </div>
-          <div class="col">29/09/2025</div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-arrow-clockwise"></i>
-            <b class="ms-4">Auto update</b>
-          </div>
-          <div class="col">
-            <span class="badge bg-success">ON</span>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4 col-md-4">
-            <i class="bi bi-calendar-event"></i>
-            <b class="ms-4">Update schedule</b>
-          </div>
-          <div class="col">Daily at 03:00</div>
-        </div>
-        <div class="row">
+      <div class="col-7">
+        <ExpandedContainerProperty title="Image">
+          <template #icon><DockerLogo :height="20" /></template>
+          <template #value>
+            <span class="font-monospace">{{ image }}</span>
+          </template>
+        </ExpandedContainerProperty>
+        <ExpandedContainerProperty
+          title="Version"
+          :value="version"
+          icon="file-diff"
+        />
+        <ExpandedContainerProperty
+          title="Size"
+          :value="size"
+          icon="arrows-angle-expand"
+        />
+        <ExpandedContainerProperty
+          title="Port"
+          :value="port.toString()"
+          icon="usb-symbol"
+        />
+        <ExpandedContainerProperty
+          title="Creation date"
+          :value="creationDate"
+          icon="calendar-plus"
+        />
+        <ExpandedContainerProperty
+          title="Installation date"
+          :value="installationDate"
+          icon="calendar"
+        />
+        <ExpandedContainerProperty title="Auto update" icon="arrow-clockwise">
+          <template #value>
+            <span
+              class="badge bg-success"
+              :class="`bg-${autoUpdate ? 'success' : 'danger'}`"
+            >
+              {{ autoUpdate ? "ON" : "OFF" }}
+            </span>
+          </template>
+        </ExpandedContainerProperty>
+        <ExpandedContainerProperty
+          v-if="autoUpdate"
+          title="Update schedule"
+          :value="getFormattedUpdateSchedule(updateSchedule)"
+          icon="calendar-event"
+        />
+        <div class="row mb-1">
           <div class="col mt-2">
             <b>Other options</b>
-            <div>-</div>
+            <div v-for="(key, value) in options" :key="key">
+              {{ key }} = {{ value }}
+            </div>
           </div>
         </div>
       </div>
@@ -80,20 +65,38 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent, Prop, PropType } from "vue";
 import DockerLogo from "@/components/DockerLogo.vue";
-import { ContainerType, StatusMappingType } from "@/types/types";
+import ExpandedContainerProperty from "@/components/ExpandedContainerProperty.vue";
+import { ContainerType } from "@/types/types";
+import { UpdateSchedule } from "@/types/api";
 
 export default defineComponent({
   name: "ExpandedContainerCard",
-  components: { DockerLogo },
+  components: { ExpandedContainerProperty, DockerLogo },
   props: {
     name: { type: String, required: true },
     image: { type: String, required: true },
     port: { type: Number, required: true },
     size: { type: String, required: true },
     version: { type: String, required: true },
+    installationDate: { type: String, default: "-" },
+    creationDate: { type: String, default: "-" },
     template: { type: String as PropType<ContainerType>, default: "default" },
+    autoUpdate: { type: Boolean },
+    updateSchedule: { type: Object as PropType<UpdateSchedule>, default: {} },
+    options: { type: Object },
+  },
+  methods: {
+    getFormattedUpdateSchedule() {
+      if (this.updateSchedule !== {}) {
+        return this.updateSchedule.frequency === "daily"
+          ? `Daily at ${this.updateSchedule.time}`
+          : `Weekly, ${this.updateSchedule.day} at ${this.updateSchedule.time}`;
+      } else {
+        return "";
+      }
+    },
   },
 });
 </script>
