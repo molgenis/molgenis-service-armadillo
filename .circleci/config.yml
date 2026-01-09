@@ -53,7 +53,11 @@ jobs:
 
     steps:
       - checkout
-      - run: git fetch --all --tags
+      - run:
+          name: Hydrate Blobless Clone for Sonar
+          command: |
+            git config --global --add safe.directory '*'
+            git fetch --refetch --no-filter
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
