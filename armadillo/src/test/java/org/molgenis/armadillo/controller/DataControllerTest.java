@@ -756,8 +756,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTable() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable(
-            argThat(c -> "D".equals(c.getName())), eq("project/folder/table"), eq(emptyList())))
+    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(emptyList())))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -804,7 +803,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
     when(commands.loadTable(
-            argThat(c -> "D".equals(c.getName())),
+            eq("D"),
             eq(sourceProject + "/" + sourceObject),
             eq(new ArrayList<>(Arrays.asList(variables.split(","))))))
         .thenReturn(completedFuture(null));
@@ -855,10 +854,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getSourceProject()).thenReturn(sourceProject);
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
-    when(commands.loadTable(
-            argThat(c -> "D".equals(c.getName())),
-            eq(sourceProject + "/" + sourceObject),
-            eq(selectedVariables)))
+    when(commands.loadTable(eq("D"), eq(sourceProject + "/" + sourceObject), eq(selectedVariables)))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -931,10 +927,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable(
-            argThat(c -> "D".equals(c.getName())),
-            eq("project/folder/table"),
-            eq(List.of("age", "weight"))))
+    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(List.of("age", "weight"))))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -1037,9 +1030,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadResource() throws Exception {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
     when(commands.loadResource(
-            any(Principal.class),
-            argThat(c -> "hpc_res".equals(c.getName())),
-            eq("gecko/2_1-core-1_1/hpc-resource-1")))
+            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-resource-1")))
         .thenReturn(completedFuture(null));
 
     mockMvc

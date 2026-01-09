@@ -4,7 +4,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.springframework.core.io.Resource;
@@ -23,10 +22,11 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  CompletableFuture<Void> loadTable(ContainerConfig symbol, String table, List<String> variables);
+  // FIXED: Changed ContainerConfig to String
+  CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
-  CompletableFuture<Void> loadResource(
-      Principal principal, ContainerConfig symbol, String resource);
+  // FIXED: Changed ContainerConfig to String
+  CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource);
 
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);
 

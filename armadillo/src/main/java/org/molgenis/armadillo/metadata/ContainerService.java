@@ -51,9 +51,12 @@ public class ContainerService {
         allUpdaters.stream()
             .collect(Collectors.toMap(ContainerUpdater::supportsConfigType, updater -> updater));
 
-    runAsSystem(this::initialize);
-
     this.whitelisters = initializeWhitelisters(allWhitelisters);
+  }
+
+  @jakarta.annotation.PostConstruct
+  public void init() {
+    runAsSystem(this::initialize);
   }
 
   private Map<Class<? extends ContainerConfig>, ContainerWhitelister> initializeWhitelisters(
