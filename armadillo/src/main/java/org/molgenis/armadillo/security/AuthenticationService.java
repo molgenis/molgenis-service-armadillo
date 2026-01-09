@@ -3,6 +3,7 @@ package org.molgenis.armadillo.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -27,7 +28,7 @@ public class AuthenticationService {
     if (context != null
         && context.getAuthentication() != null
         && context.getAuthentication().getPrincipal() != null
-        && !"anonymousUser".equals(context.getAuthentication().getPrincipal())
+        && !(context.getAuthentication() instanceof AnonymousAuthenticationToken)
         && context.getAuthentication().isAuthenticated()) {
       return new KeyAuthentication(
           context.getAuthentication().getCredentials(),

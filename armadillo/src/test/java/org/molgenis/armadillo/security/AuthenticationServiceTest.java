@@ -5,11 +5,11 @@ import static org.mockito.Mockito.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import java.util.Collection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -46,15 +46,14 @@ class AuthenticationServiceTest {
 
   @Test
   void testGetAuthentication_ContextAuthenticationValid() {
-    when(request.getSession()).thenReturn(session);
+    when(request.getSession(false)).thenReturn(session);
 
     SecurityContextImpl context = new SecurityContextImpl();
     when(session.getAttribute("SPRING_SECURITY_CONTEXT")).thenReturn(context);
 
-    when(authentication.getPrincipal()).thenReturn("someUser");
-    when(authentication.isAuthenticated()).thenReturn(true);
-    when(authentication.getCredentials()).thenReturn("cred123");
-    when(authentication.getAuthorities()).thenReturn((Collection) AuthorityUtils.NO_AUTHORITIES);
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            "someUser", "cred123", AuthorityUtils.NO_AUTHORITIES);
 
     context.setAuthentication(authentication);
 
