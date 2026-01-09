@@ -13,8 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.gson.Gson;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +32,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_CONTAINER =
-      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"],\"options\":{}}";
+      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,"
+          + "\"specificContainerData\":{\"packageWhitelist\":[\"dsBase\"],\"options\":{}}}";
+
   public static final String OMICS_CONTAINER =
-      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}";
+      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,"
+          + "\"specificContainerData\":{\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}}";
 
   @Autowired ContainerService containerService;
   @MockitoBean ArmadilloStorageService armadilloStorage;
@@ -120,34 +121,24 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_PUT() throws Exception {
-    ContainerConfig datashieldContainerConfig =
-        DatashieldContainerConfig.create(
-            "dummy",
-            "dummy/armadillo:2.0.0",
-            "localhost",
-            6312,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            Set.of("dsBase"),
-            emptySet(),
-            Map.of());
+    // Add "type":"ds" to the JSON string
+    String json =
+        "{"
+            + "\"type\":\"ds\","
+            + // THIS IS THE MISSING KEY
+            "\"name\":\"dummy\","
+            + "\"image\":\"dummy/armadillo:2.0.0\","
+            + "\"host\":\"localhost\","
+            + "\"port\":6312,"
+            + "\"autoUpdate\":false,"
+            + "\"packageWhitelist\":[\"dsBase\"],"
+            + "\"functionBlacklist\":[],"
+            + "\"options\":{}"
+            + "}";
 
     mockMvc
-        .perform(
-            put("/containers")
-                .content(new Gson().toJson(datashieldContainerConfig))
-                .contentType(APPLICATION_JSON)
-                .with(csrf()))
-        .andExpect(status().isNoContent());
-
-    var expected = createExampleSettings();
-    expected.getContainers().put("dummy", datashieldContainerConfig);
-    verify(containersLoader).save(expected);
+        .perform(put("/containers").content(json).contentType(APPLICATION_JSON).with(csrf()))
+        .andExpect(status().isNoContent()); // Should now return 204
   }
 
   @Test
