@@ -53,6 +53,7 @@ jobs:
 
     steps:
       - checkout
+      - run: git fetch --unshallow || true
       - run: git fetch --all --tags
       - setup_remote_docker:
           version: previous
