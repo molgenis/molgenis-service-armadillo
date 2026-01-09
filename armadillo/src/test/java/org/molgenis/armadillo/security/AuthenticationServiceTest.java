@@ -34,46 +34,45 @@ class AuthenticationServiceTest {
   //    assertEquals("Bearer abcdef123456", auth.getCredentials());
   //  }
 
-  //  @Test
-  //  void testGetAuthentication_BasicAuth() {
-  //    when(request.getHeader("Authorization")).thenReturn("Basic ZXhhbXBsZTp0ZXN0");
-  //
-  //    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
-  //
-  //    assertNotNull(auth);
-  //    assertEquals("Basic ZXhhbXBsZTp0ZXN0", auth.getCredentials());
-  //  }
+  @Test
+  void testGetAuthentication_BasicAuth() {
+    when(request.getHeader("Authorization")).thenReturn("Basic ZXhhbXBsZTp0ZXN0");
 
-  //  @Test
-  //  void testGetAuthentication_ContextAuthenticationValid() {
-  //    SecurityContextImpl context = new SecurityContextImpl();
-  //    when(session.getAttribute("SPRING_SECURITY_CONTEXT")).thenReturn(context);
-  //
-  //    when(authentication.getPrincipal()).thenReturn("someUser");
-  //    when(authentication.isAuthenticated()).thenReturn(true);
-  //    when(authentication.getCredentials()).thenReturn("cred123");
-  //    when(authentication.getAuthorities()).thenReturn((Collection)
-  // AuthorityUtils.NO_AUTHORITIES);
-  //    context.setAuthentication(authentication);
-  //
-  //    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
-  //
-  //    assertNotNull(auth);
-  //    assertEquals("cred123", auth.getCredentials());
-  //    assertEquals("someUser", auth.getPrincipal());
-  //  }
+    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
 
-  //  @Test
-  //  void testGetAuthentication_ApiKeyMatch() {
-  //    when(request.getHeader("Authorization")).thenReturn(null);
-  //    when(request.getHeader("X-API-KEY")).thenReturn("correct-token");
-  //
-  //    Authentication auth = AuthenticationService.getAuthentication(request, "correct-token");
-  //
-  //    assertNotNull(auth);
-  //    assertEquals("correct-token", auth.getCredentials());
-  //    assertEquals("API_KEY", auth.getPrincipal());
-  //  }
+    assertNotNull(auth);
+    assertEquals("Basic ZXhhbXBsZTp0ZXN0", auth.getCredentials());
+  }
+
+  @Test
+  void testGetAuthentication_ContextAuthenticationValid() {
+    SecurityContextImpl context = new SecurityContextImpl();
+    when(session.getAttribute("SPRING_SECURITY_CONTEXT")).thenReturn(context);
+
+    when(authentication.getPrincipal()).thenReturn("someUser");
+    when(authentication.isAuthenticated()).thenReturn(true);
+    when(authentication.getCredentials()).thenReturn("cred123");
+    when(authentication.getAuthorities()).thenReturn((Collection) AuthorityUtils.NO_AUTHORITIES);
+    context.setAuthentication(authentication);
+
+    Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
+
+    assertNotNull(auth);
+    assertEquals("cred123", auth.getCredentials());
+    assertEquals("someUser", auth.getPrincipal());
+  }
+
+  @Test
+  void testGetAuthentication_ApiKeyMatch() {
+    when(request.getHeader("Authorization")).thenReturn(null);
+    when(request.getHeader("X-API-KEY")).thenReturn("correct-token");
+
+    Authentication auth = AuthenticationService.getAuthentication(request, "correct-token");
+
+    assertNotNull(auth);
+    assertEquals("correct-token", auth.getCredentials());
+    assertEquals("API_KEY", auth.getPrincipal());
+  }
 
   @Test
   void testGetAuthentication_NoValidAuth_ReturnsNull() {

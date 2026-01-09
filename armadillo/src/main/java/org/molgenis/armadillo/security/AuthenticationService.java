@@ -18,8 +18,6 @@ public class AuthenticationService {
 
     if (authHeader != null) {
       if (authHeader.startsWith("Bearer ") || authHeader.startsWith("Basic ")) {
-        // TODO: Do we need to set authorities + authentication? -> get authentication from
-        // header???
         final String jwtToken = authHeader.substring(7);
         return new KeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES, jwtToken);
       }
@@ -34,11 +32,19 @@ public class AuthenticationService {
           context.getAuthentication().getPrincipal());
     } else if (apiKey != null && apiKey.equals(authToken)) {
       return new KeyAuthentication(
-          apiKey,
-          //              AuthorityUtils.createAuthorityList("ROLE_SU"),
-          AuthorityUtils.NO_AUTHORITIES,
-          (Principal) () -> "API_KEY");
+          apiKey, AuthorityUtils.NO_AUTHORITIES, (Principal) () -> "API_KEY");
     }
+    System.out.println("authHeader: " + authHeader);
+    System.out.println("context: " + context);
+    if (context != null) {
+      System.out.println(context.getAuthentication());
+      if (context.getAuthentication() != null) {
+        System.out.println("principal: " + context.getAuthentication().getPrincipal());
+        System.out.println("authority: " + context.getAuthentication().getAuthorities());
+        System.out.println("credentials: " + context.getAuthentication().getCredentials());
+      }
+    }
+    System.out.println("apiKey: " + apiKey);
     return null;
   }
 }
