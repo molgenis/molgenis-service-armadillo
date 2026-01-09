@@ -54,7 +54,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Force full git history
+          name: Hydrate Blobless Clone for Sonar
           command: |
             git config --global --add safe.directory '*'
             git fetch --refetch --no-filter
