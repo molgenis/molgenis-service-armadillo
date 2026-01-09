@@ -46,6 +46,8 @@ class AuthenticationServiceTest {
 
   @Test
   void testGetAuthentication_ContextAuthenticationValid() {
+    when(request.getSession()).thenReturn(session);
+
     SecurityContextImpl context = new SecurityContextImpl();
     when(session.getAttribute("SPRING_SECURITY_CONTEXT")).thenReturn(context);
 
@@ -53,6 +55,7 @@ class AuthenticationServiceTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(authentication.getCredentials()).thenReturn("cred123");
     when(authentication.getAuthorities()).thenReturn((Collection) AuthorityUtils.NO_AUTHORITIES);
+
     context.setAuthentication(authentication);
 
     Authentication auth = AuthenticationService.getAuthentication(request, "ignored-token");
