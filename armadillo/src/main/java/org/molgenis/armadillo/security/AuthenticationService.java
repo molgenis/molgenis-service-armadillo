@@ -24,7 +24,7 @@ public class AuthenticationService {
     } else if (context != null
         && context.getAuthentication() != null
         && context.getAuthentication().getPrincipal() != null
-        && context.getAuthentication().getPrincipal() != "anonymousUser"
+        && !"anonymousUser".equals(context.getAuthentication().getPrincipal())
         && context.getAuthentication().isAuthenticated()) {
       return new KeyAuthentication(
           context.getAuthentication().getCredentials(),
@@ -34,17 +34,6 @@ public class AuthenticationService {
       return new KeyAuthentication(
           apiKey, AuthorityUtils.NO_AUTHORITIES, (Principal) () -> "API_KEY");
     }
-    System.out.println("authHeader: " + authHeader);
-    System.out.println("context: " + context);
-    if (context != null) {
-      System.out.println(context.getAuthentication());
-      if (context.getAuthentication() != null) {
-        System.out.println("principal: " + context.getAuthentication().getPrincipal());
-        System.out.println("authority: " + context.getAuthentication().getAuthorities());
-        System.out.println("credentials: " + context.getAuthentication().getCredentials());
-      }
-    }
-    System.out.println("apiKey: " + apiKey);
     return null;
   }
 }
