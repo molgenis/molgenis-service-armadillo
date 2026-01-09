@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.security;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -13,15 +14,17 @@ public class AuthenticationService {
   public static Authentication getAuthentication(HttpServletRequest request, String authToken) {
     String apiKey = request.getHeader(AUTH_TOKEN_HEADER_NAME);
     String authHeader = request.getHeader("Authorization");
+    HttpSession session = request.getSession(false);
     SecurityContextImpl context =
-        (SecurityContextImpl) request.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-
-    if (authHeader != null) {
-      if (authHeader.startsWith("Bearer ") || authHeader.startsWith("Basic ")) {
-        final String jwtToken = authHeader.substring(7);
-        return new KeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES, jwtToken);
-      }
-    } else if (context != null
+        session != null
+            ? (SecurityContextImpl) session.getAttribute("SPRING_SECURITY_CONTEXT")
+            : null;
+    if (authHeader != null
+        && (authHeader.startsWith("Bearer ") || authHeader.startsWith("Basic "))) {
+      String token = authHeader.substring(authHeader.indexOf(' ') + 1);
+      return new KeyAuthentication(authHeader, AuthorityUtils.NO_AUTHORITIES, token);
+    }
+    if (context != null
         && context.getAuthentication() != null
         && context.getAuthentication().getPrincipal() != null
         && !"anonymousUser".equals(context.getAuthentication().getPrincipal())
@@ -30,7 +33,8 @@ public class AuthenticationService {
           context.getAuthentication().getCredentials(),
           context.getAuthentication().getAuthorities(),
           context.getAuthentication().getPrincipal());
-    } else if (apiKey != null && apiKey.equals(authToken)) {
+    }
+    if (apiKey != null && apiKey.equals(authToken)) {
       return new KeyAuthentication(
           apiKey, AuthorityUtils.NO_AUTHORITIES, (Principal) () -> "API_KEY");
     }
