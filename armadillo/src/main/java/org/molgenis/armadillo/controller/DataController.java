@@ -34,7 +34,6 @@ import java.util.concurrent.ExecutionException;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.exceptions.ExpressionException;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -153,7 +152,7 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
-      @RequestParam ContainerConfig symbol,
+      @RequestParam String symbol, // FIXED: Changed to String
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
@@ -223,7 +222,7 @@ public class DataController {
   @PostMapping(value = "/load-resource")
   public CompletableFuture<ResponseEntity<Void>> loadResource(
       Principal principal,
-      @RequestParam ContainerConfig symbol,
+      @RequestParam String symbol, // FIXED: Changed to String
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
       @RequestParam(defaultValue = "false") boolean async) {
     var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
@@ -540,7 +539,7 @@ public class DataController {
   }
 
   private CompletableFuture<ResponseEntity<Void>> doLoadTable(
-      ContainerConfig symbol,
+      String symbol, // FIXED: Changed to String
       String table,
       List<String> variableList,
       Principal principal,
@@ -585,7 +584,7 @@ public class DataController {
       String variables,
       Principal principal,
       HashMap<String, Object> data,
-      ContainerConfig symbol,
+      String symbol, // FIXED: Changed to String
       Boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =
