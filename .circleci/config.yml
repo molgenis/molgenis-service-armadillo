@@ -53,8 +53,11 @@ jobs:
 
     steps:
       - checkout
-      - run: git fetch --unshallow || true
-      - run: git fetch --all --tags
+      - run:
+          name: Force full git history
+          command: |
+            git config --global --add safe.directory '*'
+            git fetch --force --prune --unshallow || git fetch --force --prune --all --tags
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
