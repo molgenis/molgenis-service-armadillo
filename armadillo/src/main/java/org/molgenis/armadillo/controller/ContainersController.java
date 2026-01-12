@@ -112,11 +112,11 @@ public class ContainersController {
   }
 
   private List<ContainersStatusResponse> getDockerContainerInformation() {
-    List<ContainerResponse> containers = runAsSystem(this::getContainers);
+    List<ContainerResponse> containersList = runAsSystem(this::getContainers);
     List<ContainersStatusResponse> result = new ArrayList<>();
-    containers.forEach(
+    containersList.forEach(
         (container) -> {
-          String containerName = container.getName();
+          String containerName = container.name(); // Changed from getName()
           if (dockerService != null) {
             String status =
                 runAsSystem(
@@ -135,9 +135,11 @@ public class ContainersController {
             }
             result.add(
                 ContainersStatusResponse.create(
-                    container.getImage(), containerName, versions, status));
+                    container.image(), containerName, versions, status)); // Changed from getImage()
           } else {
-            result.add(ContainersStatusResponse.create(container.getImage(), containerName));
+            result.add(
+                ContainersStatusResponse.create(
+                    container.image(), containerName)); // Changed from getImage()
           }
         });
     return result;
