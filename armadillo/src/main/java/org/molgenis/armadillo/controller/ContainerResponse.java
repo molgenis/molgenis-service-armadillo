@@ -25,7 +25,7 @@ public abstract class ContainerResponse {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public abstract Map<String, Object> getSpecificContainerData();
 
-  @JsonProperty("container")
+  @JsonProperty("dockerStatus")
   @Nullable
   public abstract ContainerInfo getContainerInfo();
 
