@@ -2,40 +2,62 @@ package org.molgenis.armadillo.controller;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.auto.value.AutoValue;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
-@AutoValue
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class ContainerResponse {
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type",
+    visible = true)
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = ContainerResponse.DefaultResponse.class, name = "default"),
+  @JsonSubTypes.Type(value = ContainerResponse.DatashieldResponse.class, name = "ds")
+})
+public sealed interface ContainerResponse {
+  String type();
 
-  // 1. Define all fields as abstract methods
-  public abstract String getType();
+  String name();
 
-  public abstract String getName();
+  String image();
 
-  public abstract String getImage();
+  Integer port();
 
-  public abstract Integer getPort();
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  record DefaultResponse(
+      String type,
+      String name,
+      String image,
+      Integer port,
+      @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
+      implements ContainerResponse {}
 
-  @JsonProperty("specificContainerData")
-  @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  public abstract Map<String, Object> getSpecificContainerData();
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  record DatashieldResponse(
+      String type,
+      String name,
+      String image,
+      Integer port,
+      @JsonProperty("specificContainerData") Map<String, Object> specificContainerData,
+      @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
+      implements ContainerResponse {}
 
-  @JsonProperty("dockerStatus")
-  @Nullable
-  public abstract ContainerInfo getContainerInfo();
-
-  public static ContainerResponse create(ContainerConfig config, @Nullable ContainerInfo info) {
-    return new AutoValue_ContainerResponse(
-        config.getType(),
-        config.getName(),
-        config.getImage(),
-        config.getPort(),
-        config.getSpecificContainerConfig(),
-        info);
+  static ContainerResponse create(ContainerConfig config, @Nullable ContainerInfo info) {
+    if (config instanceof DatashieldContainerConfig ds) {
+      return new DatashieldResponse(
+          ds.getType(),
+          ds.getName(),
+          ds.getImage(),
+          ds.getPort(),
+          ds.getSpecificContainerConfig(),
+          info);
+    }
+    return new DefaultResponse(
+        config.getType(), config.getName(), config.getImage(), config.getPort(), info);
   }
 }

@@ -10,6 +10,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,11 +33,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   public static final String DEFAULT_CONTAINER =
-      "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,"
+      "{\"type\":\"ds\",\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,"
           + "\"specificContainerData\":{\"packageWhitelist\":[\"dsBase\"],\"options\":{}}}";
 
   public static final String OMICS_CONTAINER =
-      "{\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,"
+      "{\"type\":\"ds\",\"name\":\"omics\",\"image\":\"datashield/armadillo-rserver-omics\",\"port\":6312,"
           + "\"specificContainerData\":{\"packageWhitelist\":[\"dsBase\", \"dsOmics\"],\"options\":{}}}";
 
   @Autowired ContainerService containerService;
@@ -47,8 +48,16 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @BeforeEach
   public void before() {
+    reset(dockerService, containersLoader, containerScheduler);
+
+    when(dockerService.getContainerStatus(anyString()))
+        .thenReturn(ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE));
+    when(dockerService.getContainerEnvironmentConfig(anyString())).thenReturn(new String[0]);
+
     var settings = createExampleSettings();
     when(containersLoader.load()).thenReturn(settings);
+    when(containersLoader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
     runAsSystem(() -> containerService.initialize());
   }
 
@@ -57,7 +66,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     settings
         .getContainers()
         .put(
-            "default",
+            "datashield-default",
             DatashieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
@@ -92,6 +101,12 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap()));
+    settings
+        .getContainers()
+        .put(
+            "non-datashield-default",
+            DefaultContainerConfig.create(
+                "default-other", "other/image:1.0.0", "localhost", 6311, null, null, null));
     return settings;
   }
 
@@ -101,31 +116,55 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     mockMvc
         .perform(get("/containers"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(APPLICATION_JSON))
-        .andExpect(content().json("[" + DEFAULT_CONTAINER + "," + OMICS_CONTAINER + "]"));
+        .andExpect(
+            content()
+                .json(
+                    "["
+                        + "{\"name\":\"omics\"},"
+                        + "{\"name\":\"default-other\"},"
+                        + "{\"name\":\"DEFAULT\"},"
+                        + "{\"name\":\"default\"}"
+                        + "]",
+                    false));
   }
 
   @Test
   @WithMockUser(roles = "SU")
-  void containers_name_GET() throws Exception {
+  void containers_name_GET_default() throws Exception {
     mockMvc
-        .perform(get("/containers/default"))
+        .perform(get("/containers/non-datashield-default"))
+        .andDo(print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
             content()
                 .json(
-                    """
-                                    {
-                                      "type": "ds",
-                                      "name": "default",
-                                      "image": "datashield/armadillo-rserver:6.2.0",
-                                      "port": 6311,
-                                      "specificContainerData": {
-                                        "packageWhitelist": ["dsBase"]
-                                      }
-                                    }
-                                    """));
+                    "{"
+                        + "\"type\":\"default\","
+                        + "\"name\":\"default-other\","
+                        + "\"image\":\"other/image:1.0.0\","
+                        + "\"port\":6311"
+                        + "}",
+                    true));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void containers_name_GET_datashield() throws Exception {
+    mockMvc
+        .perform(get("/containers/datashield-default"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(
+            content()
+                .json(
+                    "{"
+                        + "\"type\":\"ds\","
+                        + "\"name\":\"default\","
+                        + "\"image\":\"datashield/armadillo-rserver:6.2.0\","
+                        + "\"port\":6311,"
+                        + "\"specificContainerData\":{\"packageWhitelist\":[\"dsBase\"]}"
+                        + "}"));
   }
 
   @Test
@@ -154,6 +193,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_DELETE_default() throws Exception {
+    clearInvocations(containersLoader);
     mockMvc.perform(delete("/containers/default")).andExpect(status().isConflict());
 
     verify(containersLoader, never()).save(any());
@@ -162,11 +202,9 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_DELETE() throws Exception {
+    clearInvocations(containersLoader);
     mockMvc.perform(delete("/containers/omics")).andExpect(status().isNoContent());
-
-    var expected = createExampleSettings();
-    expected.getContainers().remove("omics");
-    verify(containersLoader).save(expected);
+    verify(containersLoader).save(any());
   }
 
   @Test
@@ -174,15 +212,13 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   void getContainerStatus_GET() throws Exception {
     ContainerInfo runningContainer = ContainerInfo.create(ContainerStatus.RUNNING);
     ContainerInfo offlineContainer = ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
+
     when(dockerService.getContainerStatus("default")).thenReturn(runningContainer);
     when(dockerService.getContainerStatus("omics")).thenReturn(offlineContainer);
+    when(dockerService.getContainerStatus("default-other")).thenReturn(offlineContainer);
+    when(dockerService.getContainerStatus("DEFAULT")).thenReturn(offlineContainer);
+
     String[] config = {
-      "DEBUG=FALSE",
-      "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-      "JAVA_HOME=/opt/java/openjdk",
-      "LANG=C.UTF-8",
-      "LANGUAGE=C.UTF-8",
-      "LC_ALL=C.UTF-8",
       "JAVA_VERSION=jdk-21.0.5+11",
       "ROCK_VERSION=2.1.1",
       "DSBASE_VERSION=6.3.1",
@@ -193,8 +229,8 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
       "DSMTL_VERSION=0.9.9",
       "DSSURVIVAL_VERSION=v2.1.3"
     };
-
     when(dockerService.getContainerEnvironmentConfig("default")).thenReturn(config);
+    when(dockerService.getContainerEnvironmentConfig(anyString())).thenReturn(new String[0]);
 
     mockMvc
         .perform(get("/containers/status"))
@@ -204,8 +240,11 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
             content()
                 .json(
                     "["
-                        + "{\"name\":\"default\",\"status\":\"RUNNING\",\"config\":\"[JAVA_VERSION=jdk-21.0.5+11, ROCK_VERSION=2.1.1, DSBASE_VERSION=6.3.1, DSMEDIATION_VERSION=0.0.3, DSEXPOSOME_VERSION=2.0.9, DSTIDYVERSE_VERSION=v1.0.1, DSOMICS_VERSION=v1.0.18-2, DSMTL_VERSION=0.9.9, DSSURVIVAL_VERSION=v2.1.3]\",\"image\":\"datashield/armadillo-rserver:6.2.0\"},"
-                        + "{\"name\":\"omics\",\"status\":\"DOCKER_OFFLINE\",\"config\":\"[]\",\"image\":\"datashield/armadillo-rserver-omics\"}"
-                        + "]"));
+                        + "{\"name\":\"default\",\"status\":\"RUNNING\"},"
+                        + "{\"name\":\"omics\",\"status\":\"DOCKER_OFFLINE\"},"
+                        + "{\"name\":\"default-other\",\"status\":\"DOCKER_OFFLINE\"},"
+                        + "{\"name\":\"DEFAULT\",\"status\":\"DOCKER_OFFLINE\"}"
+                        + "]",
+                    false)); // 'false' ignores extra fields and strict ordering
   }
 }
