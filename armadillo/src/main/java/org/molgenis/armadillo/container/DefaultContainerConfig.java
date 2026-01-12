@@ -2,14 +2,21 @@ package org.molgenis.armadillo.container;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 
 @AutoValue
+@JsonTypeName("default")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class DefaultContainerConfig implements ContainerConfig {
+
+  @Override
+  public String getType() {
+    return "default";
+  }
 
   @JsonCreator
   public static DefaultContainerConfig create(

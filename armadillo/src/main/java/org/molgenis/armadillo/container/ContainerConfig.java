@@ -6,10 +6,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.annotation.Nullable;
 import java.util.Map;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = DatashieldContainerConfig.class, name = "ds"),
-  @JsonSubTypes.Type(value = DefaultContainerConfig.class, name = "default")
+  @JsonSubTypes.Type(DatashieldContainerConfig.class),
+  @JsonSubTypes.Type(DefaultContainerConfig.class)
 })
 public interface ContainerConfig {
 
@@ -38,4 +38,6 @@ public interface ContainerConfig {
   String getLastImageId();
 
   Map<String, Object> getSpecificContainerConfig();
+
+  String getType();
 }
