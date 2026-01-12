@@ -2,6 +2,7 @@ package org.molgenis.armadillo.container;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
+@JsonTypeName("ds")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
@@ -53,6 +55,11 @@ public abstract class DatashieldContainerConfig
         .functionBlacklist(functionBlacklist)
         .options(options)
         .build();
+  }
+
+  @Override
+  public String getType() {
+    return "ds";
   }
 
   public static DatashieldContainerConfig createDefault() {
