@@ -62,8 +62,14 @@ public class DevelopmentController {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
+  @PostMapping(
+      value = "install-package",
+      consumes = {"multipart/form-data"})
+  @ResponseStatus(NO_CONTENT)
+  @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
       Principal principal, @RequestParam MultipartFile file) {
+    // 1. Filename check (Restored to be first)
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
       Map<String, Object> data = new HashMap<>();
@@ -72,6 +78,7 @@ public class DevelopmentController {
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
 
+      // 2. Container lookup and validation
       ContainerConfig activeConfig = getActiveConfig();
 
       try {
@@ -158,5 +165,10 @@ public class DevelopmentController {
 
   protected String getPackageNameFromFilename(String filename) {
     return filename.replaceFirst("_[^_]+$", "");
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleBadRequest(IllegalArgumentException e) {
+    return ResponseEntity.badRequest().body(e.getMessage());
   }
 }

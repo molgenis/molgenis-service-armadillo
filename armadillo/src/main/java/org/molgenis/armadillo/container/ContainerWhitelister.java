@@ -11,7 +11,7 @@ public interface ContainerWhitelister {
    * @param pack The package name to add to the whitelist.
    */
 
-  Class<? extends ContainerConfig> supportsConfigType();
+  boolean supports(ContainerConfig config);
 
   void addToWhitelist(ContainerConfig config, String pack);
 }
