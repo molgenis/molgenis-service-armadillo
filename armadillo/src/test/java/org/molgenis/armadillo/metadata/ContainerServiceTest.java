@@ -33,7 +33,7 @@ class ContainerServiceTest {
             "default",
             "test",
             "localhost",
-            1234,
+            6311,
             null,
             null,
             null,
@@ -47,18 +47,21 @@ class ContainerServiceTest {
 
     containersMetadata.getContainers().put("default", defaultContainer);
     var containersLoader = new DummyContainersLoader(containersMetadata);
+
+    // Use the actual whitelister
+    var whitelister = new org.molgenis.armadillo.container.DatashieldContainerWhitelister();
+
     var containerService =
         new ContainerService(
             containersLoader,
             initialContainerConfigs,
             containerScope,
             List.of(),
-            List.of(new org.molgenis.armadillo.container.DatashieldContainerWhitelister()),
+            List.of(whitelister),
             mock(DefaultContainerFactory.class),
             List.of());
 
     containerService.initialize();
-
     containerService.addToWhitelist("default", "dsOmics");
 
     verify(containerScope).removeAllContainerBeans("default");
@@ -105,12 +108,14 @@ class ContainerServiceTest {
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
+    var updater = new org.molgenis.armadillo.container.DatashieldContainerUpdater();
+
     ContainerService containerService =
         new ContainerService(
             loader,
             initialContainers,
             mockContainerScope,
-            List.of(),
+            List.of(updater),
             List.of(),
             mock(DefaultContainerFactory.class),
             List.of());

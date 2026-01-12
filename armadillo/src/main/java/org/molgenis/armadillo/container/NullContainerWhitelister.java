@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 public class NullContainerWhitelister implements ContainerWhitelister {
 
   @Override
-  public Class<? extends ContainerConfig> supportsConfigType() {
-    return DefaultContainerConfig.class;
+  public boolean supports(ContainerConfig config) {
+    return config instanceof DefaultContainerConfig;
   }
 
   @Override

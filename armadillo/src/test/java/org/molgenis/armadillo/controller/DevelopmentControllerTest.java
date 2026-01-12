@@ -84,13 +84,22 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testInstallPackageNonDatashield() throws Exception {
+    // Mock a non-DataSHIELD container configuration
     when(containerService.getByName(any())).thenReturn(mock(DefaultContainerConfig.class));
-    MockMultipartFile file =
-        new MockMultipartFile("file", "test.tar.gz", "text/plain", "content".getBytes());
 
-    mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
-        .andExpect(status().isBadRequest());
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "test.tar.gz", MediaType.TEXT_PLAIN_VALUE, "content".getBytes());
+
+    // Perform the initial multipart request
+    MvcResult mvcResult =
+        mockMvc
+            .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+    // Dispatch the async result to verify the 400 Bad Request
+    mockMvc.perform(asyncDispatch(mvcResult)).andExpect(status().isBadRequest());
   }
 
   @Test

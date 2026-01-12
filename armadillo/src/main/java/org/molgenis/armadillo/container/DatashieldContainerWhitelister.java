@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 public class DatashieldContainerWhitelister implements ContainerWhitelister {
 
   @Override
-  public Class<? extends ContainerConfig> supportsConfigType() {
-    return DatashieldContainerConfig.class;
+  public boolean supports(ContainerConfig config) {
+    return config instanceof DatashieldContainerConfig;
   }
 
   public void addToWhitelist(ContainerConfig config, String pack) {

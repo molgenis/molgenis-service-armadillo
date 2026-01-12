@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 public class DatashieldContainerUpdater implements ContainerUpdater, OpenContainersUpdater {
 
   @Override
-  public Class<? extends ContainerConfig> supportsConfigType() {
-    return DatashieldContainerConfig.class; // <-- Self-identifies its target type
+  public boolean supports(ContainerConfig config) {
+    return config instanceof DatashieldContainerConfig;
   }
 
   @Override

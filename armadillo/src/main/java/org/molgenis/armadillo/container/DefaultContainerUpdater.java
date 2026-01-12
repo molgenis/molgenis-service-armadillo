@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 public class DefaultContainerUpdater implements ContainerUpdater {
 
   @Override
-  public Class<? extends ContainerConfig> supportsConfigType() {
-    return DefaultContainerConfig.class; // <-- Identifies its target type
+  public boolean supports(ContainerConfig config) {
+    return config instanceof DefaultContainerConfig;
   }
 
   @Override
