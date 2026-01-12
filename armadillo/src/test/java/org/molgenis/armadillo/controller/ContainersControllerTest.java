@@ -115,7 +115,17 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .andExpect(
             content()
                 .json(
-                    "{\"name\":\"default\",\"image\":\"datashield/armadillo-rserver:6.2.0\",\"port\":6311,\"packageWhitelist\":[\"dsBase\"]}"));
+                    """
+                                    {
+                                      "type": "ds",
+                                      "name": "default",
+                                      "image": "datashield/armadillo-rserver:6.2.0",
+                                      "port": 6311,
+                                      "specificContainerData": {
+                                        "packageWhitelist": ["dsBase"]
+                                      }
+                                    }
+                                    """));
   }
 
   @Test
