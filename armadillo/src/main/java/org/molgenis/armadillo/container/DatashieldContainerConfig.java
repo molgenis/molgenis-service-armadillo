@@ -16,15 +16,46 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 
+  @Override
+  @Nullable
+  public abstract String getName();
+
+  @Override
+  @Nullable
+  public abstract String getImage();
+
+  @Override
+  @Nullable
+  public abstract String getHost();
+
+  @Override
+  @Nullable
+  public abstract Integer getPort();
+
+  @Override
+  @Nullable
+  public abstract Long getImageSize();
+
+  @Override
+  @Nullable
+  public abstract String getInstallDate();
+
+  @Override
+  @Nullable
+  public abstract String getLastImageId();
+
+  @Nullable
   public abstract Set<String> getPackageWhitelist();
 
+  @Nullable
   public abstract Set<String> getFunctionBlacklist();
 
+  @Nullable
   public abstract Map<String, String> getOptions();
 
   @JsonCreator
   public static DatashieldContainerConfig create(
-      String name,
+      @Nullable String name,
       @Nullable String image,
       @Nullable String host,
       @Nullable Integer port,
@@ -91,13 +122,13 @@ public abstract class DatashieldContainerConfig
 
   @AutoValue.Builder
   public abstract static class Builder {
-    public abstract Builder name(String name);
+    public abstract Builder name(@Nullable String name);
 
-    public abstract Builder image(String image);
+    public abstract Builder image(@Nullable String image);
 
-    public abstract Builder host(String host);
+    public abstract Builder host(@Nullable String host);
 
-    public abstract Builder port(Integer port);
+    public abstract Builder port(@Nullable Integer port);
 
     public abstract Builder lastImageId(@Nullable String lastImageId);
 
@@ -109,15 +140,15 @@ public abstract class DatashieldContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract Builder autoUpdate(Boolean autoUpdate);
+    public abstract Builder autoUpdate(@Nullable Boolean autoUpdate);
 
     public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
 
-    public abstract Builder packageWhitelist(Set<String> packageWhitelist);
+    public abstract Builder packageWhitelist(@Nullable Set<String> packageWhitelist);
 
-    public abstract Builder functionBlacklist(Set<String> functionBlacklist);
+    public abstract Builder functionBlacklist(@Nullable Set<String> functionBlacklist);
 
-    public abstract Builder options(Map<String, String> options);
+    public abstract Builder options(@Nullable Map<String, String> options);
 
     @Nullable
     abstract String getImage();

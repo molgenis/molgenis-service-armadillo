@@ -14,15 +14,19 @@ import java.util.Map;
 public interface ContainerConfig {
 
   @JsonProperty("name")
+  @Nullable
   String getName();
 
   @JsonProperty("image")
+  @Nullable
   String getImage();
 
   @JsonProperty("host")
+  @Nullable
   String getHost();
 
   @JsonProperty("port")
+  @Nullable
   Integer getPort();
 
   @JsonProperty("imageSize")

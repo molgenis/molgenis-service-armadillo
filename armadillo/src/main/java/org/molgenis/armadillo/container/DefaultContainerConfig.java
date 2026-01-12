@@ -14,16 +14,44 @@ import java.util.Map;
 public abstract class DefaultContainerConfig implements ContainerConfig {
 
   @Override
+  @Nullable
+  public abstract String getName();
+
+  @Override
+  @Nullable
+  public abstract String getImage();
+
+  @Override
+  @Nullable
+  public abstract String getHost();
+
+  @Override
+  @Nullable
+  public abstract Integer getPort();
+
+  @Override
+  @Nullable
+  public abstract Long getImageSize();
+
+  @Override
+  @Nullable
+  public abstract String getInstallDate();
+
+  @Override
+  @Nullable
+  public abstract String getLastImageId();
+
+  @Override
   public String getType() {
     return "default";
   }
 
   @JsonCreator
   public static DefaultContainerConfig create(
-      String name,
-      String image,
-      String host,
-      Integer port,
+      @Nullable String name,
+      @Nullable String image,
+      @Nullable String host,
+      @Nullable Integer port,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId) {
@@ -48,13 +76,13 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract Builder name(String name);
+    public abstract Builder name(@Nullable String name);
 
-    public abstract Builder image(String image);
+    public abstract Builder image(@Nullable String image);
 
-    public abstract Builder host(String host);
+    public abstract Builder host(@Nullable String host);
 
-    public abstract Builder port(Integer port);
+    public abstract Builder port(@Nullable Integer port);
 
     public abstract Builder imageSize(@Nullable Long imageSize);
 
@@ -62,7 +90,24 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
 
     public abstract Builder lastImageId(@Nullable String lastImageId);
 
-    public abstract DefaultContainerConfig build();
+    @Nullable
+    abstract String getImage();
+
+    @Nullable
+    abstract String getHost();
+
+    @Nullable
+    abstract Integer getPort();
+
+    abstract DefaultContainerConfig autoBuild();
+
+    public DefaultContainerConfig build() {
+      if (getImage() == null) image("library/r-base");
+      if (getHost() == null) host("localhost");
+      if (getPort() == null) port(6311);
+
+      return autoBuild();
+    }
   }
 
   @Override
