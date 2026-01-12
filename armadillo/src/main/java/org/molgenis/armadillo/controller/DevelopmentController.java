@@ -7,7 +7,6 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.status;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,23 +62,6 @@ public class DevelopmentController {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  @Operation(
-      summary = "Install a package",
-      description = "Install a package in the currently selected container")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
-        @ApiResponse(
-            responseCode = "400",
-            description =
-                "Bad Request: Package installation is only supported for DataSHIELD containers"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      })
-  @PostMapping(
-      value = "install-package",
-      consumes = {MULTIPART_FORM_DATA_VALUE})
-  @ResponseStatus(NO_CONTENT)
-  @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
       Principal principal, @RequestParam MultipartFile file) {
     String ogFilename = file.getOriginalFilename();
@@ -90,18 +72,16 @@ public class DevelopmentController {
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
 
-      ContainerConfig activeConfig = containers.getByName(getActiveContainerName());
+      ContainerConfig activeConfig = getActiveConfig();
 
-      if (!(activeConfig instanceof DatashieldContainerConfig)) {
-        String msg =
-            "Package installation is only supported for DataSHIELD containers. Found type: "
-                + activeConfig.getClass().getSimpleName();
+      try {
+        validateIsDatashield(activeConfig);
+      } catch (IllegalArgumentException e) {
         Map<String, Object> data = new HashMap<>();
-        data.put(MESSAGE, msg);
-        data.put(CONTAINER, activeConfig.getName());
+        data.put(MESSAGE, e.getMessage());
+        data.put(CONTAINER, activeConfig == null ? "unknown" : activeConfig.getName());
         auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
 
-        // Return 400 Bad Request
         return completedFuture(status(HttpStatus.BAD_REQUEST).build());
       }
 
@@ -123,38 +103,39 @@ public class DevelopmentController {
           .thenApply(
               body -> {
                 containers.addToWhitelist(getActiveContainerName(), packageName);
-                return ResponseEntity.ok(body);
+                return ResponseEntity.ok().<Void>build();
               })
-          .exceptionally(
-              t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
+          .exceptionally(t -> ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
     }
   }
 
-  @Operation(summary = "Get whitelist")
   @GetMapping("whitelist")
-  @ResponseBody
-  @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return containers.getPackageWhitelist(getActiveContainerName());
+    ContainerConfig config = getActiveConfig();
+    validateIsDatashield(config);
+    return containers.getPackageWhitelist(config.getName());
   }
 
-  @Operation(
-      summary = "Add package to whitelist",
-      description =
-          "Adds a package to the runtime whitelist. The whitelist is reset when the application "
-              + "restarts. Admin use only.")
   @PostMapping("whitelist/{pkg}")
-  @ResponseStatus(NO_CONTENT)
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-
-    String containerName = getActiveContainerName();
+    ContainerConfig config = getActiveConfig();
+    validateIsDatashield(config);
 
     auditEventPublisher.audit(
-        () -> containers.addToWhitelist(containerName, pkg),
+        () -> containers.addToWhitelist(config.getName(), pkg),
         principal,
         UPSERT_CONTAINER,
-        Map.of(CONTAINER, containerName));
+        Map.of(CONTAINER, config.getName()));
+  }
+
+  private ContainerConfig getActiveConfig() {
+    return containers.getByName(getActiveContainerName());
+  }
+
+  private void validateIsDatashield(ContainerConfig config) {
+    if (!(config instanceof DatashieldContainerConfig)) {
+      throw new IllegalArgumentException("Operation only supported for DataSHIELD containers.");
+    }
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")

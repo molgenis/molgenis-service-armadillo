@@ -20,6 +20,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DefaultContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -61,6 +63,8 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     auditEventPublisher.setApplicationEventPublisher(applicationEventPublisher);
     when(clock.instant()).thenReturn(instant);
     sessionId = session.changeSessionId();
+
+    when(containerService.getByName(any())).thenReturn(mock(DatashieldContainerConfig.class));
   }
 
   @Test
@@ -75,6 +79,18 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     mockMvc
         .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
         .andExpect(status().is(204));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testInstallPackageNonDatashield() throws Exception {
+    when(containerService.getByName(any())).thenReturn(mock(DefaultContainerConfig.class));
+    MockMultipartFile file =
+        new MockMultipartFile("file", "test.tar.gz", "text/plain", "content".getBytes());
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -119,6 +135,14 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
+  void testGetWhitelistNonDatashield() throws Exception {
+    when(containerService.getByName(any())).thenReturn(mock(DefaultContainerConfig.class));
+
+    mockMvc.perform(MockMvcRequestBuilders.get("/whitelist")).andExpect(status().isBadRequest());
+  }
+
+  @Test
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
     DevelopmentController controller =
@@ -132,15 +156,12 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   void testDeleteDockerImage() throws Exception {
     String imageId = "some-image-id";
 
-    // We mock the dockerService.deleteImageIfUnused to do nothing (void method)
-    // You can verify later if needed.
     doNothing().when(dockerService).deleteImageIfUnused(imageId);
 
     mockMvc
         .perform(MockMvcRequestBuilders.delete("/delete-docker-image").param("imageId", imageId))
         .andExpect(status().isNoContent());
 
-    // Verify that dockerService.deleteImageIfUnused was called with the correct imageId
     verify(dockerService).deleteImageIfUnused(imageId);
   }
 }
