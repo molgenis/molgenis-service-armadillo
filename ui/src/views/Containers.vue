@@ -25,6 +25,18 @@
     <EditContainerCard
       v-else-if="containerToEdit != ''"
       :container="getContainerByName(containerToEdit)"
+      :template="
+        getContainerByName(containerToEdit).image.startsWith('datashield/')
+          ? 'ds'
+          : 'default'
+      "
+      :status="
+        statusMapping[
+          getContainerByName(containerToEdit).container
+            .status as keyof typeof statusMapping
+        ]
+      "
+      @cancel-edit="this.containerToEdit = ''"
     />
     <div v-else>
       <span v-for="container in containers" :ref="container.name">
@@ -141,11 +153,6 @@ export default defineComponent({
             return {
               ...container,
               datashieldSeed,
-              autoUpdateSchedule: container.autoUpdateSchedule || {
-                frequency: "weekly",
-                day: "Sunday",
-                time: "01:00",
-              },
             };
           });
         })

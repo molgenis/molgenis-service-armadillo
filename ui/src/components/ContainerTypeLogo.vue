@@ -1,16 +1,11 @@
 <template>
   <span>
-    <DsLogo :height="25" class="mt-2" v-if="template === 'ds'" />
+    <DsLogo :height="25" v-if="template === 'ds'" />
     <FlowerLogo
-      class="position-absolute top-50 start-50 translate-middle"
       :height="20"
       v-else-if="template.includes('flwr') || name.startsWith('flower')"
     />
-    <DockerLogo
-      class="position-absolute top-50 start-50 translate-middle"
-      :height="25"
-      v-else
-    />
+    <DockerLogo :height="25" v-else />
   </span>
 </template>
 

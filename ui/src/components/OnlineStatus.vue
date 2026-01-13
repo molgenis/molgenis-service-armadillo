@@ -16,9 +16,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style :scoped>
-.status-badge {
-  width: 100%;
-}
-</style>

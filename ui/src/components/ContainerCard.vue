@@ -21,7 +21,11 @@
           </span>
         </span>
         <span class="col-1 ps-0 position-relative">
-          <ContainerTypeLogo :name="name" :template="template" />
+          <ContainerTypeLogo
+            class="position-absolute top-50 start-50 translate-middle"
+            :name="name"
+            :template="template"
+          />
         </span>
         <span class="col-1 ps-1 pe-1 position-relative">
           <OnlineStatus
@@ -40,7 +44,7 @@
           />
         </span>
         <span class="col-1 position-relative">
-          <div
+          <span
             class="btn-group position-absolute top-50 start-50 translate-middle"
             role="group"
           >
@@ -59,7 +63,7 @@
               <!-- trashcan -->
               <i class="bi bi-trash-fill"></i>
             </button>
-          </div>
+          </span>
         </span>
       </span>
     </h5>
