@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.container;
 
-import org.molgenis.armadillo.controller.ContainerDockerController;
+import org.molgenis.armadillo.controller.DockerContainerController;
 import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,7 @@ public class ContainerSchedulerFallbackConfig {
 
   @Bean
   @ConditionalOnProperty(
-      value = ContainerDockerController.DOCKER_MANAGEMENT_ENABLED,
+      value = DockerContainerController.DOCKER_MANAGEMENT_ENABLED,
       havingValue = "false",
       matchIfMissing = true // Also covers missing property
       )

@@ -59,6 +59,7 @@ import org.springframework.web.server.ResponseStatusException;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
 @RestController
+@RequestMapping("ds")
 @Validated
 public class DataController {
 

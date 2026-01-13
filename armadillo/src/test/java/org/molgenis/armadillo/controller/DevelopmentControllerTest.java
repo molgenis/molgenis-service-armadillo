@@ -73,7 +73,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/dev/install-package").file(file))
         .andExpect(status().is(204));
   }
 
@@ -87,7 +87,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     when(commands.installPackage(any(Principal.class), any(Resource.class), any(String.class)))
         .thenReturn(completedFuture(null));
     mockMvc
-        .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
+        .perform(MockMvcRequestBuilders.multipart("/dev/install-package").file(file))
         .andExpect(status().is(403));
   }
 
@@ -99,7 +99,9 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                MockMvcRequestBuilders.multipart("/install-package").file(file).session(session))
+                MockMvcRequestBuilders.multipart("/dev/install-package")
+                    .file(file)
+                    .session(session))
             .andExpect(status().is(204))
             .andExpect(request().asyncStarted())
             .andReturn();
@@ -137,7 +139,8 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     doNothing().when(dockerService).deleteImageIfUnused(imageId);
 
     mockMvc
-        .perform(MockMvcRequestBuilders.delete("/delete-docker-image").param("imageId", imageId))
+        .perform(
+            MockMvcRequestBuilders.delete("/dev/delete-docker-image").param("imageId", imageId))
         .andExpect(status().isNoContent());
 
     // Verify that dockerService.deleteImageIfUnused was called with the correct imageId
