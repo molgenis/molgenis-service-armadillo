@@ -16,10 +16,50 @@
     <div class="card-body">
       <form>
         <div class="mb-3" v-for="(value, key) in containerToEdit">
-          <div v-if="key === 'updateSchedule'">
-            <span v-if="container['autoUpdate'] === true">
-              {{ value }}
-            </span>
+          <div v-if="key === 'updateSchedule'" class="ms-4 row">
+            <div v-if="container['autoUpdate'] === true" class="col-lg-4">
+              <br />
+              <label class="fw-bold">Frequency</label>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="frequencyRadio"
+                  value="daily"
+                  v-model="updateFrequency"
+                  checked
+                />
+                <label class="form-check-label" for="frequencyRadio">
+                  Daily
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="frequencyRadio"
+                  v-model="updateFrequency"
+                  value="weekly"
+                />
+                <label class="form-check-label" for="frequencyRadio">
+                  Weekly
+                </label>
+              </div>
+              <div v-if="updateFrequency === 'weekly'">
+                <label class="fw-bold">Day</label>
+                <Dropdown :options="daysOfTheWeek" @update="updateUpdateDay" />
+              </div>
+              <div>
+                <label class="fw-bold">Time</label>
+                <div>
+                  <input
+                    class="time-picker p-1"
+                    type="time"
+                    v-model="updateTime"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
           <div v-else-if="!dontShow.includes(key)">
             <span v-if="getValueType(value) === 'boolean'">
@@ -55,12 +95,15 @@
                 <div class="col-1">
                   <button
                     class="btn btn-link"
-                    @click.prevent="toggleItemToEdit(key)"
+                    @click.prevent="openItemToEdit(key)"
                   >
                     <i class="bi bi-plus-circle"></i>
                   </button>
                 </div>
-                <div class="col-lg-4" v-if="itemToEdit === key">
+                <div
+                  class="col-lg-4"
+                  v-if="isArrayEditOpen && itemToEdit === key"
+                >
                   <div class="input-group">
                     <input
                       type="text"
@@ -74,7 +117,10 @@
                       ></i>
                     </button>
                     <button class="btn btn-danger" type="button">
-                      <i class="bi bi-x-lg" @click="resetAddValue"></i>
+                      <i
+                        class="bi bi-x-lg"
+                        @click="isArrayEditOpen = false"
+                      ></i>
                     </button>
                   </div>
                 </div>
@@ -107,7 +153,7 @@ import BadgeList from "@/components/BadgeList.vue";
 import { Container, ContainerStartStatus } from "@/types/api";
 import OnlineStatus from "@/components/OnlineStatus.vue";
 import ContainerTypeLogo from "@/components/ContainerTypeLogo.vue";
-import containers from "@/views/Containers.vue";
+import Dropdown from "@/components/Dropdown.vue";
 
 export default defineComponent({
   name: "EditContainerCard",
@@ -116,15 +162,17 @@ export default defineComponent({
     template: { type: String, required: true },
     status: { type: Object as PropType<ContainerStartStatus>, required: true },
   },
-  components: { ContainerTypeLogo, OnlineStatus, BadgeList, Badge },
+  components: { Dropdown, ContainerTypeLogo, OnlineStatus, BadgeList, Badge },
   emits: ["cancel-edit", "save-changes"],
   methods: {
     toCapitalizedWords,
-    toggleItemToEdit(key: string) {
+    updateUpdateDay(event: Event) {
+      this.updateDay = event.toString();
+    },
+    openItemToEdit(key: string) {
+      this.isArrayEditOpen = true;
       if (this.itemToEdit === "") {
         this.itemToEdit = key;
-      } else if (this.itemToEdit === key) {
-        this.itemToEdit = "";
       } else {
         this.resetAddValue();
         this.itemToEdit = key;
@@ -150,6 +198,18 @@ export default defineComponent({
       }
     },
   },
+  watch: {
+    updateFrequency() {
+      this.containerToEdit.updateSchedule.frequency = this.updateFrequency;
+    },
+    updateDay() {
+      this.containerToEdit.updateSchedule.day = this.updateDay;
+      console.log(this.updateDay, this.containerToEdit.updateSchedule);
+    },
+    updateTime() {
+      this.containerToEdit.updateSchedule.time = this.updateTime;
+    },
+  },
   data(): {
     valueToAdd: string;
     dontShow: Array<string>;
@@ -157,6 +217,10 @@ export default defineComponent({
     itemsToEdit: string;
     icons: Object<string, string>;
     containerToEdit: Container;
+    isArrayEditOpen: Boolean;
+    updateDay: string;
+    updateFrequency: string;
+    daysOfTheWeek: Array<string>;
   } {
     return {
       valueToAdd: "",
@@ -174,6 +238,19 @@ export default defineComponent({
         image: "",
       },
       containerToEdit: this.container,
+      isArrayEditOpen: false,
+      updateFrequency: this.container.updateSchedule.frequency,
+      updateDay: this.container.updateSchedule.day,
+      updateTime: this.container.updateSchedule.time,
+      daysOfTheWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
     };
   },
 });
@@ -182,5 +259,16 @@ export default defineComponent({
 <style :scoped>
 .container-input {
   width: 50%;
+}
+.time-picker {
+  border-radius: 6px;
+  border-width: 1px;
+  border-color: #dee2e6;
+}
+
+.time-picker:focus {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 </style>
