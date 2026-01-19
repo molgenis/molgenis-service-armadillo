@@ -1,8 +1,6 @@
 package org.molgenis.armadillo.container;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
@@ -11,6 +9,7 @@ import java.util.Map;
 @AutoValue
 @JsonTypeName("default")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class DefaultContainerConfig implements ContainerConfig {
 
   @Override
@@ -42,6 +41,7 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   public abstract String getLastImageId();
 
   @Override
+  @JsonIgnore
   public String getType() {
     return "default";
   }

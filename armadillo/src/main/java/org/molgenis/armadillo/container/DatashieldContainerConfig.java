@@ -1,8 +1,6 @@
 package org.molgenis.armadillo.container;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.Map;
@@ -13,6 +11,7 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 @AutoValue
 @JsonTypeName("ds")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 
@@ -45,30 +44,48 @@ public abstract class DatashieldContainerConfig
   public abstract String getLastImageId();
 
   @Nullable
+  @JsonIgnore
   public abstract Set<String> getPackageWhitelist();
 
   @Nullable
+  @JsonIgnore
   public abstract Set<String> getFunctionBlacklist();
 
   @Nullable
+  @JsonIgnore
   public abstract Map<String, String> getOptions();
+
+  @Override
+  @JsonIgnore
+  public Map<String, Object> getSpecificContainerConfig() {
+    return Map.of(
+        "packageWhitelist", getPackageWhitelist(),
+        "functionBlacklist", getFunctionBlacklist(),
+        "options", getOptions());
+  }
+
+  @Override
+  @JsonIgnore
+  public String getType() {
+    return "ds";
+  }
 
   @JsonCreator
   public static DatashieldContainerConfig create(
-      @Nullable String name,
-      @Nullable String image,
-      @Nullable String host,
-      @Nullable Integer port,
-      @Nullable String lastImageId,
-      @Nullable Long imageSize,
-      @Nullable String installDate,
-      @Nullable String versionId,
-      @Nullable String creationDate,
-      @Nullable Boolean autoUpdate,
-      @Nullable UpdateSchedule updateSchedule,
-      @Nullable Set<String> packageWhitelist,
-      @Nullable Set<String> functionBlacklist,
-      @Nullable Map<String, String> options) {
+      @JsonProperty("name") @Nullable String name,
+      @JsonProperty("image") @Nullable String image,
+      @JsonProperty("host") @Nullable String host,
+      @JsonProperty("port") @Nullable Integer port,
+      @JsonProperty("lastImageId") @Nullable String lastImageId,
+      @JsonProperty("imageSize") @Nullable Long imageSize,
+      @JsonProperty("installDate") @Nullable String installDate,
+      @JsonProperty("versionId") @Nullable String versionId,
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("autoUpdate") @Nullable Boolean autoUpdate,
+      @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
+      @JsonProperty("packageWhitelist") @Nullable Set<String> packageWhitelist,
+      @JsonProperty("functionBlacklist") @Nullable Set<String> functionBlacklist,
+      @JsonProperty("options") @Nullable Map<String, String> options) {
 
     return builder()
         .name(name)
@@ -88,21 +105,8 @@ public abstract class DatashieldContainerConfig
         .build();
   }
 
-  @Override
-  public String getType() {
-    return "ds";
-  }
-
   public static DatashieldContainerConfig createDefault() {
     return builder().name("default").build();
-  }
-
-  @Override
-  public Map<String, Object> getSpecificContainerConfig() {
-    return Map.of(
-        "packageWhitelist", getPackageWhitelist(),
-        "functionBlacklist", getFunctionBlacklist(),
-        "options", getOptions());
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {
