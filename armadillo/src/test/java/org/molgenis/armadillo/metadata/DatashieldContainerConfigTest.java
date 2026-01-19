@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -98,6 +99,7 @@ public class DatashieldContainerConfigTest {
             new HashSet<>(),
             new HashSet<>(),
             null);
-    assertEquals("java.util.ImmutableCollections$MapN", config.getOptions().getClass().getName());
+
+    assertEquals(Map.of("datashield.seed", "342325352"), config.getOptions());
   }
 }
