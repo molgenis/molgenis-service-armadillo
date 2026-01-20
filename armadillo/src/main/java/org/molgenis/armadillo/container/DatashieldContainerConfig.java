@@ -46,6 +46,14 @@ public abstract class DatashieldContainerConfig
 
   @Override
   @Nullable
+  public abstract String getVersionId();
+
+  @Override
+  @Nullable
+  public abstract String getCreationDate();
+
+  @Override
+  @Nullable
   public abstract List<String> getDockerArgs();
 
   @Override
@@ -62,7 +70,7 @@ public abstract class DatashieldContainerConfig
 
   @Nullable
   @JsonIgnore
-  public abstract Map<String, String> getOptions();
+  public abstract Map<String, String> getDatashieldROptions();
 
   @Override
   @JsonIgnore
@@ -70,7 +78,7 @@ public abstract class DatashieldContainerConfig
     return Map.of(
         "packageWhitelist", getPackageWhitelist() == null ? Set.of() : getPackageWhitelist(),
         "functionBlacklist", getFunctionBlacklist() == null ? Set.of() : getFunctionBlacklist(),
-        "options", getOptions() == null ? Map.of() : getOptions());
+        "datashieldROptions", getDatashieldROptions() == null ? Map.of() : getDatashieldROptions());
   }
 
   @Override
@@ -94,7 +102,7 @@ public abstract class DatashieldContainerConfig
       @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
       @JsonProperty("packageWhitelist") @Nullable Set<String> packageWhitelist,
       @JsonProperty("functionBlacklist") @Nullable Set<String> functionBlacklist,
-      @JsonProperty("options") @Nullable Map<String, String> options,
+      @JsonProperty("datashieldROptions") @Nullable Map<String, String> datashieldROptions,
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
 
@@ -112,7 +120,7 @@ public abstract class DatashieldContainerConfig
         .updateSchedule(updateSchedule)
         .packageWhitelist(packageWhitelist)
         .functionBlacklist(functionBlacklist)
-        .options(options)
+        .datashieldROptions(datashieldROptions)
         .dockerArgs(dockerArgs)
         .dockerOptions(dockerOptions)
         .build();
@@ -165,7 +173,7 @@ public abstract class DatashieldContainerConfig
 
     public abstract Builder functionBlacklist(@Nullable Set<String> functionBlacklist);
 
-    public abstract Builder options(@Nullable Map<String, String> options);
+    public abstract Builder datashieldROptions(@Nullable Map<String, String> datashieldROptions);
 
     public abstract Builder dockerArgs(@Nullable List<String> dockerArgs);
 
@@ -190,7 +198,7 @@ public abstract class DatashieldContainerConfig
     abstract Set<String> getFunctionBlacklist();
 
     @Nullable
-    abstract Map<String, String> getOptions();
+    abstract Map<String, String> getDatashieldROptions();
 
     abstract DatashieldContainerConfig autoBuild();
 
@@ -201,7 +209,8 @@ public abstract class DatashieldContainerConfig
       if (getAutoUpdate() == null) autoUpdate(false);
       if (getPackageWhitelist() == null) packageWhitelist(Set.of("dsBase"));
       if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
-      if (getOptions() == null) options(Map.of("datashield.seed", "342325352"));
+      if (getDatashieldROptions() == null)
+        datashieldROptions(Map.of("datashield.seed", "342325352"));
 
       return autoBuild();
     }

@@ -100,6 +100,6 @@ public class DatashieldContainerConfigTest {
             new HashSet<>(),
             null);
 
-    assertEquals(Map.of("datashield.seed", "342325352"), config.getOptions());
+    assertEquals(Map.of("datashield.seed", "342325352"), config.getDatashieldPrivacyOptions());
   }
 }

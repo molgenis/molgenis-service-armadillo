@@ -48,7 +48,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      optionsMap.putAll(datashieldContainerConfig.getOptions());
+      optionsMap.putAll(datashieldContainerConfig.getDatashieldPrivacyOptions());
       options = ImmutableMap.copyOf(optionsMap);
     }
   }
