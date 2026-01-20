@@ -399,7 +399,6 @@ public class StorageController {
     }
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
     try {
       var inputStream = storage.loadObject(project, object);

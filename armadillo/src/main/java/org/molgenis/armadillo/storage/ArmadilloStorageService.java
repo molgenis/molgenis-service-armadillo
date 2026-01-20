@@ -198,7 +198,6 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadTable(String project, String objectName) {
-
     return runAsSystem(() -> (storageService.load(SHARED_PREFIX + project, objectName + PARQUET)));
   }
 
