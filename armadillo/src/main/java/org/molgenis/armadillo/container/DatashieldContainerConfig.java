@@ -11,8 +11,6 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonTypeName("ds")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 

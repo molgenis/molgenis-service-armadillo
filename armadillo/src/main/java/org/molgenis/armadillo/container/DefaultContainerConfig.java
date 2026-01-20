@@ -9,8 +9,6 @@ import java.util.Map;
 
 @AutoValue
 @JsonTypeName("default")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class DefaultContainerConfig implements ContainerConfig {
 
   @Override

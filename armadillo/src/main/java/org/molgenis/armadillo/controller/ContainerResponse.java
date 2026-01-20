@@ -1,10 +1,10 @@
 package org.molgenis.armadillo.controller;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
@@ -20,6 +20,7 @@ import org.molgenis.armadillo.container.DatashieldContainerConfig;
   @JsonSubTypes.Type(value = ContainerResponse.DatashieldResponse.class, name = "ds")
 })
 public sealed interface ContainerResponse {
+  // Common Contract
   String type();
 
   String name();
@@ -28,22 +29,48 @@ public sealed interface ContainerResponse {
 
   Integer port();
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @Nullable
+  Long imageSize();
+
+  @Nullable
+  String installDate();
+
+  @Nullable
+  String lastImageId();
+
+  @Nullable
+  List<String> dockerArgs();
+
+  @Nullable
+  Map<String, Object> dockerOptions();
+
+  Map<String, Object> specificContainerOptions();
+
   record DefaultResponse(
       String type,
       String name,
       String image,
       Integer port,
+      @Nullable Long imageSize,
+      @Nullable String installDate,
+      @Nullable String lastImageId,
+      @Nullable List<String> dockerArgs,
+      @Nullable Map<String, Object> dockerOptions,
+      @Nullable Map<String, Object> specificContainerOptions,
       @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
       implements ContainerResponse {}
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   record DatashieldResponse(
       String type,
       String name,
       String image,
       Integer port,
-      @JsonProperty("specificContainerData") Map<String, Object> specificContainerData,
+      @Nullable Long imageSize,
+      @Nullable String installDate,
+      @Nullable String lastImageId,
+      @Nullable List<String> dockerArgs,
+      @Nullable Map<String, Object> dockerOptions,
+      @Nullable Map<String, Object> specificContainerOptions,
       @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
       implements ContainerResponse {}
 
@@ -54,10 +81,25 @@ public sealed interface ContainerResponse {
           ds.getName(),
           ds.getImage(),
           ds.getPort(),
+          ds.getImageSize(),
+          ds.getInstallDate(),
+          ds.getLastImageId(),
+          ds.getDockerArgs(),
+          ds.getDockerOptions(),
           ds.getSpecificContainerOptions(),
           info);
     }
     return new DefaultResponse(
-        config.getType(), config.getName(), config.getImage(), config.getPort(), info);
+        config.getType(),
+        config.getName(),
+        config.getImage(),
+        config.getPort(),
+        config.getImageSize(),
+        config.getInstallDate(),
+        config.getLastImageId(),
+        config.getDockerArgs(),
+        config.getDockerOptions(),
+        config.getSpecificContainerOptions(),
+        info);
   }
 }
