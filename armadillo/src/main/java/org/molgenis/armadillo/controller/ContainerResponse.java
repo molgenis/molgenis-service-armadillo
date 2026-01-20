@@ -54,7 +54,7 @@ public sealed interface ContainerResponse {
           ds.getName(),
           ds.getImage(),
           ds.getPort(),
-          ds.getSpecificContainerConfig(),
+          ds.getSpecificContainerOptions(),
           info);
     }
     return new DefaultResponse(
