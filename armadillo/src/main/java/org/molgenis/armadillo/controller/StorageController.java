@@ -370,7 +370,7 @@ public class StorageController {
   }
 
   @Operation(summary = "Download an object")
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  @PreAuthorize("hasRole('ROLE_SU')")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Object downloaded successfully"),
