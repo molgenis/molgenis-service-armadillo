@@ -37,6 +37,8 @@
         ]
       "
       @cancel-edit="this.containerToEdit = ''"
+      @save-changes="saveEditedContainer"
+      @throw-error="throwError"
     />
     <div v-else>
       <span v-for="container in containers" :ref="container.name">
@@ -145,16 +147,7 @@ export default defineComponent({
         .then((containers) => {
           dockerManagementEnabled.value = "container" in containers[0];
 
-          return containers.map((container) => {
-            // Extract datashieldSeed
-            const datashieldSeed = container.options["datashield.seed"];
-            delete container.options["datashield.seed"];
-
-            return {
-              ...container,
-              datashieldSeed,
-            };
-          });
+          return containers;
         })
         .catch((error: string) => {
           errorMessage.value = processErrorMessages(
@@ -311,6 +304,10 @@ export default defineComponent({
     },
   },
   methods: {
+    throwError(event) {
+      this.errorMessage = event;
+      window.scrollTo(0, 0);
+    },
     getContainerByName(name) {
       return this.containers.filter((container) => container.name === name)[0];
     },
@@ -332,10 +329,12 @@ export default defineComponent({
     clearRecordToDelete() {
       this.recordToDelete = "";
     },
-    editContainer(container: Container) {
+    saveContainer(container: Container) {
       this.containerToEdit = container.name;
     },
-    saveEditedContainer() {
+    saveEditedContainer(event) {
+      this.container = event;
+      this.containerToEdit = container.name;
       this.clearUserMessages();
       const container: Container = this.containers[this.containerToEditIndex];
       const containerNames = this.containers.map((container) => {

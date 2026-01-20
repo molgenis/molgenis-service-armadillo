@@ -18,7 +18,6 @@
         <div class="mb-3" v-for="(value, key) in containerToEdit">
           <div v-if="key === 'updateSchedule'" class="ms-4 row">
             <div v-if="container['autoUpdate'] === true" class="col-lg-4">
-              <br />
               <label class="fw-bold">Frequency</label>
               <div class="form-check">
                 <input
@@ -62,7 +61,7 @@
             </div>
           </div>
           <div v-else-if="!dontShow.includes(key)">
-            <span v-if="getValueType(value) === 'boolean'">
+            <span v-if="getDataType(value) === 'boolean'">
               <input
                 class="form-check-input"
                 type="checkbox"
@@ -76,15 +75,15 @@
             <div v-if="frozen.includes(key)">{{ value }}</div>
             <input
               v-else-if="
-                getValueType(value) === 'string' ||
-                getValueType(value) === 'number'
+                getDataType(value) === 'string' ||
+                getDataType(value) === 'number'
               "
-              :type="getValueType(value) === 'number' ? 'number' : 'text'"
+              :type="getDataType(value) === 'number' ? 'number' : 'text'"
               class="form-control container-input"
               :value="value"
               v-model="containerToEdit[key]"
             />
-            <div v-else-if="getValueType(value) === 'array'">
+            <div v-else-if="getDataType(value) === 'array'">
               <BadgeList
                 v-if="value.length > 0"
                 :item-array="value"
@@ -126,11 +125,25 @@
                 </div>
               </div>
             </div>
-            <div v-else>
-              <<
-              {{ key }} | {{ getValueType(value) }} |
-              {{ value }}
-              >>
+            <div v-else-if="key === 'options'">
+              <!-- Add (non-template-specific) options to docker container -->
+
+              <span>
+                <input
+                  type="text"
+                  class="form-control container-input font-monospace"
+                  v-model="rawOptions"
+                />
+              </span>
+              <div class="form-text mb-1">
+                Docker container options that are not type-specific (unlike
+                datashield options). Specify in JSON format.
+              </div>
+              <DataShieldOptions
+                v-show="template === 'ds'"
+                class="mt-4"
+                :options="value"
+              />
             </div>
           </div>
         </div>
@@ -138,7 +151,7 @@
       <button class="btn btn-danger" @click="$emit('cancel-edit')">
         <i class="bi bi-x-lg"></i> Cancel
       </button>
-      <button class="btn btn-primary" @click="$emit('save-changes')">
+      <button class="btn btn-primary" @click.prevent="onSave">
         <i class="bi bi-floppy-fill"></i> Save
       </button>
     </div>
@@ -147,13 +160,15 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import { toCapitalizedWords } from "@/helpers/utils";
+import { getDataType, toCapitalizedWords } from "@/helpers/utils";
+import { getDsDescriptions } from "@/helpers/dsInfo";
 import Badge from "@/components/Badge.vue";
 import BadgeList from "@/components/BadgeList.vue";
 import { Container, ContainerStartStatus } from "@/types/api";
 import OnlineStatus from "@/components/OnlineStatus.vue";
 import ContainerTypeLogo from "@/components/ContainerTypeLogo.vue";
 import Dropdown from "@/components/Dropdown.vue";
+import DataShieldOptions from "@/components/DataShieldOptions.vue";
 
 export default defineComponent({
   name: "EditContainerCard",
@@ -162,10 +177,28 @@ export default defineComponent({
     template: { type: String, required: true },
     status: { type: Object as PropType<ContainerStartStatus>, required: true },
   },
-  components: { Dropdown, ContainerTypeLogo, OnlineStatus, BadgeList, Badge },
-  emits: ["cancel-edit", "save-changes"],
+  components: {
+    DataShieldOptions,
+    Dropdown,
+    ContainerTypeLogo,
+    OnlineStatus,
+    BadgeList,
+    Badge,
+  },
+  emits: ["cancel-edit", "save-changes", "throw-error"],
   methods: {
+    getDataType,
     toCapitalizedWords,
+    getFilteredOptions() {
+      let filtered = {};
+      const descriptions = getDsDescriptions();
+      Object.keys(descriptions).forEach((option) => {
+        if (!Object.keys(descriptions).includes(option)) {
+          filtered[option] = options[option];
+        }
+      });
+      return filtered;
+    },
     updateUpdateDay(event: Event) {
       this.updateDay = event.toString();
     },
@@ -186,15 +219,20 @@ export default defineComponent({
       this.valueToAdd = "";
       this.itemToEdit = "";
     },
-    getValueType(value) {
-      let type = typeof value;
-      if (
-        type === "object" &&
-        Object.prototype.toString.call(value) === "[object Array]"
-      ) {
-        return "array";
-      } else {
-        return type;
+    onSave() {
+      try {
+        const raw = JSON.parse(this.rawOptions);
+        console.log(raw);
+        this.containerToEdit["options"] = Object.assign(
+          this.containerToEdit.options,
+          raw
+        );
+        this.$emit("save-changes", this.containerToEdit);
+      } catch (e) {
+        this.$emit(
+          "throw-error",
+          `${e}. Options object [ ${this.rawOptions} ] doesn't adhere to json format required for container options.`
+        );
       }
     },
   },
@@ -230,6 +268,7 @@ export default defineComponent({
         "lastImageId",
         "container",
         "creationDate",
+        "versionId",
       ],
       frozen: ["name"],
       itemToEdit: "",
@@ -242,6 +281,7 @@ export default defineComponent({
       updateFrequency: this.container.updateSchedule.frequency,
       updateDay: this.container.updateSchedule.day,
       updateTime: this.container.updateSchedule.time,
+      rawOptions: JSON.stringify(this.getFilteredOptions()),
       daysOfTheWeek: [
         "Monday",
         "Tuesday",
@@ -260,6 +300,7 @@ export default defineComponent({
 .container-input {
   width: 50%;
 }
+
 .time-picker {
   border-radius: 6px;
   border-width: 1px;

@@ -4,9 +4,10 @@ import {
   StringArray,
 } from "@/types/types";
 
-import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
+import { Ref, ref, onUnmounted } from "vue";
 
 import { getContainerStatus } from "@/api/api";
+import type { ContainerStartStatus } from "@/types/api";
 
 export function stringIncludesOtherString(
   completeString: string,
@@ -298,6 +299,18 @@ export function isEmpty(variable: any): boolean {
   }
 }
 
+export function getDataType(value) {
+  let type = typeof value;
+  if (
+    type === "object" &&
+    Object.prototype.toString.call(value) === "[object Array]"
+  ) {
+    return "array";
+  } else {
+    return type;
+  }
+}
+
 /**
  * Convert given bytes to 2 digits precision round exponent version string.
  * @param bytes number
@@ -316,8 +329,6 @@ export function convertBytes(bytes: number): string {
 export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
-
-import type { ContainerStartStatus } from "@/types/api";
 
 export function useContainerStatus() {
   const status: Ref<ContainerStartStatus | null> = ref(null);
