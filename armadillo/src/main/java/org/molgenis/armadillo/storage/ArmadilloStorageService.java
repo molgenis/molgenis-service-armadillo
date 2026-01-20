@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.molgenis.armadillo.info.UserInformationRetriever.getUser;
-import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.StorageService.getHumanReadableByteCount;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
@@ -198,7 +197,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadTable(String project, String objectName) {
-    return runAsSystem(() -> (storageService.load(SHARED_PREFIX + project, objectName + PARQUET)));
+    return storageService.load(SHARED_PREFIX + project, objectName + PARQUET);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
@@ -208,7 +207,7 @@ public class ArmadilloStorageService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public InputStream loadResource(String project, String objectName) {
-    return runAsSystem(() -> (storageService.load(SHARED_PREFIX + project, objectName + RDS)));
+    return storageService.load(SHARED_PREFIX + project, objectName + RDS);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
