@@ -40,7 +40,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 @WebMvcTest(StorageController.class)
 @Import({TestSecurityConfig.class})
-@WithMockUser(roles = "SU")
 class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @MockitoBean DockerClient dockerClient;
@@ -50,6 +49,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @Autowired private StorageController storageController;
 
   @Test
+  @WithMockUser(roles = "SU")
   void testListObjects() throws Exception {
     when(storage.listObjects("lifecycle"))
         .thenReturn(List.of("core/nonrep.parquet", "outcome/nonrep.parquet"));
@@ -66,6 +66,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadObject() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
@@ -91,6 +92,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadCharacterSeparatedFile() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
@@ -114,6 +116,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadCharacterSeparatedTsvFile() throws Exception {
     var contents = "contents".getBytes();
     var file = mockMultipartFile(contents);
@@ -137,6 +140,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadCharacterSeparatedFileFails() throws Exception {
     var contents = "contents are broken,spaces in header not allowed".getBytes();
     var file = mockMultipartFile(contents);
@@ -170,6 +174,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadObjectProjectNotExists() throws Exception {
     var file = mockMultipartFile("contents".getBytes());
     doThrow(new UnknownProjectException("lifecycle"))
@@ -202,6 +207,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testUploadObjectDuplicateObject() throws Exception {
     var file = mockMultipartFile("contents".getBytes());
     doThrow(new DuplicateObjectException("lifecycle", "core/nonrep2.parquet"))
@@ -234,6 +240,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testCopyObject() throws Exception {
     mockMvc.perform(copyRequest()).andExpect(status().isNoContent());
 
@@ -262,6 +269,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testCopyObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
@@ -289,6 +297,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testCopyObjectDuplicateObject() throws Exception {
     doThrow(new DuplicateObjectException("lifecycle", "copies/test_copy.parquet"))
         .when(storage)
@@ -316,6 +325,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testMoveObject() throws Exception {
     mockMvc.perform(moveRequest()).andExpect(status().isNoContent());
 
@@ -339,6 +349,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testMoveObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
@@ -366,6 +377,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testMoveObjectDuplicateObject() throws Exception {
     doThrow(new DuplicateObjectException("lifecycle", "test_renamed.parquet"))
         .when(storage)
@@ -393,6 +405,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testObjectExists() throws Exception {
     when(storage.hasObject("lifecycle", "test.parquet")).thenReturn(true);
 
@@ -409,6 +422,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testObjectNotExists() throws Exception {
     when(storage.hasObject("lifecycle", "non-existing.parquet")).thenReturn(false);
 
@@ -425,6 +439,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testDeleteObject() throws Exception {
     mockMvc
         .perform(
@@ -442,6 +457,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testDeleteObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
@@ -469,6 +485,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testDownloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
@@ -490,6 +507,20 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
+  void testDownloadObjectAsResearcher() throws Exception {
+    var content = "content".getBytes();
+    var inputStream = new ByteArrayInputStream(content);
+    when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
+    when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/objects/test.parquet").session(session))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
   void testPreviewObject() throws Exception {
     when(storage.getPreview("lifecycle", "test.parquet")).thenReturn(List.of(Map.of("foo", "bar")));
 
@@ -508,6 +539,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testCreateLinkedObject() throws Exception {
     doNothing()
         .when(storage)
@@ -539,6 +571,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testGetObjectInfo() throws Exception {
     when(storage.getInfo("lifecycle", "test.parquet"))
         .thenReturn(new FileInfo("test.parquet", "5 MB", "20000", "30", null, new String[] {}));
@@ -561,6 +594,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testDownloadObjectNotExists() throws Exception {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
@@ -588,6 +622,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testGetVariables() throws Exception {
     when(storage.getVariables("my-project", "my-table.parquet"))
         .thenReturn(List.of("col1", "col2", "col3"));
@@ -608,6 +643,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   }
 
   @Test
+  @WithMockUser(roles = "SU")
   void testGetMetadataOfTable() throws Exception {
     ArmadilloColumnMetaData armadilloColumn1 = ArmadilloColumnMetaData.create("INT32");
     ArmadilloColumnMetaData armadilloColumn2 = ArmadilloColumnMetaData.create("BINARY");
