@@ -20,10 +20,9 @@ import org.molgenis.armadillo.container.DatashieldContainerConfig;
   @JsonSubTypes.Type(value = ContainerResponse.DatashieldResponse.class, name = "ds")
 })
 public sealed interface ContainerResponse {
-  // Common Contract
-  String type();
-
   String name();
+
+  String type();
 
   String image();
 
@@ -44,8 +43,6 @@ public sealed interface ContainerResponse {
   @Nullable
   Map<String, Object> dockerOptions();
 
-  Map<String, Object> specificContainerOptions();
-
   record DefaultResponse(
       String type,
       String name,
@@ -56,7 +53,6 @@ public sealed interface ContainerResponse {
       @Nullable String lastImageId,
       @Nullable List<String> dockerArgs,
       @Nullable Map<String, Object> dockerOptions,
-      @Nullable Map<String, Object> specificContainerOptions,
       @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
       implements ContainerResponse {}
 
@@ -65,12 +61,14 @@ public sealed interface ContainerResponse {
       String name,
       String image,
       Integer port,
+      @Nullable String versionId,
+      @Nullable String creationDate,
+      @Nullable Map<String, Object> specificContainerOptions,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
       @Nullable List<String> dockerArgs,
       @Nullable Map<String, Object> dockerOptions,
-      @Nullable Map<String, Object> specificContainerOptions,
       @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
       implements ContainerResponse {}
 
@@ -81,14 +79,17 @@ public sealed interface ContainerResponse {
           ds.getName(),
           ds.getImage(),
           ds.getPort(),
+          ds.getVersionId(),
+          ds.getCreationDate(),
+          ds.getSpecificContainerOptions(),
           ds.getImageSize(),
           ds.getInstallDate(),
           ds.getLastImageId(),
           ds.getDockerArgs(),
           ds.getDockerOptions(),
-          ds.getSpecificContainerOptions(),
           info);
     }
+
     return new DefaultResponse(
         config.getType(),
         config.getName(),
@@ -99,7 +100,6 @@ public sealed interface ContainerResponse {
         config.getLastImageId(),
         config.getDockerArgs(),
         config.getDockerOptions(),
-        config.getSpecificContainerOptions(),
         info);
   }
 }
