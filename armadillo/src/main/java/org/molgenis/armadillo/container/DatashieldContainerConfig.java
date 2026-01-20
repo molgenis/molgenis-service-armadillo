@@ -3,6 +3,7 @@ package org.molgenis.armadillo.container;
 import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
@@ -43,6 +44,14 @@ public abstract class DatashieldContainerConfig
   @Nullable
   public abstract String getLastImageId();
 
+  @Override
+  @Nullable
+  public abstract List<String> getDockerArgs();
+
+  @Override
+  @Nullable
+  public abstract Map<String, Object> getDockerOptions();
+
   @Nullable
   @JsonIgnore
   public abstract Set<String> getPackageWhitelist();
@@ -57,11 +66,11 @@ public abstract class DatashieldContainerConfig
 
   @Override
   @JsonIgnore
-  public Map<String, Object> getSpecificContainerConfig() {
+  public Map<String, Object> getSpecificContainerOptions() {
     return Map.of(
-        "packageWhitelist", getPackageWhitelist(),
-        "functionBlacklist", getFunctionBlacklist(),
-        "options", getOptions());
+        "packageWhitelist", getPackageWhitelist() == null ? Set.of() : getPackageWhitelist(),
+        "functionBlacklist", getFunctionBlacklist() == null ? Set.of() : getFunctionBlacklist(),
+        "options", getOptions() == null ? Map.of() : getOptions());
   }
 
   @Override
@@ -85,7 +94,9 @@ public abstract class DatashieldContainerConfig
       @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
       @JsonProperty("packageWhitelist") @Nullable Set<String> packageWhitelist,
       @JsonProperty("functionBlacklist") @Nullable Set<String> functionBlacklist,
-      @JsonProperty("options") @Nullable Map<String, String> options) {
+      @JsonProperty("options") @Nullable Map<String, String> options,
+      @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
+      @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
 
     return builder()
         .name(name)
@@ -102,6 +113,8 @@ public abstract class DatashieldContainerConfig
         .packageWhitelist(packageWhitelist)
         .functionBlacklist(functionBlacklist)
         .options(options)
+        .dockerArgs(dockerArgs)
+        .dockerOptions(dockerOptions)
         .build();
   }
 
@@ -153,6 +166,10 @@ public abstract class DatashieldContainerConfig
     public abstract Builder functionBlacklist(@Nullable Set<String> functionBlacklist);
 
     public abstract Builder options(@Nullable Map<String, String> options);
+
+    public abstract Builder dockerArgs(@Nullable List<String> dockerArgs);
+
+    public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
 
     @Nullable
     abstract String getImage();

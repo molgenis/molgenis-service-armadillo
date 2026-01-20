@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 @AutoValue
@@ -41,6 +42,14 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   public abstract String getLastImageId();
 
   @Override
+  @Nullable
+  public abstract List<String> getDockerArgs();
+
+  @Override
+  @Nullable
+  public abstract Map<String, Object> getDockerOptions();
+
+  @Override
   @JsonIgnore
   public String getType() {
     return "default";
@@ -48,13 +57,15 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
 
   @JsonCreator
   public static DefaultContainerConfig create(
-      @Nullable String name,
-      @Nullable String image,
-      @Nullable String host,
-      @Nullable Integer port,
-      @Nullable Long imageSize,
-      @Nullable String installDate,
-      @Nullable String lastImageId) {
+      @JsonProperty("name") @Nullable String name,
+      @JsonProperty("image") @Nullable String image,
+      @JsonProperty("host") @Nullable String host,
+      @JsonProperty("port") @Nullable Integer port,
+      @JsonProperty("imageSize") @Nullable Long imageSize,
+      @JsonProperty("installDate") @Nullable String installDate,
+      @JsonProperty("lastImageId") @Nullable String lastImageId,
+      @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
+      @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
 
     return builder()
         .name(name)
@@ -64,6 +75,8 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
         .imageSize(imageSize)
         .installDate(installDate)
         .lastImageId(lastImageId)
+        .dockerArgs(dockerArgs)
+        .dockerOptions(dockerOptions)
         .build();
   }
 
@@ -90,6 +103,10 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
 
     public abstract Builder lastImageId(@Nullable String lastImageId);
 
+    public abstract Builder dockerArgs(@Nullable List<String> dockerArgs);
+
+    public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
+
     @Nullable
     abstract String getImage();
 
@@ -111,7 +128,7 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   }
 
   @Override
-  public Map<String, Object> getSpecificContainerConfig() {
+  public Map<String, Object> getSpecificContainerOptions() {
     return Map.of();
   }
 }

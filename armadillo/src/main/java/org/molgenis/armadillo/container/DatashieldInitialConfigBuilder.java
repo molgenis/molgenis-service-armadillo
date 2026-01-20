@@ -27,6 +27,9 @@ public class DatashieldInitialConfigBuilder implements InitialConfigBuilder {
         initialConfig.getUpdateSchedule(),
         initialConfig.getPackageWhitelist(),
         initialConfig.getFunctionBlacklist(),
-        initialConfig.getOptions());
+        initialConfig.getOptions(),
+        null, // dockerArgs
+        null // dockerOptions
+        );
   }
 }

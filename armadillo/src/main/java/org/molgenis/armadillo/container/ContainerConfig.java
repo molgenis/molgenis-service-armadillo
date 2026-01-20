@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -41,7 +42,16 @@ public interface ContainerConfig {
   @Nullable
   String getLastImageId();
 
-  Map<String, Object> getSpecificContainerConfig();
+  @JsonProperty("dockerArgs")
+  @Nullable
+  List<String> getDockerArgs();
+
+  @JsonProperty("dockerOptions")
+  @Nullable
+  Map<String, Object> getDockerOptions();
+
+  @JsonProperty("specificContainerOptions")
+  Map<String, Object> getSpecificContainerOptions();
 
   String getType();
 }
