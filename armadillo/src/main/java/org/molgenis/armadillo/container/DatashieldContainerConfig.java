@@ -70,7 +70,6 @@ public abstract class DatashieldContainerConfig
   @JsonIgnore
   public abstract Map<String, String> getDatashieldROptions();
 
-  @Override
   @JsonIgnore
   public Map<String, Object> getSpecificContainerOptions() {
     return Map.of(

@@ -124,9 +124,4 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
       return autoBuild();
     }
   }
-
-  @Override
-  public Map<String, Object> getSpecificContainerOptions() {
-    return Map.of();
-  }
 }
