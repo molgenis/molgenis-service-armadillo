@@ -31,9 +31,8 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
   @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
   private volatile ImmutableMap<String, String> options;
 
-  public DataShieldOptionsImpl(
-      DatashieldContainerConfig datashieldContainerConfig, PackageService packageService) {
-    this.datashieldContainerConfig = datashieldContainerConfig;
+  public DataShieldOptionsImpl(DatashieldContainerConfig dsConfig, PackageService packageService) {
+    this.datashieldContainerConfig = dsConfig;
     this.packageService = requireNonNull(packageService);
   }
 
