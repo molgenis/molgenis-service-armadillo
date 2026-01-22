@@ -43,7 +43,9 @@ class ContainerServiceTest {
             null,
             new HashSet<>(),
             Set.of(),
-            new HashMap<>());
+            new HashMap<>(),
+            List.of(),
+            Map.of());
 
     containersMetadata.getContainers().put("default", defaultContainer);
     var containersLoader = new DummyContainersLoader(containersMetadata);
@@ -96,6 +98,8 @@ class ContainerServiceTest {
             null,
             new HashSet<>(),
             new HashSet<>(),
+            Map.of(),
+            List.of(),
             Map.of());
 
     ContainersMetadata metadata = ContainersMetadata.create();

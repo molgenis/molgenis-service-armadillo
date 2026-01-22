@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +61,9 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
                 null,
                 Set.of("dsBase"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                List.of(),
+                Map.of()));
     settings
         .getContainers()
         .put(
@@ -78,7 +82,9 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
                 null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                List.of(),
+                Map.of()));
     return settings;
   }
 

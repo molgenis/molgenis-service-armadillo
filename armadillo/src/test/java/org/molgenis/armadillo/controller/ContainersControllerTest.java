@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,7 +82,9 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 null,
                 Set.of("dsBase"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                List.of(),
+                Map.of()));
     settings
         .getContainers()
         .put(
@@ -99,13 +103,23 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
-                emptyMap()));
+                emptyMap(),
+                List.of(),
+                Map.of()));
     settings
         .getContainers()
         .put(
             "non-datashield-default",
             DefaultContainerConfig.create(
-                "default-other", "other/image:1.0.0", "localhost", 6311, null, null, null));
+                "default-other",
+                "other/image:1.0.0",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of()));
     return settings;
   }
 

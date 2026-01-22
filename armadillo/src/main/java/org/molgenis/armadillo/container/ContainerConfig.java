@@ -50,8 +50,5 @@ public interface ContainerConfig {
   @Nullable
   Map<String, Object> getDockerOptions();
 
-  @JsonProperty("specificContainerOptions")
-  Map<String, Object> getSpecificContainerOptions();
-
   String getType();
 }

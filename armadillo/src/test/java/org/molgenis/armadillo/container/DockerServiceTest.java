@@ -188,7 +188,8 @@ class DockerServiceTest {
   @Test
   void testStartContainer() {
     var config =
-        DefaultContainerConfig.create("default", "image:tag", "localhost", 6311, null, null, null);
+        DefaultContainerConfig.create(
+            "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
     when(containerService.getByName("default")).thenReturn(config);
 
     var inspectResponse = mock(InspectContainerResponse.class);
@@ -294,11 +295,11 @@ class DockerServiceTest {
   private List<ContainerConfig> createExampleSettings() {
     ContainerConfig container1 =
         DefaultContainerConfig.create(
-            "platform-1", "platform-1/image-name", "localhost", 6311, null, null, null);
+            "platform-1", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     ContainerConfig container2 =
         DefaultContainerConfig.create(
-            "platform-2", "platform-2/image-name", "localhost", 6312, null, null, null);
+            "platform-2", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     return List.of(container1, container2);
   }
@@ -549,7 +550,9 @@ class DockerServiceTest {
 
     // Use the DefaultContainerConfig (which does NOT implement OpenContainer)
     var config =
-        DefaultContainerConfig.create(containerName, "image", "host", 8080, null, null, null);
+        DefaultContainerConfig.create(
+            "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
+
     when(containerService.getByName(containerName)).thenReturn(config);
 
     InspectImageCmd cmd = mock(InspectImageCmd.class);

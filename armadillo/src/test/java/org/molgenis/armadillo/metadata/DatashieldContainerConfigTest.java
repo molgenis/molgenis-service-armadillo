@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
@@ -34,7 +35,9 @@ public class DatashieldContainerConfigTest {
             null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>());
+            new HashMap<>(),
+            List.of(),
+            Map.of());
     EnvironmentConfigProps actual = config.toEnvironmentConfigProps();
     assertEquals(img, actual.getImage());
   }
@@ -56,7 +59,9 @@ public class DatashieldContainerConfigTest {
             null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>());
+            new HashMap<>(),
+            List.of(),
+            Map.of());
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
 
@@ -77,7 +82,9 @@ public class DatashieldContainerConfigTest {
             null,
             new HashSet<>(),
             new HashSet<>(),
-            new HashMap<>());
+            new HashMap<>(),
+            List.of(),
+            Map.of());
     assertEquals("localhost", config.getHost());
   }
 
@@ -98,8 +105,10 @@ public class DatashieldContainerConfigTest {
             null,
             new HashSet<>(),
             new HashSet<>(),
-            null);
+            null,
+            List.of(),
+            Map.of());
 
-    assertEquals(Map.of("datashield.seed", "342325352"), config.getDatashieldPrivacyOptions());
+    assertEquals(Map.of("datashield.seed", "342325352"), config.getDatashieldROptions());
   }
 }

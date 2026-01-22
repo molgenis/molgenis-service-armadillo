@@ -254,6 +254,8 @@ class CommandsImplTest {
             null,
             Set.of(),
             Set.of(),
+            Map.of(),
+            List.of(),
             Map.of());
     when(containerService.getByName("exposome")).thenReturn(datashieldContainerConfig);
     commands.selectContainer("exposome");
