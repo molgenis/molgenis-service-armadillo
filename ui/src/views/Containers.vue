@@ -334,7 +334,8 @@ export default defineComponent({
     },
     saveEditedContainer(event) {
       this.container = event;
-      this.containerToEdit = container.name;
+      console.log(event.options);
+      this.containerToEdit = event.name;
       this.clearUserMessages();
       const container: Container = this.containers[this.containerToEditIndex];
       const containerNames = this.containers.map((container) => {

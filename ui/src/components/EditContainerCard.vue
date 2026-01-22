@@ -222,7 +222,6 @@ export default defineComponent({
     onSave() {
       try {
         const raw = JSON.parse(this.rawOptions);
-        console.log(raw);
         this.containerToEdit["options"] = Object.assign(
           this.containerToEdit.options,
           raw
