@@ -299,7 +299,7 @@ export function isEmpty(variable: any): boolean {
   }
 }
 
-export function getDataType(value) {
+export function getDataType(value: any) {
   let type = typeof value;
   if (
     type === "object" &&
