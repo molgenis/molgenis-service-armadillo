@@ -1,3 +1,6 @@
 package org.molgenis.armadillo.metadata;
 
-public record OpenContainersImageMetaData(String openContainersId, String creationDate) {}
+import jakarta.annotation.Nullable;
+
+public record OpenContainersImageMetaData(
+    @Nullable String openContainersId, @Nullable String creationDate) {}

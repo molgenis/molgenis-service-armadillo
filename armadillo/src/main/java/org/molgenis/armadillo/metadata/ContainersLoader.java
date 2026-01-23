@@ -16,11 +16,6 @@ public class ContainersLoader extends StorageJsonLoader<ContainersMetadata> {
   }
 
   @Override
-  public ContainersMetadata load() {
-    return super.load();
-  }
-
-  @Override
   public String getJsonFilename() {
     return "containers.json";
   }

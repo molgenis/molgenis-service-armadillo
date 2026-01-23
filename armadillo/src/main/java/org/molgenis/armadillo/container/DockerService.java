@@ -98,9 +98,11 @@ public class DockerService {
   /**
    * The container can run in its own network/compose.
    *
-   * <p>`docker container ps` to see this name structure.
+   * <p>Both the containers and/or Armadillo can be part of a docker-compose.yml. You can check with
+   * `docker container ps` to see this name structure.
    *
-   * @return adjusted container name if applicable.
+   * @param containerName the container name set by DataManager.
+   * @return adjusted container name if applicable
    */
   String asContainerName(String containerName) {
     if (!inContainer) {
@@ -126,6 +128,7 @@ public class DockerService {
   }
 
   public ContainerInfo getContainerStatus(String containerName) {
+    // check container exists
     containerService.getByName(containerName);
 
     String dockerContainerName = asContainerName(containerName);
@@ -364,6 +367,7 @@ public class DockerService {
   }
 
   public void stopAndRemoveContainer(String containerName) {
+    // check container exists
     containerService.getByName(containerName);
     stopContainer(containerName);
     removeContainer(containerName);

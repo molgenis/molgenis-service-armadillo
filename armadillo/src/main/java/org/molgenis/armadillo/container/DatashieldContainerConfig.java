@@ -58,11 +58,9 @@ public abstract class DatashieldContainerConfig
   @Nullable
   public abstract Map<String, Object> getDockerOptions();
 
-  @Nullable
   @JsonIgnore
   public abstract Set<String> getPackageWhitelist();
 
-  @Nullable
   @JsonIgnore
   public abstract Set<String> getFunctionBlacklist();
 
@@ -73,8 +71,8 @@ public abstract class DatashieldContainerConfig
   @JsonIgnore
   public Map<String, Object> getSpecificContainerOptions() {
     return Map.of(
-        "packageWhitelist", getPackageWhitelist() == null ? Set.of() : getPackageWhitelist(),
-        "functionBlacklist", getFunctionBlacklist() == null ? Set.of() : getFunctionBlacklist(),
+        "packageWhitelist", getPackageWhitelist(),
+        "functionBlacklist", getFunctionBlacklist(),
         "datashieldROptions", getDatashieldROptions() == null ? Map.of() : getDatashieldROptions());
   }
 
@@ -166,9 +164,9 @@ public abstract class DatashieldContainerConfig
 
     public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
 
-    public abstract Builder packageWhitelist(@Nullable Set<String> packageWhitelist);
+    public abstract Builder packageWhitelist(Set<String> packageWhitelist);
 
-    public abstract Builder functionBlacklist(@Nullable Set<String> functionBlacklist);
+    public abstract Builder functionBlacklist(Set<String> functionBlacklist);
 
     public abstract Builder datashieldROptions(@Nullable Map<String, String> datashieldROptions);
 
