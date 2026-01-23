@@ -12,6 +12,6 @@ public class DefaultContainerFactoryImpl implements DefaultContainerFactory {
 
   @Override
   public ContainerConfig createDefault() {
-    return DefaultContainerConfig.builder().name("default").build();
+    return DefaultContainerConfig.createDefault();
   }
 }

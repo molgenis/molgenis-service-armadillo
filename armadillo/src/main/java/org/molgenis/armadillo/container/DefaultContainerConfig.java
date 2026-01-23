@@ -78,6 +78,10 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
         .build();
   }
 
+  public static DefaultContainerConfig createDefault() {
+    return builder().name("default").build();
+  }
+
   public static DefaultContainerConfig.Builder builder() {
     return new AutoValue_DefaultContainerConfig.Builder();
   }
