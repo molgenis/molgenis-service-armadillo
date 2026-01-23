@@ -51,7 +51,10 @@ public class RProcessEndpoint {
             .map(DatashieldContainerConfig.class::cast)
             .map(DatashieldContainerConfig::toEnvironmentConfigProps)
             .findFirst()
-            .orElseThrow();
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "DataSHIELD container not found: " + environmentName));
     RServerConnection connection = connect(environment);
     try {
       return action.apply(connection);

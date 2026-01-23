@@ -15,10 +15,10 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("missing");
 
     assertAll(
-        () -> assertNull(result.getContainerName()),
-        () -> assertNull(result.getStatus()),
-        () -> assertNull(result.getCompletedLayers()),
-        () -> assertNull(result.getTotalLayers()));
+        () -> assertNull(result.containerName()),
+        () -> assertNull(result.status()),
+        () -> assertNull(result.completedLayers()),
+        () -> assertNull(result.totalLayers()));
   }
 
   @Test
@@ -29,10 +29,10 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
-        () -> assertEquals("donkey", result.getContainerName()),
-        () -> assertEquals("Installing container", result.getStatus()),
-        () -> assertEquals(10, result.getCompletedLayers()),
-        () -> assertEquals(24, result.getTotalLayers()));
+        () -> assertEquals("donkey", result.containerName()),
+        () -> assertEquals("Installing container", result.status()),
+        () -> assertEquals(10, result.completedLayers()),
+        () -> assertEquals(24, result.totalLayers()));
   }
 
   @Test
@@ -44,10 +44,10 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
-        () -> assertEquals("donkey", result.getContainerName()),
-        () -> assertEquals("Profile installed", result.getStatus()),
-        () -> assertEquals(24, result.getCompletedLayers()),
-        () -> assertEquals(24, result.getTotalLayers()));
+        () -> assertEquals("donkey", result.containerName()),
+        () -> assertEquals("Profile installed", result.status()),
+        () -> assertEquals(24, result.completedLayers()),
+        () -> assertEquals(24, result.totalLayers()));
   }
 
   @Test
@@ -58,10 +58,10 @@ class ContainerStatusServiceTest {
     ContainerStartStatus result = service.getStatus("shrek");
 
     assertAll(
-        () -> assertEquals("shrek", result.getContainerName()),
-        () -> assertNull(result.getStatus()),
-        () -> assertNull(result.getCompletedLayers()),
-        () -> assertNull(result.getTotalLayers()));
+        () -> assertEquals("shrek", result.containerName()),
+        () -> assertNull(result.status()),
+        () -> assertNull(result.completedLayers()),
+        () -> assertNull(result.totalLayers()));
   }
 
   @Test
@@ -85,10 +85,10 @@ class ContainerStatusServiceTest {
       ContainerStartStatus s = service.getStatus("p" + idx);
 
       assertAll(
-          () -> assertEquals("p" + idx, s.getContainerName()),
-          () -> assertEquals("Installing", s.getStatus()),
-          () -> assertEquals(idx, s.getCompletedLayers()),
-          () -> assertEquals(total, s.getTotalLayers()));
+          () -> assertEquals("p" + idx, s.containerName()),
+          () -> assertEquals("Installing", s.status()),
+          () -> assertEquals(idx, s.completedLayers()),
+          () -> assertEquals(total, s.totalLayers()));
     }
   }
 }

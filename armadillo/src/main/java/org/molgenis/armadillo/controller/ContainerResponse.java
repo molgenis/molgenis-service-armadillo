@@ -79,14 +79,14 @@ public sealed interface ContainerResponse {
           ds.getName(),
           ds.getImage(),
           ds.getPort(),
-          ds.getVersionId(),
-          ds.getCreationDate(),
-          ds.getSpecificContainerOptions(),
           ds.getImageSize(),
           ds.getInstallDate(),
           ds.getLastImageId(),
           ds.getDockerArgs(),
           ds.getDockerOptions(),
+          ds.getVersionId(),
+          ds.getCreationDate(),
+          ds.getSpecificContainerOptions(),
           info);
     }
 
