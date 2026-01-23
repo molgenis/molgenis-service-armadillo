@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.ResponseEntity.status;
@@ -86,7 +87,7 @@ public class DevelopmentController {
       } catch (IllegalArgumentException e) {
         Map<String, Object> data = new HashMap<>();
         data.put(MESSAGE, e.getMessage());
-        data.put(CONTAINER, "unknown");
+        data.put(CONTAINER, getActiveContainerName());
         auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
         return completedFuture(status(HttpStatus.BAD_REQUEST).build());
       }
