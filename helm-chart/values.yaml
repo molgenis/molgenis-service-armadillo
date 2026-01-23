@@ -6,6 +6,7 @@ replicaCount: 1
 
 
 config:
+  container-default-type: ds
   armadillo:
     docker-management-enabled: false
     docker-run-in-container: true
@@ -65,6 +66,7 @@ serviceAccount:
 
 
     # datashield:
+    #   containers:
     #     - name: default
     #       environment: default
     #       whitelist:

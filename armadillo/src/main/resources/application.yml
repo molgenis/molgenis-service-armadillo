@@ -2,6 +2,10 @@ armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
 
+  # default container type for containers created without an explicit type
+  container-default-type: ds
+
+  # set this true if you want Armadillo to create/edit/delete container docker images
   docker-management-enabled: true
 
   # set this true if you want Armadillo runs as a docker container
@@ -9,6 +13,7 @@ armadillo:
   docker-run-in-container: false
 
   # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
+  # docker-compose.yml file ie armadillo-dev-" + containerName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
   container-prefix: ''
 
 

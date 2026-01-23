@@ -3,15 +3,15 @@ package org.molgenis.armadillo.container;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DatashieldContainerFactory implements DefaultContainerFactory {
+public class DefaultContainerFactoryImpl implements DefaultContainerFactory {
 
   @Override
   public String getType() {
-    return "ds";
+    return "default";
   }
 
   @Override
   public ContainerConfig createDefault() {
-    return DatashieldContainerConfig.createDefault();
+    return DefaultContainerConfig.builder().name("default").build();
   }
 }

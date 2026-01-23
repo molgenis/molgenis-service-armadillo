@@ -1,4 +1,7 @@
 armadillo:
+  # default container type for containers created without an explicit type
+  container-default-type: ds
+
   docker-management-enabled: false
   docker-run-in-container: true
   containers:
