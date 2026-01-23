@@ -50,16 +50,12 @@ class ContainerServiceTest {
     containersMetadata.getContainers().put("default", defaultContainer);
     var containersLoader = new DummyContainersLoader(containersMetadata);
 
-    // Use the actual whitelister
-    var whitelister = new org.molgenis.armadillo.container.DatashieldContainerWhitelister();
-
     var containerService =
         new ContainerService(
             containersLoader,
             initialContainerConfigs,
             containerScope,
             List.of(),
-            List.of(whitelister),
             mock(DefaultContainerFactory.class),
             List.of());
 
@@ -120,7 +116,6 @@ class ContainerServiceTest {
             initialContainers,
             mockContainerScope,
             List.of(updater),
-            List.of(),
             mock(DefaultContainerFactory.class),
             List.of());
     containerService.initialize();

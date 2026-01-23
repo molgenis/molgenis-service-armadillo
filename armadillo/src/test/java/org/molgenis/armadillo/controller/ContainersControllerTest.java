@@ -176,7 +176,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
             "name": "default",
             "image": "datashield/armadillo-rserver:6.2.0",
             "port": 6311,
-            "specificContainerData": {
+            "specificContainerOptions": {
               "packageWhitelist": ["dsBase"]
             }
           }

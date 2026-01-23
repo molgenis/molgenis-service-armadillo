@@ -5,11 +5,12 @@ import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAU
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.*;
-import org.molgenis.armadillo.container.ContainerWhitelister;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
@@ -24,7 +25,6 @@ public class ContainerService {
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
   private final List<ContainerUpdater> updaters;
-  private final List<ContainerWhitelister> whitelisters;
   private final DefaultContainerFactory defaultContainerFactory;
   private final Map<String, InitialConfigBuilder> initialConfigBuilders;
   private ContainersMetadata settings;
@@ -34,7 +34,6 @@ public class ContainerService {
       InitialContainerConfigs initialContainerConfigs,
       ContainerScope containerScope,
       List<ContainerUpdater> allUpdaters,
-      List<ContainerWhitelister> allWhitelisters,
       DefaultContainerFactory defaultContainerFactory,
       List<InitialConfigBuilder> allInitialConfigBuilders) {
     this.loader = requireNonNull(containersLoader);
@@ -47,7 +46,6 @@ public class ContainerService {
             .collect(Collectors.toMap(InitialConfigBuilder::getType, builder -> builder));
 
     this.updaters = allUpdaters;
-    this.whitelisters = allWhitelisters;
   }
 
   @jakarta.annotation.PostConstruct
@@ -98,27 +96,19 @@ public class ContainerService {
   public void addToWhitelist(String containerName, String pack) {
     ContainerConfig existing = getByName(containerName);
 
-    // Find the whitelister that supports this config
-    ContainerWhitelister whitelister =
-        whitelisters.stream()
-            .filter(w -> w.supports(existing))
-            .findFirst()
-            .orElseGet(
-                () ->
-                    whitelisters.stream()
-                        .filter(w -> w instanceof NullContainerWhitelister)
-                        .findFirst()
-                        .orElse(null));
-
-    if (whitelister == null || whitelister instanceof NullContainerWhitelister) {
+    if (!(existing instanceof DatashieldContainerConfig dsConfig)) {
       throw new UnsupportedOperationException(
           "Whitelisting is only supported for DataSHIELD containers. Found type: "
               + existing.getClass().getSimpleName());
     }
 
-    whitelister.addToWhitelist(existing, pack);
-    flushContainerBeans(containerName);
-    save();
+    Set<String> updatedWhitelist =
+        new HashSet<>(
+            dsConfig.getPackageWhitelist() == null ? Set.of() : dsConfig.getPackageWhitelist());
+    updatedWhitelist.add(pack);
+
+    ContainerConfig updatedConfig = dsConfig.toBuilder().packageWhitelist(updatedWhitelist).build();
+    upsert(updatedConfig);
   }
 
   public void delete(String containerName) {

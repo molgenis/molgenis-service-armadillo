@@ -102,7 +102,6 @@ public class TestSecurityConfig {
         initialContainers,
         containerScope,
         java.util.List.of(),
-        java.util.List.of(),
         factory,
         java.util.List.of());
   }
