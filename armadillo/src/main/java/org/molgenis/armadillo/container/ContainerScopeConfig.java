@@ -29,16 +29,22 @@ public class ContainerScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
-  public RConnectionFactory rConnectionFactory(
-      ContainerConfig ContainerConfig, DatashieldRConnectionFactoryProvider datashieldProvider) {
-
-    if (ContainerConfig instanceof DatashieldContainerConfig datashieldConfig) {
-      return datashieldProvider.create(datashieldConfig);
+  public DatashieldContainerConfig datashieldContainerConfig(ContainerConfig containerConfig) {
+    if (containerConfig instanceof DatashieldContainerConfig datashieldConfig) {
+      return datashieldConfig;
     }
-    throw new UnsupportedOperationException(
+    throw new IllegalArgumentException(
         format(
-            "Container type '%s' does not support R connections. The RConnectionFactory is only available for DataSHIELD containers.",
-            ContainerConfig.getClass().getSimpleName()));
+            "Container type '%s' does not support DataSHIELD features.",
+            containerConfig.getClass().getSimpleName()));
+  }
+
+  @Bean
+  @org.molgenis.armadillo.container.annotation.ContainerScope
+  public RConnectionFactory rConnectionFactory(
+      DatashieldContainerConfig datashieldConfig,
+      DatashieldRConnectionFactoryProvider datashieldProvider) {
+    return datashieldProvider.create(datashieldConfig);
   }
 
   @Bean

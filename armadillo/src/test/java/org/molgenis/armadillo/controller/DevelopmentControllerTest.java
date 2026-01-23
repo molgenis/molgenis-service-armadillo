@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.DefaultContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -45,6 +44,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private ContainerService containerService;
   @MockitoBean private Commands commands;
   @MockitoBean private ArmadilloStorageService armadilloStorage;
+  @MockitoBean private DatashieldContainerConfig datashieldContainerConfig;
 
   @Mock(lenient = true)
   private Clock clock;
@@ -64,7 +64,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
     when(clock.instant()).thenReturn(instant);
     sessionId = session.changeSessionId();
 
-    when(containerService.getByName(any())).thenReturn(mock(DatashieldContainerConfig.class));
+    when(datashieldContainerConfig.getName()).thenReturn("default");
   }
 
   @Test
@@ -84,8 +84,9 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testInstallPackageNonDatashield() throws Exception {
-    // Mock a non-DataSHIELD container configuration
-    when(containerService.getByName(any())).thenReturn(mock(DefaultContainerConfig.class));
+    when(datashieldContainerConfig.getName())
+        .thenThrow(
+            new IllegalArgumentException("Operation only supported for DataSHIELD containers."));
 
     MockMultipartFile file =
         new MockMultipartFile(
@@ -146,7 +147,9 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testGetWhitelistNonDatashield() throws Exception {
-    when(containerService.getByName(any())).thenReturn(mock(DefaultContainerConfig.class));
+    when(datashieldContainerConfig.getName())
+        .thenThrow(
+            new IllegalArgumentException("Operation only supported for DataSHIELD containers."));
 
     mockMvc.perform(MockMvcRequestBuilders.get("/whitelist")).andExpect(status().isBadRequest());
   }
@@ -155,7 +158,12 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   void testGetPackageNameFromFilename() {
     String filename = "hello_world_test.tar.gz";
     DevelopmentController controller =
-        new DevelopmentController(commands, auditEventPublisher, containerService, dockerService);
+        new DevelopmentController(
+            commands,
+            auditEventPublisher,
+            containerService,
+            dockerService,
+            datashieldContainerConfig);
     String pkgName = controller.getPackageNameFromFilename(filename);
     assertEquals("hello_world", pkgName);
   }
