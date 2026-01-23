@@ -115,11 +115,13 @@ public class DevelopmentController {
   }
 
   @GetMapping("whitelist")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
     return containers.getPackageWhitelist(datashieldContainerConfig.getName());
   }
 
   @PostMapping("whitelist/{pkg}")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
     auditEventPublisher.audit(
         () -> containers.addToWhitelist(datashieldContainerConfig.getName(), pkg),

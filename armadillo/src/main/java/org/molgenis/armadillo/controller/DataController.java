@@ -152,7 +152,7 @@ public class DataController {
   @PostMapping(value = "/load-table")
   public CompletableFuture<ResponseEntity<Void>> loadTable(
       Principal principal,
-      @RequestParam String symbol, // FIXED: Changed to String
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String table,
       @Valid @Pattern(regexp = SYMBOL_CSV_RE) @RequestParam(required = false) String variables,
       @RequestParam(defaultValue = "false") boolean async) {
@@ -222,7 +222,7 @@ public class DataController {
   @PostMapping(value = "/load-resource")
   public CompletableFuture<ResponseEntity<Void>> loadResource(
       Principal principal,
-      @RequestParam String symbol, // FIXED: Changed to String
+      @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,
       @Valid @Pattern(regexp = TABLE_RESOURCE_REGEX) @RequestParam String resource,
       @RequestParam(defaultValue = "false") boolean async) {
     var pattern = java.util.regex.Pattern.compile(TABLE_RESOURCE_REGEX);
@@ -539,7 +539,7 @@ public class DataController {
   }
 
   private CompletableFuture<ResponseEntity<Void>> doLoadTable(
-      String symbol, // FIXED: Changed to String
+      String symbol,
       String table,
       List<String> variableList,
       Principal principal,
@@ -584,7 +584,7 @@ public class DataController {
       String variables,
       Principal principal,
       HashMap<String, Object> data,
-      String symbol, // FIXED: Changed to String
+      String symbol,
       Boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =

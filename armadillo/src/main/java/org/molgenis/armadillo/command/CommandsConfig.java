@@ -17,6 +17,7 @@ public class CommandsConfig {
 
   /**
    * Added TaskExecutor instead of the ExecutorService to copy the request attributes (in particular
+   * the container definition) from the request to the thread executing the R-command.
    */
   @Bean
   @Primary

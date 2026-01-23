@@ -5,6 +5,7 @@ import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getAc
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
+import org.molgenis.armadillo.exceptions.UnsupportedContainerTypeException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RConnectionFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -33,7 +34,7 @@ public class ContainerScopeConfig {
     if (containerConfig instanceof DatashieldContainerConfig datashieldConfig) {
       return datashieldConfig;
     }
-    throw new IllegalArgumentException(
+    throw new UnsupportedContainerTypeException(
         format(
             "Container type '%s' does not support DataSHIELD features.",
             containerConfig.getClass().getSimpleName()));

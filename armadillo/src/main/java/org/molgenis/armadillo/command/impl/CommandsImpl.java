@@ -153,8 +153,7 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadTable(
-      String symbol, String table, List<String> variables) { // FIXED: ContainerConfig -> String
+  public CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables) {
     int index = table.indexOf('/');
     String project = table.substring(0, index);
     String objectName = table.substring(index + 1);
@@ -167,7 +166,7 @@ class CommandsImpl implements Commands {
                 connection,
                 new InputStreamResource(inputStream),
                 table + PARQUET,
-                symbol, // FIXED: symbol.getName() -> symbol
+                symbol,
                 variables);
             return null;
           }
@@ -175,8 +174,7 @@ class CommandsImpl implements Commands {
   }
 
   @Override
-  public CompletableFuture<Void> loadResource(
-      Principal principal, String symbol, String resource) { // FIXED: ContainerConfig -> String
+  public CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
@@ -190,7 +188,7 @@ class CommandsImpl implements Commands {
                 connection,
                 new InputStreamResource(inputStream),
                 resource + RDS,
-                symbol); // FIXED: symbol.getName() -> symbol
+                symbol);
             return null;
           }
         });

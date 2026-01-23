@@ -116,7 +116,7 @@ public class ContainersController {
     List<ContainersStatusResponse> result = new ArrayList<>();
     containersList.forEach(
         (container) -> {
-          String containerName = container.name(); // Changed from getName()
+          String containerName = container.name();
           if (dockerService != null) {
             String status =
                 runAsSystem(
@@ -135,11 +135,9 @@ public class ContainersController {
             }
             result.add(
                 ContainersStatusResponse.create(
-                    container.image(), containerName, versions, status)); // Changed from getImage()
+                    container.image(), containerName, versions, status));
           } else {
-            result.add(
-                ContainersStatusResponse.create(
-                    container.image(), containerName)); // Changed from getImage()
+            result.add(ContainersStatusResponse.create(container.image(), containerName));
           }
         });
     return result;

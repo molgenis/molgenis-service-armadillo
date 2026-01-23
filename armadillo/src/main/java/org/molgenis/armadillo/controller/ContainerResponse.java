@@ -61,14 +61,14 @@ public sealed interface ContainerResponse {
       String name,
       String image,
       Integer port,
-      @Nullable String versionId,
-      @Nullable String creationDate,
-      @Nullable Map<String, Object> specificContainerOptions,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
       @Nullable List<String> dockerArgs,
       @Nullable Map<String, Object> dockerOptions,
+      @Nullable String versionId,
+      @Nullable String creationDate,
+      @Nullable Map<String, Object> specificContainerOptions,
       @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
       implements ContainerResponse {}
 
