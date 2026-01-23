@@ -25,7 +25,7 @@ public class InitialContainerConfig {
 
   public ContainerConfig toContainerConfig(Map<String, InitialConfigBuilder> builderRegistry) {
 
-    String configType = this.type != null ? this.type : "datashield";
+    String configType = this.type != null ? this.type : "ds";
     InitialConfigBuilder builder = builderRegistry.get(configType);
 
     if (builder == null) {

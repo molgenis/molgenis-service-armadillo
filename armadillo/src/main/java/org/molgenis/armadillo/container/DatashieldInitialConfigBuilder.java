@@ -8,7 +8,7 @@ public class DatashieldInitialConfigBuilder implements InitialConfigBuilder {
 
   @Override
   public String getType() {
-    return "datashield";
+    return "ds";
   }
 
   @Override
