@@ -52,9 +52,12 @@ jobs:
       TERM: dumb
 
     steps:
-      - checkout:
-          method: full
-      - run: git fetch --all --tags
+      - checkout
+      - run:
+          name: Hydrate Blobless Clone for Sonar
+          command: |
+            git config --global --add safe.directory '*'
+            git fetch --refetch --no-filter
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
@@ -104,9 +107,11 @@ jobs:
           name: Docker-Scout scanning on cves, break on critical.
           command: |
             export $( cat build/ci.properties | xargs )
-            docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical
-
-
+            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+              docker scout cves molgenis/molgenis-armadillo:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+            else
+              docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+            fi
 
       - run:
           name: deploy preview to Azure
