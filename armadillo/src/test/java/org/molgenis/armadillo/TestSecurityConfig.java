@@ -83,7 +83,6 @@ public class TestSecurityConfig {
     var initialContainers = new InitialContainerConfigs();
     initialContainers.setContainers(emptyList());
 
-    // 1. Create a dummy config using the Builder
     var defaultCfg =
         DefaultContainerConfig.builder()
             .name("DEFAULT")
@@ -92,7 +91,6 @@ public class TestSecurityConfig {
             .port(8080)
             .build();
 
-    // 2. Mock the factory and stub it to return our dummy config
     var factory =
         org.mockito.Mockito.mock(org.molgenis.armadillo.container.DefaultContainerFactory.class);
     org.mockito.Mockito.when(factory.createDefault()).thenReturn(defaultCfg);

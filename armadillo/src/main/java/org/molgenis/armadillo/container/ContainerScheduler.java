@@ -42,7 +42,6 @@ public class ContainerScheduler {
     return this.taskScheduler;
   }
 
-  /** Reschedule or create a scheduled update task for a container. */
   public void reschedule(ContainerConfig container) {
     cancel(container.getName());
 
@@ -60,7 +59,6 @@ public class ContainerScheduler {
     }
   }
 
-  /** Cancel the scheduled task for a given container name, if any. */
   public void cancel(String containerName) {
     ScheduledFuture<?> existing = scheduledTasks.remove(containerName);
     if (existing != null) {
@@ -101,23 +99,18 @@ public class ContainerScheduler {
 
   private void runUpdateForContainer(ContainerConfig container) {
     try {
-      // Get container status directly using container name
       var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
 
-      // Only proceed if container is running and auto-update is enabled
       if (containerInfo != null && containerInfo.getStatus() == ContainerStatus.RUNNING) {
 
         if (container instanceof UpdatableContainer updatableContainer) {
 
           if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
 
-            // Retrieve the previous image ID and current image name from the container
             String previousImageId = container.getLastImageId();
             String imageName = container.getImage();
 
-            // Ensure imageName is not null or empty
             if (imageName != null && !imageName.isEmpty()) {
-              // Retrieve the latest image ID for the remote image
               dockerClient
                   .pullImageCmd(imageName)
                   .start()
@@ -125,7 +118,6 @@ public class ContainerScheduler {
               String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
               LOG.info("Latest imageId is {}", latestImageId);
 
-              // Check if the image has changed
               if (dockerService.hasImageIdChanged(
                   container.getName(), previousImageId, latestImageId)) {
                 LOG.info("Image updated for '{}', restarting...", container.getName());

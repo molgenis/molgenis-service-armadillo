@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 public class ContainerScope implements Scope {
   private static final Logger LOGGER = LoggerFactory.getLogger(ContainerScope.class);
 
-  /** Contains all container scoped beans for all containers */
   private final ConcurrentHashMap<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
   @Override

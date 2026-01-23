@@ -22,10 +22,8 @@ public interface Commands {
 
   CompletableFuture<Void> assign(String symbol, String expression);
 
-  // FIXED: Changed ContainerConfig to String
   CompletableFuture<Void> loadTable(String symbol, String table, List<String> variables);
 
-  // FIXED: Changed ContainerConfig to String
   CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource);
 
   CompletableFuture<Void> loadWorkspace(Principal principal, String id);

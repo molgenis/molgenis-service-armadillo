@@ -1,5 +1,4 @@
 armadillo:
-  # set this false if you DON'T want Armadillo to create/edit/delete container docker images via the user interface
   docker-management-enabled: true
 
   # uncomment this to configure a default admin user

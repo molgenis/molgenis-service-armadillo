@@ -92,14 +92,12 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
         new MockMultipartFile(
             "file", "test.tar.gz", MediaType.TEXT_PLAIN_VALUE, "content".getBytes());
 
-    // Perform the initial multipart request
     MvcResult mvcResult =
         mockMvc
             .perform(MockMvcRequestBuilders.multipart("/install-package").file(file))
             .andExpect(request().asyncStarted())
             .andReturn();
 
-    // Dispatch the async result to verify the 400 Bad Request
     mockMvc.perform(asyncDispatch(mvcResult)).andExpect(status().isBadRequest());
   }
 

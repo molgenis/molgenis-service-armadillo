@@ -187,7 +187,6 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_PUT() throws Exception {
-    // Add "type":"ds" to the JSON string
     String json =
         "{"
             + "\"type\":\"ds\","

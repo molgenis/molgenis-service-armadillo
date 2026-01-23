@@ -47,7 +47,6 @@ class DockerServiceTest {
 
   @Mock private ContainerStatusService containerStatusService;
 
-  /** Test-only callback that never blocks. */
   private static class NonBlockingCallback extends PullImageResultCallback {
     @Override
     public PullImageResultCallback awaitCompletion() {
@@ -64,11 +63,9 @@ class DockerServiceTest {
   void setup() {
     dockerService = new DockerService(dockerClient, containerService, containerStatusService);
 
-    // lenient so tests that don't pull images won't fail strict-stubbing checks
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     lenient().when(dockerClient.pullImageCmd(anyString())).thenReturn(pullImageCmd);
 
-    // return a non-blocking callback from exec(..)
     lenient().when(pullImageCmd.exec(any())).thenReturn(new NonBlockingCallback());
   }
 
@@ -147,12 +144,10 @@ class DockerServiceTest {
 
     var result = dockerService.getAllContainerStatuses();
 
-    // Assert - Match the names from createExampleSettings()
     assertEquals(2, result.size());
     assertTrue(result.containsKey("platform-1"));
     assertTrue(result.containsKey("platform-2"));
 
-    // If you want to check specific statuses
     assertEquals(ContainerStatus.NOT_FOUND, result.get("platform-1").getStatus());
   }
 
@@ -264,12 +259,10 @@ class DockerServiceTest {
     when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectResponse);
     when(inspectResponse.getImageId()).thenReturn("sha256:same");
 
-    // Mock the image inspection chain (required for metadata sync)
     var inspectImageResponse = mock(InspectImageResponse.class, RETURNS_DEEP_STUBS);
     when(dockerClient.inspectImageCmd("sha256:same").exec()).thenReturn(inspectImageResponse);
     when(inspectImageResponse.getSize()).thenReturn(123456789L);
 
-    // Mock the lifecycle commands to prevent NullPointerExceptions during execution
     when(dockerClient.pullImageCmd(any())).thenReturn(mock(PullImageCmd.class, RETURNS_DEEP_STUBS));
     when(dockerClient.stopContainerCmd(any())).thenReturn(mock(StopContainerCmd.class));
     when(dockerClient.removeContainerCmd(any())).thenReturn(mock(RemoveContainerCmd.class));
@@ -417,7 +410,6 @@ class DockerServiceTest {
 
   @Test
   void testGetDockerImages() {
-    // Mock Docker images
     Image image1 = mock(Image.class);
     Image image2 = mock(Image.class);
 
@@ -432,10 +424,8 @@ class DockerServiceTest {
     when(listImagesCmd.withShowAll(true)).thenReturn(listImagesCmd);
     when(listImagesCmd.exec()).thenReturn(List.of(image1, image2));
 
-    // Act
     List<DockerImageInfo> images = dockerService.getDockerImages();
 
-    // Assert
     assertEquals(2, images.size());
 
     DockerImageInfo info1 = images.get(0);
@@ -484,15 +474,12 @@ class DockerServiceTest {
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
 
-    // Mock Docker Client to return only the image size
     when(dockerClient.inspectImageCmd(imageId)).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
     when(resp.getSize()).thenReturn(123L);
 
-    // Act: Update metadata where oldImageId and newImageId are the same
     dockerService.updateImageMetaData(containerName, imageId, imageId);
 
-    // Assert: Verify that the install date is null because the image didn't change
     verify(containerService)
         .updateImageMetaData(
             eq(containerName),
@@ -509,7 +496,6 @@ class DockerServiceTest {
     String containerName = "datashield-1";
     String imageId = "sha256:ds-image";
 
-    // Mock the specific config that implements both interfaces
     var config = mock(DatashieldContainerConfig.class);
     when(containerService.getByName(containerName)).thenReturn(config);
 
@@ -528,10 +514,8 @@ class DockerServiceTest {
                 "org.opencontainers.image.version", "3.0.0",
                 "org.opencontainers.image.created", "2025-05-05T12:00:00Z"));
 
-    // Act
     dockerService.updateImageMetaData(containerName, null, imageId);
 
-    // Assert: Verify orchestration with both basic and OCI fields
     verify(containerService)
         .updateImageMetaData(
             eq(containerName),
@@ -548,7 +532,6 @@ class DockerServiceTest {
     String containerName = "basic-container";
     String imageId = "sha256:basic-image";
 
-    // Use the DefaultContainerConfig (which does NOT implement OpenContainer)
     var config =
         DefaultContainerConfig.create(
             "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
@@ -557,17 +540,13 @@ class DockerServiceTest {
 
     InspectImageCmd cmd = mock(InspectImageCmd.class);
     InspectImageResponse resp = mock(InspectImageResponse.class);
-    // We don't even need to mock dockerCfg/labels here if the service
-    // checks 'instanceof OpenContainer' before trying to fetch labels.
 
     when(dockerClient.inspectImageCmd(imageId)).thenReturn(cmd);
     when(cmd.exec()).thenReturn(resp);
     when(resp.getSize()).thenReturn(500L);
 
-    // Act
     dockerService.updateImageMetaData(containerName, null, imageId);
 
-    // Assert: OCI fields should be null because DefaultContainerConfig doesn't support them
     verify(containerService)
         .updateImageMetaData(
             eq(containerName),
@@ -640,13 +619,11 @@ class DockerServiceTest {
 
   @Test
   void pullImage_emitsProgressUpdates_toContainerStatusService() {
-    // Arrange container returned by service
     var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
 
-    // Stub pullImageCmd + capture the callback
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);
 
@@ -655,13 +632,10 @@ class DockerServiceTest {
 
     when(pullImageCmd.exec(cbCap.capture())).thenReturn(new NonBlockingCallback());
 
-    // Act: triggers pullImage() internally
     assertDoesNotThrow(() -> dockerService.pullImageStartContainer("default"));
 
-    // Get the captured callback
     PullImageResultCallback cb = cbCap.getValue();
 
-    // Drive onNext events
     PullResponseItem it1 = mock(PullResponseItem.class);
     when(it1.getId()).thenReturn("layer1");
     when(it1.getStatus()).thenReturn("Downloading");
@@ -690,13 +664,11 @@ class DockerServiceTest {
     var displayName = "generic-container";
     var imageName = "repo/image:tag";
 
-    // 1. Use the generic ContainerConfig interface
     var container = mock(ContainerConfig.class);
     when(container.getName()).thenReturn(displayName);
     when(container.getImage()).thenReturn(imageName);
     when(containerService.getByName(containerName)).thenReturn(container);
 
-    // 2. Stub pullImageCmd and capture callback
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd(imageName)).thenReturn(pullImageCmd);
 
@@ -704,10 +676,8 @@ class DockerServiceTest {
         ArgumentCaptor.forClass(PullImageResultCallback.class);
     when(pullImageCmd.exec(cbCap.capture())).thenReturn(new NonBlockingCallback());
 
-    // Act
     assertDoesNotThrow(() -> dockerService.pullImageStartContainer(containerName));
 
-    // 3. Drive an event with a null ID
     PullImageResultCallback cb = cbCap.getValue();
     PullResponseItem noIdItem = mock(PullResponseItem.class);
     when(noIdItem.getId()).thenReturn(null);
@@ -715,7 +685,6 @@ class DockerServiceTest {
 
     cb.onNext(noIdItem);
 
-    // 4. Assert: verify that items without IDs are filtered out and don't trigger status updates
     verify(containerStatusService, never())
         .updateStatus(anyString(), anyString(), anyInt(), anyInt());
   }
@@ -724,17 +693,14 @@ class DockerServiceTest {
   void pullImage_throwsMissingImage_whenConfigImageNull() {
     var containerName = "default";
 
-    // 1. Use generic interface
     var container = mock(ContainerConfig.class);
     when(container.getName()).thenReturn("generic-container");
     when(container.getImage()).thenReturn(null); // The error trigger
     when(containerService.getByName(containerName)).thenReturn(container);
 
-    // 2. Act & Assert
     assertThrows(
         MissingImageException.class, () -> dockerService.pullImageStartContainer(containerName));
 
-    // Verify we never even tried to call the Docker API
     verify(dockerClient, never()).pullImageCmd(anyString());
   }
 
@@ -743,20 +709,16 @@ class DockerServiceTest {
     var containerName = "default";
     var imageName = "repo/image:tag";
 
-    // 1. Use generic ContainerConfig interface
     var container = mock(ContainerConfig.class);
     when(container.getName()).thenReturn("generic-container");
     when(container.getImage()).thenReturn(imageName);
     when(containerService.getByName(containerName)).thenReturn(container);
 
-    // 2. Mock the Docker command to fail
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd(imageName)).thenReturn(pullImageCmd);
 
-    // Simulate the Docker registry returning a 404
     when(pullImageCmd.exec(any())).thenThrow(new NotFoundException("Image not found in registry"));
 
-    // 3. Act & Assert: Verify the internal mapping logic
     assertThrows(
         ImagePullFailedException.class, () -> dockerService.pullImageStartContainer(containerName));
   }
@@ -766,22 +728,16 @@ class DockerServiceTest {
     String containerName = "default";
     String imageName = "repo/image:tag";
 
-    // 1. Use generic ContainerConfig interface
     var container = mock(ContainerConfig.class);
     when(container.getName()).thenReturn("generic-container");
     when(container.getImage()).thenReturn(imageName);
     when(containerService.getByName(containerName)).thenReturn(container);
 
-    // 2. Mock the Docker command to throw a generic RuntimeException
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd(imageName)).thenReturn(pullImageCmd);
 
-    // Simulate an unexpected system/network failure
     when(pullImageCmd.exec(any())).thenThrow(new RuntimeException("unexpected network failure"));
 
-    // 3. Act & Assert
-    // Per implementation logic, this should be logged but not propagated
-    // to avoid crashing the orchestration flow.
     assertDoesNotThrow(() -> dockerService.pullImageStartContainer(containerName));
   }
 
@@ -795,7 +751,6 @@ class DockerServiceTest {
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     when(dockerClient.pullImageCmd("repo/image:tag")).thenReturn(pullImageCmd);
 
-    // return a callback whose awaitCompletion(..) throws InterruptedException
     when(pullImageCmd.exec(any()))
         .thenReturn(
             new PullImageResultCallback() {
@@ -812,7 +767,6 @@ class DockerServiceTest {
 
     assertThrows(
         ImagePullFailedException.class, () -> dockerService.pullImageStartContainer("default"));
-    // optional: assert interrupted flag is set on current thread
     assertTrue(Thread.currentThread().isInterrupted(), "thread interrupt flag should be set");
   }
 }

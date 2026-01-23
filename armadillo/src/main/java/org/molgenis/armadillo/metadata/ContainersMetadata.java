@@ -30,7 +30,6 @@ public abstract class ContainersMetadata implements Persistable {
     return new AutoValue_ContainersMetadata(map);
   }
 
-  // Restored to the original 'create' name so tests pass
   public static ContainersMetadata create() {
     return new AutoValue_ContainersMetadata(new ConcurrentHashMap<>());
   }

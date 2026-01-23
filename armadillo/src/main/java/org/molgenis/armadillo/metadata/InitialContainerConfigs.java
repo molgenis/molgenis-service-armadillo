@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-/** Collects the containers that are passed as configuration parameters. */
 @ConfigurationProperties(prefix = "armadillo")
 @Component
 @Valid

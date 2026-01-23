@@ -139,7 +139,6 @@
         </div>
       </template>
       <template #extraColumn="columnProps">
-        <!-- Add buttons for editing/deleting containers -->
         <th scope="row">
           <ButtonGroup
             :buttonIcons="['pencil-fill', 'trash-fill']"

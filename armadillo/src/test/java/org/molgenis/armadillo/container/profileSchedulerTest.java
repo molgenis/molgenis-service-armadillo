@@ -122,7 +122,6 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerImageChanged() throws Exception {
-    // Mock container
     var container = mock(DatashieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
@@ -154,7 +153,6 @@ class ContainerSchedulerTest {
     // Execute
     invokeRunUpdateForContainer(container);
 
-    // Verify pullImageStartContainer is invoked
     verify(dockerService).pullImageStartContainer("testContainer");
   }
 

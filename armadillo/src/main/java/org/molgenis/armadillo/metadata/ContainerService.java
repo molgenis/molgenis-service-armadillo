@@ -53,10 +53,6 @@ public class ContainerService {
     runAsSystem(this::initialize);
   }
 
-  /**
-   * Initialization separated from constructor so that it can be called in WebMvc tests
-   * <strong>after</strong> mocks have been initialized.
-   */
   public void initialize() {
     settings = loader.load();
     bootstrap();
@@ -156,7 +152,6 @@ public class ContainerService {
 
     ContainerConfig existing = getByName(containerName);
 
-    // Find the updater using the strategy pattern
     ContainerUpdater updater =
         updaters.stream()
             .filter(u -> u.supports(existing))

@@ -17,14 +17,10 @@ public class ContainerSchedulerFallbackConfig {
   public ContainerScheduler noOpContainerScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
-      public void reschedule(ContainerConfig container) {
-        // no-op
-      }
+      public void reschedule(ContainerConfig container) {}
 
       @Override
-      public void cancel(String containerName) {
-        // no-op
-      }
+      public void cancel(String containerName) {}
     };
   }
 }

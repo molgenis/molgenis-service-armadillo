@@ -65,7 +65,6 @@ serviceAccount:
 
 
     # datashield:
-    #   containers:
     #     - name: default
     #       environment: default
     #       whitelist:

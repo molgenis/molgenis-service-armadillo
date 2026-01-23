@@ -5,12 +5,6 @@ import java.util.Set;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.InitialConfigBuilder;
 
-/**
- * Container that is passed as configuration parameters. Don't use at runtime.
- *
- * <p>This class can't be @AutoValue'd because Spring's @ConfigurationProperties can't bind to it
- * without setters.
- */
 public class InitialContainerConfig {
   private String name;
   private String image;

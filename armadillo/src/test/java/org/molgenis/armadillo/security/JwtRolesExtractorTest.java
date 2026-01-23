@@ -15,7 +15,6 @@
 // import org.molgenis.armadillo.metadata.ArmadilloMetadata;
 // import org.molgenis.armadillo.metadata.ArmadilloMetadataService;
 // <<<<<<< HEAD
-// import org.molgenis.armadillo.container.ContainerService;
 // =======
 // import org.molgenis.armadillo.metadata.MetadataLoader;
 // import org.molgenis.armadillo.metadata.ProjectDetails;
@@ -33,7 +32,6 @@
 //  @Mock Jwt jwt;
 //  @Mock ArmadilloStorageService armadilloStorage;
 // <<<<<<< HEAD
-//  @Mock ContainerService containerService;
 // =======
 //  @Mock MetadataLoader metadataLoader;
 // >>>>>>> 7116458d5c90bb7d947200a3b014e573be12bc7d
@@ -45,12 +43,10 @@
 //    when(jwt.getClaimAsString("email")).thenReturn("bofke@email.com");
 // <<<<<<< HEAD
 //    // local only
-//    armadilloMetadataService = new ArmadilloMetadataService(armadilloStorage, containerService);
 //    when(armadilloStorage.loadSystemFile(METADATA_FILE))
 //        .thenReturn(
 //            new ByteArrayInputStream(
 //                "{\"users\":{\"bofke@email.com\":{\"email\":\"bofke@email.com\",
-// \"admin\":true}},\"projects\":{\"myproject\":{\"name\":\"myproject\"}},\"permissions\":[{\"email\":\"bofke@email.com\",\"project\":\"myproject\"}],\"containers\":{}}"
 //                    .getBytes()));
 //    armadilloMetadataService.reload();
 // =======

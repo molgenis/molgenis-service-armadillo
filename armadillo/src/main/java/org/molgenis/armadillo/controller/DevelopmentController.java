@@ -71,7 +71,6 @@ public class DevelopmentController {
   @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
       Principal principal, @RequestParam MultipartFile file) {
-    // 1. Filename check (Restored to be first)
     String ogFilename = file.getOriginalFilename();
     if (ogFilename == null || ogFilename.isBlank()) {
       Map<String, Object> data = new HashMap<>();
@@ -80,7 +79,6 @@ public class DevelopmentController {
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
 
-      // 2. Container lookup and validation
       String containerName;
       try {
         containerName = datashieldContainerConfig.getName();
