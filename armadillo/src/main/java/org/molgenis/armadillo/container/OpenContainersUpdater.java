@@ -2,7 +2,7 @@ package org.molgenis.armadillo.container;
 
 import org.molgenis.armadillo.metadata.OpenContainersImageMetaData;
 
-public interface OpenContainersUpdater extends ContainerUpdater {
+public interface OpenContainersUpdater<T extends ContainerConfig> extends ContainerUpdater<T> {
   ContainerConfig updateOpenContainersMetaData(
-      ContainerConfig existingConfig, OpenContainersImageMetaData metadata);
+      T existingConfig, OpenContainersImageMetaData metadata);
 }

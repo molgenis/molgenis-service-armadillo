@@ -5,36 +5,32 @@ import org.molgenis.armadillo.metadata.OpenContainersImageMetaData;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DatashieldContainerUpdater implements ContainerUpdater, OpenContainersUpdater {
+public class DatashieldContainerUpdater
+    implements ContainerUpdater<DatashieldContainerConfig>,
+        OpenContainersUpdater<DatashieldContainerConfig> {
 
   @Override
-  public boolean supports(ContainerConfig config) {
-    return config instanceof DatashieldContainerConfig;
+  public Class<DatashieldContainerConfig> getSupportedType() {
+    return DatashieldContainerConfig.class;
   }
 
   @Override
   public ContainerConfig updateDefaultImageMetaData(
-      ContainerConfig existingConfig, DefaultImageMetaData metadata) {
-
-    DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
-
-    return specificExisting.toBuilder()
+      DatashieldContainerConfig existingConfig, DefaultImageMetaData metadata) {
+    return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())
         .installDate(
             metadata.installDate() != null
                 ? metadata.installDate()
-                : specificExisting.getInstallDate())
+                : existingConfig.getInstallDate())
         .build();
   }
 
   @Override
   public ContainerConfig updateOpenContainersMetaData(
-      ContainerConfig existingConfig, OpenContainersImageMetaData metadata) {
-
-    DatashieldContainerConfig specificExisting = (DatashieldContainerConfig) existingConfig;
-
-    return specificExisting.toBuilder()
+      DatashieldContainerConfig existingConfig, OpenContainersImageMetaData metadata) {
+    return existingConfig.toBuilder()
         .versionId(metadata.openContainersId())
         .creationDate(metadata.creationDate())
         .build();

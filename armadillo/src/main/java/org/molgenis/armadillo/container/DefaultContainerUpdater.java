@@ -4,26 +4,23 @@ import org.molgenis.armadillo.metadata.DefaultImageMetaData;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultContainerUpdater implements ContainerUpdater {
+public class DefaultContainerUpdater implements ContainerUpdater<DefaultContainerConfig> {
 
   @Override
-  public boolean supports(ContainerConfig config) {
-    return config instanceof DefaultContainerConfig;
+  public Class<DefaultContainerConfig> getSupportedType() {
+    return DefaultContainerConfig.class;
   }
 
   @Override
   public ContainerConfig updateDefaultImageMetaData(
-      ContainerConfig existingConfig, DefaultImageMetaData metadata) {
-
-    DefaultContainerConfig specificExisting = (DefaultContainerConfig) existingConfig;
-
-    return specificExisting.toBuilder()
+      DefaultContainerConfig existingConfig, DefaultImageMetaData metadata) {
+    return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())
         .installDate(
             metadata.installDate() != null
                 ? metadata.installDate()
-                : specificExisting.getInstallDate())
+                : existingConfig.getInstallDate())
         .build();
   }
 }

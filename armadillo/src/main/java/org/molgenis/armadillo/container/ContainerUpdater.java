@@ -2,9 +2,12 @@ package org.molgenis.armadillo.container;
 
 import org.molgenis.armadillo.metadata.DefaultImageMetaData;
 
-public interface ContainerUpdater {
-  boolean supports(ContainerConfig config);
+public interface ContainerUpdater<T extends ContainerConfig> {
+  Class<T> getSupportedType();
 
-  ContainerConfig updateDefaultImageMetaData(
-      ContainerConfig existingConfig, DefaultImageMetaData metadata);
+  default boolean supports(ContainerConfig config) {
+    return getSupportedType().isInstance(config);
+  }
+
+  ContainerConfig updateDefaultImageMetaData(T existingConfig, DefaultImageMetaData metadata);
 }

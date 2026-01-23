@@ -24,7 +24,7 @@ public class ContainerService {
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
-  private final List<ContainerUpdater> updaters;
+  private final List<ContainerUpdater<? extends ContainerConfig>> updaters;
   private final DefaultContainerFactory defaultContainerFactory;
   private final Map<String, InitialConfigBuilder> initialConfigBuilders;
   private ContainersMetadata settings;
@@ -33,7 +33,7 @@ public class ContainerService {
       ContainersLoader containersLoader,
       InitialContainerConfigs initialContainerConfigs,
       ContainerScope containerScope,
-      List<ContainerUpdater> allUpdaters,
+      List<ContainerUpdater<? extends ContainerConfig>> allUpdaters,
       DefaultContainerFactory defaultContainerFactory,
       List<InitialConfigBuilder> allInitialConfigBuilders) {
     this.loader = requireNonNull(containersLoader);
@@ -152,7 +152,7 @@ public class ContainerService {
 
     ContainerConfig existing = getByName(containerName);
 
-    ContainerUpdater updater =
+    ContainerUpdater<? extends ContainerConfig> updater =
         updaters.stream()
             .filter(u -> u.supports(existing))
             .findFirst()
@@ -165,17 +165,31 @@ public class ContainerService {
     DefaultImageMetaData defaultMetaData =
         new DefaultImageMetaData(newImageId, newImageSize, newInstallDate);
 
-    ContainerConfig updated = updater.updateDefaultImageMetaData(existing, defaultMetaData);
+    ContainerConfig updated = updateDefaultMeta(updater, existing, defaultMetaData);
 
-    if (updater instanceof OpenContainersUpdater openUpdater) {
+    if (updater instanceof OpenContainersUpdater<?> openUpdater) {
       OpenContainersImageMetaData openMetaData =
           new OpenContainersImageMetaData(newVersionId, newCreationDate);
 
-      updated = openUpdater.updateOpenContainersMetaData(updated, openMetaData);
+      updated = updateOpenContainersMeta(openUpdater, updated, openMetaData);
     }
 
     settings.getContainers().put(containerName, updated);
     flushContainerBeans(containerName);
     save();
+  }
+
+  private static <T extends ContainerConfig> ContainerConfig updateDefaultMeta(
+      ContainerUpdater<T> updater, ContainerConfig existing, DefaultImageMetaData metadata) {
+    T typedConfig = updater.getSupportedType().cast(existing);
+    return updater.updateDefaultImageMetaData(typedConfig, metadata);
+  }
+
+  private static <T extends ContainerConfig> ContainerConfig updateOpenContainersMeta(
+      OpenContainersUpdater<T> updater,
+      ContainerConfig existing,
+      OpenContainersImageMetaData metadata) {
+    T typedConfig = updater.getSupportedType().cast(existing);
+    return updater.updateOpenContainersMetaData(typedConfig, metadata);
   }
 }
