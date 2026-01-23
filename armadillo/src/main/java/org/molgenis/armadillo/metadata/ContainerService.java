@@ -132,7 +132,10 @@ public class ContainerService {
 
     if (initialContainer.getContainers() != null) {
       initialContainer.getContainers().stream()
-          .map(config -> config.toContainerConfig(initialConfigBuilders))
+          .map(
+              config ->
+                  config.toContainerConfig(
+                      initialConfigBuilders, defaultContainerFactory.getType()))
           .filter(container -> !settings.getContainers().containsKey(container.getName()))
           .forEach(this::upsert);
     }

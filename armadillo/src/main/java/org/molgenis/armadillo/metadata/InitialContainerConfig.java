@@ -17,9 +17,10 @@ public class InitialContainerConfig {
   private Map<String, String> options;
   private String type;
 
-  public ContainerConfig toContainerConfig(Map<String, InitialConfigBuilder> builderRegistry) {
+  public ContainerConfig toContainerConfig(
+      Map<String, InitialConfigBuilder> builderRegistry, String defaultType) {
 
-    String configType = this.type != null ? this.type : "ds";
+    String configType = this.type != null ? this.type : defaultType;
     InitialConfigBuilder builder = builderRegistry.get(configType);
 
     if (builder == null) {
@@ -78,7 +79,7 @@ public class InitialContainerConfig {
   }
 
   public void setAutoUpdate(Boolean autoUpdate) {
-    this.autoUpdate = autoUpdate;
+    this.autoUpdate = Boolean.TRUE.equals(autoUpdate);
   }
 
   public void setUpdateSchedule(UpdateSchedule updateSchedule) {
