@@ -124,12 +124,12 @@ class DockerServiceTest {
   void testGetAllContainerStatuses() {
     when(containerService.getAll()).thenReturn(createExampleSettings());
     var tags = List.of("2.0.0", "latest");
-    var names = List.of("default", "omics");
+    var names = List.of("platform-1", "platform-2");
     var containerDefault = mock(Container.class);
-    when(containerDefault.getNames()).thenReturn(new String[] {"/default"});
-    when(containerDefault.getImageId()).thenReturn("default");
+    when(containerDefault.getNames()).thenReturn(new String[] {"/platform-1"});
+    when(containerDefault.getImageId()).thenReturn("platform-1");
     when(containerDefault.getState()).thenReturn("running");
-    when(dockerClient.inspectImageCmd("default").exec().getRepoTags()).thenReturn(tags);
+    when(dockerClient.inspectImageCmd("platform-1").exec().getRepoTags()).thenReturn(tags);
 
     var containers = List.of(containerDefault);
     when(dockerClient.listContainersCmd().withShowAll(true).withNameFilter(names).exec())
@@ -137,18 +137,14 @@ class DockerServiceTest {
 
     var expected =
         Map.of(
-            "default",
+            "platform-1",
             ContainerInfo.create(tags, RUNNING),
-            "omics",
+            "platform-2",
             ContainerInfo.create(ContainerStatus.NOT_FOUND));
 
     var result = dockerService.getAllContainerStatuses();
 
-    assertEquals(2, result.size());
-    assertTrue(result.containsKey("platform-1"));
-    assertTrue(result.containsKey("platform-2"));
-
-    assertEquals(ContainerStatus.NOT_FOUND, result.get("platform-1").getStatus());
+    assertEquals(expected, result);
   }
 
   @Test
