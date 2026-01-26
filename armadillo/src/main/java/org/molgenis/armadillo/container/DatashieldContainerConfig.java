@@ -101,24 +101,35 @@ public abstract class DatashieldContainerConfig
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
 
-    return builder()
-        .name(name)
-        .image(image)
-        .host(host)
-        .port(port)
-        .lastImageId(lastImageId)
-        .imageSize(imageSize)
-        .installDate(installDate)
-        .versionId(versionId)
-        .creationDate(creationDate)
-        .autoUpdate(autoUpdate)
-        .updateSchedule(updateSchedule)
-        .packageWhitelist(packageWhitelist)
-        .functionBlacklist(functionBlacklist)
-        .datashieldROptions(datashieldROptions)
-        .dockerArgs(dockerArgs)
-        .dockerOptions(dockerOptions)
-        .build();
+    Set<String> resolvedPackageWhitelist =
+        packageWhitelist != null ? packageWhitelist : Set.of("dsBase");
+    Set<String> resolvedFunctionBlacklist =
+        functionBlacklist != null ? functionBlacklist : Set.of();
+    Builder builder =
+        builder()
+            .name(name)
+            .image(image)
+            .host(host)
+            .port(port)
+            .lastImageId(lastImageId)
+            .imageSize(imageSize)
+            .installDate(installDate)
+            .versionId(versionId)
+            .creationDate(creationDate)
+            .autoUpdate(autoUpdate)
+            .updateSchedule(updateSchedule)
+            .packageWhitelist(resolvedPackageWhitelist)
+            .functionBlacklist(resolvedFunctionBlacklist);
+    if (datashieldROptions != null) {
+      builder.datashieldROptions(datashieldROptions);
+    }
+    if (dockerArgs != null) {
+      builder.dockerArgs(dockerArgs);
+    }
+    if (dockerOptions != null) {
+      builder.dockerOptions(dockerOptions);
+    }
+    return builder.build();
   }
 
   public static DatashieldContainerConfig createDefault() {
