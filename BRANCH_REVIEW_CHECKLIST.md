@@ -5,17 +5,17 @@ Status legend: [ ] pending, [x] reviewed
 [x] README.md
 [x] application.template.yml
 [x] armadillo/build.gradle
-[x] armadillo/http/dummy.parquet
-[x] armadillo/http/http-client.env.json
-[x] armadillo/http/invalid_rpackage.txt
-[x] armadillo/http/test-actuator.http
-[x] armadillo/http/test-exceptions.http
-[x] armadillo/http/test-profiles.http
-[x] armadillo/http/test-resources.http
-[x] armadillo/http/test-storage.http
-[x] armadillo/http/test-tutorial.http
-[x] armadillo/http/test-workspaces.http
-[x] armadillo/http/test.http
+[x] removed: armadillo/http/dummy.parquet
+[x] removed: armadillo/http/http-client.env.json
+[x] removed: armadillo/http/invalid_rpackage.txt
+[x] removed: armadillo/http/test-actuator.http
+[x] removed: armadillo/http/test-exceptions.http
+[x] removed: armadillo/http/test-profiles.http
+[x] removed: armadillo/http/test-resources.http
+[x] removed: armadillo/http/test-storage.http
+[x] removed: armadillo/http/test-tutorial.http
+[x] removed: armadillo/http/test-workspaces.http
+[x] removed: armadillo/http/test.http
 [x] armadillo/src/main/java/org/molgenis/armadillo/DataShieldOptionsImpl.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/README.md
 [x] armadillo/src/main/java/org/molgenis/armadillo/audit/AuditEventPublisher.java
@@ -88,11 +88,6 @@ Status legend: [ ] pending, [x] reviewed
 [x] armadillo/src/main/java/org/molgenis/armadillo/service/ExpressionRewriterImpl.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/service/FileService.java
 [x] armadillo/src/main/resources/application.yml
-[x] armadillo/src/test/.DS_Store
-[x] armadillo/src/test/java/.DS_Store
-[x] armadillo/src/test/java/org/.DS_Store
-[x] armadillo/src/test/java/org/molgenis/.DS_Store
-[x] armadillo/src/test/java/org/molgenis/armadillo/.DS_Store
 [x] armadillo/src/test/java/org/molgenis/armadillo/DataShieldOptionsImplTest.java
 [ ] armadillo/src/test/java/org/molgenis/armadillo/TestSecurityConfig.java
 [ ] armadillo/src/test/java/org/molgenis/armadillo/command/impl/CommandsImplTest.java
