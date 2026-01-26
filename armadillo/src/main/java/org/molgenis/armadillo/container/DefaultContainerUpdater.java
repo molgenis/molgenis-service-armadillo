@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.container;
 
-import org.molgenis.armadillo.metadata.DefaultImageMetaData;
+import org.molgenis.armadillo.metadata.DefaultImageMetadata;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,8 +12,8 @@ public class DefaultContainerUpdater implements ContainerUpdater<DefaultContaine
   }
 
   @Override
-  public ContainerConfig updateDefaultImageMetaData(
-      DefaultContainerConfig existingConfig, DefaultImageMetaData metadata) {
+  public ContainerConfig updateDefaultImageMetadata(
+      DefaultContainerConfig existingConfig, DefaultImageMetadata metadata) {
     return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())

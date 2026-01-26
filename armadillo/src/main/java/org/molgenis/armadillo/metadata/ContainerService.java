@@ -165,14 +165,14 @@ public class ContainerService {
                         "No image metadata updater found for container type: "
                             + existing.getClass().getSimpleName()));
 
-    DefaultImageMetaData defaultMetaData =
-        new DefaultImageMetaData(newImageId, newImageSize, newInstallDate);
+    DefaultImageMetadata defaultMetaData =
+        new DefaultImageMetadata(newImageId, newImageSize, newInstallDate);
 
     ContainerConfig updated = updateDefaultMeta(updater, existing, defaultMetaData);
 
     if (updater instanceof OpenContainersUpdater<?> openUpdater) {
-      OpenContainersImageMetaData openMetaData =
-          new OpenContainersImageMetaData(newVersionId, newCreationDate);
+      OpenContainersImageMetadata openMetaData =
+          new OpenContainersImageMetadata(newVersionId, newCreationDate);
 
       updated = updateOpenContainersMeta(openUpdater, updated, openMetaData);
     }
@@ -183,15 +183,15 @@ public class ContainerService {
   }
 
   private static <T extends ContainerConfig> ContainerConfig updateDefaultMeta(
-      ContainerUpdater<T> updater, ContainerConfig existing, DefaultImageMetaData metadata) {
+      ContainerUpdater<T> updater, ContainerConfig existing, DefaultImageMetadata metadata) {
     T typedConfig = updater.getSupportedType().cast(existing);
-    return updater.updateDefaultImageMetaData(typedConfig, metadata);
+    return updater.updateDefaultImageMetadata(typedConfig, metadata);
   }
 
   private static <T extends ContainerConfig> ContainerConfig updateOpenContainersMeta(
       OpenContainersUpdater<T> updater,
       ContainerConfig existing,
-      OpenContainersImageMetaData metadata) {
+      OpenContainersImageMetadata metadata) {
     T typedConfig = updater.getSupportedType().cast(existing);
     return updater.updateOpenContainersMetaData(typedConfig, metadata);
   }

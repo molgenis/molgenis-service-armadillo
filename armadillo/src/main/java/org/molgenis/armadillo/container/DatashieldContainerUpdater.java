@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.container;
 
-import org.molgenis.armadillo.metadata.DefaultImageMetaData;
-import org.molgenis.armadillo.metadata.OpenContainersImageMetaData;
+import org.molgenis.armadillo.metadata.DefaultImageMetadata;
+import org.molgenis.armadillo.metadata.OpenContainersImageMetadata;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +15,8 @@ public class DatashieldContainerUpdater
   }
 
   @Override
-  public ContainerConfig updateDefaultImageMetaData(
-      DatashieldContainerConfig existingConfig, DefaultImageMetaData metadata) {
+  public ContainerConfig updateDefaultImageMetadata(
+      DatashieldContainerConfig existingConfig, DefaultImageMetadata metadata) {
     return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())
@@ -29,7 +29,7 @@ public class DatashieldContainerUpdater
 
   @Override
   public ContainerConfig updateOpenContainersMetaData(
-      DatashieldContainerConfig existingConfig, OpenContainersImageMetaData metadata) {
+      DatashieldContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
     return existingConfig.toBuilder()
         .versionId(metadata.openContainersId())
         .creationDate(metadata.creationDate())
