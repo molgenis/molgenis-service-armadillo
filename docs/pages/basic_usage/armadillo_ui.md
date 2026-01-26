@@ -165,22 +165,22 @@ When users conduct analyses with DataSHIELD, they can save R workspaces on the s
 
 ![Armadillo Profiles page](../../img/ui/containers.png)
 
-Since the release of Armadillo 3.0.0, it is possible to create and manage analysis containers in the user interface, rather than asking system administrators to manage these containers. You can start ![Armadillo profile start](../../img/ui/start-profile.png){width="35"} and stop ![Armadillo profile start](../../img/ui/stop-profile.png){width="35"} containers.
+Since the release of Armadillo 3.0.0, it is possible to create and manage analysis containers in the user interface, rather than asking system administrators to manage these containers. You can start ![Armadillo container start](../../img/ui/start-profile.png){width="35"} and stop ![Armadillo container stop](../../img/ui/stop-profile.png){width="35"} containers.
 
 When you start a container for the first time, it will take a bit longer to load because the image needs to be downloaded and installed before it can be started.
 
-![Stopping a profile](../../img/ui/loading-stop-profile.png)
+![Stopping a container](../../img/ui/loading-stop-profile.png)
 
 If you switch to another screen whilst either starting or stopping a container, the containers page will no longer show the loading information. It is however still loading, and when it's done, if you reload the page, you will see that your container started or stopped successfully.
 
-As in the other screens, you can add containers with the add-button ![Armadillo profile add](../../img/ui/add.png){width="25"}.
+As in the other screens, you can add containers with the add-button ![Armadillo container add](../../img/ui/add.png){width="25"}.
 
-![Add a profile](../../img/ui/add-profile.png)
+![Add a container](../../img/ui/add-profile.png)
 
 By default, some fields will be set. Please update them to install the correct container.
 
 Possible images can be found on [dockerhub](https://hub.docker.com/search?q=datashield%2Farmadillo-rserver). We recommend selecting one of the
-[DataSHIELD standard containers](https://wiki.datashield.org/en/opmanag/standard-containers-and-platforms). The image name of those containers can be found on the dockerhub link above.
+[DataSHIELD standard profiles](https://wiki.datashield.org/en/opmanag/standard-profiles-and-platforms). The image name of those profiles can be found on the dockerhub link above.
 
 Although the default `port` setting should find an available port, please keep in mind that the port has to be unique, otherwise you cannot start your container and will receive an error message.
 
@@ -189,4 +189,4 @@ R packages can be whitelisted by adding them to the `package whitelist` column s
 Sometimes containers are updated, for example if new features are added or security updates are applied. To manually update a container, you just need to start and stop the container and the new version will be installed. 
 
 From Armadillo v.5.2.0 and higher, it is also possible to automatically update containers. Edit the container, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
-![Automaticall update profile](../../img/ui/update-profile.png)
+![Automaticall update container](../../img/ui/update-profile.png)

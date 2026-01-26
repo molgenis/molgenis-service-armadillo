@@ -13,7 +13,7 @@ For the latest 4.y.z release check [https://github.com/molgenis/molgenis-service
 
 ### 1. Stop docker containers
 
-First, log in to the Armadillo UI and navigate to the Profiles tab. Now, click 'Stop' for each profile listed.
+First, log in to the Armadillo UI and navigate to the Containers tab. Now, click 'Stop' for each container listed.
 
 Next, stop any unnecessary containers.
 

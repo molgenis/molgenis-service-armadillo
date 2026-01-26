@@ -15,14 +15,14 @@ For the latest 4.x release check https://github.com/molgenis/molgenis-service-ar
 
 Make a note of the version as you will use this below.
 
-## 1. Check your profile types
+## 1. Check your container types
 
-Check if the new containers are compatible with your needs, these profile names can be edited later on in the manual:
+Check if the new containers are compatible with your needs, these container names can be edited later on in the manual:
 
     - datashield/rock-base:latest
     - datashield/rock-dolomite-xenon:latest
 
-See also DataSHIELD containers
+See also DataSHIELD profiles
 
 ## 2. Check server space
 
@@ -195,12 +195,12 @@ Go to your armadillo website. Is the version in the left top corner updated? Thi
 Login into the website and go to the containers tab. Here two containers should be listed: `default` and `xenon`.
 Any other containers can be removed.
 
-1. Edit the default profile.
+1. Edit the default container.
 2. Change the "image" to `datashield/rock-base:latest` and save.
-3. Start the default profile.
-4. Edit the "xenon" profile.
+3. Start the default container.
+4. Edit the "xenon" container.
 5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-6. Start the xenon profile.
+6. Start the xenon container.
 
 Everything should now be working correctly. You can try and login to your server via the central analysis server, using
 the `DSMolgenisArmadillo` (2.0.5 or up) package to test.

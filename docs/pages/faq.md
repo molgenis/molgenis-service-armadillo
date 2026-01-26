@@ -3,8 +3,8 @@
 ??? question "Docker gives a `java.socket` error"
     You might need to enable Docker socket. On Docker desktop you can find that under 'settings' and 'advanced'.
 
-??? question "Can I use docker compose to start containers?"
-    Instead of making Armadillo start/stop DataSHIELD containers you can also use docker compose. See commented section in docker-compose.yml file.
+??? question "Can I use docker compose to start DataSHIELD profiles?"
+    Instead of making Armadillo start/stop DataSHIELD profiles you can also use docker compose. See commented section in docker-compose.yml file.
 
 ??? question "Can I pass environment or commandline variables instead of application.yml?"
     Yes, it is standard spring.

@@ -99,8 +99,8 @@ information to get you started and help you get familiarised with our code and w
     4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
 
     The command must run in the same directory as the downloaded docker file. 
-    We made docker available via 'docker.sock' so we can start/stop DataSHIELD containers. 
-    Alternatively you must include the datashield containers into this docker-compose. 
+    We made docker available via 'docker.sock' so we can start/stop DataSHIELD profiles. 
+    Alternatively you must include the datashield profiles into this docker-compose. 
     You can override all application.yml settings via environment variables (see commented code in docker-compose file).
 
     <h3>IntelliJ</h3>
@@ -131,7 +131,7 @@ information to get you started and help you get familiarised with our code and w
 
     <h2>host.docker.internal error</h2>
     This error is returned only in development environments, when working on an unsupported operating system and running
-    a container that has the `resourcer` R package whitelisted. The only way to fix this error, is by temporarily altering
+    a profile that has the `resourcer` R package whitelisted. The only way to fix this error, is by temporarily altering
     the Armadillo source code in the 
     [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/container/DockerService.java)
     Go to the `install_image` method to where `createContainerCmd` is called:
@@ -141,7 +141,7 @@ information to get you started and help you get familiarised with our code and w
     .exec()
     ```
     Simply add `.withExtraHosts("host.docker.internal:host-gateway"))` before the `.exec()`. To ensure the code is
-    properly updated, we suggest rebuilding the code before restarting Armadillo. If you already had the container 
+    properly updated, we suggest rebuilding the code before restarting Armadillo. If you already had the profile 
     running, you will need to restart that as well.
 === ":material-vuejs: JavaScript/VueJS"
 

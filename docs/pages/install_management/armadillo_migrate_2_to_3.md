@@ -233,7 +233,7 @@ Add the following to the config of your server: `https://yourserver.com/login/oa
 
 ### 12. Set up containers
 
-Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
+Login to armadillo in the browser. Navigate to the "Containers" tab. Add a new container with the following properties:
 
 Name: `xenon`  
 Image: `datashield/armadillo-rserver_caravan-xenon:latest`  

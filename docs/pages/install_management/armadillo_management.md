@@ -1,6 +1,6 @@
 # Armadillo management
 
-Armadillo has three main screens to manage projects, user access and DataSHIELD containers:
+Armadillo has three main screens to manage projects, user access and DataSHIELD profiles:
 
 ## Create data access projects
 
@@ -10,9 +10,9 @@ Data managers can use the Armadillo web user interface or [MolgenisArmadillo R c
 
 Data managers can use the permission screen to give email addresses access to the data. Everybody signs in via single sign on using an OIDC central authentication server such as KeyCloack or Fusion auth that federates to authentication systems of connected institutions, ideally using a federated AAI such as LifeScience AAI.
 
-## Configure DataSHIELD containers
+## Configure DataSHIELD profiles
 
-To analyse data, users must choose a datashield container. Armadillo owners can use the web user interface to configure new containers. Assuming you installed docker you can also start/stop these images. Alternatively you can use docker-compose for that. We recommend selecting one of the DataSHIELD standard containers.
+To analyse data, users must choose a datashield profile. Armadillo owners can use the web user interface to configure new profiles. Assuming you installed docker you can also start/stop these images. Alternatively you can use docker-compose for that. We recommend selecting one of the DataSHIELD standard profiles.
 
 ## End users can use Armadillo as any other DataSHIELD server
 
