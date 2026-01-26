@@ -293,17 +293,41 @@ export default defineComponent({
     });
     const loadProfiles = async () => {
       containers.value = await getProfiles()
-        .then((containers) => {
-          dockerManagementEnabled.value = "container" in containers[0];
+        .then((profiles) => {
+          dockerManagementEnabled.value = "container" in profiles[0];
 
-          return containers.map((profile) => {
-            // Extract datashieldSeed
-            const datashieldSeed = profile.options["datashield.seed"];
-            delete profile.options["datashield.seed"];
+          return profiles.map((profile) => {
+            const specificOptions = {
+              packageWhitelist: profile.packageWhitelist,
+              functionBlacklist: profile.functionBlacklist,
+              datashieldROptions: profile.options || {},
+              ...profile.specificContainerOptions,
+            };
+            const datashieldROptions = {
+              ...(specificOptions.datashieldROptions || {}),
+            };
+            const datashieldSeed = datashieldROptions["datashield.seed"];
+            delete datashieldROptions["datashield.seed"];
+
+            const containerStatus = profile.container ||
+              profile.dockerStatus || {
+                tags: [],
+                status: "NOT_RUNNING",
+              };
 
             return {
               ...profile,
+              specificContainerOptions: {
+                ...specificOptions,
+                datashieldROptions: {
+                  ...(specificOptions.datashieldROptions || {}),
+                },
+              },
+              options: datashieldROptions,
               datashieldSeed,
+              packageWhitelist: specificOptions.packageWhitelist || [],
+              functionBlacklist: specificOptions.functionBlacklist || [],
+              container: containerStatus,
               updateSchedule: profile.updateSchedule || {
                 frequency: "weekly",
                 day: "Sunday",
@@ -513,10 +537,44 @@ export default defineComponent({
     },
     proceedEdit(profile: Profile) {
       this.addProfile = false;
-      profile.options["datashield.seed"] = profile.datashieldSeed;
+      const containerOptions: Profile["specificContainerOptions"] = {
+        ...profile.specificContainerOptions,
+        packageWhitelist: profile.packageWhitelist,
+        functionBlacklist: profile.functionBlacklist,
+      };
+      const datashieldOptions = {
+        ...(profile.options || {}),
+        ...(containerOptions.datashieldROptions || {}),
+        "datashield.seed": profile.datashieldSeed,
+      };
+      containerOptions.datashieldROptions = datashieldOptions;
+      profile.specificContainerOptions = containerOptions;
+      profile.options = {
+        ...datashieldOptions,
+      };
+      delete profile.options["datashield.seed"];
+      const payload = {
+        type: profile.type || "ds",
+        name: profile.name,
+        image: profile.image,
+        host: profile.host,
+        port: profile.port,
+        imageSize: profile.imageSize,
+        installDate: profile.installDate,
+        lastImageId: profile.lastImageId,
+        versionId: profile.versionId,
+        creationDate: profile.creationDate,
+        dockerArgs: profile.dockerArgs,
+        dockerOptions: profile.dockerOptions,
+        packageWhitelist: profile.packageWhitelist,
+        functionBlacklist: profile.functionBlacklist,
+        autoUpdate: profile.autoUpdate,
+        updateSchedule: profile.updateSchedule,
+        datashieldROptions: datashieldOptions,
+      };
       //add/update
       this.loadingProfile = profile.name;
-      putProfile(profile)
+      putProfile(payload)
         .then(() => {
           this.successMessage = `[${profile.name}] was successfully saved.`;
           this.clearProfileToEdit();
@@ -564,6 +622,7 @@ export default defineComponent({
       this.clearUserMessages();
 
       this.containers.unshift({
+        type: "ds",
         name: "",
         image: "datashield/rock-base:latest",
         versionId: "",

@@ -15,6 +15,7 @@ import {
   Metric,
   HalResponse,
   Metrics,
+  ContainerPayload,
 } from "@/types/api";
 
 import {
@@ -251,7 +252,7 @@ export async function deleteProfile(name: string) {
   return delete_("/containers", name);
 }
 
-export async function putProfile(profileJson: Profile) {
+export async function putProfile(profileJson: ContainerPayload) {
   return put("/containers", profileJson);
 }
 
