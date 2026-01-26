@@ -195,6 +195,12 @@ public abstract class DatashieldContainerConfig
     @Nullable
     abstract Map<String, String> getDatashieldROptions();
 
+    @Nullable
+    abstract List<String> getDockerArgs();
+
+    @Nullable
+    abstract Map<String, Object> getDockerOptions();
+
     abstract DatashieldContainerConfig autoBuild();
 
     public DatashieldContainerConfig build() {
@@ -206,6 +212,8 @@ public abstract class DatashieldContainerConfig
       if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
       if (getDatashieldROptions() == null)
         datashieldROptions(Map.of("datashield.seed", "342325352"));
+      if (getDockerArgs() == null) dockerArgs(List.of());
+      if (getDockerOptions() == null) dockerOptions(Map.of());
 
       return autoBuild();
     }

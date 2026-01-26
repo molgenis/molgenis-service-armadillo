@@ -41,23 +41,17 @@ class DataShieldOptionsImplTest {
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
 
     DatashieldContainerConfig datashieldContainerConfig =
-        DatashieldContainerConfig.create(
-            "dummy",
-            "dummy",
-            "localhost",
-            6311,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            Set.of(),
-            Set.of(),
-            configOptions,
-            List.of(),
-            Map.of());
+        DatashieldContainerConfig.builder()
+            .name("dummy")
+            .image("dummy")
+            .host("localhost")
+            .port(6311)
+            .packageWhitelist(Set.of())
+            .functionBlacklist(Set.of())
+            .datashieldROptions(configOptions)
+            .dockerArgs(List.of())
+            .dockerOptions(Map.of())
+            .build();
 
     options = new DataShieldOptionsImpl(datashieldContainerConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");

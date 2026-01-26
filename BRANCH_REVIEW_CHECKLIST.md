@@ -93,7 +93,7 @@ Status legend: [ ] pending, [x] reviewed
 [x] armadillo/src/test/java/org/.DS_Store
 [x] armadillo/src/test/java/org/molgenis/.DS_Store
 [x] armadillo/src/test/java/org/molgenis/armadillo/.DS_Store
-[ ] armadillo/src/test/java/org/molgenis/armadillo/DataShieldOptionsImplTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/DataShieldOptionsImplTest.java
 [ ] armadillo/src/test/java/org/molgenis/armadillo/TestSecurityConfig.java
 [ ] armadillo/src/test/java/org/molgenis/armadillo/command/impl/CommandsImplTest.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/container/ContainerStatusServiceTest.java

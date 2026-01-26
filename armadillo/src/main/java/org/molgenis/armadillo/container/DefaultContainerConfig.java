@@ -118,12 +118,20 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
     @Nullable
     abstract Integer getPort();
 
+    @Nullable
+    abstract List<String> getDockerArgs();
+
+    @Nullable
+    abstract Map<String, Object> getDockerOptions();
+
     abstract DefaultContainerConfig autoBuild();
 
     public DefaultContainerConfig build() {
       if (getImage() == null) image("library/r-base");
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);
+      if (getDockerArgs() == null) dockerArgs(List.of());
+      if (getDockerOptions() == null) dockerOptions(Map.of());
 
       return autoBuild();
     }
