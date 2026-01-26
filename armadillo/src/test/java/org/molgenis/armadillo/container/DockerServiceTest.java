@@ -10,8 +10,11 @@ import static org.molgenis.armadillo.metadata.ContainerStatus.RUNNING;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.command.InspectContainerResponse.ContainerState;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
@@ -25,15 +28,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.molgenis.armadillo.exceptions.ContainerRemoveFailedException;
 import org.molgenis.armadillo.exceptions.ImagePullFailedException;
 import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
+import org.molgenis.armadillo.exceptions.ImageStartFailedException;
+import org.molgenis.armadillo.exceptions.ImageStopFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -145,6 +153,341 @@ class DockerServiceTest {
     var result = dockerService.getAllContainerStatuses();
 
     assertEquals(expected, result);
+  }
+
+  @Test
+  void getAllContainerStatuses_returnsDockerOfflineOnSocketException() {
+    when(containerService.getAll()).thenReturn(createExampleSettings());
+    var names = List.of("platform-1", "platform-2");
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.withNameFilter(names)).thenReturn(listCmd);
+    when(listCmd.exec()).thenThrow(new ProcessingException(new SocketException("offline")));
+
+    var result = dockerService.getAllContainerStatuses();
+
+    assertEquals(ContainerStatus.DOCKER_OFFLINE, result.get("platform-1").getStatus());
+    assertEquals(ContainerStatus.DOCKER_OFFLINE, result.get("platform-2").getStatus());
+  }
+
+  @Test
+  void getContainerEnvironmentConfig_returnsEnv() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    var inspectResponse = mock(InspectContainerResponse.class, RETURNS_DEEP_STUBS);
+    when(dockerClient.inspectContainerCmd("default")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getConfig().getEnv()).thenReturn(new String[] {"A=B", "C=D"});
+
+    assertArrayEquals(
+        new String[] {"A=B", "C=D"}, dockerService.getContainerEnvironmentConfig("default"));
+  }
+
+  @Test
+  void asContainerName_respectsInContainerAndPrefix() {
+    ReflectionTestUtils.setField(dockerService, "inContainer", false);
+    assertEquals("alpha", dockerService.asContainerName("alpha"));
+
+    ReflectionTestUtils.setField(dockerService, "inContainer", true);
+    ReflectionTestUtils.setField(dockerService, "containerPrefix", "");
+    assertEquals("alpha", dockerService.asContainerName("alpha"));
+
+    ReflectionTestUtils.setField(dockerService, "containerPrefix", "stack-");
+    assertEquals("stack-alpha-1", dockerService.asContainerName("alpha"));
+  }
+
+  @Test
+  void getContainerStatus_rethrowsProcessingExceptionWithoutSocketCause() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+    when(dockerClient.inspectContainerCmd("default").exec())
+        .thenThrow(new ProcessingException(new IllegalStateException("boom")));
+
+    assertThrows(ProcessingException.class, () -> dockerService.getContainerStatus("default"));
+  }
+
+  @Test
+  void stopAndRemoveContainer_throwsWhenStopFailsAndContainerRunning() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doThrow(new DockerException("fail to stop", 500)).when(stopCmd).exec();
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    var inspectResponse = mock(InspectContainerResponse.class);
+    var state = mock(ContainerState.class);
+    when(state.getRunning()).thenReturn(true);
+    when(inspectResponse.getState()).thenReturn(state);
+    when(dockerClient.inspectContainerCmd("default")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenReturn(inspectResponse);
+
+    assertThrows(
+        ImageStopFailedException.class, () -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void installImage_throwsImageStartFailedOnDockerException() {
+    var config = mock(ContainerConfig.class);
+    when(config.getImage()).thenReturn("repo/image:tag");
+    when(config.getPort()).thenReturn(6311);
+    when(config.getName()).thenReturn("default");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("repo/image:tag")).thenReturn(cmd);
+    when(cmd.withExposedPorts(any(ExposedPort.class))).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.exec()).thenThrow(new DockerException("fail", 500));
+
+    assertThrows(ImageStartFailedException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void stopAndRemoveContainer_ignoresNotFoundWhenStopInspectFails() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doThrow(new DockerException("fail to stop", 500)).when(stopCmd).exec();
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    when(dockerClient.inspectContainerCmd("default")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenThrow(new NotFoundException(""));
+
+    var removeCmd = mock(RemoveContainerCmd.class);
+    when(dockerClient.removeContainerCmd("default")).thenReturn(removeCmd);
+
+    assertDoesNotThrow(() -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void stopAndRemoveContainer_throwsWhenRemoveFails() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doNothing().when(stopCmd).exec();
+
+    var removeCmd = mock(RemoveContainerCmd.class);
+    when(dockerClient.removeContainerCmd("default")).thenReturn(removeCmd);
+    doThrow(new DockerException("remove failed", 500)).when(removeCmd).exec();
+
+    assertThrows(
+        ContainerRemoveFailedException.class,
+        () -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void getImageTags_returnsEmptyWhenNotFound() {
+    var inspectCmd = mock(InspectImageCmd.class);
+    when(dockerClient.inspectImageCmd("img")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenThrow(new NotFoundException("missing"));
+
+    assertEquals(List.of(), dockerService.getImageTags("img"));
+  }
+
+  @Test
+  void getAllContainerStatuses_rethrowsProcessingExceptionWhenNotSocket() {
+    when(containerService.getAll()).thenReturn(createExampleSettings());
+    var names = List.of("platform-1", "platform-2");
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.withShowAll(true)).thenReturn(listCmd);
+    when(listCmd.withNameFilter(names)).thenReturn(listCmd);
+    when(listCmd.exec()).thenThrow(new ProcessingException(new IllegalStateException("boom")));
+
+    assertThrows(ProcessingException.class, () -> dockerService.getAllContainerStatuses());
+  }
+
+  @Test
+  void startContainer_throwsImageStartFailedOnDockerException() {
+    var startCmd = mock(StartContainerCmd.class);
+    when(dockerClient.startContainerCmd("default")).thenReturn(startCmd);
+    doThrow(new DockerException("start failed", 500)).when(startCmd).exec();
+
+    assertThrows(
+        ImageStartFailedException.class,
+        () -> ReflectionTestUtils.invokeMethod(dockerService, "startContainer", "default"));
+  }
+
+  @Test
+  void deleteImageIfUnused_throwsWhenRemoveNotFound() {
+    String imageId = "sha256:missing";
+
+    var listCmd = mock(ListContainersCmd.class);
+    when(dockerClient.listContainersCmd()).thenReturn(listCmd);
+    when(listCmd.exec()).thenReturn(List.of()); // not in use
+
+    var rmCmd = mock(RemoveImageCmd.class);
+    when(dockerClient.removeImageCmd(imageId)).thenReturn(rmCmd);
+    when(rmCmd.withForce(true)).thenReturn(rmCmd);
+    doThrow(new NotFoundException("missing")).when(rmCmd).exec();
+
+    assertThrows(
+        ImageRemoveFailedException.class, () -> dockerService.deleteImageIfUnused(imageId));
+  }
+
+  @Test
+  void removeContainer_ignoresNotFoundException() {
+    var removeCmd = mock(RemoveContainerCmd.class);
+    when(dockerClient.removeContainerCmd("default")).thenReturn(removeCmd);
+    doThrow(new NotFoundException("missing")).when(removeCmd).exec();
+
+    assertDoesNotThrow(
+        () -> ReflectionTestUtils.invokeMethod(dockerService, "removeContainer", "default"));
+  }
+
+  @Test
+  void getImageTags_returnsEmptyOnDockerException() {
+    var inspectCmd = mock(InspectImageCmd.class);
+    when(dockerClient.inspectImageCmd("img")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenThrow(new DockerException("boom", 500));
+
+    assertEquals(List.of(), dockerService.getImageTags("img"));
+  }
+
+  @Test
+  void stopAndRemoveContainer_allowsStopFailureWhenNotRunning() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doThrow(new DockerException("stop failed", 500)).when(stopCmd).exec();
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    var inspectResponse = mock(InspectContainerResponse.class);
+    var state = mock(ContainerState.class);
+    when(state.getRunning()).thenReturn(false);
+    when(inspectResponse.getState()).thenReturn(state);
+    when(dockerClient.inspectContainerCmd("default")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenReturn(inspectResponse);
+
+    var removeCmd = mock(RemoveContainerCmd.class);
+    when(dockerClient.removeContainerCmd("default")).thenReturn(removeCmd);
+    doNothing().when(removeCmd).exec();
+
+    assertDoesNotThrow(() -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void stopAndRemoveContainer_throwsWhenStopInspectFails() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doThrow(new DockerException("stop failed", 500)).when(stopCmd).exec();
+
+    var inspectCmd = mock(InspectContainerCmd.class);
+    when(dockerClient.inspectContainerCmd("default")).thenReturn(inspectCmd);
+    when(inspectCmd.exec()).thenThrow(new RuntimeException("inspect boom"));
+
+    assertThrows(
+        ImageStopFailedException.class, () -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void pullImageStartContainer_ignoresImageRemoveFailure() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+    when(config.getName()).thenReturn("default");
+    when(config.getImage()).thenReturn("repo/image:tag");
+    when(config.getPort()).thenReturn(6311);
+    when(config.getLastImageId()).thenReturn("sha256:old");
+
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("sha256:new");
+
+    when(dockerClient.pullImageCmd(any())).thenReturn(mock(PullImageCmd.class, RETURNS_DEEP_STUBS));
+    when(dockerClient.stopContainerCmd(any())).thenReturn(mock(StopContainerCmd.class));
+    when(dockerClient.removeContainerCmd(any())).thenReturn(mock(RemoveContainerCmd.class));
+    when(dockerClient.createContainerCmd(any()))
+        .thenReturn(mock(CreateContainerCmd.class, RETURNS_DEEP_STUBS));
+    when(dockerClient.startContainerCmd(any())).thenReturn(mock(StartContainerCmd.class));
+
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
+    doThrow(new ImageRemoveFailedException("sha256:old", "in use"))
+        .when(spyService)
+        .deleteImageIfUnused("sha256:old");
+    doNothing().when(spyService).updateImageMetaData(anyString(), anyString(), anyString());
+
+    assertDoesNotThrow(() -> spyService.pullImageStartContainer("default"));
+  }
+
+  @Test
+  void pullImageStartContainer_skipsDeleteWhenPreviousImageMissing() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+    when(config.getName()).thenReturn("default");
+    when(config.getImage()).thenReturn("repo/image:tag");
+    when(config.getPort()).thenReturn(6311);
+    when(config.getLastImageId()).thenReturn(null);
+
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("sha256:new");
+
+    when(dockerClient.pullImageCmd(any())).thenReturn(mock(PullImageCmd.class, RETURNS_DEEP_STUBS));
+    when(dockerClient.stopContainerCmd(any())).thenReturn(mock(StopContainerCmd.class));
+    when(dockerClient.removeContainerCmd(any())).thenReturn(mock(RemoveContainerCmd.class));
+    when(dockerClient.createContainerCmd(any()))
+        .thenReturn(mock(CreateContainerCmd.class, RETURNS_DEEP_STUBS));
+    when(dockerClient.startContainerCmd(any())).thenReturn(mock(StartContainerCmd.class));
+
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
+    doNothing()
+        .when(spyService)
+        .updateImageMetaData(anyString(), Mockito.<String>any(), anyString());
+
+    assertDoesNotThrow(() -> spyService.pullImageStartContainer("default"));
+    verify(spyService, never()).deleteImageIfUnused(anyString());
+  }
+
+  @Test
+  void stopAndRemoveContainer_throwsWhenStopFailsWithRuntimeException() {
+    var config = mock(ContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var stopCmd = mock(StopContainerCmd.class);
+    when(dockerClient.stopContainerCmd("default")).thenReturn(stopCmd);
+    doThrow(new RuntimeException("stop failed")).when(stopCmd).exec();
+
+    assertThrows(
+        ImageStopFailedException.class, () -> dockerService.stopAndRemoveContainer("default"));
+  }
+
+  @Test
+  void installImage_usesRockExposedPort() {
+    var config = mock(ContainerConfig.class);
+    when(config.getImage()).thenReturn("rock/armadillo:latest");
+    when(config.getPort()).thenReturn(6311);
+    when(config.getName()).thenReturn("default");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("rock/armadillo:latest")).thenReturn(cmd);
+    when(cmd.withExposedPorts(any(ExposedPort.class))).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var portCaptor = ArgumentCaptor.forClass(ExposedPort.class);
+    verify(cmd).withExposedPorts(portCaptor.capture());
+    assertEquals(8085, portCaptor.getValue().getPort());
   }
 
   @Test

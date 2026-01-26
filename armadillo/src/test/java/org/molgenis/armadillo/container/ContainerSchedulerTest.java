@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.github.dockerjava.api.DockerClient;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -86,6 +88,30 @@ class ContainerSchedulerTest {
     containerScheduler.reschedule(container);
 
     verify(spyScheduler).schedule(any(Runnable.class), any(CronTrigger.class));
+  }
+
+  @Test
+  void reschedule_runsScheduledTask() {
+    var container = mock(DatashieldContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
+
+    when(dockerService.getAllContainerStatuses()).thenReturn(Map.of());
+
+    var scheduler = containerScheduler.taskScheduler();
+    var spyScheduler = spy(scheduler);
+    ReflectionTestUtils.setField(containerScheduler, "taskScheduler", spyScheduler);
+
+    var runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+    doReturn(scheduledFuture)
+        .when(spyScheduler)
+        .schedule(runnableCaptor.capture(), any(CronTrigger.class));
+
+    containerScheduler.reschedule(container);
+    runnableCaptor.getValue().run();
+
+    verify(dockerService).getAllContainerStatuses();
   }
 
   @Test
@@ -232,6 +258,62 @@ class ContainerSchedulerTest {
     // Verify: nothing else was called
     verify(containerService, never()).getByName(any());
     verify(dockerClient, never()).inspectContainerCmd(any());
+  }
+
+  @Test
+  void testRunUpdateForContainerSkipsWhenImageNull() {
+    ContainerConfig container =
+        (ContainerConfig)
+            mock(UpdatableContainer.class, withSettings().extraInterfaces(ContainerConfig.class));
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getImage()).thenReturn(null);
+    when(((UpdatableContainer) container).getAutoUpdate()).thenReturn(true);
+
+    when(dockerService.getAllContainerStatuses())
+        .thenReturn(Map.of("testContainer", ContainerInfo.create(ContainerStatus.RUNNING)));
+
+    invokeRunUpdateForContainer(container);
+
+    verify(dockerClient, never()).pullImageCmd(anyString());
+    verify(dockerService, never()).pullImageStartContainer(anyString());
+  }
+
+  @Test
+  void testRunUpdateForContainerSkipsWhenImageEmpty() {
+    var container = mock(DatashieldContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getImage()).thenReturn("");
+
+    when(dockerService.getAllContainerStatuses())
+        .thenReturn(Map.of("testContainer", ContainerInfo.create(ContainerStatus.RUNNING)));
+
+    invokeRunUpdateForContainer(container);
+
+    verify(dockerClient, never()).pullImageCmd(anyString());
+    verify(dockerService, never()).pullImageStartContainer(anyString());
+  }
+
+  @Test
+  void testRunUpdateForContainerHandlesInterruptedException() throws Exception {
+    var container = mock(DatashieldContainerConfig.class);
+    when(container.getName()).thenReturn("testContainer");
+    when(container.getAutoUpdate()).thenReturn(true);
+    when(container.getImage()).thenReturn("timmyjc/mytest:latest");
+
+    when(dockerService.getAllContainerStatuses())
+        .thenReturn(Map.of("testContainer", ContainerInfo.create(ContainerStatus.RUNNING)));
+
+    var pullImageCmd = mock(PullImageCmd.class);
+    var pullImageResult = mock(PullImageResultCallback.class);
+    when(dockerClient.pullImageCmd("timmyjc/mytest:latest")).thenReturn(pullImageCmd);
+    when(pullImageCmd.start()).thenReturn(pullImageResult);
+    when(pullImageResult.awaitCompletion()).thenThrow(new InterruptedException("boom"));
+
+    invokeRunUpdateForContainer(container);
+
+    assertTrue(Thread.currentThread().isInterrupted(), "interrupt flag should be set");
+    Thread.interrupted(); // clear for other tests
   }
 
   // --- Helper methods to invoke private methods ---

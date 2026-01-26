@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -186,6 +188,12 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser(roles = "SU")
+  void containers_name_GET_missing() throws Exception {
+    mockMvc.perform(get("/containers/missing")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
   void containers_PUT() throws Exception {
     String json =
         "{"
@@ -262,5 +270,21 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                         + "{\"name\":\"DEFAULT\",\"status\":\"DOCKER_OFFLINE\"}"
                         + "]",
                     false)); // 'false' ignores extra fields and strict ordering
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void getContainerStatus_GET_includesVersionsForRunning() throws Exception {
+    when(dockerService.getContainerStatus("default"))
+        .thenReturn(ContainerInfo.create(List.of("tag"), ContainerStatus.RUNNING));
+    when(dockerService.getContainerEnvironmentConfig("default"))
+        .thenReturn(new String[] {"JAVA_VERSION=jdk", "FOO=bar", "DSBASE_VERSION=1.2.3"});
+
+    mockMvc
+        .perform(get("/containers/status"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$[?(@.name=='default')].config")
+                .value(hasItem("[JAVA_VERSION=jdk, DSBASE_VERSION=1.2.3]")));
   }
 }
