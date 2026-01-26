@@ -67,12 +67,12 @@ Status legend: [ ] pending, [x] reviewed
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ContainerStatus.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ContainersLoader.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ContainersMetadata.java
-[x] armadillo/src/main/java/org/molgenis/armadillo/metadata/DefaultImageMetaData.java
+[x] armadillo/src/main/java/org/molgenis/armadillo/metadata/DefaultImageMetadata.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/InitialContainerConfig.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/InitialContainerConfigs.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/InitialProfileConfig.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/InitialProfileConfigs.java
-[x] armadillo/src/main/java/org/molgenis/armadillo/metadata/OpenContainersImageMetaData.java
+[x] armadillo/src/main/java/org/molgenis/armadillo/metadata/OpenContainersImageMetadata.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ProfileConfig.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ProfileService.java
 [x] armadillo/src/main/java/org/molgenis/armadillo/metadata/ProfilesLoader.java
@@ -89,68 +89,75 @@ Status legend: [ ] pending, [x] reviewed
 [x] armadillo/src/main/java/org/molgenis/armadillo/service/FileService.java
 [x] armadillo/src/main/resources/application.yml
 [x] armadillo/src/test/java/org/molgenis/armadillo/DataShieldOptionsImplTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/TestSecurityConfig.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/command/impl/CommandsImplTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/TestSecurityConfig.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/command/impl/CommandsImplTest.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/container/ContainerStatusServiceTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/container/DockerServiceTest.java
-[x] armadillo/src/test/java/org/molgenis/armadillo/container/profileSchedulerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/ContainersControllerDockServiceNullTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/ContainersControllerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/DataControllerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/container/DockerServiceTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/container/ContainerSchedulerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/ContainersControllerDockServiceNullTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/ContainersControllerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/DataControllerTest.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/controller/DatashieldProfileControllerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/DevelopmentControllerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/InsightControllerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/controller/ProfileStartStatusControllerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/DevelopmentControllerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/InsightControllerTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/controller/ContainerStartStatusControllerTest.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/controller/ProfilesControllerTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/info/RProcessEndpointTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/metadata/ContainerServiceTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/metadata/ContainerStartStatusTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/metadata/DatashieldContainerConfigTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/metadata/DummyContainersLoader.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/info/RProcessEndpointTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/metadata/ContainerServiceTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/metadata/ContainerStartStatusTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/metadata/DatashieldContainerConfigTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/metadata/DummyContainersLoader.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/metadata/DummyProfilesLoader.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/metadata/ProfileServiceTest.java
 [x] armadillo/src/test/java/org/molgenis/armadillo/profile/DockerServiceTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/security/JwtRolesExtractorTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/service/ArmadilloConnectionFactoryImplTest.java
-[ ] armadillo/src/test/java/org/molgenis/armadillo/service/DSEnvironmentConfigPropsCacheTest.java
-[ ] armadillo/src/test/resources/load_test.jmx
-[ ] armadillo/src/test/resources/profiles.csv
-[ ] build.gradle
-[ ] ci/ci.env
-[ ] docker-compose.yml
-[ ] docker/ci/README.md
-[ ] docker/ci/application.yml
-[ ] docker/ci/armadillo-compose.md
-[ ] docker/quickstart/config/application.yml
-[ ] docker/quickstart/data/system/profiles.json
+[x] armadillo/src/test/java/org/molgenis/armadillo/security/JwtRolesExtractorTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/service/ArmadilloConnectionFactoryImplTest.java
+[x] armadillo/src/test/java/org/molgenis/armadillo/service/DSEnvironmentConfigPropsCacheTest.java
+[x] armadillo/src/test/resources/load_test.jmx
+[x] armadillo/src/test/resources/profiles.csv
+[x] build.gradle
+[x] ci/ci.env
+[x] docker-compose.yml
+[x] docker/ci/README.md
+[x] docker/ci/application.yml
+[x] docker/ci/armadillo-compose.md
+[x] docker/quickstart/config/application.yml
+[x] docker/quickstart/data/system/profiles.json
 [x] docker/quickstart/keycloak/plugin/keycloak-event-listener.jar
-[ ] docs/pages/basic_usage/armadillo_ui.md
-[ ] docs/pages/dev_guides.md
-[ ] docs/pages/faq.md
-[ ] docs/pages/install_management/armadillo_management.md
-[ ] docs/pages/install_management/armadillo_migrate_2_to_3.md
-[ ] docs/pages/install_management/armadillo_migrate_3_to_4.md
-[ ] docs/pages/install_management/armadillo_migrate_4_to_5.md
-[ ] docs/pages/install_management/armadillo_minor_release_update.md
-[ ] docs/pages/quick_start.md
-[ ] helm-chart/values.yaml
-[ ] scripts/install/conf/application.yml
-[ ] scripts/ops/armadilloctl.bash
-[ ] scripts/ops/env.dist
-[ ] scripts/ops/test_armadilloctl.bash
-[ ] scripts/release/lib/release-test-info.R
-[ ] scripts/release/release-test.R
-[ ] scripts/release/release.Rproj
-[ ] scripts/release/test-cases/donkey-tidyverse 2.R
-[ ] scripts/release/test-cases/researcher-login.R
-[ ] scripts/release/test-cases/setup-containers.R
+[x] docs/pages/basic_usage/armadillo_ui.md
+[x] docs/pages/dev_guides.md
+[x] docs/pages/faq.md
+[x] docs/pages/install_management/armadillo_management.md
+[x] docs/pages/install_management/armadillo_migrate_2_to_3.md
+[x] docs/pages/install_management/armadillo_migrate_3_to_4.md
+[x] docs/pages/install_management/armadillo_migrate_4_to_5.md
+[x] docs/pages/install_management/armadillo_minor_release_update.md
+[x] docs/pages/quick_start.md
+[x] helm-chart/values.yaml
+[x] scripts/install/conf/application.yml
+[x] scripts/ops/armadilloctl.bash
+[x] scripts/ops/env.dist
+[x] scripts/ops/test_armadilloctl.bash
+[x] scripts/release/lib/release-test-info.R
+[x] scripts/release/release-test.R
+[x] scripts/release/release.Rproj
+[x] scripts/release/test-cases/donkey-tidyverse 2.R
+[x] scripts/release/test-cases/researcher-login.R
+[x] scripts/release/test-cases/setup-containers.R
 [x] scripts/release/test-cases/setup-profiles.R
-[ ] scripts/release/test-cases/test-config.R
+[x] scripts/release/test-cases/test-config.R
 [x] scripts/release/test-cases/verify-container.R
-[ ] scripts/release/test-cases/verify-resources.R
-[ ] scripts/release/test-cases/xenon-exposome.R
-[ ] scripts/release/test-cases/xenon-omics.R
-[ ] scripts/rock/rockctl/renv/activate.R
-[ ] ui/src/api/api.ts
-[ ] ui/src/views/Profiles.vue
-[ ] ui/tests/unit/views/Profiles.spec.ts
+[x] scripts/release/test-cases/verify-resources.R
+[x] scripts/release/test-cases/xenon-exposome.R
+[x] scripts/release/test-cases/xenon-omics.R
+[x] scripts/rock/rockctl/renv/activate.R
+[x] ui/src/api/api.ts
+[x] ui/src/views/Profiles.vue
+[x] ui/tests/unit/views/Profiles.spec.ts
+[x] armadillo/src/main/java/org/molgenis/armadillo/container/DefaultContainerFactoryConfig.java
+[x] armadillo/src/main/java/org/molgenis/armadillo/container/DefaultContainerFactoryImpl.java
+[x] armadillo/src/main/java/org/molgenis/armadillo/exceptions/UnsupportedContainerTypeException.java
+[x] removed: armadillo/src/main/java/org/molgenis/armadillo/metadata/ProfileStartStatus.java
+[x] removed: armadillo/src/test/java/org/molgenis/armadillo/metadata/ProfileStartStatusTest.java
+[x] removed: armadillo/src/test/java/org/molgenis/armadillo/profile/ProfileStatusServiceTest.java
+[x] scripts/release/dev.env.dist
