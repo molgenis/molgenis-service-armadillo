@@ -53,6 +53,7 @@ class CommandsImplTest {
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
+  @Mock Resource resource;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
   CommandsImpl commands;
@@ -178,15 +179,12 @@ class CommandsImplTest {
 
   @Test
   void testInstallPackage() throws Exception {
-    ArmadilloCommandImpl<REXP> command =
-        new ArmadilloCommandImpl<>("Install package", false) {
-          @Override
-          protected REXP doWithConnection(RServerConnection connection) {
-            verify(rExecutorService)
-                .installPackage(eq(rConnection), any(Resource.class), any(String.class));
-            return null;
-          }
-        };
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+
+    commands.installPackage(principal, resource, "mypackage").get();
+
+    verify(rExecutorService).installPackage(rConnection, resource, "mypackage");
   }
 
   @Test

@@ -113,7 +113,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testSelectUnknownContainer() throws Exception {
     doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
-    mockMvc.perform(post("/select-container").content("unknown")).andExpect(status().isNotFound());
+    mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
   }
 
   @Test
