@@ -47,7 +47,7 @@ start() {
     fi
 
     container="$1"
-    cmd="$ARMADILLO_URL/ds-containers/container/start"
+    cmd="$ARMADILLO_URL/ds-containers/$container/start"
     echo "Starting '$container' on $cmd"
 
     curl $CURL_OPTS --user $CREDENTIALS --request "POST" "$cmd" --data ""
