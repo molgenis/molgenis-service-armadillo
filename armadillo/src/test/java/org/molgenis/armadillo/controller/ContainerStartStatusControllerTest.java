@@ -12,7 +12,7 @@ import org.molgenis.armadillo.container.ContainerStatusService;
 import org.molgenis.armadillo.metadata.ContainerStartStatus;
 
 @ExtendWith(MockitoExtension.class)
-class ContainerStartStatusControllerMockitoTest {
+class ContainerStartStatusControllerTest {
 
   @Mock private ContainerStatusService statusService;
 
