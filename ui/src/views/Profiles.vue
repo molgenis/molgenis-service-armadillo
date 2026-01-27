@@ -305,7 +305,7 @@ export default defineComponent({
             return {
               ...profile,
               datashieldSeed,
-              autoUpdateSchedule: profile.autoUpdateSchedule || {
+              updateSchedule: profile.updateSchedule || {
                 frequency: "weekly",
                 day: "Sunday",
                 time: "01:00",
