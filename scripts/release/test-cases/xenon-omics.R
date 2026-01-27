@@ -30,7 +30,7 @@ omics_ref <- tribble(
   "ega_phenotypes.tsv", file.path(test_config$test_file_path, "ega_phenotypes.tsv"), "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/ega_synthetic_data_phenotypes_treated_with_nas.tsv?raw=true", "ega_phenotypes", "tsv"
 )
 
-run_omics_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, ref,
+run_omics_tests <- function(project, url, token, auth_type, ADMIN_MODE, container, container_info, ref,
                             skip_tests, user, admin_pwd, interactive, update_auto) {
   test_name <- "xenon-omics"
   if (do_skip_test(test_name, skip_tests)) {
@@ -38,8 +38,8 @@ run_omics_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile,
   }
   if (ADMIN_MODE) {
     cli_alert_warning("Cannot test working with resources as basic authenticated admin")
-  } else if (!"resourcer" %in% profile_info$packageWhitelist) {
-    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
+  } else if (!"resourcer" %in% container_info$packageWhitelist) {
+    cli_alert_warning(sprintf("Resourcer not available for container: %s, skipping testing using resources.", container))
   } else {
     set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
     

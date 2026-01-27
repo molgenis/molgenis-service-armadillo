@@ -4,8 +4,8 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
@@ -15,21 +15,21 @@ import org.molgenis.r.service.PackageService;
 import org.springframework.stereotype.Component;
 
 @Component
-@ProfileScope
+@ContainerScope
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;
-  private final ProfileConfig profileConfig;
+  private final DatashieldContainerConfig datashieldContainerConfig;
   private final DataShieldOptions dataShieldOptions;
   private final RConnectionFactory rConnectionFactory;
 
   public ArmadilloConnectionFactoryImpl(
       PackageService packageService,
-      ProfileConfig profileConfig,
+      DatashieldContainerConfig datashieldContainerConfig,
       DataShieldOptions dataShieldOptions,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;
-    this.profileConfig = profileConfig;
+    this.datashieldContainerConfig = datashieldContainerConfig;
     this.dataShieldOptions = dataShieldOptions;
     this.rConnectionFactory = rConnectionFactory;
   }
@@ -47,7 +47,7 @@ public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactor
   }
 
   private void loadPackages(RServerConnection connection) {
-    packageService.loadPackages(connection, profileConfig.getPackageWhitelist());
+    packageService.loadPackages(connection, datashieldContainerConfig.getPackageWhitelist());
   }
 
   private void setDataShieldOptions(RServerConnection connection) throws RServerException {

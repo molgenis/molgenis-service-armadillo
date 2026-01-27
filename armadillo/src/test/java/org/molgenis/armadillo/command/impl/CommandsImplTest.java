@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -45,7 +45,7 @@ class CommandsImplTest {
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
-  @Mock ProfileService profileService;
+  @Mock ContainerService containerService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -53,6 +53,7 @@ class CommandsImplTest {
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
+  @Mock Resource resource;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
   CommandsImpl commands;
@@ -72,7 +73,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            containerService);
   }
 
   @Test
@@ -178,15 +179,12 @@ class CommandsImplTest {
 
   @Test
   void testInstallPackage() throws Exception {
-    ArmadilloCommandImpl<REXP> command =
-        new ArmadilloCommandImpl<>("Install package", false) {
-          @Override
-          protected REXP doWithConnection(RServerConnection connection) {
-            verify(rExecutorService)
-                .installPackage(eq(rConnection), any(Resource.class), any(String.class));
-            return null;
-          }
-        };
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+
+    commands.installPackage(principal, resource, "mypackage").get();
+
+    verify(rExecutorService).installPackage(rConnection, resource, "mypackage");
   }
 
   @Test
@@ -222,48 +220,50 @@ class CommandsImplTest {
   }
 
   @Test
-  void testGetActiveProfileDefault() {
-    ActiveProfileNameAccessor.resetActiveProfileName();
-    String profileName = commands.getActiveProfileName();
-    assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
+  void testGetActiveContainerDefault() {
+    ActiveContainerNameAccessor.resetActiveContainerName();
+    String containerName = commands.getActiveContainerName();
+    assertEquals(ActiveContainerNameAccessor.DEFAULT, containerName);
   }
 
   @Test
-  void testGetActiveProfile() {
-    ActiveProfileNameAccessor.setActiveProfileName("exposome");
-    String profileName = commands.getActiveProfileName();
-    assertEquals("exposome", profileName);
-    ActiveProfileNameAccessor.resetActiveProfileName();
+  void testGetActiveContainer() {
+    ActiveContainerNameAccessor.setActiveContainerName("exposome");
+    String containerName = commands.getActiveContainerName();
+    assertEquals("exposome", containerName);
+    ActiveContainerNameAccessor.resetActiveContainerName();
   }
 
   @Test
-  void testSelectProfileWritesToSession() {
+  void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    DatashieldContainerConfig datashieldContainerConfig =
+        DatashieldContainerConfig.create(
             "exposome",
             "dummy",
-            false,
-            null,
             "localhost",
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             Set.of(),
             Set.of(),
             Map.of(),
-            null,
-            null,
-            null,
-            null,
-            null);
-    when(profileService.getByName("exposome")).thenReturn(profileConfig);
-    commands.selectProfile("exposome");
-    verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
+            List.of(),
+            Map.of());
+    when(containerService.getByName("exposome")).thenReturn(datashieldContainerConfig);
+    commands.selectContainer("exposome");
+    verify(attrs).setAttribute("container", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
   }
 
   @Test
-  void testSelectUnknownProfile() {
-    when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
-    assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+  void testSelectUnknownContainer() {
+    when(containerService.getByName("unknown")).thenThrow(new UnknownContainerException("unknown"));
+    assertThrows(UnknownContainerException.class, () -> commands.selectContainer("unknown"));
   }
 }

@@ -35,7 +35,7 @@ import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
 import org.molgenis.armadillo.exceptions.ExpressionException;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
@@ -91,9 +91,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testListProfiles() throws Exception {
-    when(commands.listProfiles()).thenReturn(List.of("a", "b", "c"));
-    when(commands.getActiveProfileName()).thenReturn("b");
+  void testListContainers() throws Exception {
+    when(commands.listContainers()).thenReturn(List.of("a", "b", "c"));
+    when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
         .perform(get("/profiles"))
@@ -104,15 +104,15 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testSelectProfile() throws Exception {
+  void testSelectContainer() throws Exception {
     mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
-    verify(commands).selectProfile("b");
+    verify(commands).selectContainer("b");
   }
 
   @Test
   @WithMockUser
-  void testSelectUnknownProfile() throws Exception {
-    doThrow(new UnknownProfileException("unknown")).when(commands).selectProfile("unknown");
+  void testSelectUnknownContainer() throws Exception {
+    doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
     mockMvc.perform(post("/select-profile").content("unknown")).andExpect(status().isNotFound());
   }
 
@@ -756,7 +756,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTable() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", emptyList()))
+    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(emptyList())))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -803,9 +803,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
     when(commands.loadTable(
-            "D",
-            sourceProject + "/" + sourceObject,
-            new ArrayList<>(Arrays.asList(variables.split(",")))))
+            eq("D"),
+            eq(sourceProject + "/" + sourceObject),
+            eq(new ArrayList<>(Arrays.asList(variables.split(","))))))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -854,7 +854,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getSourceProject()).thenReturn(sourceProject);
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
-    when(commands.loadTable("D", sourceProject + "/" + sourceObject, selectedVariables))
+    when(commands.loadTable(eq("D"), eq(sourceProject + "/" + sourceObject), eq(selectedVariables)))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -927,7 +927,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
+    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(List.of("age", "weight"))))
         .thenReturn(completedFuture(null));
 
     mockMvc

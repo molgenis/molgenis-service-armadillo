@@ -1,4 +1,4 @@
-import { Dictionary, StringArray } from "@/types/types";
+import { Dictionary, StringArray, ObjectWithStringKey } from "@/types/types";
 
 export type Project = {
   name: string;
@@ -62,6 +62,12 @@ export type UpdateSchedule = {
   time: string; // e.g., '01:00'
 };
 
+type SpecificContainerOptions = {
+  packageWhitelist?: StringArray;
+  functionBlacklist?: StringArray;
+  datashieldROptions?: Record<string, string>;
+};
+
 export type Profile = {
   name: string;
   image: string;
@@ -74,15 +80,34 @@ export type Profile = {
   packageWhitelist: StringArray;
   functionBlacklist: StringArray;
   datashieldSeed: string;
-  options: {
-    "datashield.seed"?: string;
-  };
+  options?: Record<string, string>;
+  specificContainerOptions?: SpecificContainerOptions;
   container: {
     tags: StringArray;
     status: string;
   };
   autoUpdate?: boolean;
   updateSchedule?: UpdateSchedule;
+};
+
+export type ContainerPayload = ObjectWithStringKey & {
+  type: "ds" | "default";
+  name: string;
+  image: string;
+  host: string;
+  port: number;
+  imageSize?: number;
+  installDate?: string;
+  lastImageId?: string;
+  versionId?: string;
+  creationDate?: string;
+  dockerArgs?: StringArray;
+  dockerOptions?: ObjectWithStringKey;
+  packageWhitelist: StringArray;
+  functionBlacklist: StringArray;
+  autoUpdate?: boolean;
+  updateSchedule?: UpdateSchedule;
+  datashieldROptions: Record<string, string>;
 };
 
 type FormattedProfile = Profile & {

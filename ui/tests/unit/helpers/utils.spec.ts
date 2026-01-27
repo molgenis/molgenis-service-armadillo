@@ -493,7 +493,7 @@ describe("useProfileStatus", () => {
 
   test("startPolling triggers an immediate fetch and sets status", async () => {
     mockedGetProfileStatus.mockResolvedValue({
-      status: "Installing profile",
+      status: "Installing container",
       totalLayers: 4,
       completedLayers: 1,
     } as any);
@@ -506,7 +506,7 @@ describe("useProfileStatus", () => {
     await Promise.resolve();
 
     expect(wrapper!.vm.status).toEqual({
-      status: "Installing profile",
+      status: "Installing container",
       totalLayers: 4,
       completedLayers: 1,
     });
@@ -514,9 +514,9 @@ describe("useProfileStatus", () => {
 
   test("polls repeatedly at the given interval", async () => {
     mockedGetProfileStatus
-      .mockResolvedValueOnce({ status: "Installing profile" } as any)
-      .mockResolvedValueOnce({ status: "Installing profile" } as any)
-      .mockResolvedValueOnce({ status: "Installing profile" } as any);
+      .mockResolvedValueOnce({ status: "Installing container" } as any)
+      .mockResolvedValueOnce({ status: "Installing container" } as any)
+      .mockResolvedValueOnce({ status: "Installing container" } as any);
 
     await wrapper!.vm.startPolling("MyProfile", 1000);
     expect(mockedGetProfileStatus).toHaveBeenCalledTimes(1);
@@ -534,8 +534,8 @@ describe("useProfileStatus", () => {
   jest.useFakeTimers();
 
   const responses = [
-    { status: "Installing profile" },
-    { status: "Installing profile" },
+    { status: "Installing container" },
+    { status: "Installing container" },
     { status: "Profile installed" }, // must match the hook’s stop condition
   ];
 
@@ -585,7 +585,7 @@ describe("useProfileStatus", () => {
 
 
   test("stopPolling clears the interval", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing container" } as any);
     await wrapper!.vm.startPolling("MyProfile", 1000);
 
     jest.advanceTimersByTime(1000);
@@ -600,7 +600,7 @@ describe("useProfileStatus", () => {
   });
 
   test("does nothing if name is empty", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing container" } as any);
 
     await wrapper!.vm.startPolling("", 1000);
 
@@ -632,7 +632,7 @@ describe("useProfileStatus", () => {
   });
 
   test("cleans up interval on unmount", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing container" } as any);
     await wrapper!.vm.startPolling("MyProfile", 1000);
 
     wrapper!.unmount();

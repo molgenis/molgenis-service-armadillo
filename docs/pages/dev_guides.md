@@ -133,7 +133,7 @@ information to get you started and help you get familiarised with our code and w
     This error is returned only in development environments, when working on an unsupported operating system and running
     a profile that has the `resourcer` R package whitelisted. The only way to fix this error, is by temporarily altering
     the Armadillo source code in the 
-    [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/profile/DockerService.java)
+    [DockerService.java](https://github.com/molgenis/molgenis-service-armadillo/blob/master/armadillo/src/main/java/org/molgenis/armadillo/container/DockerService.java)
     Go to the `install_image` method to where `createContainerCmd` is called:
     ```java
     cmd.withExposedPorts(exposed)
