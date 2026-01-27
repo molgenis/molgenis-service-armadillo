@@ -4,7 +4,6 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
 import java.util.List;
 import java.util.function.Consumer;
 import org.molgenis.r.Formatter;
@@ -17,7 +16,6 @@ import org.molgenis.r.exceptions.RExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -101,7 +99,7 @@ public class RExecutorServiceImpl implements RExecutorService {
 
   @Override
   public void loadResource(
-      Principal principal,
+      String resourceToken,
       RServerConnection connection,
       Resource resource,
       String filename,
@@ -109,23 +107,20 @@ public class RExecutorServiceImpl implements RExecutorService {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
     String rFileName = filename.replace("/", "_");
     try {
-      if (principal instanceof JwtAuthenticationToken token) {
-        String tokenValue = token.getToken().getTokenValue();
-        copyFile(resource, rFileName, connection);
-        execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
-        execute(format("base::unlink('%s')", rFileName), connection);
-        execute(
-            format(
-                """
-                                  is.null(base::assign('R', value={resourcer::newResource(
-                                          name = rds$name,
-                                          url = rds$url,
-                                          format = rds$format,
-                                          secret = "%s"
-                                  )}))""",
-                tokenValue),
-            connection);
-      }
+      copyFile(resource, rFileName, connection);
+      execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
+      execute(format("base::unlink('%s')", rFileName), connection);
+      execute(
+          format(
+              """
+                                is.null(base::assign('R', value={resourcer::newResource(
+                                        name = rds$name,
+                                        url = rds$url,
+                                        format = rds$format,
+                                        secret = "%s"
+                                )}))""",
+              resourceToken),
+          connection);
       execute(
           format("is.null(base::assign('%s', value={resourcer::newResourceClient(R)}))", symbol),
           connection);

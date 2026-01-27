@@ -1,7 +1,6 @@
 package org.molgenis.r.service;
 
 import java.io.InputStream;
-import java.security.Principal;
 import java.util.List;
 import java.util.function.Consumer;
 import org.molgenis.r.RServerConnection;
@@ -26,8 +25,17 @@ public interface RExecutorService {
       String symbol,
       List<String> variables);
 
+  /**
+   * Load a resource into the R session.
+   *
+   * @param resourceToken a temporary bearer token for accessing the resource file
+   * @param connection the R server connection
+   * @param resource the resource metadata (RDS file)
+   * @param filename the resource filename
+   * @param symbol the R symbol to assign the resource to
+   */
   void loadResource(
-      Principal principal,
+      String resourceToken,
       RServerConnection connection,
       Resource resource,
       String filename,

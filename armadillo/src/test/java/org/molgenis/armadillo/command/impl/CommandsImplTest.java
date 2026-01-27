@@ -23,6 +23,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -49,6 +50,7 @@ class CommandsImplTest {
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
+  @Mock ResourceTokenService resourceTokenService;
 
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
@@ -72,7 +74,8 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            profileService,
+            resourceTokenService);
   }
 
   @Test
@@ -209,12 +212,16 @@ class CommandsImplTest {
         .thenReturn(inputStream);
     when(connectionFactory.createConnection()).thenReturn(rConnection);
     when(processService.getPid(rConnection)).thenReturn(218);
+    when(principal.getName()).thenReturn("researcher@example.com");
+    when(resourceTokenService.generateToken(
+            "researcher@example.com", "gecko", "2_1-core-1_0/hpc-resource"))
+        .thenReturn("test-resource-token");
 
     commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
 
     verify(rExecutorService)
         .loadResource(
-            eq(principal),
+            eq("test-resource-token"),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
