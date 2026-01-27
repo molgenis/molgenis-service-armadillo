@@ -59,3 +59,4 @@ build/
 /application.properties
 .Rproj.user
 site/
+CONTAINER_COVERAGE_CHECKLIST.md
