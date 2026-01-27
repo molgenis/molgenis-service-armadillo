@@ -294,7 +294,9 @@ export default defineComponent({
     const loadProfiles = async () => {
       containers.value = await getProfiles()
         .then((profiles) => {
-          dockerManagementEnabled.value = "container" in profiles[0];
+          dockerManagementEnabled.value = profiles.some(
+            (profile) => "dockerStatus" in profile
+          );
 
           return profiles.map((profile) => {
             const specificOptions = {
