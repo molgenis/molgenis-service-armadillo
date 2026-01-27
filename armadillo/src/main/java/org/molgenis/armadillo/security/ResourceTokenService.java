@@ -62,6 +62,26 @@ public class ResourceTokenService {
   }
 
   /**
+   * Check if a token exists and is valid without consuming it.
+   *
+   * <p>This is used by the authentication filter to determine if a bearer token is a resource token
+   * before letting the normal OAuth2 flow handle it.
+   *
+   * @param token the bearer token to check
+   * @return the token info if valid, empty if invalid or expired
+   */
+  public Optional<ResourceTokenInfo> peek(String token) {
+    ResourceTokenInfo info = tokens.get(token);
+    if (info == null) {
+      return Optional.empty();
+    }
+    if (Instant.now().isAfter(info.expiresAt())) {
+      return Optional.empty();
+    }
+    return Optional.of(info);
+  }
+
+  /**
    * Validate and consume a resource access token.
    *
    * <p>Tokens are single-use and are removed upon successful validation.

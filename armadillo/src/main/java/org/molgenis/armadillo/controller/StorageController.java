@@ -35,8 +35,8 @@ import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
+import org.molgenis.armadillo.security.ResourceTokenAuthenticationFilter.ResourceTokenAuthentication;
 import org.molgenis.armadillo.security.ResourceTokenService;
-import org.molgenis.armadillo.security.ResourceTokenService.ResourceTokenInfo;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
@@ -402,25 +402,23 @@ public class StorageController {
       @PathVariable String project,
       @PathVariable String object) {
     try {
-      // Check for resource token in Authorization header
-      String authHeader = request.getHeader("Authorization");
-      if (authHeader != null && authHeader.startsWith("Bearer ")) {
-        String bearerToken = authHeader.substring(7);
-        Optional<ResourceTokenInfo> tokenInfo =
-            resourceTokenService.validateAndConsume(bearerToken);
-        if (tokenInfo.isPresent()) {
-          // Validate token is for this project and is a resource file
-          ResourceTokenInfo info = tokenInfo.get();
-          if (info.project().equals(project) && isResourceFile(object)) {
-            // Create a principal from the researcher name for audit purposes
-            Principal tokenPrincipal = info::researcher;
-            return auditor.audit(
-                () -> getObject(project, object),
-                tokenPrincipal,
-                DOWNLOAD_OBJECT,
-                Map.of(PROJECT, project, OBJECT, object));
-          }
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+      // Check if authenticated via resource token (by the ResourceTokenAuthenticationFilter)
+      if (auth instanceof ResourceTokenAuthentication resourceAuth) {
+        // Consume the token (single-use)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+          String bearerToken = authHeader.substring(7);
+          resourceTokenService.validateAndConsume(bearerToken);
         }
+        // Create principal from researcher name for audit
+        Principal tokenPrincipal = resourceAuth::getName;
+        return auditor.audit(
+            () -> getObject(project, object),
+            tokenPrincipal,
+            DOWNLOAD_OBJECT,
+            Map.of(PROJECT, project, OBJECT, object));
       }
 
       // Fall back to checking if user has ROLE_SU
@@ -441,10 +439,6 @@ public class StorageController {
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
-  }
-
-  private boolean isResourceFile(String object) {
-    return object.endsWith(".rds") || object.endsWith(".rda");
   }
 
   private boolean hasRoleSU() {

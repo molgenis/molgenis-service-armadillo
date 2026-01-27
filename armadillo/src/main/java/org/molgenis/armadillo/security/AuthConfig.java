@@ -28,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -47,9 +48,11 @@ public class AuthConfig {
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
   private final AccessService accessService;
+  private final ResourceTokenService resourceTokenService;
 
-  public AuthConfig(AccessService accessService) {
+  public AuthConfig(AccessService accessService, ResourceTokenService resourceTokenService) {
     this.accessService = accessService;
+    this.resourceTokenService = resourceTokenService;
   }
 
   @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
@@ -113,6 +116,10 @@ public class AuthConfig {
       http.oauth2ResourceServer(
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
+      // Add resource token filter before OAuth2 JWT filter to handle internal resource downloads
+      http.addFilterBefore(
+          new ResourceTokenAuthenticationFilter(resourceTokenService),
+          BearerTokenAuthenticationFilter.class);
     }
 
     return http.build();

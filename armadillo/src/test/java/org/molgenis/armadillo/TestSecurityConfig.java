@@ -12,6 +12,8 @@ import org.molgenis.armadillo.metadata.InsightService;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.security.ResourceTokenAuthenticationFilter;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
@@ -29,12 +31,18 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class TestSecurityConfig {
-  public TestSecurityConfig() {}
+
+  private final ResourceTokenService resourceTokenService;
+
+  public TestSecurityConfig(ResourceTokenService resourceTokenService) {
+    this.resourceTokenService = resourceTokenService;
+  }
 
   @Bean
   protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
@@ -49,6 +57,9 @@ public class TestSecurityConfig {
                     .authenticated())
         .httpBasic(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
+        .addFilterBefore(
+            new ResourceTokenAuthenticationFilter(resourceTokenService),
+            UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 

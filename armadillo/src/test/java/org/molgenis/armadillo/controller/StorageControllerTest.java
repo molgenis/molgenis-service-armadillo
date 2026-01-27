@@ -534,6 +534,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "folder/resource",
             java.time.Instant.now().plusSeconds(60));
 
+    // Filter uses peek() to check if it's a resource token
+    when(resourceTokenService.peek("valid-resource-token")).thenReturn(Optional.of(tokenInfo));
+    // Controller uses validateAndConsume() to consume the token
     when(resourceTokenService.validateAndConsume("valid-resource-token"))
         .thenReturn(Optional.of(tokenInfo));
     when(storage.loadObject("lifecycle", "resource.rds")).thenReturn(inputStream);
@@ -552,7 +555,8 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
   void testDownloadResourceWithInvalidToken() throws Exception {
-    when(resourceTokenService.validateAndConsume("invalid-token")).thenReturn(Optional.empty());
+    // Filter uses peek() - returns empty for invalid token
+    when(resourceTokenService.peek("invalid-token")).thenReturn(Optional.empty());
 
     mockMvc
         .perform(
@@ -566,6 +570,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
   void testDownloadParquetWithResourceTokenFails() throws Exception {
     // Resource tokens should not allow downloading parquet files
+    // Filter checks if it's a resource file (.rds, .rda) - parquet will be rejected
     var tokenInfo =
         new ResourceTokenService.ResourceTokenInfo(
             "researcher@example.com",
@@ -573,8 +578,8 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "folder/table",
             java.time.Instant.now().plusSeconds(60));
 
-    when(resourceTokenService.validateAndConsume("valid-resource-token"))
-        .thenReturn(Optional.of(tokenInfo));
+    // Filter uses peek() - token is valid but file is not a resource
+    when(resourceTokenService.peek("valid-resource-token")).thenReturn(Optional.of(tokenInfo));
 
     mockMvc
         .perform(
