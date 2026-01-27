@@ -129,8 +129,18 @@ public abstract class DatashieldContainerConfig
     return builder.build();
   }
 
-  public static DatashieldContainerConfig createDefault() {
-    return builder().name("default").build();
+  /**
+   * Creates a default container config. Applies fallback defaults when parameters are null, since
+   * AutoValue builder getters throw IllegalStateException for unset properties.
+   */
+  public static DatashieldContainerConfig createDefault(
+      String image, Set<String> packageWhitelist) {
+    return builder()
+        .name("default")
+        .image(image != null ? image : "datashield/molgenis-rock-base")
+        .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of("dsBase"))
+        .functionBlacklist(Set.of())
+        .build();
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {
@@ -212,7 +222,7 @@ public abstract class DatashieldContainerConfig
     abstract DatashieldContainerConfig autoBuild();
 
     public DatashieldContainerConfig build() {
-      if (getImage() == null) image("datashield/armadillo-rserver");
+      if (getImage() == null) image("datashield/molgenis-rock-base");
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);
       if (getAutoUpdate() == null) autoUpdate(false);
