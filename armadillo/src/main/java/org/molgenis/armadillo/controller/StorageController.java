@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
@@ -34,11 +35,14 @@ import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
+import org.molgenis.armadillo.security.ResourceTokenService;
+import org.molgenis.armadillo.security.ResourceTokenService.ResourceTokenInfo;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,10 +66,15 @@ public class StorageController {
 
   private final ArmadilloStorageService storage;
   private final AuditEventPublisher auditor;
+  private final ResourceTokenService resourceTokenService;
 
-  public StorageController(ArmadilloStorageService storage, AuditEventPublisher auditor) {
+  public StorageController(
+      ArmadilloStorageService storage,
+      AuditEventPublisher auditor,
+      ResourceTokenService resourceTokenService) {
     this.storage = storage;
     this.auditor = auditor;
+    this.resourceTokenService = resourceTokenService;
   }
 
   @Operation(summary = "List objects in a project")
@@ -370,10 +379,13 @@ public class StorageController {
   }
 
   @Operation(summary = "Download an object")
-  @PreAuthorize("hasRole('ROLE_SU')")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Object downloaded successfully"),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - requires super-user role or valid resource token",
+            content = @Content(mediaType = "application/json")),
         @ApiResponse(
             responseCode = "404",
             description = "Unknown project or object",
@@ -385,18 +397,60 @@ public class StorageController {
       })
   @GetMapping(value = "/projects/{project}/objects/{object}")
   public ResponseEntity<InputStreamResource> downloadObject(
-      Principal principal, @PathVariable String project, @PathVariable String object) {
+      HttpServletRequest request,
+      Principal principal,
+      @PathVariable String project,
+      @PathVariable String object) {
     try {
-      return auditor.audit(
-          () -> getObject(project, object),
-          principal,
-          DOWNLOAD_OBJECT,
-          Map.of(PROJECT, project, OBJECT, object));
+      // Check for resource token in Authorization header
+      String authHeader = request.getHeader("Authorization");
+      if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        String bearerToken = authHeader.substring(7);
+        Optional<ResourceTokenInfo> tokenInfo =
+            resourceTokenService.validateAndConsume(bearerToken);
+        if (tokenInfo.isPresent()) {
+          // Validate token is for this project and is a resource file
+          ResourceTokenInfo info = tokenInfo.get();
+          if (info.project().equals(project) && isResourceFile(object)) {
+            // Create a principal from the researcher name for audit purposes
+            Principal tokenPrincipal = info::researcher;
+            return auditor.audit(
+                () -> getObject(project, object),
+                tokenPrincipal,
+                DOWNLOAD_OBJECT,
+                Map.of(PROJECT, project, OBJECT, object));
+          }
+        }
+      }
+
+      // Fall back to checking if user has ROLE_SU
+      if (hasRoleSU()) {
+        return auditor.audit(
+            () -> getObject(project, object),
+            principal,
+            DOWNLOAD_OBJECT,
+            Map.of(PROJECT, project, OBJECT, object));
+      }
+
+      // Neither valid resource token nor super-user
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (ResponseStatusException e) {
+      throw e;
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
+  }
+
+  private boolean isResourceFile(String object) {
+    return object.endsWith(".rds") || object.endsWith(".rda");
+  }
+
+  private boolean hasRoleSU() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    return auth != null
+        && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SU"));
   }
 
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
