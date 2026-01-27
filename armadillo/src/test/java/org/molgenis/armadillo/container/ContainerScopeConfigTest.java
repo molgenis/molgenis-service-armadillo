@@ -58,8 +58,10 @@ class ContainerScopeConfigTest {
   @Test
   void datashieldContainerConfig_acceptsDatashieldConfig() {
     var datashieldConfig = createDatashieldConfig();
+    ActiveContainerNameAccessor.setActiveContainerName("test");
+    when(containerService.getByName("test")).thenReturn(datashieldConfig);
 
-    DatashieldContainerConfig result = config.datashieldContainerConfig(datashieldConfig);
+    DatashieldContainerConfig result = config.datashieldContainerConfig(containerService);
 
     assertSame(datashieldConfig, result);
   }
@@ -67,10 +69,12 @@ class ContainerScopeConfigTest {
   @Test
   void datashieldContainerConfig_rejectsNonDatashield() {
     ContainerConfig nonDatashield = mock(ContainerConfig.class);
+    ActiveContainerNameAccessor.setActiveContainerName("test");
+    when(containerService.getByName("test")).thenReturn(nonDatashield);
 
     assertThrows(
         UnsupportedContainerTypeException.class,
-        () -> config.datashieldContainerConfig(nonDatashield));
+        () -> config.datashieldContainerConfig(containerService));
   }
 
   @Test

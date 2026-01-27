@@ -15,22 +15,27 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ContainerScopeConfig {
 
-  @Bean
-  @org.molgenis.armadillo.container.annotation.ContainerScope
-  public ContainerConfig containerConfig(ContainerService containerService) {
+  private ContainerConfig getActiveContainerConfig(ContainerService containerService) {
     var activeContainerName = getActiveContainerName();
     try {
       return runAsSystem(() -> containerService.getByName(activeContainerName));
     } catch (UnknownContainerException e) {
       throw new IllegalStateException(
-          format(
-              "Missing container configuration for active container '%s'.", activeContainerName));
+          format("Missing container configuration for active container '%s'.", activeContainerName),
+          e);
     }
   }
 
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
-  public DatashieldContainerConfig datashieldContainerConfig(ContainerConfig containerConfig) {
+  public ContainerConfig containerConfig(ContainerService containerService) {
+    return getActiveContainerConfig(containerService);
+  }
+
+  @Bean
+  @org.molgenis.armadillo.container.annotation.ContainerScope
+  public DatashieldContainerConfig datashieldContainerConfig(ContainerService containerService) {
+    var containerConfig = getActiveContainerConfig(containerService);
     if (containerConfig instanceof DatashieldContainerConfig datashieldConfig) {
       return datashieldConfig;
     }
