@@ -19,12 +19,14 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @MockitoBean DockerClient dockerClient;
   @MockitoBean ArmadilloStorageService storage;
+  @MockitoBean ResourceTokenService resourceTokenService;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
   @Autowired private StorageController storageController;
@@ -516,6 +519,68 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(get("/storage/projects/lifecycle/objects/test.parquet").session(session))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
+  void testDownloadResourceWithValidToken() throws Exception {
+    var content = "resource content".getBytes();
+    var inputStream = new ByteArrayInputStream(content);
+    var tokenInfo =
+        new ResourceTokenService.ResourceTokenInfo(
+            "researcher@example.com",
+            "lifecycle",
+            "folder/resource",
+            java.time.Instant.now().plusSeconds(60));
+
+    when(resourceTokenService.validateAndConsume("valid-resource-token"))
+        .thenReturn(Optional.of(tokenInfo));
+    when(storage.loadObject("lifecycle", "resource.rds")).thenReturn(inputStream);
+    when(storage.getFileSizeIfObjectExists("shared-lifecycle", "resource.rds"))
+        .thenReturn((long) content.length);
+
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/objects/resource.rds")
+                .header("Authorization", "Bearer valid-resource-token")
+                .session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_OCTET_STREAM));
+  }
+
+  @Test
+  @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
+  void testDownloadResourceWithInvalidToken() throws Exception {
+    when(resourceTokenService.validateAndConsume("invalid-token")).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/objects/resource.rds")
+                .header("Authorization", "Bearer invalid-token")
+                .session(session))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(roles = "LIFECYCLE_RESEARCHER")
+  void testDownloadParquetWithResourceTokenFails() throws Exception {
+    // Resource tokens should not allow downloading parquet files
+    var tokenInfo =
+        new ResourceTokenService.ResourceTokenInfo(
+            "researcher@example.com",
+            "lifecycle",
+            "folder/table",
+            java.time.Instant.now().plusSeconds(60));
+
+    when(resourceTokenService.validateAndConsume("valid-resource-token"))
+        .thenReturn(Optional.of(tokenInfo));
+
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/objects/table.parquet")
+                .header("Authorization", "Bearer valid-resource-token")
+                .session(session))
         .andExpect(status().isForbidden());
   }
 

@@ -26,8 +26,6 @@ import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.springframework.core.io.Resource;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.util.InMemoryResource;
 
 @ExtendWith(MockitoExtension.class)
@@ -146,11 +144,8 @@ class RExecutorServiceImplTest {
 
   @Test
   void testLoadResource() throws RServerException {
-    var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
-    var token = mock(Jwt.class);
+    String resourceToken = "test-resource-token";
     Resource resource = new InMemoryResource("Hello");
-    when(token.getTokenValue()).thenReturn("token");
-    when(principal.getToken()).thenReturn(token);
     lenient()
         .doNothing()
         .when(rConnection)
@@ -171,7 +166,7 @@ class RExecutorServiceImplTest {
                 + "        name = rds$name,\n"
                 + "        url = rds$url,\n"
                 + "        format = rds$format,\n"
-                + "        secret = \"token\"\n"
+                + "        secret = \"test-resource-token\"\n"
                 + ")}))",
             false);
     lenient()
@@ -179,7 +174,7 @@ class RExecutorServiceImplTest {
         .when(rConnection)
         .eval("is.null(base::assign('D', value={resourcer::newResourceClient(R)}))", false);
     executorService.loadResource(
-        principal, rConnection, resource, "project/folder/resource.rds", "D");
+        resourceToken, rConnection, resource, "project/folder/resource.rds", "D");
     verify(rConnection)
         .eval("is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))", false);
     verify(rConnection).eval("base::unlink('project_folder_resource.rds')", false);
@@ -189,7 +184,7 @@ class RExecutorServiceImplTest {
                 + "        name = rds$name,\n"
                 + "        url = rds$url,\n"
                 + "        format = rds$format,\n"
-                + "        secret = \"token\"\n"
+                + "        secret = \"test-resource-token\"\n"
                 + ")}))",
             false);
     verify(rConnection)
@@ -232,12 +227,12 @@ class RExecutorServiceImplTest {
   @Test
   void testLoadResourceFails() {
     Resource resource = new InMemoryResource("Hello");
-    var testPrincipal = mock(JwtAuthenticationToken.class);
+    String resourceToken = "test-resource-token";
     assertThrows(
         RExecutionException.class,
         () ->
             executorService.loadResource(
-                testPrincipal, rConnection, resource, "hpc-resource-1.rds", "D"));
+                resourceToken, rConnection, resource, "hpc-resource-1.rds", "D"));
   }
 
   @Test
