@@ -58,14 +58,11 @@ public abstract class DatashieldContainerConfig
   @Nullable
   public abstract Map<String, Object> getDockerOptions();
 
-  @JsonIgnore
   public abstract Set<String> getPackageWhitelist();
 
-  @JsonIgnore
   public abstract Set<String> getFunctionBlacklist();
 
   @Nullable
-  @JsonIgnore
   public abstract Map<String, String> getDatashieldROptions();
 
   @JsonIgnore
