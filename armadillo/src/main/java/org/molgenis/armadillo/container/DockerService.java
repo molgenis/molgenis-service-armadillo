@@ -289,8 +289,6 @@ public class DockerService {
   }
 
   private void stopContainer(String dockerContainerName) {
-    String containerIdForLog =
-        "stoppingContainer has not containerIdForLog: " + dockerContainerName;
     try {
       dockerClient.stopContainerCmd(dockerContainerName).exec();
     } catch (DockerException e) {
@@ -299,16 +297,16 @@ public class DockerService {
             dockerClient.inspectContainerCmd(dockerContainerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(containerIdForLog, e);
+          throw new ImageStopFailedException(dockerContainerName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop container '{}' because it doesn't exist", containerIdForLog);
+        LOG.info("Failed to stop container '{}' because it doesn't exist", dockerContainerName);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(containerIdForLog, e);
+        throw new ImageStopFailedException(dockerContainerName, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(containerIdForLog, e);
+      throw new ImageStopFailedException(dockerContainerName, e);
     }
   }
 
