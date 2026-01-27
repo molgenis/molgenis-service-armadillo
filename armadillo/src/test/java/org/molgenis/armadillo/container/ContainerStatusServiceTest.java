@@ -9,7 +9,7 @@ import org.molgenis.armadillo.metadata.ContainerStartStatus;
 class ContainerStatusServiceTest {
 
   @Test
-  void getStatus_returnsAllNulls_whenProfileUnknown() {
+  void getStatus_returnsAllNulls_whenContainerUnknown() {
     ContainerStatusService service = new ContainerStatusService();
 
     ContainerStartStatus result = service.getStatus("missing");
@@ -40,12 +40,12 @@ class ContainerStatusServiceTest {
     ContainerStatusService service = new ContainerStatusService();
 
     service.updateStatus("donkey", "Installing container", 5, 24);
-    service.updateStatus("donkey", "Profile installed", 24, 24);
+    service.updateStatus("donkey", "Container installed", 24, 24);
     ContainerStartStatus result = service.getStatus("donkey");
 
     assertAll(
         () -> assertEquals("donkey", result.containerName()),
-        () -> assertEquals("Profile installed", result.status()),
+        () -> assertEquals("Container installed", result.status()),
         () -> assertEquals(24, result.completedLayers()),
         () -> assertEquals(24, result.totalLayers()));
   }

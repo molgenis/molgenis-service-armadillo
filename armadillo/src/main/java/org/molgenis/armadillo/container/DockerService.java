@@ -155,7 +155,7 @@ public class DockerService {
     var containerConfig = containerService.getByName(containerName);
     containerStatusService.updateStatus(containerName, null, null, null);
     pullImage(containerConfig);
-    containerStatusService.updateStatus(containerName, "Profile installed", null, null);
+    containerStatusService.updateStatus(containerName, "Container installed", null, null);
     stopContainer(dockerContainerName);
     removeContainer(dockerContainerName);
     installImage(containerConfig);

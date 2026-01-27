@@ -55,7 +55,7 @@ class ContainerStartStatusControllerTest {
   @Test
   void pathVariable_isPassedThroughUnchanged() {
     // arrange
-    var expected = new ContainerStartStatus("ShReK", "Profile installed", 24, 24);
+    var expected = new ContainerStartStatus("ShReK", "Container installed", 24, 24);
     when(statusService.getStatus("ShReK")).thenReturn(expected);
 
     // act
@@ -63,7 +63,7 @@ class ContainerStartStatusControllerTest {
 
     // assert
     assertEquals("ShReK", actual.containerName());
-    assertEquals("Profile installed", actual.status());
+    assertEquals("Container installed", actual.status());
     verify(statusService).getStatus("ShReK");
     verifyNoMoreInteractions(statusService);
   }
