@@ -370,7 +370,7 @@ public class StorageController {
   }
 
   @Operation(summary = "Download an object")
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
+  @PreAuthorize("hasRole('ROLE_SU')")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Object downloaded successfully"),
@@ -399,7 +399,6 @@ public class StorageController {
     }
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
     try {
       var inputStream = storage.loadObject(project, object);

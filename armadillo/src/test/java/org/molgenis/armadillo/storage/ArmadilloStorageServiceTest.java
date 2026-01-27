@@ -504,6 +504,14 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
+  @WithMockUser(roles = "TEST_RESEARCHER")
+  void testLoadTableThrowsForWrongResearcher() {
+    assertThrows(
+        AccessDeniedException.class,
+        () -> armadilloStorage.loadTable("gecko", "1_0_release_1_1/gecko"));
+  }
+
+  @Test
   @WithMockUser(roles = "GECKO_RESEARCHER")
   void testLoadTableLoadsTable() {
     when(storageService.load(SHARED_GECKO, "1_0_release_1_1/gecko.parquet")).thenReturn(is);
