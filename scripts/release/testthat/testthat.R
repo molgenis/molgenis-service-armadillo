@@ -406,7 +406,7 @@ run_teardown <- function() {
     # First try with existing session (token might still be valid)
     delete_success <- tryCatch({
       MolgenisArmadillo::armadillo.delete_project(test_env$project)
-      cli_verbose_success(sprintf("Project [%s] deleted", test_env$project))
+      cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
       TRUE
     }, error = function(e) {
       cli_verbose_info("Existing session expired, re-authenticating...")
@@ -422,7 +422,7 @@ run_teardown <- function() {
           MolgenisArmadillo::armadillo.login(config$armadillo_url)
         }
         MolgenisArmadillo::armadillo.delete_project(test_env$project)
-        cli_verbose_success(sprintf("Project [%s] deleted", test_env$project))
+        cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
       }, error = function(e) {
         cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
       })
@@ -431,10 +431,10 @@ run_teardown <- function() {
 
   # 3. Logout from DataSHIELD connections
   if (!is.null(test_env$conns)) {
-    cli_verbose_info("Logging out from DataSHIELD...")
     tryCatch({
-      DSI::datashield.logout(test_env$conns)
-      cli_verbose_success("Logged out successfully")
+      # Suppress the DSI progress bar output
+      suppressMessages(DSI::datashield.logout(test_env$conns))
+      cli::cli_alert_success("Logged out from DataSHIELD")
     }, error = function(e) {
       cli::cli_alert_warning(sprintf("Logout error: %s", e$message))
     })
@@ -479,5 +479,5 @@ end_time <- Sys.time()
 # -----------------------------------------------------------------------------
 
 duration <- difftime(end_time, start_time, units = "secs")
-cli::cli_text(sprintf("\nCompleted in %.1f seconds", as.numeric(duration)))
+cli::cli_alert_info(sprintf("Completed in %.1f seconds", as.numeric(duration)))
 cli::cli_alert_info("Please test rest of UI manually, if impacted this release")
