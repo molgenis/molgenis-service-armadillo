@@ -18,23 +18,21 @@ skip_if_basic_auth_excluded <- function() {
   }
 }
 
+# In the original release test, datashield.logout(conns) was called before
+# basic auth tests ran. This clears the DSI/DataSHIELD connection state.
+# We replicate that here.
+if (!is.null(test_env$conns)) {
+  tryCatch(
+    suppressMessages(DSI::datashield.logout(test_env$conns)),
+    error = function(e) NULL
+  )
+  test_env$conns <- NULL
+}
+
 # Do the basic auth login ONCE at file level (before any tests run)
 # This mirrors how the original release test worked
-#
-# Note: We first make a raw httr basic auth call to establish the session,
-# because MolgenisArmadillo::armadillo.login_basic() alone doesn't always
-# properly override a previous OIDC session. This replicates what happens
-# when exposome/omics tests run (they call set_dm_permissions which uses
-# raw httr basic auth).
 cfg <- test_env$config
 if (cfg$admin_pwd != "") {
-  # First, establish basic auth via raw httr (like set_dm_permissions does)
-  auth_header <- get_auth_header("basic", cfg$admin_pwd)
-  httr::GET(
-    paste0(cfg$armadillo_url, "actuator/info"),
-    config = httr::add_headers(auth_header)
-  )
-  # Then do the MolgenisArmadillo login
   MolgenisArmadillo::armadillo.login_basic(
     cfg$armadillo_url,
     "admin",
