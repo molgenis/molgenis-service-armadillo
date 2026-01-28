@@ -195,18 +195,7 @@ suppressPackageStartupMessages({
 # Set DataSHIELD error printing
 options(datashield.errors.print = TRUE)
 
-if (verbose_mode) {
-  cli::cli_alert_success("Libraries loaded")
-
-  # Report key library versions for debugging
-  cli::cli_alert_info("Library versions:")
-  cli::cli_ul(c(
-    sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
-    sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
-    sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
-    sprintf("DSI: %s", packageVersion("DSI"))
-  ))
-}
+if (verbose_mode) cli::cli_alert_success("Libraries loaded")
 
 # -----------------------------------------------------------------------------
 # Load helper files
@@ -306,7 +295,6 @@ if (env_skip != "") {
 if (length(only_args) > 0) {
   # Get all patterns from --only arguments
   only_patterns <- get_test_patterns(only_args)
-  if (verbose_mode) cli::cli_alert_info(sprintf("Including: %s", paste(only_args, collapse = ", ")))
 } else {
   # Default: all tests
   only_patterns <- get_test_patterns("all")
@@ -315,7 +303,6 @@ if (length(only_args) > 0) {
 if (length(skip_args) > 0) {
   # Remove skip patterns from the only patterns
   skip_patterns <- get_test_patterns(skip_args)
-  if (verbose_mode) cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
   only_patterns <- setdiff(only_patterns, skip_patterns)
 }
 
@@ -325,10 +312,6 @@ filter_pattern <- if (length(only_patterns) > 0) {
 } else {
   cli::cli_alert_warning("No tests to run after applying filters!")
   NULL
-}
-
-if (!is.null(filter_pattern) && verbose_mode) {
-  cli::cli_alert_info(sprintf("Test filter: %s", filter_pattern))
 }
 
 # Control DataSHIELD output based on verbose mode
@@ -355,6 +338,27 @@ cli::cli_ul(c(
   sprintf("Profile: %s", test_env$config$profile),
   sprintf("Mode: %s", if (test_env$config$ADMIN_MODE) "Admin (basic auth)" else "OIDC")
 ))
+
+# Show library versions (useful for debugging)
+cli::cli_alert_info("Library versions:")
+cli::cli_ul(c(
+  sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
+  sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
+  sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
+  sprintf("DSI: %s", packageVersion("DSI")),
+  sprintf("dsSurvivalClient: %s", packageVersion("dsSurvivalClient")),
+  sprintf("dsMediationClient: %s", packageVersion("dsMediationClient")),
+  sprintf("dsTidyverseClient: %s", packageVersion("dsTidyverseClient"))
+))
+
+# Show which tests are being run/skipped
+if (length(skip_args) > 0) {
+  cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
+}
+if (length(only_args) > 0) {
+  cli::cli_alert_info(sprintf("Only running: %s", paste(only_args, collapse = ", ")))
+}
+cli_verbose_info(sprintf("Test filter: %s", filter_pattern))
 
 # Determine what authentication is needed based on test patterns
 # - Researcher tests (20-36): need researcher token + DM login
