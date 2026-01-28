@@ -1,6 +1,10 @@
 # test-36-ds-tidyverse.R - dsTidyverse package tests
 #
 # These tests verify that dsTidyverse functions work correctly.
+#
+# Note: dsBaseClient functions print "Data in all studies were valid" messages
+# during data validation. We wrap those calls in suppressMessages() to keep
+# test output clean.
 
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
@@ -14,7 +18,6 @@ skip_if_ds_tidyverse_excluded <- function() {
 }
 
 # Helper to assign tidyverse test data
-# Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
 assign_tidyverse_data <- function() {
   data_path <- "/tidyverse"
 
@@ -29,7 +32,7 @@ test_that("tidyverse data can be assigned", {
   skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
 
-  datatype <- dsBaseClient::ds.class(x = "mtcars", datasources = conns)
+  datatype <- suppressMessages(dsBaseClient::ds.class(x = "mtcars", datasources = conns))
 
   expect_equal(datatype$armadillo, "data.frame")
 })
@@ -45,7 +48,7 @@ test_that("ds.arrange creates data frame", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("ordered_df", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.class("ordered_df", datasources = conns))[[1]]
 
   expect_equal(res, "data.frame")
 })
@@ -60,7 +63,7 @@ test_that("ds.as_tibble creates tibble", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("mtcars_tib", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.class("mtcars_tib", datasources = conns))[[1]]
 
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 })
@@ -75,7 +78,7 @@ test_that("ds.bind_cols creates correct dimensions", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("cols_bound", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.dim("cols_bound", datasources = conns))[[1]]
 
   expect_identical(res, as.integer(c(32, 22)))
 })
@@ -90,7 +93,7 @@ test_that("ds.bind_rows creates correct dimensions", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("rows_bound", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.dim("rows_bound", datasources = conns))[[1]]
 
   expect_identical(res, as.integer(c(64, 11)))
 })
@@ -109,7 +112,7 @@ test_that("ds.case_when creates expected levels", {
     datasources = conns
   )
 
-  res <- names(dsBaseClient::ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
+  res <- names(suppressMessages(dsBaseClient::ds.table("test", datasources = conns))$output.list$TABLES.COMBINED_all.sources_counts)
 
   expect_identical(res, c("high", "low", "medium", "NA"))
 })
@@ -125,7 +128,7 @@ test_that("ds.distinct creates correct dimensions", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("dist_df", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.dim("dist_df", datasources = conns))[[1]]
 
   expect_identical(res, as.integer(c(9, 2)))
 })
@@ -141,7 +144,7 @@ test_that("ds.filter creates correct dimensions", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("filtered", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.dim("filtered", datasources = conns))[[1]]
 
   expect_identical(res, as.integer(c(11, 11)))
 })
@@ -157,7 +160,7 @@ test_that("ds.group_by creates grouped_df", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("grouped", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))[[1]]
 
   expect_identical(res, c("grouped_df", "tbl_df", "tbl", "data.frame"))
 })
@@ -168,7 +171,7 @@ test_that("ds.ungroup removes grouping", {
 
   # Ensure grouped exists
   tryCatch({
-    dsBaseClient::ds.class("grouped", datasources = conns)
+    suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
   }, error = function(e) {
     ds.group_by(
       df.name = "mtcars",
@@ -180,7 +183,7 @@ test_that("ds.ungroup removes grouping", {
 
   ds.ungroup("grouped", "ungrouped_df", datasources = conns)
 
-  res <- dsBaseClient::ds.class("ungrouped_df", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.class("ungrouped_df", datasources = conns))[[1]]
 
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 })
@@ -191,7 +194,7 @@ test_that("ds.group_keys returns expected keys", {
 
   # Ensure grouped exists
   tryCatch({
-    dsBaseClient::ds.class("grouped", datasources = conns)
+    suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
   }, error = function(e) {
     ds.group_by(
       df.name = "mtcars",
@@ -218,7 +221,7 @@ test_that("ds.if_else creates expected levels", {
     datasources = conns
   )
 
-  res <- names(dsBaseClient::ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
+  res <- names(suppressMessages(dsBaseClient::ds.table("test", datasources = conns))$output.list$TABLES.COMBINED_all.sources_counts)
 
   expect_identical(res, c("high", "low", "NA"))
 })
@@ -234,7 +237,7 @@ test_that("ds.mutate creates new variables", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("new", datasources = conns)$armadillo
+  res <- suppressMessages(dsBaseClient::ds.colnames("new", datasources = conns))$armadillo
 
   expected_cols <- c(
     "mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am",
@@ -255,7 +258,7 @@ test_that("ds.rename renames variables", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("mpg_drat", datasources = conns)$armadillo
+  res <- suppressMessages(dsBaseClient::ds.colnames("mpg_drat", datasources = conns))$armadillo
 
   expected_cols <- c(
     "test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am",
@@ -276,7 +279,7 @@ test_that("ds.select selects variables", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns)$armadillo
+  res <- suppressMessages(dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns))$armadillo
 
   expected_cols <- c("mpg", "cyl", "disp", "hp", "drat")
 
@@ -294,7 +297,7 @@ test_that("ds.slice slices rows", {
     datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("sliced", datasources = conns)[[1]]
+  res <- suppressMessages(dsBaseClient::ds.dim("sliced", datasources = conns))[[1]]
 
   expect_identical(res, as.integer(c(5, 11)))
 })
