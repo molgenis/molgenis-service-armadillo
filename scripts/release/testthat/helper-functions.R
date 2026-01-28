@@ -107,7 +107,7 @@ set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
   args <- list(email = user, admin = isAdmin, projects = required_projects)
   response <- put_to_api("access/users", admin_pwd, "basic", args, url)
   if (response$status_code != 204) {
-    cli::cli_alert_warning("Altering OIDC user failed, please do this manually")
+    cli::cli_alert_warning("Altering OIDC user failed, please do this manually")  # Keep as warning - always show
   }
 }
 
@@ -122,9 +122,9 @@ set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
 set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
   if (update_auto == "y") {
     set_user(user, admin_pwd, TRUE, required_projects, url)
-    cli::cli_alert_info("Admin reset")
+    cli_verbose_info("Admin reset")
   } else if (interactive) {
-    cli::cli_alert_info("Make your account admin again")
+    cli_verbose_info("Make your account admin again")
     cat("\nPress any key to continue")
     readLines("stdin", n = 1)
   }
@@ -185,7 +185,7 @@ create_dsi_builder <- function(server = "armadillo", url, profile, password = ""
 download_many_sources <- function(ref) {
   purrr::pmap(ref, function(path, url, ...) {
     if (!file.exists(path)) {
-      cli::cli_alert_info(sprintf("Downloading %s...", basename(path)))
+      cli_verbose_info(sprintf("Downloading %s...", basename(path)))
       download.file(url, path, quiet = TRUE)
     }
   })
@@ -309,8 +309,8 @@ xenon_fail_msg <- list(
 #' @param dest Base directory
 #' @return Data frame from parquet file
 read_parquet_with_message <- function(file_path, dest) {
-  cli::cli_alert_info(sprintf("Reading %s...", file_path))
+  cli_verbose_info(sprintf("Reading %s...", file_path))
   out <- arrow::read_parquet(paste0(dest, file_path, ".parquet"))
-  cli::cli_alert_success(sprintf("%s read", file_path))
+  cli_verbose_success(sprintf("%s read", file_path))
   return(out)
 }

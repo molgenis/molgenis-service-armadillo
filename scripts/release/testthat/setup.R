@@ -17,6 +17,36 @@
 # Shared test environment - persists across all test files
 test_env <- new.env()
 
+# -----------------------------------------------------------------------------
+# Verbose output helpers
+# -----------------------------------------------------------------------------
+# These functions only output when VERBOSE=true, keeping non-verbose runs clean.
+# Critical messages (errors, warnings) should use cli:: directly to always show.
+
+cli_verbose_h1 <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_h1(...)
+}
+
+cli_verbose_h2 <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_h2(...)
+}
+
+cli_verbose_info <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_alert_info(...)
+}
+
+cli_verbose_success <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_alert_success(...)
+}
+
+cli_verbose_ul <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_ul(...)
+}
+
+cli_verbose_text <- function(...) {
+  if (isTRUE(test_env$verbose_mode)) cli::cli_text(...)
+}
+
 # Store the testthat directory path for resolving source() paths
 test_env$testthat_dir <- normalizePath(dirname(sys.frame(1)$ofile), mustWork = FALSE)
 if (is.na(test_env$testthat_dir) || test_env$testthat_dir == "") {
@@ -33,7 +63,7 @@ ensure_config <- function() {
     return(invisible(test_env$config))
   }
 
-  cli::cli_alert_info("Loading test configuration...")
+  cli_verbose_info("Loading test configuration...")
 
   # Read .env from parent of testthat directory (scripts/release/)
   env_file <- file.path(dirname(test_env$testthat_dir), ".env")
@@ -67,7 +97,7 @@ ensure_config <- function() {
     ))
     stop(sprintf("URL [%s] doesn't exist", armadillo_url))
   }
-  cli::cli_alert_success(sprintf("Armadillo URL reachable: %s", armadillo_url))
+  cli_verbose_success(sprintf("Armadillo URL reachable: %s", armadillo_url))
 
   if (!startsWith(armadillo_url, "http")) {
     armadillo_url <- paste0(if (startsWith(armadillo_url, "localhost")) "http://" else "https://", armadillo_url)
@@ -138,7 +168,7 @@ ensure_config <- function() {
   # Set global variable for use in tests (named test_config to avoid httr::config collision)
   test_config <<- test_env$config
 
-  cli::cli_alert_success("Configuration loaded")
+  cli_verbose_success("Configuration loaded")
   invisible(test_env$config)
 }
 
@@ -150,7 +180,7 @@ ensure_tables_downloaded <- function() {
   ensure_config()
   if (isTRUE(test_env$tables_downloaded)) return(invisible(TRUE))
 
-  cli::cli_alert_info("Ensuring test tables are available...")
+  cli_verbose_info("Ensuring test tables are available...")
   config <- test_env$config
 
   dest <- if (dir.exists(config$default_parquet_path)) {
@@ -160,7 +190,7 @@ ensure_tables_downloaded <- function() {
   }
 
   if (!dir.exists(config$default_parquet_path)) {
-    cli::cli_alert_warning("Downloading test tables...")
+    cli_verbose_info("Downloading test tables...")
     create_dir_if_not_exists(config$dest, "core")
     create_dir_if_not_exists(config$dest, "outcome")
     create_dir_if_not_exists(config$dest, "survival")
@@ -173,9 +203,9 @@ ensure_tables_downloaded <- function() {
     for (f in files) {
       download.file(sprintf(base_url, f[1], f[2]), paste0(config$dest, f[1], "/", f[2], ".parquet"), quiet = TRUE)
     }
-    cli::cli_alert_success("Tables downloaded")
+    cli_verbose_success("Tables downloaded")
   } else {
-    cli::cli_alert_success("Tables available locally")
+    cli_verbose_success("Tables available locally")
   }
 
   # Verify required tables exist and can be read
@@ -196,7 +226,7 @@ ensure_tables_downloaded <- function() {
     })
   }
 
-  cli::cli_alert_success("Tables verified")
+  cli_verbose_success("Tables verified")
   test_env$tables_downloaded <- TRUE
   invisible(TRUE)
 }
@@ -205,11 +235,11 @@ ensure_resources_downloaded <- function() {
   ensure_config()
   if (isTRUE(test_env$resources_downloaded)) return(invisible(TRUE))
 
-  cli::cli_alert_info("Ensuring test resources are available...")
+  cli_verbose_info("Ensuring test resources are available...")
   config <- test_env$config
 
   if (!file.exists(config$rda_dir)) {
-    cli::cli_alert_warning(sprintf("Downloading resource from %s...", config$rda_url))
+    cli_verbose_info(sprintf("Downloading resource from %s...", config$rda_url))
     download.file(config$rda_url, config$rda_dir, quiet = TRUE)
   }
 
@@ -217,7 +247,7 @@ ensure_resources_downloaded <- function() {
     stop(sprintf("Resource file [%s] doesn't exist after download attempt", config$rda_dir))
   }
 
-  cli::cli_alert_success("Resources available")
+  cli_verbose_success("Resources available")
   test_env$resources_downloaded <- TRUE
   invisible(TRUE)
 }
@@ -247,14 +277,14 @@ ensure_tokens <- function() {
   # -------------------------------------------------------------------------
   # TOKEN 1: Researcher token (for API calls + DSI login)
   # -------------------------------------------------------------------------
-  cli::cli_alert_info("Obtaining researcher token...")
+  cli_verbose_info("Obtaining researcher token...")
 
   if (config$ADMIN_MODE) {
     test_env$token <- config$admin_pwd
   } else {
     existing_token <- Sys.getenv("TOKEN")
     if (existing_token != "") {
-      cli::cli_alert_info("Using TOKEN from environment")
+      cli_verbose_info("Using TOKEN from environment")
       test_env$token <- existing_token
     } else {
       test_env$token <- MolgenisArmadillo::armadillo.get_token(config$armadillo_url)
@@ -264,7 +294,7 @@ ensure_tokens <- function() {
   # -------------------------------------------------------------------------
   # TOKEN 2: Data manager login (for armadillo.* functions)
   # -------------------------------------------------------------------------
-  cli::cli_alert_info(sprintf("Logging in to %s as data manager...", config$armadillo_url))
+  cli_verbose_info(sprintf("Logging in to %s as data manager...", config$armadillo_url))
 
   if (config$ADMIN_MODE) {
     MolgenisArmadillo::armadillo.login_basic(config$armadillo_url, "admin", config$admin_pwd)
@@ -272,16 +302,16 @@ ensure_tokens <- function() {
     MolgenisArmadillo::armadillo.login(config$armadillo_url)
   }
 
-  cli::cli_alert_success("Authentication complete")
+  cli_verbose_success("Authentication complete")
 
   # -------------------------------------------------------------------------
   # Verify admin/DM rights by attempting to list projects
   # -------------------------------------------------------------------------
-  cli::cli_alert_info("Verifying admin permissions...")
+  cli_verbose_info("Verifying admin permissions...")
 
   tryCatch({
     projects <- MolgenisArmadillo::armadillo.list_projects()
-    cli::cli_alert_success("Admin permissions verified")
+    cli_verbose_success("Admin permissions verified")
   }, error = function(e) {
     cli::cli_alert_danger("PERMISSION ERROR: You do not have admin/data manager rights!")
     cli::cli_alert_warning("This can happen if:")
@@ -313,7 +343,7 @@ ensure_project_created <- function() {
   config <- test_env$config
 
   # Profile will be validated when researcher logs in via DSI
-  cli::cli_alert_info(sprintf("Using profile [%s]", config$profile))
+  cli_verbose_info(sprintf("Using profile [%s]", config$profile))
 
   # Generate random project name
   current_projects <- MolgenisArmadillo::armadillo.list_projects()
@@ -324,13 +354,13 @@ ensure_project_created <- function() {
   test_env$project <- random_project
 
   # Create project
-  cli::cli_alert_info(sprintf("Creating project [%s]...", test_env$project))
+  cli_verbose_info(sprintf("Creating project [%s]...", test_env$project))
   MolgenisArmadillo::armadillo.create_project(test_env$project)
 
   # Set global variable
   project <<- test_env$project
 
-  cli::cli_alert_success(sprintf("Project [%s] created", test_env$project))
+  cli_verbose_success(sprintf("Project [%s] created", test_env$project))
   invisible(test_env$project)
 }
 
@@ -345,7 +375,7 @@ ensure_tables_uploaded <- function() {
   config <- test_env$config
   dest <- if (dir.exists(config$default_parquet_path)) config$default_parquet_path else config$dest
 
-  cli::cli_alert_info("Uploading test tables...")
+  cli_verbose_info("Uploading test tables...")
 
   # Core tables
   nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
@@ -383,7 +413,7 @@ ensure_tables_uploaded <- function() {
   # Tidyverse table
   MolgenisArmadillo::armadillo.upload_table(test_env$project, "tidyverse", mtcars)
 
-  cli::cli_alert_success("Tables uploaded")
+  cli_verbose_success("Tables uploaded")
   test_env$tables_uploaded <- TRUE
   invisible(TRUE)
 }
@@ -398,7 +428,7 @@ ensure_resources_uploaded <- function() {
 
   config <- test_env$config
 
-  cli::cli_alert_info("Uploading test resources...")
+  cli_verbose_info("Uploading test resources...")
 
   # Upload resource file
   source(file.path(test_env$test_cases_dir, "upload-resource.R"))
@@ -417,7 +447,7 @@ ensure_resources_uploaded <- function() {
 
   MolgenisArmadillo::armadillo.upload_resource(project = test_env$project, folder = "ewas", resource = resGSE1, name = "GSE66351_1")
 
-  cli::cli_alert_success("Resources uploaded")
+  cli_verbose_success("Resources uploaded")
   test_env$resources_uploaded <- TRUE
   invisible(TRUE)
 }
@@ -444,14 +474,14 @@ ensure_admin_setup <- function() {
   config <- test_env$config
 
   # Get profile info (needed for checking packageWhitelist)
-  cli::cli_alert_info(sprintf("Fetching profile info for [%s]...", config$profile))
+  cli_verbose_info(sprintf("Fetching profile info for [%s]...", config$profile))
   profile_endpoint <- paste0(config$armadillo_url, "ds-profiles/", config$profile)
   auth_header <- get_auth_header(config$auth_type, test_env$token)
   response <- httr::GET(profile_endpoint, config = c(httr::add_headers(auth_header)))
   if (response$status_code == 200) {
     test_env$profile_info <- httr::content(response)
   } else {
-    cli::cli_alert_warning(sprintf("Could not fetch profile info (status %d)", response$status_code))
+    cli_verbose_info(sprintf("Could not fetch profile info (status %d)", response$status_code))
     test_env$profile_info <- list(packageWhitelist = character(0))
   }
 
@@ -478,7 +508,7 @@ ensure_researcher_login <- function() {
     return(invisible(test_env$conns))
   }
 
-  cli::cli_alert_info("Setting up researcher connection...")
+  cli_verbose_info("Setting up researcher connection...")
   config <- test_env$config
 
   # Create DSI builder - no table assignment
@@ -498,14 +528,14 @@ ensure_researcher_login <- function() {
 
   logindata <- builder$build()
 
-  cli::cli_alert_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
+  cli_verbose_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
   test_env$conns <- DSI::datashield.login(logins = logindata, assign = FALSE)
 
   # Set global variables for use in tests
   conns <<- test_env$conns
   project <<- test_env$project
 
-  cli::cli_alert_success("Researcher connection established")
+  cli_verbose_success("Researcher connection established")
   invisible(test_env$conns)
 }
 
@@ -518,7 +548,7 @@ ensure_researcher_login_and_assign <- function() {
     return(invisible(test_env$conns))
   }
 
-  cli::cli_alert_info("Setting up researcher connection with table assignment...")
+  cli_verbose_info("Setting up researcher connection with table assignment...")
   config <- test_env$config
 
   # Create DSI builder with table assignment
@@ -540,14 +570,14 @@ ensure_researcher_login_and_assign <- function() {
 
   logindata <- builder$build()
 
-  cli::cli_alert_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
+  cli_verbose_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
   test_env$conns <- DSI::datashield.login(logins = logindata, symbol = "nonrep", assign = TRUE)
 
   # Set global variables for use in tests
   conns <<- test_env$conns
   project <<- test_env$project
 
-  cli::cli_alert_success("Researcher connection established with tables assigned")
+  cli_verbose_success("Researcher connection established with tables assigned")
   invisible(test_env$conns)
 }
 

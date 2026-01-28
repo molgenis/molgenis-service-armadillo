@@ -137,8 +137,14 @@ cat("
 # Load required libraries
 # -----------------------------------------------------------------------------
 
-cli::cli_h1("Setup")
-cli::cli_alert_info("Loading libraries...")
+# Check verbose mode early (before loading helpers that use it)
+verbose_mode <- tolower(Sys.getenv("VERBOSE", "false")) %in% c("true", "1", "yes")
+
+# Only show setup header in verbose mode
+if (verbose_mode) {
+  cli::cli_h1("Setup")
+  cli::cli_alert_info("Loading libraries...")
+}
 
 # Suppress package startup messages and warnings
 suppressPackageStartupMessages({
@@ -189,22 +195,24 @@ suppressPackageStartupMessages({
 # Set DataSHIELD error printing
 options(datashield.errors.print = TRUE)
 
-cli::cli_alert_success("Libraries loaded")
+if (verbose_mode) {
+  cli::cli_alert_success("Libraries loaded")
 
-# Report key library versions for debugging
-cli::cli_alert_info("Library versions:")
-cli::cli_ul(c(
-  sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
-  sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
-  sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
-  sprintf("DSI: %s", packageVersion("DSI"))
-))
+  # Report key library versions for debugging
+  cli::cli_alert_info("Library versions:")
+  cli::cli_ul(c(
+    sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
+    sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
+    sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
+    sprintf("DSI: %s", packageVersion("DSI"))
+  ))
+}
 
 # -----------------------------------------------------------------------------
 # Load helper files
 # -----------------------------------------------------------------------------
 
-cli::cli_alert_info("Loading helper files...")
+if (verbose_mode) cli::cli_alert_info("Loading helper files...")
 
 # Source the original common functions (for functions we don't port)
 source("../lib/common-functions.R")
@@ -214,7 +222,10 @@ source("setup.R")
 source("helper-functions.R")
 source("helper-expectations.R")
 
-cli::cli_alert_success("Helper files loaded")
+# Store verbose_mode in test_env so helper functions can access it
+test_env$verbose_mode <- verbose_mode
+
+if (verbose_mode) cli::cli_alert_success("Helper files loaded")
 
 # -----------------------------------------------------------------------------
 # Parse command line arguments and environment variables
@@ -282,20 +293,20 @@ env_skip <- Sys.getenv("TEST_SKIP", "")
 if (env_only != "") {
   env_only_values <- strsplit(trimws(env_only), "\\s+")[[1]]
   only_args <- c(only_args, env_only_values)
-  cli::cli_alert_info(sprintf("TEST_ONLY from env: %s", env_only))
+  if (verbose_mode) cli::cli_alert_info(sprintf("TEST_ONLY from env: %s", env_only))
 }
 
 if (env_skip != "") {
   env_skip_values <- strsplit(trimws(env_skip), "\\s+")[[1]]
   skip_args <- c(skip_args, env_skip_values)
-  cli::cli_alert_info(sprintf("TEST_SKIP from env: %s", env_skip))
+  if (verbose_mode) cli::cli_alert_info(sprintf("TEST_SKIP from env: %s", env_skip))
 }
 
 # Build the filter pattern
 if (length(only_args) > 0) {
   # Get all patterns from --only arguments
   only_patterns <- get_test_patterns(only_args)
-  cli::cli_alert_info(sprintf("Including: %s", paste(only_args, collapse = ", ")))
+  if (verbose_mode) cli::cli_alert_info(sprintf("Including: %s", paste(only_args, collapse = ", ")))
 } else {
   # Default: all tests
   only_patterns <- get_test_patterns("all")
@@ -304,7 +315,7 @@ if (length(only_args) > 0) {
 if (length(skip_args) > 0) {
   # Remove skip patterns from the only patterns
   skip_patterns <- get_test_patterns(skip_args)
-  cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
+  if (verbose_mode) cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
   only_patterns <- setdiff(only_patterns, skip_patterns)
 }
 
@@ -316,34 +327,29 @@ filter_pattern <- if (length(only_patterns) > 0) {
   NULL
 }
 
-if (!is.null(filter_pattern)) {
-  cli::cli_alert_success(sprintf("Test filter: %s", filter_pattern))
+if (!is.null(filter_pattern) && verbose_mode) {
+  cli::cli_alert_info(sprintf("Test filter: %s", filter_pattern))
 }
 
-# Check for verbose mode
-verbose_mode <- tolower(Sys.getenv("VERBOSE", "false")) %in% c("true", "1", "yes")
+# Enable DataSHIELD progress output in verbose mode
 if (verbose_mode) {
-  cli::cli_alert_info("Verbose mode enabled - showing each test as it executes")
-  # Enable DataSHIELD progress output to show function calls
+  cli::cli_alert_info("Verbose mode enabled")
   options(datashield.progress = 1)
-  cli::cli_alert_info("DataSHIELD progress output enabled")
 }
 
 # -----------------------------------------------------------------------------
 # Show test configuration
 # -----------------------------------------------------------------------------
 
-cli::cli_h2("Test Configuration")
-
-# Load config early to show info
+# Load config early
 ensure_config()
 
-cli::cli_ul(c(
-  sprintf("Armadillo URL: %s", test_env$config$armadillo_url),
-  sprintf("Version: %s", test_env$config$version),
-  sprintf("Profile: %s", test_env$config$profile),
-  sprintf("Admin Mode: %s", test_env$config$ADMIN_MODE),
-  sprintf("Skip Tests: %s", paste(test_env$config$skip_tests, collapse = ", "))
+# Show configuration (always - useful for debugging test runs)
+cli::cli_text(sprintf("Target: %s (v%s) | Profile: %s | Mode: %s",
+  test_env$config$armadillo_url,
+  test_env$config$version,
+  test_env$config$profile,
+  if (test_env$config$ADMIN_MODE) "Admin" else "OIDC"
 ))
 
 # -----------------------------------------------------------------------------
@@ -351,13 +357,13 @@ cli::cli_ul(c(
 # -----------------------------------------------------------------------------
 
 run_teardown <- function() {
-  cli::cli_h2("Teardown")
+  cli_verbose_h2("Teardown")
 
   config <- test_env$config
 
   # 1. Re-add admin permissions to user (if in OIDC mode)
   if (!is.null(config) && !config$ADMIN_MODE && config$update_auto == "y") {
-    cli::cli_alert_info("Restoring admin permissions...")
+    cli_verbose_info("Restoring admin permissions...")
     restore_success <- FALSE
     tryCatch({
       set_user(
@@ -367,7 +373,7 @@ run_teardown <- function() {
         required_projects = list(test_env$project),
         url = config$armadillo_url
       )
-      cli::cli_alert_success("Admin permissions restored")
+      cli_verbose_success("Admin permissions restored")
       restore_success <- TRUE
     }, error = function(e) {
       cli::cli_alert_danger("FAILED to restore admin permissions!")
@@ -392,15 +398,15 @@ run_teardown <- function() {
 
   # 2. Delete test project if it was created
   if (!is.null(test_env$project)) {
-    cli::cli_alert_info(sprintf("Deleting test project [%s]...", test_env$project))
+    cli_verbose_info(sprintf("Deleting test project [%s]...", test_env$project))
 
     # First try with existing session (token might still be valid)
     delete_success <- tryCatch({
       MolgenisArmadillo::armadillo.delete_project(test_env$project)
-      cli::cli_alert_success(sprintf("Project [%s] deleted", test_env$project))
+      cli_verbose_success(sprintf("Project [%s] deleted", test_env$project))
       TRUE
     }, error = function(e) {
-      cli::cli_alert_info("Existing session expired, re-authenticating...")
+      cli_verbose_info("Existing session expired, re-authenticating...")
       FALSE
     })
 
@@ -413,7 +419,7 @@ run_teardown <- function() {
           MolgenisArmadillo::armadillo.login(config$armadillo_url)
         }
         MolgenisArmadillo::armadillo.delete_project(test_env$project)
-        cli::cli_alert_success(sprintf("Project [%s] deleted", test_env$project))
+        cli_verbose_success(sprintf("Project [%s] deleted", test_env$project))
       }, error = function(e) {
         cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
       })
@@ -422,10 +428,10 @@ run_teardown <- function() {
 
   # 3. Logout from DataSHIELD connections
   if (!is.null(test_env$conns)) {
-    cli::cli_alert_info("Logging out from DataSHIELD...")
+    cli_verbose_info("Logging out from DataSHIELD...")
     tryCatch({
       DSI::datashield.logout(test_env$conns)
-      cli::cli_alert_success("Logged out successfully")
+      cli_verbose_success("Logged out successfully")
     }, error = function(e) {
       cli::cli_alert_warning(sprintf("Logout error: %s", e$message))
     })
@@ -435,8 +441,6 @@ run_teardown <- function() {
 # -----------------------------------------------------------------------------
 # Run tests
 # -----------------------------------------------------------------------------
-
-cli::cli_h1("Running Tests")
 
 start_time <- Sys.time()
 
@@ -471,10 +475,6 @@ end_time <- Sys.time()
 # Summary
 # -----------------------------------------------------------------------------
 
-cli::cli_h1("Summary")
-
 duration <- difftime(end_time, start_time, units = "secs")
-cli::cli_alert_info(sprintf("Total time: %.1f seconds", as.numeric(duration)))
-
-cli::cli_alert_info("Testing complete")
+cli::cli_text(sprintf("\nCompleted in %.1f seconds", as.numeric(duration)))
 cli::cli_alert_info("Please test rest of UI manually, if impacted this release")
