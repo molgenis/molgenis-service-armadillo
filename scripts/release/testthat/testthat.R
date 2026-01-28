@@ -345,11 +345,12 @@ if (verbose_mode) {
 ensure_config()
 
 # Show configuration (always - useful for debugging test runs)
-cli::cli_text(sprintf("Target: %s (v%s) | Profile: %s | Mode: %s",
-  test_env$config$armadillo_url,
-  test_env$config$version,
-  test_env$config$profile,
-  if (test_env$config$ADMIN_MODE) "Admin" else "OIDC"
+cli::cli_h2("Configuration")
+cli::cli_ul(c(
+  sprintf("URL: %s", test_env$config$armadillo_url),
+  sprintf("Version: %s", test_env$config$version),
+  sprintf("Profile: %s", test_env$config$profile),
+  sprintf("Mode: %s", if (test_env$config$ADMIN_MODE) "Admin (basic auth)" else "OIDC")
 ))
 
 # Obtain tokens early (before tests run) so CLI messages aren't captured by testthat
