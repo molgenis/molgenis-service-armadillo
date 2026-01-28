@@ -30,8 +30,14 @@ test_that("admin can login with basic authentication", {
 
 # Helper to ensure basic auth session is active
 # Uses test_env$config directly to ensure we have current values
+# Forces a fresh session by logging out first (clears any OIDC session state)
 ensure_basic_auth_session <- function() {
   cfg <- test_env$config
+  # Clear any existing session first
+  tryCatch(
+    MolgenisArmadillo::armadillo.logout(cfg$armadillo_url),
+    error = function(e) NULL  # Ignore logout errors
+  )
   MolgenisArmadillo::armadillo.login_basic(
     cfg$armadillo_url,
     "admin",
