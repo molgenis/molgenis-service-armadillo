@@ -1,12 +1,12 @@
-# test-36-ds-package-tidyverse.R - dsTidyverse package tests
+# test-36-ds-tidyverse.R - dsTidyverse package tests
 #
 # These tests verify that dsTidyverse functions work correctly.
 
 # Setup: ensure researcher connection is established
-ensure_researcher_login()
+ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-package-tidyverse is excluded
-skip_if_excluded("ds-package-tidyverse")
+# Skip all tests if ds-tidyverse is excluded
+skip_if_excluded("ds-tidyverse")
 
 # Load the tidyverse client library
 library(dsTidyverseClient)
@@ -16,16 +16,16 @@ assign_tidyverse_data <- function() {
   data_path <- "/tidyverse"
 
   DSI::datashield.assign.table(
-    conns(),
+    conns,
     "mtcars",
-    sprintf("%s%s/mtcars", project(), data_path)
+    sprintf("%s%s/mtcars", project, data_path)
   )
 }
 
 test_that("tidyverse data can be assigned", {
   assign_tidyverse_data()
 
-  datatype <- dsBaseClient::ds.class(x = "mtcars", datasources = conns())
+  datatype <- dsBaseClient::ds.class(x = "mtcars", datasources = conns)
 
   expect_equal(datatype$armadillo, "data.frame")
 })
@@ -38,10 +38,10 @@ test_that("ds.arrange creates data frame", {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "ordered_df",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("ordered_df", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.class("ordered_df", datasources = conns)[[1]]
 
   expect_equal(res, "data.frame")
 })
@@ -53,10 +53,10 @@ test_that("ds.as_tibble creates tibble", {
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("mtcars_tib", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.class("mtcars_tib", datasources = conns)[[1]]
 
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 })
@@ -68,10 +68,10 @@ test_that("ds.bind_cols creates correct dimensions", {
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("cols_bound", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.dim("cols_bound", datasources = conns)[[1]]
 
   expect_identical(res, as.integer(c(32, 22)))
 })
@@ -83,10 +83,10 @@ test_that("ds.bind_rows creates correct dimensions", {
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("rows_bound", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.dim("rows_bound", datasources = conns)[[1]]
 
   expect_identical(res, as.integer(c(64, 11)))
 })
@@ -102,10 +102,10 @@ test_that("ds.case_when creates expected levels", {
       mtcars$mpg >= 30 ~ "high"
     ),
     newobj = "test",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- names(dsBaseClient::ds.table("test", datasources = conns())$output.list$TABLES.COMBINED_all.sources_counts)
+  res <- names(dsBaseClient::ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
 
   expect_identical(res, c("high", "low", "medium", "NA"))
 })
@@ -118,10 +118,10 @@ test_that("ds.distinct creates correct dimensions", {
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
     newobj = "dist_df",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("dist_df", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.dim("dist_df", datasources = conns)[[1]]
 
   expect_identical(res, as.integer(c(9, 2)))
 })
@@ -134,10 +134,10 @@ test_that("ds.filter creates correct dimensions", {
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
     newobj = "filtered",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("filtered", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.dim("filtered", datasources = conns)[[1]]
 
   expect_identical(res, as.integer(c(11, 11)))
 })
@@ -150,10 +150,10 @@ test_that("ds.group_by creates grouped_df", {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "grouped",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.class("grouped", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.class("grouped", datasources = conns)[[1]]
 
   expect_identical(res, c("grouped_df", "tbl_df", "tbl", "data.frame"))
 })
@@ -164,19 +164,19 @@ test_that("ds.ungroup removes grouping", {
 
   # Ensure grouped exists
   tryCatch({
-    dsBaseClient::ds.class("grouped", datasources = conns())
+    dsBaseClient::ds.class("grouped", datasources = conns)
   }, error = function(e) {
     ds.group_by(
       df.name = "mtcars",
       tidy_expr = list(cyl),
       newobj = "grouped",
-      datasources = conns()
+      datasources = conns
     )
   })
 
-  ds.ungroup("grouped", "ungrouped_df", datasources = conns())
+  ds.ungroup("grouped", "ungrouped_df", datasources = conns)
 
-  res <- dsBaseClient::ds.class("ungrouped_df", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.class("ungrouped_df", datasources = conns)[[1]]
 
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 })
@@ -187,17 +187,17 @@ test_that("ds.group_keys returns expected keys", {
 
   # Ensure grouped exists
   tryCatch({
-    dsBaseClient::ds.class("grouped", datasources = conns())
+    dsBaseClient::ds.class("grouped", datasources = conns)
   }, error = function(e) {
     ds.group_by(
       df.name = "mtcars",
       tidy_expr = list(cyl),
       newobj = "grouped",
-      datasources = conns()
+      datasources = conns
     )
   })
 
-  res <- ds.group_keys("grouped", datasources = conns())$armadillo
+  res <- ds.group_keys("grouped", datasources = conns)$armadillo
 
   expect_equal(res, tibble::tibble(cyl = c(4, 6, 8)))
 })
@@ -211,10 +211,10 @@ test_that("ds.if_else creates expected levels", {
     "high",
     "low",
     newobj = "test",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- names(dsBaseClient::ds.table("test", datasources = conns())$output.list$TABLES.COMBINED_all.sources_counts)
+  res <- names(dsBaseClient::ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
 
   expect_identical(res, c("high", "low", "NA"))
 })
@@ -227,10 +227,10 @@ test_that("ds.mutate creates new variables", {
     df.name = "mtcars",
     tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
     newobj = "new",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("new", datasources = conns())$armadillo
+  res <- dsBaseClient::ds.colnames("new", datasources = conns)$armadillo
 
   expected_cols <- c(
     "mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am",
@@ -248,10 +248,10 @@ test_that("ds.rename renames variables", {
     df.name = "mtcars",
     tidy_expr = list(test_1 = mpg, test_2 = drat),
     newobj = "mpg_drat",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("mpg_drat", datasources = conns())$armadillo
+  res <- dsBaseClient::ds.colnames("mpg_drat", datasources = conns)$armadillo
 
   expected_cols <- c(
     "test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am",
@@ -269,10 +269,10 @@ test_that("ds.select selects variables", {
     df.name = "mtcars",
     tidy_expr = list(mpg:drat),
     newobj = "mpg_drat_select",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns())$armadillo
+  res <- dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns)$armadillo
 
   expected_cols <- c("mpg", "cyl", "disp", "hp", "drat")
 
@@ -287,10 +287,10 @@ test_that("ds.slice slices rows", {
     df.name = "mtcars",
     tidy_expr = list(1:5),
     newobj = "sliced",
-    datasources = conns()
+    datasources = conns
   )
 
-  res <- dsBaseClient::ds.dim("sliced", datasources = conns())[[1]]
+  res <- dsBaseClient::ds.dim("sliced", datasources = conns)[[1]]
 
   expect_identical(res, as.integer(c(5, 11)))
 })

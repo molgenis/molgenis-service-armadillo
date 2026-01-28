@@ -1,12 +1,12 @@
-# test-31-ds-package-mediate.R - dsMediation package tests
+# test-31-ds-mediate.R - dsMediation package tests
 #
 # These tests verify that dsMediation functions work correctly.
 
 # Setup: ensure researcher connection is established
-ensure_researcher_login()
+ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-package-mediate is excluded
-skip_if_excluded("ds-package-mediate")
+# Skip all tests if ds-mediate is excluded
+skip_if_excluded("ds-mediate")
 
 # Load the mediation client library
 library(dsMediationClient)
@@ -18,7 +18,7 @@ test_that("ds.mediate creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "med.fit.1a",
-    datasources = conns()
+    datasources = conns
   )
 
   # Fit outcome model
@@ -27,7 +27,7 @@ test_that("ds.mediate creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "out.fit.1a",
-    datasources = conns()
+    datasources = conns
   )
 
   # Run mediation analysis
@@ -42,11 +42,11 @@ test_that("ds.mediate creates object with expected class", {
     sims = 100,
     seed = 123,
     newobj = "med.out.1a",
-    datasources = conns()
+    datasources = conns
   )
 
   # Check class
-  med_class <- dsBaseClient::ds.class("med.out.1a", datasources = conns())
+  med_class <- dsBaseClient::ds.class("med.out.1a", datasources = conns)
 
   expect_equal(as.character(med_class), "mediate")
 })
@@ -58,14 +58,14 @@ test_that("ds.neWeight creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "med.fit.1b",
-    datasources = conns()
+    datasources = conns
   )
 
   # Create weight data
-  ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns())
+  ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
 
   # Check class
-  med_class <- dsBaseClient::ds.class("expData", datasources = conns())
+  med_class <- dsBaseClient::ds.class("expData", datasources = conns)
 
   expect_identical(
     med_class$armadillo,
@@ -77,16 +77,16 @@ test_that("ds.neModel creates object with expected class", {
   # This test depends on expData from previous test
   # If running in isolation, we need to set up expData first
   tryCatch({
-    dsBaseClient::ds.class("expData", datasources = conns())
+    dsBaseClient::ds.class("expData", datasources = conns)
   }, error = function(e) {
     dsBaseClient::ds.glmSLMA(
       formula = "agebirth_m_y ~ ethn3_m + sex",
       family = "gaussian",
       dataName = "nonrep",
       newobj = "med.fit.1b",
-      datasources = conns()
+      datasources = conns
     )
-    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns())
+    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
   })
 
   # Fit model
@@ -96,11 +96,11 @@ test_that("ds.neModel creates object with expected class", {
     se = "robust",
     expData = "expData",
     newobj = "med.out.1b",
-    datasources = conns()
+    datasources = conns
   )
 
   # Check class
-  med_class <- dsBaseClient::ds.class("med.out.1b", datasources = conns())
+  med_class <- dsBaseClient::ds.class("med.out.1b", datasources = conns)
 
   expect_equal(as.character(med_class), "neModel")
 })
@@ -112,14 +112,14 @@ test_that("ds.neImpute creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "out.fit.1c",
-    datasources = conns()
+    datasources = conns
   )
 
   # Create imputed data
-  ds.neImpute(object = "out.fit.1c", nMed = 1, newobj = "impData", datasources = conns())
+  ds.neImpute(object = "out.fit.1c", nMed = 1, newobj = "impData", datasources = conns)
 
   # Check class
-  med_class <- dsBaseClient::ds.class("impData", datasources = conns())
+  med_class <- dsBaseClient::ds.class("impData", datasources = conns)
 
   expect_identical(
     med_class$armadillo,
@@ -130,7 +130,7 @@ test_that("ds.neImpute creates object with expected class", {
 test_that("ds.neLht returns object with expected class", {
   # Ensure med.out.1b exists
   tryCatch({
-    dsBaseClient::ds.class("med.out.1b", datasources = conns())
+    dsBaseClient::ds.class("med.out.1b", datasources = conns)
   }, error = function(e) {
     # Set up if not exists
     dsBaseClient::ds.glmSLMA(
@@ -138,16 +138,16 @@ test_that("ds.neLht returns object with expected class", {
       family = "gaussian",
       dataName = "nonrep",
       newobj = "med.fit.1b",
-      datasources = conns()
+      datasources = conns
     )
-    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns())
+    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
     ds.neModel(
       formula = "preg_dia ~ ethn3_m0 + ethn3_m1 + sex",
       family = "gaussian",
       se = "robust",
       expData = "expData",
       newobj = "med.out.1b",
-      datasources = conns()
+      datasources = conns
     )
   })
 
@@ -155,7 +155,7 @@ test_that("ds.neLht returns object with expected class", {
   lht.out.1b <- ds.neLht(
     model = "med.out.1b",
     linfct = c("ethn3_m0=0", "ethn3_m1=0", "ethn3_m0+ethn3_m1=0"),
-    datasources = conns()
+    datasources = conns
   )
 
   # Check class

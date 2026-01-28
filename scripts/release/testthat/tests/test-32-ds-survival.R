@@ -1,12 +1,12 @@
-# test-32-ds-package-survival.R - dsSurvival package tests
+# test-32-ds-survival.R - dsSurvival package tests
 #
 # These tests verify that dsSurvival functions work correctly.
 
 # Setup: ensure researcher connection is established
-ensure_researcher_login()
+ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-package-survival is excluded
-skip_if_excluded("ds-package-survival")
+# Skip all tests if ds-survival is excluded
+skip_if_excluded("ds-survival")
 
 # Load the survival client library
 library(dsSurvivalClient)
@@ -16,16 +16,16 @@ assign_survival_data <- function() {
   data_path <- "/survival/veteran"
 
   DSI::datashield.assign.table(
-    conns(),
+    conns,
     "survival",
-    sprintf("%s%s", project(), data_path)
+    sprintf("%s%s", project, data_path)
   )
 }
 
 test_that("survival data can be assigned", {
   assign_survival_data()
 
-  datatype <- dsBaseClient::ds.class(x = "survival", datasources = conns())
+  datatype <- dsBaseClient::ds.class(x = "survival", datasources = conns)
 
   expect_equal(datatype$armadillo, "data.frame")
 })
@@ -40,11 +40,11 @@ test_that("ds.Surv creates object with expected class", {
     time = "survival$time",
     event = "survival$status",
     objectname = "surv_object",
-    datasources = conns()
+    datasources = conns
   )
 
   # Check class
-  surv_class <- dsBaseClient::ds.class("surv_object", datasources = conns())
+  surv_class <- dsBaseClient::ds.class("surv_object", datasources = conns)
 
   expect_equal(surv_class$armadillo, "Surv")
 })
@@ -53,21 +53,21 @@ test_that("ds.coxph.SLMA returns expected elements", {
 
   # Ensure survival object exists
   tryCatch({
-    dsBaseClient::ds.class("surv_object", datasources = conns())
+    dsBaseClient::ds.class("surv_object", datasources = conns)
   }, error = function(e) {
     assign_survival_data()
     dsSurvivalClient::ds.Surv(
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns()
+      datasources = conns
     )
   })
 
   # Run Cox regression
   cox_output <- dsSurvivalClient::ds.coxph.SLMA(
     formula = "surv_object~survival$age",
-    datasources = conns()
+    datasources = conns
   )
 
   expected_names <- c(
@@ -83,14 +83,14 @@ test_that("ds.coxphSLMAassign creates object with expected class", {
 
   # Ensure survival object exists
   tryCatch({
-    dsBaseClient::ds.class("surv_object", datasources = conns())
+    dsBaseClient::ds.class("surv_object", datasources = conns)
   }, error = function(e) {
     assign_survival_data()
     dsSurvivalClient::ds.Surv(
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns()
+      datasources = conns
     )
   })
 
@@ -98,11 +98,11 @@ test_that("ds.coxphSLMAassign creates object with expected class", {
   dsSurvivalClient::ds.coxphSLMAassign(
     formula = "surv_object~survival$age",
     objectname = "coxph_serverside",
-    datasources = conns()
+    datasources = conns
   )
 
   # Check class
-  cox_class <- dsBaseClient::ds.class("coxph_serverside", datasources = conns())
+  cox_class <- dsBaseClient::ds.class("coxph_serverside", datasources = conns)
 
   expect_equal(cox_class$armadillo, "coxph")
 })
@@ -111,26 +111,26 @@ test_that("ds.cox.zphSLMA returns expected elements", {
 
   # Ensure coxph object exists
   tryCatch({
-    dsBaseClient::ds.class("coxph_serverside", datasources = conns())
+    dsBaseClient::ds.class("coxph_serverside", datasources = conns)
   }, error = function(e) {
     assign_survival_data()
     dsSurvivalClient::ds.Surv(
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns()
+      datasources = conns
     )
     dsSurvivalClient::ds.coxphSLMAassign(
       formula = "surv_object~survival$age",
       objectname = "coxph_serverside",
-      datasources = conns()
+      datasources = conns
     )
   })
 
   # Test proportional hazards assumption
   hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(
     fit = "coxph_serverside",
-    datasources = conns()
+    datasources = conns
   )
 
   expected_names <- c("table", "var", "transform", "call")
@@ -142,26 +142,26 @@ test_that("ds.coxphSummary returns expected elements", {
 
   # Ensure coxph object exists
   tryCatch({
-    dsBaseClient::ds.class("coxph_serverside", datasources = conns())
+    dsBaseClient::ds.class("coxph_serverside", datasources = conns)
   }, error = function(e) {
     assign_survival_data()
     dsSurvivalClient::ds.Surv(
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns()
+      datasources = conns
     )
     dsSurvivalClient::ds.coxphSLMAassign(
       formula = "surv_object~survival$age",
       objectname = "coxph_serverside",
-      datasources = conns()
+      datasources = conns
     )
   })
 
   # Get summary
   hazard_summary <- dsSurvivalClient::ds.coxphSummary(
     x = "coxph_serverside",
-    datasources = conns()
+    datasources = conns
   )
 
   expected_names <- c(

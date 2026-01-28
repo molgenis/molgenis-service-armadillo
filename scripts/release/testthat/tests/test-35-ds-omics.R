@@ -1,18 +1,19 @@
-# test-35-ds-package-omics.R - dsOmics package tests
+# test-35-ds-omics.R - dsOmics package tests
 #
 # These tests verify that dsOmics functions work correctly.
 
-# Setup: ensure researcher connection is established
+# Setup: ensure researcher connection is established (resources mode - no table download)
 ensure_researcher_login()
+ensure_resources_uploaded()
 
-# Skip all tests if ds-package-omics is excluded
-skip_if_excluded("ds-package-omics")
+# Skip all tests if ds-omics is excluded
+skip_if_excluded("ds-omics")
 
 # Load the omics client library
 library(dsOmicsClient)
 
 # Skip if in admin mode or resourcer not available
-config <- config()
+config <- config
 if (config$ADMIN_MODE) {
   skip("Cannot test omics with basic authentication")
 }
@@ -39,7 +40,7 @@ setup_omics_data <- function() {
   set_dm_permissions(
     user = config$user,
     admin_pwd = config$admin_pwd,
-    required_projects = list(project()),
+    required_projects = list(project),
     interactive = config$interactive,
     update_auto = config$update_auto,
     url = config$armadillo_url
@@ -50,7 +51,7 @@ setup_omics_data <- function() {
 
   # Upload resources
   upload_many_sources(
-    project = project(),
+    project = project,
     ref = omics_ref,
     url = config$armadillo_url,
     folder = "omics",
@@ -61,14 +62,14 @@ setup_omics_data <- function() {
   # Create resources
   omics_resources <- create_many_resources(
     ref = omics_ref,
-    project = project(),
+    project = project,
     folder = "omics",
     url = config$armadillo_url
   )
 
   # Upload resources to Armadillo
   upload_many_resources(
-    project = project(),
+    project = project,
     folder = "omics",
     resource = omics_resources,
     ref = omics_ref
@@ -76,16 +77,16 @@ setup_omics_data <- function() {
 
   # Assign resources
   assign_many_resources(
-    project = project(),
+    project = project,
     folder = "omics",
     ref = omics_ref,
-    conns = conns()
+    conns = conns
   )
 
   # Resolve GDS resources as objects
   purrr::map(c("chr1", "chr2"), function(x) {
     DSI::datashield.assign.expr(
-      conns = conns(),
+      conns = conns,
       symbol = x,
       expr = as.symbol(paste0("as.resource.object(", x, ")"))
     )
@@ -93,7 +94,7 @@ setup_omics_data <- function() {
 
   # Resolve phenotype as data frame
   DSI::datashield.assign.expr(
-    conns = conns(),
+    conns = conns,
     symbol = "pheno_object",
     expr = quote(as.resource.data.frame(ega_phenotypes))
   )
@@ -116,7 +117,7 @@ gwas_prepare_data <- function() {
       case = "Yes",
       control = "No",
       newobj.name = paste0("gds.Data", x),
-      datasources = conns()
+      datasources = conns
     )
   })
 }
@@ -132,8 +133,8 @@ test_that("GWAS data can be prepared", {
   expect_no_error(gwas_prepare_data())
 
   # Verify GenotypeData objects were created
-  gds1_class <- dsBaseClient::ds.class("gds.Data1", datasources = conns())
-  gds2_class <- dsBaseClient::ds.class("gds.Data2", datasources = conns())
+  gds1_class <- dsBaseClient::ds.class("gds.Data1", datasources = conns)
+  gds2_class <- dsBaseClient::ds.class("gds.Data2", datasources = conns)
 
   expect_true("GenotypeData" %in% gds1_class$armadillo)
   expect_true("GenotypeData" %in% gds2_class$armadillo)

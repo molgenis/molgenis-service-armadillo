@@ -1,18 +1,19 @@
-# test-34-ds-package-exposome.R - dsExposome package tests
+# test-34-ds-exposome.R - dsExposome package tests
 #
 # These tests verify that dsExposome functions work correctly.
 
-# Setup: ensure researcher connection is established
+# Setup: ensure researcher connection is established (resources mode - no table download)
 ensure_researcher_login()
+ensure_resources_uploaded()
 
-# Skip all tests if ds-package-exposome is excluded
-skip_if_excluded("ds-package-exposome")
+# Skip all tests if ds-exposome is excluded
+skip_if_excluded("ds-exposome")
 
 # Load the exposome client library
 library(dsExposomeClient)
 
 # Skip if in admin mode or resourcer not available
-config <- config()
+config <- config
 if (config$ADMIN_MODE) {
   skip("Cannot test exposome with basic authentication")
 }
@@ -40,7 +41,7 @@ setup_exposome_data <- function() {
   set_dm_permissions(
     user = config$user,
     admin_pwd = config$admin_pwd,
-    required_projects = list(project()),
+    required_projects = list(project),
     interactive = config$interactive,
     update_auto = config$update_auto,
     url = config$armadillo_url
@@ -51,7 +52,7 @@ setup_exposome_data <- function() {
 
   # Upload resources
   upload_many_sources(
-    project = project(),
+    project = project,
     ref = exposome_ref,
     url = config$armadillo_url,
     folder = "exposome",
@@ -63,13 +64,13 @@ setup_exposome_data <- function() {
   exposome_resources <- create_many_resources(
     ref = exposome_ref,
     folder = "exposome",
-    project = project(),
+    project = project,
     url = config$armadillo_url
   )
 
   # Upload resources to Armadillo
   upload_many_resources(
-    project = project(),
+    project = project,
     resource = exposome_resources,
     folder = "exposome",
     ref = exposome_ref
@@ -77,16 +78,16 @@ setup_exposome_data <- function() {
 
   # Assign resources
   assign_many_resources(
-    project = project(),
+    project = project,
     folder = "exposome",
     ref = exposome_ref,
-    conns = conns()
+    conns = conns
   )
 
   # Resolve resources as data frames
   resolve_many_resources(
     resource_names = c("description", "exposures", "phenotypes"),
-    conns = conns()
+    conns = conns
   )
 
   test_env$exposome_setup <- TRUE
@@ -109,10 +110,10 @@ test_that("ds.loadExposome creates object with expected class", {
     description.expCol = "Exposure",
     description.famCol = "Family",
     object_name = "exposome_object",
-    datasources = conns()
+    datasources = conns
   )
 
-  obj_class <- dsBaseClient::ds.class("exposome_object", datasources = conns())
+  obj_class <- dsBaseClient::ds.class("exposome_object", datasources = conns)
 
   expect_equal(as.character(obj_class$armadillo), "ExposomeSet")
 })
@@ -121,7 +122,7 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
   setup_exposome_data()
   # Ensure exposome object exists
   tryCatch({
-    dsBaseClient::ds.class("exposome_object", datasources = conns())
+    dsBaseClient::ds.class("exposome_object", datasources = conns)
   }, error = function(e) {
     ds.loadExposome(
       exposures = "exposures",
@@ -132,11 +133,11 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
       description.expCol = "Exposure",
       description.famCol = "Family",
       object_name = "exposome_object",
-      datasources = conns()
+      datasources = conns
     )
   })
 
-  vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = conns())
+  vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = conns)
 
   expected_vars <- c(
     "whistling_chest", "flu", "rhinitis", "wheezing", "birthdate",
@@ -148,7 +149,7 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
 
 test_that("ds.exposome_summary returns expected names", {
   setup_exposome_data()
-  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = conns())
+  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = conns)
 
   expected_names <- c("class", "length", "quantiles & mean")
 
@@ -157,7 +158,7 @@ test_that("ds.exposome_summary returns expected names", {
 
 test_that("ds.familyNames returns expected family names", {
   setup_exposome_data()
-  vars <- ds.familyNames("exposome_object", datasources = conns())
+  vars <- ds.familyNames("exposome_object", datasources = conns)
 
   expected_families <- c(
     "Air Pollutants", "Metals", "PBDEs", "Organochlorines", "Bisphenol A",
@@ -170,7 +171,7 @@ test_that("ds.familyNames returns expected family names", {
 
 test_that("ds.tableMissings returns expected structure", {
   setup_exposome_data()
-  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns())
+  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns)
 
   expected_names <- c("pooled", "set", "output")
 
@@ -179,7 +180,7 @@ test_that("ds.tableMissings returns expected structure", {
 
 test_that("ds.plotMissings returns ggplot object", {
   setup_exposome_data()
-  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns())
+  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns)
   missing_plot <- ds.plotMissings(missing_summary)
 
   expect_true(inherits(missing_plot$pooled, "ggplot"))
@@ -187,7 +188,7 @@ test_that("ds.plotMissings returns ggplot object", {
 
 test_that("ds.normalityTest returns expected names", {
   setup_exposome_data()
-  nm <- ds.normalityTest("exposome_object", datasources = conns())
+  nm <- ds.normalityTest("exposome_object", datasources = conns)
 
   expected_names <- c("exposure", "normality", "p.value")
 
@@ -196,7 +197,7 @@ test_that("ds.normalityTest returns expected names", {
 
 test_that("ds.exposure_histogram returns expected names", {
   setup_exposome_data()
-  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = conns())
+  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = conns)
 
   expected_names <- c("breaks", "counts", "density", "mids", "xname", "equidist")
 
@@ -205,9 +206,9 @@ test_that("ds.exposure_histogram returns expected names", {
 
 test_that("ds.imputation creates object with expected class", {
   setup_exposome_data()
-  ds.imputation("exposome_object", "exposome_object_imputed", datasources = conns())
+  ds.imputation("exposome_object", "exposome_object_imputed", datasources = conns)
 
-  obj_class <- dsBaseClient::ds.class("exposome_object_imputed", datasources = conns())
+  obj_class <- dsBaseClient::ds.class("exposome_object_imputed", datasources = conns)
 
   expect_equal(as.character(obj_class$armadillo), "ExposomeSet")
 })
@@ -219,7 +220,7 @@ test_that("ds.exwas returns expected class", {
     Set = "exposome_object",
     family = "gaussian",
     type = "pooled",
-    datasources = conns()
+    datasources = conns
   )
 
   expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
@@ -230,7 +231,7 @@ test_that("ds.exposome_correlation returns expected dimensions", {
   exposome_cor <- ds.exposome_correlation(
     "exposome_object",
     c("Metals", "Noise"),
-    datasources = conns()
+    datasources = conns
   )[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
 
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
