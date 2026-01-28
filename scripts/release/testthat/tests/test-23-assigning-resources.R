@@ -10,7 +10,7 @@ ensure_resources_uploaded()
 skip_if_excluded("assigning-resources")
 
 # Skip if in admin mode (resources don't work with basic auth)
-config <- config
+config <- test_config
 if (config$ADMIN_MODE) {
   skip("Cannot test resources with basic authentication")
 }

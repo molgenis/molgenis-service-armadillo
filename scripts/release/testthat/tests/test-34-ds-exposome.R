@@ -13,7 +13,7 @@ skip_if_excluded("ds-exposome")
 library(dsExposomeClient)
 
 # Skip if in admin mode or resourcer not available
-config <- config
+config <- test_config
 if (config$ADMIN_MODE) {
   skip("Cannot test exposome with basic authentication")
 }

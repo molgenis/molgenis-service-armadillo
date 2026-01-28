@@ -13,7 +13,7 @@ skip_if_excluded("ds-omics")
 library(dsOmicsClient)
 
 # Skip if in admin mode or resourcer not available
-config <- config
+config <- test_config
 if (config$ADMIN_MODE) {
   skip("Cannot test omics with basic authentication")
 }

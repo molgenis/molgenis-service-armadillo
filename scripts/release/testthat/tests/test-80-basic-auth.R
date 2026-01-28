@@ -9,7 +9,7 @@ ensure_config
 # Skip all tests if basic-auth is excluded
 skip_if_excluded("basic-auth")
 
-config <- config
+config <- test_config
 
 # Skip if admin password is not available
 if (config$admin_pwd == "") {

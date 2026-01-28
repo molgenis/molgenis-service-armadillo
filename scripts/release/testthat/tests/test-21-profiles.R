@@ -8,7 +8,7 @@ ensure_researcher_login_and_assign()
 # Skip all tests if profiles is excluded
 skip_if_excluded("profiles")
 
-config <- config
+config <- test_config
 
 test_that("connection to specific profile works", {
   # Create a test connection to verify profile connectivity

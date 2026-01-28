@@ -127,8 +127,8 @@ ensure_config <- function() {
     rda_dir = rda_dir, update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
   )
 
-  # Set global variable for use in tests
-  config <<- test_env$config
+  # Set global variable for use in tests (named test_config to avoid httr::config collision)
+  test_config <<- test_env$config
 
   cli::cli_alert_success("Configuration loaded")
   invisible(test_env$config)
