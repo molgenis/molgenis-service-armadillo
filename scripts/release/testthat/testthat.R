@@ -29,9 +29,9 @@ if (file.exists(local_rprofile)) {
 #   researcher-resources - Researcher tests that use resources (exposome, omics)
 #
 # Individual tests (can also be used with --only/--skip):
-#   data-manager, researcher-login, profiles, assigning-tables, assigning-resources,
-#   ds-base, ds-mediate, ds-survival, ds-mtl, ds-exposome, ds-omics, ds-tidyverse,
-#   basic-auth
+#   data-manager, basic-auth, manual-test, researcher-login, profiles,
+#   assigning-tables, assigning-resources, ds-base, ds-mediate, ds-survival,
+#   ds-mtl, ds-exposome, ds-omics, ds-tidyverse
 #
 # Environment variables (can also be set in .env file):
 #   TEST_ONLY - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
@@ -47,10 +47,10 @@ if (file.exists(local_rprofile)) {
 # Prefix convention: 1x=data-manager, 2x=researcher-setup, 3x=tables, 4x=resources
 TEST_CLUSTERS <- list(
   # All tests
-  all = "10-data-manager|11-basic-auth|20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse|40-assigning-resources|41-ds-exposome|42-ds-omics",
+  all = "10-data-manager|11-basic-auth|12-manual-test|20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse|40-assigning-resources|41-ds-exposome|42-ds-omics",
 
-  # Data manager tests (includes basic-auth)
-  `data-manager` = "10-data-manager|11-basic-auth",
+  # Data manager tests (includes basic-auth and manual UI test)
+  `data-manager` = "10-data-manager|11-basic-auth|12-manual-test",
 
   # Researcher tests for tabular data (no resources)
   `researcher-tables` = "20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse",
@@ -63,6 +63,7 @@ TEST_CLUSTERS <- list(
 TEST_INDIVIDUALS <- list(
   `data-manager`        = "10-data-manager",
   `basic-auth`          = "11-basic-auth",
+  `manual-test`         = "12-manual-test",
   `researcher-login`    = "20-researcher-login",
   profiles              = "21-profiles",
   `assigning-tables`    = "30-assigning-tables",
@@ -381,10 +382,10 @@ if (length(skip_args) > 0 || length(only_args) > 0) {
 
 # Determine what authentication is needed based on test patterns
 # - Researcher tests (2x-4x): need researcher token + DM login
-# - Data-manager tests (10): need DM login only
+# - Data-manager tests (10, 12): need DM login only
 # - Basic-auth tests (11): do their own login, no pre-auth needed
 researcher_patterns <- c("20-", "21-", "30-", "31-", "32-", "33-", "34-", "35-", "40-", "41-", "42-")
-dm_patterns <- c("10-")
+dm_patterns <- c("10-", "12-")
 
 needs_researcher <- any(sapply(researcher_patterns, function(p) any(grepl(p, only_patterns))))
 needs_dm_only <- any(sapply(dm_patterns, function(p) any(grepl(p, only_patterns)))) && !needs_researcher
