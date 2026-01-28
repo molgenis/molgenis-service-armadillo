@@ -32,12 +32,15 @@ test_that("ds.mean returns expected values", {
   expect_equal(ds_mean[4], 1000, label = "Ntotal")
 })
 
+# Note: ds.histogram emits "0 invalid cells" warning which is expected behavior
+# (indicates all cells passed disclosure checks). We suppress it to keep test output clean.
+
 test_that("ds.histogram returns expected breaks", {
   skip_if_ds_base_excluded()
-  hist <- dsBaseClient::ds.histogram(
+  hist <- suppressWarnings(dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
-  )
+  ))
 
   expected_breaks <- c(
     35.31138, 116.38319, 197.45500, 278.52680, 359.59861,
@@ -49,10 +52,10 @@ test_that("ds.histogram returns expected breaks", {
 
 test_that("ds.histogram returns expected counts", {
   skip_if_ds_base_excluded()
-  hist <- dsBaseClient::ds.histogram(
+  hist <- suppressWarnings(dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
-  )
+  ))
 
   expected_counts <- c(106, 101, 92, 103, 106, 104, 105, 101, 113, 69)
 
@@ -61,10 +64,10 @@ test_that("ds.histogram returns expected counts", {
 
 test_that("ds.histogram returns expected density", {
   skip_if_ds_base_excluded()
-  hist <- dsBaseClient::ds.histogram(
+  hist <- suppressWarnings(dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
-  )
+  ))
 
   expected_density <- c(
     0.0013074829, 0.0012458092, 0.0011347965, 0.0012704787, 0.0013074829,
@@ -76,10 +79,10 @@ test_that("ds.histogram returns expected density", {
 
 test_that("ds.histogram returns expected mids", {
   skip_if_ds_base_excluded()
-  hist <- dsBaseClient::ds.histogram(
+  hist <- suppressWarnings(dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
-  )
+  ))
 
   expected_mids <- c(
     75.84729, 156.91909, 237.99090, 319.06271, 400.13451,

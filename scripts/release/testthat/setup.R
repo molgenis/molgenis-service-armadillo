@@ -516,17 +516,20 @@ ensure_researcher_login <- function() {
   # Create DSI builder - no table assignment
   builder <- DSI::newDSLoginBuilder()
 
-  if (config$ADMIN_MODE) {
-    builder$append(
-      server = "armadillo", url = config$armadillo_url, profile = config$profile,
-      driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
-    )
-  } else {
-    builder$append(
-      server = "armadillo", url = config$armadillo_url, profile = config$profile,
-      driver = "ArmadilloDriver", token = test_env$token
-    )
-  }
+  # Suppress "Secure HTTP connection is recommended" warning for localhost testing
+  suppressWarnings({
+    if (config$ADMIN_MODE) {
+      builder$append(
+        server = "armadillo", url = config$armadillo_url, profile = config$profile,
+        driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
+      )
+    } else {
+      builder$append(
+        server = "armadillo", url = config$armadillo_url, profile = config$profile,
+        driver = "ArmadilloDriver", token = test_env$token
+      )
+    }
+  })
 
   logindata <- builder$build()
 
@@ -556,19 +559,22 @@ ensure_researcher_login_and_assign <- function() {
   # Create DSI builder with table assignment
   builder <- DSI::newDSLoginBuilder()
 
-  if (config$ADMIN_MODE) {
-    builder$append(
-      server = "armadillo", url = config$armadillo_url, profile = config$profile,
-      table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
-      driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
-    )
-  } else {
-    builder$append(
-      server = "armadillo", url = config$armadillo_url, profile = config$profile,
-      table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
-      driver = "ArmadilloDriver", token = test_env$token
-    )
-  }
+  # Suppress "Secure HTTP connection is recommended" warning for localhost testing
+  suppressWarnings({
+    if (config$ADMIN_MODE) {
+      builder$append(
+        server = "armadillo", url = config$armadillo_url, profile = config$profile,
+        table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
+        driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
+      )
+    } else {
+      builder$append(
+        server = "armadillo", url = config$armadillo_url, profile = config$profile,
+        table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
+        driver = "ArmadilloDriver", token = test_env$token
+      )
+    }
+  })
 
   logindata <- builder$build()
 
