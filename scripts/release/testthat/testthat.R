@@ -352,6 +352,9 @@ cli::cli_text(sprintf("Target: %s (v%s) | Profile: %s | Mode: %s",
   if (test_env$config$ADMIN_MODE) "Admin" else "OIDC"
 ))
 
+# Obtain tokens early (before tests run) so CLI messages aren't captured by testthat
+ensure_tokens()
+
 # -----------------------------------------------------------------------------
 # Teardown function - ALWAYS runs, even on failure
 # -----------------------------------------------------------------------------
