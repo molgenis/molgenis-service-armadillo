@@ -6,13 +6,39 @@
 #
 # Usage:
 #   Rscript testthat.R                    # Run all tests
-#   Rscript testthat.R "ds-base"          # Run only ds-base tests
-#   Rscript testthat.R "xenon"            # Run all xenon tests
-#   Rscript testthat.R "^(?!.*mtl).*"     # Skip mtl tests (regex)
+#   Rscript testthat.R <cluster>          # Run a named cluster (see below)
+#   Rscript testthat.R "30-ds-base"       # Run specific test file (regex)
+#
+# Named clusters:
+#   quick      - Fast tests only (config, downloads, basic-auth)
+#   setup      - Setup tests (config, downloads, admin, researcher)
+#   core       - Core DataSHIELD tests (ds-base)
+#   xenon      - All xenon package tests (mediate, survival, mtl, exposome, omics)
+#   tidyverse  - Tidyverse tests only
+#   cleanup    - Cleanup and basic-auth tests
+#   packages   - All package tests (core + xenon + tidyverse)
 #
 # Environment variables:
 #   SKIP_TESTS - Comma-separated list of tests to skip (e.g., "xenon-omics,xenon-mtl")
 #   See .env file for full configuration options
+
+# -----------------------------------------------------------------------------
+# Named test clusters
+# -----------------------------------------------------------------------------
+
+TEST_CLUSTERS <- list(
+  # Role-based clusters
+  `data-manager`    = "10-admin-setup",
+  `researcher-all`  = "20-researcher|30-ds-base|31-xenon|32-xenon|33-xenon|34-xenon|35-xenon|36-tidyverse",
+  `researcher-tab`  = "20-researcher|30-ds-base|31-xenon|32-xenon|33-xenon|36-tidyverse",
+  `researcher-res`  = "20-researcher|34-xenon-exposome|35-xenon-omics",
+
+
+  # Setup and utility clusters
+  config            = "01-config|02-downloads",
+  cleanup           = "90-cleanup|91-basic-auth",
+  quick             = "01-config|02-downloads|91-basic-auth"
+)
 
 # -----------------------------------------------------------------------------
 # Enable colors and full error output
@@ -131,8 +157,24 @@ cli::cli_alert_success("Helper files loaded")
 args <- commandArgs(trailingOnly = TRUE)
 filter_pattern <- if (length(args) > 0) args[1] else NULL
 
-if (!is.null(filter_pattern)) {
+# Check if the argument is a named cluster
+if (!is.null(filter_pattern) && filter_pattern %in% names(TEST_CLUSTERS)) {
+  cluster_name <- filter_pattern
+  filter_pattern <- TEST_CLUSTERS[[cluster_name]]
+  cli::cli_alert_info(sprintf("Running cluster '%s': %s", cluster_name, filter_pattern))
+} else if (!is.null(filter_pattern)) {
   cli::cli_alert_info(sprintf("Test filter pattern: %s", filter_pattern))
+}
+
+# Show available clusters if --help is passed
+if (!is.null(filter_pattern) && filter_pattern %in% c("--help", "-h", "help")) {
+  cli::cli_h2("Available test clusters")
+  for (name in names(TEST_CLUSTERS)) {
+    cli::cli_alert_info(sprintf("  %-12s %s", name, TEST_CLUSTERS[[name]]))
+  }
+  cli::cli_text("")
+  cli::cli_alert_info("Usage: Rscript testthat.R [cluster|pattern]")
+  quit(status = 0)
 }
 
 # -----------------------------------------------------------------------------
