@@ -133,38 +133,43 @@ print(sessionInfo())
 cli::cli_h1("Setup")
 cli::cli_alert_info("Loading libraries...")
 
-# Core test framework
-library(testthat)
+# Suppress package startup messages and warnings
+suppressPackageStartupMessages({
+  suppressWarnings({
+    # Core test framework
+    library(testthat)
 
-# Logging and UI
-library(cli)
+    # Logging and UI
+    library(cli)
 
-# DataSHIELD libraries
-library(DSI)
-library(MolgenisArmadillo)
-library(DSMolgenisArmadillo)
-library(dsBaseClient)
-library(resourcer)
+    # DataSHIELD libraries
+    library(DSI)
+    library(MolgenisArmadillo)
+    library(DSMolgenisArmadillo)
+    library(dsBaseClient)
+    library(resourcer)
 
-# Data libraries
-library(arrow)
-library(dplyr)
-library(purrr)
-library(tibble)
-library(stringr)
-library(stringi)
+    # Data libraries
+    library(arrow)
+    library(dplyr)
+    library(purrr)
+    library(tibble)
+    library(stringr)
+    library(stringi)
 
-# API/HTTP libraries
-library(httr)
-library(jsonlite)
-library(RCurl)
-library(base64enc)
+    # API/HTTP libraries
+    library(httr)
+    library(jsonlite)
+    library(RCurl)
+    library(base64enc)
 
-# Password prompt (for interactive mode)
-library(getPass)
+    # Password prompt (for interactive mode)
+    library(getPass)
 
-# Async operations
-library(future)
+    # Async operations
+    library(future)
+  })
+})
 
 # Xenon-specific libraries (loaded conditionally in tests)
 # library(dsSurvivalClient)
