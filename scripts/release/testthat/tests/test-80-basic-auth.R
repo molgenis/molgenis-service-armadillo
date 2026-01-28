@@ -18,6 +18,7 @@ skip_if_basic_auth_excluded <- function() {
 
 test_that("admin can login with basic authentication", {
   skip_if_basic_auth_excluded()
+  # Fresh login with basic auth (overrides any previous OIDC session)
   expect_no_error({
     MolgenisArmadillo::armadillo.login_basic(
       config$armadillo_url,
@@ -27,8 +28,18 @@ test_that("admin can login with basic authentication", {
   })
 })
 
+# Helper to ensure basic auth session is active
+ensure_basic_auth_session <- function() {
+  MolgenisArmadillo::armadillo.login_basic(
+    config$armadillo_url,
+    "admin",
+    config$admin_pwd
+  )
+}
+
 test_that("admin can create project with basic auth", {
   skip_if_basic_auth_excluded()
+  ensure_basic_auth_session()
   # Generate unique project name for this test
   current_projects <- MolgenisArmadillo::armadillo.list_projects()
   basic_auth_project <- stringi::stri_rand_strings(1, 10, "[a-z0-9]")
@@ -53,6 +64,7 @@ test_that("admin can create project with basic auth", {
 
 test_that("admin can upload data with basic auth", {
   skip_if_basic_auth_excluded()
+  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
 
   # Read parquet file
@@ -73,6 +85,7 @@ test_that("admin can upload data with basic auth", {
 
 test_that("uploaded table exists", {
   skip_if_basic_auth_excluded()
+  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
   table <- sprintf("%s/2_1-core-1_0/nonrep", project)
 
@@ -86,6 +99,7 @@ test_that("uploaded table exists", {
 
 test_that("admin can delete project with basic auth", {
   skip_if_basic_auth_excluded()
+  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
 
   expect_no_error({
