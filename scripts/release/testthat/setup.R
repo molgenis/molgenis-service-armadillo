@@ -579,6 +579,40 @@ ensure_researcher_login_and_assign <- function() {
 }
 
 # -----------------------------------------------------------------------------
+# Profile reset (for multi-profile runs)
+# -----------------------------------------------------------------------------
+
+#' Reset per-profile state for a new profile iteration
+#'
+#' Clears all state that is specific to a profile run (project, connections,
+#' upload flags, etc.) while preserving config, downloads, and authentication
+#' tokens. Called between profile iterations in multi-profile runs.
+#'
+#' @param new_profile The new profile name to switch to
+reset_for_new_profile <- function(new_profile) {
+  # Update profile in config
+  test_env$config$profile <- new_profile
+  test_config$profile <<- new_profile
+
+  # Clear per-profile state
+  # Preserved: config (updated above), tables_downloaded, resources_downloaded,
+  #            tokens_obtained, token, verbose_mode, testthat_dir, test_cases_dir
+  test_env$conns <- NULL
+  test_env$project <- NULL
+  test_env$tables_uploaded <- NULL
+  test_env$resources_uploaded <- NULL
+  test_env$admin_setup <- NULL
+  test_env$researcher_permissions_set <- NULL
+  test_env$profile_info <- NULL
+  test_env$omics_setup <- NULL
+  test_env$exposome_setup <- NULL
+
+  # Clear globals
+  if (exists("conns", envir = .GlobalEnv)) rm("conns", envir = .GlobalEnv)
+  if (exists("project", envir = .GlobalEnv)) rm("project", envir = .GlobalEnv)
+}
+
+# -----------------------------------------------------------------------------
 # Helper functions
 # -----------------------------------------------------------------------------
 

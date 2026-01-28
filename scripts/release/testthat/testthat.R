@@ -33,10 +33,15 @@ if (file.exists(local_rprofile)) {
 #   assigning-tables, assigning-resources, ds-base, ds-mediate, ds-survival,
 #   ds-mtl, ds-exposome, ds-omics, ds-tidyverse
 #
+# Multiple profiles (set CONTAINER in .env):
+#   CONTAINER=xenon          - Run tests with one profile
+#   CONTAINER=xenon,rock     - Run full test suite once per profile
+#
 # Environment variables (can also be set in .env file):
-#   TEST_ONLY - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
-#   TEST_SKIP - Space-separated list of clusters/tests to skip (e.g., "ds-omics ds-exposome")
-#   VERBOSE   - Set to "true" to show each test name as it executes
+#   CONTAINER  - Profile name(s), comma-separated for multi-profile runs
+#   TEST_ONLY  - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
+#   TEST_SKIP  - Space-separated list of clusters/tests to skip (e.g., "ds-omics ds-exposome")
+#   VERBOSE    - Set to "true" to show each test name as it executes
 #   See .env file for full configuration options
 
 # -----------------------------------------------------------------------------
@@ -332,14 +337,24 @@ if (verbose_mode) {
 # Load config early
 ensure_config()
 
+# Parse profiles (supports comma-separated CONTAINER for multi-profile runs)
+all_profiles <- trimws(unlist(strsplit(test_env$config$profile, ",")))
+test_env$config$profile <- all_profiles[1]
+test_config$profile <- all_profiles[1]
+
 # Show configuration (always - useful for debugging test runs)
 cli::cli_h1("Configuration")
 
 cli::cli_h2("Server")
+profile_display <- if (length(all_profiles) > 1) {
+  sprintf("Profiles: %s", paste(all_profiles, collapse = ", "))
+} else {
+  sprintf("Profile: %s", all_profiles[1])
+}
 cli::cli_ul(c(
   sprintf("URL: %s", test_env$config$armadillo_url),
   sprintf("Version: %s", test_env$config$version),
-  sprintf("Profile: %s", test_env$config$profile),
+  profile_display,
   sprintf("Mode: %s", if (test_env$config$ADMIN_MODE) "Admin (basic auth)" else "OIDC")
 ))
 
@@ -507,44 +522,71 @@ run_teardown <- function() {
 }
 
 # -----------------------------------------------------------------------------
-# Run tests
+# Run tests (loops over profiles if CONTAINER is comma-separated)
 # -----------------------------------------------------------------------------
 
 cli::cli_h1("Running tests")
 
-start_time <- Sys.time()
+all_results <- list()
+overall_start <- Sys.time()
 
-# Select reporter based on verbose mode
-# - LocationReporter: Shows each test name and file:line as it executes
-# - ProgressReporter: Shows compact progress bar with pass/fail counts
-test_reporter <- if (verbose_mode) {
-  testthat::LocationReporter$new()
-} else {
-  testthat::ProgressReporter$new()
-}
+for (i in seq_along(all_profiles)) {
+  current_profile <- all_profiles[i]
 
-# Run tests with guaranteed teardown
-test_results <- tryCatch({
-  testthat::test_dir(
-    "tests",
-    filter = filter_pattern,
-    reporter = test_reporter,
-    stop_on_failure = FALSE
+  if (i > 1) {
+    reset_for_new_profile(current_profile)
+  }
+
+  if (length(all_profiles) > 1) {
+    cli::cli_h2(sprintf("Profile: %s (%d/%d)", current_profile, i, length(all_profiles)))
+  }
+
+  profile_start <- Sys.time()
+
+  # Select reporter based on verbose mode
+  # - LocationReporter: Shows each test name and file:line as it executes
+  # - ProgressReporter: Shows compact progress bar with pass/fail counts
+  test_reporter <- if (verbose_mode) {
+    testthat::LocationReporter$new()
+  } else {
+    testthat::ProgressReporter$new()
+  }
+
+  # Run tests with guaranteed teardown per profile
+  profile_results <- tryCatch(
+    {
+      testthat::test_dir(
+        "tests",
+        filter = filter_pattern,
+        reporter = test_reporter,
+        stop_on_failure = FALSE
+      )
+    },
+    error = function(e) {
+      cli::cli_alert_danger(sprintf("Test error: %s", e$message))
+      NULL
+    },
+    finally = {
+      # ALWAYS run teardown, even on error
+      run_teardown()
+    }
   )
-}, error = function(e) {
-  cli::cli_alert_danger(sprintf("Test error: %s", e$message))
-  NULL
-}, finally = {
-  # ALWAYS run teardown, even on error
-  run_teardown()
-})
 
-end_time <- Sys.time()
+  profile_duration <- difftime(Sys.time(), profile_start, units = "secs")
+  if (length(all_profiles) > 1) {
+    cli::cli_alert_info(sprintf(
+      "Profile %s completed in %.1f seconds",
+      current_profile, as.numeric(profile_duration)
+    ))
+  }
+
+  all_results[[current_profile]] <- profile_results
+}
 
 # -----------------------------------------------------------------------------
 # Summary
 # -----------------------------------------------------------------------------
 
-duration <- difftime(end_time, start_time, units = "secs")
-cli::cli_alert_info(sprintf("Completed in %.1f seconds", as.numeric(duration)))
+overall_duration <- difftime(Sys.time(), overall_start, units = "secs")
+cli::cli_alert_info(sprintf("Completed in %.1f seconds", as.numeric(overall_duration)))
 cli::cli_alert_info("Please test rest of UI manually, if impacted this release")
