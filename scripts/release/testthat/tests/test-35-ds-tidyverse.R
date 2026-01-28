@@ -170,16 +170,19 @@ test_that("ds.ungroup removes grouping", {
   assign_tidyverse_data()
 
   # Ensure grouped exists
-  tryCatch({
-    suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
-  }, error = function(e) {
-    ds.group_by(
-      df.name = "mtcars",
-      tidy_expr = list(cyl),
-      newobj = "grouped",
-      datasources = conns
-    )
-  })
+  tryCatch(
+    {
+      suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
+    },
+    error = function(e) {
+      ds.group_by(
+        df.name = "mtcars",
+        tidy_expr = list(cyl),
+        newobj = "grouped",
+        datasources = conns
+      )
+    }
+  )
 
   ds.ungroup("grouped", "ungrouped_df", datasources = conns)
 
@@ -193,16 +196,19 @@ test_that("ds.group_keys returns expected keys", {
   assign_tidyverse_data()
 
   # Ensure grouped exists
-  tryCatch({
-    suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
-  }, error = function(e) {
-    ds.group_by(
-      df.name = "mtcars",
-      tidy_expr = list(cyl),
-      newobj = "grouped",
-      datasources = conns
-    )
-  })
+  tryCatch(
+    {
+      suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
+    },
+    error = function(e) {
+      ds.group_by(
+        df.name = "mtcars",
+        tidy_expr = list(cyl),
+        newobj = "grouped",
+        datasources = conns
+      )
+    }
+  )
 
   res <- ds.group_keys("grouped", datasources = conns)$armadillo
 

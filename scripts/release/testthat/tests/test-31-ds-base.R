@@ -17,19 +17,7 @@ test_that("ds.mean returns expected values", {
     datasources = conns
   )$Mean
 
-  # Verify mean values
-  # EstimatedMean should be ~431.105
-
-  expect_equal(round(ds_mean[1], 3), 431.105, label = "EstimatedMean")
-
-  # Nmissing should be 0
-  expect_equal(ds_mean[2], 0, label = "Nmissing")
-
-  # Nvalid should be 1000
-  expect_equal(ds_mean[3], 1000, label = "Nvalid")
-
-  # Ntotal should be 1000
-  expect_equal(ds_mean[4], 1000, label = "Ntotal")
+  expect_ds_mean_values(ds_mean, 431.105, 1000)
 })
 
 # Note: ds.histogram emits "0 invalid cells" warning which is expected behavior
@@ -47,7 +35,7 @@ test_that("ds.histogram returns expected breaks", {
     440.67042, 521.74222, 602.81403, 683.88584, 764.95764, 846.02945
   )
 
-  expect_almost_equal_list(hist$breaks, expected_breaks)
+  expect_equal(hist$breaks, expected_breaks, tolerance = DS_TOLERANCE)
 })
 
 test_that("ds.histogram returns expected counts", {
@@ -59,7 +47,7 @@ test_that("ds.histogram returns expected counts", {
 
   expected_counts <- c(106, 101, 92, 103, 106, 104, 105, 101, 113, 69)
 
-  expect_almost_equal_list(hist$counts, expected_counts)
+  expect_equal(hist$counts, expected_counts, tolerance = DS_TOLERANCE)
 })
 
 test_that("ds.histogram returns expected density", {
@@ -74,7 +62,7 @@ test_that("ds.histogram returns expected density", {
     0.0012828134, 0.0012951481, 0.0012458092, 0.0013938261, 0.0008510974
   )
 
-  expect_almost_equal_list(hist$density, expected_density)
+  expect_equal(hist$density, expected_density, tolerance = DS_TOLERANCE)
 })
 
 test_that("ds.histogram returns expected mids", {
@@ -89,5 +77,5 @@ test_that("ds.histogram returns expected mids", {
     481.20632, 562.27813, 643.34993, 724.42174, 805.49355
   )
 
-  expect_almost_equal_list(hist$mids, expected_mids)
+  expect_equal(hist$mids, expected_mids, tolerance = DS_TOLERANCE)
 })

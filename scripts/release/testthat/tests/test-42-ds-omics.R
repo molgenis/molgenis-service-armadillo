@@ -161,11 +161,14 @@ test_that("ds.metaGWAS returns expected dimensions", {
   setup_omics_data()
 
   # Ensure GWAS data is prepared
-  tryCatch({
-    dsBaseClient::ds.class("gds.Data1")
-  }, error = function(e) {
-    gwas_prepare_data()
-  })
+  tryCatch(
+    {
+      dsBaseClient::ds.class("gds.Data1")
+    },
+    error = function(e) {
+      gwas_prepare_data()
+    }
+  )
 
   # Run meta GWAS
   gwas_results <- ds.metaGWAS(

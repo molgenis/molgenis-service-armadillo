@@ -137,21 +137,24 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
   skip_if_exposome_excluded()
   setup_exposome_data()
   # Ensure exposome object exists
-  tryCatch({
-    dsBaseClient::ds.class("exposome_object", datasources = conns)
-  }, error = function(e) {
-    ds.loadExposome(
-      exposures = "exposures",
-      phenotypes = "phenotypes",
-      exposures.idcol = "idnum",
-      phenotypes.idcol = "idnum",
-      description = "description",
-      description.expCol = "Exposure",
-      description.famCol = "Family",
-      object_name = "exposome_object",
-      datasources = conns
-    )
-  })
+  tryCatch(
+    {
+      dsBaseClient::ds.class("exposome_object", datasources = conns)
+    },
+    error = function(e) {
+      ds.loadExposome(
+        exposures = "exposures",
+        phenotypes = "phenotypes",
+        exposures.idcol = "idnum",
+        phenotypes.idcol = "idnum",
+        description = "description",
+        description.expCol = "Exposure",
+        description.famCol = "Family",
+        object_name = "exposome_object",
+        datasources = conns
+      )
+    }
+  )
 
   vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = conns)
 

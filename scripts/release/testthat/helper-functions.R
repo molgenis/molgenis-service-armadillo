@@ -62,36 +62,6 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   return(response)
 }
 
-#' GET request to Armadillo API with authentication
-#'
-#' @param endpoint API endpoint
-#' @param key Password or token
-#' @param auth_type "basic" or "bearer"
-#' @param url Armadillo URL (defaults to global armadillo_url if not provided)
-#' @param user User email for error messages (defaults to "unknown")
-#' @return Response content
-get_from_api_with_header <- function(endpoint, key, auth_type, url = NULL, user = "unknown") {
-  # Use global armadillo_url if url not provided (for backward compatibility with setup-profiles.R)
-  if (is.null(url) || missing(url)) {
-    if (exists("armadillo_url", envir = .GlobalEnv)) {
-      url <- get("armadillo_url", envir = .GlobalEnv)
-    } else {
-      stop("url parameter is required and global armadillo_url is not set")
-    }
-  }
-  auth_header <- get_auth_header(auth_type, key)
-  response <- httr::GET(
-    paste0(url, endpoint),
-    config = c(httr::add_headers(auth_header))
-  )
-  if (response$status_code == 403) {
-    stop(sprintf("Permission denied. Is user [%s] admin?", user))
-  } else if (response$status_code != 200) {
-    stop(sprintf("Cannot retrieve data from endpoint [%s]: %s", endpoint, httr::content(response)$message))
-  }
-  return(httr::content(response))
-}
-
 # -----------------------------------------------------------------------------
 # User Management Functions
 # -----------------------------------------------------------------------------
@@ -107,7 +77,7 @@ set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
   args <- list(email = user, admin = isAdmin, projects = required_projects)
   response <- put_to_api("access/users", admin_pwd, "basic", args, url)
   if (response$status_code != 204) {
-    cli::cli_alert_warning("Altering OIDC user failed, please do this manually")  # Keep as warning - always show
+    cli::cli_alert_warning("Altering OIDC user failed, please do this manually") # Keep as warning - always show
   }
 }
 
@@ -146,7 +116,7 @@ set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, 
 #' @param ADMIN_MODE Whether using admin mode
 #' @return DSI login data
 create_dsi_builder <- function(server = "armadillo", url, profile, password = "",
-                                token = "", table = "", resource = "", ADMIN_MODE) {
+                               token = "", table = "", resource = "", ADMIN_MODE) {
   builder <- DSI::newDSLoginBuilder()
 
   if (ADMIN_MODE) {
@@ -282,37 +252,4 @@ resolve_many_resources <- function(resource_names, conns) {
       expr = as.symbol(paste0("as.resource.data.frame(", x, ")"))
     ))
   })
-}
-
-# -----------------------------------------------------------------------------
-# Xenon Error Messages
-# -----------------------------------------------------------------------------
-
-#' Standard error messages for xenon tests
-xenon_fail_msg <- list(
-  srv_class = "did not create a serverside object with the expected class",
-  clt_class = "did not create a clientside object with the expected class",
-  clt_var = "did not create a clientside object with the expected variable names",
-  clt_list_names = "did not return a clientside list with the expected names",
-  clt_dim = "did not return a clientside object with the expected dimensions",
-  srv_dim = "did not return a serverside object with the expected dimensions",
-  srv_lvl = "did not return a serverside object with the expected levels",
-  clt_grp = "did not return a clientside object with the expected number of groups",
-  srv_var = "did not create a serverside object with the expected variable names"
-)
-
-# -----------------------------------------------------------------------------
-# Parquet Reading Helper
-# -----------------------------------------------------------------------------
-
-#' Read parquet file with logging
-#'
-#' @param file_path Relative path to parquet file (without .parquet extension)
-#' @param dest Base directory
-#' @return Data frame from parquet file
-read_parquet_with_message <- function(file_path, dest) {
-  cli_verbose_info(sprintf("Reading %s...", file_path))
-  out <- arrow::read_parquet(paste0(dest, file_path, ".parquet"))
-  cli_verbose_success(sprintf("%s read", file_path))
-  return(out)
 }

@@ -52,30 +52,33 @@ test_that("data can be prepared for lasso", {
 test_that("ds.LassoCov_Train returns expected output", {
   skip_if_ds_mtl_excluded()
   # Ensure data is prepared
-  tryCatch({
-    dsBaseClient::ds.class("x_mat", datasources = conns)
-  }, error = function(e) {
-    dsBaseClient::ds.dataFrameSubset(
-      V1 = "nonrep$row_id",
-      V2 = "nonrep$row_id",
-      Boolean.operator = "==",
-      df.name = "nonrep",
-      keep.cols = c(5, 9, 13, 17),
-      newobj = "x_df",
-      datasources = conns
-    )
-    dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns)
-    dsBaseClient::ds.dataFrameSubset(
-      V1 = "nonrep$row_id",
-      V2 = "nonrep$row_id",
-      Boolean.operator = "==",
-      df.name = "nonrep",
-      keep.cols = c(21),
-      newobj = "y_df",
-      datasources = conns
-    )
-    dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns)
-  })
+  tryCatch(
+    {
+      dsBaseClient::ds.class("x_mat", datasources = conns)
+    },
+    error = function(e) {
+      dsBaseClient::ds.dataFrameSubset(
+        V1 = "nonrep$row_id",
+        V2 = "nonrep$row_id",
+        Boolean.operator = "==",
+        df.name = "nonrep",
+        keep.cols = c(5, 9, 13, 17),
+        newobj = "x_df",
+        datasources = conns
+      )
+      dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns)
+      dsBaseClient::ds.dataFrameSubset(
+        V1 = "nonrep$row_id",
+        V2 = "nonrep$row_id",
+        Boolean.operator = "==",
+        df.name = "nonrep",
+        keep.cols = c(21),
+        newobj = "y_df",
+        datasources = conns
+      )
+      dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns)
+    }
+  )
 
   # Run Lasso with covariance
   lasso_results <- ds.LassoCov_Train(

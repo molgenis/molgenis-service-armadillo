@@ -103,19 +103,19 @@ get_test_patterns <- function(names) {
 # Force ANSI colors and interactive terminal handling
 Sys.setenv(CLI_NO_COLORS = "false")
 options(
-  cli.num_colors = 256,           # Enable 256 colors
-  crayon.enabled = TRUE,          # Enable crayon colors
-  cli.dynamic = TRUE,             # Enable dynamic console updates
-  rlang_interactive = TRUE,       # Pretend we're interactive for better output
+  cli.num_colors = 256, # Enable 256 colors
+  crayon.enabled = TRUE, # Enable crayon colors
+  cli.dynamic = TRUE, # Enable dynamic console updates
+  rlang_interactive = TRUE, # Pretend we're interactive for better output
   testthat.default_check_reporter = "progress"
 )
 
 # Show full error messages (no truncation)
 options(
-  warning.length = 8170,          # Max warning message length
-  width = 200,                    # Console width for wrapping
-  testthat.progress.max_fails = Inf,  # Show all failures, don't truncate
-  rlang_backtrace_on_error = "full"   # Full backtraces on error
+  warning.length = 8170, # Max warning message length
+  width = 200, # Console width for wrapping
+  testthat.progress.max_fails = Inf, # Show all failures, don't truncate
+  rlang_backtrace_on_error = "full" # Full backtraces on error
 )
 
 cat("
@@ -419,20 +419,23 @@ run_teardown <- function() {
   # 1. Re-add admin permissions to user (if in OIDC mode)
   if (!is.null(config) && !config$ADMIN_MODE && config$update_auto == "y") {
     restore_success <- FALSE
-    tryCatch({
-      set_user(
-        user = config$user,
-        admin_pwd = config$admin_pwd,
-        isAdmin = TRUE,
-        required_projects = list(test_env$project),
-        url = config$armadillo_url
-      )
-      cli::cli_alert_success("Restored admin permissions")
-      restore_success <- TRUE
-    }, error = function(e) {
-      cli::cli_alert_danger("FAILED to restore admin permissions!")
-      cli::cli_alert_warning(sprintf("Error: %s", e$message))
-    })
+    tryCatch(
+      {
+        set_user(
+          user = config$user,
+          admin_pwd = config$admin_pwd,
+          isAdmin = TRUE,
+          required_projects = list(test_env$project),
+          url = config$armadillo_url
+        )
+        cli::cli_alert_success("Restored admin permissions")
+        restore_success <- TRUE
+      },
+      error = function(e) {
+        cli::cli_alert_danger("FAILED to restore admin permissions!")
+        cli::cli_alert_warning(sprintf("Error: %s", e$message))
+      }
+    )
 
     if (!restore_success) {
       cli::cli_alert_danger("========================================")
@@ -455,41 +458,50 @@ run_teardown <- function() {
     cli_verbose_info(sprintf("Deleting test project [%s]...", test_env$project))
 
     # First try with existing session (token might still be valid)
-    delete_success <- tryCatch({
-      # Suppress armadillo's own "Deleted project" message
-      suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
-      cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
-      TRUE
-    }, error = function(e) {
-      cli_verbose_info("Existing session expired, re-authenticating...")
-      FALSE
-    })
+    delete_success <- tryCatch(
+      {
+        # Suppress armadillo's own "Deleted project" message
+        suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
+        cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
+        TRUE
+      },
+      error = function(e) {
+        cli_verbose_info("Existing session expired, re-authenticating...")
+        FALSE
+      }
+    )
 
     # If that failed, re-authenticate and try again
     if (!delete_success && !is.null(config)) {
-      tryCatch({
-        if (config$ADMIN_MODE) {
-          MolgenisArmadillo::armadillo.login_basic(config$armadillo_url, "admin", config$admin_pwd)
-        } else {
-          MolgenisArmadillo::armadillo.login(config$armadillo_url)
+      tryCatch(
+        {
+          if (config$ADMIN_MODE) {
+            MolgenisArmadillo::armadillo.login_basic(config$armadillo_url, "admin", config$admin_pwd)
+          } else {
+            MolgenisArmadillo::armadillo.login(config$armadillo_url)
+          }
+          suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
+          cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
+        },
+        error = function(e) {
+          cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
         }
-        suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
-        cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
-      }, error = function(e) {
-        cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
-      })
+      )
     }
   }
 
   # 3. Logout from DataSHIELD connections
   if (!is.null(test_env$conns)) {
-    tryCatch({
-      # Suppress the DSI progress bar output
-      suppressMessages(DSI::datashield.logout(test_env$conns))
-      cli::cli_alert_success("Logged out from DataSHIELD")
-    }, error = function(e) {
-      cli::cli_alert_warning(sprintf("Logout error: %s", e$message))
-    })
+    tryCatch(
+      {
+        # Suppress the DSI progress bar output
+        suppressMessages(DSI::datashield.logout(test_env$conns))
+        cli::cli_alert_success("Logged out from DataSHIELD")
+      },
+      error = function(e) {
+        cli::cli_alert_warning(sprintf("Logout error: %s", e$message))
+      }
+    )
   }
 }
 

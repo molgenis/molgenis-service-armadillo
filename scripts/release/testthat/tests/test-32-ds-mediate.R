@@ -81,18 +81,21 @@ test_that("ds.neModel creates object with expected class", {
   skip_if_ds_mediate_excluded()
   # This test depends on expData from previous test
   # If running in isolation, we need to set up expData first
-  tryCatch({
-    dsBaseClient::ds.class("expData", datasources = conns)
-  }, error = function(e) {
-    dsBaseClient::ds.glmSLMA(
-      formula = "agebirth_m_y ~ ethn3_m + sex",
-      family = "gaussian",
-      dataName = "nonrep",
-      newobj = "med.fit.1b",
-      datasources = conns
-    )
-    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
-  })
+  tryCatch(
+    {
+      dsBaseClient::ds.class("expData", datasources = conns)
+    },
+    error = function(e) {
+      dsBaseClient::ds.glmSLMA(
+        formula = "agebirth_m_y ~ ethn3_m + sex",
+        family = "gaussian",
+        dataName = "nonrep",
+        newobj = "med.fit.1b",
+        datasources = conns
+      )
+      ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
+    }
+  )
 
   # Fit model
   med.out.1b <- ds.neModel(
@@ -136,27 +139,30 @@ test_that("ds.neImpute creates object with expected class", {
 test_that("ds.neLht returns object with expected class", {
   skip_if_ds_mediate_excluded()
   # Ensure med.out.1b exists
-  tryCatch({
-    dsBaseClient::ds.class("med.out.1b", datasources = conns)
-  }, error = function(e) {
-    # Set up if not exists
-    dsBaseClient::ds.glmSLMA(
-      formula = "agebirth_m_y ~ ethn3_m + sex",
-      family = "gaussian",
-      dataName = "nonrep",
-      newobj = "med.fit.1b",
-      datasources = conns
-    )
-    ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
-    ds.neModel(
-      formula = "preg_dia ~ ethn3_m0 + ethn3_m1 + sex",
-      family = "gaussian",
-      se = "robust",
-      expData = "expData",
-      newobj = "med.out.1b",
-      datasources = conns
-    )
-  })
+  tryCatch(
+    {
+      dsBaseClient::ds.class("med.out.1b", datasources = conns)
+    },
+    error = function(e) {
+      # Set up if not exists
+      dsBaseClient::ds.glmSLMA(
+        formula = "agebirth_m_y ~ ethn3_m + sex",
+        family = "gaussian",
+        dataName = "nonrep",
+        newobj = "med.fit.1b",
+        datasources = conns
+      )
+      ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns)
+      ds.neModel(
+        formula = "preg_dia ~ ethn3_m0 + ethn3_m1 + sex",
+        family = "gaussian",
+        se = "robust",
+        expData = "expData",
+        newobj = "med.out.1b",
+        datasources = conns
+      )
+    }
+  )
 
   # Run linear hypothesis test
   lht.out.1b <- ds.neLht(

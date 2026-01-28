@@ -178,7 +178,9 @@ ensure_config <- function() {
 
 ensure_tables_downloaded <- function() {
   ensure_config()
-  if (isTRUE(test_env$tables_downloaded)) return(invisible(TRUE))
+  if (isTRUE(test_env$tables_downloaded)) {
+    return(invisible(TRUE))
+  }
 
   cli_verbose_info("Ensuring test tables are available...")
   config <- test_env$config
@@ -196,9 +198,11 @@ ensure_tables_downloaded <- function() {
     create_dir_if_not_exists(config$dest, "survival")
 
     base_url <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%s.parquet"
-    files <- list(c("core", "nonrep"), c("core", "yearlyrep"), c("core", "monthlyrep"),
-                  c("core", "trimesterrep"), c("outcome", "nonrep"), c("outcome", "yearlyrep"),
-                  c("survival", "veteran"))
+    files <- list(
+      c("core", "nonrep"), c("core", "yearlyrep"), c("core", "monthlyrep"),
+      c("core", "trimesterrep"), c("outcome", "nonrep"), c("outcome", "yearlyrep"),
+      c("survival", "veteran")
+    )
 
     for (f in files) {
       download.file(sprintf(base_url, f[1], f[2]), paste0(config$dest, f[1], "/", f[2], ".parquet"), quiet = TRUE)
@@ -216,14 +220,17 @@ ensure_tables_downloaded <- function() {
       stop(sprintf("Required table not found: %s", table_path))
     }
     # Verify file can be read
-    tryCatch({
-      df <- arrow::read_parquet(table_path)
-      if (nrow(df) == 0) {
-        stop(sprintf("Table is empty: %s", table_path))
+    tryCatch(
+      {
+        df <- arrow::read_parquet(table_path)
+        if (nrow(df) == 0) {
+          stop(sprintf("Table is empty: %s", table_path))
+        }
+      },
+      error = function(e) {
+        stop(sprintf("Cannot read table %s: %s", table_path, e$message))
       }
-    }, error = function(e) {
-      stop(sprintf("Cannot read table %s: %s", table_path, e$message))
-    })
+    )
   }
 
   cli_verbose_success("Tables verified")
@@ -233,7 +240,9 @@ ensure_tables_downloaded <- function() {
 
 ensure_resources_downloaded <- function() {
   ensure_config()
-  if (isTRUE(test_env$resources_downloaded)) return(invisible(TRUE))
+  if (isTRUE(test_env$resources_downloaded)) {
+    return(invisible(TRUE))
+  }
 
   cli_verbose_info("Ensuring test resources are available...")
   config <- test_env$config
@@ -272,7 +281,7 @@ ensure_tokens <- function() {
   }
 
   config <- test_env$config
-  armadillo_url <<- config$armadillo_url  # Set global for legacy functions
+  armadillo_url <<- config$armadillo_url # Set global for legacy functions
 
   # -------------------------------------------------------------------------
   # TOKEN 1: Researcher token (for API calls + DSI login)
@@ -311,21 +320,24 @@ ensure_tokens <- function() {
   # -------------------------------------------------------------------------
   cli_verbose_info("Verifying admin permissions...")
 
-  tryCatch({
-    projects <- MolgenisArmadillo::armadillo.list_projects()
-    cli_verbose_success("Admin permissions verified")
-  }, error = function(e) {
-    cli::cli_alert_danger("PERMISSION ERROR: You do not have admin/data manager rights!")
-    cli::cli_alert_warning("This can happen if:")
-    cli::cli_ul(c(
-      "A previous test run failed to restore your permissions in teardown",
-      "Your OIDC token expired",
-      "You were never granted admin rights on this Armadillo instance"
-    ))
-    cli::cli_alert_info(sprintf("Please ask an admin to restore your permissions for: %s", config$user))
-    cli::cli_alert_info(sprintf("Armadillo URL: %s", config$armadillo_url))
-    stop("Cannot proceed without admin permissions. See messages above.")
-  })
+  tryCatch(
+    {
+      projects <- MolgenisArmadillo::armadillo.list_projects()
+      cli_verbose_success("Admin permissions verified")
+    },
+    error = function(e) {
+      cli::cli_alert_danger("PERMISSION ERROR: You do not have admin/data manager rights!")
+      cli::cli_alert_warning("This can happen if:")
+      cli::cli_ul(c(
+        "A previous test run failed to restore your permissions in teardown",
+        "Your OIDC token expired",
+        "You were never granted admin rights on this Armadillo instance"
+      ))
+      cli::cli_alert_info(sprintf("Please ask an admin to restore your permissions for: %s", config$user))
+      cli::cli_alert_info(sprintf("Armadillo URL: %s", config$armadillo_url))
+      stop("Cannot proceed without admin permissions. See messages above.")
+    }
+  )
 
   test_env$tokens_obtained <- TRUE
   invisible(TRUE)
@@ -513,25 +525,14 @@ ensure_researcher_login <- function() {
   cli_verbose_info("Setting up researcher connection...")
   config <- test_env$config
 
-  # Create DSI builder - no table assignment
-  builder <- DSI::newDSLoginBuilder()
-
   # Suppress "Secure HTTP connection is recommended" warning for localhost testing
-  suppressWarnings({
-    if (config$ADMIN_MODE) {
-      builder$append(
-        server = "armadillo", url = config$armadillo_url, profile = config$profile,
-        driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
-      )
-    } else {
-      builder$append(
-        server = "armadillo", url = config$armadillo_url, profile = config$profile,
-        driver = "ArmadilloDriver", token = test_env$token
-      )
-    }
-  })
-
-  logindata <- builder$build()
+  logindata <- suppressWarnings(create_dsi_builder(
+    url = config$armadillo_url,
+    profile = config$profile,
+    password = config$admin_pwd,
+    token = test_env$token,
+    ADMIN_MODE = config$ADMIN_MODE
+  ))
 
   cli_verbose_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
   test_env$conns <- DSI::datashield.login(logins = logindata, assign = FALSE)
@@ -556,27 +557,15 @@ ensure_researcher_login_and_assign <- function() {
   cli_verbose_info("Setting up researcher connection with table assignment...")
   config <- test_env$config
 
-  # Create DSI builder with table assignment
-  builder <- DSI::newDSLoginBuilder()
-
   # Suppress "Secure HTTP connection is recommended" warning for localhost testing
-  suppressWarnings({
-    if (config$ADMIN_MODE) {
-      builder$append(
-        server = "armadillo", url = config$armadillo_url, profile = config$profile,
-        table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
-        driver = "ArmadilloDriver", user = "admin", password = config$admin_pwd
-      )
-    } else {
-      builder$append(
-        server = "armadillo", url = config$armadillo_url, profile = config$profile,
-        table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
-        driver = "ArmadilloDriver", token = test_env$token
-      )
-    }
-  })
-
-  logindata <- builder$build()
+  logindata <- suppressWarnings(create_dsi_builder(
+    url = config$armadillo_url,
+    profile = config$profile,
+    password = config$admin_pwd,
+    token = test_env$token,
+    table = sprintf("%s/2_1-core-1_0/nonrep", test_env$project),
+    ADMIN_MODE = config$ADMIN_MODE
+  ))
 
   cli_verbose_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
   test_env$conns <- DSI::datashield.login(logins = logindata, symbol = "nonrep", assign = TRUE)
