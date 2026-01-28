@@ -78,6 +78,17 @@ setup_exposome_data <- function() {
     ref = exposome_ref
   )
 
+  # Remove admin permissions after upload so resource tests run as non-admin researcher
+  if (config$update_auto == "y") {
+    set_user(
+      user = config$user,
+      admin_pwd = config$admin_pwd,
+      isAdmin = FALSE,
+      required_projects = list(project),
+      url = config$armadillo_url
+    )
+  }
+
   # Assign resources
   assign_many_resources(
     project = project,

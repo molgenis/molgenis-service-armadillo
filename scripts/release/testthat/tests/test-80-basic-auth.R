@@ -18,9 +18,26 @@ skip_if_basic_auth_excluded <- function() {
   }
 }
 
-# In the original release test, datashield.logout(conns) was called before
-# basic auth tests ran. This clears the DSI/DataSHIELD connection state.
-# We replicate that here.
+# Before basic auth tests, replicate the cleanup sequence from the original
+# release test. The original calls dm_clean_up() then datashield.logout() before
+# verify_basic_auth(). The critical step is restoring admin permissions to the
+# OIDC user, which set_researcher_access() removed during researcher test setup.
+# Without this, armadillo.login_basic() does not fully override the existing OIDC
+# session, and subsequent API calls use the non-admin OIDC credentials (403).
+
+# Step 1: Restore admin permissions for the OIDC user (mirrors dm_clean_up)
+cfg <- test_env$config
+if (isTRUE(test_env$researcher_permissions_set) && !cfg$ADMIN_MODE && cfg$admin_pwd != "") {
+  set_user(
+    user = cfg$user,
+    admin_pwd = cfg$admin_pwd,
+    isAdmin = TRUE,
+    required_projects = if (!is.null(test_env$project)) list(test_env$project) else list(),
+    url = cfg$armadillo_url
+  )
+}
+
+# Step 2: Clear DSI/DataSHIELD connection state
 if (!is.null(test_env$conns)) {
   tryCatch(
     suppressMessages(DSI::datashield.logout(test_env$conns)),
@@ -29,9 +46,7 @@ if (!is.null(test_env$conns)) {
   test_env$conns <- NULL
 }
 
-# Do the basic auth login ONCE at file level (before any tests run)
-# This mirrors how the original release test worked
-cfg <- test_env$config
+# Step 3: Basic auth login (once at file level, like the original release test)
 if (cfg$admin_pwd != "") {
   MolgenisArmadillo::armadillo.login_basic(
     cfg$armadillo_url,
