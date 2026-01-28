@@ -332,6 +332,8 @@ ensure_config()
 
 # Show configuration (always - useful for debugging test runs)
 cli::cli_h1("Configuration")
+
+cli::cli_h2("Server")
 cli::cli_ul(c(
   sprintf("URL: %s", test_env$config$armadillo_url),
   sprintf("Version: %s", test_env$config$version),
@@ -339,8 +341,7 @@ cli::cli_ul(c(
   sprintf("Mode: %s", if (test_env$config$ADMIN_MODE) "Admin (basic auth)" else "OIDC")
 ))
 
-# Show library versions (useful for debugging)
-cli::cli_alert_info("Library versions:")
+cli::cli_h2("Libraries")
 cli::cli_ul(c(
   sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
   sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
@@ -351,14 +352,17 @@ cli::cli_ul(c(
   sprintf("dsTidyverseClient: %s", packageVersion("dsTidyverseClient"))
 ))
 
-# Show which tests are being run/skipped
-if (length(skip_args) > 0) {
-  cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
+# Show which tests are being run/skipped (only if filtering is applied)
+if (length(skip_args) > 0 || length(only_args) > 0) {
+  cli::cli_h2("Test selection")
+  if (length(skip_args) > 0) {
+    cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
+  }
+  if (length(only_args) > 0) {
+    cli::cli_alert_info(sprintf("Only running: %s", paste(only_args, collapse = ", ")))
+  }
+  cli_verbose_info(sprintf("Test filter: %s", filter_pattern))
 }
-if (length(only_args) > 0) {
-  cli::cli_alert_info(sprintf("Only running: %s", paste(only_args, collapse = ", ")))
-}
-cli_verbose_info(sprintf("Test filter: %s", filter_pattern))
 
 # Determine what authentication is needed based on test patterns
 # - Researcher tests (20-36): need researcher token + DM login
