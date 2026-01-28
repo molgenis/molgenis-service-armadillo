@@ -4,12 +4,12 @@
 # They run independently and create/delete their own test project.
 
 # Setup: just ensure config is loaded (not full admin setup)
-ensure_config()
+ensure_config
 
 # Skip all tests if basic-auth is excluded
 skip_if_excluded("basic-auth")
 
-config <- config()
+config <- config
 
 # Skip if admin password is not available
 if (config$admin_pwd == "") {

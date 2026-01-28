@@ -5,39 +5,85 @@
 # This script runs the testthat-based release tests with optional filtering.
 #
 # Usage:
-#   Rscript testthat.R                    # Run all tests
-#   Rscript testthat.R <cluster>          # Run a named cluster (see below)
-#   Rscript testthat.R "30-ds-base"       # Run specific test file (regex)
+#   Rscript testthat.R                                    # Run all tests
+#   Rscript testthat.R --only resources                   # Run only resources cluster
+#   Rscript testthat.R --only resources data-manager      # Run resources + data-manager
+#   Rscript testthat.R --skip ds-omics                    # Run all except ds-omics
+#   Rscript testthat.R --skip ds-omics ds-exposome        # Skip multiple tests
+#   Rscript testthat.R --only resources --skip ds-omics   # Resources without ds-omics
+#   Rscript testthat.R --list                             # List available clusters/tests
 #
 # Named clusters:
-#   data-manager   - Data manager setup tests
-#   researcher-all - All researcher tests (ds-base + all ds-packages)
-#   researcher-tab - Researcher tabular data tests (no resources)
-#   researcher-res - Researcher resource tests (exposome, omics)
-#   config         - Configuration validation tests
-#   quick          - Fast tests only (config, downloads, basic-auth)
-#   basic-auth     - Basic authentication tests only
+#   all                  - All tests
+#   data-manager         - Data manager and basic auth tests
+#   researcher-tables    - Researcher tests for tabular data (no resources)
+#   researcher-resources - Researcher tests that use resources (exposome, omics)
 #
-# Environment variables:
-#   SKIP_TESTS - Comma-separated list of tests to skip (e.g., "ds-package-omics,ds-package-mtl")
+# Individual tests (can also be used with --only/--skip):
+#   data-manager, researcher-login, profiles, assigning-tables, assigning-resources,
+#   ds-base, ds-mediate, ds-survival, ds-mtl, ds-exposome, ds-omics, ds-tidyverse,
+#   basic-auth
+#
+# Environment variables (can also be set in .env file):
+#   TEST_ONLY - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
+#   TEST_SKIP - Space-separated list of clusters/tests to skip (e.g., "ds-omics ds-exposome")
 #   See .env file for full configuration options
 
 # -----------------------------------------------------------------------------
 # Named test clusters
 # -----------------------------------------------------------------------------
 
+# Named test clusters (groups of tests)
 TEST_CLUSTERS <- list(
-  # Role-based clusters
-  `data-manager`    = "10-admin-setup",
-  `researcher-all`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|34-ds-package|35-ds-package|36-ds-package",
-  `researcher-tab`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|36-ds-package",
-  `researcher-res`  = "20-researcher|34-ds-package-exposome|35-ds-package-omics",
+  # All tests
+  all = "10-data-manager|20-researcher-login|21-profiles|22-assigning-tables|23-assigning-resources|30-ds-base|31-ds-mediate|32-ds-survival|33-ds-mtl|34-ds-exposome|35-ds-omics|36-ds-tidyverse|80-basic-auth",
 
-  # Setup and utility clusters
-  config            = "01-config|02-downloads",
-  `basic-auth`      = "80-basic-auth",
-  quick             = "01-config|02-downloads|80-basic-auth"
+  # Data manager tests (includes basic-auth)
+  `data-manager` = "10-data-manager|80-basic-auth",
+
+  # Researcher tests for tabular data (no resources)
+  `researcher-tables` = "20-researcher-login|21-profiles|22-assigning-tables|30-ds-base|31-ds-mediate|32-ds-survival|33-ds-mtl|36-ds-tidyverse",
+
+  # Researcher tests that use resources (no table assignment needed)
+  `researcher-resources` = "20-researcher-login|21-profiles|23-assigning-resources|34-ds-exposome|35-ds-omics"
 )
+
+# Individual test mappings (test name -> file pattern)
+TEST_INDIVIDUALS <- list(
+  `data-manager`        = "10-data-manager",
+  `researcher-login`    = "20-researcher-login",
+  profiles              = "21-profiles",
+  `assigning-tables`    = "22-assigning-tables",
+  `assigning-resources` = "23-assigning-resources",
+  `ds-base`             = "30-ds-base",
+  `ds-mediate`          = "31-ds-mediate",
+  `ds-survival`         = "32-ds-survival",
+  `ds-mtl`              = "33-ds-mtl",
+  `ds-exposome`         = "34-ds-exposome",
+  `ds-omics`            = "35-ds-omics",
+  `ds-tidyverse`        = "36-ds-tidyverse",
+  `basic-auth`          = "80-basic-auth"
+)
+
+# Helper function to resolve a name to its pattern(s)
+resolve_test_name <- function(name) {
+  if (name %in% names(TEST_CLUSTERS)) {
+    return(TEST_CLUSTERS[[name]])
+  } else if (name %in% names(TEST_INDIVIDUALS)) {
+    return(TEST_INDIVIDUALS[[name]])
+  } else {
+    # Assume it's a raw pattern
+    return(name)
+  }
+}
+
+# Helper function to get all test patterns from a list of names
+get_test_patterns <- function(names) {
+  patterns <- sapply(names, resolve_test_name)
+  # Split any pipe-separated patterns and flatten
+  all_patterns <- unlist(strsplit(patterns, "\\|"))
+  unique(all_patterns)
+}
 
 # -----------------------------------------------------------------------------
 # Enable colors and full error output
@@ -150,30 +196,107 @@ source("helper-expectations.R")
 cli::cli_alert_success("Helper files loaded")
 
 # -----------------------------------------------------------------------------
-# Parse command line arguments
+# Parse command line arguments and environment variables
 # -----------------------------------------------------------------------------
 
 args <- commandArgs(trailingOnly = TRUE)
-filter_pattern <- if (length(args) > 0) args[1] else NULL
 
-# Check if the argument is a named cluster
-if (!is.null(filter_pattern) && filter_pattern %in% names(TEST_CLUSTERS)) {
-  cluster_name <- filter_pattern
-  filter_pattern <- TEST_CLUSTERS[[cluster_name]]
-  cli::cli_alert_info(sprintf("Running cluster '%s': %s", cluster_name, filter_pattern))
-} else if (!is.null(filter_pattern)) {
-  cli::cli_alert_info(sprintf("Test filter pattern: %s", filter_pattern))
+# Show help if requested
+if (any(args %in% c("--help", "-h", "help"))) {
+  cli::cli_h2("Usage")
+  cli::cli_text("  Rscript testthat.R [options]")
+  cli::cli_text("")
+  cli::cli_h2("Options")
+  cli::cli_text("  --only <names>   Run only specified clusters/tests (space-separated)")
+  cli::cli_text("  --skip <names>   Skip specified clusters/tests (space-separated)")
+  cli::cli_text("  --list           List available clusters and tests")
+  cli::cli_text("  --help           Show this help message")
+  cli::cli_text("")
+  cli::cli_h2("Examples")
+  cli::cli_text("  Rscript testthat.R                                  # Run all tests")
+  cli::cli_text("  Rscript testthat.R --only resources                 # Run resources cluster")
+  cli::cli_text("  Rscript testthat.R --only resources data-manager    # Run multiple clusters")
+  cli::cli_text("  Rscript testthat.R --skip ds-omics ds-exposome      # Skip specific tests")
+  cli::cli_text("  Rscript testthat.R --only resources --skip ds-omics # Combine --only and --skip")
+  quit(status = 0)
 }
 
-# Show available clusters if --help is passed
-if (!is.null(filter_pattern) && filter_pattern %in% c("--help", "-h", "help")) {
-  cli::cli_h2("Available test clusters")
+# Show list if requested
+if (any(args %in% c("--list", "-l", "list"))) {
+  cli::cli_h2("Available clusters")
   for (name in names(TEST_CLUSTERS)) {
-    cli::cli_alert_info(sprintf("  %-12s %s", name, TEST_CLUSTERS[[name]]))
+    cli::cli_text(sprintf("  %-20s %s", name, TEST_CLUSTERS[[name]]))
   }
   cli::cli_text("")
-  cli::cli_alert_info("Usage: Rscript testthat.R [cluster|pattern]")
+  cli::cli_h2("Individual tests")
+  for (name in names(TEST_INDIVIDUALS)) {
+    cli::cli_text(sprintf("  %-20s %s", name, TEST_INDIVIDUALS[[name]]))
+  }
   quit(status = 0)
+}
+
+# Parse --only and --skip arguments
+parse_flag_values <- function(args, flag) {
+  values <- c()
+  capture <- FALSE
+  for (arg in args) {
+    if (arg == flag) {
+      capture <- TRUE
+    } else if (startsWith(arg, "--")) {
+      capture <- FALSE
+    } else if (capture) {
+      values <- c(values, arg)
+    }
+  }
+  values
+}
+
+only_args <- parse_flag_values(args, "--only")
+skip_args <- parse_flag_values(args, "--skip")
+
+# Also check environment variables (set in .env file)
+env_only <- Sys.getenv("TEST_ONLY", "")
+env_skip <- Sys.getenv("TEST_SKIP", "")
+
+if (env_only != "") {
+  env_only_values <- strsplit(trimws(env_only), "\\s+")[[1]]
+  only_args <- c(only_args, env_only_values)
+  cli::cli_alert_info(sprintf("TEST_ONLY from env: %s", env_only))
+}
+
+if (env_skip != "") {
+  env_skip_values <- strsplit(trimws(env_skip), "\\s+")[[1]]
+  skip_args <- c(skip_args, env_skip_values)
+  cli::cli_alert_info(sprintf("TEST_SKIP from env: %s", env_skip))
+}
+
+# Build the filter pattern
+if (length(only_args) > 0) {
+  # Get all patterns from --only arguments
+  only_patterns <- get_test_patterns(only_args)
+  cli::cli_alert_info(sprintf("Including: %s", paste(only_args, collapse = ", ")))
+} else {
+  # Default: all tests
+  only_patterns <- get_test_patterns("all")
+}
+
+if (length(skip_args) > 0) {
+  # Remove skip patterns from the only patterns
+  skip_patterns <- get_test_patterns(skip_args)
+  cli::cli_alert_info(sprintf("Skipping: %s", paste(skip_args, collapse = ", ")))
+  only_patterns <- setdiff(only_patterns, skip_patterns)
+}
+
+# Build the final filter pattern (OR of all remaining patterns)
+filter_pattern <- if (length(only_patterns) > 0) {
+  paste(only_patterns, collapse = "|")
+} else {
+  cli::cli_alert_warning("No tests to run after applying filters!")
+  NULL
+}
+
+if (!is.null(filter_pattern)) {
+  cli::cli_alert_success(sprintf("Test filter: %s", filter_pattern))
 }
 
 # -----------------------------------------------------------------------------
