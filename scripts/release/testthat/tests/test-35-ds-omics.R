@@ -86,20 +86,21 @@ setup_omics_data <- function() {
   )
 
   # Resolve GDS resources as objects
+  # Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
   purrr::map(c("chr1", "chr2"), function(x) {
-    DSI::datashield.assign.expr(
+    suppressMessages(DSI::datashield.assign.expr(
       conns = conns,
       symbol = x,
       expr = as.symbol(paste0("as.resource.object(", x, ")"))
-    )
+    ))
   })
 
   # Resolve phenotype as data frame
-  DSI::datashield.assign.expr(
+  suppressMessages(DSI::datashield.assign.expr(
     conns = conns,
     symbol = "pheno_object",
     expr = quote(as.resource.data.frame(ega_phenotypes))
-  )
+  ))
 
   test_env$omics_setup <- TRUE
   invisible(TRUE)

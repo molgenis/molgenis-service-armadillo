@@ -14,14 +14,15 @@ skip_if_ds_survival_excluded <- function() {
 }
 
 # Helper to assign survival data
+# Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
 assign_survival_data <- function() {
   data_path <- "/survival/veteran"
 
-  DSI::datashield.assign.table(
+  suppressMessages(DSI::datashield.assign.table(
     conns,
     "survival",
     sprintf("%s%s", project, data_path)
-  )
+  ))
 }
 
 test_that("survival data can be assigned", {

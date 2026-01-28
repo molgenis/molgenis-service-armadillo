@@ -261,10 +261,11 @@ upload_many_resources <- function(project, resource, folder, ref) {
 #' @param folder Folder name
 #' @param ref Reference tibble
 #' @param conns DataSHIELD connections
+#' @note suppressMessages hides "Data in all studies were valid" which is expected behavior
 assign_many_resources <- function(project, folder, ref, conns) {
   purrr::map(ref$object_name, function(x) {
     exp_resource_path <- paste0(project, "/", folder, "/", x)
-    DSI::datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
+    suppressMessages(DSI::datashield.assign.resource(conns, resource = exp_resource_path, symbol = x))
   })
 }
 
@@ -272,13 +273,14 @@ assign_many_resources <- function(project, folder, ref, conns) {
 #'
 #' @param resource_names Vector of resource names
 #' @param conns DataSHIELD connections
+#' @note suppressMessages hides "Data in all studies were valid" which is expected behavior
 resolve_many_resources <- function(resource_names, conns) {
   purrr::map(resource_names, function(x) {
-    DSI::datashield.assign.expr(
+    suppressMessages(DSI::datashield.assign.expr(
       conns,
       symbol = x,
       expr = as.symbol(paste0("as.resource.data.frame(", x, ")"))
-    )
+    ))
   })
 }
 

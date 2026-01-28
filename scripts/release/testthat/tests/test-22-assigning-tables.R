@@ -10,14 +10,16 @@ skip_if_assigning_tables_excluded <- function() {
   skip_if_excluded("assigning-tables")
 }
 
+# Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
+
 test_that("table can be assigned", {
   skip_if_assigning_tables_excluded()
   # Assign a table
-  DSI::datashield.assign.table(
+  suppressMessages(DSI::datashield.assign.table(
     conns,
     "test_nonrep",
     sprintf("%s/2_1-core-1_0/nonrep", project)
-  )
+  ))
 
   # Verify it's a data frame
   datatype <- dsBaseClient::ds.class(x = "test_nonrep", datasources = conns)
@@ -29,10 +31,10 @@ test_that("expression can be assigned", {
   skip_if_assigning_tables_excluded()
   # Assign an expression (extracting a column)
   expect_no_error({
-    DSI::datashield.assign.expr(
+    suppressMessages(DSI::datashield.assign.expr(
       conns,
       "test_x",
       expr = as.symbol("nonrep$coh_country")
-    )
+    ))
   })
 })

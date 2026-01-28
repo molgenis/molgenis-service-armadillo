@@ -32,16 +32,18 @@ test_that("resource can be seen", {
   )
 })
 
+# Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
+
 test_that("resource can be assigned", {
   skip_if_resources_excluded()
   full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
 
   # Assign the resource
-  DSI::datashield.assign.resource(
+  suppressMessages(DSI::datashield.assign.resource(
     conns,
     resource = full_resource_path,
     symbol = "eSet_0y_EUR"
-  )
+  ))
 
   # Check class
   resource_class <- dsBaseClient::ds.class("eSet_0y_EUR", datasources = conns)

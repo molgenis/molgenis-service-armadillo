@@ -14,14 +14,15 @@ skip_if_ds_tidyverse_excluded <- function() {
 }
 
 # Helper to assign tidyverse test data
+# Note: suppressMessages hides "Data in all studies were valid" which is expected behavior
 assign_tidyverse_data <- function() {
   data_path <- "/tidyverse"
 
-  DSI::datashield.assign.table(
+  suppressMessages(DSI::datashield.assign.table(
     conns,
     "mtcars",
     sprintf("%s%s/mtcars", project, data_path)
-  )
+  ))
 }
 
 test_that("tidyverse data can be assigned", {
