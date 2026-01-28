@@ -331,10 +331,13 @@ if (!is.null(filter_pattern) && verbose_mode) {
   cli::cli_alert_info(sprintf("Test filter: %s", filter_pattern))
 }
 
-# Enable DataSHIELD progress output in verbose mode
+# Control DataSHIELD output based on verbose mode
 if (verbose_mode) {
   cli::cli_alert_info("Verbose mode enabled")
   options(datashield.progress = 1)
+} else {
+  # Suppress DataSHIELD validation messages in non-verbose mode
+  options(datashield.progress = 0)
 }
 
 # -----------------------------------------------------------------------------
