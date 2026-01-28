@@ -99,11 +99,13 @@ get_test_patterns <- function(names) {
 # Enable colors and full error output
 # -----------------------------------------------------------------------------
 
-# Force ANSI colors in terminal output
+# Force ANSI colors and interactive terminal handling
 Sys.setenv(CLI_NO_COLORS = "false")
 options(
   cli.num_colors = 256,           # Enable 256 colors
   crayon.enabled = TRUE,          # Enable crayon colors
+  cli.dynamic = TRUE,             # Enable dynamic console updates
+  rlang_interactive = TRUE,       # Pretend we're interactive for better output
   testthat.default_check_reporter = "progress"
 )
 
