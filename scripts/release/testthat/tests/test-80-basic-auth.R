@@ -2,6 +2,9 @@
 #
 # These tests verify that basic authentication works correctly.
 # They run independently and create/delete their own test project.
+#
+# Note: Unlike other tests, these do ONE login at file level (like the original
+# release test) rather than re-logging in each test_that block.
 
 # Setup: just ensure config is loaded (not full admin setup)
 ensure_config()
@@ -15,29 +18,10 @@ skip_if_basic_auth_excluded <- function() {
   }
 }
 
-test_that("admin can login with basic authentication", {
-  skip_if_basic_auth_excluded()
-  cfg <- test_env$config
-  # Fresh login with basic auth (overrides any previous OIDC session)
-  expect_no_error({
-    MolgenisArmadillo::armadillo.login_basic(
-      cfg$armadillo_url,
-      "admin",
-      cfg$admin_pwd
-    )
-  })
-})
-
-# Helper to ensure basic auth session is active
-# Uses test_env$config directly to ensure we have current values
-# Forces a fresh session by logging out first (clears any OIDC session state)
-ensure_basic_auth_session <- function() {
-  cfg <- test_env$config
-  # Clear any existing session first
-  tryCatch(
-    MolgenisArmadillo::armadillo.logout(cfg$armadillo_url),
-    error = function(e) NULL  # Ignore logout errors
-  )
+# Do the basic auth login ONCE at file level (before any tests run)
+# This mirrors how the original release test worked
+cfg <- test_env$config
+if (cfg$admin_pwd != "") {
   MolgenisArmadillo::armadillo.login_basic(
     cfg$armadillo_url,
     "admin",
@@ -45,9 +29,16 @@ ensure_basic_auth_session <- function() {
   )
 }
 
+test_that("admin can login with basic authentication", {
+  skip_if_basic_auth_excluded()
+  # Login already happened above, just verify we can list projects
+  expect_no_error({
+    MolgenisArmadillo::armadillo.list_projects()
+  })
+})
+
 test_that("admin can create project with basic auth", {
   skip_if_basic_auth_excluded()
-  ensure_basic_auth_session()
   # Generate unique project name for this test
   current_projects <- MolgenisArmadillo::armadillo.list_projects()
   basic_auth_project <- stringi::stri_rand_strings(1, 10, "[a-z0-9]")
@@ -72,7 +63,6 @@ test_that("admin can create project with basic auth", {
 
 test_that("admin can upload data with basic auth", {
   skip_if_basic_auth_excluded()
-  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
   cfg <- test_env$config
 
@@ -94,7 +84,6 @@ test_that("admin can upload data with basic auth", {
 
 test_that("uploaded table exists", {
   skip_if_basic_auth_excluded()
-  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
   table <- sprintf("%s/2_1-core-1_0/nonrep", project)
 
@@ -108,7 +97,6 @@ test_that("uploaded table exists", {
 
 test_that("admin can delete project with basic auth", {
   skip_if_basic_auth_excluded()
-  ensure_basic_auth_session()
   project <- test_env$basic_auth_project
 
   expect_no_error({
