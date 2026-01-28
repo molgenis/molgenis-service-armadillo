@@ -9,11 +9,9 @@ ensure_researcher_login()
 skip_if_excluded("ds-base")
 
 test_that("ds.mean returns expected values", {
-  conns <- test_env$conns
-
   ds_mean <- dsBaseClient::ds.mean(
     "nonrep$coh_country",
-    datasources = conns
+    datasources = conns()
   )$Mean
 
   # Verify mean values
@@ -32,11 +30,9 @@ test_that("ds.mean returns expected values", {
 })
 
 test_that("ds.histogram returns expected breaks", {
-  conns <- test_env$conns
-
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_breaks <- c(
@@ -48,11 +44,9 @@ test_that("ds.histogram returns expected breaks", {
 })
 
 test_that("ds.histogram returns expected counts", {
-  conns <- test_env$conns
-
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_counts <- c(106, 101, 92, 103, 106, 104, 105, 101, 113, 69)
@@ -61,11 +55,9 @@ test_that("ds.histogram returns expected counts", {
 })
 
 test_that("ds.histogram returns expected density", {
-  conns <- test_env$conns
-
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_density <- c(
@@ -77,11 +69,9 @@ test_that("ds.histogram returns expected density", {
 })
 
 test_that("ds.histogram returns expected mids", {
-  conns <- test_env$conns
-
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_mids <- c(

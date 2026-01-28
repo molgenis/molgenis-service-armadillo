@@ -44,8 +44,8 @@ ensure_config <- function() {
     armadillo_url <- "https://armadillo-demo.molgenis.net/"
   }
 
-  if (stringr::str_detect(armadillo_url, "localhost") && !any(skip_tests %in% "xenon-omics")) {
-    skip_tests <- c(skip_tests, "xenon-omics")
+  if (stringr::str_detect(armadillo_url, "localhost") && !any(skip_tests %in% "ds-package-omics")) {
+    skip_tests <- c(skip_tests, "ds-package-omics")
   }
 
   interactive <- Sys.getenv("INTERACTIVE") != "N"
@@ -383,6 +383,28 @@ ensure_researcher_login <- function() {
 # -----------------------------------------------------------------------------
 # Helper functions
 # -----------------------------------------------------------------------------
+
+#' Get the DataSHIELD connections
+#'
+#' Shorthand for test_env$conns to reduce verbosity in test files.
+#' @return DSI connection object
+conns <- function() {
+  test_env$conns
+}
+
+#' Get the test project name
+#'
+#' @return Project name string
+project <- function() {
+  test_env$project
+}
+
+#' Get the test configuration
+#'
+#' @return Configuration list
+config <- function() {
+  test_env$config
+}
 
 should_skip_test <- function(test_name) {
   ensure_config()

@@ -13,7 +13,7 @@ test_that("tables can be downloaded or found locally", {
   expect_true(test_env$tables_downloaded)
 
   # Check that parquet files exist
-  config <- test_env$config
+  config <- config()
   dest <- if (dir.exists(config$default_parquet_path)) {
     config$default_parquet_path
   } else {
@@ -35,7 +35,7 @@ test_that("core parquet files can be read", {
 
   ensure_tables_downloaded()
 
-  config <- test_env$config
+  config <- config()
   dest <- if (dir.exists(config$default_parquet_path)) {
     config$default_parquet_path
   } else {
@@ -52,7 +52,7 @@ test_that("survival parquet file exists and can be read", {
 
   ensure_tables_downloaded()
 
-  config <- test_env$config
+  config <- config()
   dest <- if (dir.exists(config$default_parquet_path)) {
     config$default_parquet_path
   } else {
@@ -76,7 +76,7 @@ test_that("resources can be downloaded or found locally", {
 
   expect_true(test_env$resources_downloaded)
 
-  config <- test_env$config
+  config <- config()
   expect_true(
     file.exists(config$rda_dir),
     info = sprintf("Resource file should exist: %s", config$rda_dir)

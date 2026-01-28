@@ -23,7 +23,7 @@ test_that("connection to specific profile works", {
 
   ensure_researcher_login()
 
-  config <- test_env$config
+  config <- config()
 
   # Create a test connection to verify profile connectivity
   if (config$ADMIN_MODE) {
@@ -54,7 +54,7 @@ test_that("connection without profile specification works", {
 
   ensure_researcher_login()
 
-  config <- test_env$config
+  config <- config()
 
   if (config$ADMIN_MODE) {
     con <- DSMolgenisArmadillo::dsConnect(
@@ -84,7 +84,7 @@ test_that("connection to default profile works", {
 
   ensure_researcher_login()
 
-  config <- test_env$config
+  config <- config()
 
   if (config$ADMIN_MODE) {
     con <- DSMolgenisArmadillo::dsConnect(
@@ -114,18 +114,16 @@ test_that("table can be assigned", {
 
   ensure_researcher_login()
 
-  conns <- test_env$conns
-  project <- test_env$project
 
   # Assign a table
   DSI::datashield.assign.table(
-    conns,
+    conns(),
     "test_nonrep",
-    sprintf("%s/2_1-core-1_0/nonrep", project)
+    sprintf("%s/2_1-core-1_0/nonrep", project())
   )
 
   # Verify it's a data frame
-  datatype <- dsBaseClient::ds.class(x = "test_nonrep", datasources = conns)
+  datatype <- dsBaseClient::ds.class(x = "test_nonrep", datasources = conns())
 
   expect_equal(datatype$armadillo, "data.frame")
 })
@@ -135,12 +133,10 @@ test_that("expression can be assigned", {
 
   ensure_researcher_login()
 
-  conns <- test_env$conns
-
   # Assign an expression (extracting a column)
   expect_no_error({
     DSI::datashield.assign.expr(
-      conns,
+      conns(),
       "test_x",
       expr = as.symbol("nonrep$coh_country")
     )
@@ -152,7 +148,7 @@ test_that("resource can be seen", {
 
   ensure_researcher_login()
 
-  config <- test_env$config
+  config <- config()
 
   # Skip if in admin mode (resources don't work with basic auth)
   if (config$ADMIN_MODE) {
@@ -164,11 +160,9 @@ test_that("resource can be seen", {
     skip(sprintf("Resourcer not available for profile: %s", config$profile))
   }
 
-  conns <- test_env$conns
-  project <- test_env$project
-  full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
+  full_resource_path <- sprintf("%s/ewas/GSE66351_1", project())
 
-  resources <- DSI::datashield.resources(conns = conns)
+  resources <- DSI::datashield.resources(conns = conns())
 
   expect_true(
     full_resource_path %in% resources$armadillo,
@@ -181,7 +175,7 @@ test_that("resource can be assigned", {
 
   ensure_researcher_login()
 
-  config <- test_env$config
+  config <- config()
 
   if (config$ADMIN_MODE) {
     skip("Cannot test resources with basic authentication")
@@ -191,19 +185,17 @@ test_that("resource can be assigned", {
     skip(sprintf("Resourcer not available for profile: %s", config$profile))
   }
 
-  conns <- test_env$conns
-  project <- test_env$project
-  full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
+  full_resource_path <- sprintf("%s/ewas/GSE66351_1", project())
 
   # Assign the resource
   DSI::datashield.assign.resource(
-    conns,
+    conns(),
     resource = full_resource_path,
     symbol = "eSet_0y_EUR"
   )
 
   # Check class
-  resource_class <- dsBaseClient::ds.class("eSet_0y_EUR", datasources = conns)
+  resource_class <- dsBaseClient::ds.class("eSet_0y_EUR", datasources = conns())
 
   expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
 

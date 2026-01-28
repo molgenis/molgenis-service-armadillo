@@ -1,19 +1,17 @@
-# test-33-xenon-mtl.R - dsMTL package tests
+# test-33-ds-package-mtl.R - dsMTL package tests
 #
 # These tests verify that dsMTL functions work correctly.
 
 # Setup: ensure researcher connection is established
 ensure_researcher_login()
 
-# Skip all tests if xenon-mtl is excluded
-skip_if_excluded("xenon-mtl")
+# Skip all tests if ds-package-mtl is excluded
+skip_if_excluded("ds-package-mtl")
 
 # Load the MTL client library
 library(dsMTLClient)
 
 test_that("data can be prepared for lasso", {
-  conns <- test_env$conns
-
   # Create subset for X matrix
   dsBaseClient::ds.dataFrameSubset(
     V1 = "nonrep$row_id",
@@ -25,7 +23,7 @@ test_that("data can be prepared for lasso", {
     datasources = conns
   )
 
-  dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns)
+  dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns())
 
   # Create subset for Y matrix
   dsBaseClient::ds.dataFrameSubset(
@@ -38,22 +36,20 @@ test_that("data can be prepared for lasso", {
     datasources = conns
   )
 
-  dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns)
+  dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns())
 
   # Verify matrices were created
-  x_class <- dsBaseClient::ds.class("x_mat", datasources = conns)
-  y_class <- dsBaseClient::ds.class("y_mat", datasources = conns)
+  x_class <- dsBaseClient::ds.class("x_mat", datasources = conns())
+  y_class <- dsBaseClient::ds.class("y_mat", datasources = conns())
 
   expect_true("matrix" %in% x_class$armadillo)
   expect_true("matrix" %in% y_class$armadillo)
 })
 
 test_that("ds.LassoCov_Train returns expected output", {
-  conns <- test_env$conns
-
   # Ensure data is prepared
   tryCatch({
-    dsBaseClient::ds.class("x_mat", datasources = conns)
+    dsBaseClient::ds.class("x_mat", datasources = conns())
   }, error = function(e) {
     dsBaseClient::ds.dataFrameSubset(
       V1 = "nonrep$row_id",
@@ -64,7 +60,7 @@ test_that("ds.LassoCov_Train returns expected output", {
       newobj = "x_df",
       datasources = conns
     )
-    dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns)
+    dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns())
     dsBaseClient::ds.dataFrameSubset(
       V1 = "nonrep$row_id",
       V2 = "nonrep$row_id",
@@ -74,7 +70,7 @@ test_that("ds.LassoCov_Train returns expected output", {
       newobj = "y_df",
       datasources = conns
     )
-    dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns)
+    dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns())
   })
 
   # Run Lasso with covariance

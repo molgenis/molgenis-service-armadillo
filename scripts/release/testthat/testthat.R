@@ -29,10 +29,9 @@
 TEST_CLUSTERS <- list(
   # Role-based clusters
   `data-manager`    = "10-admin-setup",
-  `researcher-all`  = "20-researcher|30-ds-base|31-xenon|32-xenon|33-xenon|34-xenon|35-xenon|36-tidyverse",
-  `researcher-tab`  = "20-researcher|30-ds-base|31-xenon|32-xenon|33-xenon|36-tidyverse",
-  `researcher-res`  = "20-researcher|34-xenon-exposome|35-xenon-omics",
-
+  `researcher-all`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|34-ds-package|35-ds-package|36-tidyverse",
+  `researcher-tab`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|36-tidyverse",
+  `researcher-res`  = "20-researcher|34-ds-package-exposome|35-ds-package-omics",
 
   # Setup and utility clusters
   config            = "01-config|02-downloads",
