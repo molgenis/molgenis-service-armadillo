@@ -1,6 +1,15 @@
 #!/usr/bin/env Rscript
 #
 # testthat.R - Main test runner for Armadillo release tests
+
+# -----------------------------------------------------------------------------
+# Suppress user .Rprofile for consistent runs across users
+# This must be at the very top, before any other code
+# -----------------------------------------------------------------------------
+local_rprofile <- file.path(getwd(), ".Rprofile")
+if (file.exists(local_rprofile)) {
+  Sys.setenv(R_PROFILE_USER = local_rprofile)
+}
 #
 # This script runs the testthat-based release tests with optional filtering.
 #
@@ -122,9 +131,6 @@ cat("
 
   (testthat version)
 ")
-
-# Print session info for debugging
-print(sessionInfo())
 
 # -----------------------------------------------------------------------------
 # Load required libraries
