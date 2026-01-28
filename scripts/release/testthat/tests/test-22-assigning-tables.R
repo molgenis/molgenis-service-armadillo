@@ -1,0 +1,34 @@
+# test-22-assigning-tables.R - Table and expression assignment tests
+#
+# These tests verify that tables and expressions can be assigned.
+
+# Setup: ensure researcher connection is established
+ensure_researcher_login_and_assign()
+
+# Skip all tests if assigning-tables is excluded
+skip_if_excluded("assigning-tables")
+
+test_that("table can be assigned", {
+  # Assign a table
+  DSI::datashield.assign.table(
+    conns,
+    "test_nonrep",
+    sprintf("%s/2_1-core-1_0/nonrep", project)
+  )
+
+  # Verify it's a data frame
+  datatype <- dsBaseClient::ds.class(x = "test_nonrep", datasources = conns)
+
+  expect_equal(datatype$armadillo, "data.frame")
+})
+
+test_that("expression can be assigned", {
+  # Assign an expression (extracting a column)
+  expect_no_error({
+    DSI::datashield.assign.expr(
+      conns,
+      "test_x",
+      expr = as.symbol("nonrep$coh_country")
+    )
+  })
+})

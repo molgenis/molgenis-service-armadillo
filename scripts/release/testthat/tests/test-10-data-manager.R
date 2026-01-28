@@ -1,4 +1,4 @@
-# test-10-admin-setup.R - Admin setup and data upload tests
+# test-10-data-manager.R - Data manager setup and data upload tests
 #
 # These tests verify that:
 # - Data manager can login
