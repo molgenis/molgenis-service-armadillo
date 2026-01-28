@@ -405,7 +405,8 @@ run_teardown <- function() {
 
     # First try with existing session (token might still be valid)
     delete_success <- tryCatch({
-      MolgenisArmadillo::armadillo.delete_project(test_env$project)
+      # Suppress armadillo's own "Deleted project" message
+      suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
       cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
       TRUE
     }, error = function(e) {
@@ -421,7 +422,7 @@ run_teardown <- function() {
         } else {
           MolgenisArmadillo::armadillo.login(config$armadillo_url)
         }
-        MolgenisArmadillo::armadillo.delete_project(test_env$project)
+        suppressMessages(MolgenisArmadillo::armadillo.delete_project(test_env$project))
         cli::cli_alert_success(sprintf("Deleted project '%s'", test_env$project))
       }, error = function(e) {
         cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
