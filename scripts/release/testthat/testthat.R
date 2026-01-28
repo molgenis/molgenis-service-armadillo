@@ -348,7 +348,7 @@ if (verbose_mode) {
 ensure_config()
 
 # Show configuration (always - useful for debugging test runs)
-cli::cli_h2("Configuration")
+cli::cli_h1("Configuration")
 cli::cli_ul(c(
   sprintf("URL: %s", test_env$config$armadillo_url),
   sprintf("Version: %s", test_env$config$version),
@@ -357,7 +357,7 @@ cli::cli_ul(c(
 ))
 
 # Obtain tokens early (before tests run) so CLI messages aren't captured by testthat
-cli::cli_h2("Authentication")
+cli::cli_h1("Authentication")
 ensure_tokens()
 
 # -----------------------------------------------------------------------------
@@ -365,7 +365,7 @@ ensure_tokens()
 # -----------------------------------------------------------------------------
 
 run_teardown <- function() {
-  cli::cli_h2("Teardown")
+  cli::cli_h1("Teardown")
 
   config <- test_env$config
 
@@ -450,7 +450,7 @@ run_teardown <- function() {
 # Run tests
 # -----------------------------------------------------------------------------
 
-cli::cli_h2("Running tests")
+cli::cli_h1("Running tests")
 
 start_time <- Sys.time()
 
