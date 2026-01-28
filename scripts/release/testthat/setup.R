@@ -58,8 +58,16 @@ ensure_config <- function() {
   armadillo_url <- add_slash_if_not_added(armadillo_url)
 
   if (!RCurl::url.exists(armadillo_url)) {
+    cli::cli_alert_danger(sprintf("URL [%s] is not reachable!", armadillo_url))
+    cli::cli_alert_info("Please check:")
+    cli::cli_ul(c(
+      "Is Armadillo running?",
+      "Is the URL correct in .env file?",
+      "Are you connected to the network/VPN?"
+    ))
     stop(sprintf("URL [%s] doesn't exist", armadillo_url))
   }
+  cli::cli_alert_success(sprintf("Armadillo URL reachable: %s", armadillo_url))
 
   if (!startsWith(armadillo_url, "http")) {
     armadillo_url <- paste0(if (startsWith(armadillo_url, "localhost")) "http://" else "https://", armadillo_url)
@@ -265,6 +273,28 @@ ensure_tokens <- function() {
   }
 
   cli::cli_alert_success("Authentication complete")
+
+  # -------------------------------------------------------------------------
+  # Verify admin/DM rights by attempting to list projects
+  # -------------------------------------------------------------------------
+  cli::cli_alert_info("Verifying admin permissions...")
+
+  tryCatch({
+    projects <- MolgenisArmadillo::armadillo.list_projects()
+    cli::cli_alert_success("Admin permissions verified")
+  }, error = function(e) {
+    cli::cli_alert_danger("PERMISSION ERROR: You do not have admin/data manager rights!")
+    cli::cli_alert_warning("This can happen if:")
+    cli::cli_ul(c(
+      "A previous test run failed to restore your permissions in teardown",
+      "Your OIDC token expired",
+      "You were never granted admin rights on this Armadillo instance"
+    ))
+    cli::cli_alert_info(sprintf("Please ask an admin to restore your permissions for: %s", config$user))
+    cli::cli_alert_info(sprintf("Armadillo URL: %s", config$armadillo_url))
+    stop("Cannot proceed without admin permissions. See messages above.")
+  })
+
   test_env$tokens_obtained <- TRUE
   invisible(TRUE)
 }
@@ -322,6 +352,15 @@ ensure_tables_uploaded <- function() {
   yearlyrep <- arrow::read_parquet(paste0(dest, "core/yearlyrep.parquet"))
   monthlyrep <- arrow::read_parquet(paste0(dest, "core/monthlyrep.parquet"))
   trimesterrep <- arrow::read_parquet(paste0(dest, "core/trimesterrep.parquet"))
+
+  # Validate data integrity (column names check)
+  expected_cols <- c("row_id", "child_id", "age_trimester", "smk_t", "alc_t")
+  if (!identical(colnames(trimesterrep), expected_cols)) {
+    cli::cli_alert_danger("Data integrity check failed!")
+    cli::cli_alert_warning(sprintf("Expected columns: %s", paste(expected_cols, collapse = ", ")))
+    cli::cli_alert_warning(sprintf("Actual columns: %s", paste(colnames(trimesterrep), collapse = ", ")))
+    stop("Trimesterrep column names incorrect - test data may be corrupted")
+  }
 
   MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", nonrep)
   MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", yearlyrep)

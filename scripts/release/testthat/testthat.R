@@ -184,6 +184,15 @@ options(datashield.errors.print = TRUE)
 
 cli::cli_alert_success("Libraries loaded")
 
+# Report key library versions for debugging
+cli::cli_alert_info("Library versions:")
+cli::cli_ul(c(
+  sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
+  sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
+  sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
+  sprintf("DSI: %s", packageVersion("DSI"))
+))
+
 # -----------------------------------------------------------------------------
 # Load helper files
 # -----------------------------------------------------------------------------
@@ -333,6 +342,7 @@ run_teardown <- function() {
   # 1. Re-add admin permissions to user (if in OIDC mode)
   if (!is.null(config) && !config$ADMIN_MODE && config$update_auto == "y") {
     cli::cli_alert_info("Restoring admin permissions...")
+    restore_success <- FALSE
     tryCatch({
       set_user(
         user = config$user,
@@ -342,9 +352,26 @@ run_teardown <- function() {
         url = config$armadillo_url
       )
       cli::cli_alert_success("Admin permissions restored")
+      restore_success <- TRUE
     }, error = function(e) {
-      cli::cli_alert_warning(sprintf("Could not restore admin permissions: %s", e$message))
+      cli::cli_alert_danger("FAILED to restore admin permissions!")
+      cli::cli_alert_warning(sprintf("Error: %s", e$message))
     })
+
+    if (!restore_success) {
+      cli::cli_alert_danger("========================================")
+      cli::cli_alert_danger("MANUAL ACTION REQUIRED!")
+      cli::cli_alert_danger("========================================")
+      cli::cli_alert_warning(sprintf("User '%s' needs admin rights restored.", config$user))
+      cli::cli_alert_info("To fix this manually:")
+      cli::cli_ul(c(
+        sprintf("1. Go to %s", config$armadillo_url),
+        "2. Login as admin (basic auth)",
+        sprintf("3. Go to Users and find '%s'", config$user),
+        "4. Enable 'Admin' checkbox and save"
+      ))
+      cli::cli_alert_danger("========================================")
+    }
   }
 
   # 2. Delete test project if it was created
