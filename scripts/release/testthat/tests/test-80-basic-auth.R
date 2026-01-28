@@ -6,34 +6,36 @@
 # Setup: just ensure config is loaded (not full admin setup)
 ensure_config()
 
-config <- test_config
-
 # Helper to check all skip conditions for this test file
 skip_if_basic_auth_excluded <- function() {
   skip_if_excluded("basic-auth")
-  if (config$admin_pwd == "") {
+  cfg <- test_env$config
+  if (cfg$admin_pwd == "") {
     skip("Admin password not available for basic auth testing")
   }
 }
 
 test_that("admin can login with basic authentication", {
   skip_if_basic_auth_excluded()
+  cfg <- test_env$config
   # Fresh login with basic auth (overrides any previous OIDC session)
   expect_no_error({
     MolgenisArmadillo::armadillo.login_basic(
-      config$armadillo_url,
+      cfg$armadillo_url,
       "admin",
-      config$admin_pwd
+      cfg$admin_pwd
     )
   })
 })
 
 # Helper to ensure basic auth session is active
+# Uses test_env$config directly to ensure we have current values
 ensure_basic_auth_session <- function() {
+  cfg <- test_env$config
   MolgenisArmadillo::armadillo.login_basic(
-    config$armadillo_url,
+    cfg$armadillo_url,
     "admin",
-    config$admin_pwd
+    cfg$admin_pwd
   )
 }
 
@@ -66,12 +68,13 @@ test_that("admin can upload data with basic auth", {
   skip_if_basic_auth_excluded()
   ensure_basic_auth_session()
   project <- test_env$basic_auth_project
+  cfg <- test_env$config
 
   # Read parquet file
-  dest <- if (dir.exists(config$default_parquet_path)) {
-    config$default_parquet_path
+  dest <- if (dir.exists(cfg$default_parquet_path)) {
+    cfg$default_parquet_path
   } else {
-    config$dest
+    cfg$dest
   }
 
   nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
