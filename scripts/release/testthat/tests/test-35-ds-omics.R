@@ -95,7 +95,7 @@ setup_omics_data <- function() {
     ))
   })
 
-  # Resolve phenotype as data frame
+  # Resolve phenotype as data frame (suppressMessages hides validation messages)
   suppressMessages(DSI::datashield.assign.expr(
     conns = conns,
     symbol = "pheno_object",
