@@ -5,10 +5,13 @@
 # Setup: ensure admin setup is complete
 ensure_admin_setup()
 
-# Skip all tests if researcher-login is excluded
-skip_if_excluded("researcher-login")
+# Helper to check all skip conditions for this test file
+skip_if_researcher_login_excluded <- function() {
+  skip_if_excluded("researcher-login")
+}
 
 test_that("researcher can login and establish connection", {
+  skip_if_researcher_login_excluded()
   ensure_researcher_login_and_assign()
 
   expect_false(is.null(test_env$conns))

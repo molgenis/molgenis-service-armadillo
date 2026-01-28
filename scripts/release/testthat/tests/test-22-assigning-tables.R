@@ -5,10 +5,13 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if assigning-tables is excluded
-skip_if_excluded("assigning-tables")
+# Helper to check all skip conditions for this test file
+skip_if_assigning_tables_excluded <- function() {
+  skip_if_excluded("assigning-tables")
+}
 
 test_that("table can be assigned", {
+  skip_if_assigning_tables_excluded()
   # Assign a table
   DSI::datashield.assign.table(
     conns,
@@ -23,6 +26,7 @@ test_that("table can be assigned", {
 })
 
 test_that("expression can be assigned", {
+  skip_if_assigning_tables_excluded()
   # Assign an expression (extracting a column)
   expect_no_error({
     DSI::datashield.assign.expr(

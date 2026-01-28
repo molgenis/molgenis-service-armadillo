@@ -5,11 +5,13 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-survival is excluded
-skip_if_excluded("ds-survival")
-
 # Load the survival client library
 library(dsSurvivalClient)
+
+# Helper to check all skip conditions for this test file
+skip_if_ds_survival_excluded <- function() {
+  skip_if_excluded("ds-survival")
+}
 
 # Helper to assign survival data
 assign_survival_data <- function() {
@@ -23,6 +25,7 @@ assign_survival_data <- function() {
 }
 
 test_that("survival data can be assigned", {
+  skip_if_ds_survival_excluded()
   assign_survival_data()
 
   datatype <- dsBaseClient::ds.class(x = "survival", datasources = conns)
@@ -31,6 +34,7 @@ test_that("survival data can be assigned", {
 })
 
 test_that("ds.Surv creates object with expected class", {
+  skip_if_ds_survival_excluded()
   # Ensure data is assigned
   assign_survival_data()
 
@@ -50,7 +54,7 @@ test_that("ds.Surv creates object with expected class", {
 })
 
 test_that("ds.coxph.SLMA returns expected elements", {
-
+  skip_if_ds_survival_excluded()
   # Ensure survival object exists
   tryCatch({
     dsBaseClient::ds.class("surv_object", datasources = conns)
@@ -80,7 +84,7 @@ test_that("ds.coxph.SLMA returns expected elements", {
 })
 
 test_that("ds.coxphSLMAassign creates object with expected class", {
-
+  skip_if_ds_survival_excluded()
   # Ensure survival object exists
   tryCatch({
     dsBaseClient::ds.class("surv_object", datasources = conns)
@@ -108,7 +112,7 @@ test_that("ds.coxphSLMAassign creates object with expected class", {
 })
 
 test_that("ds.cox.zphSLMA returns expected elements", {
-
+  skip_if_ds_survival_excluded()
   # Ensure coxph object exists
   tryCatch({
     dsBaseClient::ds.class("coxph_serverside", datasources = conns)
@@ -139,7 +143,7 @@ test_that("ds.cox.zphSLMA returns expected elements", {
 })
 
 test_that("ds.coxphSummary returns expected elements", {
-
+  skip_if_ds_survival_excluded()
   # Ensure coxph object exists
   tryCatch({
     dsBaseClient::ds.class("coxph_serverside", datasources = conns)

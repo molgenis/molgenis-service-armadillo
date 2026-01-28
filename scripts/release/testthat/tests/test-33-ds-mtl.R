@@ -5,13 +5,16 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-mtl is excluded
-skip_if_excluded("ds-mtl")
-
 # Load the MTL client library
 library(dsMTLClient)
 
+# Helper to check all skip conditions for this test file
+skip_if_ds_mtl_excluded <- function() {
+  skip_if_excluded("ds-mtl")
+}
+
 test_that("data can be prepared for lasso", {
+  skip_if_ds_mtl_excluded()
   # Create subset for X matrix
   dsBaseClient::ds.dataFrameSubset(
     V1 = "nonrep$row_id",
@@ -47,6 +50,7 @@ test_that("data can be prepared for lasso", {
 })
 
 test_that("ds.LassoCov_Train returns expected output", {
+  skip_if_ds_mtl_excluded()
   # Ensure data is prepared
   tryCatch({
     dsBaseClient::ds.class("x_mat", datasources = conns)

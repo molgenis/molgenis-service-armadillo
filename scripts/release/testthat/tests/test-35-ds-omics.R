@@ -6,19 +6,21 @@
 ensure_researcher_login()
 ensure_resources_uploaded()
 
-# Skip all tests if ds-omics is excluded
-skip_if_excluded("ds-omics")
-
 # Load the omics client library
 library(dsOmicsClient)
 
-# Skip if in admin mode or resourcer not available
+# Get config for skip checks
 config <- test_config
-if (config$ADMIN_MODE) {
-  skip("Cannot test omics with basic authentication")
-}
-if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
-  skip(sprintf("Resourcer not available for profile: %s", config$profile))
+
+# Helper to check all skip conditions for this test file
+skip_if_omics_excluded <- function() {
+  skip_if_excluded("ds-omics")
+  if (config$ADMIN_MODE) {
+    skip("Cannot test omics with basic authentication")
+  }
+  if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
+    skip(sprintf("Resourcer not available for profile: %s", config$profile))
+  }
 }
 
 # Define omics reference data
@@ -123,11 +125,13 @@ gwas_prepare_data <- function() {
 }
 
 test_that("omics data can be setup", {
+  skip_if_omics_excluded()
   expect_no_error(setup_omics_data())
   expect_true(test_env$omics_setup)
 })
 
 test_that("GWAS data can be prepared", {
+  skip_if_omics_excluded()
   setup_omics_data()
 
   expect_no_error(gwas_prepare_data())
@@ -141,6 +145,7 @@ test_that("GWAS data can be prepared", {
 })
 
 test_that("ds.metaGWAS returns expected dimensions", {
+  skip_if_omics_excluded()
   setup_omics_data()
 
   # Ensure GWAS data is prepared

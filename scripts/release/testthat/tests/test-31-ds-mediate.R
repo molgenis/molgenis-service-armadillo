@@ -5,13 +5,16 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-mediate is excluded
-skip_if_excluded("ds-mediate")
-
 # Load the mediation client library
 library(dsMediationClient)
 
+# Helper to check all skip conditions for this test file
+skip_if_ds_mediate_excluded <- function() {
+  skip_if_excluded("ds-mediate")
+}
+
 test_that("ds.mediate creates object with expected class", {
+  skip_if_ds_mediate_excluded()
   # Fit mediator model
   dsBaseClient::ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex",
@@ -52,6 +55,7 @@ test_that("ds.mediate creates object with expected class", {
 })
 
 test_that("ds.neWeight creates object with expected class", {
+  skip_if_ds_mediate_excluded()
   # Fit model
   dsBaseClient::ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex",
@@ -74,6 +78,7 @@ test_that("ds.neWeight creates object with expected class", {
 })
 
 test_that("ds.neModel creates object with expected class", {
+  skip_if_ds_mediate_excluded()
   # This test depends on expData from previous test
   # If running in isolation, we need to set up expData first
   tryCatch({
@@ -106,6 +111,7 @@ test_that("ds.neModel creates object with expected class", {
 })
 
 test_that("ds.neImpute creates object with expected class", {
+  skip_if_ds_mediate_excluded()
   # Fit outcome model
   out.fit.1c <- dsBaseClient::ds.glmSLMA(
     formula = "preg_dia ~ agebirth_m_y + ethn3_m + sex",
@@ -128,6 +134,7 @@ test_that("ds.neImpute creates object with expected class", {
 })
 
 test_that("ds.neLht returns object with expected class", {
+  skip_if_ds_mediate_excluded()
   # Ensure med.out.1b exists
   tryCatch({
     dsBaseClient::ds.class("med.out.1b", datasources = conns)

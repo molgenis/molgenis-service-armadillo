@@ -5,11 +5,13 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-tidyverse is excluded
-skip_if_excluded("ds-tidyverse")
-
 # Load the tidyverse client library
 library(dsTidyverseClient)
+
+# Helper to check all skip conditions for this test file
+skip_if_ds_tidyverse_excluded <- function() {
+  skip_if_excluded("ds-tidyverse")
+}
 
 # Helper to assign tidyverse test data
 assign_tidyverse_data <- function() {
@@ -23,6 +25,7 @@ assign_tidyverse_data <- function() {
 }
 
 test_that("tidyverse data can be assigned", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
 
   datatype <- dsBaseClient::ds.class(x = "mtcars", datasources = conns)
@@ -31,8 +34,8 @@ test_that("tidyverse data can be assigned", {
 })
 
 test_that("ds.arrange creates data frame", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.arrange(
     df.name = "mtcars",
@@ -47,8 +50,8 @@ test_that("ds.arrange creates data frame", {
 })
 
 test_that("ds.as_tibble creates tibble", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.as_tibble(
     x = "mtcars",
@@ -62,8 +65,8 @@ test_that("ds.as_tibble creates tibble", {
 })
 
 test_that("ds.bind_cols creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
@@ -77,8 +80,8 @@ test_that("ds.bind_cols creates correct dimensions", {
 })
 
 test_that("ds.bind_rows creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
@@ -92,8 +95,8 @@ test_that("ds.bind_rows creates correct dimensions", {
 })
 
 test_that("ds.case_when creates expected levels", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.case_when(
     tidy_expr = list(
@@ -111,8 +114,8 @@ test_that("ds.case_when creates expected levels", {
 })
 
 test_that("ds.distinct creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.distinct(
     df.name = "mtcars",
@@ -127,8 +130,8 @@ test_that("ds.distinct creates correct dimensions", {
 })
 
 test_that("ds.filter creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.filter(
     df.name = "mtcars",
@@ -143,8 +146,8 @@ test_that("ds.filter creates correct dimensions", {
 })
 
 test_that("ds.group_by creates grouped_df", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.group_by(
     df.name = "mtcars",
@@ -159,8 +162,8 @@ test_that("ds.group_by creates grouped_df", {
 })
 
 test_that("ds.ungroup removes grouping", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   # Ensure grouped exists
   tryCatch({
@@ -182,8 +185,8 @@ test_that("ds.ungroup removes grouping", {
 })
 
 test_that("ds.group_keys returns expected keys", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   # Ensure grouped exists
   tryCatch({
@@ -203,8 +206,8 @@ test_that("ds.group_keys returns expected keys", {
 })
 
 test_that("ds.if_else creates expected levels", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.if_else(
     condition = list(mtcars$mpg > 20),
@@ -220,8 +223,8 @@ test_that("ds.if_else creates expected levels", {
 })
 
 test_that("ds.mutate creates new variables", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.mutate(
     df.name = "mtcars",
@@ -241,8 +244,8 @@ test_that("ds.mutate creates new variables", {
 })
 
 test_that("ds.rename renames variables", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.rename(
     df.name = "mtcars",
@@ -262,8 +265,8 @@ test_that("ds.rename renames variables", {
 })
 
 test_that("ds.select selects variables", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.select(
     df.name = "mtcars",
@@ -280,8 +283,8 @@ test_that("ds.select selects variables", {
 })
 
 test_that("ds.slice slices rows", {
+  skip_if_ds_tidyverse_excluded()
   assign_tidyverse_data()
-
 
   ds.slice(
     df.name = "mtcars",

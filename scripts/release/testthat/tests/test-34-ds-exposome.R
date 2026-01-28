@@ -6,19 +6,21 @@
 ensure_researcher_login()
 ensure_resources_uploaded()
 
-# Skip all tests if ds-exposome is excluded
-skip_if_excluded("ds-exposome")
-
 # Load the exposome client library
 library(dsExposomeClient)
 
-# Skip if in admin mode or resourcer not available
+# Get config for skip checks
 config <- test_config
-if (config$ADMIN_MODE) {
-  skip("Cannot test exposome with basic authentication")
-}
-if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
-  skip(sprintf("Resourcer not available for profile: %s", config$profile))
+
+# Helper to check all skip conditions for this test file
+skip_if_exposome_excluded <- function() {
+  skip_if_excluded("ds-exposome")
+  if (config$ADMIN_MODE) {
+    skip("Cannot test exposome with basic authentication")
+  }
+  if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
+    skip(sprintf("Resourcer not available for profile: %s", config$profile))
+  }
 }
 
 # Define exposome reference data
@@ -95,11 +97,13 @@ setup_exposome_data <- function() {
 }
 
 test_that("exposome data can be setup", {
+  skip_if_exposome_excluded()
   expect_no_error(setup_exposome_data())
   expect_true(test_env$exposome_setup)
 })
 
 test_that("ds.loadExposome creates object with expected class", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   ds.loadExposome(
     exposures = "exposures",
@@ -119,6 +123,7 @@ test_that("ds.loadExposome creates object with expected class", {
 })
 
 test_that("ds.exposome_variables returns expected phenotype variables", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   # Ensure exposome object exists
   tryCatch({
@@ -148,6 +153,7 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
 })
 
 test_that("ds.exposome_summary returns expected names", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = conns)
 
@@ -157,6 +163,7 @@ test_that("ds.exposome_summary returns expected names", {
 })
 
 test_that("ds.familyNames returns expected family names", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   vars <- ds.familyNames("exposome_object", datasources = conns)
 
@@ -170,6 +177,7 @@ test_that("ds.familyNames returns expected family names", {
 })
 
 test_that("ds.tableMissings returns expected structure", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns)
 
@@ -179,6 +187,7 @@ test_that("ds.tableMissings returns expected structure", {
 })
 
 test_that("ds.plotMissings returns ggplot object", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = conns)
   missing_plot <- ds.plotMissings(missing_summary)
@@ -187,6 +196,7 @@ test_that("ds.plotMissings returns ggplot object", {
 })
 
 test_that("ds.normalityTest returns expected names", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   nm <- ds.normalityTest("exposome_object", datasources = conns)
 
@@ -196,6 +206,7 @@ test_that("ds.normalityTest returns expected names", {
 })
 
 test_that("ds.exposure_histogram returns expected names", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = conns)
 
@@ -205,6 +216,7 @@ test_that("ds.exposure_histogram returns expected names", {
 })
 
 test_that("ds.imputation creates object with expected class", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   ds.imputation("exposome_object", "exposome_object_imputed", datasources = conns)
 
@@ -214,6 +226,7 @@ test_that("ds.imputation creates object with expected class", {
 })
 
 test_that("ds.exwas returns expected class", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   exwas_results <- ds.exwas(
     "blood_pre ~ sex",
@@ -227,6 +240,7 @@ test_that("ds.exwas returns expected class", {
 })
 
 test_that("ds.exposome_correlation returns expected dimensions", {
+  skip_if_exposome_excluded()
   setup_exposome_data()
   exposome_cor <- ds.exposome_correlation(
     "exposome_object",

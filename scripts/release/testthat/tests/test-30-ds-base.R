@@ -5,10 +5,13 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if ds-base is excluded
-skip_if_excluded("ds-base")
+# Helper to check all skip conditions for this test file
+skip_if_ds_base_excluded <- function() {
+  skip_if_excluded("ds-base")
+}
 
 test_that("ds.mean returns expected values", {
+  skip_if_ds_base_excluded()
   ds_mean <- dsBaseClient::ds.mean(
     "nonrep$coh_country",
     datasources = conns
@@ -30,6 +33,7 @@ test_that("ds.mean returns expected values", {
 })
 
 test_that("ds.histogram returns expected breaks", {
+  skip_if_ds_base_excluded()
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
@@ -44,6 +48,7 @@ test_that("ds.histogram returns expected breaks", {
 })
 
 test_that("ds.histogram returns expected counts", {
+  skip_if_ds_base_excluded()
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
@@ -55,6 +60,7 @@ test_that("ds.histogram returns expected counts", {
 })
 
 test_that("ds.histogram returns expected density", {
+  skip_if_ds_base_excluded()
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns
@@ -69,6 +75,7 @@ test_that("ds.histogram returns expected density", {
 })
 
 test_that("ds.histogram returns expected mids", {
+  skip_if_ds_base_excluded()
   hist <- dsBaseClient::ds.histogram(
     x = "nonrep$coh_country",
     datasources = conns

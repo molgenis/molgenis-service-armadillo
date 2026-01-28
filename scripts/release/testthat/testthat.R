@@ -36,6 +36,7 @@ if (file.exists(local_rprofile)) {
 # Environment variables (can also be set in .env file):
 #   TEST_ONLY - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
 #   TEST_SKIP - Space-separated list of clusters/tests to skip (e.g., "ds-omics ds-exposome")
+#   VERBOSE   - Set to "true" to show each test name as it executes
 #   See .env file for full configuration options
 
 # -----------------------------------------------------------------------------
@@ -319,6 +320,15 @@ if (!is.null(filter_pattern)) {
   cli::cli_alert_success(sprintf("Test filter: %s", filter_pattern))
 }
 
+# Check for verbose mode
+verbose_mode <- tolower(Sys.getenv("VERBOSE", "false")) %in% c("true", "1", "yes")
+if (verbose_mode) {
+  cli::cli_alert_info("Verbose mode enabled - showing each test as it executes")
+  # Enable DataSHIELD progress output to show function calls
+  options(datashield.progress = 1)
+  cli::cli_alert_info("DataSHIELD progress output enabled")
+}
+
 # -----------------------------------------------------------------------------
 # Show test configuration
 # -----------------------------------------------------------------------------
@@ -383,20 +393,31 @@ run_teardown <- function() {
   # 2. Delete test project if it was created
   if (!is.null(test_env$project)) {
     cli::cli_alert_info(sprintf("Deleting test project [%s]...", test_env$project))
-    tryCatch({
-      # Need to login again if session expired
-      if (!is.null(config)) {
+
+    # First try with existing session (token might still be valid)
+    delete_success <- tryCatch({
+      MolgenisArmadillo::armadillo.delete_project(test_env$project)
+      cli::cli_alert_success(sprintf("Project [%s] deleted", test_env$project))
+      TRUE
+    }, error = function(e) {
+      cli::cli_alert_info("Existing session expired, re-authenticating...")
+      FALSE
+    })
+
+    # If that failed, re-authenticate and try again
+    if (!delete_success && !is.null(config)) {
+      tryCatch({
         if (config$ADMIN_MODE) {
           MolgenisArmadillo::armadillo.login_basic(config$armadillo_url, "admin", config$admin_pwd)
         } else {
           MolgenisArmadillo::armadillo.login(config$armadillo_url)
         }
-      }
-      MolgenisArmadillo::armadillo.delete_project(test_env$project)
-      cli::cli_alert_success(sprintf("Project [%s] deleted", test_env$project))
-    }, error = function(e) {
-      cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
-    })
+        MolgenisArmadillo::armadillo.delete_project(test_env$project)
+        cli::cli_alert_success(sprintf("Project [%s] deleted", test_env$project))
+      }, error = function(e) {
+        cli::cli_alert_warning(sprintf("Could not delete project: %s", e$message))
+      })
+    }
   }
 
   # 3. Logout from DataSHIELD connections
@@ -419,12 +440,21 @@ cli::cli_h1("Running Tests")
 
 start_time <- Sys.time()
 
+# Select reporter based on verbose mode
+# - LocationReporter: Shows each test name and file:line as it executes
+# - ProgressReporter: Shows compact progress bar with pass/fail counts
+test_reporter <- if (verbose_mode) {
+  testthat::LocationReporter$new()
+} else {
+  testthat::ProgressReporter$new()
+}
+
 # Run tests with guaranteed teardown
 test_results <- tryCatch({
   testthat::test_dir(
     "tests",
     filter = filter_pattern,
-    reporter = ProgressReporter$new(),
+    reporter = test_reporter,
     stop_on_failure = FALSE
   )
 }, error = function(e) {

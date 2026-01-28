@@ -6,21 +6,22 @@
 ensure_researcher_login()
 ensure_resources_uploaded()
 
-# Skip all tests if assigning-resources is excluded
-skip_if_excluded("assigning-resources")
-
-# Skip if in admin mode (resources don't work with basic auth)
+# Get config for skip checks
 config <- test_config
-if (config$ADMIN_MODE) {
-  skip("Cannot test resources with basic authentication")
-}
 
-# Skip if resourcer not available for profile
-if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
-  skip(sprintf("Resourcer not available for profile: %s", config$profile))
+# Helper to check all skip conditions for this test file
+skip_if_resources_excluded <- function() {
+  skip_if_excluded("assigning-resources")
+  if (config$ADMIN_MODE) {
+    skip("Cannot test resources with basic authentication")
+  }
+  if (!"resourcer" %in% test_env$profile_info$packageWhitelist) {
+    skip(sprintf("Resourcer not available for profile: %s", config$profile))
+  }
 }
 
 test_that("resource can be seen", {
+  skip_if_resources_excluded()
   full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
 
   resources <- DSI::datashield.resources(conns = conns)
@@ -32,6 +33,7 @@ test_that("resource can be seen", {
 })
 
 test_that("resource can be assigned", {
+  skip_if_resources_excluded()
   full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
 
   # Assign the resource

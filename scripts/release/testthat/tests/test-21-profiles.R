@@ -5,12 +5,15 @@
 # Setup: ensure researcher connection is established
 ensure_researcher_login_and_assign()
 
-# Skip all tests if profiles is excluded
-skip_if_excluded("profiles")
-
 config <- test_config
 
+# Helper to check all skip conditions for this test file
+skip_if_profiles_excluded <- function() {
+  skip_if_excluded("profiles")
+}
+
 test_that("connection to specific profile works", {
+  skip_if_profiles_excluded()
   # Create a test connection to verify profile connectivity
   if (config$ADMIN_MODE) {
     con <- DSMolgenisArmadillo::dsConnect(
@@ -36,6 +39,7 @@ test_that("connection to specific profile works", {
 })
 
 test_that("connection without profile specification works", {
+  skip_if_profiles_excluded()
   if (config$ADMIN_MODE) {
     con <- DSMolgenisArmadillo::dsConnect(
       drv = DSMolgenisArmadillo::armadillo(),
@@ -60,6 +64,7 @@ test_that("connection without profile specification works", {
 })
 
 test_that("connection to default profile works", {
+  skip_if_profiles_excluded()
   if (config$ADMIN_MODE) {
     con <- DSMolgenisArmadillo::dsConnect(
       drv = DSMolgenisArmadillo::armadillo(),
