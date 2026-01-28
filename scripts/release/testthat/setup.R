@@ -502,7 +502,7 @@ ensure_researcher_login_and_assign <- function() {
   logindata <- builder$build()
 
   cli::cli_alert_info(sprintf("Logging in as researcher with profile [%s]...", config$profile))
-  test_env$conns <- DSI::datashield.login(logins = logindata, symbol = "nonrep", variables = "coh_country", assign = TRUE)
+  test_env$conns <- DSI::datashield.login(logins = logindata, symbol = "nonrep", assign = TRUE)
 
   # Set global variables for use in tests
   conns <<- test_env$conns
