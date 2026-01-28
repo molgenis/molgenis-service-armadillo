@@ -116,7 +116,7 @@ gwas_prepare_data <- function() {
       case = "Yes",
       control = "No",
       newobj.name = paste0("gds.Data", x),
-      datasources = conns
+      datasources = conns()
     )
   })
 }

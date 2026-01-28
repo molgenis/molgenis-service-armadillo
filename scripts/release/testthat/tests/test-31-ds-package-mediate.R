@@ -18,7 +18,7 @@ test_that("ds.mediate creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "med.fit.1a",
-    datasources = conns
+    datasources = conns()
   )
 
   # Fit outcome model
@@ -27,7 +27,7 @@ test_that("ds.mediate creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "out.fit.1a",
-    datasources = conns
+    datasources = conns()
   )
 
   # Run mediation analysis
@@ -42,7 +42,7 @@ test_that("ds.mediate creates object with expected class", {
     sims = 100,
     seed = 123,
     newobj = "med.out.1a",
-    datasources = conns
+    datasources = conns()
   )
 
   # Check class
@@ -58,7 +58,7 @@ test_that("ds.neWeight creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "med.fit.1b",
-    datasources = conns
+    datasources = conns()
   )
 
   # Create weight data
@@ -84,7 +84,7 @@ test_that("ds.neModel creates object with expected class", {
       family = "gaussian",
       dataName = "nonrep",
       newobj = "med.fit.1b",
-      datasources = conns
+      datasources = conns()
     )
     ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns())
   })
@@ -96,7 +96,7 @@ test_that("ds.neModel creates object with expected class", {
     se = "robust",
     expData = "expData",
     newobj = "med.out.1b",
-    datasources = conns
+    datasources = conns()
   )
 
   # Check class
@@ -112,7 +112,7 @@ test_that("ds.neImpute creates object with expected class", {
     family = "gaussian",
     dataName = "nonrep",
     newobj = "out.fit.1c",
-    datasources = conns
+    datasources = conns()
   )
 
   # Create imputed data
@@ -138,7 +138,7 @@ test_that("ds.neLht returns object with expected class", {
       family = "gaussian",
       dataName = "nonrep",
       newobj = "med.fit.1b",
-      datasources = conns
+      datasources = conns()
     )
     ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = conns())
     ds.neModel(
@@ -147,7 +147,7 @@ test_that("ds.neLht returns object with expected class", {
       se = "robust",
       expData = "expData",
       newobj = "med.out.1b",
-      datasources = conns
+      datasources = conns()
     )
   })
 
@@ -155,7 +155,7 @@ test_that("ds.neLht returns object with expected class", {
   lht.out.1b <- ds.neLht(
     model = "med.out.1b",
     linfct = c("ethn3_m0=0", "ethn3_m1=0", "ethn3_m0+ethn3_m1=0"),
-    datasources = conns
+    datasources = conns()
   )
 
   # Check class

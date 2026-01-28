@@ -38,7 +38,7 @@ test_that("ds.arrange creates data frame", {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "ordered_df",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.class("ordered_df", datasources = conns())[[1]]
@@ -53,7 +53,7 @@ test_that("ds.as_tibble creates tibble", {
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.class("mtcars_tib", datasources = conns())[[1]]
@@ -68,7 +68,7 @@ test_that("ds.bind_cols creates correct dimensions", {
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.dim("cols_bound", datasources = conns())[[1]]
@@ -83,7 +83,7 @@ test_that("ds.bind_rows creates correct dimensions", {
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.dim("rows_bound", datasources = conns())[[1]]
@@ -102,7 +102,7 @@ test_that("ds.case_when creates expected levels", {
       mtcars$mpg >= 30 ~ "high"
     ),
     newobj = "test",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- names(dsBaseClient::ds.table("test", datasources = conns())$output.list$TABLES.COMBINED_all.sources_counts)
@@ -118,7 +118,7 @@ test_that("ds.distinct creates correct dimensions", {
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
     newobj = "dist_df",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.dim("dist_df", datasources = conns())[[1]]
@@ -134,7 +134,7 @@ test_that("ds.filter creates correct dimensions", {
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
     newobj = "filtered",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.dim("filtered", datasources = conns())[[1]]
@@ -150,7 +150,7 @@ test_that("ds.group_by creates grouped_df", {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "grouped",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.class("grouped", datasources = conns())[[1]]
@@ -170,7 +170,7 @@ test_that("ds.ungroup removes grouping", {
       df.name = "mtcars",
       tidy_expr = list(cyl),
       newobj = "grouped",
-      datasources = conns
+      datasources = conns()
     )
   })
 
@@ -193,7 +193,7 @@ test_that("ds.group_keys returns expected keys", {
       df.name = "mtcars",
       tidy_expr = list(cyl),
       newobj = "grouped",
-      datasources = conns
+      datasources = conns()
     )
   })
 
@@ -211,7 +211,7 @@ test_that("ds.if_else creates expected levels", {
     "high",
     "low",
     newobj = "test",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- names(dsBaseClient::ds.table("test", datasources = conns())$output.list$TABLES.COMBINED_all.sources_counts)
@@ -227,7 +227,7 @@ test_that("ds.mutate creates new variables", {
     df.name = "mtcars",
     tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
     newobj = "new",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.colnames("new", datasources = conns())$armadillo
@@ -248,7 +248,7 @@ test_that("ds.rename renames variables", {
     df.name = "mtcars",
     tidy_expr = list(test_1 = mpg, test_2 = drat),
     newobj = "mpg_drat",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.colnames("mpg_drat", datasources = conns())$armadillo
@@ -269,7 +269,7 @@ test_that("ds.select selects variables", {
     df.name = "mtcars",
     tidy_expr = list(mpg:drat),
     newobj = "mpg_drat_select",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns())$armadillo
@@ -287,7 +287,7 @@ test_that("ds.slice slices rows", {
     df.name = "mtcars",
     tidy_expr = list(1:5),
     newobj = "sliced",
-    datasources = conns
+    datasources = conns()
   )
 
   res <- dsBaseClient::ds.dim("sliced", datasources = conns())[[1]]

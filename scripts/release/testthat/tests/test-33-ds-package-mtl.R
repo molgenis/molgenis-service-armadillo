@@ -20,7 +20,7 @@ test_that("data can be prepared for lasso", {
     df.name = "nonrep",
     keep.cols = c(5, 9, 13, 17),
     newobj = "x_df",
-    datasources = conns
+    datasources = conns()
   )
 
   dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns())
@@ -33,7 +33,7 @@ test_that("data can be prepared for lasso", {
     df.name = "nonrep",
     keep.cols = c(21),
     newobj = "y_df",
-    datasources = conns
+    datasources = conns()
   )
 
   dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns())
@@ -58,7 +58,7 @@ test_that("ds.LassoCov_Train returns expected output", {
       df.name = "nonrep",
       keep.cols = c(5, 9, 13, 17),
       newobj = "x_df",
-      datasources = conns
+      datasources = conns()
     )
     dsBaseClient::ds.asDataMatrix("x_df", "x_mat", datasources = conns())
     dsBaseClient::ds.dataFrameSubset(
@@ -68,7 +68,7 @@ test_that("ds.LassoCov_Train returns expected output", {
       df.name = "nonrep",
       keep.cols = c(21),
       newobj = "y_df",
-      datasources = conns
+      datasources = conns()
     )
     dsBaseClient::ds.asDataMatrix("y_df", "y_mat", datasources = conns())
   })
@@ -81,7 +81,7 @@ test_that("ds.LassoCov_Train returns expected output", {
     lambda = 298.9465,
     covar = 1,
     nDigits = 4,
-    datasources = conns
+    datasources = conns()
   )
 
   expected_names <- c("ws", "Logs", "Obj", "gamma", "type", "lam_seq")

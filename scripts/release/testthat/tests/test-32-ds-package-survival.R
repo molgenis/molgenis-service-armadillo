@@ -40,7 +40,7 @@ test_that("ds.Surv creates object with expected class", {
     time = "survival$time",
     event = "survival$status",
     objectname = "surv_object",
-    datasources = conns
+    datasources = conns()
   )
 
   # Check class
@@ -60,14 +60,14 @@ test_that("ds.coxph.SLMA returns expected elements", {
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns
+      datasources = conns()
     )
   })
 
   # Run Cox regression
   cox_output <- dsSurvivalClient::ds.coxph.SLMA(
     formula = "surv_object~survival$age",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_names <- c(
@@ -90,7 +90,7 @@ test_that("ds.coxphSLMAassign creates object with expected class", {
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns
+      datasources = conns()
     )
   })
 
@@ -98,7 +98,7 @@ test_that("ds.coxphSLMAassign creates object with expected class", {
   dsSurvivalClient::ds.coxphSLMAassign(
     formula = "surv_object~survival$age",
     objectname = "coxph_serverside",
-    datasources = conns
+    datasources = conns()
   )
 
   # Check class
@@ -118,19 +118,19 @@ test_that("ds.cox.zphSLMA returns expected elements", {
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns
+      datasources = conns()
     )
     dsSurvivalClient::ds.coxphSLMAassign(
       formula = "surv_object~survival$age",
       objectname = "coxph_serverside",
-      datasources = conns
+      datasources = conns()
     )
   })
 
   # Test proportional hazards assumption
   hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(
     fit = "coxph_serverside",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_names <- c("table", "var", "transform", "call")
@@ -149,19 +149,19 @@ test_that("ds.coxphSummary returns expected elements", {
       time = "survival$time",
       event = "survival$status",
       objectname = "surv_object",
-      datasources = conns
+      datasources = conns()
     )
     dsSurvivalClient::ds.coxphSLMAassign(
       formula = "surv_object~survival$age",
       objectname = "coxph_serverside",
-      datasources = conns
+      datasources = conns()
     )
   })
 
   # Get summary
   hazard_summary <- dsSurvivalClient::ds.coxphSummary(
     x = "coxph_serverside",
-    datasources = conns
+    datasources = conns()
   )
 
   expected_names <- c(

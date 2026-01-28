@@ -109,7 +109,7 @@ test_that("ds.loadExposome creates object with expected class", {
     description.expCol = "Exposure",
     description.famCol = "Family",
     object_name = "exposome_object",
-    datasources = conns
+    datasources = conns()
   )
 
   obj_class <- dsBaseClient::ds.class("exposome_object", datasources = conns())
@@ -132,7 +132,7 @@ test_that("ds.exposome_variables returns expected phenotype variables", {
       description.expCol = "Exposure",
       description.famCol = "Family",
       object_name = "exposome_object",
-      datasources = conns
+      datasources = conns()
     )
   })
 
@@ -219,7 +219,7 @@ test_that("ds.exwas returns expected class", {
     Set = "exposome_object",
     family = "gaussian",
     type = "pooled",
-    datasources = conns
+    datasources = conns()
   )
 
   expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
@@ -230,7 +230,7 @@ test_that("ds.exposome_correlation returns expected dimensions", {
   exposome_cor <- ds.exposome_correlation(
     "exposome_object",
     c("Metals", "Noise"),
-    datasources = conns
+    datasources = conns()
   )[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
 
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
