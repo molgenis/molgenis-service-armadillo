@@ -1,12 +1,12 @@
-# test-36-tidyverse.R - dsTidyverse package tests
+# test-36-ds-package-tidyverse.R - dsTidyverse package tests
 #
 # These tests verify that dsTidyverse functions work correctly.
 
 # Setup: ensure researcher connection is established
 ensure_researcher_login()
 
-# Skip all tests if tidyverse is excluded
-skip_if_excluded("tidyverse")
+# Skip all tests if ds-package-tidyverse is excluded
+skip_if_excluded("ds-package-tidyverse")
 
 # Load the tidyverse client library
 library(dsTidyverseClient)

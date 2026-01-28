@@ -1,4 +1,4 @@
-# test-91-basic-auth.R - Basic authentication tests
+# test-80-basic-auth.R - Basic authentication tests
 #
 # These tests verify that basic authentication works correctly.
 # They run independently and create/delete their own test project.
@@ -6,10 +6,10 @@
 # Setup: just ensure config is loaded (not full admin setup)
 ensure_config()
 
-# Skip all tests if basic_auth is excluded
-skip_if_excluded("basic_auth")
+# Skip all tests if basic-auth is excluded
+skip_if_excluded("basic-auth")
 
-config <- test_env$config
+config <- config()
 
 # Skip if admin password is not available
 if (config$admin_pwd == "") {

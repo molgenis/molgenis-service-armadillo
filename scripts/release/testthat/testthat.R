@@ -10,16 +10,16 @@
 #   Rscript testthat.R "30-ds-base"       # Run specific test file (regex)
 #
 # Named clusters:
-#   quick      - Fast tests only (config, downloads, basic-auth)
-#   setup      - Setup tests (config, downloads, admin, researcher)
-#   core       - Core DataSHIELD tests (ds-base)
-#   xenon      - All xenon package tests (mediate, survival, mtl, exposome, omics)
-#   tidyverse  - Tidyverse tests only
-#   cleanup    - Cleanup and basic-auth tests
-#   packages   - All package tests (core + xenon + tidyverse)
+#   data-manager   - Data manager setup tests
+#   researcher-all - All researcher tests (ds-base + all ds-packages)
+#   researcher-tab - Researcher tabular data tests (no resources)
+#   researcher-res - Researcher resource tests (exposome, omics)
+#   config         - Configuration validation tests
+#   quick          - Fast tests only (config, downloads, basic-auth)
+#   basic-auth     - Basic authentication tests only
 #
 # Environment variables:
-#   SKIP_TESTS - Comma-separated list of tests to skip (e.g., "xenon-omics,xenon-mtl")
+#   SKIP_TESTS - Comma-separated list of tests to skip (e.g., "ds-package-omics,ds-package-mtl")
 #   See .env file for full configuration options
 
 # -----------------------------------------------------------------------------
@@ -29,14 +29,14 @@
 TEST_CLUSTERS <- list(
   # Role-based clusters
   `data-manager`    = "10-admin-setup",
-  `researcher-all`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|34-ds-package|35-ds-package|36-tidyverse",
-  `researcher-tab`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|36-tidyverse",
+  `researcher-all`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|34-ds-package|35-ds-package|36-ds-package",
+  `researcher-tab`  = "20-researcher|30-ds-base|31-ds-package|32-ds-package|33-ds-package|36-ds-package",
   `researcher-res`  = "20-researcher|34-ds-package-exposome|35-ds-package-omics",
 
   # Setup and utility clusters
   config            = "01-config|02-downloads",
-  cleanup           = "90-cleanup|91-basic-auth",
-  quick             = "01-config|02-downloads|91-basic-auth"
+  `basic-auth`      = "80-basic-auth",
+  quick             = "01-config|02-downloads|80-basic-auth"
 )
 
 # -----------------------------------------------------------------------------
