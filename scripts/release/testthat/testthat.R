@@ -357,6 +357,7 @@ cli::cli_ul(c(
 ))
 
 # Obtain tokens early (before tests run) so CLI messages aren't captured by testthat
+cli::cli_h2("Authentication")
 ensure_tokens()
 
 # -----------------------------------------------------------------------------
@@ -364,7 +365,7 @@ ensure_tokens()
 # -----------------------------------------------------------------------------
 
 run_teardown <- function() {
-  cli_verbose_h2("Teardown")
+  cli::cli_h2("Teardown")
 
   config <- test_env$config
 
@@ -448,6 +449,8 @@ run_teardown <- function() {
 # -----------------------------------------------------------------------------
 # Run tests
 # -----------------------------------------------------------------------------
+
+cli::cli_h2("Running tests")
 
 start_time <- Sys.time()
 
