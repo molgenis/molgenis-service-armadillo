@@ -356,9 +356,33 @@ cli::cli_ul(c(
   sprintf("Mode: %s", if (test_env$config$ADMIN_MODE) "Admin (basic auth)" else "OIDC")
 ))
 
-# Obtain tokens early (before tests run) so CLI messages aren't captured by testthat
-cli::cli_h1("Authentication")
-ensure_tokens()
+# Determine what authentication is needed based on test patterns
+# - Researcher tests (20-36): need researcher token + DM login
+# - Data-manager tests (10): need DM login only
+# - Basic-auth tests (80): do their own login, no pre-auth needed
+researcher_patterns <- c("20-", "21-", "22-", "23-", "30-", "31-", "32-", "33-", "34-", "35-", "36-")
+dm_patterns <- c("10-")
+
+needs_researcher <- any(sapply(researcher_patterns, function(p) any(grepl(p, only_patterns))))
+needs_dm_only <- any(sapply(dm_patterns, function(p) any(grepl(p, only_patterns)))) && !needs_researcher
+
+if (needs_researcher) {
+  cli::cli_h1("Authentication")
+  ensure_tokens()
+} else if (needs_dm_only) {
+  cli::cli_h1("Authentication")
+  cli::cli_alert_info("Logging in as data manager...")
+  cfg <- test_env$config
+  if (cfg$ADMIN_MODE) {
+    MolgenisArmadillo::armadillo.login_basic(cfg$armadillo_url, "admin", cfg$admin_pwd)
+  } else {
+    MolgenisArmadillo::armadillo.login(cfg$armadillo_url)
+  }
+  cli::cli_alert_success("Data manager login complete")
+} else {
+  # Basic-auth only or no tests - skip authentication header entirely
+  cli_verbose_info("No pre-authentication needed for selected tests")
+}
 
 # -----------------------------------------------------------------------------
 # Teardown function - ALWAYS runs, even on failure
