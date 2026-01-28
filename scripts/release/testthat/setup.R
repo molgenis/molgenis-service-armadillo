@@ -277,24 +277,26 @@ ensure_tokens <- function() {
   # -------------------------------------------------------------------------
   # TOKEN 1: Researcher token (for API calls + DSI login)
   # -------------------------------------------------------------------------
-  cli_verbose_info("Obtaining researcher token...")
+  cli::cli_alert_info("Obtaining researcher token...")
 
   if (config$ADMIN_MODE) {
     test_env$token <- config$admin_pwd
+    cli::cli_alert_success("Using admin password as token")
   } else {
     existing_token <- Sys.getenv("TOKEN")
     if (existing_token != "") {
-      cli_verbose_info("Using TOKEN from environment")
+      cli::cli_alert_success("Using TOKEN from environment")
       test_env$token <- existing_token
     } else {
       test_env$token <- MolgenisArmadillo::armadillo.get_token(config$armadillo_url)
+      cli::cli_alert_success("Researcher token obtained")
     }
   }
 
   # -------------------------------------------------------------------------
   # TOKEN 2: Data manager login (for armadillo.* functions)
   # -------------------------------------------------------------------------
-  cli_verbose_info(sprintf("Logging in to %s as data manager...", config$armadillo_url))
+  cli::cli_alert_info("Logging in as data manager...")
 
   if (config$ADMIN_MODE) {
     MolgenisArmadillo::armadillo.login_basic(config$armadillo_url, "admin", config$admin_pwd)
@@ -302,7 +304,7 @@ ensure_tokens <- function() {
     MolgenisArmadillo::armadillo.login(config$armadillo_url)
   }
 
-  cli_verbose_success("Authentication complete")
+  cli::cli_alert_success("Data manager login complete")
 
   # -------------------------------------------------------------------------
   # Verify admin/DM rights by attempting to list projects

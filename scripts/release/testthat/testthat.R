@@ -363,7 +363,7 @@ run_teardown <- function() {
 
   # 1. Re-add admin permissions to user (if in OIDC mode)
   if (!is.null(config) && !config$ADMIN_MODE && config$update_auto == "y") {
-    cli_verbose_info("Restoring admin permissions...")
+    cli::cli_alert_info("Restoring admin permissions...")
     restore_success <- FALSE
     tryCatch({
       set_user(
@@ -373,7 +373,7 @@ run_teardown <- function() {
         required_projects = list(test_env$project),
         url = config$armadillo_url
       )
-      cli_verbose_success("Admin permissions restored")
+      cli::cli_alert_success("Admin permissions restored")
       restore_success <- TRUE
     }, error = function(e) {
       cli::cli_alert_danger("FAILED to restore admin permissions!")
