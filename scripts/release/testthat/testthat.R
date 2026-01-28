@@ -44,35 +44,36 @@ if (file.exists(local_rprofile)) {
 # -----------------------------------------------------------------------------
 
 # Named test clusters (groups of tests)
+# Prefix convention: 1x=data-manager, 2x=researcher-setup, 3x=tables, 4x=resources
 TEST_CLUSTERS <- list(
   # All tests
-  all = "10-data-manager|20-researcher-login|21-profiles|22-assigning-tables|23-assigning-resources|30-ds-base|31-ds-mediate|32-ds-survival|33-ds-mtl|34-ds-exposome|35-ds-omics|36-ds-tidyverse|80-basic-auth",
+  all = "10-data-manager|11-basic-auth|20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse|40-assigning-resources|41-ds-exposome|42-ds-omics",
 
   # Data manager tests (includes basic-auth)
-  `data-manager` = "10-data-manager|80-basic-auth",
+  `data-manager` = "10-data-manager|11-basic-auth",
 
   # Researcher tests for tabular data (no resources)
-  `researcher-tables` = "20-researcher-login|21-profiles|22-assigning-tables|30-ds-base|31-ds-mediate|32-ds-survival|33-ds-mtl|36-ds-tidyverse",
+  `researcher-tables` = "20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse",
 
   # Researcher tests that use resources (no table assignment needed)
-  `researcher-resources` = "20-researcher-login|21-profiles|23-assigning-resources|34-ds-exposome|35-ds-omics"
+  `researcher-resources` = "20-researcher-login|21-profiles|40-assigning-resources|41-ds-exposome|42-ds-omics"
 )
 
 # Individual test mappings (test name -> file pattern)
 TEST_INDIVIDUALS <- list(
   `data-manager`        = "10-data-manager",
+  `basic-auth`          = "11-basic-auth",
   `researcher-login`    = "20-researcher-login",
   profiles              = "21-profiles",
-  `assigning-tables`    = "22-assigning-tables",
-  `assigning-resources` = "23-assigning-resources",
-  `ds-base`             = "30-ds-base",
-  `ds-mediate`          = "31-ds-mediate",
-  `ds-survival`         = "32-ds-survival",
-  `ds-mtl`              = "33-ds-mtl",
-  `ds-exposome`         = "34-ds-exposome",
-  `ds-omics`            = "35-ds-omics",
-  `ds-tidyverse`        = "36-ds-tidyverse",
-  `basic-auth`          = "80-basic-auth"
+  `assigning-tables`    = "30-assigning-tables",
+  `ds-base`             = "31-ds-base",
+  `ds-mediate`          = "32-ds-mediate",
+  `ds-survival`         = "33-ds-survival",
+  `ds-mtl`              = "34-ds-mtl",
+  `ds-tidyverse`        = "35-ds-tidyverse",
+  `assigning-resources` = "40-assigning-resources",
+  `ds-exposome`         = "41-ds-exposome",
+  `ds-omics`            = "42-ds-omics"
 )
 
 # Helper function to resolve a name to its pattern(s)
@@ -342,15 +343,29 @@ cli::cli_ul(c(
 ))
 
 cli::cli_h2("Libraries")
-cli::cli_ul(c(
+# Core libraries (always shown)
+lib_versions <- c(
   sprintf("MolgenisArmadillo: %s", packageVersion("MolgenisArmadillo")),
   sprintf("DSMolgenisArmadillo: %s", packageVersion("DSMolgenisArmadillo")),
   sprintf("dsBaseClient: %s", packageVersion("dsBaseClient")),
-  sprintf("DSI: %s", packageVersion("DSI")),
-  sprintf("dsSurvivalClient: %s", packageVersion("dsSurvivalClient")),
-  sprintf("dsMediationClient: %s", packageVersion("dsMediationClient")),
-  sprintf("dsTidyverseClient: %s", packageVersion("dsTidyverseClient"))
-))
+  sprintf("DSI: %s", packageVersion("DSI"))
+)
+# Test-specific libraries (shown only when the corresponding tests are included)
+test_libs <- list(
+  "32-" = "dsMediationClient",
+  "33-" = "dsSurvivalClient",
+  "34-" = "dsMTLClient",
+  "35-" = "dsTidyverseClient",
+  "41-" = "dsExposomeClient",
+  "42-" = "dsOmicsClient"
+)
+for (pattern in names(test_libs)) {
+  if (any(grepl(pattern, only_patterns))) {
+    pkg <- test_libs[[pattern]]
+    lib_versions <- c(lib_versions, sprintf("%s: %s", pkg, packageVersion(pkg)))
+  }
+}
+cli::cli_ul(lib_versions)
 
 # Show which tests are being run/skipped (only if filtering is applied)
 if (length(skip_args) > 0 || length(only_args) > 0) {
@@ -365,10 +380,10 @@ if (length(skip_args) > 0 || length(only_args) > 0) {
 }
 
 # Determine what authentication is needed based on test patterns
-# - Researcher tests (20-36): need researcher token + DM login
+# - Researcher tests (2x-4x): need researcher token + DM login
 # - Data-manager tests (10): need DM login only
-# - Basic-auth tests (80): do their own login, no pre-auth needed
-researcher_patterns <- c("20-", "21-", "22-", "23-", "30-", "31-", "32-", "33-", "34-", "35-", "36-")
+# - Basic-auth tests (11): do their own login, no pre-auth needed
+researcher_patterns <- c("20-", "21-", "30-", "31-", "32-", "33-", "34-", "35-", "40-", "41-", "42-")
 dm_patterns <- c("10-")
 
 needs_researcher <- any(sapply(researcher_patterns, function(p) any(grepl(p, only_patterns))))
