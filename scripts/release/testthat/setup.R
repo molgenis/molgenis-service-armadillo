@@ -379,6 +379,8 @@ ensure_project_created <- function() {
 }
 
 ensure_tables_uploaded <- function() {
+  # This function now just ensures that test-10-upload-tables.R has run
+  # The actual upload logic has been moved into that test file
   ensure_tables_downloaded()
   ensure_project_created()
 
@@ -386,50 +388,12 @@ ensure_tables_uploaded <- function() {
     return(invisible(TRUE))
   }
 
-  config <- test_env$config
-  dest <- if (dir.exists(config$default_parquet_path)) config$default_parquet_path else config$dest
+  # If tables aren't uploaded yet, it means test-10-upload-tables.R hasn't run
+  # This can happen if someone runs only researcher tests without running upload-tables first
+  cli::cli_alert_warning("Tables not yet uploaded - test-10-upload-tables.R should run first")
+  cli::cli_alert_info("You may need to run: Rscript testthat.R --only upload-tables")
 
-  cli_verbose_info("Uploading test tables...")
-
-  # Core tables
-  nonrep <- arrow::read_parquet(paste0(dest, "core/nonrep.parquet"))
-  yearlyrep <- arrow::read_parquet(paste0(dest, "core/yearlyrep.parquet"))
-  monthlyrep <- arrow::read_parquet(paste0(dest, "core/monthlyrep.parquet"))
-  trimesterrep <- arrow::read_parquet(paste0(dest, "core/trimesterrep.parquet"))
-
-  # Validate data integrity (column names check)
-  expected_cols <- c("row_id", "child_id", "age_trimester", "smk_t", "alc_t")
-  if (!identical(colnames(trimesterrep), expected_cols)) {
-    cli::cli_alert_danger("Data integrity check failed!")
-    cli::cli_alert_warning(sprintf("Expected columns: %s", paste(expected_cols, collapse = ", ")))
-    cli::cli_alert_warning(sprintf("Actual columns: %s", paste(colnames(trimesterrep), collapse = ", ")))
-    stop("Trimesterrep column names incorrect - test data may be corrupted")
-  }
-
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", nonrep)
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", yearlyrep)
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", monthlyrep)
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "2_1-core-1_0", trimesterrep)
-  rm(nonrep, yearlyrep, monthlyrep, trimesterrep)
-
-  # Outcome tables
-  nonrep <- arrow::read_parquet(paste0(dest, "outcome/nonrep.parquet"))
-  yearlyrep <- arrow::read_parquet(paste0(dest, "outcome/yearlyrep.parquet"))
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "1_1-outcome-1_0", nonrep)
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "1_1-outcome-1_0", yearlyrep)
-  rm(nonrep, yearlyrep)
-
-  # Survival table
-  veteran <- arrow::read_parquet(paste0(dest, "survival/veteran.parquet"))
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "survival", veteran)
-  rm(veteran)
-
-  # Tidyverse table
-  MolgenisArmadillo::armadillo.upload_table(test_env$project, "tidyverse", mtcars)
-
-  cli_verbose_success("Tables uploaded")
-  test_env$tables_uploaded <- TRUE
-  invisible(TRUE)
+  invisible(FALSE)
 }
 
 ensure_resources_uploaded <- function() {
