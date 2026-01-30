@@ -16,20 +16,19 @@ if (file.exists(local_rprofile)) {
 # Usage:
 #   Rscript testthat.R                                    # Run all tests
 #   Rscript testthat.R --only resources                   # Run only resources cluster
-#   Rscript testthat.R --only resources data-manager      # Run resources + data-manager
+#   Rscript testthat.R --only researcher-tables             # Run only researcher table tests
 #   Rscript testthat.R --skip ds-omics                    # Run all except ds-omics
 #   Rscript testthat.R --skip ds-omics ds-exposome        # Skip multiple tests
-#   Rscript testthat.R --only resources --skip ds-omics   # Resources without ds-omics
+#   Rscript testthat.R --only researcher-resources --skip ds-omics   # Resources without ds-omics
 #   Rscript testthat.R --list                             # List available clusters/tests
 #
 # Named clusters:
 #   all                  - All tests
-#   data-manager         - Data manager and basic auth tests
 #   researcher-tables    - Researcher tests for tabular data (no resources)
 #   researcher-resources - Researcher tests that use resources (exposome, omics)
 #
 # Individual tests (can also be used with --only/--skip):
-#   data-manager, basic-auth, manual-test, researcher-login, profiles,
+#   upload-tables, basic-auth, manual-test, upload-resources, researcher-login, profiles,
 #   assigning-tables, assigning-resources, ds-base, ds-mediate, ds-survival,
 #   ds-mtl, ds-exposome, ds-omics, ds-tidyverse
 #
@@ -39,7 +38,7 @@ if (file.exists(local_rprofile)) {
 #
 # Environment variables (can also be set in .env file):
 #   CONTAINER  - Profile name(s), comma-separated for multi-profile runs
-#   TEST_ONLY  - Space-separated list of clusters/tests to run (e.g., "resources data-manager")
+#   TEST_ONLY  - Space-separated list of clusters/tests to run (e.g., "researcher-resources")
 #   TEST_SKIP  - Space-separated list of clusters/tests to skip (e.g., "ds-omics ds-exposome")
 #   VERBOSE    - Set to "true" to show each test name as it executes
 #   See .env file for full configuration options
@@ -49,26 +48,24 @@ if (file.exists(local_rprofile)) {
 # -----------------------------------------------------------------------------
 
 # Named test clusters (groups of tests)
-# Prefix convention: 1x=data-manager, 2x=researcher-setup, 3x=tables, 4x=resources
+# Prefix convention: 1x=setup, 2x=researcher-setup, 3x=tables, 4x=resources
 TEST_CLUSTERS <- list(
   # All tests
-  all = "10-data-manager|11-basic-auth|12-manual-test|20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse|40-assigning-resources|41-ds-exposome|42-ds-omics",
-
-  # Data manager tests (includes basic-auth and manual UI test)
-  `data-manager` = "10-data-manager|11-basic-auth|12-manual-test",
+  all = "10-upload-tables|11-basic-auth|12-manual-test|13-upload-resources|20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse|40-assigning-resources|41-ds-exposome|42-ds-omics",
 
   # Researcher tests for tabular data (no resources)
   `researcher-tables` = "20-researcher-login|21-profiles|30-assigning-tables|31-ds-base|32-ds-mediate|33-ds-survival|34-ds-mtl|35-ds-tidyverse",
 
   # Researcher tests that use resources (no table assignment needed)
-  `researcher-resources` = "20-researcher-login|21-profiles|40-assigning-resources|41-ds-exposome|42-ds-omics"
+  `researcher-resources` = "13-upload-resources|20-researcher-login|21-profiles|40-assigning-resources|41-ds-exposome|42-ds-omics"
 )
 
 # Individual test mappings (test name -> file pattern)
 TEST_INDIVIDUALS <- list(
-  `data-manager`        = "10-data-manager",
+  `upload-tables`       = "10-upload-tables",
   `basic-auth`          = "11-basic-auth",
   `manual-test`         = "12-manual-test",
+  `upload-resources`    = "13-upload-resources",
   `researcher-login`    = "20-researcher-login",
   profiles              = "21-profiles",
   `assigning-tables`    = "30-assigning-tables",
@@ -243,7 +240,7 @@ if (any(args %in% c("--help", "-h", "help"))) {
   cli::cli_h2("Examples")
   cli::cli_text("  Rscript testthat.R                                  # Run all tests")
   cli::cli_text("  Rscript testthat.R --only resources                 # Run resources cluster")
-  cli::cli_text("  Rscript testthat.R --only resources data-manager    # Run multiple clusters")
+  cli::cli_text("  Rscript testthat.R --only researcher-tables          # Run a cluster")
   cli::cli_text("  Rscript testthat.R --skip ds-omics ds-exposome      # Skip specific tests")
   cli::cli_text("  Rscript testthat.R --only resources --skip ds-omics # Combine --only and --skip")
   quit(status = 0)
