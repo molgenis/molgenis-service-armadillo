@@ -22,7 +22,7 @@ test_that("table can be assigned", {
   ))
 
   # Verify it's a data frame
-  datatype <- dsBaseClient::ds.class(x = "test_nonrep", datasources = conns)
+  datatype <- suppressMessages(dsBaseClient::ds.class(x = "test_nonrep", datasources = conns))
 
   expect_equal(datatype$armadillo, "data.frame")
 })

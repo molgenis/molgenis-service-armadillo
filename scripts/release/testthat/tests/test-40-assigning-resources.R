@@ -24,7 +24,7 @@ test_that("resource can be seen", {
   skip_if_resources_excluded()
   full_resource_path <- sprintf("%s/ewas/GSE66351_1", project)
 
-  resources <- DSI::datashield.resources(conns = conns)
+  resources <- suppressMessages(DSI::datashield.resources(conns = conns))
 
   expect_true(
     full_resource_path %in% resources$armadillo,
@@ -46,7 +46,7 @@ test_that("resource can be assigned", {
   ))
 
   # Check class
-  resource_class <- dsBaseClient::ds.class("eSet_0y_EUR", datasources = conns)
+  resource_class <- suppressMessages(dsBaseClient::ds.class("eSet_0y_EUR", datasources = conns))
 
   expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
 

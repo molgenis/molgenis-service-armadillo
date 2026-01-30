@@ -12,10 +12,10 @@ skip_if_ds_base_excluded <- function() {
 
 test_that("ds.mean returns expected values", {
   skip_if_ds_base_excluded()
-  ds_mean <- dsBaseClient::ds.mean(
+  ds_mean <- suppressMessages(dsBaseClient::ds.mean(
     "nonrep$coh_country",
     datasources = conns
-  )$Mean
+  ))$Mean
 
   expect_ds_mean_values(ds_mean, 431.105, 1000)
 })
