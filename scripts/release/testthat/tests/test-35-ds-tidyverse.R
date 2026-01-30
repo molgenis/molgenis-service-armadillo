@@ -1,0 +1,309 @@
+# test-36-ds-tidyverse.R - dsTidyverse package tests
+#
+# These tests verify that dsTidyverse functions work correctly.
+#
+# Note: dsBaseClient functions print "Data in all studies were valid" messages
+# during data validation. We wrap those calls in suppressMessages() to keep
+# test output clean.
+
+# Setup: ensure researcher connection is established
+ensure_researcher_login_and_assign()
+
+# Load the tidyverse client library
+library(dsTidyverseClient)
+
+# Helper to check all skip conditions for this test file
+skip_if_ds_tidyverse_excluded <- function() {
+  skip_if_excluded("ds-tidyverse")
+}
+
+# Helper to assign tidyverse test data
+assign_tidyverse_data <- function() {
+  data_path <- "/tidyverse"
+
+  suppressMessages(DSI::datashield.assign.table(
+    conns,
+    "mtcars",
+    sprintf("%s%s/mtcars", project, data_path)
+  ))
+}
+
+test_that("tidyverse data can be assigned", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  datatype <- suppressMessages(dsBaseClient::ds.class(x = "mtcars", datasources = conns))
+
+  expect_equal(datatype$armadillo, "data.frame")
+})
+
+test_that("ds.arrange creates data frame", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.arrange(
+    df.name = "mtcars",
+    tidy_expr = list(cyl),
+    newobj = "ordered_df",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.class("ordered_df", datasources = conns))[[1]]
+
+  expect_equal(res, "data.frame")
+})
+
+test_that("ds.as_tibble creates tibble", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.as_tibble(
+    x = "mtcars",
+    newobj = "mtcars_tib",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.class("mtcars_tib", datasources = conns))[[1]]
+
+  expect_identical(res, c("tbl_df", "tbl", "data.frame"))
+})
+
+test_that("ds.bind_cols creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.bind_cols(
+    to_combine = list(mtcars, mtcars),
+    newobj = "cols_bound",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.dim("cols_bound", datasources = conns))[[1]]
+
+  expect_identical(res, as.integer(c(32, 22)))
+})
+
+test_that("ds.bind_rows creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.bind_rows(
+    to_combine = list(mtcars, mtcars),
+    newobj = "rows_bound",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.dim("rows_bound", datasources = conns))[[1]]
+
+  expect_identical(res, as.integer(c(64, 11)))
+})
+
+test_that("ds.case_when creates expected levels", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.case_when(
+    tidy_expr = list(
+      mtcars$mpg < 20 ~ "low",
+      mtcars$mpg >= 20 & mtcars$mpg < 30 ~ "medium",
+      mtcars$mpg >= 30 ~ "high"
+    ),
+    newobj = "test",
+    datasources = conns
+  )
+
+  res <- names(suppressMessages(dsBaseClient::ds.table("test", datasources = conns))$output.list$TABLES.COMBINED_all.sources_counts)
+
+  expect_identical(res, c("high", "low", "medium", "NA"))
+})
+
+test_that("ds.distinct creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.distinct(
+    df.name = "mtcars",
+    tidy_expr = list(cyl, carb),
+    newobj = "dist_df",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.dim("dist_df", datasources = conns))[[1]]
+
+  expect_identical(res, as.integer(c(9, 2)))
+})
+
+test_that("ds.filter creates correct dimensions", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.filter(
+    df.name = "mtcars",
+    tidy_expr = list(cyl == 4 & mpg > 20),
+    newobj = "filtered",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.dim("filtered", datasources = conns))[[1]]
+
+  expect_identical(res, as.integer(c(11, 11)))
+})
+
+test_that("ds.group_by creates grouped_df", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.group_by(
+    df.name = "mtcars",
+    tidy_expr = list(cyl),
+    newobj = "grouped",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))[[1]]
+
+  expect_identical(res, c("grouped_df", "tbl_df", "tbl", "data.frame"))
+})
+
+test_that("ds.ungroup removes grouping", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  # Ensure grouped exists
+  tryCatch(
+    {
+      suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
+    },
+    error = function(e) {
+      ds.group_by(
+        df.name = "mtcars",
+        tidy_expr = list(cyl),
+        newobj = "grouped",
+        datasources = conns
+      )
+    }
+  )
+
+  ds.ungroup("grouped", "ungrouped_df", datasources = conns)
+
+  res <- suppressMessages(dsBaseClient::ds.class("ungrouped_df", datasources = conns))[[1]]
+
+  expect_identical(res, c("tbl_df", "tbl", "data.frame"))
+})
+
+test_that("ds.group_keys returns expected keys", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  # Ensure grouped exists
+  tryCatch(
+    {
+      suppressMessages(dsBaseClient::ds.class("grouped", datasources = conns))
+    },
+    error = function(e) {
+      ds.group_by(
+        df.name = "mtcars",
+        tidy_expr = list(cyl),
+        newobj = "grouped",
+        datasources = conns
+      )
+    }
+  )
+
+  res <- ds.group_keys("grouped", datasources = conns)$armadillo
+
+  expect_equal(res, tibble::tibble(cyl = c(4, 6, 8)))
+})
+
+test_that("ds.if_else creates expected levels", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.if_else(
+    condition = list(mtcars$mpg > 20),
+    "high",
+    "low",
+    newobj = "test",
+    datasources = conns
+  )
+
+  res <- names(suppressMessages(dsBaseClient::ds.table("test", datasources = conns))$output.list$TABLES.COMBINED_all.sources_counts)
+
+  expect_identical(res, c("high", "low", "NA"))
+})
+
+test_that("ds.mutate creates new variables", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.mutate(
+    df.name = "mtcars",
+    tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
+    newobj = "new",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.colnames("new", datasources = conns))$armadillo
+
+  expected_cols <- c(
+    "mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am",
+    "gear", "carb", "mpg_trans", "new_var"
+  )
+
+  expect_identical(res, expected_cols)
+})
+
+test_that("ds.rename renames variables", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.rename(
+    df.name = "mtcars",
+    tidy_expr = list(test_1 = mpg, test_2 = drat),
+    newobj = "mpg_drat",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.colnames("mpg_drat", datasources = conns))$armadillo
+
+  expected_cols <- c(
+    "test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am",
+    "gear", "carb"
+  )
+
+  expect_identical(res, expected_cols)
+})
+
+test_that("ds.select selects variables", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.select(
+    df.name = "mtcars",
+    tidy_expr = list(mpg:drat),
+    newobj = "mpg_drat_select",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.colnames("mpg_drat_select", datasources = conns))$armadillo
+
+  expected_cols <- c("mpg", "cyl", "disp", "hp", "drat")
+
+  expect_identical(res, expected_cols)
+})
+
+test_that("ds.slice slices rows", {
+  skip_if_ds_tidyverse_excluded()
+  assign_tidyverse_data()
+
+  ds.slice(
+    df.name = "mtcars",
+    tidy_expr = list(1:5),
+    newobj = "sliced",
+    datasources = conns
+  )
+
+  res <- suppressMessages(dsBaseClient::ds.dim("sliced", datasources = conns))[[1]]
+
+  expect_identical(res, as.integer(c(5, 11)))
+})
