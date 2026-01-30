@@ -55,16 +55,34 @@ if (is.na(test_env$testthat_dir) || test_env$testthat_dir == "") {
 test_env$test_cases_dir <- file.path(dirname(test_env$testthat_dir), "test-cases")
 
 # -----------------------------------------------------------------------------
+# Utility functions
+# -----------------------------------------------------------------------------
+
+add_slash_if_not_added <- function(path) {
+  if (!endsWith(path, "/")) paste0(path, "/") else path
+}
+
+remove_slash_if_added <- function(path) {
+  if (endsWith(path, "/")) gsub("/$", "", path) else path
+}
+
+create_dir_if_not_exists <- function(dest, directory) {
+  full_path <- paste0(dest, directory)
+  if (!dir.exists(full_path)) dir.create(full_path, recursive = TRUE)
+}
+
+get_from_api <- function(endpoint, armadillo_url) {
+  httr::content(httr::GET(paste0(armadillo_url, endpoint)))
+}
+
+# -----------------------------------------------------------------------------
 # Level 1: Configuration
 # -----------------------------------------------------------------------------
 
-ensure_config <- function() {
-  if (!is.null(test_env$config)) {
-    return(invisible(test_env$config))
-  }
-
-  cli_verbose_info("Loading test configuration...")
-
+#' Load environment variables from .env and process skip settings
+#'
+#' @return List with skip_tests, interactive, and as_docker_container
+.load_env_vars <- function() {
   # Read .env from parent of testthat directory (scripts/release/)
   env_file <- file.path(dirname(test_env$testthat_dir), ".env")
   if (file.exists(env_file)) {
@@ -73,20 +91,35 @@ ensure_config <- function() {
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- stringr::str_split(skip_tests, ",")[[1]]
+  interactive <- Sys.getenv("INTERACTIVE") != "N"
+  as_docker_container <- Sys.getenv("AS_DOCKER_CONTAINER", "N") == "Y"
 
+  list(
+    skip_tests = skip_tests,
+    interactive = interactive,
+    as_docker_container = as_docker_container
+  )
+}
+
+#' Validate and format Armadillo URL
+#'
+#' @param skip_tests Vector of test names to skip (updated if localhost)
+#' @return List with armadillo_url (validated and formatted) and skip_tests (updated)
+.validate_armadillo_url <- function(skip_tests) {
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
     cli::cli_alert_warning("Defaulting to https://armadillo-demo.molgenis.net/")
     armadillo_url <- "https://armadillo-demo.molgenis.net/"
   }
 
+  # Skip ds-omics for localhost
   if (stringr::str_detect(armadillo_url, "localhost") && !any(skip_tests %in% "ds-omics")) {
     skip_tests <- c(skip_tests, "ds-omics")
   }
 
-  interactive <- Sys.getenv("INTERACTIVE") != "N"
   armadillo_url <- add_slash_if_not_added(armadillo_url)
 
+  # Verify URL is reachable
   if (!RCurl::url.exists(armadillo_url)) {
     cli::cli_alert_danger(sprintf("URL [%s] is not reachable!", armadillo_url))
     cli::cli_alert_info("Please check:")
@@ -99,12 +132,18 @@ ensure_config <- function() {
   }
   cli_verbose_success(sprintf("Armadillo URL reachable: %s", armadillo_url))
 
+  # Add http/https prefix if missing
   if (!startsWith(armadillo_url, "http")) {
     armadillo_url <- paste0(if (startsWith(armadillo_url, "localhost")) "http://" else "https://", armadillo_url)
   }
 
-  as_docker_container <- Sys.getenv("AS_DOCKER_CONTAINER", "N") == "Y"
+  list(armadillo_url = armadillo_url, skip_tests = skip_tests)
+}
 
+#' Resolve file system paths (service location, test file path)
+#'
+#' @return List with service_location, test_file_path, dest, and default_parquet_path
+.resolve_paths <- function() {
   service_location <- remove_slash_if_added(Sys.getenv("GIT_CLONE_PATH"))
   if (service_location == "") {
     service_location <- dirname(dirname(dirname(normalizePath("."))))
@@ -123,6 +162,22 @@ ensure_config <- function() {
     test_file_path <- testing_path
   }
 
+  dest <- add_slash_if_not_added(test_file_path)
+  default_parquet_path <- add_slash_if_not_added(file.path(service_location, "data", "shared-lifecycle"))
+
+  list(
+    service_location = service_location,
+    test_file_path = test_file_path,
+    dest = dest,
+    default_parquet_path = default_parquet_path
+  )
+}
+
+#' Load authentication configuration (admin, user, profile)
+#'
+#' @param armadillo_url The validated Armadillo URL
+#' @return List with user, admin_pwd, ADMIN_MODE, auth_type, profile, app_info, version, update_auto
+.load_auth_config <- function(armadillo_url) {
   admin_pwd <- Sys.getenv("ADMIN_PASSWORD")
   user <- Sys.getenv("OIDC_EMAIL")
 
@@ -131,9 +186,6 @@ ensure_config <- function() {
   }
 
   ADMIN_MODE <- user == ""
-  dest <- add_slash_if_not_added(test_file_path)
-  app_info <- get_from_api("actuator/info", armadillo_url)
-  version <- unlist(app_info$build$version)
   auth_type <- if (ADMIN_MODE) "basic" else "bearer"
 
   profile <- Sys.getenv("CONTAINER")
@@ -141,10 +193,32 @@ ensure_config <- function() {
     stop("CONTAINER environment variable is not set. Please set it in .env file (e.g., CONTAINER=donkey)")
   }
 
-  default_parquet_path <- add_slash_if_not_added(file.path(service_location, "data", "shared-lifecycle"))
-  rda_dir <- file.path(test_file_path, "gse66351_1.rda")
-  rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
+  app_info <- get_from_api("actuator/info", armadillo_url)
+  version <- unlist(app_info$build$version)
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
+
+  list(
+    user = user,
+    admin_pwd = admin_pwd,
+    ADMIN_MODE = ADMIN_MODE,
+    auth_type = auth_type,
+    profile = profile,
+    app_info = app_info,
+    version = version,
+    update_auto = update_auto
+  )
+}
+
+#' Build final config object from all components
+#'
+#' @param env_vars Result from .load_env_vars()
+#' @param url_config Result from .validate_armadillo_url()
+#' @param paths Result from .resolve_paths()
+#' @param auth_config Result from .load_auth_config()
+#' @return Complete configuration list
+.build_config_object <- function(env_vars, url_config, paths, auth_config) {
+  rda_dir <- file.path(paths$test_file_path, "gse66351_1.rda")
+  rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
 
   profile_defaults <- data.frame(
     name = c("xenon", "rock"),
@@ -156,14 +230,50 @@ ensure_config <- function() {
 
   options(timeout = 300)
 
-  test_env$config <- list(
-    skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive,
-    user = user, admin_pwd = admin_pwd, test_file_path = test_file_path,
-    service_location = service_location, dest = dest, app_info = app_info,
-    version = version, auth_type = auth_type, as_docker_container = as_docker_container,
-    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path,
-    rda_dir = rda_dir, update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
+  list(
+    skip_tests = url_config$skip_tests,
+    armadillo_url = url_config$armadillo_url,
+    interactive = env_vars$interactive,
+    user = auth_config$user,
+    admin_pwd = auth_config$admin_pwd,
+    test_file_path = paths$test_file_path,
+    service_location = paths$service_location,
+    dest = paths$dest,
+    app_info = auth_config$app_info,
+    version = auth_config$version,
+    auth_type = auth_config$auth_type,
+    as_docker_container = env_vars$as_docker_container,
+    ADMIN_MODE = auth_config$ADMIN_MODE,
+    profile = auth_config$profile,
+    default_parquet_path = paths$default_parquet_path,
+    rda_dir = rda_dir,
+    update_auto = auth_config$update_auto,
+    profile_defaults = profile_defaults,
+    rda_url = rda_url
   )
+}
+
+#' Ensure test configuration is loaded
+#'
+#' Loads configuration from environment variables and validates settings.
+#' Uses lazy initialization - only loads once, then returns cached config.
+#'
+#' @return Configuration list stored in test_env$config
+ensure_config <- function() {
+  if (!is.null(test_env$config)) {
+    return(invisible(test_env$config))
+  }
+
+  cli_verbose_info("Loading test configuration...")
+
+  # Load and process configuration in stages
+  env_vars <- .load_env_vars()
+  url_config <- .validate_armadillo_url(env_vars$skip_tests)
+  paths <- .resolve_paths()
+  auth_config <- .load_auth_config(url_config$armadillo_url)
+
+  # Build final config object
+  test_env$config <- .build_config_object(env_vars, url_config, paths, auth_config)
 
   # Set global variable for use in tests (named test_config to avoid httr::config collision)
   test_config <<- test_env$config
@@ -265,27 +375,14 @@ ensure_resources_downloaded <- function() {
 # Level 3: Authentication (TOKENS)
 # -----------------------------------------------------------------------------
 
-#' Ensure authentication tokens are obtained
+#' Obtain researcher token for API calls and DSI login
 #'
-#' This function obtains BOTH tokens exactly once:
-#' - Researcher token (armadillo.get_token) - used for API calls and DSI login
-#' - Data manager login (armadillo.login) - used for armadillo.* functions
+#' In ADMIN_MODE, uses admin password as token.
+#' In researcher mode, tries TOKEN env var first, then armadillo.get_token().
 #'
-#' After this function runs, test_env$token contains the researcher token
-#' and the DM session is active for armadillo.* calls.
-ensure_tokens <- function() {
-  ensure_config()
-
-  if (isTRUE(test_env$tokens_obtained)) {
-    return(invisible(TRUE))
-  }
-
-  config <- test_env$config
-  armadillo_url <<- config$armadillo_url # Set global for legacy functions
-
-  # -------------------------------------------------------------------------
-  # TOKEN 1: Researcher token (for API calls + DSI login)
-  # -------------------------------------------------------------------------
+#' @param config Configuration list from ensure_config()
+#' @return Token string (stored in test_env$token)
+.obtain_researcher_token <- function(config) {
   cli::cli_alert_info("Obtaining researcher token...")
 
   if (config$ADMIN_MODE) {
@@ -302,9 +399,15 @@ ensure_tokens <- function() {
     }
   }
 
-  # -------------------------------------------------------------------------
-  # TOKEN 2: Data manager login (for armadillo.* functions)
-  # -------------------------------------------------------------------------
+  test_env$token
+}
+
+#' Login as data manager for armadillo.* functions
+#'
+#' Uses armadillo.login_basic() in ADMIN_MODE, armadillo.login() otherwise.
+#'
+#' @param config Configuration list from ensure_config()
+.login_data_manager <- function(config) {
   cli::cli_alert_info("Logging in as data manager...")
 
   if (config$ADMIN_MODE) {
@@ -314,15 +417,20 @@ ensure_tokens <- function() {
   }
 
   cli::cli_alert_success("Data manager login complete")
+}
 
-  # -------------------------------------------------------------------------
-  # Verify admin/DM rights by attempting to list projects
-  # -------------------------------------------------------------------------
+#' Verify admin/data manager permissions by listing projects
+#'
+#' Attempts to list projects to confirm we have admin rights.
+#' Provides helpful error messages if permissions are missing.
+#'
+#' @param config Configuration list (for error messages)
+.verify_admin_permissions <- function(config) {
   cli_verbose_info("Verifying admin permissions...")
 
   tryCatch(
     {
-      projects <- MolgenisArmadillo::armadillo.list_projects()
+      MolgenisArmadillo::armadillo.list_projects()
       cli_verbose_success("Admin permissions verified")
     },
     error = function(e) {
@@ -338,6 +446,31 @@ ensure_tokens <- function() {
       stop("Cannot proceed without admin permissions. See messages above.")
     }
   )
+}
+
+#' Ensure authentication tokens are obtained
+#'
+#' Obtains both researcher token and data manager login session:
+#' - Researcher token (for API calls and DSI login)
+#' - Data manager login (for armadillo.* functions)
+#'
+#' Uses lazy initialization - only runs once, then returns cached result.
+#'
+#' @return TRUE (tokens stored in test_env$token and DM session active)
+ensure_tokens <- function() {
+  ensure_config()
+
+  if (isTRUE(test_env$tokens_obtained)) {
+    return(invisible(TRUE))
+  }
+
+  config <- test_env$config
+  armadillo_url <<- config$armadillo_url # Set global for legacy functions
+
+  # Obtain authentication in three stages
+  .obtain_researcher_token(config)
+  .login_data_manager(config)
+  .verify_admin_permissions(config)
 
   test_env$tokens_obtained <- TRUE
   invisible(TRUE)
@@ -589,21 +722,4 @@ skip_if_excluded <- function(test_name) {
   if (should_skip_test(test_name)) {
     testthat::skip(paste("Excluded via SKIP_TESTS:", test_name))
   }
-}
-
-add_slash_if_not_added <- function(path) {
-  if (!endsWith(path, "/")) paste0(path, "/") else path
-}
-
-remove_slash_if_added <- function(path) {
-  if (endsWith(path, "/")) gsub("/$", "", path) else path
-}
-
-create_dir_if_not_exists <- function(dest, directory) {
-  full_path <- paste0(dest, directory)
-  if (!dir.exists(full_path)) dir.create(full_path, recursive = TRUE)
-}
-
-get_from_api <- function(endpoint, armadillo_url) {
-  httr::content(httr::GET(paste0(armadillo_url, endpoint)))
 }
