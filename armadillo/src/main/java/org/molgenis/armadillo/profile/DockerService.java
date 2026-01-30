@@ -55,6 +55,9 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
+  @Value("${storage.root-dir}")
+  private String dataDir;
+
   public DockerService(
       DockerClient dockerClient,
       ProfileService profileService,
@@ -266,11 +269,14 @@ public class DockerService {
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
     portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
+    Bind bind = Bind.parse(dataDir + ":/data:rw");
+
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       cmd.withExposedPorts(exposed)
           .withHostConfig(
               new HostConfig()
                   .withPortBindings(portBindings)
+                  .withBinds(bind)
                   .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
           .withName(profileConfig.getName())
           .withEnv("DEBUG=FALSE")
