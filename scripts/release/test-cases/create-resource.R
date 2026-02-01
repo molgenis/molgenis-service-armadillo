@@ -1,6 +1,6 @@
 create_resource <- function(folder, file_name, resource_name, format) {
   test_name <- "create_resource"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

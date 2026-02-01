@@ -1,6 +1,6 @@
 show_test_info <- function() {
   test_name <- "show_test_info"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

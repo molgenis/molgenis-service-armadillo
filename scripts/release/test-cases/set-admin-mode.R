@@ -1,6 +1,6 @@
 set_admin_or_get_token <- function() {
   test_name <- "set-admin-mode"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

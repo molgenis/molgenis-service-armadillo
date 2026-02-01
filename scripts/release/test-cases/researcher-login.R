@@ -31,13 +31,13 @@ create_dsi_builder <- function(server = "armadillo", table = "", resource = "") 
 
 researcher_login <- function(table, object, variables) {
   test_name <- "researcher_login"
-  if (do_skip_test(test_name)) {
-    return()
-  }
 
-  full_table <- sprintf("%s/%s", release_env$project1, table)
-  logindata <- create_dsi_builder(table = full_table)
-  cli_alert_info(sprintf("Login with profile [%s] and table: [%s/%s]", release_env$current_profile, release_env$project1, table))
-  release_env$conns <- datashield.login(logins = logindata, symbol = object, variables = variables, assign = TRUE)
-  cli_alert_success(sprintf("%s passed!", test_name))
+  test_that("researcher login", {
+    do_skip_test(test_name)
+    full_table <- sprintf("%s/%s", release_env$project1, table)
+    logindata <- create_dsi_builder(table = full_table)
+    cli_alert_info(sprintf("Login with profile [%s] and table: [%s/%s]", release_env$current_profile, release_env$project1, table))
+    release_env$conns <- datashield.login(logins = logindata, symbol = object, variables = variables, assign = TRUE)
+    expect_true(!is.null(release_env$conns))
+  })
 }

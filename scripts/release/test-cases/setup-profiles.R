@@ -100,7 +100,7 @@ start_profile <- function(profile_name) {
 
 setup_profiles <- function() {
   test_name <- "setup-profiles"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

@@ -8,8 +8,7 @@ assign_tidyverse_data <- function(data_path) {
 }
 
 verify_arrange <- function() {
-  ds_function_name <- "ds.arrange"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.arrange")
   ds.arrange(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -18,17 +17,11 @@ verify_arrange <- function() {
     )
 
   res <- ds.class("ordered_df", datasources = release_env$conns)[[1]]
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = "data.frame",
-    fail_msg = xenon_fail_msg$srv_class
-  )
-
+  expect_identical(res, "data.frame")
 }
 
 verify_as_tibble <- function() {
-  ds_function_name <- "ds.as_tibble"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.as_tibble")
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
@@ -36,17 +29,11 @@ verify_as_tibble <- function() {
   )
 
   res <- ds.class("mtcars_tib", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("tbl_df", "tbl", "data.frame"),
-    fail_msg = xenon_fail_msg$srv_class
-  )
+  expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 }
 
 verify_bind_cols <- function() {
-  ds_function_name <- "ds.bind_cols"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.bind_cols")
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
@@ -54,16 +41,11 @@ verify_bind_cols <- function() {
   )
 
   res <- ds.dim("cols_bound", datasources = release_env$conns)[[1]]
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = as.integer(c(32, 22)),
-    fail_msg = xenon_fail_msg$srv_dim
-  )
+  expect_identical(res, as.integer(c(32, 22)))
 }
 
 verify_bind_rows <- function() {
-  ds_function_name <- "ds.bind_rows"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.bind_rows")
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
@@ -71,17 +53,11 @@ verify_bind_rows <- function() {
   )
 
   res <- ds.dim("rows_bound", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = as.integer(c(64, 11)),
-    fail_msg = xenon_fail_msg$srv_dim
-  )
+  expect_identical(res, as.integer(c(64, 11)))
 }
 
 verify_case_when <- function() {
-  ds_function_name <- "ds.case_when"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.case_when")
   ds.case_when(
     tidy_expr = list(
       mtcars$mpg < 20 ~ "low",
@@ -93,17 +69,11 @@ verify_case_when <- function() {
   )
 
   res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("high", "low", "medium", "NA"),
-    fail_msg = xenon_fail_msg$srv_lvl
-  )
+  expect_identical(res, c("high", "low", "medium", "NA"))
 }
 
 verify_distinct <- function() {
-  ds_function_name <- "ds.distinct"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.distinct")
   ds.distinct(
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
@@ -112,17 +82,11 @@ verify_distinct <- function() {
   )
 
   res <- ds.dim("dist_df", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = as.integer(c(9, 2)),
-    fail_msg = xenon_fail_msg$srv_dim
-  )
+  expect_identical(res, as.integer(c(9, 2)))
 }
 
 verify_filter <- function() {
-  ds_function_name <- "ds.filter"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.filter")
   ds.filter(
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
@@ -131,17 +95,11 @@ verify_filter <- function() {
   )
 
   res <- ds.dim("filtered", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = as.integer(c(11, 11)),
-    fail_msg = xenon_fail_msg$srv_dim
-  )
+  expect_identical(res, as.integer(c(11, 11)))
 }
 
 verify_group_by <- function() {
-  ds_function_name <- "ds.group_by"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.group_by")
   ds.group_by(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -150,42 +108,24 @@ verify_group_by <- function() {
   )
 
   res <- ds.class("grouped", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("grouped_df", "tbl_df", "tbl", "data.frame"),
-    fail_msg = xenon_fail_msg$srv_class
-  )
+  expect_identical(res, c("grouped_df", "tbl_df", "tbl", "data.frame"))
 }
 
 verify_ungroup <- function() {
-  ds_function_name <- "ds.ungroup"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.ungroup")
   ds.ungroup("grouped", "ungrouped_df", datasources = release_env$conns)
   res <- ds.class("ungrouped_df", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("tbl_df", "tbl", "data.frame"),
-    fail_msg = xenon_fail_msg$srv_class
-  )
+  expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 }
 
 verify_group_keys <- function() {
-  ds_function_name <- "ds.group_keys"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.group_keys")
   res <- ds.group_keys("grouped", datasources = release_env$conns)$armadillo
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = tibble(cyl = c(4, 6, 8)),
-    fail_msg = xenon_fail_msg$clt_grp
-  )
+  expect_identical(res, tibble(cyl = c(4, 6, 8)))
 }
 
 verify_if_else <- function() {
-  ds_function_name <- "ds.if_else"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.if_else")
 
   ds.if_else(
     condition = list(mtcars$mpg > 20),
@@ -196,17 +136,11 @@ verify_if_else <- function() {
   )
 
   res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("high", "low", "NA"),
-    fail_msg = xenon_fail_msg$srv_lvl
-  )
+  expect_identical(res, c("high", "low", "NA"))
 }
 
 verify_mutate <- function() {
-  ds_function_name <- "ds.mutate"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.mutate")
 
   ds.mutate(
     df.name = "mtcars",
@@ -216,17 +150,11 @@ verify_mutate <- function() {
   )
 
   res <- ds.colnames("new", datasources = release_env$conns)$armadillo
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am", "gear", "carb", "mpg_trans", "new_var"),
-    fail_msg = xenon_fail_msg$srv_var
-  )
+  expect_identical(res, c("mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am", "gear", "carb", "mpg_trans", "new_var"))
 }
 
 verify_rename <- function() {
-  ds_function_name <- "ds.rename"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.rename")
 
   ds.rename(
     df.name = "mtcars",
@@ -235,17 +163,11 @@ verify_rename <- function() {
     datasources = release_env$conns
   )
   res <- ds.colnames("mpg_drat", datasources = release_env$conns)$armadillo
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am", "gear", "carb"),
-    fail_msg = xenon_fail_msg$srv_var
-  )
+  expect_identical(res, c("test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am", "gear", "carb"))
 }
 
 verify_select <- function() {
-  ds_function_name <- "ds.select"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.select")
 
   ds.select(
     df.name = "mtcars",
@@ -254,17 +176,11 @@ verify_select <- function() {
     datasources = release_env$conns
   )
   res <-  ds.colnames("mpg_drat", datasources = release_env$conns)$armadillo
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = c("mpg", "cyl", "disp", "hp", "drat"),
-    fail_msg = xenon_fail_msg$srv_var
-  )
+  expect_identical(res, c("mpg", "cyl", "disp", "hp", "drat"))
 }
 
 verify_slice <- function() {
-  ds_function_name <- "ds.slice"
-  cli_alert_info(sprintf("Checking %s", ds_function_name))
+  cli_alert_info("Checking ds.slice")
 
   ds.slice(
     df.name = "mtcars",
@@ -274,33 +190,29 @@ verify_slice <- function() {
   )
 
   res <-  ds.dim("sliced", datasources = release_env$conns)[[1]]
-
-  verify_output(
-    function_name = ds_function_name, object = res,
-    expected = as.integer(c(5, 11)),
-    fail_msg = xenon_fail_msg$srv_dim)
+  expect_identical(res, as.integer(c(5, 11)))
 }
 
 run_tidyverse_tests <- function(data_path) {
   test_name <- "donkey-tidyverse"
-  if (do_skip_test(test_name)) {
-    return()
-  }
-  assign_tidyverse_data(data_path)
-  verify_arrange()
-  verify_as_tibble()
-  verify_bind_cols()
-  verify_bind_rows()
-  verify_case_when()
-  verify_distinct()
-  verify_filter()
-  verify_group_by()
-  verify_ungroup()
-  verify_group_keys()
-  verify_if_else()
-  verify_mutate()
-  verify_rename()
-  verify_select()
-  verify_slice()
-  cli_alert_success(sprintf("%s passed!", test_name))
+  test_that("donkey-tidyverse setup", {
+    do_skip_test(test_name)
+    assign_tidyverse_data(data_path)
+    succeed()
+  })
+  test_that("ds.arrange", { do_skip_test(test_name); verify_arrange() })
+  test_that("ds.as_tibble", { do_skip_test(test_name); verify_as_tibble() })
+  test_that("ds.bind_cols", { do_skip_test(test_name); verify_bind_cols() })
+  test_that("ds.bind_rows", { do_skip_test(test_name); verify_bind_rows() })
+  test_that("ds.case_when", { do_skip_test(test_name); verify_case_when() })
+  test_that("ds.distinct", { do_skip_test(test_name); verify_distinct() })
+  test_that("ds.filter", { do_skip_test(test_name); verify_filter() })
+  test_that("ds.group_by", { do_skip_test(test_name); verify_group_by() })
+  test_that("ds.ungroup", { do_skip_test(test_name); verify_ungroup() })
+  test_that("ds.group_keys", { do_skip_test(test_name); verify_group_keys() })
+  test_that("ds.if_else", { do_skip_test(test_name); verify_if_else() })
+  test_that("ds.mutate", { do_skip_test(test_name); verify_mutate() })
+  test_that("ds.rename", { do_skip_test(test_name); verify_rename() })
+  test_that("ds.select", { do_skip_test(test_name); verify_select() })
+  test_that("ds.slice", { do_skip_test(test_name); verify_slice() })
 }

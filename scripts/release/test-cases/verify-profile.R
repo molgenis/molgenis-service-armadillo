@@ -23,47 +23,27 @@ create_ds_connection <- function(profile = "") {
   return(con)
 }
 
-verify_specific_profile <- function() {
-  cli_alert_info("Verify connecting to specified profile works")
-  con <- create_ds_connection(profile = release_env$current_profile)
-  if (con@name == "armadillo") {
-    cli_alert_success("Succesfully connected")
-  } else {
-    exit_test("Connection to specific profile failed")
-  }
-  dsDisconnect(con)
-}
-
-verify_no_profile_specified <- function() {
-  cli_alert_info("Verify if default profile works without specifying profile")
-  con <- create_ds_connection(profile = "")
-  if (con@name == "armadillo") {
-    cli_alert_success("Succesfully connected")
-  } else {
-    cli_alert_danger("Connection failed")
-  }
-  dsDisconnect(con)
-}
-
-verify_default_profile <- function() {
-  cli_alert_info("Verify if default profile works when specifying profile")
-  con <- create_ds_connection(profile = "default")
-  if (con@name == "armadillo") {
-    cli_alert_success("Succesfully connected")
-  } else {
-    cli_alert_danger("Connection failed")
-  }
-  dsDisconnect(con)
-}
-
 verify_profiles <- function() {
   test_name <- "verify-profile"
-  if (do_skip_test(test_name)) {
-    return()
-  }
 
-  verify_specific_profile()
-  verify_no_profile_specified()
-  verify_default_profile()
-  cli_alert_success(sprintf("%s passed!", test_name))
+  test_that("connect to specified profile", {
+    do_skip_test(test_name)
+    con <- create_ds_connection(profile = release_env$current_profile)
+    expect_equal(con@name, "armadillo")
+    dsDisconnect(con)
+  })
+
+  test_that("connect without specifying profile", {
+    do_skip_test(test_name)
+    con <- create_ds_connection(profile = "")
+    expect_equal(con@name, "armadillo")
+    dsDisconnect(con)
+  })
+
+  test_that("connect to default profile", {
+    do_skip_test(test_name)
+    con <- create_ds_connection(profile = "default")
+    expect_equal(con@name, "armadillo")
+    dsDisconnect(con)
+  })
 }

@@ -21,7 +21,7 @@ download_test_files <- function(urls, dest) {
 
 download_tables <- function() {
   test_name <- "download-tables"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

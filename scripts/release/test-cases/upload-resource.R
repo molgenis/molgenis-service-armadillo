@@ -32,7 +32,7 @@ spin_till_done <- function(spinner) {
 
 upload_resource <- function(folder, file_name, rda_dir = release_env$rda_dir) {
   test_name <- "upload-resource"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
   rda_file_body <- upload_file(rda_dir)

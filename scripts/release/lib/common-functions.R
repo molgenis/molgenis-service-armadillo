@@ -16,9 +16,11 @@ remove_slash_if_added <- function(path) {
 
 exit_test <- function(msg) {
   cli_alert_danger(msg)
-  cond <- structure(list(message = msg), class = c("exit", "condition"))
-  signalCondition(cond)
-  stop(cond)
+  if (testthat::is_testing()) {
+    fail(msg)
+  } else {
+    stop(msg, call. = FALSE)
+  }
 }
 
 check_cohort_exists <- function(cohort) {
@@ -67,12 +69,14 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   return(response)
 }
 
+should_skip_test <- function(test_name) {
+  any(release_env$skip_tests %in% test_name)
+}
+
 do_skip_test <- function(test_name) {
-  if (any(release_env$skip_tests %in% test_name)) {
-    cli_alert_info(sprintf("Test '%s' skipped", test_name))
-    return(TRUE)
+  if (should_skip_test(test_name)) {
+    testthat::skip(sprintf("Test '%s' skipped", test_name))
   }
-  return(FALSE)
 }
 
 read_parquet_with_message <- function(file_path, dest) {
@@ -118,16 +122,10 @@ almost_equal <- function(val1, val2) {
 }
 
 generate_random_project_name <- function() {
-  test_name <- "generate-project"
-  if (do_skip_test(test_name)) {
-    return()
-  }
-
   current_projects <- armadillo.list_projects()
   random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
   if (!random_project %in% current_projects) {
-    cli_alert_success(sprintf("Project %s created", random_project))
-    cli_alert_success(sprintf("%s passed!", test_name))
+    cli_alert_success(sprintf("Project %s generated", random_project))
     return(random_project)
   } else {
     generate_random_project_name()
@@ -189,16 +187,6 @@ print_list <- function(list) {
   cli_end(vals_to_print)
 }
 
-verify_output <- function(function_name = NULL, object = NULL, expected = NULL, fail_msg = NULL){
-  if(identical(object, expected)) {
-    cli_alert_success(sprintf("%s passed", function_name))
-  } else {
-    cli_alert_danger(sprintf("%s failed", function_name))
-    exit_test(sprintf("%s %s", function_name, fail_msg))
-  }
-
-}
-
 set_dm_permissions <- function() {
   if (release_env$update_auto == "y") {
     set_user(T, list(release_env$project1))
@@ -250,14 +238,3 @@ resolve_many_resources <- function(resource_names) {
     map(~ datashield.assign.expr(release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }
 
-xenon_fail_msg <- list(
-  srv_class = "did not create a serverside object with the expected class",
-  clt_class = "did not create a clientside object with the expected class",
-  clt_var = "did not create a clientside object with the expected variable names",
-  clt_list_names = "did not return a clientside list with the expected names",
-  clt_dim = "did not return a clientside object with the expected dimensions",
-  srv_dim = "did not return a serverside object with the expected dimensions",
-  srv_lvl = "did not return a serverside object with the expected levels",
-  clt_grp = "did not return a clientside object with the expected number of groups",
-  srv_var = "did not create a serverside object with the expected variable names"
-  )

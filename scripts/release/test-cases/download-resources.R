@@ -1,6 +1,6 @@
 prepare_resources <- function(resource_path = release_env$rda_dir, url = release_env$rda_url) {
   test_name <- "prepare-resources"
-  if (do_skip_test(test_name)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 

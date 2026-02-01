@@ -16,11 +16,7 @@ gwas_prepare_data <- function() {
 
 verify_meta_gwas <- function(gwas_results) {
   gwas_dim <- dim(gwas_results)
-  verify_output(
-    function_name = "ds.metaGWAS", object = gwas_dim,
-    expected = as.integer(c(144785, 10)),
-    fail_msg = xenon_fail_msg$clt_dim
-  )
+  expect_identical(gwas_dim, as.integer(c(144785, 10)))
 }
 
 omics_ref <- tribble(
@@ -32,24 +28,18 @@ omics_ref <- tribble(
 
 run_omics_tests <- function() {
   test_name <- "xenon-omics"
-  if (do_skip_test(test_name)) {
-    return()
-  }
-  if (release_env$ADMIN_MODE) {
-    cli_alert_warning("Cannot test working with resources as basic authenticated admin")
-  } else if (!"resourcer" %in% release_env$profile_info$packageWhitelist) {
-    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", release_env$current_profile))
-  } else {
+
+  test_that("ds.metaGWAS", {
+    do_skip_test(test_name)
+    skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+    skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
+            sprintf("resourcer not available for profile: %s", release_env$current_profile))
+
     set_dm_permissions()
-
     download_many_sources(ref = omics_ref)
-
     upload_many_sources(ref = omics_ref, folder = "omics")
-
     omics_resources <- create_many_resources(ref = omics_ref, folder = "omics")
-
     upload_many_resources(resource = omics_resources, folder = "omics", ref = omics_ref)
-
     assign_many_resources(folder = "omics", ref = omics_ref)
 
     map(c("chr1", "chr2"), ~ DSI::datashield.assign.expr(
@@ -65,6 +55,5 @@ run_omics_tests <- function() {
       datasources = release_env$conns
     )[[1]]
     verify_meta_gwas(gwas_results)
-  }
-  cli_alert_success(sprintf("%s passed!", test_name))
+  })
 }

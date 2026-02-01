@@ -39,6 +39,7 @@ library(MolgenisArmadillo)
 library(dsBaseClient)
 library(DSMolgenisArmadillo)
 library(resourcer)
+library(testthat)
 
 options(datashield.errors.print = TRUE)
 
@@ -83,6 +84,11 @@ run_tests_for_profile <- function(profile) {
     cli_h1("Starting release test")
     source("lib/release-test-info.R")
     show_test_info()
+
+    check_reporter <- testthat::CheckReporter$new()
+    list_reporter <- testthat::ListReporter$new()
+    reporter <- testthat::MultiReporter$new(reporters = list(check_reporter, list_reporter))
+    testthat::with_reporter(reporter, {
 
     cli_h2("Logging in as data manager")
     source("test-cases/dm-login.R")
@@ -173,7 +179,61 @@ run_tests_for_profile <- function(profile) {
     source("test-cases/basic-auth.R")
     verify_basic_auth()
 
-    cli_alert_info("Testing done")
+    }) # end with_reporter
+
+    # Print testthat summary
+    results <- reporter$results$as_list()
+    passed <- 0L
+    failed <- 0L
+    skipped <- 0L
+    warnings <- 0L
+    failures <- list()
+    skips <- list()
+
+    for (r in results) {
+      test_results <- r$results
+      has_failure <- FALSE
+      has_skip <- FALSE
+      for (tr in test_results) {
+        if (inherits(tr, "expectation_failure")) {
+          has_failure <- TRUE
+          failures <- c(failures, list(list(test = r$test, message = tr$message)))
+        } else if (inherits(tr, "expectation_skip")) {
+          has_skip <- TRUE
+          skips <- c(skips, list(list(test = r$test, message = tr$message)))
+        } else if (inherits(tr, "expectation_warning")) {
+          warnings <- warnings + 1L
+        }
+      }
+      if (has_skip) {
+        skipped <- skipped + 1L
+      } else if (has_failure) {
+        failed <- failed + 1L
+      } else {
+        passed <- passed + 1L
+      }
+    }
+
+    cli_h1("Test results")
+    cli_alert_success(sprintf("%d passed", passed))
+    if (failed > 0L) cli_alert_danger(sprintf("%d failed", failed))
+    if (skipped > 0L) cli_alert_info(sprintf("%d skipped", skipped))
+    if (warnings > 0L) cli_alert_warning(sprintf("%d warnings", warnings))
+
+    if (length(failures) > 0L) {
+      cli_h2("Failures")
+      for (f in failures) {
+        cli_alert_danger(sprintf("%s: %s", f$test, f$message))
+      }
+    }
+
+    if (length(skips) > 0L) {
+      cli_h2("Skipped")
+      for (s in skips) {
+        cli_alert_info(sprintf("%s: %s", s$test, s$message))
+      }
+    }
+
     cli_alert_info("Please test rest of UI manually, if impacted this release")
     end_time <- Sys.time()
     print(paste0("Running tests for profile [", profile, "] took: ", end_time - start_time))
