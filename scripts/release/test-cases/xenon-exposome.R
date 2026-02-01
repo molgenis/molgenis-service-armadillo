@@ -1,9 +1,6 @@
 library(dsExposomeClient)
 library(purrr)
 
-source("test-cases/download-resources.R")
-source("test-cases/upload-resource.R")
-
 verify_load_exposome_class <- function() {
   cli_alert_info("Checking ds.loadExposome")
   ds.loadExposome(
