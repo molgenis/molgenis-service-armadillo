@@ -23,7 +23,7 @@ configure_test <- function() {
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- str_split(skip_tests, ",")[[1]]
-  
+
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
     cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
@@ -34,11 +34,11 @@ configure_test <- function() {
   } else {
     cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
   }
-  
+
   if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "xenon-omics")){
     skip_tests <- c(skip_tests, "xenon-omics")
   }
-  
+
 
   interactive <- TRUE
   if (Sys.getenv("INTERACTIVE") == "N") {
@@ -159,11 +159,23 @@ configure_test <- function() {
 
   options(timeout = 300)
 
-  return(list(
-    skip_tests = skip_tests, armadillo_url = armadillo_url, interactive = interactive, user = user,
-    admin_pwd = admin_pwd, test_file_path = test_file_path, service_location = service_location, dest = dest,
-    app_info = app_info, version = version, auth_type = auth_type, as_docker_container = as_docker_container,
-    ADMIN_MODE = ADMIN_MODE, profile = profile, default_parquet_path = default_parquet_path, rda_dir = rda_dir,
-    update_auto = update_auto, profile_defaults = profile_defaults, rda_url = rda_url
-  ))
+  release_env$skip_tests <- skip_tests
+  release_env$armadillo_url <- armadillo_url
+  release_env$interactive <- interactive
+  release_env$user <- user
+  release_env$admin_pwd <- admin_pwd
+  release_env$test_file_path <- test_file_path
+  release_env$service_location <- service_location
+  release_env$dest <- dest
+  release_env$app_info <- app_info
+  release_env$version <- version
+  release_env$auth_type <- auth_type
+  release_env$as_docker_container <- as_docker_container
+  release_env$ADMIN_MODE <- ADMIN_MODE
+  release_env$profile <- profile
+  release_env$default_parquet_path <- default_parquet_path
+  release_env$rda_dir <- rda_dir
+  release_env$update_auto <- update_auto
+  release_env$profile_defaults <- profile_defaults
+  release_env$rda_url <- rda_url
 }

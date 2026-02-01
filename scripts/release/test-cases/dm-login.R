@@ -1,14 +1,14 @@
-dm_login <- function(url, ADMIN_MODE, admin_pwd, skip_tests) {
+dm_login <- function() {
   test_name <- "dm_login"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
 
-  cli_alert_info(sprintf("Login to %s", url))
-  if (test_config$ADMIN_MODE) {
-    armadillo.login_basic(url, "admin", test_config$admin_pwd)
+  cli_alert_info(sprintf("Login to %s", release_env$armadillo_url))
+  if (release_env$ADMIN_MODE) {
+    armadillo.login_basic(release_env$armadillo_url, "admin", release_env$admin_pwd)
   } else {
-    armadillo.login(url)
+    armadillo.login(release_env$armadillo_url)
   }
   cli_alert_success(sprintf("%s passed!", test_name))
 }

@@ -10,9 +10,10 @@ verify_load_exposome_class <- function() {
   ds.loadExposome(
     exposures = "exposures", phenotypes = "phenotypes", exposures.idcol = "idnum",
     phenotypes.idcol = "idnum", description = "description", description.expCol = "Exposure",
-    description.famCol = "Family", object_name = "exposome_object"
+    description.famCol = "Family", object_name = "exposome_object",
+    datasources = release_env$conns
   )
-  obj_class <- ds.class("exposome_object")
+  obj_class <- ds.class("exposome_object", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = as.character(obj_class$armadillo),
     expected = "ExposomeSet", fail_msg = xenon_fail_msg$srv_class
@@ -22,7 +23,7 @@ verify_load_exposome_class <- function() {
 verify_exposome_variables <- function() {
   ds_function_name <- "ds.exposome_variables"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  vars <- ds.exposome_variables("exposome_object", "phenotypes")
+  vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = vars$armadillo,
     expected = c("whistling_chest", "flu", "rhinitis", "wheezing", "birthdate", "sex", "age", "cbmi", "blood_pre"),
@@ -33,7 +34,7 @@ verify_exposome_variables <- function() {
 verify_exposome_summary_names <- function() {
   ds_function_name <- "ds.exposome_summary"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25")
+  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = names(var_summary$armadillo),
     expected = c("class", "length", "quantiles & mean"),
@@ -44,7 +45,7 @@ verify_exposome_summary_names <- function() {
 verify_family_names <- function() {
   ds_function_name <- "ds.familyNames"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  vars <- ds.familyNames("exposome_object")
+  vars <- ds.familyNames("exposome_object", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = vars$armadillo,
     expected = c(
@@ -67,7 +68,7 @@ verify_table_missings_names <- function(missing_summary) {
 verify_plot_missings_names <- function(missing_summary) {
   ds_function_name <- "ds.plotMissings"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  missing_plot <- ds.plotMissings(missing_summary)
+  missing_plot <- ds.plotMissings(missing_summary, datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = inherits(missing_plot$pooled, "ggplot"),
     TRUE,
@@ -78,7 +79,7 @@ verify_plot_missings_names <- function(missing_summary) {
 verify_normality_test_names <- function() {
   ds_function_name <- "ds.normalityTest"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  nm <- ds.normalityTest("exposome_object")
+  nm <- ds.normalityTest("exposome_object", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = names(nm$armadillo),
     expected = c("exposure", "normality", "p.value"),
@@ -89,7 +90,7 @@ verify_normality_test_names <- function() {
 verify_exposure_histogram_names <- function() {
   ds_function_name <- "ds.exposure_histogram"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  hist <- ds.exposure_histogram("exposome_object", "AbsPM25")
+  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = names(hist),
     expected = c("breaks", "counts", "density", "mids", "xname", "equidist"),
@@ -100,8 +101,8 @@ verify_exposure_histogram_names <- function() {
 verify_imputation <- function() {
   ds_function_name <- "ds.imputation"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  ds.imputation("exposome_object", "exposome_object_imputed")
-  obj_class <- ds.class("exposome_object_imputed")
+  ds.imputation("exposome_object", "exposome_object_imputed", datasources = release_env$conns)
+  obj_class <- ds.class("exposome_object_imputed", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = as.character(obj_class$armadillo),
     expected = "ExposomeSet", fail_msg = xenon_fail_msg$srv_class
@@ -130,8 +131,8 @@ verify_exwas_plot <- function(exwas_results) {
 verify_pca_class <- function(ds_function_name) {
   ds_function_name <- "ds.exposome_pca"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  ds.exposome_pca("exposome_object", fam = c("Metals", "Noise"))
-  pca_class <- ds.class("ds.exposome_pca.Results")
+  ds.exposome_pca("exposome_object", fam = c("Metals", "Noise"), datasources = release_env$conns)
+  pca_class <- ds.class("ds.exposome_pca.Results", datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = as.character(pca_class),
     expected = "ExposomePCA", fail_msg = xenon_fail_msg$clt_class
@@ -141,7 +142,8 @@ verify_pca_class <- function(ds_function_name) {
 verify_pca_plot_class <- function(ds_function_name) {
   ds_function_name <- "ds.exposome_pca_plot"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  pca_plot <- ds.exposome_pca_plot("ds.exposome_pca.Results", set = "all", method = 1, k = 3, noise = 5)
+  pca_plot <- ds.exposome_pca_plot("ds.exposome_pca.Results", set = "all", method = 1, k = 3, noise = 5,
+                                    datasources = release_env$conns)
   verify_output(
     function_name = ds_function_name, object = class(pca_plot),
     expected = c("gtable", "gTree", "grob", "gDesc"), fail_msg = xenon_fail_msg$clt_class
@@ -151,7 +153,8 @@ verify_pca_plot_class <- function(ds_function_name) {
 verify_exposure_cor_dim <- function(ds_function_name) {
   ds_function_name <- "ds.exposome_correlation"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"))[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
+  exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
+                                           datasources = release_env$conns)[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
   verify_output(
     function_name = ds_function_name, object = dim(exposome_cor),
     expected = as.integer(c(5, 5)), fail_msg = xenon_fail_msg$clt_dim
@@ -160,42 +163,42 @@ verify_exposure_cor_dim <- function(ds_function_name) {
 
 exposome_ref <- tribble(
   ~file_name, ~path, ~url, ~object_name, ~format,
-  "exposures.csv", file.path(test_config$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
-  "description.csv", file.path(test_config$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
-  "phenotypes.csv", file.path(test_config$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
-  "exposomeSet.RData", file.path(test_config$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
+  "exposures.csv", file.path(release_env$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.csv", file.path(release_env$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.csv", file.path(release_env$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposomeSet.RData", file.path(release_env$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
 )
 
-run_exposome_tests <- function(project, url, token, auth_type, ADMIN_MODE, profile, profile_info, ref, skip_tests,
-                               user, admin_pwd, interactive, update_auto) {
+run_exposome_tests <- function() {
   test_name <- "xenon-exposome"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
-  if (ADMIN_MODE) {
+  if (release_env$ADMIN_MODE) {
     cli_alert_warning("Cannot test working with resources as basic authenticated admin")
-  } else if (!"resourcer" %in% profile_info$packageWhitelist) {
-    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", profile))
+  } else if (!"resourcer" %in% release_env$profile_info$packageWhitelist) {
+    cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", release_env$current_profile))
   } else {
-    set_dm_permissions(user = user, admin_pwd = admin_pwd, required_projects = list(project), interactive = interactive, update_auto = update_auto, url = url)
-    download_many_sources(ref = exposome_ref, skip_tests = NULL)
-    upload_many_sources(project = project, ref = exposome_ref, url = url, folder = "exposome", token = token, auth_type = auth_type, skip_tests = NULL)
-    exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome", project = project, url = url, skip_tests = NULL)
-    upload_many_resources(project = project, resource = exposome_resources, folder = "exposome", ref = exposome_ref)
-    assign_many_resources(project = project, folder = "exposome", ref = exposome_ref)
+    set_dm_permissions(list(release_env$project1))
+    download_many_sources(ref = exposome_ref)
+    upload_many_sources(ref = exposome_ref, folder = "exposome")
+    exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome")
+    upload_many_resources(resource = exposome_resources, folder = "exposome", ref = exposome_ref)
+    assign_many_resources(folder = "exposome", ref = exposome_ref)
     resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
 
     verify_load_exposome_class()
     verify_exposome_variables()
     verify_exposome_summary_names()
     verify_family_names()
-    missing_summary <- ds.tableMissings("exposome_object", set = "exposures")
+    missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
     verify_table_missings_names(missing_summary)
     verify_plot_missings_names(missing_summary)
     verify_normality_test_names()
     verify_exposure_histogram_names()
     verify_imputation()
-    exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled")
+    exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
+                               datasources = release_env$conns)
     verify_exwas(exwas_results)
     verify_exposure_cor_dim()
     # verify_exwas_plot(exwas_results) https://github.com/isglobal-brge/dsExposomeClient/issues/19

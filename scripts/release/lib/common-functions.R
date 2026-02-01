@@ -48,12 +48,11 @@ create_basic_header <- function(pwd) {
 }
 
 # # add/edit user using armadillo api
-set_user <- function(user, admin_pwd, isAdmin, required_projects, url) {
-  args <- list(email = user, admin = isAdmin, projects = required_projects)
-  response <- put_to_api("access/users", admin_pwd, "basic", args, url)
+set_user <- function(isAdmin, required_projects) {
+  args <- list(email = release_env$user, admin = isAdmin, projects = required_projects)
+  response <- put_to_api("access/users", release_env$admin_pwd, "basic", args, release_env$armadillo_url)
   if (response$status_code != 204) {
     cli_alert_warning("Altering OIDC user failed, please do this manually")
-    update_auto <- ""
   }
 }
 
@@ -68,8 +67,8 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   return(response)
 }
 
-do_skip_test <- function(test_name, skip_tests) {
-  if (any(skip_tests %in% test_name)) {
+do_skip_test <- function(test_name) {
+  if (any(release_env$skip_tests %in% test_name)) {
     cli_alert_info(sprintf("Test '%s' skipped", test_name))
     return(TRUE)
   }
@@ -118,12 +117,12 @@ almost_equal <- function(val1, val2) {
   return(all.equal(val1, val2, tolerance = .Machine$double.eps^0.03))
 }
 
-generate_random_project_name <- function(skip_tests) {
+generate_random_project_name <- function() {
   test_name <- "generate-project"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
-  
+
   current_projects <- armadillo.list_projects()
   random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
   if (!random_project %in% current_projects) {
@@ -131,19 +130,8 @@ generate_random_project_name <- function(skip_tests) {
     cli_alert_success(sprintf("%s passed!", test_name))
     return(random_project)
   } else {
-    generate_random_project_name(current_projects)
+    generate_random_project_name()
   }
-}
-
-# # armadillo api put request
-put_to_api <- function(endpoint, key, auth_type, body_args, url) {
-  auth_header <- get_auth_header(auth_type, key)
-  body <- jsonlite::toJSON(body_args, auto_unbox = TRUE)
-  response <- PUT(paste0(url, endpoint),
-                  body = body, encode = "json",
-                  config = c(httr::content_type_json(), httr::add_headers(auth_header))
-  )
-  return(response)
 }
 
 get_from_api <- function(endpoint, armadillo_url) {
@@ -208,58 +196,58 @@ verify_output <- function(function_name = NULL, object = NULL, expected = NULL, 
     cli_alert_danger(sprintf("%s failed", function_name))
     exit_test(sprintf("%s %s", function_name, fail_msg))
   }
-  
+
 }
 
-set_dm_permissions <- function(user, admin_pwd, required_projects, interactive, update_auto, url) {
-  if (update_auto == "y") {
-    set_user(user, admin_pwd, T, required_projects, url)
+set_dm_permissions <- function(required_projects) {
+  if (release_env$update_auto == "y") {
+    set_user(T, required_projects)
     cli_alert_info("Admin reset")
   } else {
     cli_alert_info("Make your account admin again")
-    wait_for_input(interactive)
+    wait_for_input(release_env$interactive)
   }
 }
 
-download_many_sources <- function(ref, skip_tests) {
+download_many_sources <- function(ref) {
   ref %>%
     pmap(function(path, url, ...) {
-      prepare_resources(resource_path = path, url = url, skip_tests = skip_tests)
+      prepare_resources(resource_path = path, url = url)
     })
 }
 
-upload_many_sources <- function(project, ref, url, token, auth_type, folder, file_name, skip_tests) {
+upload_many_sources <- function(ref, folder) {
   ref %>%
     pmap(function(path, file_name, ...) {
-      upload_resource(project = project, rda_dir = path, url = url, token = token, folder = folder, file_name = file_name, auth_type = auth_type, skip_tests = NULL)
+      upload_resource(folder = folder, file_name = file_name, rda_dir = path)
     })
 }
 
-create_many_resources <- function(ref, project, folder, url, skip_tests) {
+create_many_resources <- function(ref, folder) {
   ref %>%
     pmap(function(object_name, format, file_name, ...) {
-      create_resource(target_project = project, url = url, folder = folder, format = format, file_name = file_name, resource_name = object_name, skip_tests)
+      create_resource(folder = folder, format = format, file_name = file_name, resource_name = object_name)
     })
 }
 
-upload_many_resources <- function(project, resource, folder, ref) {
+upload_many_resources <- function(resource, folder, ref) {
   list(resource = resource, name = ref$object_name) %>%
     pmap(function(resource, name) {
-      armadillo.upload_resource(project = project, folder = folder, resource = resource, name = name)
+      armadillo.upload_resource(project = release_env$project1, folder = folder, resource = resource, name = name)
     })
 }
 
-assign_many_resources <- function(project, folder, ref) {
+assign_many_resources <- function(folder, ref) {
   ref$object_name %>%
     map(function(x) {
-      exp_resource_path <- paste0(project, "/", folder, "/", x)
-      datashield.assign.resource(conns, resource = exp_resource_path, symbol = x)
+      exp_resource_path <- paste0(release_env$project1, "/", folder, "/", x)
+      datashield.assign.resource(release_env$conns, resource = exp_resource_path, symbol = x)
     })
 }
 
 resolve_many_resources <- function(resource_names) {
   resource_names %>%
-    map(~ datashield.assign.expr(conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
+    map(~ datashield.assign.expr(release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }
 
 xenon_fail_msg <- list(
@@ -267,9 +255,9 @@ xenon_fail_msg <- list(
   clt_class = "did not create a clientside object with the expected class",
   clt_var = "did not create a clientside object with the expected variable names",
   clt_list_names = "did not return a clientside list with the expected names",
-  clt_dim = "did not return a clientside object with the expected dimensions", 
-  srv_dim = "did not return a serverside object with the expected dimensions", 
+  clt_dim = "did not return a clientside object with the expected dimensions",
+  srv_dim = "did not return a serverside object with the expected dimensions",
   srv_lvl = "did not return a serverside object with the expected levels",
   clt_grp = "did not return a clientside object with the expected number of groups",
   srv_var = "did not create a serverside object with the expected variable names"
-  ) 
+  )

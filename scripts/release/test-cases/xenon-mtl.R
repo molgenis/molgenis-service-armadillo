@@ -7,10 +7,11 @@ prepare_data_for_lasso <- function() {
     Boolean.operator = "==",
     df.name = "nonrep",
     keep.cols = c(5, 9, 13, 17),
-    newobj = "x_df"
+    newobj = "x_df",
+    datasources = release_env$conns
   )
 
-  ds.asDataMatrix("x_df", "x_mat")
+  ds.asDataMatrix("x_df", "x_mat", datasources = release_env$conns)
 
   ds.dataFrameSubset(
     V1 = "nonrep$row_id",
@@ -18,10 +19,11 @@ prepare_data_for_lasso <- function() {
     Boolean.operator = "==",
     df.name = "nonrep",
     keep.cols = c(21),
-    newobj = "y_df"
+    newobj = "y_df",
+    datasources = release_env$conns
   )
 
-  ds.asDataMatrix("y_df", "y_mat")
+  ds.asDataMatrix("y_df", "y_mat", datasources = release_env$conns)
 }
 
 verify_lasso_cov_train_output <- function() {
@@ -32,7 +34,7 @@ verify_lasso_cov_train_output <- function() {
     lambda = 298.9465,
     covar = 1,
     nDigits = 4,
-    datasources = conns
+    datasources = release_env$conns
   )
 
   if (identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))) {
@@ -43,9 +45,9 @@ verify_lasso_cov_train_output <- function() {
   }
 }
 
-verify_ds_mtl <- function(skip_tests) {
+verify_ds_mtl <- function() {
   test_name <- "xenon-mtl"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
   prepare_data_for_lasso()

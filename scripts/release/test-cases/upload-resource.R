@@ -30,15 +30,15 @@ spin_till_done <- function(spinner) {
   }
 }
 
-upload_resource <- function(project, rda_dir, url, token, folder, file_name, resource_name, auth_type, skip_tests) {
+upload_resource <- function(folder, file_name, rda_dir = release_env$rda_dir) {
   test_name <- "upload-resource"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
   rda_file_body <- upload_file(rda_dir)
-  cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", url, project))
+  cli_alert_info(sprintf("Uploading resource file to %s into project [%s]", release_env$armadillo_url, release_env$project1))
   system.time({
-    post_resource_to_api(project, token, auth_type, rda_file_body, folder, file_name, url)
+    post_resource_to_api(release_env$project1, release_env$token, release_env$auth_type, rda_file_body, folder, file_name, release_env$armadillo_url)
   })
   cli_alert_success(sprintf("%s passed!", test_name))
 }

@@ -3,20 +3,21 @@ library(dsMediationClient)
 verify_mediate_class <- function() {
   ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex", family = "gaussian", dataName = "nonrep",
-    newobj = "med.fit.1a"
+    newobj = "med.fit.1a", datasources = release_env$conns
   )
 
   ds.glmSLMA(
     formula = "preg_dia ~ agebirth_m_y + ethn3_m + sex", family = "gaussian", dataName = "nonrep",
-    newobj = "out.fit.1a"
+    newobj = "out.fit.1a", datasources = release_env$conns
   )
 
   med_out <- ds.mediate(
     model.m = "med.fit.1a", model.y = "out.fit.1a", treat = "ethn3_m", mediator = "agebirth_m_y",
-    boot = FALSE, conf.level = 0.95, robustSE = TRUE, sims = 100, seed = 123, newobj = "med.out.1a"
+    boot = FALSE, conf.level = 0.95, robustSE = TRUE, sims = 100, seed = 123, newobj = "med.out.1a",
+    datasources = release_env$conns
   )
 
-  med_class <- ds.class("med.out.1a")
+  med_class <- ds.class("med.out.1a", datasources = release_env$conns)
 
   if (med_class == "mediate") {
     cli_alert_success("ds.mediate passed")
@@ -29,12 +30,12 @@ verify_mediate_class <- function() {
 verify_ne_weight_class <- function() {
   ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex", family = "gaussian", dataName = "nonrep",
-    newobj = "med.fit.1b"
+    newobj = "med.fit.1b", datasources = release_env$conns
   )
 
-  ds.neWeight(object = "med.fit.1b", newobj = "expData")
+  ds.neWeight(object = "med.fit.1b", newobj = "expData", datasources = release_env$conns)
 
-  med_class <- ds.class("expData")
+  med_class <- ds.class("expData", datasources = release_env$conns)
 
   if (identical(med_class$armadillo, c("data.frame", "expData", "weightData"))) {
     cli_alert_success("ds.neWeight passed")
@@ -48,10 +49,10 @@ verify_ne_model_class <- function() {
   med.out.1b <- ds.neModel(
     formula = "preg_dia ~ ethn3_m0 + ethn3_m1 + sex",
     family = "gaussian", se = "robust", expData = "expData",
-    newobj = "med.out.1b"
+    newobj = "med.out.1b", datasources = release_env$conns
   )
 
-  med_class <- ds.class("med.out.1b")
+  med_class <- ds.class("med.out.1b", datasources = release_env$conns)
 
   if (med_class == "neModel") {
     cli_alert_success("ds.neModel passed")
@@ -64,12 +65,13 @@ verify_ne_model_class <- function() {
 verify_ne_imp_class <- function() {
   out.fit.1c <- ds.glmSLMA(
     formula = "preg_dia ~ agebirth_m_y + ethn3_m + sex",
-    family = "gaussian", dataName = "nonrep", newobj = "out.fit.1c"
+    family = "gaussian", dataName = "nonrep", newobj = "out.fit.1c",
+    datasources = release_env$conns
   )
 
-  ds.neImpute(object = "out.fit.1c", nMed = 1, newobj = "impData")
+  ds.neImpute(object = "out.fit.1c", nMed = 1, newobj = "impData", datasources = release_env$conns)
 
-  med_class <- ds.class("impData")
+  med_class <- ds.class("impData", datasources = release_env$conns)
 
   if (identical(med_class$armadillo, c("data.frame", "expData", "impData"))) {
     cli_alert_success("ds.neImpute passed")
@@ -80,7 +82,8 @@ verify_ne_imp_class <- function() {
 }
 
 verify_ne_lht_class <- function() {
-  lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c("ethn3_m0=0", "ethn3_m1=0", "ethn3_m0+ethn3_m1=0"))
+  lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c("ethn3_m0=0", "ethn3_m1=0", "ethn3_m0+ethn3_m1=0"),
+                          datasources = release_env$conns)
 
   med_class <- class(lht.out.1b$armadillo)
 
@@ -92,9 +95,9 @@ verify_ne_lht_class <- function() {
   }
 }
 
-verify_ds_mediation <- function(skip_tests) {
+verify_ds_mediation <- function() {
   test_name <- "xenon-mediate"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
   verify_mediate_class()

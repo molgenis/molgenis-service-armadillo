@@ -1,10 +1,10 @@
 library(dsTidyverseClient)
 
-assign_tidyverse_data <- function(project, data_path) {
-  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars]", project, data_path))
-  datashield.assign.table(conns, "mtcars", sprintf("%s%s/mtcars", project, data_path))
-  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars_group]", project, data_path))
-  datashield.assign.table(conns, "mtcars_group", sprintf("%s%s/mtcars_group", project, data_path))
+assign_tidyverse_data <- function() {
+  cli_alert_info(sprintf("Assigning table: [%s/tidyverse/mtcars]", release_env$project1))
+  datashield.assign.table(release_env$conns, "mtcars", sprintf("%s/tidyverse/mtcars", release_env$project1))
+  cli_alert_info(sprintf("Assigning table: [%s/tidyverse/mtcars_group]", release_env$project1))
+  datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s/tidyverse/mtcars_group", release_env$project1))
 }
 
 verify_arrange <- function() {
@@ -14,16 +14,16 @@ verify_arrange <- function() {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "ordered_df",
-    datasources = conns
+    datasources = release_env$conns
     )
-  
-  res <- ds.class("ordered_df", datasources = conns)[[1]]
+
+  res <- ds.class("ordered_df", datasources = release_env$conns)[[1]]
   verify_output(
     function_name = ds_function_name, object = res,
     expected = "data.frame",
     fail_msg = xenon_fail_msg$srv_class
   )
-  
+
 }
 
 verify_as_tibble <- function() {
@@ -32,10 +32,10 @@ verify_as_tibble <- function() {
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.class("mtcars_tib", datasources = conns)[[1]]
+
+  res <- ds.class("mtcars_tib", datasources = release_env$conns)[[1]]
 
   verify_output(
     function_name = ds_function_name, object = res,
@@ -50,10 +50,10 @@ verify_bind_cols <- function() {
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.dim("cols_bound", datasources = conns)[[1]]
+
+  res <- ds.dim("cols_bound", datasources = release_env$conns)[[1]]
   verify_output(
     function_name = ds_function_name, object = res,
     expected = as.integer(c(32, 22)),
@@ -67,11 +67,11 @@ verify_bind_rows <- function() {
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.dim("rows_bound", datasources = conns)[[1]]
-  
+
+  res <- ds.dim("rows_bound", datasources = release_env$conns)[[1]]
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = as.integer(c(64, 11)),
@@ -89,10 +89,10 @@ verify_case_when <- function() {
       mtcars$mpg >= 30 ~ "high"
     ),
     newobj = "test",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- names(ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
+
+  res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
 
   verify_output(
     function_name = ds_function_name, object = res,
@@ -108,11 +108,11 @@ verify_distinct <- function() {
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
     newobj = "dist_df",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.dim("dist_df", datasources = conns)[[1]]
-  
+
+  res <- ds.dim("dist_df", datasources = release_env$conns)[[1]]
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = as.integer(c(9, 2)),
@@ -127,11 +127,11 @@ verify_filter <- function() {
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
     newobj = "filtered",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.dim("filtered", datasources = conns)[[1]]
-    
+
+  res <- ds.dim("filtered", datasources = release_env$conns)[[1]]
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = as.integer(c(11, 11)),
@@ -146,11 +146,11 @@ verify_group_by <- function() {
     df.name = "mtcars",
     tidy_expr = list(cyl),
     newobj = "grouped",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.class("grouped", datasources = conns)[[1]]
-  
+
+  res <- ds.class("grouped", datasources = release_env$conns)[[1]]
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = c("grouped_df", "tbl_df", "tbl", "data.frame"),
@@ -161,8 +161,8 @@ verify_group_by <- function() {
 verify_ungroup <- function() {
   ds_function_name <- "ds.ungroup"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  ds.ungroup("grouped", "ungrouped_df", datasources = conns)
-  res <- ds.class("ungrouped_df", datasources = conns)[[1]]
+  ds.ungroup("grouped", "ungrouped_df", datasources = release_env$conns)
+  res <- ds.class("ungrouped_df", datasources = release_env$conns)[[1]]
 
   verify_output(
     function_name = ds_function_name, object = res,
@@ -174,8 +174,8 @@ verify_ungroup <- function() {
 verify_group_keys <- function() {
   ds_function_name <- "ds.group_keys"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  res <- ds.group_keys("grouped", datasources = conns)$armadillo
-  
+  res <- ds.group_keys("grouped", datasources = release_env$conns)$armadillo
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = tibble(cyl = c(4, 6, 8)),
@@ -186,17 +186,17 @@ verify_group_keys <- function() {
 verify_if_else <- function() {
   ds_function_name <- "ds.if_else"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  
+
   ds.if_else(
     condition = list(mtcars$mpg > 20),
     "high",
     "low",
     newobj = "test",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- names(ds.table("test", datasources = conns)$output.list$TABLES.COMBINED_all.sources_counts)
-  
+
+  res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = c("high", "low", "NA"),
@@ -207,16 +207,16 @@ verify_if_else <- function() {
 verify_mutate <- function() {
   ds_function_name <- "ds.mutate"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  
+
   ds.mutate(
     df.name = "mtcars",
     tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
     newobj = "new",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <- ds.colnames("new")$armadillo
-  
+
+  res <- ds.colnames("new", datasources = release_env$conns)$armadillo
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = c("mpg", "cyl", "disp", "hp", "drat", "wt", "qsec", "vs", "am", "gear", "carb", "mpg_trans", "new_var"),
@@ -227,15 +227,15 @@ verify_mutate <- function() {
 verify_rename <- function() {
   ds_function_name <- "ds.rename"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  
+
   ds.rename(
     df.name = "mtcars",
     tidy_expr = list(test_1 = mpg, test_2 = drat),
     newobj = "mpg_drat",
-    datasources = conns
+    datasources = release_env$conns
   )
-  res <- ds.colnames("mpg_drat", datasources = conns)$armadillo
-  
+  res <- ds.colnames("mpg_drat", datasources = release_env$conns)$armadillo
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = c("test_1", "cyl", "disp", "hp", "test_2", "wt", "qsec", "vs", "am", "gear", "carb"),
@@ -246,15 +246,15 @@ verify_rename <- function() {
 verify_select <- function() {
   ds_function_name <- "ds.select"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  
+
   ds.select(
     df.name = "mtcars",
     tidy_expr = list(mpg:drat),
     newobj = "mpg_drat",
-    datasources = conns
+    datasources = release_env$conns
   )
-  res <-  ds.colnames("mpg_drat", datasources = conns)$armadillo
-  
+  res <-  ds.colnames("mpg_drat", datasources = release_env$conns)$armadillo
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = c("mpg", "cyl", "disp", "hp", "drat"),
@@ -265,28 +265,28 @@ verify_select <- function() {
 verify_slice <- function() {
   ds_function_name <- "ds.slice"
   cli_alert_info(sprintf("Checking %s", ds_function_name))
-  
+
   ds.slice(
     df.name = "mtcars",
     tidy_expr = list(1:5),
     newobj = "sliced",
-    datasources = conns
+    datasources = release_env$conns
   )
-  
-  res <-  ds.dim("sliced", datasources = conns)[[1]]
-  
+
+  res <-  ds.dim("sliced", datasources = release_env$conns)[[1]]
+
   verify_output(
     function_name = ds_function_name, object = res,
     expected = as.integer(c(5, 11)),
     fail_msg = xenon_fail_msg$srv_dim)
 }
 
-run_tidyverse_tests <- function(skip_tests, project, data_path) {
+run_tidyverse_tests <- function() {
   test_name <- "donkey-tidyverse"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
-  assign_tidyverse_data(project, data_path)
+  assign_tidyverse_data()
   verify_arrange()
   verify_as_tibble()
   verify_bind_cols()

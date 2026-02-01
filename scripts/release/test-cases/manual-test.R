@@ -1,22 +1,22 @@
-interactive_test <- function(project1, interactive, skip_tests) {
+interactive_test <- function() {
   test_name <- "manual-test"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (do_skip_test(test_name)) {
     return()
   }
 
   cat("\nNow open your testserver in the browser")
-  cat(sprintf("\n\nVerify [%s] is available", project1))
-  wait_for_input(interactive)
+  cat(sprintf("\n\nVerify [%s] is available", release_env$project1))
+  wait_for_input(release_env$interactive)
   cat("\nClick on the icon next to the name to go to the project explorer")
-  wait_for_input(interactive)
+  wait_for_input(release_env$interactive)
   cat("\nVerify the 1_1-outcome-1_0 and 2_1-core-1_0 folders are there")
-  wait_for_input(interactive)
+  wait_for_input(release_env$interactive)
   cat("\nVerify core contains nonrep, yearlyrep, monthlyrep and trimesterrep")
-  wait_for_input(interactive)
+  wait_for_input(release_env$interactive)
   cat("\nVerify outcome contains nonrep and yearlyrep")
-  wait_for_input(interactive)
+  wait_for_input(release_env$interactive)
 
-  if (interactive) {
+  if (release_env$interactive) {
     cat("\nWere the manual tests successful? (y/n) ")
     success <- readLines("stdin", n = 1)
     if (success != "y") {

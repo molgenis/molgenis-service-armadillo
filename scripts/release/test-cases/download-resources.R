@@ -1,7 +1,7 @@
-prepare_resources <- function(resource_path, url, skip_tests) {
+prepare_resources <- function(resource_path = release_env$rda_dir, url = release_env$rda_url) {
   test_name <- "prepare-resources"
-  if (any(skip_tests %in% test_name)) {
-    return(cli_alert_info(sprintf("Test '%s' skipped", test_name)))
+  if (do_skip_test(test_name)) {
+    return()
   }
 
   if (!file.exists(resource_path)) {
