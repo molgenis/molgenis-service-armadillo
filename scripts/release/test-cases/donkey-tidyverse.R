@@ -1,10 +1,10 @@
 library(dsTidyverseClient)
 
-assign_tidyverse_data <- function() {
-  cli_alert_info(sprintf("Assigning table: [%s/tidyverse/mtcars]", release_env$project1))
-  datashield.assign.table(release_env$conns, "mtcars", sprintf("%s/tidyverse/mtcars", release_env$project1))
-  cli_alert_info(sprintf("Assigning table: [%s/tidyverse/mtcars_group]", release_env$project1))
-  datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s/tidyverse/mtcars_group", release_env$project1))
+assign_tidyverse_data <- function(data_path) {
+  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars]", release_env$project1, data_path))
+  datashield.assign.table(release_env$conns, "mtcars", sprintf("%s%s/mtcars", release_env$project1, data_path))
+  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars_group]", release_env$project1, data_path))
+  datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s%s/mtcars_group", release_env$project1, data_path))
 }
 
 verify_arrange <- function() {
@@ -281,12 +281,12 @@ verify_slice <- function() {
     fail_msg = xenon_fail_msg$srv_dim)
 }
 
-run_tidyverse_tests <- function() {
+run_tidyverse_tests <- function(data_path) {
   test_name <- "donkey-tidyverse"
   if (do_skip_test(test_name)) {
     return()
   }
-  assign_tidyverse_data()
+  assign_tidyverse_data(data_path)
   verify_arrange()
   verify_as_tibble()
   verify_bind_cols()

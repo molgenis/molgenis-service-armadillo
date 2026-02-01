@@ -19,12 +19,12 @@ check_expression_assign <- function(object, variable) {
   cli_alert_success("Expression assigned")
 }
 
-check_assigning <- function() {
+check_assigning <- function(folder, table, object, variable) {
   test_name <- "assigning"
   if (do_skip_test(test_name)) {
     return()
   }
-  check_tables_assign("2_1-core-1_0", "nonrep")
-  check_expression_assign("nonrep", "coh_country")
+  check_tables_assign(folder, table)
+  check_expression_assign(object, variable)
   cli_alert_success(sprintf("%s passed!", test_name))
 }

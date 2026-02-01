@@ -40,7 +40,7 @@ run_omics_tests <- function() {
   } else if (!"resourcer" %in% release_env$profile_info$packageWhitelist) {
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", release_env$current_profile))
   } else {
-    set_dm_permissions(list(release_env$project1))
+    set_dm_permissions()
 
     download_many_sources(ref = omics_ref)
 

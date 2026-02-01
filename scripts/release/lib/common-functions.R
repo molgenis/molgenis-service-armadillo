@@ -199,9 +199,9 @@ verify_output <- function(function_name = NULL, object = NULL, expected = NULL, 
 
 }
 
-set_dm_permissions <- function(required_projects) {
+set_dm_permissions <- function() {
   if (release_env$update_auto == "y") {
-    set_user(T, required_projects)
+    set_user(T, list(release_env$project1))
     cli_alert_info("Admin reset")
   } else {
     cli_alert_info("Make your account admin again")

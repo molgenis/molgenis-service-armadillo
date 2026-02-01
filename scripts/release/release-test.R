@@ -121,7 +121,7 @@ run_tests_for_profile <- function(profile) {
 
     cli_h2("Logging in as a researcher")
     source("test-cases/researcher-login.R")
-    researcher_login()
+    researcher_login(table = "2_1-core-1_0/nonrep", object = "nonrep", variables = "coh_country")
 
     cli_h2("Verifying connecting to profiles possible")
     source("test-cases/verify-profile.R")
@@ -129,16 +129,16 @@ run_tests_for_profile <- function(profile) {
 
     cli_h2("Assigning tables as researcher")
     source("test-cases/assigning.R")
-    check_assigning()
+    check_assigning(folder = "2_1-core-1_0", table = "nonrep", object = "nonrep", variable = "coh_country")
 
     cli_h2("Testing resources as a researcher")
     source("test-cases/verify-resources.R")
-    verify_resources()
+    verify_resources(resource_path = "ewas/GSE66351_1")
 
     cli_h2("Verifying xenon packages")
     cli_alert_info("Verifying dsBase")
     source("test-cases/ds-base.R")
-    verify_ds_base()
+    verify_ds_base(object = "nonrep", variable = "coh_country")
 
     cli_alert_info("Verifying dsMediation")
     source("test-cases/xenon-mediate.R")
@@ -146,7 +146,7 @@ run_tests_for_profile <- function(profile) {
 
     cli_alert_info("Testing dsSurvival")
     source("test-cases/xenon-survival.R")
-    run_survival_tests()
+    run_survival_tests(data_path = "/survival/veteran")
 
     cli_alert_info("Testing dsMTL")
     source("test-cases/xenon-mtl.R")
@@ -162,7 +162,7 @@ run_tests_for_profile <- function(profile) {
 
     cli_alert_info("Testing dsTidyverse")
     source("test-cases/donkey-tidyverse.R")
-    run_tidyverse_tests()
+    run_tidyverse_tests(data_path = "/tidyverse")
 
     cli_h2("Removing data as admin")
     source("test-cases/remove-data.R") # Add link_project once module works

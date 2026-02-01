@@ -88,18 +88,18 @@ verify_cox_phsummary <- function() {
   }
 }
 
-assign_survival_data <- function() {
-  cli_alert_info(sprintf("Assigning table: [%s/survival/veteran]", release_env$project1))
-  datashield.assign.table(release_env$conns, "survival", sprintf("%s/survival/veteran", release_env$project1))
+assign_survival_data <- function(data_path) {
+  cli_alert_info(sprintf("Assigning table: [%s%s]", release_env$project1, data_path))
+  datashield.assign.table(release_env$conns, "survival", sprintf("%s%s", release_env$project1, data_path))
 }
 
-run_survival_tests <- function() {
+run_survival_tests <- function(data_path) {
   test_name <- "xenon-survival"
   if (do_skip_test(test_name)) {
     return()
   }
 
-  assign_survival_data()
+  assign_survival_data(data_path)
   create_survival_object()
   verify_survival_class()
   verify_cox_output()

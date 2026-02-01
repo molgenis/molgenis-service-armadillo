@@ -32,20 +32,20 @@ verify_ds_hist <- function(object, variable) {
   compare_list_values(hist$mids, mids)
 }
 
-verify_ds_base <- function() {
+verify_ds_base <- function(object, variable) {
   test_name <- "ds-base"
   if (do_skip_test(test_name)) {
     return()
   }
 
-  cli_alert_info(sprintf("Verifying mean function works on %s$%s", "nonrep", "coh_country"))
-  ds_mean <- ds.mean(paste0("nonrep", "$", "coh_country"), datasources = release_env$conns)$Mean
+  cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
+  ds_mean <- ds.mean(paste0(object, "$", variable), datasources = release_env$conns)$Mean
   cli_alert_info("Verifying mean values")
   verify_ds_obtained_mean(ds_mean, 431.105, 1000)
   cli_alert_success("dsMean returns expected values")
 
   cli_alert_info("Verifying can create histogram")
-  verify_ds_hist("nonrep", "coh_country")
+  verify_ds_hist(object, variable)
   cli_alert_success("ds.histogram returns expected values")
   cli_alert_success(sprintf("%s passed!", test_name))
 }

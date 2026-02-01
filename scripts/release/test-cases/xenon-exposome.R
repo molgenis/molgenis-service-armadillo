@@ -179,7 +179,7 @@ run_exposome_tests <- function() {
   } else if (!"resourcer" %in% release_env$profile_info$packageWhitelist) {
     cli_alert_warning(sprintf("Resourcer not available for profile: %s, skipping testing using resources.", release_env$current_profile))
   } else {
-    set_dm_permissions(list(release_env$project1))
+    set_dm_permissions()
     download_many_sources(ref = exposome_ref)
     upload_many_sources(ref = exposome_ref, folder = "exposome")
     exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome")

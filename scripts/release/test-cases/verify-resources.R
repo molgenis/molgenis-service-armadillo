@@ -34,7 +34,7 @@ verify_assign_expression <- function() {
   )
 }
 
-verify_resources <- function() {
+verify_resources <- function(resource_path) {
   test_name <- "verify-resources"
   if (do_skip_test(test_name)) {
     return()
@@ -47,7 +47,7 @@ verify_resources <- function() {
   } else {
     cli_h2("Using resources as regular user")
     cli_h2("Verifying resources")
-    full_resource_path <- sprintf("%s/%s", release_env$project1, "ewas/GSE66351_1")
+    full_resource_path <- sprintf("%s/%s", release_env$project1, resource_path)
     verify_see_resource(full_resource_path)
     verify_assign_resource(full_resource_path)
     #       verify_assign_expression() FIX ME: ISSUE #699
