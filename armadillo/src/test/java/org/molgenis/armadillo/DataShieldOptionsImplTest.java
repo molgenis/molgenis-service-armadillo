@@ -53,6 +53,7 @@ class DataShieldOptionsImplTest {
             null,
             null,
             null,
+            null,
             null);
     options = new DataShieldOptionsImpl(profileConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");

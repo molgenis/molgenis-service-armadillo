@@ -254,6 +254,7 @@ class CommandsImplTest {
             null,
             null,
             null,
+            null,
             null);
     when(profileService.getByName("exposome")).thenReturn(profileConfig);
     commands.selectProfile("exposome");
