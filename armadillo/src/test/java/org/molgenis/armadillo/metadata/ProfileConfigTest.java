@@ -33,7 +33,7 @@ public class ProfileConfigTest {
             null,
             null,
             null,
-            false);
+            null);
     EnvironmentConfigProps actual = config.toEnvironmentConfigProps();
     assertEquals(img, actual.getImage());
   }
@@ -56,7 +56,7 @@ public class ProfileConfigTest {
             null,
             null,
             null,
-            false);
+            null);
     assertDoesNotThrow(config::toEnvironmentConfigProps);
   }
 
@@ -78,7 +78,7 @@ public class ProfileConfigTest {
             null,
             null,
             null,
-            false);
+            null);
     assertEquals("localhost", config.getHost());
   }
 
@@ -100,7 +100,29 @@ public class ProfileConfigTest {
             null,
             null,
             null,
-            false);
+            null);
     assertEquals("java.util.ImmutableCollections$MapN", config.getOptions().getClass().getName());
+  }
+
+  @Test
+  public void testCreateEmptyBindVolume() {
+    ProfileConfig config =
+        create(
+            "myName",
+            null,
+            false,
+            null,
+            null,
+            6311,
+            new HashSet<>(),
+            new HashSet<>(),
+            new HashMap<>(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    assertEquals(true, config.getBindVolume());
   }
 }

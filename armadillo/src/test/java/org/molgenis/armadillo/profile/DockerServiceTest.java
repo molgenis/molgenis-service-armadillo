@@ -277,6 +277,7 @@ class DockerServiceTest {
   void testStartImageNotRemovedWhenIdUnchanged() {
     var mockProfileConfig = mock(ProfileConfig.class);
     when(profileService.getByName("default")).thenReturn(mockProfileConfig);
+    when(mockProfileConfig.getBindVolume()).thenReturn(true);
     when(mockProfileConfig.getImage()).thenReturn("datashield/armadillo-rserver");
     when(mockProfileConfig.getLastImageId()).thenReturn("sha256:same");
 
@@ -308,7 +309,7 @@ class DockerServiceTest {
             eq(555_000_000L),
             eq("2025-08-05T12:34:56Z"),
             isNull(), // installDate should be null since image ID did not change
-            eq(false));
+            eq(true));
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -329,7 +330,7 @@ class DockerServiceTest {
             null,
             null,
             null,
-            false);
+            null);
     return List.of(profile1, profile2);
   }
 
@@ -496,7 +497,7 @@ class DockerServiceTest {
                 "org.opencontainers.image.version", "1.0",
                 "org.opencontainers.image.created", "2025-01-01T00:00:00Z"));
 
-    dockerService.updateImageMetaData("profile1", null, "newImage", false);
+    dockerService.updateImageMetaData("profile1", null, "newImage", true);
 
     verify(profileService)
         .updateImageMetaData(
@@ -525,7 +526,7 @@ class DockerServiceTest {
                 "org.opencontainers.image.version", "2.0",
                 "org.opencontainers.image.created", "2025-02-02T00:00:00Z"));
 
-    dockerService.updateImageMetaData("profile2", "sameImage", "sameImage", false);
+    dockerService.updateImageMetaData("profile2", "sameImage", "sameImage", true);
 
     verify(profileService)
         .updateImageMetaData(

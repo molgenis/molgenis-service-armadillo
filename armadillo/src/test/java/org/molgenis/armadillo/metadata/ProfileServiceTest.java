@@ -43,7 +43,7 @@ class ProfileServiceTest {
             null,
             null,
             null,
-            false);
+            null);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
@@ -83,7 +83,7 @@ class ProfileServiceTest {
             null,
             null,
             null,
-            false);
+            null);
 
     // Setup ProfilesMetadata and add existing profile
     ProfilesMetadata metadata = ProfilesMetadata.create();
@@ -102,19 +102,14 @@ class ProfileServiceTest {
 
     // Act: update the image id, version, and size
     profileService.updateImageMetaData(
-        profileName,
-        newImageId,
-        newVersionId,
-        newImageSize,
-        newCreationDate,
-        newInstallDate,
-        false);
+        profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate, null);
 
     // Assert that the profile has been updated
     ProfileConfig updated = profileService.getByName(profileName);
     assertEquals(newImageId, updated.getLastImageId());
     assertEquals(newVersionId, updated.getVersionId());
     assertEquals(newImageSize, updated.getImageSize());
+    assertEquals(updated.getBindVolume(), true);
 
     // Verify flush and save were called
     verify(mockProfileScope).removeAllProfileBeans(profileName);

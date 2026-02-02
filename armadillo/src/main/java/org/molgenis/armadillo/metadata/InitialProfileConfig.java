@@ -36,7 +36,7 @@ public class InitialProfileConfig {
         null,
         null,
         null,
-        false);
+        null);
   }
 
   public void setName(String name) {

@@ -107,7 +107,7 @@ public abstract class ProfileConfig {
         newImageSize,
         newCreationDate,
         newInstallDate,
-        bindVolume != null ? bindVolume : false);
+        bindVolume != null ? bindVolume : true);
   }
 
   public static ProfileConfig createDefault() {
@@ -126,7 +126,7 @@ public abstract class ProfileConfig {
         null,
         null,
         null,
-        false);
+        null);
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {
