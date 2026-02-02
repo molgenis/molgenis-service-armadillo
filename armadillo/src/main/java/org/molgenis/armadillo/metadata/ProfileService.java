@@ -72,7 +72,8 @@ public class ProfileService {
                 profileConfig.getVersionId(),
                 profileConfig.getImageSize(),
                 profileConfig.getCreationDate(),
-                profileConfig.getInstallDate()));
+                profileConfig.getInstallDate(),
+                profileConfig.getBindVolume()));
     flushProfileBeans(profileName);
     save();
   }
@@ -124,7 +125,8 @@ public class ProfileService {
       String newVersionId,
       Long newImageSize,
       String newCreationDate,
-      @Nullable String newInstallDate) {
+      @Nullable String newInstallDate,
+      @Nullable Boolean bindVolume) {
     ProfileConfig existing = getByName(profileName);
 
     ProfileConfig updated =
@@ -142,7 +144,8 @@ public class ProfileService {
             newVersionId,
             newImageSize,
             newCreationDate,
-            newInstallDate != null ? newInstallDate : existing.getInstallDate());
+            newInstallDate != null ? newInstallDate : existing.getInstallDate(),
+            bindVolume != null ? bindVolume : existing.getBindVolume());
 
     settings.getProfiles().put(profileName, updated);
     flushProfileBeans(profileName);

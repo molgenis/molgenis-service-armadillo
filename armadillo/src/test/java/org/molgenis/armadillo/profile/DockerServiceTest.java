@@ -215,8 +215,8 @@ class DockerServiceTest {
             eq("v1.0.0"),
             eq(123_456_789L),
             eq("2025-08-05T12:34:56Z"),
-            anyString() // installDate generated dynamically in method
-            );
+            anyString(), // installDate generated dynamically in method
+            anyBoolean());
   }
 
   @Test
@@ -269,8 +269,8 @@ class DockerServiceTest {
             eq("v1.0.0"),
             eq(987_654_321L),
             eq("2025-08-05T12:34:56Z"),
-            anyString() // installDate dynamically generated
-            );
+            anyString(), // installDate dynamically generated
+            anyBoolean());
   }
 
   @Test
@@ -307,8 +307,8 @@ class DockerServiceTest {
             eq("v1.0.0"),
             eq(555_000_000L),
             eq("2025-08-05T12:34:56Z"),
-            isNull() // installDate should be null since image ID did not change
-            );
+            isNull(), // installDate should be null since image ID did not change
+            eq(false));
   }
 
   private List<ProfileConfig> createExampleSettings() {
@@ -328,7 +328,8 @@ class DockerServiceTest {
             null,
             null,
             null,
-            null);
+            null,
+            false);
     return List.of(profile1, profile2);
   }
 
@@ -495,7 +496,7 @@ class DockerServiceTest {
                 "org.opencontainers.image.version", "1.0",
                 "org.opencontainers.image.created", "2025-01-01T00:00:00Z"));
 
-    dockerService.updateImageMetaData("profile1", null, "newImage");
+    dockerService.updateImageMetaData("profile1", null, "newImage", false);
 
     verify(profileService)
         .updateImageMetaData(
@@ -504,8 +505,8 @@ class DockerServiceTest {
             eq("1.0"),
             eq(42L),
             eq("2025-01-01T00:00:00Z"),
-            anyString() // dynamically generated installDate
-            );
+            anyString(), // dynamically generated installDate
+            anyBoolean());
   }
 
   @Test
@@ -524,7 +525,7 @@ class DockerServiceTest {
                 "org.opencontainers.image.version", "2.0",
                 "org.opencontainers.image.created", "2025-02-02T00:00:00Z"));
 
-    dockerService.updateImageMetaData("profile2", "sameImage", "sameImage");
+    dockerService.updateImageMetaData("profile2", "sameImage", "sameImage", false);
 
     verify(profileService)
         .updateImageMetaData(
@@ -533,8 +534,8 @@ class DockerServiceTest {
             eq("2.0"),
             eq(123L),
             eq("2025-02-02T00:00:00Z"),
-            isNull() // no installDate when image ID unchanged
-            );
+            isNull(), // no installDate when image ID unchanged
+            anyBoolean());
   }
 
   @Test

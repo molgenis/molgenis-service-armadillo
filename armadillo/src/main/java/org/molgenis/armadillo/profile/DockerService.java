@@ -180,10 +180,12 @@ public class DockerService {
       }
     }
 
-    updateImageMetaData(profileName, previousImageId, currentImageId);
+    updateImageMetaData(
+        profileName, previousImageId, currentImageId, profileConfig.getBindVolume());
   }
 
-  void updateImageMetaData(String profileName, String previousImageId, String currentImageId) {
+  void updateImageMetaData(
+      String profileName, String previousImageId, String currentImageId, Boolean bindVolume) {
     String openContainersId = getOpenContainersImageVersion(currentImageId);
     Long imageSize = getImageSize(currentImageId);
     String creationDate = getImageCreationDate(currentImageId);
@@ -196,7 +198,13 @@ public class DockerService {
       installDate = null;
     }
     profileService.updateImageMetaData(
-        profileName, currentImageId, openContainersId, imageSize, creationDate, installDate);
+        profileName,
+        currentImageId,
+        openContainersId,
+        imageSize,
+        creationDate,
+        installDate,
+        bindVolume);
   }
 
   String getImageCreationDate(String imageId) {
@@ -267,17 +275,19 @@ public class DockerService {
     // if rock is in the image name, it's rock
     int imageExposed = profileConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
-    Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
-    Bind bind = Bind.parse(dataDir + ":/data:rw");
+    HostConfig hostConfig = new HostConfig();
+    hostConfig.withRestartPolicy(RestartPolicy.unlessStoppedRestart());
+
+    if (Boolean.TRUE.equals(profileConfig.getBindVolume())) {
+      Ports portBindings = new Ports();
+      portBindings.bind(exposed, Ports.Binding.bindPort(profileConfig.getPort()));
+      Bind bind = Bind.parse(dataDir + ":/data:rw");
+      hostConfig.withPortBindings(portBindings).withBinds(bind);
+    }
 
     try (CreateContainerCmd cmd = dockerClient.createContainerCmd(profileConfig.getImage())) {
       cmd.withExposedPorts(exposed)
-          .withHostConfig(
-              new HostConfig()
-                  .withPortBindings(portBindings)
-                  .withBinds(bind)
-                  .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
+          .withHostConfig(hostConfig)
           .withName(profileConfig.getName())
           .withEnv("DEBUG=FALSE")
           .exec();

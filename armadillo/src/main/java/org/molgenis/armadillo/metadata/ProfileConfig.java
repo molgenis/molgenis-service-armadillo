@@ -63,13 +63,17 @@ public abstract class ProfileConfig {
   @Nullable
   public abstract Long getImageSize();
 
-  @JsonProperty("CreationDate")
+  @JsonProperty("creationDate")
   @Nullable
   public abstract String getCreationDate();
 
-  @JsonProperty("InstallDate")
+  @JsonProperty("installDate")
   @Nullable
   public abstract String getInstallDate();
+
+  @JsonProperty("bindVolume")
+  @Nullable
+  public abstract Boolean getBindVolume();
 
   @JsonCreator
   public static ProfileConfig create(
@@ -86,7 +90,8 @@ public abstract class ProfileConfig {
       @JsonProperty("versionId") @Nullable String newVersionId,
       @JsonProperty("imageSize") @Nullable Long newImageSize,
       @JsonProperty("creationDate") @Nullable String newCreationDate,
-      @JsonProperty("installDate") @Nullable String newInstallDate) {
+      @JsonProperty("installDate") @Nullable String newInstallDate,
+      @JsonProperty("bindVolume") @Nullable Boolean bindVolume) {
     return new AutoValue_ProfileConfig(
         newName,
         newImage,
@@ -101,7 +106,8 @@ public abstract class ProfileConfig {
         newVersionId,
         newImageSize,
         newCreationDate,
-        newInstallDate);
+        newInstallDate,
+        bindVolume != null ? bindVolume : false);
   }
 
   public static ProfileConfig createDefault() {
@@ -119,7 +125,8 @@ public abstract class ProfileConfig {
         null,
         null,
         null,
-        null);
+        null,
+        false);
   }
 
   public EnvironmentConfigProps toEnvironmentConfigProps() {

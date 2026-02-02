@@ -42,7 +42,8 @@ class ProfileServiceTest {
             null,
             null,
             null,
-            null);
+            null,
+            false);
     profilesMetadata.getProfiles().put("default", defaultProfile);
     var profilesLoader = new DummyProfilesLoader(profilesMetadata);
     var profileService = new ProfileService(profilesLoader, initialProfileConfigs, profileScope);
@@ -81,7 +82,8 @@ class ProfileServiceTest {
             null,
             null,
             null,
-            null);
+            null,
+            false);
 
     // Setup ProfilesMetadata and add existing profile
     ProfilesMetadata metadata = ProfilesMetadata.create();
@@ -100,7 +102,13 @@ class ProfileServiceTest {
 
     // Act: update the image id, version, and size
     profileService.updateImageMetaData(
-        profileName, newImageId, newVersionId, newImageSize, newCreationDate, newInstallDate);
+        profileName,
+        newImageId,
+        newVersionId,
+        newImageSize,
+        newCreationDate,
+        newInstallDate,
+        false);
 
     // Assert that the profile has been updated
     ProfileConfig updated = profileService.getByName(profileName);

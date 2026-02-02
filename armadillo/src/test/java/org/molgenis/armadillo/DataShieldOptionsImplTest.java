@@ -53,7 +53,8 @@ class DataShieldOptionsImplTest {
             null,
             null,
             null,
-            null);
+            null,
+            false);
     options = new DataShieldOptionsImpl(profileConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
