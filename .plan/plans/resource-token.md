@@ -4,7 +4,7 @@
 Enable R `resourcer` package to fetch resources via internal short-lived JWT tokens with `ROLE_RESOURCE_VIEW` per-resource.
 
 ## Current State (spike branch)
-- StorageController has `/projects/{project}/resources/{object}` endpoint (incomplete)
+- StorageController has `/projects/{project}/rawfiles/{object}` endpoint (incomplete)
 - RExecutorServiceImpl has placeholder code for token generation
 - JwtRolesExtractor has TODO comment about internal tokens
 - Static `mySecretMap` workaround needs proper solution
@@ -59,7 +59,7 @@ Modify `r/src/main/java/org/molgenis/r/service/RExecutorService.java`:
 Modify `r/src/main/java/org/molgenis/r/service/RExecutorServiceImpl.java`:
 - Inject `ResourceTokenService`
 - Generate internal token in `loadResource()`
-- Pass token to resourcer, rewrite URL from `/objects/` to `/resources/`
+- Pass token to resourcer, rewrite URL from `/objects/` to `/rawfiles/`
 - Remove static `mySecretMap`
 - Audit token generation via `Auditor` (inject, log GENERATE_RESOURCE_TOKEN event)
 
@@ -70,7 +70,7 @@ Modify `CommandsImpl.java`:
 
 ### 8. StorageController
 Modify `StorageController.java`:
-- Endpoint: `GET /projects/{project}/resources/{object}`
+- Endpoint: `GET /projects/{project}/rawfiles/{object}`
 - Auth: `@PreAuthorize("hasRole('ROLE_RESOURCE_VIEW_' + normalize(#project, #object))")`
 - Add helper method `normalizeResourceName(project, object)`
 - Remove `mySecretMap` usage

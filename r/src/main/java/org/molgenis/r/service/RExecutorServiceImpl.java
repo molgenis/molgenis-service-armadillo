@@ -118,7 +118,7 @@ public class RExecutorServiceImpl implements RExecutorService {
               """
               is.null(base::assign('R', value={resourcer::newResource(
                 name = rds$name,
-                url = gsub('/objects/', '/resources/', rds$url),
+                url = gsub('/objects/', '/rawfiles/', rds$url),
                 format = rds$format,
                 secret = "%s"
               )}))""",
