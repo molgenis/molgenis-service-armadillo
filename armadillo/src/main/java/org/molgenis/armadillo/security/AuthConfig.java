@@ -2,6 +2,9 @@ package org.molgenis.armadillo.security;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +51,7 @@ public class AuthConfig {
       new CorsConfiguration().applyPermitDefaultValues();
   private final AccessService accessService;
 
-  public AuthConfig(AccessService accessService) {
+  public AuthConfig(AccessService accessService) throws NoSuchAlgorithmException {
     this.accessService = accessService;
   }
 
