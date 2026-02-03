@@ -698,4 +698,34 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
         MediaType.MULTIPART_FORM_DATA_VALUE,
         new ByteArrayInputStream(contents));
   }
+
+  @Test
+  @WithMockUser(roles = "RESOURCE_VIEW_LIFECYCLE_TEST_PARQUET")
+  void testDownloadRawfileWithResourceToken() throws Exception {
+    var content = "content".getBytes();
+    var inputStream = new ByteArrayInputStream(content);
+    when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
+    when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
+
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/rawfiles/test.parquet").session(session))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
+        .andExpect(content().bytes(content));
+  }
+
+  @Test
+  @WithMockUser(roles = "RESOURCE_VIEW_OTHER_PROJECT_OTHER_FILE")
+  void testDownloadRawfileWrongTokenForbidden() throws Exception {
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/rawfiles/test.parquet").session(session))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testDownloadRawfileNoTokenUnauthorized() throws Exception {
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/rawfiles/test.parquet"))
+        .andExpect(status().isUnauthorized());
+  }
 }

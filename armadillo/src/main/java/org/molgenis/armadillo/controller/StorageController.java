@@ -420,7 +420,7 @@ public class StorageController {
             description = "Unauthorized",
             content = @Content(mediaType = "application/json"))
       })
-  @GetMapping(value = "/projects/{project}/resources/{object}")
+  @GetMapping(value = "/projects/{project}/rawfiles/{object}")
   public ResponseEntity<InputStreamResource> downloadResource(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
