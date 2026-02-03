@@ -400,7 +400,8 @@ public class StorageController {
   }
 
   @Operation(summary = "Download a resource with internal token")
-  @PreAuthorize("authentication.token.getClaimAsString('resource_project') == #project and authentication.token.getClaimAsString('resource_object') == #object")
+  @PreAuthorize(
+      "authentication.token.getClaimAsString('resource_project') == #project and authentication.token.getClaimAsString('resource_object') == #object")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),

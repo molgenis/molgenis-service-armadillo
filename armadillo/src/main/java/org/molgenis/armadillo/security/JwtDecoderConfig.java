@@ -2,8 +2,6 @@ package org.molgenis.armadillo.security;
 
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
-import java.security.KeyPair;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,7 @@ public class JwtDecoderConfig {
 
   @Bean
   public JwtDecoder jwtDecoder(
-      OAuth2ResourceServerProperties properties, KeyPair resourceTokenKeyPair) {
+      OAuth2ResourceServerProperties properties, ResourceTokenService resourceTokenService) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
       NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
@@ -44,11 +42,10 @@ public class JwtDecoderConfig {
       externalDecoder.setJwtValidator(jwtValidator);
 
       NimbusJwtDecoder internalDecoder =
-          NimbusJwtDecoder.withPublicKey((RSAPublicKey) resourceTokenKeyPair.getPublic()).build();
+          NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
       OAuth2TokenValidator<Jwt> internalValidator =
           new DelegatingOAuth2TokenValidator<>(
-              new JwtTimestampValidator(),
-              new JwtIssuerValidator("armadillo-internal"));
+              new JwtTimestampValidator(), new JwtIssuerValidator("armadillo-internal"));
       internalDecoder.setJwtValidator(internalValidator);
 
       return token -> {
