@@ -31,8 +31,7 @@ public interface RExecutorService {
       RServerConnection connection,
       Resource resource,
       String filename,
-      String symbol,
-      String resourceToken);
+      String symbol);
 
   void installPackage(RServerConnection connection, Resource packageResource, String name);
 }

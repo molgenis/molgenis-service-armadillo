@@ -19,13 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
 import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerResult;
@@ -52,8 +52,6 @@ class CommandsImplTest {
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
   @Mock ResourceTokenService resourceTokenService;
-  @Mock AuditEventPublisher auditor;
-
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
@@ -68,9 +66,10 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
+    JwtAuthenticationToken mockAuth = mock(JwtAuthenticationToken.class);
     lenient()
         .when(resourceTokenService.generateResourceToken(any(), any(), any()))
-        .thenReturn("mock-token");
+        .thenReturn(mockAuth);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -80,8 +79,7 @@ class CommandsImplTest {
             connectionFactory,
             processService,
             profileService,
-            resourceTokenService,
-            auditor);
+            resourceTokenService);
   }
 
   @Test
@@ -223,12 +221,11 @@ class CommandsImplTest {
 
     verify(rExecutorService)
         .loadResource(
-            eq(principal),
+            any(JwtAuthenticationToken.class),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
-            eq("core_nonrep"),
-            eq("mock-token"));
+            eq("core_nonrep"));
   }
 
   @Test

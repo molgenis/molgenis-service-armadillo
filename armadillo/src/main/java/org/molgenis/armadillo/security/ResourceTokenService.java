@@ -2,12 +2,9 @@ package org.molgenis.armadillo.security;
 
 import java.security.KeyPair;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,12 +30,13 @@ public class ResourceTokenService {
                         .build())));
   }
 
-  public String generateResourceToken(String email, String project, String objectName) {
+  public JwtAuthenticationToken generateResourceToken(String email, String project, String objectName) {
     Instant now = Instant.now();
     JwtClaimsSet claims =
         JwtClaimsSet.builder()
             .issuer(INTERNAL_ISSUER)
             .subject(email)
+            .claim("email", email)
             .issuedAt(now)
             .expiresAt(now.plusSeconds(TOKEN_VALIDITY_SECONDS))
             .claim(RESOURCE_PROJECT_CLAIM, project)
@@ -46,27 +44,8 @@ public class ResourceTokenService {
             .build();
 
     JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
-    return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+    Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(header, claims));
+    return new JwtAuthenticationToken(jwt);
   }
 
-  public boolean isInternalToken(Jwt jwt) {
-    return INTERNAL_ISSUER.equals(jwt.getIssuer() != null ? jwt.getIssuer().toString() : null);
-  }
-
-  public Collection<GrantedAuthority> extractResourceRole(Jwt jwt) {
-    String project = jwt.getClaimAsString(RESOURCE_PROJECT_CLAIM);
-    String objectName = jwt.getClaimAsString(RESOURCE_OBJECT_CLAIM);
-
-    if (project == null || objectName == null) {
-      return Collections.emptyList();
-    }
-
-    String roleName = "ROLE_RESOURCE_VIEW_" + normalizeResourceName(project, objectName);
-    return Collections.singleton(new SimpleGrantedAuthority(roleName));
-  }
-
-  public String normalizeResourceName(String project, String objectName) {
-    String combined = project + "_" + objectName;
-    return combined.toUpperCase().replaceAll("[^A-Z0-9]", "_");
-  }
 }

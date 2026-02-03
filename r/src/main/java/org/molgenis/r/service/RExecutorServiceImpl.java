@@ -105,25 +105,27 @@ public class RExecutorServiceImpl implements RExecutorService {
       RServerConnection connection,
       Resource resource,
       String filename,
-      String symbol,
-      String resourceToken) {
+      String symbol) {
     LOGGER.debug("Load resource from file {} into {}", filename, symbol);
     String rFileName = filename.replace("/", "_");
     try {
-      copyFile(resource, rFileName, connection);
-      execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
-      execute(format("base::unlink('%s')", rFileName), connection);
-      execute(
-          format(
-              """
-              is.null(base::assign('R', value={resourcer::newResource(
-                name = rds$name,
-                url = gsub('/objects/', '/rawfiles/', rds$url),
-                format = rds$format,
-                secret = "%s"
-              )}))""",
-              resourceToken),
-          connection);
+      if (principal instanceof JwtAuthenticationToken token) {
+        String tokenValue = token.getToken().getTokenValue();
+        copyFile(resource, rFileName, connection);
+        execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
+        execute(format("base::unlink('%s')", rFileName), connection);
+        execute(
+            format(
+                """
+                is.null(base::assign('R', value={resourcer::newResource(
+                  name = rds$name,
+                  url = gsub('/objects/', '/rawfiles/', rds$url),
+                  format = rds$format,
+                  secret = "%s"
+                )}))""",
+                tokenValue),
+            connection);
+      }
       execute(
           format("is.null(base::assign('%s', value={resourcer::newResourceClient(R)}))", symbol),
           connection);
