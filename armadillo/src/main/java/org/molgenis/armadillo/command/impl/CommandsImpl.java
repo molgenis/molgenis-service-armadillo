@@ -2,7 +2,6 @@ package org.molgenis.armadillo.command.impl;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
@@ -12,11 +11,9 @@ import jakarta.annotation.PreDestroy;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.ArmadilloSession;
-import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
@@ -51,7 +48,6 @@ class CommandsImpl implements Commands {
   private final ProcessService processService;
   private final ProfileService profileService;
   private final ResourceTokenService resourceTokenService;
-  private final AuditEventPublisher auditor;
 
   private ArmadilloSession armadilloSession;
 
@@ -66,8 +62,7 @@ class CommandsImpl implements Commands {
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
       ProfileService profileService,
-      ResourceTokenService resourceTokenService,
-      AuditEventPublisher auditor) {
+      ResourceTokenService resourceTokenService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
@@ -76,7 +71,6 @@ class CommandsImpl implements Commands {
     this.processService = processService;
     this.profileService = profileService;
     this.resourceTokenService = resourceTokenService;
-    this.auditor = auditor;
   }
 
   @Override
@@ -188,31 +182,19 @@ class CommandsImpl implements Commands {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
-
-    String email = null;
-    if (principal instanceof JwtAuthenticationToken token) {
-      email = token.getToken().getClaimAsString("email");
-    }
-    if (email == null) {
-      email = principal.getName();
-    }
-
-    String resourceToken = resourceTokenService.generateResourceToken(email, project, objectName);
-    auditor.audit(
-        principal, GENERATE_RESOURCE_TOKEN, Map.of(PROJECT, project, OBJECT, objectName));
-
+    String email = principal instanceof JwtAuthenticationToken token ? token.getToken().getClaimAsString("email") :  principal.getName();
+    JwtAuthenticationToken resourceAuth = resourceTokenService.generateResourceToken(email, project, objectName);
     return schedule(
         new ArmadilloCommandImpl<>("Load resource " + resource, false) {
           @Override
           protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadResource(project, objectName);
             rExecutorService.loadResource(
-                principal,
+                resourceAuth,
                 connection,
                 new InputStreamResource(inputStream),
                 resource + RDS,
-                symbol,
-                resourceToken);
+                symbol);
             return null;
           }
         });

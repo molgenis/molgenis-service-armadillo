@@ -13,18 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAuthority>> {
   private final AccessService accessService;
-  private final ResourceTokenService resourceTokenService;
 
-  public JwtRolesExtractor(
-      AccessService accessService, ResourceTokenService resourceTokenService) {
+  public JwtRolesExtractor(AccessService accessService) {
     this.accessService = accessService;
-    this.resourceTokenService = resourceTokenService;
   }
 
   public Collection<GrantedAuthority> convert(Jwt jwt) {
-    if (resourceTokenService.isInternalToken(jwt)) {
-      return resourceTokenService.extractResourceRole(jwt);
-    }
     return runAsSystem(
         () -> accessService.getAuthoritiesForEmail(jwt.getClaimAsString("email"), jwt.getClaims()));
   }

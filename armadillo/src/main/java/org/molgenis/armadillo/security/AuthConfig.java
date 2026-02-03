@@ -110,25 +110,18 @@ public class AuthConfig {
                       userInfoEndpoint ->
                           userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
                   .defaultSuccessUrl("/", true));
-      ResourceTokenService resourceTokenService =
-          http.getSharedObject(org.springframework.context.ApplicationContext.class)
-              .getBean(ResourceTokenService.class);
       http.oauth2ResourceServer(
           oauth2 ->
-              oauth2.jwt(
-                  jwt ->
-                      jwt.jwtAuthenticationConverter(
-                          grantedAuthoritiesExtractor(resourceTokenService))));
+              oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
 
     return http.build();
   }
 
-  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor(
-      ResourceTokenService resourceTokenService) {
+  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
     jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-        new JwtRolesExtractor(accessService, resourceTokenService));
+        new JwtRolesExtractor(accessService));
     return jwtAuthenticationConverter;
   }
 

@@ -35,7 +35,6 @@ import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
@@ -63,15 +62,10 @@ public class StorageController {
 
   private final ArmadilloStorageService storage;
   private final AuditEventPublisher auditor;
-  private final ResourceTokenService resourceTokenService;
 
-  public StorageController(
-      ArmadilloStorageService storage,
-      AuditEventPublisher auditor,
-      ResourceTokenService resourceTokenService) {
+  public StorageController(ArmadilloStorageService storage, AuditEventPublisher auditor) {
     this.storage = storage;
     this.auditor = auditor;
-    this.resourceTokenService = resourceTokenService;
   }
 
   @Operation(summary = "List objects in a project")
@@ -406,8 +400,7 @@ public class StorageController {
   }
 
   @Operation(summary = "Download a resource with internal token")
-  @PreAuthorize(
-      "hasRole('ROLE_RESOURCE_VIEW_' + T(org.molgenis.armadillo.controller.StorageController).normalizeResourceName(#project, #object))")
+  @PreAuthorize("authentication.token.getClaimAsString('resource_project') == #project and authentication.token.getClaimAsString('resource_object') == #object")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),
@@ -434,11 +427,6 @@ public class StorageController {
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
-  }
-
-  public static String normalizeResourceName(String project, String object) {
-    String combined = project + "_" + object;
-    return combined.toUpperCase().replaceAll("[^A-Z0-9]", "_");
   }
 
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
