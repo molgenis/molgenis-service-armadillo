@@ -1,7 +1,14 @@
 package org.molgenis.armadillo.security;
 
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Principal;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -16,21 +23,37 @@ public class ResourceTokenService {
   private static final String RESOURCE_OBJECT_CLAIM = "resource_object";
 
   private final JwtEncoder jwtEncoder;
+  private final RSAPublicKey publicKey;
 
-  public ResourceTokenService(KeyPair resourceTokenKeyPair) {
-    this.jwtEncoder =
-        new NimbusJwtEncoder(
-            new com.nimbusds.jose.jwk.source.ImmutableJWKSet<>(
-                new com.nimbusds.jose.jwk.JWKSet(
-                    new com.nimbusds.jose.jwk.RSAKey.Builder(
-                            (java.security.interfaces.RSAPublicKey) resourceTokenKeyPair.getPublic())
-                        .privateKey(
-                            (java.security.interfaces.RSAPrivateKey)
-                                resourceTokenKeyPair.getPrivate())
-                        .build())));
+  public ResourceTokenService() {
+    try {
+      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+      keyPairGenerator.initialize(2048);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      this.publicKey = (RSAPublicKey) keyPair.getPublic();
+      this.jwtEncoder =
+          new NimbusJwtEncoder(
+              new ImmutableJWKSet<>(
+                  new JWKSet(
+                      new RSAKey.Builder(publicKey)
+                          .privateKey((RSAPrivateKey) keyPair.getPrivate())
+                          .build())));
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize RSA key pair", e);
+    }
   }
 
-  public JwtAuthenticationToken generateResourceToken(String email, String project, String objectName) {
+  public RSAPublicKey getPublicKey() {
+    return publicKey;
+  }
+
+  public JwtAuthenticationToken generateResourceToken(
+      Principal principal, String project, String objectName) {
+    String email =
+        principal instanceof JwtAuthenticationToken token
+            ? token.getToken().getClaimAsString("email")
+            : principal.getName();
+
     Instant now = Instant.now();
     JwtClaimsSet claims =
         JwtClaimsSet.builder()
@@ -47,5 +70,4 @@ public class ResourceTokenService {
     Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(header, claims));
     return new JwtAuthenticationToken(jwt);
   }
-
 }

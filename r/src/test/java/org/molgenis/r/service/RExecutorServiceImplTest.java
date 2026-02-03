@@ -168,10 +168,10 @@ class RExecutorServiceImplTest {
         .when(rConnection)
         .eval(
             "is.null(base::assign('R', value={resourcer::newResource(\n"
-                + "  name = rds$name,\n"
-                + "  url = gsub('/objects/', '/rawfiles/', rds$url),\n"
-                + "  format = rds$format,\n"
-                + "  secret = \"token\"\n"
+                + "        name = rds$name,\n"
+                + "        url = gsub('/objects/', '/rawfiles/', rds$url),\n"
+                + "        format = rds$format,\n"
+                + "        secret = \"token\"\n"
                 + ")}))",
             false);
     lenient()
@@ -186,10 +186,10 @@ class RExecutorServiceImplTest {
     verify(rConnection)
         .eval(
             "is.null(base::assign('R', value={resourcer::newResource(\n"
-                + "  name = rds$name,\n"
-                + "  url = gsub('/objects/', '/rawfiles/', rds$url),\n"
-                + "  format = rds$format,\n"
-                + "  secret = \"token\"\n"
+                + "        name = rds$name,\n"
+                + "        url = gsub('/objects/', '/rawfiles/', rds$url),\n"
+                + "        format = rds$format,\n"
+                + "        secret = \"token\"\n"
                 + ")}))",
             false);
     verify(rConnection)

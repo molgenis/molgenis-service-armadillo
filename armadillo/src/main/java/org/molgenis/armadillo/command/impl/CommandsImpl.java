@@ -182,8 +182,8 @@ class CommandsImpl implements Commands {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
-    String email = principal instanceof JwtAuthenticationToken token ? token.getToken().getClaimAsString("email") :  principal.getName();
-    JwtAuthenticationToken resourceAuth = resourceTokenService.generateResourceToken(email, project, objectName);
+    JwtAuthenticationToken resourceAuth =
+        resourceTokenService.generateResourceToken(principal, project, objectName);
     return schedule(
         new ArmadilloCommandImpl<>("Load resource " + resource, false) {
           @Override
