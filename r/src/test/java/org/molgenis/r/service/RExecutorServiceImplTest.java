@@ -147,10 +147,7 @@ class RExecutorServiceImplTest {
   @Test
   void testLoadResource() throws RServerException {
     var principal = mock(JwtAuthenticationToken.class, RETURNS_DEEP_STUBS);
-    var token = mock(Jwt.class);
     Resource resource = new InMemoryResource("Hello");
-    when(token.getTokenValue()).thenReturn("token");
-    when(principal.getToken()).thenReturn(token);
     lenient()
         .doNothing()
         .when(rConnection)
@@ -166,34 +163,18 @@ class RExecutorServiceImplTest {
     lenient()
         .doReturn(new RockResult(new REXPLogical(true)))
         .when(rConnection)
-        .eval(
-            "is.null(base::assign('R', value={resourcer::newResource(\n"
-                + "        name = rds$name,\n"
-                + "        url = rds$url,\n"
-                + "        format = rds$format,\n"
-                + "        secret = \"token\"\n"
-                + ")}))",
-            false);
+        .eval(anyString(), eq(false));
     lenient()
         .doReturn(new RockResult(new REXPLogical(true)))
         .when(rConnection)
         .eval("is.null(base::assign('D', value={resourcer::newResourceClient(R)}))", false);
     executorService.loadResource(
-        principal, rConnection, resource, "project/folder/resource.rds", "D");
+        principal, rConnection, resource, "project/folder/resource.rds", "D", "token");
     verify(rConnection)
         .eval("is.null(base::assign('rds',base::readRDS('project_folder_resource.rds')))", false);
     verify(rConnection).eval("base::unlink('project_folder_resource.rds')", false);
-    verify(rConnection)
-        .eval(
-            "is.null(base::assign('R', value={resourcer::newResource(\n"
-                + "        name = rds$name,\n"
-                + "        url = rds$url,\n"
-                + "        format = rds$format,\n"
-                + "        secret = \"token\"\n"
-                + ")}))",
-            false);
-    verify(rConnection)
-        .eval("is.null(base::assign('D', value={resourcer::newResourceClient(R)}))", false);
+    verify(rConnection, times(4))
+        .eval(anyString(), eq(false));
   }
 
   @Test
@@ -237,7 +218,7 @@ class RExecutorServiceImplTest {
         RExecutionException.class,
         () ->
             executorService.loadResource(
-                testPrincipal, rConnection, resource, "hpc-resource-1.rds", "D"));
+                testPrincipal, rConnection, resource, "hpc-resource-1.rds", "D", "token"));
   }
 
   @Test

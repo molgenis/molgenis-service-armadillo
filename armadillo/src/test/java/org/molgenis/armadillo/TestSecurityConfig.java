@@ -12,9 +12,11 @@ import org.molgenis.armadillo.metadata.InsightService;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +36,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class TestSecurityConfig {
+  @MockBean ResourceTokenService resourceTokenService;
+
   public TestSecurityConfig() {}
 
   @Bean

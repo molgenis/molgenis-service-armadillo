@@ -2,9 +2,6 @@ package org.molgenis.armadillo.security;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +48,7 @@ public class AuthConfig {
       new CorsConfiguration().applyPermitDefaultValues();
   private final AccessService accessService;
 
-  public AuthConfig(AccessService accessService) throws NoSuchAlgorithmException {
+  public AuthConfig(AccessService accessService) {
     this.accessService = accessService;
   }
 
@@ -113,18 +110,25 @@ public class AuthConfig {
                       userInfoEndpoint ->
                           userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
                   .defaultSuccessUrl("/", true));
+      ResourceTokenService resourceTokenService =
+          http.getSharedObject(org.springframework.context.ApplicationContext.class)
+              .getBean(ResourceTokenService.class);
       http.oauth2ResourceServer(
           oauth2 ->
-              oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
+              oauth2.jwt(
+                  jwt ->
+                      jwt.jwtAuthenticationConverter(
+                          grantedAuthoritiesExtractor(resourceTokenService))));
     }
 
     return http.build();
   }
 
-  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
+  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor(
+      ResourceTokenService resourceTokenService) {
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
     jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-        new JwtRolesExtractor(accessService));
+        new JwtRolesExtractor(accessService, resourceTokenService));
     return jwtAuthenticationConverter;
   }
 
