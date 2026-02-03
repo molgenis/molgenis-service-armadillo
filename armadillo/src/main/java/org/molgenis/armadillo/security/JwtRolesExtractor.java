@@ -21,5 +21,8 @@ public class JwtRolesExtractor implements Converter<Jwt, Collection<GrantedAutho
   public Collection<GrantedAuthority> convert(Jwt jwt) {
     return runAsSystem(
         () -> accessService.getAuthoritiesForEmail(jwt.getClaimAsString("email"), jwt.getClaims()));
+
+    //todo: add a check if this is an internal JWT we created
+    //then we add a ROLE_RESOURCE_ACCESS
   }
 }

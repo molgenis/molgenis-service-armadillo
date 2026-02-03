@@ -4,8 +4,12 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyPairGenerator;
 import java.security.Principal;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.molgenis.r.Formatter;
 import org.molgenis.r.RServerConnection;
@@ -17,11 +21,16 @@ import org.molgenis.r.exceptions.RExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RExecutorServiceImpl implements RExecutorService {
+
+//  KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+//    kpg.initialize(2048);
+//  keyPair = kpg.generateKeyPair();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RExecutorServiceImpl.class);
 
@@ -110,6 +119,16 @@ public class RExecutorServiceImpl implements RExecutorService {
     String rFileName = filename.replace("/", "_");
     try {
       if (principal instanceof JwtAuthenticationToken token) {
+
+        //later create a system token here
+//        Jwt newJwt = Jwt.withTokenValue("new")
+//                .header("alg", "RS256")
+//                .claim("email", o)
+//                .claim("extra", "super intern geheim")
+//                .issuedAt(Instant.now())
+//                .expiresAt(Instant.now().plusSeconds(300))
+//                .build();
+
         String tokenValue = token.getToken().getTokenValue();
         copyFile(resource, rFileName, connection);
         execute(format("is.null(base::assign('rds',base::readRDS('%s')))", rFileName), connection);
@@ -119,8 +138,8 @@ public class RExecutorServiceImpl implements RExecutorService {
                 """
                                   is.null(base::assign('R', value={resourcer::newResource(
                                           name = rds$name,
-                                          url = rds$url,
-                                          format = rds$format,
+                                          url = gsub(rds$url, '/objects/', '/rawfile/',
+                                          format = rds$format
                                           secret = "%s"
                                   )}))""",
                 tokenValue),
