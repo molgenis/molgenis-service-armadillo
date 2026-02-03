@@ -19,10 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -49,6 +51,8 @@ class CommandsImplTest {
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
+  @Mock ResourceTokenService resourceTokenService;
+  @Mock AuditEventPublisher auditor;
 
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
@@ -64,6 +68,9 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
+    lenient()
+        .when(resourceTokenService.generateResourceToken(any(), any(), any()))
+        .thenReturn("mock-token");
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -72,7 +79,9 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            profileService,
+            resourceTokenService,
+            auditor);
   }
 
   @Test
@@ -218,7 +227,8 @@ class CommandsImplTest {
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),
-            eq("core_nonrep"));
+            eq("core_nonrep"),
+            eq("mock-token"));
   }
 
   @Test

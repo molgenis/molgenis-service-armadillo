@@ -84,6 +84,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";
   public static final String GET_RESOURCES = "GET_RESOURCES";
+  public static final String GENERATE_RESOURCE_TOKEN = "GENERATE_RESOURCE_TOKEN";
   public static final String INSTALL_PACKAGES = "INSTALL_PACKAGES";
   public static final String INSTALL_PACKAGES_FAILURE = "INSTALL_PACKAGES_FAILURE";
   public static final String EXPRESSION = "expression";

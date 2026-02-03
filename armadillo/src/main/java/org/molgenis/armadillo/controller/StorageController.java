@@ -35,8 +35,8 @@ import org.molgenis.armadillo.exceptions.UnknownObjectException;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.storage.FileInfo;
-import org.molgenis.r.service.RExecutorServiceImpl;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,10 +63,15 @@ public class StorageController {
 
   private final ArmadilloStorageService storage;
   private final AuditEventPublisher auditor;
+  private final ResourceTokenService resourceTokenService;
 
-  public StorageController(ArmadilloStorageService storage, AuditEventPublisher auditor) {
+  public StorageController(
+      ArmadilloStorageService storage,
+      AuditEventPublisher auditor,
+      ResourceTokenService resourceTokenService) {
     this.storage = storage;
     this.auditor = auditor;
+    this.resourceTokenService = resourceTokenService;
   }
 
   @Operation(summary = "List objects in a project")
@@ -400,37 +405,40 @@ public class StorageController {
     }
   }
 
-  @Operation(summary = "Download an object")
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @Operation(summary = "Download a resource with internal token")
+  @PreAuthorize(
+      "hasRole('ROLE_RESOURCE_VIEW_' + T(org.molgenis.armadillo.controller.StorageController).normalizeResourceName(#project, #object))")
   @ApiResponses(
-          value = {
-                  @ApiResponse(responseCode = "200", description = "Object downloaded successfully"),
-                  @ApiResponse(
-                          responseCode = "404",
-                          description = "Unknown project or object",
-                          content = @Content(mediaType = "application/json")),
-                  @ApiResponse(
-                          responseCode = "401",
-                          description = "Unauthorized",
-                          content = @Content(mediaType = "application/json"))
-          })
+      value = {
+        @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Unknown project or object",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(mediaType = "application/json"))
+      })
   @GetMapping(value = "/projects/{project}/resources/{object}")
   public ResponseEntity<InputStreamResource> downloadResource(
-          Principal principal, @PathVariable String project, @PathVariable String object) {
+      Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
-      //map the object id to our real path so nobody knows where it is
-      String realPath = RExecutorServiceImpl.mySecretMap.get(object);
-
       return auditor.audit(
-              () -> getObject(project, realPath),
-              principal,
-              DOWNLOAD_OBJECT,
-              Map.of(PROJECT, project, OBJECT, object));
+          () -> getObject(project, object),
+          principal,
+          DOWNLOAD_OBJECT,
+          Map.of(PROJECT, project, OBJECT, object));
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
+  }
+
+  public static String normalizeResourceName(String project, String object) {
+    String combined = project + "_" + object;
+    return combined.toUpperCase().replaceAll("[^A-Z0-9]", "_");
   }
 
   private ResponseEntity<InputStreamResource> getObject(String project, String object) {
