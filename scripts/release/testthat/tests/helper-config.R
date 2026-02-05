@@ -178,4 +178,8 @@ configure_test <- function() {
   release_env$update_auto <- update_auto
   release_env$profile_defaults <- profile_defaults
   release_env$rda_url <- rda_url
+
+  # Generate random project name (actual creation happens in test-03)
+  cli_alert_info("Generating random project name")
+  release_env$project1 <- generate_random_project_name()
 }
