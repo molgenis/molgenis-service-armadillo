@@ -15,31 +15,12 @@ cat("
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
 ")
 print(sessionInfo())
-# for logging nicely and showing loading spinner
+Ok
 library(cli)
 cli_h1("Setup")
 cli_alert_info("Loading libraries")
-library(DSI)
-# for password prompt
-library(getPass)
-# for reading parquet files
-library(arrow)
-# for doing api calls
-library(httr)
-# for loading json to put to api
-library(jsonlite)
-# to post resource file async to server to be able to show spinner while loading
-library(future)
-# to test if url exists
-library(RCurl)
-# to generate random project names
-library(stringi)
-# armadillo/datashield libraries needed for testing
-library(MolgenisArmadillo)
-library(dsBaseClient)
-library(DSMolgenisArmadillo)
-library(resourcer)
-library(testthat)
+source("lib/load-libraries.R")
+cli_alert_success("Libraries loaded")
 
 options(datashield.errors.print = TRUE)
 
@@ -53,7 +34,7 @@ source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
-source("testthat/tests/test-config.R")
+source("testthat/tests/helper-config.R")
 configure_test()
 cli_alert_success("Options configured")
 
