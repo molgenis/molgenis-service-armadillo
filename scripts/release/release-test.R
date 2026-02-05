@@ -15,36 +15,9 @@ cat("
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
 ")
 print(sessionInfo())
-Ok
-library(cli)
-cli_h1("Setup")
-cli_alert_info("Loading libraries")
-source("lib/load-libraries.R")
-cli_alert_success("Libraries loaded")
 
-options(datashield.errors.print = TRUE)
-
-# Shared environment for all test state and config
-release_env <- new.env(parent = emptyenv())
-# Tell DSI to search release_env for connections (instead of .GlobalEnv)
-options(datashield.env = release_env)
-
-cli_alert_info("Loading common functions")
-source("lib/common-functions.R")
-cli_alert_success("Functions loaded")
-
-cli_h2("Configuring test options")
-source("testthat/tests/helper-config.R")
-configure_test()
-cli_alert_success("Options configured")
-
-cli_h2("Preparing tables for tests")
-source("test-cases/download-tables.R")
-download_tables()
-
-cli_h2("Preparing resource for tests")
-source("test-cases/download-resources.R")
-prepare_resources()
+# Run all setup and initialization
+source("lib/setup.R")
 
 profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 
