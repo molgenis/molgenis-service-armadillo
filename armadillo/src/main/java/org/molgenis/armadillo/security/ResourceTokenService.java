@@ -1,14 +1,15 @@
 package org.molgenis.armadillo.security;
 
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Principal;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -18,7 +19,10 @@ import org.springframework.stereotype.Service;
 public class ResourceTokenService {
 
   private static final String INTERNAL_ISSUER = "armadillo-internal";
-  private static final long TOKEN_VALIDITY_SECONDS = 300;
+
+  @Value("${storage.resource-token-timeout:#{300}}")
+  private long TOKEN_VALIDITY_SECONDS;
+
   private static final String RESOURCE_PROJECT_CLAIM = "resource_project";
   private static final String RESOURCE_OBJECT_CLAIM = "resource_object";
 
