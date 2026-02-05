@@ -53,7 +53,7 @@ source("lib/common-functions.R")
 cli_alert_success("Functions loaded")
 
 cli_h2("Configuring test options")
-source("test-cases/test-config.R")
+source("testthat/tests/test-config.R")
 configure_test()
 cli_alert_success("Options configured")
 
@@ -86,7 +86,7 @@ run_tests_for_profile <- function(profile) {
     show_test_info()
 
     testthat::test_dir(
-      "tests",
+      "testthat/tests",
       reporter = testthat::ProgressReporter$new(),
       stop_on_failure = FALSE
     )

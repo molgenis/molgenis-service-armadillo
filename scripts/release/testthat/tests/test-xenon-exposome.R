@@ -1,6 +1,24 @@
 library(dsExposomeClient)
 library(purrr)
 
+# Setup
+test_name <- "xenon-exposome"
+
+exposome_ref <- tribble(
+  ~file_name, ~path, ~url, ~object_name, ~format,
+  "exposures.csv", file.path(release_env$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
+  "description.csv", file.path(release_env$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
+  "phenotypes.csv", file.path(release_env$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
+  "exposomeSet.RData", file.path(release_env$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
+)
+
+skip_exposome <- function() {
+  do_skip_test(test_name)
+  skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+  skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
+          sprintf("resourcer not available for profile: %s", release_env$current_profile))
+}
+
 verify_load_exposome_class <- function() {
   cli_alert_info("Checking ds.loadExposome")
   ds.loadExposome(
@@ -97,67 +115,48 @@ verify_exposure_cor_dim <- function() {
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
 }
 
-exposome_ref <- tribble(
-  ~file_name, ~path, ~url, ~object_name, ~format,
-  "exposures.csv", file.path(release_env$test_file_path, "exposures.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/exposures.csv", "exposures", "csv",
-  "description.csv", file.path(release_env$test_file_path, "description.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/description.csv", "description", "csv",
-  "phenotypes.csv", file.path(release_env$test_file_path, "phenotypes.csv"), "https://raw.githubusercontent.com/isglobal-brge/rexposome/master/inst/extdata/phenotypes.csv", "phenotypes", "csv",
-  "exposomeSet.RData", file.path(release_env$test_file_path, "exposomeSet.RData"), "https://github.com/isglobal-brge/brge_data_large/raw/master/data/exposomeSet.Rdata", "exposomeSet", "RData",
-)
+test_that("xenon-exposome setup", {
+  skip_exposome()
+  set_dm_permissions()
+  download_many_sources(ref = exposome_ref)
+  upload_many_sources(ref = exposome_ref, folder = "exposome")
+  exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome")
+  upload_many_resources(resource = exposome_resources, folder = "exposome", ref = exposome_ref)
+  assign_many_resources(folder = "exposome", ref = exposome_ref)
+  resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
+  succeed()
+})
 
-run_exposome_tests <- function() {
-  test_name <- "xenon-exposome"
+test_that("ds.loadExposome", { skip_exposome(); verify_load_exposome_class() })
+test_that("ds.exposome_variables", { skip_exposome(); verify_exposome_variables() })
+test_that("ds.exposome_summary", { skip_exposome(); verify_exposome_summary_names() })
+test_that("ds.familyNames", { skip_exposome(); verify_family_names() })
 
-  skip_exposome <- function() {
-    do_skip_test(test_name)
-    skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-    skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
-            sprintf("resourcer not available for profile: %s", release_env$current_profile))
-  }
+test_that("ds.tableMissings", {
+  skip_exposome()
+  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
+  verify_table_missings_names(missing_summary)
+})
 
-  test_that("xenon-exposome setup", {
-    skip_exposome()
-    set_dm_permissions()
-    download_many_sources(ref = exposome_ref)
-    upload_many_sources(ref = exposome_ref, folder = "exposome")
-    exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome")
-    upload_many_resources(resource = exposome_resources, folder = "exposome", ref = exposome_ref)
-    assign_many_resources(folder = "exposome", ref = exposome_ref)
-    resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
-    succeed()
-  })
+test_that("ds.plotMissings", {
+  skip_exposome()
+  missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
+  verify_plot_missings_names(missing_summary)
+})
 
-  test_that("ds.loadExposome", { skip_exposome(); verify_load_exposome_class() })
-  test_that("ds.exposome_variables", { skip_exposome(); verify_exposome_variables() })
-  test_that("ds.exposome_summary", { skip_exposome(); verify_exposome_summary_names() })
-  test_that("ds.familyNames", { skip_exposome(); verify_family_names() })
+test_that("ds.normalityTest", { skip_exposome(); verify_normality_test_names() })
+test_that("ds.exposure_histogram", { skip_exposome(); verify_exposure_histogram_names() })
+test_that("ds.imputation", { skip_exposome(); verify_imputation() })
 
-  test_that("ds.tableMissings", {
-    skip_exposome()
-    missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
-    verify_table_missings_names(missing_summary)
-  })
+test_that("ds.exwas", {
+  skip_exposome()
+  exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
+                             datasources = release_env$conns)
+  verify_exwas(exwas_results)
+})
 
-  test_that("ds.plotMissings", {
-    skip_exposome()
-    missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
-    verify_plot_missings_names(missing_summary)
-  })
-
-  test_that("ds.normalityTest", { skip_exposome(); verify_normality_test_names() })
-  test_that("ds.exposure_histogram", { skip_exposome(); verify_exposure_histogram_names() })
-  test_that("ds.imputation", { skip_exposome(); verify_imputation() })
-
-  test_that("ds.exwas", {
-    skip_exposome()
-    exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
-                               datasources = release_env$conns)
-    verify_exwas(exwas_results)
-  })
-
-  test_that("ds.exposome_correlation", { skip_exposome(); verify_exposure_cor_dim() })
-  # verify_exwas_plot(exwas_results) https://github.com/isglobal-brge/dsExposomeClient/issues/19
-  # ds.exposome_pca("exposome_object", fam = c("Metals", "Noise")) https://github.com/isglobal-brge/dsExposomeClient/issues/20
-  # verify_pca_class() See above
-  # verify_pca_plot_class() See above
-}
+test_that("ds.exposome_correlation", { skip_exposome(); verify_exposure_cor_dim() })
+# verify_exwas_plot(exwas_results) https://github.com/isglobal-brge/dsExposomeClient/issues/19
+# ds.exposome_pca("exposome_object", fam = c("Metals", "Noise")) https://github.com/isglobal-brge/dsExposomeClient/issues/20
+# verify_pca_class() See above
+# verify_pca_plot_class() See above

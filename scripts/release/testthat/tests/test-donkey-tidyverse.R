@@ -1,5 +1,9 @@
 library(dsTidyverseClient)
 
+# Setup
+test_name <- "donkey-tidyverse"
+data_path <- "/tidyverse"
+
 assign_tidyverse_data <- function(data_path) {
   cli_alert_info(sprintf("Assigning table: [%s%s/mtcars]", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "mtcars", sprintf("%s%s/mtcars", release_env$project1, data_path))
@@ -193,26 +197,24 @@ verify_slice <- function() {
   expect_identical(res, as.integer(c(5, 11)))
 }
 
-run_tidyverse_tests <- function(data_path) {
-  test_name <- "donkey-tidyverse"
-  test_that("donkey-tidyverse setup", {
-    do_skip_test(test_name)
-    assign_tidyverse_data(data_path)
-    succeed()
-  })
-  test_that("ds.arrange", { do_skip_test(test_name); verify_arrange() })
-  test_that("ds.as_tibble", { do_skip_test(test_name); verify_as_tibble() })
-  test_that("ds.bind_cols", { do_skip_test(test_name); verify_bind_cols() })
-  test_that("ds.bind_rows", { do_skip_test(test_name); verify_bind_rows() })
-  test_that("ds.case_when", { do_skip_test(test_name); verify_case_when() })
-  test_that("ds.distinct", { do_skip_test(test_name); verify_distinct() })
-  test_that("ds.filter", { do_skip_test(test_name); verify_filter() })
-  test_that("ds.group_by", { do_skip_test(test_name); verify_group_by() })
-  test_that("ds.ungroup", { do_skip_test(test_name); verify_ungroup() })
-  test_that("ds.group_keys", { do_skip_test(test_name); verify_group_keys() })
-  test_that("ds.if_else", { do_skip_test(test_name); verify_if_else() })
-  test_that("ds.mutate", { do_skip_test(test_name); verify_mutate() })
-  test_that("ds.rename", { do_skip_test(test_name); verify_rename() })
-  test_that("ds.select", { do_skip_test(test_name); verify_select() })
-  test_that("ds.slice", { do_skip_test(test_name); verify_slice() })
-}
+# Tests
+test_that("donkey-tidyverse setup", {
+  do_skip_test(test_name)
+  assign_tidyverse_data(data_path)
+  succeed()
+})
+test_that("ds.arrange", { do_skip_test(test_name); verify_arrange() })
+test_that("ds.as_tibble", { do_skip_test(test_name); verify_as_tibble() })
+test_that("ds.bind_cols", { do_skip_test(test_name); verify_bind_cols() })
+test_that("ds.bind_rows", { do_skip_test(test_name); verify_bind_rows() })
+test_that("ds.case_when", { do_skip_test(test_name); verify_case_when() })
+test_that("ds.distinct", { do_skip_test(test_name); verify_distinct() })
+test_that("ds.filter", { do_skip_test(test_name); verify_filter() })
+test_that("ds.group_by", { do_skip_test(test_name); verify_group_by() })
+test_that("ds.ungroup", { do_skip_test(test_name); verify_ungroup() })
+test_that("ds.group_keys", { do_skip_test(test_name); verify_group_keys() })
+test_that("ds.if_else", { do_skip_test(test_name); verify_if_else() })
+test_that("ds.mutate", { do_skip_test(test_name); verify_mutate() })
+test_that("ds.rename", { do_skip_test(test_name); verify_rename() })
+test_that("ds.select", { do_skip_test(test_name); verify_select() })
+test_that("ds.slice", { do_skip_test(test_name); verify_slice() })
