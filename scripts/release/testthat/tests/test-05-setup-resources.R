@@ -10,10 +10,8 @@ test_name <- "setup-resources"
 test_that("upload and create resource GSE66351_1", {
   do_skip_test(test_name)
 
-  cli_alert_info("Uploading resource source file")
   upload_resource(folder = "ewas", file_name = "gse66351_1.rda")
 
-  cli_alert_info("Creating resource")
   resGSE1 <- create_resource(
     folder = "ewas",
     file_name = "gse66351_1.rda",
@@ -21,7 +19,6 @@ test_that("upload and create resource GSE66351_1", {
     format = "ExpressionSet"
   )
 
-  cli_alert_info("Uploading resource file to Armadillo")
   armadillo.upload_resource(
     project = release_env$project1,
     folder = "ewas",
@@ -30,7 +27,6 @@ test_that("upload and create resource GSE66351_1", {
   )
 
   # Verify resource was uploaded successfully
-  cli_alert_info("Verifying resource upload")
   all_resources <- armadillo.list_resources(release_env$project1)
   expected_resource <- sprintf("%s/ewas/GSE66351_1", release_env$project1)
   expect_true(expected_resource %in% all_resources,

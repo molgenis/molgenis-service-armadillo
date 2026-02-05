@@ -2,9 +2,7 @@
 test_name <- "verify-profile"
 
 create_ds_connection <- function(profile = "") {
-  cli_alert_info("Creating new datashield connection")
   if (release_env$ADMIN_MODE) {
-    cli_alert_info("Creating connection as admin")
     con <- dsConnect(
       drv = armadillo(),
       name = "armadillo",
@@ -14,7 +12,6 @@ create_ds_connection <- function(profile = "") {
       profile = profile
     )
   } else {
-    cli_alert_info("Creating connection using token")
     con <- dsConnect(
       drv = armadillo(),
       name = "armadillo",

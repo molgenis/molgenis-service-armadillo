@@ -80,9 +80,9 @@ do_skip_test <- function(test_name) {
 }
 
 read_parquet_with_message <- function(file_path, dest) {
-  cli_alert_info(file_path)
+  cli_progress_step(sprintf("Reading %s", file_path))
   out <- arrow::read_parquet(paste0(dest, paste0(file_path, ".parquet")))
-  cli_alert_success(paste0(file_path, " read"))
+  cli_progress_done()
   return(out)
 }
 
@@ -126,7 +126,6 @@ generate_random_project_name <- function() {
   # to avoid requiring authentication at config time.
   # With 36^10 possible combinations, collision risk is ~0%
   random_project <- stri_rand_strings(1, 10, "[a-z0-9]")
-  cli_alert_success(sprintf("Project name generated: %s", random_project))
   return(random_project)
 }
 

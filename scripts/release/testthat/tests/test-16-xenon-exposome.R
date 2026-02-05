@@ -25,7 +25,6 @@ skip_exposome <- function() {
 }
 
 verify_load_exposome_class <- function() {
-  cli_alert_info("Checking ds.loadExposome")
   ds.loadExposome(
     exposures = "exposures", phenotypes = "phenotypes", exposures.idcol = "idnum",
     phenotypes.idcol = "idnum", description = "description", description.expCol = "Exposure",
@@ -37,20 +36,17 @@ verify_load_exposome_class <- function() {
 }
 
 verify_exposome_variables <- function() {
-  cli_alert_info("Checking ds.exposome_variables")
   vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = release_env$conns)
   expect_identical(vars$armadillo,
     c("whistling_chest", "flu", "rhinitis", "wheezing", "birthdate", "sex", "age", "cbmi", "blood_pre"))
 }
 
 verify_exposome_summary_names <- function() {
-  cli_alert_info("Checking ds.exposome_summary")
   var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = release_env$conns)
   expect_identical(names(var_summary$armadillo), c("class", "length", "quantiles & mean"))
 }
 
 verify_family_names <- function() {
-  cli_alert_info("Checking ds.familyNames")
   vars <- ds.familyNames("exposome_object", datasources = release_env$conns)
   expect_identical(vars$armadillo, c(
     "Air Pollutants", "Metals", "PBDEs", "Organochlorines", "Bisphenol A", "Water Pollutants",
@@ -59,62 +55,52 @@ verify_family_names <- function() {
 }
 
 verify_table_missings_names <- function(missing_summary) {
-  cli_alert_info("Checking ds.tableMissings")
   expect_identical(names(missing_summary), c("pooled", "set", "output"))
 }
 
 verify_plot_missings_names <- function(missing_summary) {
-  cli_alert_info("Checking ds.plotMissings")
   missing_plot <- ds.plotMissings(missing_summary, datasources = release_env$conns)
   expect_true(inherits(missing_plot$pooled, "ggplot"))
 }
 
 verify_normality_test_names <- function() {
-  cli_alert_info("Checking ds.normalityTest")
   nm <- ds.normalityTest("exposome_object", datasources = release_env$conns)
   expect_identical(names(nm$armadillo), c("exposure", "normality", "p.value"))
 }
 
 verify_exposure_histogram_names <- function() {
-  cli_alert_info("Checking ds.exposure_histogram")
   hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns)
   expect_identical(names(hist), c("breaks", "counts", "density", "mids", "xname", "equidist"))
 }
 
 verify_imputation <- function() {
-  cli_alert_info("Checking ds.imputation")
   ds.imputation("exposome_object", "exposome_object_imputed", datasources = release_env$conns)
   obj_class <- ds.class("exposome_object_imputed", datasources = release_env$conns)
   expect_identical(as.character(obj_class$armadillo), "ExposomeSet")
 }
 
 verify_exwas <- function(exwas_results) {
-  cli_alert_info("Checking ds.exwas")
   expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
 }
 
 verify_exwas_plot <- function(exwas_results) {
-  cli_alert_info("Checking ds.exwas plot")
   exwas_plot <- ds.plotExwas(exwas_results, type = "effect")
   expect_identical(class(exwas_plot), c("gg", "ggplot"))
 }
 
 verify_pca_class <- function() {
-  cli_alert_info("Checking ds.exposome_pca")
   ds.exposome_pca("exposome_object", fam = c("Metals", "Noise"), datasources = release_env$conns)
   pca_class <- ds.class("ds.exposome_pca.Results", datasources = release_env$conns)
   expect_identical(as.character(pca_class), "ExposomePCA")
 }
 
 verify_pca_plot_class <- function() {
-  cli_alert_info("Checking ds.exposome_pca_plot")
   pca_plot <- ds.exposome_pca_plot("ds.exposome_pca.Results", set = "all", method = 1, k = 3, noise = 5,
                                     datasources = release_env$conns)
   expect_identical(class(pca_plot), c("gtable", "gTree", "grob", "gDesc"))
 }
 
 verify_exposure_cor_dim <- function() {
-  cli_alert_info("Checking ds.exposome_correlation")
   exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
                                            datasources = release_env$conns)[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))

@@ -5,7 +5,6 @@ variable <- "coh_country"
 
 test_that("ds.mean returns expected values", {
   do_skip_test(test_name)
-  cli_alert_info(sprintf("Verifying mean function works on %s$%s", object, variable))
   ds_mean <- ds.mean(paste0(object, "$", variable), datasources = release_env$conns)$Mean
   expect_equal(round(ds_mean[1], 3), 431.105)
   expect_equal(ds_mean[2], 0)

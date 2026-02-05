@@ -14,7 +14,6 @@ test_that("set researcher access", {
       cat("\nGo to the Users tab")
       cat(sprintf("\nAdd [%s]' and [%s] to the project column for your account", unlist(list(release_env$project1))))
       cat("\nRevoke your admin permisions\n")
-      cli_alert_warning("Make sure you either have the basic auth admin password or someone available to give you back your permissions")
       wait_for_input(release_env$interactive)
     }
   }

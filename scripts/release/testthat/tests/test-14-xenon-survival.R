@@ -5,7 +5,6 @@ test_name <- "xenon-survival"
 data_path <- "/survival/veteran"
 
 assign_survival_data <- function(data_path) {
-  cli_alert_info(sprintf("Assigning table: [%s%s]", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "survival", sprintf("%s%s", release_env$project1, data_path))
 }
 

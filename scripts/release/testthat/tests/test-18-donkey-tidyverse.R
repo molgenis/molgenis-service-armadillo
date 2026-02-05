@@ -5,14 +5,11 @@ test_name <- "donkey-tidyverse"
 data_path <- "/tidyverse"
 
 assign_tidyverse_data <- function(data_path) {
-  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars]", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "mtcars", sprintf("%s%s/mtcars", release_env$project1, data_path))
-  cli_alert_info(sprintf("Assigning table: [%s%s/mtcars_group]", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s%s/mtcars_group", release_env$project1, data_path))
 }
 
 verify_arrange <- function() {
-  cli_alert_info("Checking ds.arrange")
   ds.arrange(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -25,7 +22,6 @@ verify_arrange <- function() {
 }
 
 verify_as_tibble <- function() {
-  cli_alert_info("Checking ds.as_tibble")
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
@@ -37,7 +33,6 @@ verify_as_tibble <- function() {
 }
 
 verify_bind_cols <- function() {
-  cli_alert_info("Checking ds.bind_cols")
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
@@ -49,7 +44,6 @@ verify_bind_cols <- function() {
 }
 
 verify_bind_rows <- function() {
-  cli_alert_info("Checking ds.bind_rows")
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
@@ -61,7 +55,6 @@ verify_bind_rows <- function() {
 }
 
 verify_case_when <- function() {
-  cli_alert_info("Checking ds.case_when")
   ds.case_when(
     tidy_expr = list(
       mtcars$mpg < 20 ~ "low",
@@ -77,7 +70,6 @@ verify_case_when <- function() {
 }
 
 verify_distinct <- function() {
-  cli_alert_info("Checking ds.distinct")
   ds.distinct(
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
@@ -90,7 +82,6 @@ verify_distinct <- function() {
 }
 
 verify_filter <- function() {
-  cli_alert_info("Checking ds.filter")
   ds.filter(
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
@@ -103,7 +94,6 @@ verify_filter <- function() {
 }
 
 verify_group_by <- function() {
-  cli_alert_info("Checking ds.group_by")
   ds.group_by(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -116,20 +106,17 @@ verify_group_by <- function() {
 }
 
 verify_ungroup <- function() {
-  cli_alert_info("Checking ds.ungroup")
   ds.ungroup("grouped", "ungrouped_df", datasources = release_env$conns)
   res <- ds.class("ungrouped_df", datasources = release_env$conns)[[1]]
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 }
 
 verify_group_keys <- function() {
-  cli_alert_info("Checking ds.group_keys")
   res <- ds.group_keys("grouped", datasources = release_env$conns)$armadillo
   expect_identical(res, tibble(cyl = c(4, 6, 8)))
 }
 
 verify_if_else <- function() {
-  cli_alert_info("Checking ds.if_else")
 
   ds.if_else(
     condition = list(mtcars$mpg > 20),
@@ -144,7 +131,6 @@ verify_if_else <- function() {
 }
 
 verify_mutate <- function() {
-  cli_alert_info("Checking ds.mutate")
 
   ds.mutate(
     df.name = "mtcars",
@@ -158,7 +144,6 @@ verify_mutate <- function() {
 }
 
 verify_rename <- function() {
-  cli_alert_info("Checking ds.rename")
 
   ds.rename(
     df.name = "mtcars",
@@ -171,7 +156,6 @@ verify_rename <- function() {
 }
 
 verify_select <- function() {
-  cli_alert_info("Checking ds.select")
 
   ds.select(
     df.name = "mtcars",
@@ -184,7 +168,6 @@ verify_select <- function() {
 }
 
 verify_slice <- function() {
-  cli_alert_info("Checking ds.slice")
 
   ds.slice(
     df.name = "mtcars",

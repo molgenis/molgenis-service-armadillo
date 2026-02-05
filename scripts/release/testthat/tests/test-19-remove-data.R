@@ -5,10 +5,7 @@ test_name <- "remove-data"
 
 test_that("delete tables", {
   do_skip_test(test_name)
-  cli_alert_info("We're now continuing with the datamanager workflow as admin\n")
-  cli_alert_info("Resetting admin permissions")
   set_dm_permissions()
-  cli_alert_info("Removing tables")
   expect_no_error({
     armadillo.delete_table(release_env$project1, "2_1-core-1_0", "nonrep")
     armadillo.delete_table(release_env$project1, "2_1-core-1_0", "yearlyrep")

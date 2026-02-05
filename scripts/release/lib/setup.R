@@ -6,9 +6,9 @@ library(cli)
 cli_h1("Setup")
 
 # Load all required libraries
-cli_alert_info("Loading libraries")
+cli_progress_step("Loading libraries")
 suppressPackageStartupMessages(source("lib/load-libraries.R"))
-cli_alert_success("Libraries loaded")
+cli_progress_done()
 
 # Configure DataSHIELD options
 options(datashield.errors.print = TRUE)
@@ -19,15 +19,14 @@ release_env <- new.env(parent = emptyenv())
 options(datashield.env = release_env)
 
 # Load common functions
-cli_alert_info("Loading common functions")
+cli_progress_step("Loading common functions")
 source("lib/common-functions.R")
-cli_alert_success("Functions loaded")
+cli_progress_done()
 
 # Configure test options
 cli_h2("Configuring test options")
 source("testthat/tests/helper-config.R")
 configure_test()
-cli_alert_success("Options configured")
 
 # Download and prepare test data
 cli_h2("Preparing tables for tests")
