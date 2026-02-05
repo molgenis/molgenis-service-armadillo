@@ -30,21 +30,6 @@ POST {{host}}/load-table?symbol=D&table=lifecycle/core/nonrep
 ###
 POST {{host}}/load-table?symbol=D&table=lifecycle/core/nonrep&variables=agebirth_m_d
 
-### get R-options
-POST {{host}}/debug
-Accept: application/json
-Content-Type: text/plain
-
-options()
-
-
-###
-POST {{host}}/debug
-Accept: application/json
-Content-Type: text/plain
-
-dsBase::meanDS(D$agebirth_m_d)$EstimatedMean
-
 ###
 GET {{host}}/symbols
 
@@ -69,12 +54,6 @@ POST {{host}}/symbols/D?async=true
 Content-Type: text/plain
 
 0:5
-
-###
-POST {{host}}/debug
-Content-Type: text/plain
-
-dsBase::meanDS(D)$EstimatedMean
 
 ###
 POST {{host}}/execute?async=true
