@@ -25,10 +25,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -36,9 +33,11 @@ import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
+import org.slf4j.MDC;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -387,11 +386,7 @@ public class StorageController {
   public ResponseEntity<InputStreamResource> downloadObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
-      return auditor.audit(
-          () -> getObject(project, object),
-          principal,
-          DOWNLOAD_OBJECT,
-          Map.of(PROJECT, project, OBJECT, object));
+      return auditDownloadObject(project, object, principal, DOWNLOAD_OBJECT);
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (Exception e) {
@@ -400,8 +395,6 @@ public class StorageController {
   }
 
   @Operation(summary = "Download a resource with internal token")
-  @PreAuthorize(
-      "authentication.token.getClaimAsString('resource_project') == #project and authentication.token.getClaimAsString('resource_object') == #object")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),
@@ -418,11 +411,35 @@ public class StorageController {
   public ResponseEntity<InputStreamResource> downloadResource(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
-      return auditor.audit(
-          () -> getObject(project, object),
-          principal,
-          DOWNLOAD_OBJECT,
-          Map.of(PROJECT, project, OBJECT, object));
+      Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
+      if (principal.getClass() == JwtAuthenticationToken.class) {
+        JwtAuthenticationToken token = (JwtAuthenticationToken) principal;
+        Map<String, Object> claims = token.getTokenAttributes();
+        String errorMsg = "Token must be issued by armadillo application with correct permissions";
+        if (claims.get("iss") == "armadillo-internal") {
+          if (claims.get("resource_project").equals(project)) {
+            String resourceObj = object.split("\\.")[0].toLowerCase();
+            if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
+              return auditDownloadObject(project, object, principal, DOWNLOAD_RESOURCE);
+            } else {
+              errorMsg = "Token has no permissions for resource object:" + object;
+              auditFailure(errorMsg, data, token);
+              throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+            }
+          } else {
+            errorMsg = "Token has no permissions for resource project:" + project;
+            auditFailure(errorMsg, data, token);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+          }
+        } else {
+          auditFailure(errorMsg, data, token);
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+        }
+      } else {
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "Token must be issued by armadillo application with correct permissions");
+      }
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (Exception e) {
@@ -449,6 +466,28 @@ public class StorageController {
     } catch (IOException e) {
       throw new FileProcessingException();
     }
+  }
+
+  private ResponseEntity<InputStreamResource> auditDownloadObject(
+      String project, String object, Principal principal, String type) {
+    return auditor.audit(
+        () -> getObject(project, object),
+        principal,
+        type,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  private void auditFailure(
+      String errorMsg, Map<String, Object> data, JwtAuthenticationToken principal)
+      throws ResponseStatusException {
+    data.put(MESSAGE, errorMsg);
+    data.put(TYPE, ResponseStatusException.class.getSimpleName());
+    auditor.audit(
+        principal,
+        DOWNLOAD_RESOURCE + "_FAILURE",
+        data,
+        MDC.get(MDC_SESSION_ID),
+        List.of(Arrays.toString(principal.getAuthorities().toArray())));
   }
 
   @Operation(summary = "Retrieve columns of parquet file")
