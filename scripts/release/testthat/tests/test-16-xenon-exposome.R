@@ -24,88 +24,7 @@ skip_exposome <- function() {
           sprintf("resourcer not available for profile: %s", release_env$current_profile))
 }
 
-verify_load_exposome_class <- function() {
-  ds.loadExposome(
-    exposures = "exposures", phenotypes = "phenotypes", exposures.idcol = "idnum",
-    phenotypes.idcol = "idnum", description = "description", description.expCol = "Exposure",
-    description.famCol = "Family", object_name = "exposome_object",
-    datasources = release_env$conns
-  )
-  obj_class <- ds.class("exposome_object", datasources = release_env$conns)
-  expect_identical(as.character(obj_class$armadillo), "ExposomeSet")
-}
-
-verify_exposome_variables <- function() {
-  vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = release_env$conns)
-  expect_identical(vars$armadillo,
-    c("whistling_chest", "flu", "rhinitis", "wheezing", "birthdate", "sex", "age", "cbmi", "blood_pre"))
-}
-
-verify_exposome_summary_names <- function() {
-  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = release_env$conns)
-  expect_identical(names(var_summary$armadillo), c("class", "length", "quantiles & mean"))
-}
-
-verify_family_names <- function() {
-  vars <- ds.familyNames("exposome_object", datasources = release_env$conns)
-  expect_identical(vars$armadillo, c(
-    "Air Pollutants", "Metals", "PBDEs", "Organochlorines", "Bisphenol A", "Water Pollutants",
-    "Built Environment", "Cotinine", "Home Environment", "Phthalates", "Noise", "PFOAs", "Temperature"
-  ))
-}
-
-verify_table_missings_names <- function(missing_summary) {
-  expect_identical(names(missing_summary), c("pooled", "set", "output"))
-}
-
-verify_plot_missings_names <- function(missing_summary) {
-  missing_plot <- ds.plotMissings(missing_summary, datasources = release_env$conns)
-  expect_true(inherits(missing_plot$pooled, "ggplot"))
-}
-
-verify_normality_test_names <- function() {
-  nm <- ds.normalityTest("exposome_object", datasources = release_env$conns)
-  expect_identical(names(nm$armadillo), c("exposure", "normality", "p.value"))
-}
-
-verify_exposure_histogram_names <- function() {
-  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns)
-  expect_identical(names(hist), c("breaks", "counts", "density", "mids", "xname", "equidist"))
-}
-
-verify_imputation <- function() {
-  ds.imputation("exposome_object", "exposome_object_imputed", datasources = release_env$conns)
-  obj_class <- ds.class("exposome_object_imputed", datasources = release_env$conns)
-  expect_identical(as.character(obj_class$armadillo), "ExposomeSet")
-}
-
-verify_exwas <- function(exwas_results) {
-  expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
-}
-
-verify_exwas_plot <- function(exwas_results) {
-  exwas_plot <- ds.plotExwas(exwas_results, type = "effect")
-  expect_identical(class(exwas_plot), c("gg", "ggplot"))
-}
-
-verify_pca_class <- function() {
-  ds.exposome_pca("exposome_object", fam = c("Metals", "Noise"), datasources = release_env$conns)
-  pca_class <- ds.class("ds.exposome_pca.Results", datasources = release_env$conns)
-  expect_identical(as.character(pca_class), "ExposomePCA")
-}
-
-verify_pca_plot_class <- function() {
-  pca_plot <- ds.exposome_pca_plot("ds.exposome_pca.Results", set = "all", method = 1, k = 3, noise = 5,
-                                    datasources = release_env$conns)
-  expect_identical(class(pca_plot), c("gtable", "gTree", "grob", "gDesc"))
-}
-
-verify_exposure_cor_dim <- function() {
-  exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
-                                           datasources = release_env$conns)[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
-  expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
-}
-
+# Tests
 test_that("xenon-exposome setup", {
   skip_exposome()
   set_dm_permissions()
@@ -118,35 +37,87 @@ test_that("xenon-exposome setup", {
   succeed()
 })
 
-test_that("ds.loadExposome", { skip_exposome(); verify_load_exposome_class() })
-test_that("ds.exposome_variables", { skip_exposome(); verify_exposome_variables() })
-test_that("ds.exposome_summary", { skip_exposome(); verify_exposome_summary_names() })
-test_that("ds.familyNames", { skip_exposome(); verify_family_names() })
+test_that("ds.loadExposome", {
+  skip_exposome()
+  ds.loadExposome(
+    exposures = "exposures", phenotypes = "phenotypes", exposures.idcol = "idnum",
+    phenotypes.idcol = "idnum", description = "description", description.expCol = "Exposure",
+    description.famCol = "Family", object_name = "exposome_object",
+    datasources = release_env$conns
+  )
+  obj_class <- ds.class("exposome_object", datasources = release_env$conns)
+  expect_identical(as.character(obj_class$armadillo), "ExposomeSet")
+})
+
+test_that("ds.exposome_variables", {
+  skip_exposome()
+  vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = release_env$conns)
+  expect_identical(vars$armadillo,
+    c("whistling_chest", "flu", "rhinitis", "wheezing", "birthdate", "sex", "age", "cbmi", "blood_pre"))
+})
+
+test_that("ds.exposome_summary", {
+  skip_exposome()
+  var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = release_env$conns)
+  expect_identical(names(var_summary$armadillo), c("class", "length", "quantiles & mean"))
+})
+
+test_that("ds.familyNames", {
+  skip_exposome()
+  vars <- ds.familyNames("exposome_object", datasources = release_env$conns)
+  expect_identical(vars$armadillo, c(
+    "Air Pollutants", "Metals", "PBDEs", "Organochlorines", "Bisphenol A", "Water Pollutants",
+    "Built Environment", "Cotinine", "Home Environment", "Phthalates", "Noise", "PFOAs", "Temperature"
+  ))
+})
 
 test_that("ds.tableMissings", {
   skip_exposome()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
-  verify_table_missings_names(missing_summary)
+  expect_identical(names(missing_summary), c("pooled", "set", "output"))
 })
 
 test_that("ds.plotMissings", {
   skip_exposome()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
-  verify_plot_missings_names(missing_summary)
+  missing_plot <- ds.plotMissings(missing_summary, datasources = release_env$conns)
+  expect_true(inherits(missing_plot$pooled, "ggplot"))
 })
 
-test_that("ds.normalityTest", { skip_exposome(); verify_normality_test_names() })
-test_that("ds.exposure_histogram", { skip_exposome(); verify_exposure_histogram_names() })
-test_that("ds.imputation", { skip_exposome(); verify_imputation() })
+test_that("ds.normalityTest", {
+  skip_exposome()
+  nm <- ds.normalityTest("exposome_object", datasources = release_env$conns)
+  expect_identical(names(nm$armadillo), c("exposure", "normality", "p.value"))
+})
+
+test_that("ds.exposure_histogram", {
+  skip_exposome()
+  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns)
+  expect_identical(names(hist), c("breaks", "counts", "density", "mids", "xname", "equidist"))
+})
+
+test_that("ds.imputation", {
+  skip_exposome()
+  ds.imputation("exposome_object", "exposome_object_imputed", datasources = release_env$conns)
+  obj_class <- ds.class("exposome_object_imputed", datasources = release_env$conns)
+  expect_identical(as.character(obj_class$armadillo), "ExposomeSet")
+})
 
 test_that("ds.exwas", {
   skip_exposome()
   exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
                              datasources = release_env$conns)
-  verify_exwas(exwas_results)
+  expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
 })
 
-test_that("ds.exposome_correlation", { skip_exposome(); verify_exposure_cor_dim() })
+test_that("ds.exposome_correlation", {
+  skip_exposome()
+  exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
+                                           datasources = release_env$conns)[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
+  expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
+})
+
+# Commented out due to upstream issues:
 # verify_exwas_plot(exwas_results) https://github.com/isglobal-brge/dsExposomeClient/issues/19
 # ds.exposome_pca("exposome_object", fam = c("Metals", "Noise")) https://github.com/isglobal-brge/dsExposomeClient/issues/20
 # verify_pca_class() See above

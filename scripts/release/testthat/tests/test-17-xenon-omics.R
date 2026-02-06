@@ -30,11 +30,6 @@ gwas_prepare_data <- function() {
   })
 }
 
-verify_meta_gwas <- function(gwas_results) {
-  gwas_dim <- dim(gwas_results)
-  expect_identical(gwas_dim, as.integer(c(144785, 10)))
-}
-
 test_that("ds.metaGWAS", {
   do_skip_test(test_name)
   skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
@@ -60,5 +55,7 @@ test_that("ds.metaGWAS", {
     model = diabetes_diagnosed_doctor ~ sex + hdl_cholesterol,
     datasources = release_env$conns
   )[[1]]
-  verify_meta_gwas(gwas_results)
+
+  gwas_dim <- dim(gwas_results)
+  expect_identical(gwas_dim, as.integer(c(144785, 10)))
 })
