@@ -414,27 +414,7 @@ public class StorageController {
       Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
       if (principal.getClass() == JwtAuthenticationToken.class) {
         JwtAuthenticationToken token = (JwtAuthenticationToken) principal;
-        Map<String, Object> claims = token.getTokenAttributes();
-        String errorMsg = "Token must be issued by armadillo application with correct permissions";
-        if (claims.get("iss") == "armadillo-internal") {
-          if (claims.get("resource_project").equals(project)) {
-            String resourceObj = object.split("\\.")[0].toLowerCase();
-            if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
-              return auditDownloadObject(project, object, principal, DOWNLOAD_RESOURCE);
-            } else {
-              errorMsg = "Token has no permissions for resource object:" + object;
-              auditFailure(errorMsg, data, token);
-              throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
-            }
-          } else {
-            errorMsg = "Token has no permissions for resource project:" + project;
-            auditFailure(errorMsg, data, token);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
-          }
-        } else {
-          auditFailure(errorMsg, data, token);
-          throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
-        }
+        return downLoadResourceWithToken(token, project, object, data);
       } else {
         throw new ResponseStatusException(
             HttpStatus.FORBIDDEN,
@@ -442,8 +422,35 @@ public class StorageController {
       }
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (ResponseStatusException e) {
+      throw new ResponseStatusException(e.getStatusCode(), e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  ResponseEntity<InputStreamResource> downLoadResourceWithToken(
+      JwtAuthenticationToken token, String project, String object, Map<String, Object> data) {
+    Map<String, Object> claims = token.getTokenAttributes();
+    String errorMsg = "Token must be issued by armadillo application with correct permissions";
+    if (claims.get("iss").equals("armadillo-internal")) {
+      if (claims.get("resource_project").equals(project)) {
+        String resourceObj = object.split("\\.")[0].toLowerCase();
+        if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
+          return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
+        } else {
+          errorMsg = "Token has no permissions for resource object:" + object;
+          auditFailure(errorMsg, data, token);
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+        }
+      } else {
+        errorMsg = "Token has no permissions for resource project:" + project;
+        auditFailure(errorMsg, data, token);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+      }
+    } else {
+      auditFailure(errorMsg, data, token);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
     }
   }
 
