@@ -12,25 +12,24 @@ download_test_files <- function(urls, dest) {
     splitted <- strsplit(download_url, "/")[[1]]
     folder <- splitted[length(splitted) - 1]
     filename <- splitted[length(splitted)]
-    cli_alert_info(paste0("Downloading ", filename))
-    download.file(download_url, paste0(dest, folder, "/", filename), quiet = FALSE)
+    download.file(download_url, paste0(dest, folder, "/", filename), quiet = TRUE)
     cli_progress_update()
   }
   cli_progress_done()
 }
 
-download_tables <- function(dest, service_location, skip_tests, default_parquet_path) {
+download_tables <- function() {
   test_name <- "download-tables"
-  if (do_skip_test(test_name, skip_tests)) {
+  if (should_skip_test(test_name)) {
     return()
   }
 
-  if (!dir.exists(default_parquet_path)) {
+  if (!dir.exists(release_env$default_parquet_path)) {
     cli_alert_info("Downloading tables")
-    cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", dest))
-    create_dir_if_not_exists(dest, "core")
-    create_dir_if_not_exists(dest, "outcome")
-    create_dir_if_not_exists(dest, "survival")
+    cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", release_env$dest))
+    create_dir_if_not_exists(release_env$dest, "core")
+    create_dir_if_not_exists(release_env$dest, "outcome")
+    create_dir_if_not_exists(release_env$dest, "survival")
     test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%s.parquet"
     download_test_files(
       c(
@@ -39,15 +38,14 @@ download_tables <- function(dest, service_location, skip_tests, default_parquet_
         sprintf(test_files_url_template, "core", "monthlyrep"),
         sprintf(test_files_url_template, "core", "trimesterrep"),
         sprintf(test_files_url_template, "outcome", "nonrep"),
-        sprintf(test_files_url_template, "outcome", "yearlyrep"), 
+        sprintf(test_files_url_template, "outcome", "yearlyrep"),
         sprintf(test_files_url_template, "survival", "veteran")
       ),
-      dest
+      release_env$dest
     )
-    
+
     cli_alert_success("Tables downloaded")
   } else {
-    cli_alert_success("Tables not downloaded: available locally")
+    cli_alert_success("Test tables available locally")
   }
-  cli_alert_success(sprintf("%s passed!", test_name))
 }
