@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +34,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
@@ -697,5 +699,166 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
         "data.parquet",
         MediaType.MULTIPART_FORM_DATA_VALUE,
         new ByteArrayInputStream(contents));
+  }
+
+  @Test
+  void testDownloadRawfileWithResourceToken() throws Exception {
+    var content = "content".getBytes();
+    var inputStream = new ByteArrayInputStream(content);
+
+    when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
+    when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
+
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                .with(
+                    jwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                        .jwt(
+                            builder ->
+                                builder
+                                    .subject("user@example.com")
+                                    .claim("email", "user@example.com")
+                                    .claim("iss", "armadillo-internal")
+                                    .claim("resource_project", "lifecycle")
+                                    .claim("resource_object", "test"))))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
+        .andExpect(content().bytes(content));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user@example.com",
+            DOWNLOAD_RESOURCE,
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_RESOURCE_VIEW"),
+                PROJECT,
+                "lifecycle",
+                OBJECT,
+                "test.parquet")));
+  }
+
+  @Test
+  void testDownloadRawfileWrongProjectForbidden() throws Exception {
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                .with(
+                    jwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                        .jwt(
+                            builder ->
+                                builder
+                                    .subject("user@example.com")
+                                    .claim("iss", "armadillo-internal")
+                                    .claim("resource_project", "other-project")
+                                    .claim("resource_object", "test"))))
+        .andExpect(status().isForbidden());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user@example.com",
+            DOWNLOAD_RESOURCE + "_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_RESOURCE_VIEW"),
+                PROJECT,
+                "lifecycle",
+                OBJECT,
+                "test.parquet",
+                "message",
+                "Token has no permissions for resource project:lifecycle",
+                "type",
+                "ResponseStatusException")));
+  }
+
+  @Test
+  void testDownloadRawfileWrongObjectForbidden() throws Exception {
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                .with(
+                    jwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                        .jwt(
+                            builder ->
+                                builder
+                                    .subject("user@example.com")
+                                    .claim("iss", "armadillo-internal")
+                                    .claim("resource_project", "lifecycle")
+                                    .claim("resource_object", "other"))))
+        .andExpect(status().isForbidden());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user@example.com",
+            DOWNLOAD_RESOURCE + "_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_RESOURCE_VIEW"),
+                PROJECT,
+                "lifecycle",
+                OBJECT,
+                "test.parquet",
+                "message",
+                "Token has no permissions for resource object:test.parquet",
+                "type",
+                "ResponseStatusException")));
+  }
+
+  @Test
+  void testDownloadRawfileWrongIssuerForbidden() throws Exception {
+    mockMvc
+        .perform(
+            get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                .with(
+                    jwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                        .jwt(
+                            builder ->
+                                builder
+                                    .subject("user@example.com")
+                                    .claim("email", "user@example.com")
+                                    .claim("iss", "some-other-app")
+                                    .claim("resource_project", "lifecycle")
+                                    .claim("resource_object", "test"))))
+        .andExpect(status().isForbidden());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "user@example.com",
+            DOWNLOAD_RESOURCE + "_FAILURE",
+            Map.of(
+                "sessionId",
+                "3",
+                "roles",
+                List.of("[ROLE_RESOURCE_VIEW]"),
+                PROJECT,
+                "lifecycle",
+                OBJECT,
+                "test.parquet",
+                "message",
+                "Token must be issued by armadillo application with correct permissions",
+                "type",
+                "ResponseStatusException")));
+  }
+
+  @Test
+  void testDownloadRawfileNoTokenUnauthorized() throws Exception {
+    mockMvc
+        .perform(get("/storage/projects/lifecycle/rawfiles/test.parquet"))
+        .andExpect(status().isUnauthorized());
   }
 }

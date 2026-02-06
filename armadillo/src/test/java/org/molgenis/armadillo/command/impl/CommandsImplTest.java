@@ -23,6 +23,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -35,6 +36,7 @@ import org.rosuda.REngine.REXP;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -49,7 +51,7 @@ class CommandsImplTest {
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
-
+  @Mock ResourceTokenService resourceTokenService;
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
@@ -64,6 +66,10 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
+    JwtAuthenticationToken mockAuth = mock(JwtAuthenticationToken.class);
+    lenient()
+        .when(resourceTokenService.generateResourceToken(any(), any(), any()))
+        .thenReturn(mockAuth);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -72,7 +78,8 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            profileService,
+            resourceTokenService);
   }
 
   @Test
@@ -214,7 +221,7 @@ class CommandsImplTest {
 
     verify(rExecutorService)
         .loadResource(
-            eq(principal),
+            any(JwtAuthenticationToken.class),
             eq(rConnection),
             any(InputStreamResource.class),
             eq("gecko/2_1-core-1_0/hpc-resource.rds"),

@@ -26,10 +26,11 @@ public class JwtDecoderConfig {
   private String activeProfile;
 
   @Bean
-  public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
+  public JwtDecoder jwtDecoder(
+      OAuth2ResourceServerProperties properties, ResourceTokenService resourceTokenService) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
-      NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
+      NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
 
       var audienceValidator =
           new JwtClaimValidator<Collection<String>>(
@@ -38,8 +39,22 @@ public class JwtDecoderConfig {
           new DelegatingOAuth2TokenValidator<>(
               JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
 
-      jwtDecoder.setJwtValidator(jwtValidator);
-      return jwtDecoder;
+      externalDecoder.setJwtValidator(jwtValidator);
+
+      NimbusJwtDecoder internalDecoder =
+          NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
+      OAuth2TokenValidator<Jwt> internalValidator =
+          new DelegatingOAuth2TokenValidator<>(
+              new JwtTimestampValidator(), new JwtIssuerValidator("armadillo-internal"));
+      internalDecoder.setJwtValidator(internalValidator);
+
+      return token -> {
+        try {
+          return internalDecoder.decode(token);
+        } catch (JwtException e) {
+          return externalDecoder.decode(token);
+        }
+      };
     } catch (Exception e) {
       if ("offline".equals(activeProfile)) {
         // allow offline development
