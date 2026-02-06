@@ -33,7 +33,7 @@ configure_test()
 # Set up authentication
 cat("\n")
 cli_h2("Authentication")
-source("test-cases/set-admin-mode.R")
+source("lib/set-admin-mode.R")
 set_admin_or_get_token()
 
 # Login as data manager
@@ -48,7 +48,7 @@ cli_progress_done()
 # Get available profiles
 cat("\n")
 cli_h2("Profiles")
-source("test-cases/setup-profiles.R")
+source("lib/setup-profiles.R")
 source("lib/release-test-info.R")
 cli_progress_step("Fetching available profiles")
 profiles <- get_from_api_with_header("profiles", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
@@ -58,7 +58,7 @@ release_env$available_profiles <- profiles$available
 
 # Download and prepare test data
 cli_h2("Preparing test data")
-source("test-cases/download-tables.R")
+source("lib/download-tables.R")
 download_tables()
-source("test-cases/download-resources.R")
+source("lib/download-resources.R")
 prepare_resources()

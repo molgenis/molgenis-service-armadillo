@@ -3,9 +3,9 @@ library(purrr)
 library(tibble)
 
 # Load helper functions (paths relative to release directory)
-source("../../test-cases/upload-resource.R")
-source("../../test-cases/create-resource.R")
-source("../../test-cases/download-resources.R")
+source("../../lib/upload-resource.R")
+source("../../lib/create-resource.R")
+source("../../lib/download-resources.R")
 
 # Setup
 test_name <- "xenon-omics"
