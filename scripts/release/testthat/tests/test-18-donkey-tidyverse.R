@@ -4,17 +4,11 @@ library(dsTidyverseClient)
 test_name <- "donkey-tidyverse"
 data_path <- "/tidyverse"
 
-assign_tidyverse_data <- function(data_path) {
+# Assign tidyverse data (setup, not a test)
+if (!test_name %in% release_env$skip_tests) {
   datashield.assign.table(release_env$conns, "mtcars", sprintf("%s%s/mtcars", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s%s/mtcars_group", release_env$project1, data_path))
 }
-
-# Tests
-test_that("donkey-tidyverse setup", {
-  do_skip_test(test_name)
-  assign_tidyverse_data(data_path)
-  succeed()
-})
 
 test_that("ds.arrange", {
   do_skip_test(test_name)
@@ -72,7 +66,11 @@ test_that("ds.case_when", {
     newobj = "test",
     datasources = release_env$conns
   )
-  res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
+  # Suppress "Data in all studies were valid" output from ds.table
+  invisible(capture.output(
+    tbl_result <- ds.table("test", datasources = release_env$conns)
+  ))
+  res <- names(tbl_result$output.list$TABLES.COMBINED_all.sources_counts)
   expect_identical(res, c("high", "low", "medium", "NA"))
 })
 
@@ -134,7 +132,11 @@ test_that("ds.if_else", {
     newobj = "test",
     datasources = release_env$conns
   )
-  res <- names(ds.table("test", datasources = release_env$conns)$output.list$TABLES.COMBINED_all.sources_counts)
+  # Suppress "Data in all studies were valid" output from ds.table
+  invisible(capture.output(
+    tbl_result <- ds.table("test", datasources = release_env$conns)
+  ))
+  res <- names(tbl_result$output.list$TABLES.COMBINED_all.sources_counts)
   expect_identical(res, c("high", "low", "NA"))
 })
 

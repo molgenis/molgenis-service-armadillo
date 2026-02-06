@@ -39,6 +39,14 @@ test_that("verify uploaded colnames", {
   trimesterrep <- armadillo.load_table(release_env$project1, "2_1-core-1_0", "trimesterrep")
   cols <- c("row_id", "child_id", "age_trimester", "smk_t", "alc_t")
   expect_identical(colnames(trimesterrep), cols)
+})
 
+test_that("upload tidyverse test data", {
+  do_skip_test(test_name)
   armadillo.upload_table(release_env$project1, "tidyverse", mtcars)
+  # Create grouped version for group_by tests
+
+  mtcars_group <- mtcars %>% group_by(cyl)
+  armadillo.upload_table(release_env$project1, "tidyverse", mtcars_group)
+  succeed()
 })

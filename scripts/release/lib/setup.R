@@ -15,6 +15,7 @@ cli_progress_done()
 
 # Configure DataSHIELD options
 options(datashield.errors.print = TRUE)
+options(progress_enabled = FALSE)
 
 # Shared environment for all test state and config
 release_env <- new.env(parent = emptyenv())

@@ -24,19 +24,30 @@ skip_exposome <- function() {
           sprintf("resourcer not available for profile: %s", release_env$current_profile))
 }
 
-# Tests
-test_that("xenon-exposome setup", {
+# Setup tests
+test_that("download and upload exposome sources", {
   skip_exposome()
   set_dm_permissions()
   download_many_sources(ref = exposome_ref)
   upload_many_sources(ref = exposome_ref, folder = "exposome")
+  succeed()
+})
+
+test_that("create and upload exposome resources", {
+  skip_exposome()
   exposome_resources <- create_many_resources(ref = exposome_ref, folder = "exposome")
   upload_many_resources(resource = exposome_resources, folder = "exposome", ref = exposome_ref)
+  succeed()
+})
+
+test_that("assign and resolve exposome resources", {
+  skip_exposome()
   assign_many_resources(folder = "exposome", ref = exposome_ref)
   resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
   succeed()
 })
 
+# Function tests
 test_that("ds.loadExposome", {
   skip_exposome()
   ds.loadExposome(
@@ -92,7 +103,8 @@ test_that("ds.normalityTest", {
 
 test_that("ds.exposure_histogram", {
   skip_exposome()
-  hist <- ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns)
+  # Suppress "invalid cells" warning - ds.histogram warns even when there are no issues
+  hist <- suppressWarnings(ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns))
   expect_identical(names(hist), c("breaks", "counts", "density", "mids", "xname", "equidist"))
 })
 
@@ -120,5 +132,3 @@ test_that("ds.exposome_correlation", {
 # Commented out due to upstream issues:
 # verify_exwas_plot(exwas_results) https://github.com/isglobal-brge/dsExposomeClient/issues/19
 # ds.exposome_pca("exposome_object", fam = c("Metals", "Noise")) https://github.com/isglobal-brge/dsExposomeClient/issues/20
-# verify_pca_class() See above
-# verify_pca_plot_class() See above

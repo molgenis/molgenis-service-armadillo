@@ -14,7 +14,8 @@ test_that("ds.mean returns expected values", {
 
 test_that("ds.histogram returns expected values", {
   do_skip_test(test_name)
-  hist <- ds.histogram(x = paste0(object, "$", variable), datasources = release_env$conns)
+  # Suppress "0 invalid cells" warning - ds.histogram warns even when there are no issues
+  hist <- suppressWarnings(ds.histogram(x = paste0(object, "$", variable), datasources = release_env$conns))
   breaks <- c(35.31138, 116.38319, 197.45500, 278.52680, 359.59861, 440.67042, 521.74222, 602.81403, 683.88584, 764.95764, 846.02945)
   counts <- c(106, 101, 92, 103, 106, 104, 105, 101, 113, 69)
   density <- c(0.0013074829, 0.0012458092, 0.0011347965, 0.0012704787, 0.0013074829, 0.0012828134, 0.0012951481, 0.0012458092, 0.0013938261, 0.0008510974)
