@@ -124,8 +124,12 @@ test_that("ds.exwas", {
 
 test_that("ds.exposome_correlation", {
   skip_exposome()
-  exposome_cor <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
-                                           datasources = release_env$conns)[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
+  # Suppress "threshold for effective tests was not successful" message - expected with this test data
+  invisible(capture.output(
+    cor_result <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
+                                           datasources = release_env$conns)
+  ))
+  exposome_cor <- cor_result[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
 })
 

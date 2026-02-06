@@ -18,6 +18,7 @@ test_that("delete tables", {
 
 test_that("delete projects", {
   do_skip_test(test_name)
+  skip_if(!release_env$interactive, "Skipping interactive test")
   cat(sprintf("\nVerify in UI all data from [%s] is gone.", release_env$project1))
   wait_for_input(release_env$interactive)
   expect_no_error(armadillo.delete_project(release_env$project1))

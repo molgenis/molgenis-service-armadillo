@@ -38,9 +38,14 @@ run_tests_for_profile <- function(profile) {
       stop_on_failure = FALSE
     )
 
-    cli_alert_info("Please test rest of UI manually, if impacted this release")
     end_time <- Sys.time()
-    print(paste0("Running tests for profile [", profile, "] took: ", end_time - start_time))
+    duration <- round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)
+    cat("\n")
+    cli_alert_success(sprintf("Profile [%s] completed in %s minutes", profile, duration))
+    invisible(NULL)
 }
 
-lapply(profiles, run_tests_for_profile)
+invisible(lapply(profiles, run_tests_for_profile))
+
+cat("\n")
+cli_alert_info("Please test rest of UI manually, if impacted by this release")

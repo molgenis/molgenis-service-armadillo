@@ -3,6 +3,11 @@ library(dsMediationClient)
 # Setup
 test_name <- "xenon-mediate"
 
+# Assign mediate data (setup, not a test)
+if (!test_name %in% release_env$skip_tests) {
+  datashield.assign.table(release_env$conns, "nonrep", sprintf("%s/2_1-core-1_0/nonrep", release_env$project1))
+}
+
 test_that("ds.mediate returns expected class", {
   do_skip_test(test_name)
   ds.glmSLMA(
@@ -19,7 +24,7 @@ test_that("ds.mediate returns expected class", {
     datasources = release_env$conns
   )
   med_class <- ds.class("med.out.1a", datasources = release_env$conns)
-  expect_equal(med_class, "mediate")
+  expect_equal(med_class$armadillo, "mediate")
 })
 
 test_that("ds.neWeight returns expected class", {
@@ -41,7 +46,7 @@ test_that("ds.neModel returns expected class", {
     newobj = "med.out.1b", datasources = release_env$conns
   )
   med_class <- ds.class("med.out.1b", datasources = release_env$conns)
-  expect_equal(med_class, "neModel")
+  expect_equal(med_class$armadillo, "neModel")
 })
 
 test_that("ds.neImpute returns expected class", {

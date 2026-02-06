@@ -10,6 +10,7 @@ show_test_info <- function() {
   skip_tests_filtered <- release_env$skip_tests[release_env$skip_tests != ""]
   skip_tests <- if (length(skip_tests_filtered) == 0) "None" else paste(skip_tests_filtered, collapse = ", ")
 
+  cli_h2("Test information")
   cat(sprintf("
                       ,.-----__                       Testing version:      %s
                 ,:::://///,:::-.                      Test server:          %s
