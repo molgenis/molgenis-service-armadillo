@@ -12,8 +12,7 @@ download_test_files <- function(urls, dest) {
     splitted <- strsplit(download_url, "/")[[1]]
     folder <- splitted[length(splitted) - 1]
     filename <- splitted[length(splitted)]
-    cli_alert_info(paste0("Downloading ", filename))
-    download.file(download_url, paste0(dest, folder, "/", filename), quiet = FALSE)
+    download.file(download_url, paste0(dest, folder, "/", filename), quiet = TRUE)
     cli_progress_update()
   }
   cli_progress_done()
@@ -47,7 +46,6 @@ download_tables <- function() {
 
     cli_alert_success("Tables downloaded")
   } else {
-    cli_alert_success("Tables not downloaded: available locally")
+    cli_alert_success("Test tables available locally")
   }
-  cli_alert_success(sprintf("%s passed!", test_name))
 }

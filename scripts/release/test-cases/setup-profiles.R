@@ -27,7 +27,7 @@ return_list_without_empty <- function(to_empty_list) {
 
 create_profile <- function(profile_name) {
   if (profile_name %in% release_env$profile_defaults$name) {
-    cli_alert_info(sprintf("Creating profile: %s", profile_name))
+    cli_progress_step(sprintf("Creating profile: %s", profile_name))
     profile_default <- release_env$profile_defaults[release_env$profile_defaults$name == profile_name, ]
     current_profiles <- obtain_existing_profile_information()
     new_profile_seed <- generate_random_project_seed(current_profiles$seed)
@@ -48,7 +48,7 @@ create_profile <- function(profile_name) {
     )
     response <- put_to_api("ds-profiles", release_env$token, release_env$auth_type, body_args = args, url = release_env$armadillo_url)
     if (response$status_code == 204) {
-      cli_alert_success(sprintf("Profile %s successfully created.", profile_name))
+      cli_progress_done()
       start_profile(profile_name)
     } else {
       exit_test(sprintf("Unable to create profile: %s , errored %s", profile_name, response$status_code))
@@ -85,15 +85,19 @@ start_profile_if_not_running <- function(profile_name) {
 
 start_profile <- function(profile_name) {
   auth_header <- get_auth_header(release_env$auth_type, release_env$token)
-  cli_alert_info(sprintf("Attempting to start profile: %s", profile_name))
+  cli_progress_step(sprintf("Starting profile: %s", profile_name))
   response <- POST(
     sprintf("%sds-profiles/%s/start", release_env$armadillo_url, profile_name),
     config = c(httr::add_headers(auth_header))
   )
-  if (!response$status_code == 204) {
-    exit_test(sprintf("Unable to start profile %s, error code: %s", profile_name, response$status_code))
+  if (response$status_code == 204) {
+    cli_progress_done()
+  } else if (response$status_code == 409) {
+    cli_progress_done()
+    cli_alert_info(sprintf("Profile %s already running", profile_name))
   } else {
-    cli_alert_success(sprintf("Successfully started profile: %s", profile_name))
+    cli_progress_done(result = "failed")
+    exit_test(sprintf("Unable to start profile %s, error code: %s", profile_name, response$status_code))
   }
 }
 
@@ -104,13 +108,8 @@ setup_profiles <- function() {
     return()
   }
 
-  cat("\nAvailable profiles: \n")
-  profiles <- get_from_api_with_header("profiles", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
-
-  cli_alert_info("Checking if profile is prepared for all tests")
-
   if (!release_env$as_docker_container) {
-    create_profile_if_not_available(release_env$current_profile, profiles$available)
+    create_profile_if_not_available(release_env$current_profile, release_env$available_profiles)
   }
   profile_info <- get_from_api_with_header(paste0("ds-profiles/", release_env$current_profile), release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
   if (!release_env$as_docker_container) {
@@ -127,8 +126,8 @@ setup_profiles <- function() {
     wait_for_input(release_env$interactive)
   }
 
-  if (!is.null(seed) && "resourcer" %in% whitelist) {
-    cli_alert_success(sprintf("%s passed!", test_name))
+  if (is.null(seed) || !"resourcer" %in% whitelist) {
+    exit_test("Profile not properly configured")
   }
   release_env$profile_info <- profile_info
 }

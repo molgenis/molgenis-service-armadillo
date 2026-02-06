@@ -1,24 +1,40 @@
 library(stringr)
 library(tibble)
-# # log version info of loaded libraries
-show_version_info <- function(libs) {
-  libs_to_print <- cli_ul()
-  for (i in 1:length(libs)) {
-    lib <- libs[i]
-    cli_li(sprintf("%s: %s\n", lib, packageVersion(lib)))
+
+# Display two library groups side by side
+show_version_info_combined <- function(libs1, label1, libs2, label2) {
+  versions1 <- sapply(libs1, function(lib) as.character(packageVersion(lib)))
+  versions2 <- sapply(libs2, function(lib) as.character(packageVersion(lib)))
+
+  max_name1 <- max(nchar(libs1))
+  max_name2 <- max(nchar(libs2))
+  max_ver1 <- max(nchar(versions1))
+
+  # Calculate column width for left side
+  col_width <- max_name1 + max_ver1 + 4
+
+  # Print headers
+  cat(sprintf("%-*s%s\n", col_width + 4, label1, label2))
+
+  # Print rows
+  max_rows <- max(length(libs1), length(libs2))
+  for (i in 1:max_rows) {
+    if (i <= length(libs1)) {
+      left <- sprintf("  %-*s %-*s", max_name1, libs1[i], max_ver1, versions1[i])
+    } else {
+      left <- sprintf("  %-*s", col_width - 2, "")
+    }
+    if (i <= length(libs2)) {
+      right <- sprintf("  %-*s %s", max_name2, libs2[i], versions2[i])
+    } else {
+      right <- ""
+    }
+    cat(sprintf("%-*s%s\n", col_width, left, right))
   }
-  cli_end(libs_to_print)
 }
 
 configure_test <- function() {
-  test_name <- "test-config"
-  cli_alert_success("Loaded Armadillo/DataSHIELD libraries:")
-  show_version_info(c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"))
-
-  cli_alert_success("Loaded other libraries:")
-  show_version_info(c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr", "tibble"))
-
-  cli_alert_info("Trying to read config from '.env'")
+  cli_progress_step("Reading config from '.env'")
   readRenviron(".env")
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
@@ -26,13 +42,11 @@ configure_test <- function() {
 
   armadillo_url <- Sys.getenv("ARMADILLO_URL")
   if (armadillo_url == "") {
-    cli_alert_warning("You probably did not used one of the '*.env.dist' files.")
-
-    cli_alert_warning("Defaulting to https://armadillo-demo.molgenis.net/")
-
+    cli_progress_done(result = "failed")
+    cli_alert_warning("ARMADILLO_URL not set, defaulting to https://armadillo-demo.molgenis.net/")
     armadillo_url <- "https://armadillo-demo.molgenis.net/"
   } else {
-    cli_alert_info(paste0("ARMADILLO_URL from '.env' file: ", armadillo_url))
+    cli_progress_done()
   }
 
   if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "xenon-omics")){
@@ -47,8 +61,9 @@ configure_test <- function() {
 
   armadillo_url <- add_slash_if_not_added(armadillo_url)
 
+  cli_progress_step(sprintf("Checking %s exists", armadillo_url))
   if (url.exists(armadillo_url)) {
-    cli_alert_success(sprintf("URL [%s] exists", armadillo_url))
+    cli_progress_done()
     if (!startsWith(armadillo_url, "http")) {
       if (startsWith(armadillo_url, "localhost")) {
         armadillo_url <- paste0("http://", armadillo_url)
@@ -57,24 +72,18 @@ configure_test <- function() {
       }
     }
   } else {
-    msg <- sprintf("URL [%s] doesn't exist", armadillo_url)
-    exit_test(msg)
+    cli_progress_done(result = "failed")
+    exit_test(sprintf("URL [%s] doesn't exist", armadillo_url))
   }
 
   as_docker_container <- FALSE
   if ("Y" == Sys.getenv("AS_DOCKER_CONTAINER", "N")) {
     as_docker_container <- TRUE
   }
-  cli_alert_info(sprintf("Running in docker container %d", as.integer(as_docker_container)))
 
   service_location <- remove_slash_if_added(Sys.getenv("GIT_CLONE_PATH"))
   if (service_location == "") {
-    cli_alert_warning("Git clone path not set, attempting to set git clone root through normalized path")
-    cli_alert_warning("This is assuming you run `Rscript release-test.R` in the same directory as the release-test.R script!")
-
     service_location <- dirname(dirname(normalizePath(".")))
-  } else {
-    cli_alert_info(paste0("GIT_CHECKOUT_DIR from '.env' file: ", service_location))
   }
 
   if (!dir.exists(file.path(service_location, "armadillo"))) {
@@ -83,23 +92,17 @@ configure_test <- function() {
 
   test_file_path <- remove_slash_if_added(Sys.getenv("TEST_FILE_PATH"))
   if (test_file_path == "") {
-    cli_alert_warning("Test file path not set, checking for 'testing' folder in data directory")
     testing_path <- file.path(service_location, "data", "testing")
     if (!dir.exists(testing_path)) {
-      cli_alert_info(paste0("Testing directory: ", testing_path, " not found, creating."))
+      cli_alert_info(sprintf("Creating test data directory: %s", testing_path))
       dir.create(testing_path)
     }
     test_file_path <- testing_path
-  } else {
-    cli_alert_info(paste0("TEST_FILE_PATH from '.env file: ", test_file_path))
-    test_file_path <- test_file_path
   }
 
   admin_pwd <- Sys.getenv("ADMIN_PASSWORD")
   if (admin_pwd == "") {
     cli_alert_danger("Admin password not set in .env file, disabling admin mode.")
-  } else {
-    cli_alert_info("ADMIN_PASSWORD from '.env' file")
   }
 
   user <- Sys.getenv("OIDC_EMAIL")
@@ -114,27 +117,21 @@ configure_test <- function() {
     ADMIN_MODE <- TRUE
   } else {
     ADMIN_MODE <- FALSE
-    cli_alert_info(paste0("USER from '.env. file: ", user))
   }
 
   dest <- add_slash_if_not_added(test_file_path)
 
-  app_info <- get_from_api("actuator/info", armadillo_url)
-  version <- unlist(app_info$build$version)
+  version <- trimws(system("git describe --tags --abbrev=0 2>/dev/null", intern = TRUE))
 
   auth_type <- get_auth_type(ADMIN_MODE)
 
+  # Override to TRUE - assume profiles are managed externally (already running)
   as_docker_container <- TRUE
-  if (Sys.getenv("AS_DOCKER_CONTAINER") == "N") {
-    interactive <- FALSE
-  }
 
   profile <- Sys.getenv("PROFILE")
   if (profile == "") {
     cli_alert_warning("Profile not set, defaulting to xenon.")
     profile <- "xenon"
-  } else {
-    cli_alert_info(paste0("PROFILE from '.env' file: ", profile))
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
@@ -143,8 +140,6 @@ configure_test <- function() {
   rda_dir <- file.path(test_file_path, "gse66351_1.rda")
   rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
-
-  cli_alert_success(sprintf("%s passed!", test_name))
 
   # default profile settings in case a profile is missing
   profile_defaults <- data.frame(
@@ -167,7 +162,6 @@ configure_test <- function() {
   release_env$test_file_path <- test_file_path
   release_env$service_location <- service_location
   release_env$dest <- dest
-  release_env$app_info <- app_info
   release_env$version <- version
   release_env$auth_type <- auth_type
   release_env$as_docker_container <- as_docker_container

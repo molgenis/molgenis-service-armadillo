@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env -S Rscript --no-init-file
 cat("
   __  __  ____  _      _____ ______ _   _ _____  _____                                     _ _ _ _
  |  \\/  |/ __ \\| |    / ____|  ____| \\ | |_   _|/ ____|     /\\                            | (_) | |
@@ -14,10 +14,13 @@ cat("
  | | \\ \\  __/ |  __/ (_| \\__ \\  __/ | ||  __/\\__ \\ |_
  |_|  \\_\\___|_|\\___|\\__,_|___/\\___|  \\__\\___||___/\\__|
 ")
-print(sessionInfo())
 
 # Run all setup and initialization
 source("lib/setup.R")
+
+# Show test info once
+cli_h1("Starting release test")
+show_test_info()
 
 profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 
@@ -25,23 +28,13 @@ profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 run_tests_for_profile <- function(profile) {
     start_time <- Sys.time()
     release_env$current_profile <- profile
-    cli_h2(paste0("Running for profile: ", profile))
 
-    cli_h2("Determining whether to run with password or token")
-    source("test-cases/set-admin-mode.R")
-    set_admin_or_get_token()
-
-    cli_h2("Configuring profiles")
-    source("test-cases/setup-profiles.R")
+    cli_h2(paste0("Testing profile: ", profile))
     setup_profiles()
-
-    cli_h1("Starting release test")
-    source("lib/release-test-info.R")
-    show_test_info()
 
     testthat::test_dir(
       "testthat/tests",
-      reporter = testthat::ProgressReporter$new(),
+      reporter = testthat::ProgressReporter$new(show_praise = FALSE),
       stop_on_failure = FALSE
     )
 

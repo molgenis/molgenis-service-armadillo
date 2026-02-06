@@ -9,9 +9,8 @@ prepare_resources <- function(resource_path = release_env$rda_dir, url = release
     download.file(url, resource_path)
   }
 
-  cli_alert_info("Checking if rda dir exists")
   if (resource_path == "" || !file.exists(resource_path)) {
     exit_test(sprintf("File [%s] doesn't exist", resource_path))
   }
-  cli_alert_success(sprintf("%s passed!", test_name))
+  cli_alert_success("Test resources available locally")
 }

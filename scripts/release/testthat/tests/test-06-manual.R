@@ -3,6 +3,9 @@ test_name <- "manual-test"
 
 test_that("manual UI verification", {
   do_skip_test(test_name)
+  if (!release_env$interactive) {
+    skip("Skipping manual test in non-interactive mode")
+  }
 
   cat("\nNow open your testserver in the browser")
   cat(sprintf("\n\nVerify [%s] is available", release_env$project1))

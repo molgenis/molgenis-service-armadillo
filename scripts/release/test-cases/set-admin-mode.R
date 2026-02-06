@@ -5,15 +5,17 @@ set_admin_or_get_token <- function() {
   }
 
   if (release_env$ADMIN_MODE) {
+    cli_alert_success("Using admin password")
     release_env$token <- release_env$admin_pwd
   } else {
-    cli_alert_info("Obtaining TOKEN from '.env.")
     token <- Sys.getenv("TOKEN")
     if (token == "") {
-      cli_alert_warning("TOKEN not set, obtaining from armadillo.")
-      token <- armadillo.get_token(release_env$armadillo_url)
+      cli_progress_step("Fetching token")
+      suppressMessages(token <- armadillo.get_credentials(release_env$armadillo_url)@access_token)
+      cli_progress_done()
+    } else {
+      cli_alert_success("Using token from .env")
     }
     release_env$token <- token
   }
-  cli_alert_success(sprintf("%s passed!", test_name))
 }
