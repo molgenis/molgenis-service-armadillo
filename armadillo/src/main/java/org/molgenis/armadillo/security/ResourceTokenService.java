@@ -18,10 +18,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResourceTokenService {
 
-  private static final String INTERNAL_ISSUER = "armadillo-internal";
-
-  @Value("${storage.resource-token-timeout:#{300}}")
-  private long TOKEN_VALIDITY_SECONDS;
+  private static final String INTERNAL_ISSUER = "http://armadillo-internal";
+  private final long tokenValiditySeconds;
 
   private static final String RESOURCE_PROJECT_CLAIM = "resource_project";
   private static final String RESOURCE_OBJECT_CLAIM = "resource_object";
@@ -29,8 +27,10 @@ public class ResourceTokenService {
   private final JwtEncoder jwtEncoder;
   private final RSAPublicKey publicKey;
 
-  public ResourceTokenService() {
+  public ResourceTokenService(
+      @Value("${storage.resource-token-timeout:300}") long tokenValiditySeconds) {
     try {
+      this.tokenValiditySeconds = tokenValiditySeconds;
       KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
       keyPairGenerator.initialize(2048);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
@@ -65,7 +65,7 @@ public class ResourceTokenService {
             .subject(email)
             .claim("email", email)
             .issuedAt(now)
-            .expiresAt(now.plusSeconds(TOKEN_VALIDITY_SECONDS))
+            .expiresAt(now.plusSeconds(tokenValiditySeconds))
             .claim(RESOURCE_PROJECT_CLAIM, project)
             .claim(RESOURCE_OBJECT_CLAIM, objectName)
             .build();
