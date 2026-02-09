@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -21,6 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -38,7 +38,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(StorageController.class)
 @Import({TestSecurityConfig.class})
@@ -740,59 +742,90 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testDownloadRawfileWrongProjectForbidden() throws Exception {
-    mockMvc
-        .perform(
-            get("/storage/projects/lifecycle/rawfiles/test.parquet")
-                .with(
-                    jwt()
-                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
-                        .jwt(
-                            builder ->
-                                builder
-                                    .subject("user@example.com")
-                                    .claim("email", "user@example.com")
-                                    .claim("iss", "http://armadillo-internal")
-                                    .claim("resource_project", "other-project")
-                                    .claim("resource_object", "test"))))
-        .andExpect(status().isForbidden());
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                    .with(
+                        jwt()
+                            .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                            .jwt(
+                                builder ->
+                                    builder
+                                        .subject("user@example.com")
+                                        .claim("email", "user@example.com")
+                                        .claim("iss", "http://armadillo-internal")
+                                        .claim("resource_project", "other-project")
+                                        .claim("resource_object", "test"))))
+            .andExpect(status().isForbidden())
+            .andReturn();
+    Optional<ResponseStatusException> someException =
+        Optional.ofNullable((ResponseStatusException) result.getResolvedException());
+    someException.ifPresent(
+        (se) -> {
+          assertEquals(
+              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource project:lifecycle\"\"",
+              se.getMessage());
+        });
   }
 
   @Test
   void testDownloadRawfileWrongObjectForbidden() throws Exception {
-    mockMvc
-        .perform(
-            get("/storage/projects/lifecycle/rawfiles/test.parquet")
-                .with(
-                    jwt()
-                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
-                        .jwt(
-                            builder ->
-                                builder
-                                    .subject("user@example.com")
-                                    .claim("email", "user@example.com")
-                                    .claim("iss", "http://armadillo-internal")
-                                    .claim("resource_project", "lifecycle")
-                                    .claim("resource_object", "other"))))
-        .andExpect(status().isForbidden());
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                    .with(
+                        jwt()
+                            .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                            .jwt(
+                                builder ->
+                                    builder
+                                        .subject("user@example.com")
+                                        .claim("email", "user@example.com")
+                                        .claim("iss", "http://armadillo-internal")
+                                        .claim("resource_project", "lifecycle")
+                                        .claim("resource_object", "other"))))
+            .andExpect(status().isForbidden())
+            .andReturn();
+    Optional<ResponseStatusException> someException =
+        Optional.ofNullable((ResponseStatusException) result.getResolvedException());
+    someException.ifPresent(
+        (se) -> {
+          assertEquals(
+              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource object:test.parquet\"\"",
+              se.getMessage());
+        });
   }
 
   @Test
   void testDownloadRawfileWrongIssuerForbidden() throws Exception {
-    mockMvc
-        .perform(
-            get("/storage/projects/lifecycle/rawfiles/test.parquet")
-                .with(
-                    jwt()
-                        .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
-                        .jwt(
-                            builder ->
-                                builder
-                                    .subject("user@example.com")
-                                    .claim("email", "user@example.com")
-                                    .claim("iss", "http://some-other-app")
-                                    .claim("resource_project", "lifecycle")
-                                    .claim("resource_object", "test"))))
-        .andExpect(status().isForbidden());
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/storage/projects/lifecycle/rawfiles/test.parquet")
+                    .with(
+                        jwt()
+                            .authorities(new SimpleGrantedAuthority("ROLE_RESOURCE_VIEW"))
+                            .jwt(
+                                builder ->
+                                    builder
+                                        .subject("user@example.com")
+                                        .claim("email", "user@example.com")
+                                        .claim("iss", "http://some-other-app")
+                                        .claim("resource_project", "lifecycle")
+                                        .claim("resource_object", "test"))))
+            .andExpect(status().isForbidden())
+            .andReturn();
+    Optional<ResponseStatusException> someException =
+        Optional.ofNullable((ResponseStatusException) result.getResolvedException());
+    someException.ifPresent(
+        (se) -> {
+          assertEquals(
+              "403 FORBIDDEN \"403 FORBIDDEN \"Token must be issued by armadillo application with correct permissions\"\"",
+              se.getMessage());
+        });
+    ;
   }
 
   @Test
