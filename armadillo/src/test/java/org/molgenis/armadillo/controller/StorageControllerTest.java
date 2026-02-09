@@ -28,7 +28,6 @@ import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -48,7 +47,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean ArmadilloStorageService storage;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
-  @Autowired private StorageController storageController;
 
   @Test
   @WithMockUser(roles = "SU")
@@ -767,7 +765,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             DOWNLOAD_RESOURCE + "_FAILURE",
             Map.of(
                 "sessionId",
-                sessionId,
+                null,
                 "roles",
                 List.of("ROLE_RESOURCE_VIEW"),
                 PROJECT,
@@ -792,6 +790,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                             builder ->
                                 builder
                                     .subject("user@example.com")
+                                    .claim("email", "user@example.com")
                                     .claim("iss", "armadillo-internal")
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "other"))))
@@ -803,8 +802,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user@example.com",
             DOWNLOAD_RESOURCE + "_FAILURE",
             Map.of(
-                "sessionId",
-                sessionId,
                 "roles",
                 List.of("ROLE_RESOURCE_VIEW"),
                 PROJECT,
@@ -814,7 +811,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 "message",
                 "Token has no permissions for resource object:test.parquet",
                 "type",
-                "ResponseStatusException")));
+                "ResponseStatusException",
+                "sessionId",
+                "3")));
   }
 
   @Test
@@ -841,10 +840,8 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user@example.com",
             DOWNLOAD_RESOURCE + "_FAILURE",
             Map.of(
-                "sessionId",
-                "3",
                 "roles",
-                List.of("[ROLE_RESOURCE_VIEW]"),
+                List.of("ROLE_RESOURCE_VIEW"),
                 PROJECT,
                 "lifecycle",
                 OBJECT,
@@ -852,7 +849,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                 "message",
                 "Token must be issued by armadillo application with correct permissions",
                 "type",
-                "ResponseStatusException")));
+                "ResponseStatusException",
+                "sessionId",
+                "3")));
   }
 
   @Test
