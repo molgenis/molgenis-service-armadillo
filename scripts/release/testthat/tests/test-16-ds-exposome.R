@@ -7,7 +7,7 @@ source("../../lib/create-resource.R")
 source("../../lib/download-resources.R")
 
 # Setup
-test_name <- "xenon-exposome"
+test_name <- "ds-exposome"
 
 exposome_ref <- tribble(
   ~file_name, ~path, ~url, ~object_name, ~format,

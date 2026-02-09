@@ -8,7 +8,7 @@ source("../../lib/create-resource.R")
 source("../../lib/download-resources.R")
 
 # Setup
-test_name <- "xenon-omics"
+test_name <- "ds-omics"
 
 omics_ref <- tribble(
   ~file_name, ~path, ~url, ~object_name, ~format,

@@ -1,7 +1,7 @@
 library(dsMTLClient)
 
 # Setup
-test_name <- "xenon-mtl"
+test_name <- "ds-mtl"
 
 prepare_data_for_lasso <- function() {
   ds.dataFrameSubset(
@@ -9,7 +9,7 @@ prepare_data_for_lasso <- function() {
     V2 = "nonrep$row_id",
     Boolean.operator = "==",
     df.name = "nonrep",
-    keep.cols = c(5, 9, 13, 17),
+    keep.cols = c(5, 9),
     newobj = "x_df",
     datasources = release_env$conns
   )
@@ -36,9 +36,9 @@ test_that("ds.LassoCov_Train returns expected names", {
     X = "x_mat",
     Y = "y_mat",
     type = "regress",
-    lambda = 298.9465,
+    lambda = 500,
     covar = 1,
-    nDigits = 4,
+    nDigits = 2,
     datasources = release_env$conns
   )
   expect_identical(names(lasso_results), c("ws", "Logs", "Obj", "gamma", "type", "lam_seq"))

@@ -1,7 +1,7 @@
 library(dsTidyverseClient)
 
 # Setup
-test_name <- "donkey-tidyverse"
+test_name <- "ds-tidyverse"
 data_path <- "/tidyverse"
 
 # Assign tidyverse data (setup, not a test)

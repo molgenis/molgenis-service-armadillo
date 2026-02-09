@@ -1,7 +1,7 @@
 library(dsMediationClient)
 
 # Setup
-test_name <- "xenon-mediate"
+test_name <- "ds-mediate"
 
 # Assign mediate data (setup, not a test)
 if (!test_name %in% release_env$skip_tests) {
