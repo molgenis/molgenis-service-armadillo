@@ -26,7 +26,6 @@ profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 
 
 run_tests_for_profile <- function(profile) {
-    start_time <- Sys.time()
     release_env$current_profile <- profile
 
     cli_h2(paste0("Testing profile: ", profile))
@@ -34,15 +33,9 @@ run_tests_for_profile <- function(profile) {
 
     testthat::test_dir(
       "testthat/tests",
-      reporter = testthat::ProgressReporter$new(show_praise = FALSE),
+      reporter = testthat::ProgressReporter$new(show_praise = FALSE, min_time = 0),
       stop_on_failure = FALSE
     )
-
-    end_time <- Sys.time()
-    duration <- round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)
-    cat("\n")
-    cli_alert_success(sprintf("Profile [%s] completed in %s minutes", profile, duration))
-    invisible(NULL)
 }
 
 invisible(lapply(profiles, run_tests_for_profile))
