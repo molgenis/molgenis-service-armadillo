@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -89,6 +90,17 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
             "user",
             UPLOAD_OBJECT,
             mockSuAuditMap(Map.of(PROJECT, "lifecycle", OBJECT, "core/nonrep2.parquet"))));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testAddObjectFails() {
+    InputStream mock = mock(InputStream.class);
+    try {
+      storage.addObject("test", "test", mock);
+    } catch (Exception e) {
+      assertEquals(e.getClass(), FileProcessingException.class);
+    }
   }
 
   @Test
