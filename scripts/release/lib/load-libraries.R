@@ -5,8 +5,15 @@
 library(getPass)
 # for reading parquet files
 library(arrow)
+# for data manipulation
+library(dplyr)
+library(tibble)
+library(purrr)
+library(stringr)
 # for doing api calls
 library(httr)
+# for downloads with progress
+library(curl)
 # for loading json to put to api
 library(jsonlite)
 # to post resource file async to server to be able to show spinner while loading
@@ -21,4 +28,10 @@ library(dsBaseClient)
 library(DSI)
 library(DSMolgenisArmadillo)
 library(resourcer)
+library(dsSurvivalClient)
+library(dsMediationClient)
+library(dsMTLClient)
+library(dsTidyverseClient)
+library(dsExposomeClient)
+library(dsOmicsClient)
 library(testthat)

@@ -6,8 +6,7 @@ test_name <- "upload-data"
 test_that("upload test data", {
   do_skip_test(test_name)
 
-  dest <- release_env$dest
-  if(dir.exists(release_env$default_parquet_path)){dest <- release_env$default_parquet_path}
+  dest <- get_tables_path()
 
   nonrep <- read_parquet_with_message("core/nonrep", dest)
   yearlyrep <- read_parquet_with_message("core/yearlyrep", dest)

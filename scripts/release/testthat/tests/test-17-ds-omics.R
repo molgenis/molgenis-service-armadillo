@@ -1,21 +1,8 @@
 library(dsOmicsClient)
 library(purrr)
-library(tibble)
-
-# Load helper functions (paths relative to release directory)
-source("../../lib/upload-resource.R")
-source("../../lib/create-resource.R")
-source("../../lib/download-resources.R")
 
 # Setup
 test_name <- "ds-omics"
-
-omics_ref <- tribble(
-  ~file_name, ~path, ~url, ~object_name, ~format,
-  "chr1.gds", file.path(release_env$test_file_path, "chr1.gds"), "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/chr1_maf_filtered_small.vcf.gz?raw=true", "chr1", "VCF2GDS",
-  "chr2.gds", file.path(release_env$test_file_path, "chr2.gds"), "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/chr2_maf_filtered_small.vcf.gz?raw=true", "chr2", "VCF2GDS",
-  "ega_phenotypes.tsv", file.path(release_env$test_file_path, "ega_phenotypes.tsv"), "https://github.com/isglobal-brge/brge_data_large/blob/master/inst/extdata/GWAS_example/ega_synthetic_data_phenotypes_treated_with_nas.tsv?raw=true", "ega_phenotypes", "tsv"
-)
 
 gwas_prepare_data <- function() {
   lapply(1:2, function(x) {
@@ -31,17 +18,12 @@ gwas_prepare_data <- function() {
 }
 
 test_that("ds.metaGWAS", {
-  do_skip_test(test_name)
-  skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
-          sprintf("resourcer not available for profile: %s", release_env$current_profile))
-
+  skip_if_no_resources(test_name)
   set_dm_permissions()
-  download_many_sources(ref = omics_ref)
-  upload_many_sources(ref = omics_ref, folder = "omics")
-  omics_resources <- create_many_resources(ref = omics_ref, folder = "omics")
-  upload_many_resources(resource = omics_resources, folder = "omics", ref = omics_ref)
-  assign_many_resources(folder = "omics", ref = omics_ref)
+  upload_many_sources(ref = release_env$omics_ref, folder = "omics")
+  omics_resources <- create_many_resources(ref = release_env$omics_ref, folder = "omics")
+  upload_many_resources(resource = omics_resources, folder = "omics", ref = release_env$omics_ref)
+  assign_many_resources(folder = "omics", ref = release_env$omics_ref)
 
   map(c("chr1", "chr2"), ~ DSI::datashield.assign.expr(
     conns = release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.object(", .x, ")"))

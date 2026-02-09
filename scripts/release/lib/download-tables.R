@@ -4,48 +4,53 @@ create_dir_if_not_exists <- function(dest, directory) {
   }
 }
 
-download_test_files <- function(urls, dest) {
-  n_files <- length(urls)
-  cli_progress_bar("Downloading testfiles", total = n_files)
-  for (i in 1:n_files) {
-    download_url <- urls[i]
-    splitted <- strsplit(download_url, "/")[[1]]
-    folder <- splitted[length(splitted) - 1]
-    filename <- splitted[length(splitted)]
-    download.file(download_url, paste0(dest, folder, "/", filename), quiet = TRUE)
-    cli_progress_update()
-  }
-  cli_progress_done()
-}
-
 download_tables <- function() {
   test_name <- "download-tables"
   if (should_skip_test(test_name)) {
     return()
   }
 
-  if (!dir.exists(release_env$default_parquet_path)) {
-    cli_alert_info("Downloading tables")
-    cli_alert_danger(paste0("Unable to locate data/lifecycle, attempting to download test files into: ", release_env$dest))
-    create_dir_if_not_exists(release_env$dest, "core")
-    create_dir_if_not_exists(release_env$dest, "outcome")
-    create_dir_if_not_exists(release_env$dest, "survival")
-    test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s/%s.parquet"
-    download_test_files(
-      c(
-        sprintf(test_files_url_template, "core", "nonrep"),
-        sprintf(test_files_url_template, "core", "yearlyrep"),
-        sprintf(test_files_url_template, "core", "monthlyrep"),
-        sprintf(test_files_url_template, "core", "trimesterrep"),
-        sprintf(test_files_url_template, "outcome", "nonrep"),
-        sprintf(test_files_url_template, "outcome", "yearlyrep"),
-        sprintf(test_files_url_template, "survival", "veteran")
-      ),
-      release_env$dest
-    )
+  # Define all required table files
+  table_files <- c(
+    "core/nonrep.parquet",
+    "core/yearlyrep.parquet",
+    "core/monthlyrep.parquet",
+    "core/trimesterrep.parquet",
+    "outcome/nonrep.parquet",
+    "outcome/yearlyrep.parquet",
+    "survival/veteran.parquet"
+  )
 
-    cli_alert_success("Tables downloaded")
-  } else {
+  # Check which files exist (try default path first, then dest)
+  default_paths <- file.path(release_env$default_parquet_path, table_files)
+  dest_paths <- file.path(release_env$dest, table_files)
+
+  # Use default path if all files exist there
+  if (all(file.exists(default_paths))) {
     cli_alert_success("Test tables available locally")
+    return()
   }
+
+  # Check which files are missing from dest
+  missing_idx <- which(!file.exists(dest_paths))
+
+  if (length(missing_idx) == 0) {
+    cli_alert_success("Test tables available locally")
+    return()
+  }
+
+  cli_alert_warning(paste0("Missing ", length(missing_idx), " table(s), downloading into: ", release_env$dest))
+  create_dir_if_not_exists(release_env$dest, "core")
+  create_dir_if_not_exists(release_env$dest, "outcome")
+  create_dir_if_not_exists(release_env$dest, "survival")
+
+  test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s"
+
+  for (i in seq_along(missing_idx)) {
+    idx <- missing_idx[i]
+    file <- table_files[idx]
+    cli_alert_info(sprintf("Downloading %s (%d/%d)", file, i, length(missing_idx)))
+    download_with_progress(sprintf(test_files_url_template, file), dest_paths[idx])
+  }
+  cli_alert_success("Test tables downloaded")
 }

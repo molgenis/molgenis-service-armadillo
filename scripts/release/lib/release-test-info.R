@@ -19,14 +19,17 @@ show_test_info <- function() {
             .' ,   ||||||     `/(  e \\                Test data directory:  %s
       -===~__-'\\__X_`````\\_____/~`-._ `.              Admin-only mode:      %s
                   ~~        ~~       `~-'             Running in Docker:    %s
+                                                      Project name:         %s
                                                       Skipping tests:       %s
     ", release_env$version, release_env$armadillo_url, release_env$user, admin_pwd_msg,
-    release_env$dest, admin_mode, docker_mode, skip_tests))
+    release_env$dest, admin_mode, docker_mode, release_env$project1, skip_tests))
 
   cat("\n")
   cli_h2("Loaded packages")
   show_version_info_combined(
-    c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer", "dsSurvivalClient", "dsMediationClient", "dsMTLClient"),
+    c("MolgenisArmadillo", "DSI", "dsBaseClient", "DSMolgenisArmadillo", "resourcer",
+      "dsSurvivalClient", "dsMediationClient", "dsMTLClient", "dsTidyverseClient",
+      "dsExposomeClient", "dsOmicsClient"),
     "Armadillo/DataSHIELD:",
     c("getPass", "arrow", "httr", "jsonlite", "future", "purrr", "stringr", "tibble"),
     "Other:"

@@ -14,20 +14,61 @@ remove_slash_if_added <- function(path) {
   }
 }
 
+# Get the path where table files are located (checks all required files)
+get_tables_path <- function() {
+  table_files <- c(
+    "core/nonrep.parquet",
+    "core/yearlyrep.parquet",
+    "core/monthlyrep.parquet",
+    "core/trimesterrep.parquet",
+    "outcome/nonrep.parquet",
+    "outcome/yearlyrep.parquet",
+    "survival/veteran.parquet"
+  )
+
+  # Check default path first
+  default_paths <- file.path(release_env$default_parquet_path, table_files)
+  if (all(file.exists(default_paths))) {
+    return(release_env$default_parquet_path)
+  }
+
+  # Fall back to dest path
+  return(release_env$dest)
+}
+
+# Download file with cli progress bar using curl
+download_with_progress <- function(url, destfile) {
+  id <- NULL
+
+  h <- curl::new_handle()
+  curl::handle_setopt(h, noprogress = FALSE, progressfunction = function(down, up) {
+    # down[1] = total to download, down[2] = downloaded so far
+    if (down[1] > 0) {
+      if (is.null(id)) {
+        id <<- cli_progress_bar(
+          format = "{cli::pb_bar} {cli::pb_percent} | {cli::pb_current_bytes}/{cli::pb_total_bytes}",
+          total = down[1],
+          clear = FALSE
+        )
+      }
+      cli_progress_update(id = id, set = down[2])
+    }
+    TRUE
+  })
+
+  curl::curl_download(url, destfile, handle = h, quiet = TRUE)
+
+  if (!is.null(id)) {
+    cli_progress_done(id = id)
+  }
+}
+
 exit_test <- function(msg) {
   cli_alert_danger(msg)
   if (testthat::is_testing()) {
     fail(msg)
   } else {
     stop(msg, call. = FALSE)
-  }
-}
-
-check_cohort_exists <- function(cohort) {
-  if (cohort %in% armadillo.list_projects()) {
-    cli_alert_success(paste0(cohort, " exists"))
-  } else {
-    exit_test(paste0(cohort, " doesn't exist!"))
   }
 }
 
@@ -49,7 +90,7 @@ create_basic_header <- function(pwd) {
   return(paste0("Basic ", encoded))
 }
 
-# # add/edit user using armadillo api
+# Add/edit user using armadillo api
 set_user <- function(isAdmin, required_projects) {
   args <- list(email = release_env$user, admin = isAdmin, projects = required_projects)
   response <- put_to_api("access/users", release_env$admin_pwd, "basic", args, release_env$armadillo_url)
@@ -58,7 +99,7 @@ set_user <- function(isAdmin, required_projects) {
   }
 }
 
-# # armadillo api put request
+# Armadillo api put request
 put_to_api <- function(endpoint, key, auth_type, body_args, url) {
   auth_header <- get_auth_header(auth_type, key)
   body <- jsonlite::toJSON(body_args, auto_unbox = TRUE)
@@ -70,13 +111,20 @@ put_to_api <- function(endpoint, key, auth_type, body_args, url) {
 }
 
 should_skip_test <- function(test_name) {
-  any(release_env$skip_tests %in% test_name)
+  test_name %in% release_env$skip_tests
 }
 
 do_skip_test <- function(test_name) {
   if (should_skip_test(test_name)) {
     testthat::skip(sprintf("Test '%s' skipped", test_name))
   }
+}
+
+skip_if_no_resources <- function(test_name) {
+  do_skip_test(test_name)
+  testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+  testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
+                    sprintf("resourcer not available for profile: %s", release_env$current_profile))
 }
 
 read_parquet_with_message <- function(file_path, dest) {
@@ -86,37 +134,7 @@ read_parquet_with_message <- function(file_path, dest) {
   return(out)
 }
 
-run_spinner <- function(spinner) {
-  lapply(1:1000, function(x) {
-    spinner$spin()
-    spin_till_done(spinner)
-  })
-}
-
-# # compare values in two lists
-compare_list_values <- function(list1, list2) {
-  vals_to_print <- cli_ul()
-  equal <- TRUE
-  for (i in 1:length(list1)) {
-    val1 <- list1[i]
-    val2 <- list2[i]
-    if (almost_equal(val1, val2) == TRUE) {
-      cli_li(sprintf("%s ~= %s", val1, val2))
-    } else {
-      equal <- FALSE
-      cli_li(sprintf("%s != %s", val1, val2))
-    }
-  }
-  cli_end(vals_to_print)
-  if (equal) {
-    cli_alert_success("Values equal")
-  } else {
-    cli_alert_danger("Values not equal")
-  }
-}
-
-# theres a bit of noise added in DataSHIELD answers, causing calculations to not always be exactly the same, but close
-# here we check if they're equal enough
+# Check if values are approximately equal (DataSHIELD adds noise to results)
 almost_equal <- function(val1, val2) {
   return(all.equal(val1, val2, tolerance = .Machine$double.eps^0.03))
 }
@@ -129,22 +147,15 @@ generate_random_project_name <- function() {
   return(random_project)
 }
 
-get_from_api <- function(endpoint, armadillo_url) {
-  cli_alert_info(sprintf("Retrieving [%s%s]", armadillo_url, endpoint))
-  response <- GET(paste0(armadillo_url, endpoint))
-  cat(paste0("get_from_api", " for ", endpoint, " results ", response$status_code, "\n"))
-  return(content(response))
-}
-
 get_auth_type <- function(ADMIN_MODE) {
   if (ADMIN_MODE) {
-    auth_type <- "basic"
+    return("basic")
   } else {
-    auth_type <- "bearer"
+    return("bearer")
   }
 }
 
-# get request to armadillo api with an authheader
+# Get request to armadillo api with an auth header
 get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
   auth_header <- get_auth_header(auth_type, key)
   response <- GET(paste0(url, endpoint), config = c(httr::add_headers(auth_header)))
@@ -158,7 +169,7 @@ get_from_api_with_header <- function(endpoint, key, auth_type, url, user) {
   return(content(response))
 }
 
-# make authentication header for api calls, basic or bearer based on type
+# Make authentication header for api calls, basic or bearer based on type
 get_auth_header <- function(type, key) {
   header_content <- ""
   if (tolower(type) == "bearer") {
@@ -175,15 +186,6 @@ create_bearer_header <- function(token) {
   return(paste0("Bearer ", token))
 }
 
-print_list <- function(list) {
-  vals_to_print <- cli_ul()
-  for (i in 1:length(list)) {
-    val <- list[i]
-    cli_li(val)
-  }
-  cli_end(vals_to_print)
-}
-
 set_dm_permissions <- function() {
   if (release_env$update_auto == "y") {
     set_user(T, list(release_env$project1))
@@ -195,10 +197,18 @@ set_dm_permissions <- function() {
 }
 
 download_many_sources <- function(ref) {
-  ref %>%
-    pmap(function(path, url, ...) {
-      prepare_resources(resource_path = path, url = url)
-    })
+  missing <- ref[!file.exists(ref$path), ]
+  if (nrow(missing) > 0) {
+    cli_alert_warning(sprintf("Missing %d resource(s), downloading into: %s", nrow(missing), release_env$test_file_path))
+    for (i in seq_len(nrow(missing))) {
+      row <- missing[i, ]
+      cli_alert_info(sprintf("Downloading %s (%d/%d)", row$file_name, i, nrow(missing)))
+      download_with_progress(row$url, row$path)
+    }
+    cli_alert_success("Test resources downloaded")
+  } else {
+    cli_alert_success("Test resources available locally")
+  }
 }
 
 upload_many_sources <- function(ref, folder) {
@@ -234,4 +244,3 @@ resolve_many_resources <- function(resource_names) {
   resource_names %>%
     map(~ datashield.assign.expr(release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }
-
