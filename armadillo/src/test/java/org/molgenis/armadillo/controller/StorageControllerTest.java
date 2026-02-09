@@ -718,7 +718,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                 builder
                                     .subject("user@example.com")
                                     .claim("email", "user@example.com")
-                                    .claim("iss", "armadillo-internal")
+                                    .claim("iss", "http://armadillo-internal")
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isOk())
@@ -739,7 +739,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                 builder
                                     .subject("user@example.com")
                                     .claim("email", "user@example.com")
-                                    .claim("iss", "armadillo-internal")
+                                    .claim("iss", "http://armadillo-internal")
                                     .claim("resource_project", "other-project")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isForbidden());
@@ -758,7 +758,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                 builder
                                     .subject("user@example.com")
                                     .claim("email", "user@example.com")
-                                    .claim("iss", "armadillo-internal")
+                                    .claim("iss", "http://armadillo-internal")
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "other"))))
         .andExpect(status().isForbidden());
@@ -777,7 +777,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                 builder
                                     .subject("user@example.com")
                                     .claim("email", "user@example.com")
-                                    .claim("iss", "some-other-app")
+                                    .claim("iss", "http://some-other-app")
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isForbidden());
