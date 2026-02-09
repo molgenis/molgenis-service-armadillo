@@ -487,10 +487,6 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
-  private String getSessionFromRequest(HttpServletRequest request) {
-    return request.getSession(false) != null ? request.getSession(false).getId() : null;
-  }
-
   private void auditFailure(
       String errorMsg, Map<String, Object> data, JwtAuthenticationToken principal) {
     data.put(MESSAGE, errorMsg);
