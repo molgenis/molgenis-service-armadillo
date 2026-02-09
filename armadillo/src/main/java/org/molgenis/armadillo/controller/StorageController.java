@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
-import org.slf4j.MDC;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -409,7 +409,10 @@ public class StorageController {
       })
   @GetMapping(value = "/projects/{project}/rawfiles/{object}")
   public ResponseEntity<InputStreamResource> downloadResource(
-      Principal principal, @PathVariable String project, @PathVariable String object) {
+      Principal principal,
+      HttpServletRequest request,
+      @PathVariable String project,
+      @PathVariable String object) {
     try {
       Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
       if (principal.getClass() == JwtAuthenticationToken.class) {
@@ -484,17 +487,15 @@ public class StorageController {
         Map.of(PROJECT, project, OBJECT, object));
   }
 
+  private String getSessionFromRequest(HttpServletRequest request) {
+    return request.getSession(false) != null ? request.getSession(false).getId() : null;
+  }
+
   private void auditFailure(
-      String errorMsg, Map<String, Object> data, JwtAuthenticationToken principal)
-      throws ResponseStatusException {
+      String errorMsg, Map<String, Object> data, JwtAuthenticationToken principal) {
     data.put(MESSAGE, errorMsg);
     data.put(TYPE, ResponseStatusException.class.getSimpleName());
-    auditor.audit(
-        principal,
-        DOWNLOAD_RESOURCE + "_FAILURE",
-        data,
-        MDC.get(MDC_SESSION_ID),
-        List.of(Arrays.toString(principal.getAuthorities().toArray())));
+    auditor.audit(principal, DOWNLOAD_RESOURCE + "_FAILURE", data);
   }
 
   @Operation(summary = "Retrieve columns of parquet file")
