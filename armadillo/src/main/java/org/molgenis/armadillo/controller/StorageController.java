@@ -436,7 +436,7 @@ public class StorageController {
       JwtAuthenticationToken token, String project, String object, Map<String, Object> data) {
     Map<String, Object> claims = token.getTokenAttributes();
     String errorMsg = "Token must be issued by armadillo application with correct permissions";
-    if (claims.get("iss").equals("armadillo-internal")) {
+    if (claims.get("iss").equals("http://armadillo-internal")) {
       if (claims.get("resource_project").equals(project)) {
         String resourceObj = object.split("\\.")[0].toLowerCase();
         if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {

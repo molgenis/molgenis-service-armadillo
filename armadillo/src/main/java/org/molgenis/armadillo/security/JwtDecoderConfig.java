@@ -45,7 +45,7 @@ public class JwtDecoderConfig {
           NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
       OAuth2TokenValidator<Jwt> internalValidator =
           new DelegatingOAuth2TokenValidator<>(
-              new JwtTimestampValidator(), new JwtIssuerValidator("armadillo-internal"));
+              new JwtTimestampValidator(), new JwtIssuerValidator("http://armadillo-internal"));
       internalDecoder.setJwtValidator(internalValidator);
 
       return token -> {
