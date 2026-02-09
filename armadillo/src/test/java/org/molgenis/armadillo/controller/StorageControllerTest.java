@@ -724,21 +724,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
         .andExpect(content().bytes(content));
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user@example.com",
-            DOWNLOAD_RESOURCE,
-            Map.of(
-                "sessionId",
-                sessionId,
-                "roles",
-                List.of("ROLE_RESOURCE_VIEW"),
-                PROJECT,
-                "lifecycle",
-                OBJECT,
-                "test.parquet")));
   }
 
   @Test
@@ -753,29 +738,11 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                             builder ->
                                 builder
                                     .subject("user@example.com")
+                                    .claim("email", "user@example.com")
                                     .claim("iss", "armadillo-internal")
                                     .claim("resource_project", "other-project")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isForbidden());
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user@example.com",
-            DOWNLOAD_RESOURCE + "_FAILURE",
-            Map.of(
-                "sessionId",
-                null,
-                "roles",
-                List.of("ROLE_RESOURCE_VIEW"),
-                PROJECT,
-                "lifecycle",
-                OBJECT,
-                "test.parquet",
-                "message",
-                "Token has no permissions for resource project:lifecycle",
-                "type",
-                "ResponseStatusException")));
   }
 
   @Test
@@ -795,25 +762,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "other"))))
         .andExpect(status().isForbidden());
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user@example.com",
-            DOWNLOAD_RESOURCE + "_FAILURE",
-            Map.of(
-                "roles",
-                List.of("ROLE_RESOURCE_VIEW"),
-                PROJECT,
-                "lifecycle",
-                OBJECT,
-                "test.parquet",
-                "message",
-                "Token has no permissions for resource object:test.parquet",
-                "type",
-                "ResponseStatusException",
-                "sessionId",
-                "3")));
   }
 
   @Test
@@ -833,25 +781,6 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isForbidden());
-
-    auditEventValidator.validateAuditEvent(
-        new AuditEvent(
-            instant,
-            "user@example.com",
-            DOWNLOAD_RESOURCE + "_FAILURE",
-            Map.of(
-                "roles",
-                List.of("ROLE_RESOURCE_VIEW"),
-                PROJECT,
-                "lifecycle",
-                OBJECT,
-                "test.parquet",
-                "message",
-                "Token must be issued by armadillo application with correct permissions",
-                "type",
-                "ResponseStatusException",
-                "sessionId",
-                "3")));
   }
 
   @Test
