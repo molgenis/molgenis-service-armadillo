@@ -1,7 +1,7 @@
 library(dsExposomeClient)
 library(purrr)
 
-# Load helper functions (paths relative to release directory)
+# Load helper functions (paths relative to test file)
 source("../../lib/upload-resource.R")
 source("../../lib/create-resource.R")
 source("../../lib/download-resources.R")
@@ -118,17 +118,14 @@ test_that("ds.imputation", {
 test_that("ds.exwas", {
   skip_exposome()
   exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
-                             datasources = release_env$conns)
+                             datasources = release_env$conns, exposures_family = "Noise", tef = FALSE)
   expect_identical(class(exwas_results), c("list", "dsExWAS_pooled"))
 })
 
 test_that("ds.exposome_correlation", {
   skip_exposome()
-  # Suppress "threshold for effective tests was not successful" message - expected with this test data
-  invisible(capture.output(
     cor_result <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
                                            datasources = release_env$conns)
-  ))
   exposome_cor <- cor_result[[1]][[1]]$`Correlation Matrix`[1:5, 1:5]
   expect_identical(dim(exposome_cor), as.integer(c(5, 5)))
 })
