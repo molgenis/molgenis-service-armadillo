@@ -15,9 +15,11 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.File;
 import java.net.SocketException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +55,9 @@ public class DockerService {
 
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
+
+  @Value("${storage.root-dir:data}")
+  private String storageRootDir;
 
   public DockerService(
       DockerClient dockerClient,
@@ -261,6 +266,14 @@ public class DockerService {
       throw new MissingImageException(containerConfig.getImage());
     }
 
+    if (containerConfig instanceof Vantage6ContainerConfig v6Config) {
+      installVantage6Image(v6Config);
+    } else {
+      installRServerImage(containerConfig);
+    }
+  }
+
+  private void installRServerImage(ContainerConfig containerConfig) {
     // if rock is in the image name, it's rock
     int imageExposed = containerConfig.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
@@ -277,6 +290,71 @@ public class DockerService {
           .exec();
     } catch (DockerException e) {
       throw new ImageStartFailedException(containerConfig.getImage(), e);
+    }
+  }
+
+  private void installVantage6Image(Vantage6ContainerConfig v6Config) {
+    // Health check port for the v6-bridge
+    int healthPort = v6Config.getPort() != null ? v6Config.getPort() : 8081;
+    ExposedPort exposed = ExposedPort.tcp(healthPort);
+    Ports portBindings = new Ports();
+    portBindings.bind(exposed, Ports.Binding.bindPort(healthPort));
+
+    // Build bind mounts: Docker socket + Armadillo data directory
+    List<Bind> binds = new ArrayList<>();
+    binds.add(new Bind("/var/run/docker.sock", new Volume("/var/run/docker.sock")));
+
+    String absoluteDataDir = new File(storageRootDir).getAbsolutePath();
+    binds.add(new Bind(absoluteDataDir, new Volume("/mnt/armadillo-data"), AccessMode.ro));
+
+    // Mount encryption key if configured
+    if (v6Config.getEncryptionKey() != null) {
+      binds.add(
+          new Bind(
+              v6Config.getEncryptionKey(),
+              new Volume("/mnt/v6-encryption-key.pem"),
+              AccessMode.ro));
+    }
+
+    // Build environment variables
+    List<String> envVars = new ArrayList<>();
+    if (v6Config.getServerUrl() != null) {
+      envVars.add("V6_SERVER_URL=" + v6Config.getServerUrl());
+    }
+    if (v6Config.getApiKey() != null) {
+      envVars.add("V6_API_KEY=" + v6Config.getApiKey());
+    }
+    if (v6Config.getCollaborationId() != null) {
+      envVars.add("V6_COLLABORATION_ID=" + v6Config.getCollaborationId());
+    }
+    if (v6Config.getEncryptionKey() != null) {
+      envVars.add("V6_ENCRYPTION_KEY_PATH=/mnt/v6-encryption-key.pem");
+    }
+    envVars.add("V6_DATA_DIR=/mnt/armadillo-data");
+    if (v6Config.getAllowedAlgorithms() != null && !v6Config.getAllowedAlgorithms().isEmpty()) {
+      envVars.add("V6_ALLOWED_ALGORITHMS=" + String.join(",", v6Config.getAllowedAlgorithms()));
+    }
+    if (v6Config.getAllowedAlgorithmStores() != null
+        && !v6Config.getAllowedAlgorithmStores().isEmpty()) {
+      envVars.add(
+          "V6_ALLOWED_ALGORITHM_STORES=" + String.join(",", v6Config.getAllowedAlgorithmStores()));
+    }
+    if (v6Config.getAuthorizedProjects() != null && !v6Config.getAuthorizedProjects().isEmpty()) {
+      envVars.add("V6_AUTHORIZED_PROJECTS=" + String.join(",", v6Config.getAuthorizedProjects()));
+    }
+
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(v6Config.getImage())) {
+      cmd.withExposedPorts(exposed)
+          .withHostConfig(
+              new HostConfig()
+                  .withPortBindings(portBindings)
+                  .withBinds(binds)
+                  .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
+          .withName(v6Config.getName())
+          .withEnv(envVars)
+          .exec();
+    } catch (DockerException e) {
+      throw new ImageStartFailedException(v6Config.getImage(), e);
     }
   }
 
