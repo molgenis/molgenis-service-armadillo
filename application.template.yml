@@ -49,6 +49,30 @@ storage:
   ## to change location of the data storage
   root-dir: data
 
+# Vantage6 integration (uncomment to enable)
+# To use Armadillo as a vantage6 node, add a container with type: v6
+# Example initial container config in application.yml:
+#  armadillo:
+#    containers:
+#      - name: vantage6-node
+#        type: v6
+#        image: molgenis/armadillo-v6-bridge:latest
+#
+# After startup, configure the v6 container via the REST API:
+#   PUT /ds-containers/vantage6-node
+#   {
+#     "type": "v6",
+#     "name": "vantage6-node",
+#     "image": "molgenis/armadillo-v6-bridge:latest",
+#     "serverUrl": "https://v6-server.example.org",
+#     "apiKey": "your-node-api-key",
+#     "collaborationId": 1,
+#     "encryptionKey": "/path/to/private_key.pem",
+#     "allowedAlgorithms": ["harbor2.vantage6.ai/algorithms/.*"],
+#     "allowedAlgorithmStores": ["https://store.vantage6.ai"],
+#     "authorizedProjects": ["shared-projectA", "shared-projectB"]
+#   }
+
 # Needed to reallocate and for download (defaults 'logs/audit.log')
 #audit.log.path: logs/audit.log
 
