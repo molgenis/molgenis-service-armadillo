@@ -25,28 +25,47 @@ public class JwtDecoderConfig {
   @Value("${spring.profiles.active:default}")
   private String activeProfile;
 
+  private JwtClaimValidator<Collection<String>> getAudienceValidator(
+      OAuth2ResourceServerProperties properties) {
+    return new JwtClaimValidator<>(
+        AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
+  }
+
+  private OAuth2TokenValidator<Jwt> getJwtValidator(
+      String issuerUri, JwtClaimValidator<Collection<String>> audienceValidator) {
+    return new DelegatingOAuth2TokenValidator<>(
+        JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
+  }
+
+  private NimbusJwtDecoder getInternalDecoder(ResourceTokenService resourceTokenService) {
+    NimbusJwtDecoder internalDecoder =
+        NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
+    OAuth2TokenValidator<Jwt> internalValidator = getInternalValidator();
+    internalDecoder.setJwtValidator(internalValidator);
+    return internalDecoder;
+  }
+
+  private NimbusJwtDecoder getExternalDecoder(
+      String issuerUri, OAuth2ResourceServerProperties properties) {
+    var audienceValidator = getAudienceValidator(properties);
+    OAuth2TokenValidator<Jwt> jwtValidator = getJwtValidator(issuerUri, audienceValidator);
+    NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
+    externalDecoder.setJwtValidator(jwtValidator);
+    return externalDecoder;
+  }
+
+  private OAuth2TokenValidator<Jwt> getInternalValidator() {
+    return new DelegatingOAuth2TokenValidator<>(
+        new JwtTimestampValidator(), new JwtIssuerValidator("http://armadillo-internal"));
+  }
+
   @Bean
   public JwtDecoder jwtDecoder(
       OAuth2ResourceServerProperties properties, ResourceTokenService resourceTokenService) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
-      NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
-
-      var audienceValidator =
-          new JwtClaimValidator<Collection<String>>(
-              AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
-      OAuth2TokenValidator<Jwt> jwtValidator =
-          new DelegatingOAuth2TokenValidator<>(
-              JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
-
-      externalDecoder.setJwtValidator(jwtValidator);
-
-      NimbusJwtDecoder internalDecoder =
-          NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
-      OAuth2TokenValidator<Jwt> internalValidator =
-          new DelegatingOAuth2TokenValidator<>(
-              new JwtTimestampValidator(), new JwtIssuerValidator("http://armadillo-internal"));
-      internalDecoder.setJwtValidator(internalValidator);
+      NimbusJwtDecoder externalDecoder = getExternalDecoder(issuerUri, properties);
+      NimbusJwtDecoder internalDecoder = getInternalDecoder(resourceTokenService);
 
       return token -> {
         try {
