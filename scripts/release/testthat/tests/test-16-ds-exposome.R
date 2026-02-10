@@ -4,21 +4,6 @@ library(purrr)
 # Setup
 test_name <- "ds-exposome"
 
-# Setup tests
-test_that("upload exposome sources", {
-  skip_if_no_resources(test_name)
-  set_dm_permissions()
-  upload_many_sources(ref = release_env$exposome_ref, folder = "exposome")
-  succeed()
-})
-
-test_that("create and upload exposome resources", {
-  skip_if_no_resources(test_name)
-  exposome_resources <- create_many_resources(ref = release_env$exposome_ref, folder = "exposome")
-  upload_many_resources(resource = exposome_resources, folder = "exposome", ref = release_env$exposome_ref)
-  succeed()
-})
-
 test_that("assign and resolve exposome resources", {
   skip_if_no_resources(test_name)
   assign_many_resources(folder = "exposome", ref = release_env$exposome_ref)

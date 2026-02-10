@@ -1,4 +1,5 @@
 library(MolgenisArmadillo)
+library(purrr)
 
 # Setup
 test_name <- "setup-resources"
@@ -34,4 +35,24 @@ test_that("verify resource was uploaded", {
   expect_true(expected_resource %in% all_resources,
     info = sprintf("Resource %s not found. Available: %s",
                    expected_resource, paste(all_resources, collapse=", ")))
+})
+
+# Exposome resources (for test-16)
+test_that("upload exposome resources", {
+  do_skip_test(test_name)
+  do_skip_test("ds-exposome")
+  upload_many_sources(ref = release_env$exposome_ref, folder = "exposome")
+  exposome_resources <- create_many_resources(ref = release_env$exposome_ref, folder = "exposome")
+  upload_many_resources(resource = exposome_resources, folder = "exposome", ref = release_env$exposome_ref)
+  succeed()
+})
+
+# Omics resources (for test-17)
+test_that("upload omics resources", {
+  do_skip_test(test_name)
+  do_skip_test("ds-omics")
+  upload_many_sources(ref = release_env$omics_ref, folder = "omics")
+  omics_resources <- create_many_resources(ref = release_env$omics_ref, folder = "omics")
+  upload_many_resources(resource = omics_resources, folder = "omics", ref = release_env$omics_ref)
+  succeed()
 })

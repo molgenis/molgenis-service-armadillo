@@ -19,10 +19,6 @@ gwas_prepare_data <- function() {
 
 test_that("ds.metaGWAS", {
   skip_if_no_resources(test_name)
-  set_dm_permissions()
-  upload_many_sources(ref = release_env$omics_ref, folder = "omics")
-  omics_resources <- create_many_resources(ref = release_env$omics_ref, folder = "omics")
-  upload_many_resources(resource = omics_resources, folder = "omics", ref = release_env$omics_ref)
   assign_many_resources(folder = "omics", ref = release_env$omics_ref)
 
   map(c("chr1", "chr2"), ~ DSI::datashield.assign.expr(
