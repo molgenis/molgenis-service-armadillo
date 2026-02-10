@@ -43,7 +43,7 @@ public class ResourceTokenService {
                           .privateKey((RSAPrivateKey) keyPair.getPrivate())
                           .build())));
     } catch (Exception e) {
-      throw new RuntimeException("Failed to initialize RSA key pair", e);
+      throw new SecurityException("Failed to initialize RSA key pair", e);
     }
   }
 
