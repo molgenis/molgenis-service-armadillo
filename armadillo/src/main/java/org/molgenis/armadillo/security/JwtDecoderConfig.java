@@ -20,24 +20,24 @@ import org.springframework.security.oauth2.jwt.*;
 @Configuration
 public class JwtDecoderConfig {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
+  static Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
   @Value("${spring.profiles.active:default}")
-  private String activeProfile;
+  String activeProfile;
 
-  private JwtClaimValidator<Collection<String>> getAudienceValidator(
+  JwtClaimValidator<Collection<String>> getAudienceValidator(
       OAuth2ResourceServerProperties properties) {
     return new JwtClaimValidator<>(
         AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
   }
 
-  private OAuth2TokenValidator<Jwt> getJwtValidator(
+  OAuth2TokenValidator<Jwt> getJwtValidator(
       String issuerUri, JwtClaimValidator<Collection<String>> audienceValidator) {
     return new DelegatingOAuth2TokenValidator<>(
         JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
   }
 
-  private NimbusJwtDecoder getInternalDecoder(ResourceTokenService resourceTokenService) {
+  NimbusJwtDecoder getInternalDecoder(ResourceTokenService resourceTokenService) {
     NimbusJwtDecoder internalDecoder =
         NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
     OAuth2TokenValidator<Jwt> internalValidator = getInternalValidator();
@@ -45,8 +45,7 @@ public class JwtDecoderConfig {
     return internalDecoder;
   }
 
-  private NimbusJwtDecoder getExternalDecoder(
-      String issuerUri, OAuth2ResourceServerProperties properties) {
+  NimbusJwtDecoder getExternalDecoder(String issuerUri, OAuth2ResourceServerProperties properties) {
     var audienceValidator = getAudienceValidator(properties);
     OAuth2TokenValidator<Jwt> jwtValidator = getJwtValidator(issuerUri, audienceValidator);
     NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
@@ -54,7 +53,7 @@ public class JwtDecoderConfig {
     return externalDecoder;
   }
 
-  private OAuth2TokenValidator<Jwt> getInternalValidator() {
+  OAuth2TokenValidator<Jwt> getInternalValidator() {
     return new DelegatingOAuth2TokenValidator<>(
         new JwtTimestampValidator(), new JwtIssuerValidator("http://armadillo-internal"));
   }
