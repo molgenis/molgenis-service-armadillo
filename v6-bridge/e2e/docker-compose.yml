@@ -1,0 +1,64 @@
+# End-to-end test environment for Armadillo + Vantage6 integration.
+#
+# Usage:
+#   cd v6-bridge/e2e
+#   docker compose up -d
+#
+# This starts:
+#   1. A vantage6 server (port 8000)
+#   2. The v6-bridge container connected to the v6 server
+#
+# Armadillo itself should be run separately (e.g. via ./gradlew bootRun)
+# with its data directory at ../../data/
+#
+# After startup, use the vantage6 Python client to:
+#   1. Create an organization and collaboration on the v6 server
+#   2. Register the bridge node with an API key
+#   3. Submit a test algorithm task
+#
+# See README.md for step-by-step instructions.
+
+services:
+  # Vantage6 coordination server
+  v6-server:
+    image: harbor2.vantage6.ai/infrastructure/server:cotopaxi
+    ports:
+      - "8000:80"
+    volumes:
+      - ./v6-server-config.yaml:/mnt/config.yaml
+    labels:
+      - vantage6-type=server
+    command: ["/bin/bash", "-c", "/vantage6/vantage6-server/server.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # V6-bridge: Armadillo's vantage6 node
+  # NOTE: Before starting this, you need to:
+  #   1. Create an organization + collaboration on the v6 server
+  #   2. Get a node API key
+  #   3. Set the V6_API_KEY environment variable below
+  v6-bridge:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    depends_on:
+      v6-server:
+        condition: service_healthy
+    environment:
+      V6_SERVER_URL: http://v6-server:80
+      V6_API_KEY: ${V6_API_KEY:-REPLACE_WITH_API_KEY}
+      V6_COLLABORATION_ID: ${V6_COLLABORATION_ID:-1}
+      V6_DATA_DIR: /mnt/armadillo-data
+      V6_AUTHORIZED_PROJECTS: ${V6_AUTHORIZED_PROJECTS:-}
+      V6_LOG_LEVEL: DEBUG
+    volumes:
+      # Mount Armadillo's data directory (read-only)
+      - ../../data:/mnt/armadillo-data:ro
+      # Mount Docker socket so bridge can launch algorithm containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8081:8081"

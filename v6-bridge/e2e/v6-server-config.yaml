@@ -1,0 +1,17 @@
+# Minimal vantage6 server configuration for local end-to-end testing.
+# This config is mounted into the vantage6 server container.
+
+description: "Local Armadillo v6 integration test server"
+ip: 0.0.0.0
+port: 80
+api_path: /api
+uri: http://localhost:8000
+
+logging:
+  level: DEBUG
+  use_console: true
+  max_size: 1024
+  backup_count: 5
+  format: "%(asctime)s - %(name)-14s - %(levelname)-8s - %(message)s"
+
+allow_double_logins: true
