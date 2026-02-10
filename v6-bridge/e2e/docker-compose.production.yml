@@ -1,0 +1,50 @@
+# Production deployment example with Docker socket proxy for security.
+#
+# This compose file adds a docker-socket-proxy that restricts the
+# v6-bridge's Docker API access to only the operations needed for
+# managing algorithm containers.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
+
+services:
+  # Docker socket proxy - restricts API calls
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    restart: unless-stopped
+    environment:
+      # Allow operations needed for algorithm containers
+      CONTAINERS: 1
+      IMAGES: 1
+      NETWORKS: 1
+      VOLUMES: 1
+      POST: 1
+      # Deny dangerous operations
+      BUILD: 0
+      COMMIT: 0
+      EXEC: 0
+      SWARM: 0
+      SECRETS: 0
+      SERVICES: 0
+      TASKS: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-proxy
+
+  # Override v6-bridge to use proxy instead of direct socket
+  v6-bridge:
+    environment:
+      DOCKER_HOST: tcp://docker-proxy:2375
+    volumes:
+      # Remove the Docker socket mount - use proxy instead
+      - ../../data:/mnt/armadillo-data:ro
+    depends_on:
+      - docker-proxy
+    networks:
+      - docker-proxy
+      - default
+
+networks:
+  docker-proxy:
+    internal: true
