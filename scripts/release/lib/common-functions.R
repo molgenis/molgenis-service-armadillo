@@ -199,10 +199,11 @@ set_dm_permissions <- function() {
 download_many_sources <- function(ref) {
   missing <- ref[!file.exists(ref$path), ]
   if (nrow(missing) > 0) {
-    cli_alert_warning(sprintf("Missing %d resource(s), downloading into: %s", nrow(missing), release_env$test_file_path))
+    cli_alert_warning(sprintf("Missing %d resource(s)", nrow(missing)))
+    cli_alert_info(sprintf("Downloading into: %s", release_env$test_file_path))
     for (i in seq_len(nrow(missing))) {
       row <- missing[i, ]
-      cli_alert_info(sprintf("Downloading %s (%d/%d)", row$file_name, i, nrow(missing)))
+      cli_alert_info(sprintf("Downloading %s (%d/%d) from: %s", row$file_name, i, nrow(missing), row$url))
       download_with_progress(row$url, row$path)
     }
     cli_alert_success("Test resources downloaded")
