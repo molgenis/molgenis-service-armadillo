@@ -294,6 +294,18 @@ public class DockerService {
   }
 
   private void installVantage6Image(Vantage6ContainerConfig v6Config) {
+    // Validate required v6 configuration
+    if (v6Config.getServerUrl() == null || v6Config.getServerUrl().isBlank()) {
+      throw new ImageStartFailedException(
+          v6Config.getImage(),
+          new IllegalStateException("serverUrl is required for vantage6 containers"));
+    }
+    if (v6Config.getApiKey() == null || v6Config.getApiKey().isBlank()) {
+      throw new ImageStartFailedException(
+          v6Config.getImage(),
+          new IllegalStateException("apiKey is required for vantage6 containers"));
+    }
+
     // Health check port for the v6-bridge
     int healthPort = v6Config.getPort() != null ? v6Config.getPort() : 8081;
     ExposedPort exposed = ExposedPort.tcp(healthPort);

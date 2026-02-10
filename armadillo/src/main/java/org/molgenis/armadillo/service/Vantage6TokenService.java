@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.molgenis.armadillo.exceptions.UnknownVantage6TokenException;
 import org.molgenis.armadillo.metadata.Vantage6Token;
 import org.molgenis.armadillo.metadata.Vantage6TokensLoader;
 import org.molgenis.armadillo.metadata.Vantage6TokensMetadata;
@@ -36,7 +37,7 @@ public class Vantage6TokenService {
   public Vantage6Token getById(String tokenId) {
     Vantage6Token token = metadata.getTokens().get(tokenId);
     if (token == null) {
-      throw new IllegalArgumentException("Vantage6 token not found: " + tokenId);
+      throw new UnknownVantage6TokenException(tokenId);
     }
     return token;
   }
@@ -78,7 +79,7 @@ public class Vantage6TokenService {
 
   public void delete(String tokenId) {
     if (metadata.getTokens().remove(tokenId) == null) {
-      throw new IllegalArgumentException("Vantage6 token not found: " + tokenId);
+      throw new UnknownVantage6TokenException(tokenId);
     }
     save();
   }

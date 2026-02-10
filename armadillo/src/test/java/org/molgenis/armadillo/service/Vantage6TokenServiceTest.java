@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.molgenis.armadillo.exceptions.UnknownVantage6TokenException;
 import org.molgenis.armadillo.metadata.Vantage6Token;
 import org.molgenis.armadillo.metadata.Vantage6TokensLoader;
 import org.molgenis.armadillo.metadata.Vantage6TokensMetadata;
@@ -58,7 +59,7 @@ class Vantage6TokenServiceTest {
 
   @Test
   void testGetByIdNotFound() {
-    assertThrows(IllegalArgumentException.class, () -> tokenService.getById("nonexistent"));
+    assertThrows(UnknownVantage6TokenException.class, () -> tokenService.getById("nonexistent"));
   }
 
   @Test
@@ -93,12 +94,12 @@ class Vantage6TokenServiceTest {
 
     tokenService.delete(id);
 
-    assertThrows(IllegalArgumentException.class, () -> tokenService.getById(id));
+    assertThrows(UnknownVantage6TokenException.class, () -> tokenService.getById(id));
   }
 
   @Test
   void testDeleteNotFound() {
-    assertThrows(IllegalArgumentException.class, () -> tokenService.delete("nonexistent"));
+    assertThrows(UnknownVantage6TokenException.class, () -> tokenService.delete("nonexistent"));
   }
 
   @Test
