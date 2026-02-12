@@ -417,7 +417,7 @@ public class StorageController {
       Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
       if (principal.getClass() == JwtAuthenticationToken.class) {
         JwtAuthenticationToken token = (JwtAuthenticationToken) principal;
-        return downLoadResourceWithToken(token, project, object, data);
+        return downloadResourceWithToken(token, project, object, data);
       } else {
         throw new ResponseStatusException(
             HttpStatus.FORBIDDEN,
@@ -432,10 +432,11 @@ public class StorageController {
     }
   }
 
-  ResponseEntity<InputStreamResource> downLoadResourceWithToken(
+  ResponseEntity<InputStreamResource> downloadResourceWithToken(
       JwtAuthenticationToken token, String project, String object, Map<String, Object> data) {
     Map<String, Object> claims = token.getTokenAttributes();
     String errorMsg = "Token must be issued by armadillo application with correct permissions";
+    // find out where extension is stripped out
     if (claims.get("iss").equals("http://armadillo-internal")) {
       if (claims.get("resource_project").equals(project)) {
         String resourceObj = object.split("\\.")[0].toLowerCase();
