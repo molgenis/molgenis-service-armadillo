@@ -91,6 +91,9 @@ test_that("ds.alleleFrequency", {
   gwas_prepare_data()
   freqs <- ds.alleleFrequency("gds.Data1", datasources = release_env$conns)
   expect_identical(class(freqs), c("dsalleleFrequency", "tbl_df", "tbl", "data.frame"))
-  expect_identical(dim(freqs), c(69762L, 3L))
+  # Row count varies due to Laplace noise in differential privacy filtering (MAF threshold).
+  # ds.setSeed requires permissive mode so we allow a tolerance instead.
+  expect_true(nrow(freqs) > 69000 && nrow(freqs) < 70000,
+    info = sprintf("Expected ~69762 rows, got %d", nrow(freqs)))
   expect_identical(colnames(freqs), c("rs", "n", "pooled_MAF"))
 })
