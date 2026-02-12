@@ -14,7 +14,7 @@ test_that("verify assign resource", {
   datashield.assign.resource(release_env$conns, resource = full_resource_path, symbol = "eSet_0y_EUR")
   resource_class <- ds.class("eSet_0y_EUR", datasources = release_env$conns)
   expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
-  expect_length(setdiff(resource_class$testserver, expected), 0)
+  expect_identical(resource_class$armadillo, expected)
 })
 
 test_that("verify assign expression", {
@@ -25,6 +25,5 @@ test_that("verify assign expression", {
     expr = quote(as.resource.object(eSet_0y_EUR))
   )
   resource_class <- ds.class("methy_0y_EUR", datasources = release_env$conns)
-  expected <- c("ExpressionSet")
-  expect_length(setdiff(resource_class$testserver, expected), 0)
+  expect_identical(as.character(resource_class$armadillo), "ExpressionSet")
 })
