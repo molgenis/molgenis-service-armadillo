@@ -20,6 +20,7 @@ import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -31,6 +32,7 @@ import org.molgenis.r.service.RExecutorService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -45,6 +47,7 @@ class CommandsImpl implements Commands {
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
   private final ProfileService profileService;
+  private final ResourceTokenService resourceTokenService;
 
   private ArmadilloSession armadilloSession;
 
@@ -58,7 +61,8 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ProfileService profileService) {
+      ProfileService profileService,
+      ResourceTokenService resourceTokenService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
     this.rExecutorService = rExecutorService;
@@ -66,6 +70,7 @@ class CommandsImpl implements Commands {
     this.connectionFactory = connectionFactory;
     this.processService = processService;
     this.profileService = profileService;
+    this.resourceTokenService = resourceTokenService;
   }
 
   @Override
@@ -177,13 +182,15 @@ class CommandsImpl implements Commands {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
+    JwtAuthenticationToken resourceAuth =
+        resourceTokenService.generateResourceToken(principal, project, objectName);
     return schedule(
         new ArmadilloCommandImpl<>("Load resource " + resource, false) {
           @Override
           protected Void doWithConnection(RServerConnection connection) {
             InputStream inputStream = armadilloStorage.loadResource(project, objectName);
             rExecutorService.loadResource(
-                principal,
+                resourceAuth,
                 connection,
                 new InputStreamResource(inputStream),
                 resource + RDS,
