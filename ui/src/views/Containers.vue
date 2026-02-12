@@ -312,7 +312,6 @@ export default defineComponent({
       return this.containers.filter((container) => container.name === name)[0];
     },
     setEditContainer(container) {
-      console.log(container);
       this.containerToEdit = container;
     },
     proceedDelete(containerName: string) {
@@ -329,12 +328,8 @@ export default defineComponent({
     clearRecordToDelete() {
       this.recordToDelete = "";
     },
-    saveContainer(container: Container) {
-      this.containerToEdit = container.name;
-    },
     saveEditedContainer(event) {
       this.container = event;
-      console.log(event.options);
       this.containerToEdit = event.name;
       this.clearUserMessages();
       const container: Container = this.containers[this.containerToEditIndex];
@@ -382,7 +377,6 @@ export default defineComponent({
     },
     proceedEdit(container: Container) {
       this.addContainer = false;
-      container.options["datashield.seed"] = container.datashieldSeed;
       //add/update
       this.loadingContainer = container.name;
       putContainer(container)
