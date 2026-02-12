@@ -4,11 +4,67 @@ library(purrr)
 # Setup
 test_name <- "ds-exposome"
 
-test_that("assign and resolve exposome resources", {
+test_that("assign exposures resource", {
   skip_if_no_resources(test_name)
-  assign_many_resources(folder = "exposome", ref = release_env$exposome_ref)
-  resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
-  succeed()
+  datashield.assign.resource(release_env$conns,
+    resource = paste0(release_env$project1, "/exposome/exposures"), symbol = "exposures")
+  resource_class <- ds.class("exposures", datasources = release_env$conns)
+  expected <- c("TidyFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
+  expect_identical(resource_class$armadillo, expected)
+})
+
+test_that("assign description resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.resource(release_env$conns,
+    resource = paste0(release_env$project1, "/exposome/description"), symbol = "description")
+  resource_class <- ds.class("description", datasources = release_env$conns)
+  expected <- c("TidyFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
+  expect_identical(resource_class$armadillo, expected)
+})
+
+test_that("assign phenotypes resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.resource(release_env$conns,
+    resource = paste0(release_env$project1, "/exposome/phenotypes"), symbol = "phenotypes")
+  resource_class <- ds.class("phenotypes", datasources = release_env$conns)
+  expected <- c("TidyFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
+  expect_identical(resource_class$armadillo, expected)
+})
+
+test_that("assign exposomeSet resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.resource(release_env$conns,
+    resource = paste0(release_env$project1, "/exposome/exposomeSet"), symbol = "exposomeSet")
+  resource_class <- ds.class("exposomeSet", datasources = release_env$conns)
+  expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
+  expect_identical(resource_class$armadillo, expected)
+})
+
+test_that("resolve description resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.expr(release_env$conns, symbol = "description",
+    expr = as.symbol("as.resource.data.frame(description)"))
+  resource_class <- ds.class("description", datasources = release_env$conns)
+  expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
+  expect_identical(ds.dim("description", datasources = release_env$conns)[[1]], c(88, 3))
+})
+
+test_that("resolve exposures resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.expr(release_env$conns, symbol = "exposures",
+    expr = as.symbol("as.resource.data.frame(exposures)"))
+  resource_class <- ds.class("exposures", datasources = release_env$conns)
+  expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
+  expect_identical(ds.dim("exposures", datasources = release_env$conns)[[1]], c(109, 89))
+})
+
+test_that("resolve phenotypes resource", {
+  skip_if_no_resources(test_name)
+  datashield.assign.expr(release_env$conns, symbol = "phenotypes",
+    expr = as.symbol("as.resource.data.frame(phenotypes)"))
+  resource_class <- ds.class("phenotypes", datasources = release_env$conns)
+  expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
+  expect_identical(ds.dim("phenotypes", datasources = release_env$conns)[[1]], c(109, 10))
 })
 
 # Function tests
