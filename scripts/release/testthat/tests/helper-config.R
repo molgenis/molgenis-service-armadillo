@@ -35,7 +35,7 @@ show_version_info_combined <- function(libs1, label1, libs2, label2) {
 
 configure_test <- function() {
   cli_progress_step("Reading config from '.env'")
-  readRenviron(".env")
+  suppressWarnings(readRenviron(".env"))
 
   skip_tests <- Sys.getenv("SKIP_TESTS")
   skip_tests <- str_split(skip_tests, ",")[[1]]

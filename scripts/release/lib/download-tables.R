@@ -39,12 +39,14 @@ download_tables <- function() {
     return()
   }
 
-  cli_alert_warning(paste0("Missing ", length(missing_idx), " table(s), downloading into: ", release_env$dest))
+  test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s"
+
+  cli_alert_warning(paste0("Missing ", length(missing_idx), " table(s)"))
+  cli_alert_info(paste0("Downloading from: ", sprintf(test_files_url_template, "")))
+  cli_alert_info(paste0("Downloading into: ", release_env$dest))
   create_dir_if_not_exists(release_env$dest, "core")
   create_dir_if_not_exists(release_env$dest, "outcome")
   create_dir_if_not_exists(release_env$dest, "survival")
-
-  test_files_url_template <- "https://github.com/molgenis/molgenis-service-armadillo/raw/master/data/shared-lifecycle/%s"
 
   for (i in seq_along(missing_idx)) {
     idx <- missing_idx[i]

@@ -34,7 +34,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String ASSIGN_FAILURE = "ASSIGN_FAILURE";
   public static final String EXECUTE = "EXECUTE";
   public static final String EXECUTE_FAILURE = "EXECUTE_FAILURE";
-  public static final String DEBUG = "DEBUG";
   public static final String GET_ASSIGN_METHODS = "GET_ASSIGN_METHODS";
   public static final String GET_AGGREGATE_METHODS = "GET_AGGREGATE_METHODS";
   public static final String GET_USER_WORKSPACES = "GET_USER_WORKSPACES";
