@@ -255,7 +255,7 @@ import {
 import InlineRowEdit from "@/components/InlineRowEdit.vue";
 import Table from "@/components/Table.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
-import ProfileStatus from "@/components/ProfileStatus.vue";
+import ProfileStatus from "@/components/ContainerStatus.vue";
 import Badge from "@/components/Badge.vue";
 import { ProfilesData, TypeObject } from "@/types/types";
 import { useRouter } from "vue-router";

@@ -23,7 +23,7 @@ import {
   convertStringToBytes,
   isDate,
   toPercentage, 
-  useProfileStatus
+  useContainerStatus
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 import { defineComponent } from "vue";
@@ -465,15 +465,15 @@ describe("utils", () => {
     });
   });
 
-const mockedGetProfileStatus = jest.spyOn(api, "getProfileStatus");
+const mockedGetContainerStatus = jest.spyOn(api, "getContainerStatus");
 
-describe("useProfileStatus", () => {
+describe("useContainerStatus", () => {
   let wrapper: VueWrapper<any> | null = null;
 
   const Harness = defineComponent({
     template: "<div/>",
     setup() {
-      return useProfileStatus(); // { status, startPolling, stopPolling }
+      return useContainerStatus(); // { status, startPolling, stopPolling }
     },
   });
 
@@ -492,65 +492,65 @@ describe("useProfileStatus", () => {
   });
 
   test("startPolling triggers an immediate fetch and sets status", async () => {
-    mockedGetProfileStatus.mockResolvedValue({
-      status: "Installing profile",
+    mockedGetContainerStatus.mockResolvedValue({
+      status: "Installing container",
       totalLayers: 4,
       completedLayers: 1,
     } as any);
 
-    await wrapper!.vm.startPolling("MyProfile", 1000);
+    await wrapper!.vm.startPolling("MyContainer", 1000);
 
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(1);
-    expect(mockedGetProfileStatus).toHaveBeenCalledWith("MyProfile");
+    expect(mockedGetContainerStatus).toHaveBeenCalledTimes(1);
+    expect(mockedGetContainerStatus).toHaveBeenCalledWith("MyContainer");
 
     await Promise.resolve();
 
     expect(wrapper!.vm.status).toEqual({
-      status: "Installing profile",
+      status: "Installing container",
       totalLayers: 4,
       completedLayers: 1,
     });
   });
 
   test("polls repeatedly at the given interval", async () => {
-    mockedGetProfileStatus
-      .mockResolvedValueOnce({ status: "Installing profile" } as any)
-      .mockResolvedValueOnce({ status: "Installing profile" } as any)
-      .mockResolvedValueOnce({ status: "Installing profile" } as any);
+    mockedGetContainerStatus
+      .mockResolvedValueOnce({ status: "Installing container" } as any)
+      .mockResolvedValueOnce({ status: "Installing container" } as any)
+      .mockResolvedValueOnce({ status: "Installing container" } as any);
 
-    await wrapper!.vm.startPolling("MyProfile", 1000);
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(1);
-
-    jest.advanceTimersByTime(1000);
-    await Promise.resolve();
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(2);
+    await wrapper!.vm.startPolling("MyContainer", 1000);
+    expect(mockedGetContainerStatus).toHaveBeenCalledTimes(1);
 
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
-    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(3);
+    expect(mockedGetContainerStatus).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(1000);
+    await Promise.resolve();
+    expect(mockedGetContainerStatus).toHaveBeenCalledTimes(3);
   });
 
-  test("useProfileStatus stops polling when status becomes 'Profile Installed'", async () => {
+  test("useContainerStatus stops polling when status becomes 'Container Installed'", async () => {
   jest.useFakeTimers();
 
   const responses = [
-    { status: "Installing profile" },
-    { status: "Installing profile" },
-    { status: "Profile installed" }, // must match the hook’s stop condition
+    { status: "Installing container" },
+    { status: "Installing container" },
+    { status: "Container installed" }, // must match the hook’s stop condition
   ];
 
-  mockedGetProfileStatus.mockImplementation(() =>
+  mockedGetContainerStatus.mockImplementation(() =>
     Promise.resolve(
       responses.length
         ? responses.shift()!
-        : { status: "Profile installed" },
+        : { status: "Container installed" },
     ),
   );
 
   // Tiny test component that uses the composable inside setup()
   const TestComp = defineComponent({
     setup() {
-      const composable = useProfileStatus();
+      const composable = useContainerStatus();
       // expose to wrapper.vm
       return composable;
     },
@@ -561,7 +561,8 @@ describe("useProfileStatus", () => {
   const vm = wrapper.vm as any;
 
   // Start polling with required name + known interval
-  vm.startPolling("MyProfile", 1000);
+  // Start polling with required name + known interval
+  vm.startPolling("MyContainer", 1000);
 
   const flush = async (ms: number) => {
     jest.advanceTimersByTime(ms);
@@ -572,77 +573,77 @@ describe("useProfileStatus", () => {
   // Immediate call from startPolling + 2 interval ticks to consume our scripted responses
   await flush(0);      // initial fetch
   await flush(1000);   // installing
-  await flush(1000);   // profile installed → stopPolling should be called inside hook
+  await flush(1000);   // container installed → stopPolling should be called inside hook
 
-  const callsAtInstalled = mockedGetProfileStatus.mock.calls.length;
+  const callsAtInstalled = mockedGetContainerStatus.mock.calls.length;
   expect(callsAtInstalled).toBeGreaterThanOrEqual(3); // sanity
 
-  // After "Profile installed", no more polling
+  // After "Container installed", no more polling
   await flush(5000);
 
-  expect(mockedGetProfileStatus).toHaveBeenCalledTimes(callsAtInstalled);
+  expect(mockedGetContainerStatus).toHaveBeenCalledTimes(callsAtInstalled);
 });
 
 
   test("stopPolling clears the interval", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
-    await wrapper!.vm.startPolling("MyProfile", 1000);
+    mockedGetContainerStatus.mockResolvedValue({ status: "Installing container" } as any);
+    await wrapper!.vm.startPolling("MyContainer", 1000);
 
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
-    const calls = mockedGetProfileStatus.mock.calls.length;
+    const calls = mockedGetContainerStatus.mock.calls.length;
 
     wrapper!.vm.stopPolling();
     jest.advanceTimersByTime(3000);
     await Promise.resolve();
 
-    expect(mockedGetProfileStatus.mock.calls.length).toBe(calls);
+    expect(mockedGetContainerStatus.mock.calls.length).toBe(calls);
   });
 
   test("does nothing if name is empty", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    mockedGetContainerStatus.mockResolvedValue({ status: "Installing container" } as any);
 
     await wrapper!.vm.startPolling("", 1000);
 
-    expect(mockedGetProfileStatus).not.toHaveBeenCalled();
+    expect(mockedGetContainerStatus).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(2000);
     await Promise.resolve();
 
-    expect(mockedGetProfileStatus).not.toHaveBeenCalled();
+    expect(mockedGetContainerStatus).not.toHaveBeenCalled();
     expect(wrapper!.vm.status).toBeNull();
   });
 
   test("on error: logs and stops polling", async () => {
     const err = new Error("boom");
     const logSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    mockedGetProfileStatus.mockRejectedValue(err);
+    mockedGetContainerStatus.mockRejectedValue(err);
 
-    await wrapper!.vm.startPolling("MyProfile", 1000);
+    await wrapper!.vm.startPolling("MyContainer", 1000);
     await Promise.resolve();
 
-    const afterReject = mockedGetProfileStatus.mock.calls.length;
+    const afterReject = mockedGetContainerStatus.mock.calls.length;
 
     jest.advanceTimersByTime(3000);
     await Promise.resolve();
 
-    expect(mockedGetProfileStatus.mock.calls.length).toBe(afterReject);
+    expect(mockedGetContainerStatus.mock.calls.length).toBe(afterReject);
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();
   });
 
   test("cleans up interval on unmount", async () => {
-    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
-    await wrapper!.vm.startPolling("MyProfile", 1000);
+    mockedGetContainerStatus.mockResolvedValue({ status: "Installing container" } as any);
+    await wrapper!.vm.startPolling("MyContainer", 1000);
 
     wrapper!.unmount();
     wrapper = null;
 
-    const before = mockedGetProfileStatus.mock.calls.length;
+    const before = mockedGetContainerStatus.mock.calls.length;
     jest.advanceTimersByTime(5000);
     await Promise.resolve();
 
-    expect(mockedGetProfileStatus.mock.calls.length).toBe(before);
+    expect(mockedGetContainerStatus.mock.calls.length).toBe(before);
   });
 });
 });
