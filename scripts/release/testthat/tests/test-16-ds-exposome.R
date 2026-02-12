@@ -52,8 +52,8 @@ test_that("resolve description resource", {
   resource_class <- ds.class("description", datasources = release_env$conns)
   dims <- ds.dim("description", datasources = release_env$conns)[[1]]
   expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
-  expect_identical(dims, c(88, 3))
-  if (identical(dims, c(88, 3))) release_env$exposome_resolved[["description"]] <- TRUE
+  expect_identical(dims, as.integer(c(88, 3)))
+  if (identical(dims, as.integer(c(88, 3)))) release_env$exposome_resolved[["description"]] <- TRUE
 })
 
 test_that("resolve exposures resource", {
@@ -63,8 +63,8 @@ test_that("resolve exposures resource", {
   resource_class <- ds.class("exposures", datasources = release_env$conns)
   dims <- ds.dim("exposures", datasources = release_env$conns)[[1]]
   expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
-  expect_identical(dims, c(109, 89))
-  if (identical(dims, c(109, 89))) release_env$exposome_resolved[["exposures"]] <- TRUE
+  expect_identical(dims, as.integer(c(109, 89)))
+  if (identical(dims, as.integer(c(109, 89)))) release_env$exposome_resolved[["exposures"]] <- TRUE
 })
 
 test_that("resolve phenotypes resource", {
@@ -74,8 +74,8 @@ test_that("resolve phenotypes resource", {
   resource_class <- ds.class("phenotypes", datasources = release_env$conns)
   dims <- ds.dim("phenotypes", datasources = release_env$conns)[[1]]
   expect_identical(resource_class$armadillo, c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
-  expect_identical(dims, c(109, 10))
-  if (identical(dims, c(109, 10))) release_env$exposome_resolved[["phenotypes"]] <- TRUE
+  expect_identical(dims, as.integer(c(109, 10)))
+  if (identical(dims, as.integer(c(109, 10)))) release_env$exposome_resolved[["phenotypes"]] <- TRUE
 })
 
 # Function tests
