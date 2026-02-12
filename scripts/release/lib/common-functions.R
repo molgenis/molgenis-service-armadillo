@@ -232,16 +232,3 @@ upload_many_resources <- function(resource, folder, ref) {
       armadillo.upload_resource(project = release_env$project1, folder = folder, resource = resource, name = name)
     })
 }
-
-assign_many_resources <- function(folder, ref) {
-  ref$object_name %>%
-    map(function(x) {
-      exp_resource_path <- paste0(release_env$project1, "/", folder, "/", x)
-      datashield.assign.resource(release_env$conns, resource = exp_resource_path, symbol = x)
-    })
-}
-
-resolve_many_resources <- function(resource_names) {
-  resource_names %>%
-    map(~ datashield.assign.expr(release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
-}
