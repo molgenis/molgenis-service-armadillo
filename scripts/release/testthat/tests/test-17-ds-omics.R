@@ -2,7 +2,7 @@ library(dsOmicsClient)
 library(purrr)
 
 # Setup
-test_name <- "ds-omics"
+test_name <- "dsOmics"
 
 gwas_prepare_data <- function() {
   lapply(1:2, function(x) {
@@ -18,7 +18,9 @@ gwas_prepare_data <- function() {
 }
 
 test_that("ds.metaGWAS", {
-  skip_if_no_resources(test_name)
+  do_skip_test(test_name)
+  skip_if_no_package(test_name)
+  skip_if_no_resources()
   set_dm_permissions()
   upload_many_sources(ref = release_env$omics_ref, folder = "omics")
   omics_resources <- create_many_resources(ref = release_env$omics_ref, folder = "omics")

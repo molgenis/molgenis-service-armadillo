@@ -1,16 +1,17 @@
 library(dsSurvivalClient)
 
 # Setup
-test_name <- "ds-survival"
+test_name <- "dsSurvival"
 data_path <- "/survival/veteran"
 
 # Assign survival data (setup, not a test)
-if (!test_name %in% release_env$skip_tests) {
+if (!should_skip_test(test_name) && test_name %in% release_env$installed_ds_packages) {
   invisible(datashield.assign.table(release_env$conns, "survival", sprintf("%s%s", release_env$project1, data_path)))
 }
 
 test_that("ds.Surv creates correct class", {
   do_skip_test(test_name)
+  skip_if_no_package(test_name)
   dsSurvivalClient::ds.Surv(
     time = "survival$time",
     event = "survival$status",
@@ -23,6 +24,7 @@ test_that("ds.Surv creates correct class", {
 
 test_that("ds.coxph.SLMA returns expected elements", {
   do_skip_test(test_name)
+  skip_if_no_package(test_name)
   sink(nullfile())
   cox_output <- dsSurvivalClient::ds.coxph.SLMA(formula = "surv_object~survival$age",
                                                  datasources = release_env$conns)
@@ -36,6 +38,7 @@ test_that("ds.coxph.SLMA returns expected elements", {
 
 test_that("ds.coxphSLMAassign creates correct class", {
   do_skip_test(test_name)
+  skip_if_no_package(test_name)
   sink(nullfile())
   dsSurvivalClient::ds.coxphSLMAassign(
     formula = "surv_object~survival$age",
@@ -49,6 +52,7 @@ test_that("ds.coxphSLMAassign creates correct class", {
 
 test_that("ds.cox.zphSLMA returns expected elements", {
   do_skip_test(test_name)
+  skip_if_no_package(test_name)
   hazard_assumption <- dsSurvivalClient::ds.cox.zphSLMA(fit = "coxph_serverside",
                                                          datasources = release_env$conns)
   expected_names <- c("table", "var", "transform", "call")
@@ -57,6 +61,7 @@ test_that("ds.cox.zphSLMA returns expected elements", {
 
 test_that("ds.coxphSummary returns expected elements", {
   do_skip_test(test_name)
+  skip_if_no_package(test_name)
   hazard_summary <- dsSurvivalClient::ds.coxphSummary(x = "coxph_serverside",
                                                        datasources = release_env$conns)
   expected_names <- c(
