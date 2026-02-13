@@ -13,22 +13,22 @@ test_that("upload test data", {
   monthlyrep <- read_parquet_with_message("core/monthlyrep", dest)
   trimesterrep <- read_parquet_with_message("core/trimesterrep", dest)
 
-  armadillo.upload_table(release_env$project1, "2_1-core-1_0", nonrep)
-  armadillo.upload_table(release_env$project1, "2_1-core-1_0", yearlyrep)
-  armadillo.upload_table(release_env$project1, "2_1-core-1_0", monthlyrep)
-  armadillo.upload_table(release_env$project1, "2_1-core-1_0", trimesterrep)
+  upload_table_if_new(release_env$project1, "2_1-core-1_0", nonrep)
+  upload_table_if_new(release_env$project1, "2_1-core-1_0", yearlyrep)
+  upload_table_if_new(release_env$project1, "2_1-core-1_0", monthlyrep)
+  upload_table_if_new(release_env$project1, "2_1-core-1_0", trimesterrep)
 
   rm(nonrep, yearlyrep, monthlyrep, trimesterrep)
 
   nonrep <- read_parquet_with_message("outcome/nonrep", dest)
   yearlyrep <- read_parquet_with_message("outcome/yearlyrep", dest)
 
-  armadillo.upload_table(release_env$project1, "1_1-outcome-1_0", nonrep)
-  armadillo.upload_table(release_env$project1, "1_1-outcome-1_0", yearlyrep)
+  upload_table_if_new(release_env$project1, "1_1-outcome-1_0", nonrep)
+  upload_table_if_new(release_env$project1, "1_1-outcome-1_0", yearlyrep)
 
   veteran <- read_parquet_with_message("survival/veteran", dest)
 
-  armadillo.upload_table(release_env$project1, "survival", veteran)
+  upload_table_if_new(release_env$project1, "survival", veteran)
   rm(veteran)
   succeed()
 })
@@ -42,10 +42,8 @@ test_that("verify uploaded colnames", {
 
 test_that("upload tidyverse test data", {
   do_skip_test(test_name)
-  armadillo.upload_table(release_env$project1, "tidyverse", mtcars)
-  # Create grouped version for group_by tests
-
+  upload_table_if_new(release_env$project1, "tidyverse", mtcars)
   mtcars_group <- mtcars %>% group_by(cyl)
-  armadillo.upload_table(release_env$project1, "tidyverse", mtcars_group)
+  upload_table_if_new(release_env$project1, "tidyverse", mtcars_group)
   succeed()
 })

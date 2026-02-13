@@ -136,6 +136,31 @@ skip_if_no_resources <- function() {
   )
 }
 
+# Upload a table only if it doesn't already exist in the project.
+# Caches the table listing in release_env$existing_tables on first call.
+upload_table_if_new <- function(project, folder, table, name = deparse(substitute(table))) {
+  if (is.null(release_env$existing_tables)) {
+    release_env$existing_tables <- armadillo.list_tables(project)
+  }
+  full_name <- sprintf("%s/%s/%s", project, folder, name)
+  if (full_name %in% release_env$existing_tables) {
+    cli_alert_info(sprintf("Skipping upload: %s/%s (already exists)", folder, name))
+    return(invisible())
+  }
+  armadillo.upload_table(project, folder, table, name = name)
+  release_env$existing_tables <- c(release_env$existing_tables, full_name)
+}
+
+# Check if a resource already exists in the project.
+# Caches the resource listing in release_env$existing_resources on first call.
+resource_exists <- function(project, folder, name) {
+  if (is.null(release_env$existing_resources)) {
+    release_env$existing_resources <- armadillo.list_resources(project)
+  }
+  full_name <- sprintf("%s/%s/%s", project, folder, name)
+  full_name %in% release_env$existing_resources
+}
+
 read_parquet_with_message <- function(file_path, dest) {
   cli_progress_step(sprintf("Reading %s", file_path))
   out <- arrow::read_parquet(paste0(dest, paste0(file_path, ".parquet")))

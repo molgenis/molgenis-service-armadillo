@@ -27,8 +27,11 @@ profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 
 run_tests_for_profile <- function(profile) {
     release_env$current_profile <- profile
+    release_env$existing_tables <- NULL
+    release_env$existing_resources <- NULL
 
-    cli_h2(paste0("Testing profile: ", profile))
+    cat("\n\n")
+    cli_h1(paste0("Testing profile: ", profile))
     setup_profiles()
 
     testthat::test_dir(

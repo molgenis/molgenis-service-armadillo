@@ -182,9 +182,11 @@ detect_and_whitelist_packages <- function() {
     cli_alert_info(sprintf("Auto-whitelisting: %s", paste(missing, collapse = ", ")))
     response <- update_profile_whitelist(union(current_whitelist, ds_packages))
     if (response$status_code == 204) {
-      cli_alert_success("Profile whitelist updated, restarting profile")
-      start_profile(release_env$current_profile)
-      # Re-fetch profile info after restart to keep release_env in sync
+      cli_alert_success("Profile whitelist updated")
+      # No profile restart needed: the PUT already flushes profile-scoped beans
+      # (including the DS environment cache), so the new whitelist takes effect
+      # on the next request. Restarting would pull the Docker image and recreate
+      # the container, risking server-side package version changes.
       release_env$profile_info <- get_from_api_with_header(
         paste0("ds-profiles/", release_env$current_profile),
         release_env$token, release_env$auth_type,
