@@ -120,11 +120,20 @@ do_skip_test <- function(test_name) {
   }
 }
 
-skip_if_no_resources <- function(test_name) {
-  do_skip_test(test_name)
+skip_if_no_package <- function(package_name) {
+  testthat::skip_if(
+    !package_name %in% release_env$installed_ds_packages,
+    sprintf("Package '%s' not installed in profile '%s'",
+            package_name, release_env$current_profile)
+  )
+}
+
+skip_if_no_resources <- function() {
   testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
-                    sprintf("resourcer not available for profile: %s", release_env$current_profile))
+  testthat::skip_if(
+    !"resourcer" %in% release_env$installed_ds_packages,
+    sprintf("resourcer not installed in profile: %s", release_env$current_profile)
+  )
 }
 
 read_parquet_with_message <- function(file_path, dest) {
