@@ -5,14 +5,12 @@ test_name <- "setup-resources"
 
 test_that("upload resource file", {
   do_skip_test(test_name)
-  skip_if(resource_exists(release_env$project1, "ewas", "GSE66351_1"), "Resource file already uploaded")
   upload_resource(folder = "ewas", file_name = "gse66351_1.rda")
   succeed()
 })
 
 test_that("create and upload resource GSE66351_1", {
   do_skip_test(test_name)
-  skip_if(resource_exists(release_env$project1, "ewas", "GSE66351_1"), "Resource already uploaded")
   resGSE1 <- create_resource(
     folder = "ewas",
     file_name = "gse66351_1.rda",
