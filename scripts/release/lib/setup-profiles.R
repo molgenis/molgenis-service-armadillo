@@ -124,17 +124,17 @@ show_profile_info <- function() {
   # All DS test package names (must match test_name values in test files)
   all_ds_tests <- c("dsBase", "dsMediation", "dsSurvival", "dsMTLBase", "dsExposome", "dsOmics", "dsTidyverse")
 
-  # Tests that will skip: user-requested (SKIP_TESTS) + packages not installed
   user_skips <- release_env$skip_tests[release_env$skip_tests != ""]
-  missing_skips <- setdiff(all_ds_tests, ds_packages)
-  all_skips <- unique(c(user_skips, missing_skips))
-  skipping <- if (length(all_skips) == 0) "None" else paste(all_skips, collapse = ", ")
+  not_installed <- setdiff(all_ds_tests, ds_packages)
 
   cat("\n")
   cli_alert_info(sprintf("Image: %s", image))
   cli_alert_info(sprintf("Resource support: %s", if (has_resourcer) "Yes" else "No"))
   cli_alert_info(sprintf("DS packages (%d): %s", length(ds_packages), paste(ds_packages, collapse = ", ")))
-  cli_alert_info(sprintf("Skipping: %s", skipping))
+  cli_alert_info(sprintf("Skipped by user: %s",
+    if (length(user_skips) == 0) "None" else paste(user_skips, collapse = ", ")))
+  cli_alert_info(sprintf("Skipped (package not available): %s",
+    if (length(not_installed) == 0) "None" else paste(not_installed, collapse = ", ")))
   cat("\n")
 }
 
