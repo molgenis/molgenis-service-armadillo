@@ -1,17 +1,17 @@
 library(dsTidyverseClient)
 
 # Setup
-test_name <- "ds-tidyverse"
+test_name <- "dsTidyverse"
 data_path <- "/tidyverse"
 
 # Assign tidyverse data (setup, not a test)
-if (!test_name %in% release_env$skip_tests) {
+if (!should_skip_test(test_name) && test_name %in% release_env$installed_ds_packages) {
   datashield.assign.table(release_env$conns, "mtcars", sprintf("%s%s/mtcars", release_env$project1, data_path))
   datashield.assign.table(release_env$conns, "mtcars_group", sprintf("%s%s/mtcars_group", release_env$project1, data_path))
 }
 
 test_that("ds.arrange", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.arrange(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -23,7 +23,7 @@ test_that("ds.arrange", {
 })
 
 test_that("ds.as_tibble", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.as_tibble(
     x = "mtcars",
     newobj = "mtcars_tib",
@@ -34,7 +34,7 @@ test_that("ds.as_tibble", {
 })
 
 test_that("ds.bind_cols", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.bind_cols(
     to_combine = list(mtcars, mtcars),
     newobj = "cols_bound",
@@ -45,7 +45,7 @@ test_that("ds.bind_cols", {
 })
 
 test_that("ds.bind_rows", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.bind_rows(
     to_combine = list(mtcars, mtcars),
     newobj = "rows_bound",
@@ -56,7 +56,7 @@ test_that("ds.bind_rows", {
 })
 
 test_that("ds.case_when", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.case_when(
     tidy_expr = list(
       mtcars$mpg < 20 ~ "low",
@@ -75,7 +75,7 @@ test_that("ds.case_when", {
 })
 
 test_that("ds.distinct", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.distinct(
     df.name = "mtcars",
     tidy_expr = list(cyl, carb),
@@ -87,7 +87,7 @@ test_that("ds.distinct", {
 })
 
 test_that("ds.filter", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.filter(
     df.name = "mtcars",
     tidy_expr = list(cyl == 4 & mpg > 20),
@@ -99,7 +99,7 @@ test_that("ds.filter", {
 })
 
 test_that("ds.group_by", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.group_by(
     df.name = "mtcars",
     tidy_expr = list(cyl),
@@ -111,20 +111,20 @@ test_that("ds.group_by", {
 })
 
 test_that("ds.ungroup", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.ungroup("grouped", "ungrouped_df", datasources = release_env$conns)
   res <- ds.class("ungrouped_df", datasources = release_env$conns)[[1]]
   expect_identical(res, c("tbl_df", "tbl", "data.frame"))
 })
 
 test_that("ds.group_keys", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   res <- ds.group_keys("grouped", datasources = release_env$conns)$armadillo
   expect_identical(res, tibble(cyl = c(4, 6, 8)))
 })
 
 test_that("ds.if_else", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.if_else(
     condition = list(mtcars$mpg > 20),
     "high",
@@ -141,7 +141,7 @@ test_that("ds.if_else", {
 })
 
 test_that("ds.mutate", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.mutate(
     df.name = "mtcars",
     tidy_expr = list(mpg_trans = cyl * 1000, new_var = (hp - drat) / qsec),
@@ -153,7 +153,7 @@ test_that("ds.mutate", {
 })
 
 test_that("ds.rename", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.rename(
     df.name = "mtcars",
     tidy_expr = list(test_1 = mpg, test_2 = drat),
@@ -165,7 +165,7 @@ test_that("ds.rename", {
 })
 
 test_that("ds.select", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.select(
     df.name = "mtcars",
     tidy_expr = list(mpg:drat),
@@ -177,7 +177,7 @@ test_that("ds.select", {
 })
 
 test_that("ds.slice", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.slice(
     df.name = "mtcars",
     tidy_expr = list(1:5),
