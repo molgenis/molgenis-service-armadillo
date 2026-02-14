@@ -18,8 +18,7 @@ gwas_prepare_data <- function() {
 }
 
 test_that("ds.metaGWAS", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   set_dm_permissions()
   upload_many_sources(ref = release_env$omics_ref, folder = "omics")

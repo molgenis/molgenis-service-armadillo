@@ -6,8 +6,7 @@ test_name <- "dsExposome"
 
 # Setup tests
 test_that("upload exposome sources", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   set_dm_permissions()
   upload_many_sources(ref = release_env$exposome_ref, folder = "exposome")
@@ -15,8 +14,7 @@ test_that("upload exposome sources", {
 })
 
 test_that("create and upload exposome resources", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   exposome_resources <- create_many_resources(ref = release_env$exposome_ref, folder = "exposome")
   upload_many_resources(resource = exposome_resources, folder = "exposome", ref = release_env$exposome_ref)
@@ -24,8 +22,7 @@ test_that("create and upload exposome resources", {
 })
 
 test_that("assign and resolve exposome resources", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   assign_many_resources(folder = "exposome", ref = release_env$exposome_ref)
   resolve_many_resources(resource_names = c("description", "exposures", "phenotypes"))
@@ -34,8 +31,7 @@ test_that("assign and resolve exposome resources", {
 
 # Function tests
 test_that("ds.loadExposome", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   ds.loadExposome(
     exposures = "exposures", phenotypes = "phenotypes", exposures.idcol = "idnum",
@@ -48,8 +44,7 @@ test_that("ds.loadExposome", {
 })
 
 test_that("ds.exposome_variables", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   vars <- ds.exposome_variables("exposome_object", "phenotypes", datasources = release_env$conns)
   expect_identical(vars$armadillo,
@@ -57,16 +52,14 @@ test_that("ds.exposome_variables", {
 })
 
 test_that("ds.exposome_summary", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   var_summary <- ds.exposome_summary("exposome_object", "AbsPM25", datasources = release_env$conns)
   expect_identical(names(var_summary$armadillo), c("class", "length", "quantiles & mean"))
 })
 
 test_that("ds.familyNames", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   vars <- ds.familyNames("exposome_object", datasources = release_env$conns)
   expect_identical(vars$armadillo, c(
@@ -76,16 +69,14 @@ test_that("ds.familyNames", {
 })
 
 test_that("ds.tableMissings", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
   expect_identical(names(missing_summary), c("pooled", "set", "output"))
 })
 
 test_that("ds.plotMissings", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   missing_summary <- ds.tableMissings("exposome_object", set = "exposures", datasources = release_env$conns)
   missing_plot <- ds.plotMissings(missing_summary, datasources = release_env$conns)
@@ -93,16 +84,14 @@ test_that("ds.plotMissings", {
 })
 
 test_that("ds.normalityTest", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   nm <- ds.normalityTest("exposome_object", datasources = release_env$conns)
   expect_identical(names(nm$armadillo), c("exposure", "normality", "p.value"))
 })
 
 test_that("ds.exposure_histogram", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   # Suppress "invalid cells" warning - ds.histogram warns even when there are no issues
   hist <- suppressWarnings(ds.exposure_histogram("exposome_object", "AbsPM25", datasources = release_env$conns))
@@ -110,8 +99,7 @@ test_that("ds.exposure_histogram", {
 })
 
 test_that("ds.imputation", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   ds.imputation("exposome_object", "exposome_object_imputed", datasources = release_env$conns)
   obj_class <- ds.class("exposome_object_imputed", datasources = release_env$conns)
@@ -119,8 +107,7 @@ test_that("ds.imputation", {
 })
 
 test_that("ds.exwas", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
   exwas_results <- ds.exwas("blood_pre ~ sex", Set = "exposome_object", family = "gaussian", type = "pooled",
                              datasources = release_env$conns, exposures_family = "Noise", tef = FALSE)
@@ -128,8 +115,7 @@ test_that("ds.exwas", {
 })
 
 test_that("ds.exposome_correlation", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   skip_if_no_resources()
     cor_result <- ds.exposome_correlation("exposome_object", c("Metals", "Noise"),
                                            datasources = release_env$conns)

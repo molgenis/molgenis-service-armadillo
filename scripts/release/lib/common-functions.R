@@ -128,6 +128,12 @@ skip_if_no_package <- function(package_name) {
   )
 }
 
+# Combined skip for DS package tests: skip if user-excluded or package not installed
+skip_ds_test <- function(test_name) {
+  do_skip_test(test_name)
+  skip_if_no_package(test_name)
+}
+
 skip_if_no_resources <- function() {
   testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
   testthat::skip_if(

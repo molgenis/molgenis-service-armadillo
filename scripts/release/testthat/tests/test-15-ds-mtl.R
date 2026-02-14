@@ -30,8 +30,7 @@ prepare_data_for_lasso <- function() {
 }
 
 test_that("ds.LassoCov_Train returns expected names", {
-  do_skip_test(test_name)
-  skip_if_no_package(test_name)
+  skip_ds_test(test_name)
   prepare_data_for_lasso()
   lasso_results <- ds.LassoCov_Train(
     X = "x_mat",
