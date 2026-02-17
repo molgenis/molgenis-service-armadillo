@@ -132,29 +132,36 @@ test_that("datashield.aggregate returns result (sync)", {
 })
 
 # ---- 11. Workspace lifecycle ----
-test_that("workspace save, list, restore, and remove lifecycle", {
+release_env$ws_name <- paste0("dsi_test_ws_", format(Sys.time(), "%Y%m%d%H%M%S"))
+
+test_that("datashield.workspace_save saves current session", {
   do_skip_test(test_name)
-  ws_name <- paste0("dsi_test_ws_", format(Sys.time(), "%Y%m%d%H%M%S"))
-  prefixed_name <- paste0("armadillo:", ws_name)
+  expect_no_error(datashield.workspace_save(conns = release_env$conns, ws = release_env$ws_name))
+})
 
-  # Save
-  expect_no_error(datashield.workspace_save(conns = release_env$conns, ws = ws_name))
-
-  # List and verify saved workspace appears
+test_that("datashield.workspaces lists saved workspace", {
+  do_skip_test(test_name)
+  prefixed_name <- paste0("armadillo:", release_env$ws_name)
   workspaces <- datashield.workspaces(conns = release_env$conns)
   expect_equal(colnames(workspaces), c("server", "name", "user", "lastAccessDate", "size"))
   expect_true(prefixed_name %in% workspaces$name,
     info = sprintf("Workspace '%s' not found. Available: %s",
                    prefixed_name, paste(workspaces$name, collapse = ", ")))
+})
 
-  # Note: workspace_restore is not tested here because it loads saved R objects
-  # into the global environment, which would overwrite session state and interfere
-  # with subsequent tests in the suite.
+test_that("datashield.workspace_restore restores saved objects", {
+  do_skip_test(test_name)
+  datashield.rm(conns = release_env$conns, symbol = "dsi_test_df")
+  expect_no_error(datashield.workspace_restore(conns = release_env$conns, ws = release_env$ws_name))
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("dsi_test_df" %in% symbols$armadillo$objects.found,
+    info = "Restored workspace should contain 'dsi_test_df'")
+})
 
-  # Remove
-  expect_no_error(datashield.workspace_rm(conns = release_env$conns, ws = ws_name))
-
-  # Verify gone
+test_that("datashield.workspace_rm removes workspace", {
+  do_skip_test(test_name)
+  expect_no_error(datashield.workspace_rm(conns = release_env$conns, ws = release_env$ws_name))
+  prefixed_name <- paste0("armadillo:", release_env$ws_name)
   workspaces_after <- datashield.workspaces(conns = release_env$conns)
   if (is.data.frame(workspaces_after) && nrow(workspaces_after) > 0) {
     expect_false(prefixed_name %in% workspaces_after$name)
@@ -164,7 +171,4 @@ test_that("workspace save, list, restore, and remove lifecycle", {
 })
 
 # ---- 12. Cleanup ----
-test_that("cleanup dsi test symbols", {
-  do_skip_test(test_name)
-  expect_no_error(datashield.rm(conns = release_env$conns, symbol = "dsi_test_df"))
-})
+datashield.rm(conns = release_env$conns, symbol = "dsi_test_df")
