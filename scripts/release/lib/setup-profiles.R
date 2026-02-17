@@ -17,21 +17,13 @@ start_profile <- function(profile_name) {
 }
 
 
-# Fetch all installed R packages from the Armadillo API for the current profile.
-# Uses an httr handle to maintain a session: first selects the profile (so the
-# session-scoped Commands bean connects to the right Rock server), then queries
-# /packages within the same session.
 get_installed_packages <- function() {
   auth_header <- get_auth_header(release_env$auth_type, release_env$token)
   base_url <- release_env$armadillo_url
 
-  # Use an explicit httr handle so the JSESSIONID cookie from the first request
-  # carries through to subsequent requests in the same session. This is needed
-  # because select-profile is session-scoped.
   h <- httr::handle(base_url)
   auth_config <- httr::add_headers(auth_header)
 
-  # Select the current profile within this session
   select_response <- POST(
     paste0(base_url, "select-profile"),
     body = release_env$current_profile,
@@ -46,7 +38,6 @@ get_installed_packages <- function() {
     ))
   }
 
-  # Get packages for the selected profile
   response <- GET(
     paste0(base_url, "packages"),
     config = c(auth_config),
@@ -60,7 +51,6 @@ get_installed_packages <- function() {
   content(response)
 }
 
-# Filter to packages that declare DataShield methods
 extract_ds_package_names <- function(packages) {
   ds_packages <- character(0)
   for (pkg in packages) {
@@ -71,7 +61,6 @@ extract_ds_package_names <- function(packages) {
   ds_packages
 }
 
-# Re-fetch profile info from the API and store in release_env
 refresh_profile_info <- function() {
   release_env$profile_info <- get_from_api_with_header(
     paste0("ds-profiles/", release_env$current_profile),
@@ -80,7 +69,6 @@ refresh_profile_info <- function() {
   )
 }
 
-# Update the profile whitelist via the API
 update_profile_whitelist <- function(new_whitelist) {
   args <- list(
     name = release_env$current_profile,
@@ -97,12 +85,7 @@ update_profile_whitelist <- function(new_whitelist) {
   )
 }
 
-# Main entry point: detect installed DS packages and whitelist them
 detect_and_whitelist_packages <- function() {
-  # The /packages endpoint creates a Rock connection that loads all whitelisted
-  # packages. If the whitelist is empty, the server sends library("") to R
-  # which fails with "invalid package name". Initialise with dsBase (always
-  # present) so the connection can be created.
   initialise_empty_whitelist()
 
   ds_packages <- detect_installed_ds_packages()
@@ -112,7 +95,6 @@ detect_and_whitelist_packages <- function() {
   release_env$installed_ds_packages <- ds_packages
 }
 
-# If the whitelist is empty, set it to dsBase so /packages can create a connection
 initialise_empty_whitelist <- function() {
   current_whitelist <- unlist(release_env$profile_info$packageWhitelist)
   if (length(current_whitelist) > 0) return()
@@ -124,7 +106,6 @@ initialise_empty_whitelist <- function() {
   }
 }
 
-# Query the API for installed DS packages
 detect_installed_ds_packages <- function() {
   cli_progress_step("Detecting installed DataShield packages")
   packages <- get_installed_packages()
@@ -138,7 +119,6 @@ detect_installed_ds_packages <- function() {
   ds_packages
 }
 
-# Add any missing DS packages to the profile whitelist
 update_whitelist_if_needed <- function(ds_packages) {
   current_whitelist <- unlist(release_env$profile_info$packageWhitelist)
   missing <- setdiff(ds_packages, current_whitelist)
@@ -154,13 +134,11 @@ update_whitelist_if_needed <- function(ds_packages) {
   }
 }
 
-# Display profile setup summary (shown under the existing "Testing profile: X" h2)
 show_profile_info <- function() {
   image <- release_env$profile_info$image
   ds_packages <- release_env$installed_ds_packages
   has_resourcer <- "resourcer" %in% ds_packages
 
-  # All DS test package names (must match test_name values in test files)
   all_ds_tests <- c("dsBase", "dsMediation", "dsSurvival", "dsMTLBase", "dsExposome", "dsOmics", "dsTidyverse")
 
   user_skips <- release_env$skip_tests[release_env$skip_tests != ""]
@@ -185,7 +163,6 @@ setup_profiles <- function() {
 
   refresh_profile_info()
 
-  # Ensure the profile is running before detecting packages
   if (!identical(release_env$profile_info$container$status, "RUNNING")) {
     start_profile(release_env$current_profile)
   }

@@ -26,7 +26,6 @@ profiles <- unlist(stri_split_fixed(release_env$profile, ","))
 
 
 run_tests_for_profile <- function(profile) {
-    # Logout previous DataSHIELD session to avoid stale connections across profile runs
     if (!is.null(release_env$conns)) {
       tryCatch(datashield.logout(release_env$conns), error = function(e) {})
       release_env$conns <- NULL
