@@ -124,24 +124,15 @@ initialise_empty_whitelist <- function() {
   }
 }
 
-# Query the API for installed DS packages, with retries for slow profile startup
+# Query the API for installed DS packages
 detect_installed_ds_packages <- function() {
   cli_progress_step("Detecting installed DataShield packages")
-  max_retries <- 5
-  ds_packages <- character(0)
-  for (attempt in seq_len(max_retries)) {
-    packages <- get_installed_packages()
-    ds_packages <- extract_ds_package_names(packages)
-    if (length(ds_packages) > 0) break
-    if (attempt < max_retries) {
-      cli_progress_step(sprintf("Profile not ready, retrying (%d/%d)", attempt, max_retries))
-      Sys.sleep(5)
-    }
-  }
+  packages <- get_installed_packages()
+  ds_packages <- extract_ds_package_names(packages)
   if (length(ds_packages) == 0) {
     cli_progress_done(result = "failed")
-    exit_test(sprintf("No DataShield packages detected for profile '%s' after %d attempts",
-      release_env$current_profile, max_retries))
+    exit_test(sprintf("No DataShield packages detected for profile '%s'",
+      release_env$current_profile))
   }
   cli_progress_done()
   ds_packages
