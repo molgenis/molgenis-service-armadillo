@@ -72,7 +72,7 @@ test_that("get project users", {
 
 # ---- Copy and move tables ----
 
-test_that("copy table", {
+test_that("copy table creates a copy and doesn't remove the original", {
   do_skip_test(test_name)
   armadillo.copy_table(
     project = release_env$project1,
@@ -93,7 +93,7 @@ test_that("copy table", {
   expect_equal(nrow(copied), nrow(orig))
 })
 
-test_that("move table", {
+test_that("move table creates the table in a new location and remove the original", {
   do_skip_test(test_name)
   armadillo.move_table(
     project = release_env$project1,
@@ -108,8 +108,9 @@ test_that("move table", {
   expect_false(old %in% tables)
   expect_true(new %in% tables)
   moved <- armadillo.load_table(release_env$project1, "armtest", "nonrep_moved")
+  orig <- armadillo.load_table(release_env$project1, "2_1-core-1_0", "nonrep")
   expect_s3_class(moved, "data.frame")
-  expect_gt(nrow(moved), 0)
+  expect_equal(nrow(moved), nrow(orig))
   expect_error(
     armadillo.load_table(release_env$project1, "armtest", "nonrep_copy")
   )
@@ -117,7 +118,7 @@ test_that("move table", {
 
 # ---- Copy and move resources ----
 
-test_that("copy resource", {
+test_that("copy resource creates a copy and doesn't remove the original", {
   skip_if_no_resources(test_name)
   armadillo.copy_resource(
     project = release_env$project1,
@@ -138,7 +139,7 @@ test_that("copy resource", {
   expect_equal(copied_res$format, "ExpressionSet")
 })
 
-test_that("move resource", {
+test_that("move resource creates the resource in a new location and remove the original", {
   skip_if_no_resources(test_name)
   armadillo.move_resource(
     project = release_env$project1,
@@ -242,7 +243,7 @@ test_that("delete tables", {
   expect_true(sprintf("%s/survival/veteran", p) %in% tables)
 })
 
-test_that("delete project", {
+test_that("delete project using UI", {
   do_skip_test(test_name)
   skip_if(!release_env$interactive, "Skipping interactive test")
   cat(sprintf("\nVerify in UI all data from [%s] is gone.", release_env$project1))
