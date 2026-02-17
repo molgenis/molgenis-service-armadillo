@@ -195,7 +195,7 @@ class CommandsImpl implements Commands {
 
   HashMap<String, String> extractResourceInfo(String fileInfo) {
     HashMap<String, String> resourceFileInfo = new HashMap<>();
-    final String regex = "(\\/projects\\/)([\\w]+)(\\/objects\\/)([\\w]+%2F[\\w_\\.]+)";
+    final String regex = "(\\/projects\\/)([\\w]+)(\\/objects\\/)(\\w+%2F[\\w_\\.]+)";
     final Matcher m = Pattern.compile(regex).matcher(fileInfo);
     while (m.find()) {
       resourceFileInfo.put("project", m.group(2));
