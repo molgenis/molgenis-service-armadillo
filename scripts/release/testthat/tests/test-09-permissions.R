@@ -1,13 +1,20 @@
 # Setup
 test_name <- "permissions"
 
-# Helper: call an admin-intended endpoint with the researcher's token and expect 403
-expect_forbidden <- function(method, endpoint, body = NULL) {
-  url <- paste0(release_env$armadillo_url, endpoint)
-  auth_header <- get_auth_header("bearer", release_env$token)
-  config <- c(httr::content_type_json(), httr::add_headers(auth_header))
+# Build full API URL from an endpoint path
+build_url <- function(endpoint) {
+  paste0(release_env$armadillo_url, endpoint)
+}
 
-  response <- switch(toupper(method),
+# Build httr config with JSON content type and bearer auth
+build_config <- function() {
+  auth_header <- get_auth_header("bearer", release_env$token)
+  c(httr::content_type_json(), httr::add_headers(auth_header))
+}
+
+# Dispatch an HTTP method
+dispatch_method <- function(method, url, body, config) {
+  switch(toupper(method),
     "GET" = httr::GET(url, config = config),
     "HEAD" = httr::HEAD(url, config = config),
     "POST" = httr::POST(url, body = body, encode = "json", config = config),
@@ -15,7 +22,16 @@ expect_forbidden <- function(method, endpoint, body = NULL) {
     "DELETE" = httr::DELETE(url, body = body, encode = "json", config = config),
     stop(sprintf("Unsupported method: %s", method))
   )
+}
 
+# Make an authenticated request to the Armadillo API
+make_request <- function(method, endpoint, body = NULL) {
+  dispatch_method(method, build_url(endpoint), body, build_config())
+}
+
+# Assert that an endpoint returns 403 for the current user
+expect_forbidden <- function(method, endpoint, body = NULL) {
+  response <- make_request(method, endpoint, body)
   status <- httr::status_code(response)
   testthat::expect(
     status == 403,
