@@ -164,6 +164,8 @@ test_that("move resource creates the resource in a new location and remove the o
 # ---- Subsetting ----
 test_that("subset", {
   do_skip_test(test_name)
+  url <- release_env$armadillo_url
+  skip_if_localhosts(url, test_name)
   result <- armadillo.subset(
     input_source = "arguments",
     source_project = release_env$project1,
