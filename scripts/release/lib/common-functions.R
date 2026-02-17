@@ -128,6 +128,13 @@ skip_if_no_resources <- function(test_name) {
                     sprintf("resourcer not available for profile: %s", release_env$current_profile))
 }
 
+skip_if_localhosts <- function(url, test_name) {
+  do_skip_test(test_name)
+  # TODO: re-enable when version number can be reliably retrieved over localhost
+  testthat::skip_if(!"localhost" %in% url,
+                    sprintf("version cannot be retrieved locally"))
+}
+
 read_parquet_with_message <- function(file_path, dest) {
   cli_progress_step(sprintf("Reading %s", file_path))
   out <- arrow::read_parquet(paste0(dest, paste0(file_path, ".parquet")))
