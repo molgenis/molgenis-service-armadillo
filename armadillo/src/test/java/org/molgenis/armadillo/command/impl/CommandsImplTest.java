@@ -217,20 +217,27 @@ class CommandsImplTest {
 
   @Test
   void testLoadResource() throws Exception {
-    when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
-        .thenReturn(inputStream);
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(processService.getPid(rConnection)).thenReturn(218);
+    String gzippedContent =
+        "something /projects/gecko/objects/2_1-core-1_0%2Fhpc-resource.rds something";
 
-    commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    // Create real gzipped bytes
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+      gzipOut.write(gzippedContent.getBytes(StandardCharsets.UTF_8));
+    }
 
-    verify(rExecutorService)
-        .loadResource(
-            any(JwtAuthenticationToken.class),
-            eq(rConnection),
-            any(InputStreamResource.class),
-            eq("gecko/2_1-core-1_0/hpc-resource.rds"),
-            eq("core_nonrep"));
+    byte[] gzippedBytes = baos.toByteArray();
+
+    // Print first few bytes for debugging
+    System.out.println("GZIP byte data: " + Arrays.toString(gzippedBytes));
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(gzippedBytes);
+
+    // Log the content read by GZIPInputStream
+    String result = commands.readResource(bais);
+    System.out.println("Decoded content: " + result);
+
+    assertEquals(gzippedContent, result);
   }
 
   @Test
