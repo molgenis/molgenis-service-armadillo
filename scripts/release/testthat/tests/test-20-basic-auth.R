@@ -1,5 +1,5 @@
 # Setup
-test_name <- "basic_auth"
+test_name <- "basic-auth"
 
 test_that("basic authentication works end-to-end", {
   do_skip_test(test_name)
