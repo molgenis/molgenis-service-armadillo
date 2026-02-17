@@ -763,7 +763,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     Optional<ResponseStatusException> someException =
         Optional.ofNullable((ResponseStatusException) result.getResolvedException());
     someException.ifPresent(
-        (se) -> {
+        se -> {
           assertEquals(
               "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource project:lifecycle\"\"",
               se.getMessage());
@@ -792,7 +792,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     Optional<ResponseStatusException> someException =
         Optional.ofNullable((ResponseStatusException) result.getResolvedException());
     someException.ifPresent(
-        (se) -> {
+        se -> {
           assertEquals(
               "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource object:test.parquet\"\"",
               se.getMessage());
@@ -821,12 +821,11 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     Optional<ResponseStatusException> someException =
         Optional.ofNullable((ResponseStatusException) result.getResolvedException());
     someException.ifPresent(
-        (se) -> {
+        se -> {
           assertEquals(
               "403 FORBIDDEN \"403 FORBIDDEN \"Token must be issued by armadillo application with correct permissions\"\"",
               se.getMessage());
         });
-    ;
   }
 
   @Test
