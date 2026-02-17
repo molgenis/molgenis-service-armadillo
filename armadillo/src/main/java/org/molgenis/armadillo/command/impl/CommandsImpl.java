@@ -8,15 +8,19 @@ import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.RDS;
 
 import jakarta.annotation.PreDestroy;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
@@ -177,27 +181,59 @@ class CommandsImpl implements Commands {
         });
   }
 
+  String readResource(InputStream is) throws IOException {
+    GZIPInputStream gzis = new GZIPInputStream(is);
+    InputStreamReader reader = new InputStreamReader(gzis);
+    BufferedReader in = new BufferedReader(reader);
+    String line;
+    StringBuilder data = new StringBuilder();
+    while ((line = in.readLine()) != null) {
+      data.append(line);
+    }
+    return data.toString();
+  }
+
+  HashMap<String, String> extractResourceInfo(String fileInfo) {
+    HashMap<String, String> resourceFileInfo = new HashMap<>();
+    final String regex = "(\\/projects\\/)([\\w]+)(\\/objects\\/)([\\w]+%2F[\\w_\\.]+)";
+    final Matcher m = Pattern.compile(regex).matcher(fileInfo);
+    while (m.find()) {
+      resourceFileInfo.put("project", m.group(2));
+      resourceFileInfo.put(
+          "object", java.net.URLDecoder.decode(m.group(4), StandardCharsets.UTF_8));
+    }
+    return resourceFileInfo;
+  }
+
   @Override
   public CompletableFuture<Void> loadResource(Principal principal, String symbol, String resource) {
     int index = resource.indexOf('/');
     String project = resource.substring(0, index);
     String objectName = resource.substring(index + 1);
-    JwtAuthenticationToken resourceAuth =
-        resourceTokenService.generateResourceToken(principal, project, objectName);
-    return schedule(
-        new ArmadilloCommandImpl<>("Load resource " + resource, false) {
-          @Override
-          protected Void doWithConnection(RServerConnection connection) {
-            InputStream inputStream = armadilloStorage.loadResource(project, objectName);
-            rExecutorService.loadResource(
-                resourceAuth,
-                connection,
-                new InputStreamResource(inputStream),
-                resource + RDS,
-                symbol);
-            return null;
-          }
-        });
+    try {
+      String resourceContent = readResource(armadilloStorage.loadResource(project, objectName));
+      HashMap<String, String> resourceInfo = extractResourceInfo(resourceContent);
+      String resourceObjectName = resourceInfo.get("object").split("\\.")[0];
+      JwtAuthenticationToken resourceAuth =
+          resourceTokenService.generateResourceToken(
+              principal, resourceInfo.get("project"), resourceObjectName);
+      return schedule(
+          new ArmadilloCommandImpl<>("Load resource " + resource, false) {
+            @Override
+            protected Void doWithConnection(RServerConnection connection) {
+              InputStream inputStream = armadilloStorage.loadResource(project, objectName);
+              rExecutorService.loadResource(
+                  resourceAuth,
+                  connection,
+                  new InputStreamResource(inputStream),
+                  resource + RDS,
+                  symbol);
+              return null;
+            }
+          });
+    } catch (IOException e) {
+      throw new StorageException("Cannot read contents of resource" + resource + "because: " + e);
+    }
   }
 
   @Override

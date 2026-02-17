@@ -7,12 +7,17 @@ import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -272,5 +277,42 @@ class CommandsImplTest {
   void testSelectUnknownProfile() {
     when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+  }
+
+  @Test
+  void testReadResource() throws Exception {
+    String originalContent = "This is a test resource content";
+
+    // Create real gzipped bytes
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+      gzipOut.write(originalContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    byte[] gzippedBytes = baos.toByteArray();
+    ByteArrayInputStream bais = new ByteArrayInputStream(gzippedBytes);
+
+    String result = commands.readResource(bais);
+
+    assertEquals(originalContent, result);
+  }
+
+  @Test
+  void testExtractResourceInfo() {
+    String fileInfo = "some text /projects/myProject/objects/folder%2Ffile_name.rds more text";
+
+    HashMap<String, String> result = commands.extractResourceInfo(fileInfo);
+
+    assertEquals("myProject", result.get("project"));
+    assertEquals("folder/file_name.rds", result.get("object"));
+  }
+
+  @Test
+  void testExtractResourceInfoNoMatch() {
+    String fileInfo = "no matching pattern here";
+
+    HashMap<String, String> result = commands.extractResourceInfo(fileInfo);
+
+    assertTrue(result.isEmpty());
   }
 }

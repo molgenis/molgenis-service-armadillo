@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
@@ -409,10 +408,7 @@ public class StorageController {
       })
   @GetMapping(value = "/projects/{project}/rawfiles/{object}")
   public ResponseEntity<InputStreamResource> downloadResource(
-      Principal principal,
-      HttpServletRequest request,
-      @PathVariable String project,
-      @PathVariable String object) {
+      Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
       Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
       if (principal.getClass() == JwtAuthenticationToken.class) {
