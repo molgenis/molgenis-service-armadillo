@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.apache.logging.log4j.util.Strings.concat;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.security.ResourceTokenService.INTERNAL_ISSUER;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -411,8 +412,7 @@ public class StorageController {
       Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
       Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
-      if (principal.getClass() == JwtAuthenticationToken.class) {
-        JwtAuthenticationToken token = (JwtAuthenticationToken) principal;
+      if (principal instanceof JwtAuthenticationToken token) {
         return downloadResourceWithToken(token, project, object, data);
       } else {
         throw new ResponseStatusException(
@@ -432,23 +432,21 @@ public class StorageController {
       JwtAuthenticationToken token, String project, String object, Map<String, Object> data) {
     Map<String, Object> claims = token.getTokenAttributes();
     String errorMsg = "Token must be issued by armadillo application with correct permissions";
-    // find out where extension is stripped out
-    if (claims.get("iss").equals("http://armadillo-internal")) {
-      if (claims.get("resource_project").equals(project)) {
-        String resourceObj = object.split("\\.")[0].toLowerCase();
-        if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
-          return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
-        } else {
-          errorMsg = "Token has no permissions for resource object:" + object;
-          auditFailure(errorMsg, data, token);
-          throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
-        }
+    if (!claims.get("iss").equals(INTERNAL_ISSUER)) {
+      auditFailure(errorMsg, data, token);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+    }
+    if (claims.get("resource_project").equals(project)) {
+      String resourceObj = object.split("\\.")[0].toLowerCase();
+      if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
+        return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
       } else {
-        errorMsg = "Token has no permissions for resource project:" + project;
+        errorMsg = "Token has no permissions for resource object:" + object;
         auditFailure(errorMsg, data, token);
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
       }
     } else {
+      errorMsg = "Token has no permissions for resource project:" + project;
       auditFailure(errorMsg, data, token);
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
     }

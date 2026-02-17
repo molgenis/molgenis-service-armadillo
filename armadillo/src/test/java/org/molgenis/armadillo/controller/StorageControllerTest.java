@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.security.ResourceTokenService.INTERNAL_ISSUER;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -732,7 +733,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                 builder
                                     .subject("user@example.com")
                                     .claim("email", "user@example.com")
-                                    .claim("iss", "http://armadillo-internal")
+                                    .claim("iss", INTERNAL_ISSUER)
                                     .claim("resource_project", "lifecycle")
                                     .claim("resource_object", "test"))))
         .andExpect(status().isOk())
@@ -754,7 +755,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                     builder
                                         .subject("user@example.com")
                                         .claim("email", "user@example.com")
-                                        .claim("iss", "http://armadillo-internal")
+                                        .claim("iss", INTERNAL_ISSUER)
                                         .claim("resource_project", "other-project")
                                         .claim("resource_object", "test"))))
             .andExpect(status().isForbidden())
@@ -783,7 +784,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
                                     builder
                                         .subject("user@example.com")
                                         .claim("email", "user@example.com")
-                                        .claim("iss", "http://armadillo-internal")
+                                        .claim("iss", INTERNAL_ISSUER)
                                         .claim("resource_project", "lifecycle")
                                         .claim("resource_object", "other"))))
             .andExpect(status().isForbidden())

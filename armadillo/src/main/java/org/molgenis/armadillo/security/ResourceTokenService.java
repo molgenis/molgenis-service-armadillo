@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResourceTokenService {
 
-  private static final String INTERNAL_ISSUER = "http://armadillo-internal";
+  public static final String INTERNAL_ISSUER = "http://armadillo-internal";
   private final long tokenValiditySeconds;
 
   private static final String RESOURCE_PROJECT_CLAIM = "resource_project";

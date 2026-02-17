@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.security;
 
+import static org.molgenis.armadillo.security.ResourceTokenService.INTERNAL_ISSUER;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
 import java.util.Collection;
@@ -55,7 +56,7 @@ public class JwtDecoderConfig {
 
   OAuth2TokenValidator<Jwt> getInternalValidator() {
     return new DelegatingOAuth2TokenValidator<>(
-        new JwtTimestampValidator(), new JwtIssuerValidator("http://armadillo-internal"));
+        new JwtTimestampValidator(), new JwtIssuerValidator(INTERNAL_ISSUER));
   }
 
   @Bean
