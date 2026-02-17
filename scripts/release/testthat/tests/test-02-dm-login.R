@@ -1,5 +1,5 @@
 # Setup
-test_name <- "dm_login"
+test_name <- "dm-login"
 
 test_that("data manager login", {
   do_skip_test(test_name)

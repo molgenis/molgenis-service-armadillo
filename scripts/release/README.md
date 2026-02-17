@@ -29,7 +29,12 @@ You can now run
 - If you want to test as a researcher (not just in admin) ensure that you have added your email address to 'OIDC_EMAIL'
 - Specify tests you want to skip by adding them to the SKIP_TESTS in the .env file.
 Specify the test name to skip, separated by commas with no spaces.
-Eg: SKIP_TESTS=upload-resource,ds-mediate
+Eg: SKIP_TESTS=dsMediation,dsSurvival
+
+Valid test names: dm-login, create-test-project, upload-data, setup-resources,
+manual-test, set-researcher-access, researcher-login, verify-profile, assigning,
+verify-resources, dsBase, dsMediation, dsSurvival, dsMTLBase, dsExposome, dsOmics,
+dsTidyverse, remove-data, basic-auth
 
 ### CICD 
 - Note CICD only runs test as admin as we cannot connect to an OIDC account.
