@@ -81,7 +81,7 @@ test_that("researcher cannot see resources in inaccessible project", {
 
 # ---- /objects/ endpoint ----
 
-test_that("/objects/ (i): same project, has access - assign and resolve succeed", {
+test_that("/objects/ (i): resource file and object in same project, has access - assign and resolve succeed", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/old_i", release_env$res_project_a)
@@ -94,7 +94,7 @@ test_that("/objects/ (i): same project, has access - assign and resolve succeed"
 })
 reconnect()
 
-test_that("/objects/ (ii): same project, no access - assign fails", {
+test_that("/objects/ (ii): resource file and object in same project, no access - assign fails", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/old_ii", release_env$res_project_b)
@@ -120,7 +120,7 @@ test_that("/objects/ (iii): resource file accessible, data inaccessible - assign
 })
 reconnect()
 
-test_that("/objects/ (iv): descriptor inaccessible, data accessible - assign fails", {
+test_that("/objects/ (iv): resource file inaccessible, data accessible - assign fails", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/old_iv", release_env$res_project_b)
@@ -134,7 +134,7 @@ reconnect()
 
 # ---- /rawfiles/ endpoint ----
 
-test_that("/rawfiles/ (i): same project, has access - assign and resolve succeed", {
+test_that("/rawfiles/ (i): resource file and object in same project, has access - assign and resolve succeed", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/new_i", release_env$res_project_a)
@@ -147,7 +147,7 @@ test_that("/rawfiles/ (i): same project, has access - assign and resolve succeed
 })
 reconnect()
 
-test_that("/rawfiles/ (ii): same project, no access - assign fails", {
+test_that("/rawfiles/ (ii): resource file and object in same project, no access - assign fails", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/new_ii", release_env$res_project_b)
@@ -173,7 +173,7 @@ test_that("/rawfiles/ (iii): resource file accessible, data inaccessible - assig
 })
 reconnect()
 
-test_that("/rawfiles/ (iv): descriptor inaccessible, data accessible - assign fails", {
+test_that("/rawfiles/ (iv): resource file inaccessible, data accessible - assign fails", {
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/new_iv", release_env$res_project_b)
