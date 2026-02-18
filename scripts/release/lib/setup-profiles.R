@@ -151,9 +151,13 @@ teardown <- function() {
     cli_alert_warning(sprintf("Failed to restore admin permissions: %s", e$message))
   })
 
-  tryCatch(delete_created_projects(), error = function(e) {
+  if(!release_env$debug) {
+    tryCatch(delete_created_projects(), error = function(e) {
     cli_alert_warning(sprintf("Failed to delete projects: %s", e$message))
-  })
+    })
+  } else {
+    cli_alert_warning("Running in debug mode - project deletion skipped")
+  }
 
   cli_alert_success("Teardown complete")
 }
