@@ -91,8 +91,7 @@ builder$append(
   server = "armadillo",
   url = url,
   token = token,
-  driver = "ArmadilloDriver",
-  profile = "xenon")
+  driver = "ArmadilloDriver")
   
 logindata <- builder$build()
 conns <- DSI::datashield.login(logins = logindata)
