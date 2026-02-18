@@ -56,7 +56,7 @@ test_that("datashield.profiles returns available and current profiles", {
 test_that("datashield.methods returns aggregate methods including meanDS", {
   do_skip_test(test_name)
   methods <- datashield.methods(conns = release_env$conns, type = "aggregate")
-  expected_cols <- c("name", "function.", "version", "package", "type", "class", "server")
+  expected_cols <- c("name", "value", "version", "package", "type", "class", "server")
   expect_equal(colnames(methods), expected_cols)
   expect_true("meanDS" %in% methods$name)
   expect_true(all(methods$type == "aggregate"))
@@ -65,7 +65,7 @@ test_that("datashield.methods returns aggregate methods including meanDS", {
 test_that("datashield.methods returns assign methods", {
   do_skip_test(test_name)
   methods <- datashield.methods(conns = release_env$conns, type = "assign")
-  expected_cols <- c("name", "function.", "version", "package", "type", "class", "server")
+  expected_cols <- c("name", "value", "version", "package", "type", "class", "server")
   expect_equal(colnames(methods), expected_cols)
   expect_true(nrow(methods) > 0)
   expect_true(all(methods$type == "assign"))
