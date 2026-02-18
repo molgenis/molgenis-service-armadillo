@@ -41,7 +41,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAssignNonDsBase() {
-    DSMethod dim = new DefaultDSMethod("dim", "base::dim", "base", null);
+    DSMethod dim = new DefaultDSMethod("dim", "base::dim", "dsBase", "1.2.3");
     when(mockEnvironment.getMethod("dim")).thenReturn(dim);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.ASSIGN);
     assertEquals("base::dim(x, y)", expressionRewriter.rewriteAssign("dim(x, y)"));
@@ -66,7 +66,7 @@ class ExpressionRewriterImplTest {
 
   @Test
   void testRewriteAggregateNonDsBase() {
-    DSMethod dim = new DefaultDSMethod("is.character", "base::is.character", "base", null);
+    DSMethod dim = new DefaultDSMethod("is.character", "base::is.character", "dsBase", "1.2.3");
     when(mockEnvironment.getMethod("is.character")).thenReturn(dim);
     when(mockEnvironment.getMethodType()).thenReturn(DSMethodType.AGGREGATE);
     assertEquals("base::is.character(3)", expressionRewriter.rewriteAggregate("is.character(3)"));
