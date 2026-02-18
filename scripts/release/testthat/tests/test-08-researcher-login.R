@@ -31,6 +31,17 @@ create_dsi_builder <- function(server = "armadillo", table = "", resource = "") 
   return(builder$build())
 }
 
+test_that("no leaked objects after login", {
+  do_skip_test(test_name)
+  logindata <- suppressWarnings(create_dsi_builder())
+  conns <- datashield.login(logins = logindata, assign = FALSE)
+
+  result <- ds.ls(datasources = conns)
+  expect_equal(result[[1]]$objects.found, character(0))
+
+  datashield.logout(conns)
+})
+
 test_that("researcher login", {
   do_skip_test(test_name)
   full_table <- sprintf("%s/%s", release_env$project1, table)
