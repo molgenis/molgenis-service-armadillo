@@ -81,7 +81,7 @@ library(DSI)
 library(DSMolgenisArmadillo)
 library(dsBaseClient)
 ```
-With these libraries, you can now login to Armadillo:
+With these libraries, you can now login to Armadillo. Note - here we don't specify a profile so you will log in to the default profile. If there is a specific profile you want to connect to you can specify this with the argument e.g. `profile = donkey`.
 ```R
 url <- "https://armadillo-playground.molgenis.net//"
 token <- armadillo.get_token(url)
@@ -91,8 +91,7 @@ builder$append(
   server = "armadillo",
   url = url,
   token = token,
-  driver = "ArmadilloDriver",
-  profile = "xenon")
+  driver = "ArmadilloDriver")
   
 logindata <- builder$build()
 conns <- DSI::datashield.login(logins = logindata)
