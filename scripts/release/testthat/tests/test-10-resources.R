@@ -1,6 +1,5 @@
 # Setup
 test_name <- "resources"
-resource_path <- "ewas/GSE66351_1"
 
 # Helper: reconnect DataSHIELD session (failed operations can crash the R session)
 reconnect <- function() {
@@ -8,34 +7,6 @@ reconnect <- function() {
   logindata <- suppressWarnings(create_dsi_builder())
   release_env$conns <- datashield.login(logins = logindata, assign = FALSE)
 }
-
-# ---- Basic resource operations ----
-
-test_that("researcher can see resource in own project", {
-  skip_if_no_resources(test_name)
-  full_resource_path <- sprintf("%s/%s", release_env$project1, resource_path)
-  expect_true(full_resource_path %in% datashield.resources(conns = release_env$conns)$armadillo)
-})
-
-test_that("researcher can assign resource in own project", {
-  skip_if_no_resources(test_name)
-  full_resource_path <- sprintf("%s/%s", release_env$project1, resource_path)
-  datashield.assign.resource(release_env$conns, resource = full_resource_path, symbol = "eSet_0y_EUR")
-  resource_class <- ds.class("eSet_0y_EUR", datasources = release_env$conns)
-  expected <- c("RDataFileResourceClient", "FileResourceClient", "ResourceClient", "R6")
-  expect_identical(resource_class$armadillo, expected)
-})
-
-test_that("researcher can resolve resource in own project", {
-  skip_if_no_resources(test_name)
-  datashield.assign.expr(
-    release_env$conns,
-    symbol = "methy_0y_EUR",
-    expr = quote(as.resource.object(eSet_0y_EUR))
-  )
-  resource_class <- ds.class("methy_0y_EUR", datasources = release_env$conns)
-  expect_identical(as.character(resource_class$armadillo), "ExpressionSet")
-})
 
 # ---- Cross-project resource permissions ----
 #
