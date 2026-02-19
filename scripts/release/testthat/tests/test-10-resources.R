@@ -141,12 +141,59 @@ test_that("/objects/ (v): resource file in project-a, data in project-b, has acc
 })
 reconnect()
 
+# ---- Admin resource access ----
+#
+# Admin (ROLE_SU) bypasses project-level checks and should be able to
+# assign and resolve resources regardless of project boundaries.
+
+set_user(TRUE, list(release_env$project1))
+
+test_that("admin can assign and resolve resource in same project", {
+  skip_if_no_resources(test_name)
+
+  resource_path <- sprintf("%s/ewas/old_i", release_env$res_project_a)
+  expect_no_error(
+    datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "admin_same")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("admin_same" %in% symbols$armadillo$objects.found)
+
+  datashield.assign.expr(
+    release_env$conns,
+    symbol = "admin_same_resolved",
+    expr = as.symbol("as.resource.object(admin_same)")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("admin_same_resolved" %in% symbols$armadillo$objects.found,
+    info = "Admin should resolve resource in same project")
+})
+reconnect()
+
+test_that("admin can assign and resolve cross-project resource", {
+  skip_if_no_resources(test_name)
+
+  resource_path <- sprintf("%s/ewas/old_iii", release_env$res_project_a)
+  expect_no_error(
+    datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "admin_cross")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("admin_cross" %in% symbols$armadillo$objects.found)
+
+  datashield.assign.expr(
+    release_env$conns,
+    symbol = "admin_cross_resolved",
+    expr = as.symbol("as.resource.object(admin_cross)")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("admin_cross_resolved" %in% symbols$armadillo$objects.found,
+    info = "Admin should resolve cross-project resource")
+})
+reconnect()
+
 # ---- Cleanup ----
 
 test_that("cleanup: delete projects for resource permission tests", {
   skip_if_no_resources(test_name)
-
-  set_user(TRUE, list(release_env$project1))
 
   if (!is.null(release_env$res_project_a)) {
     armadillo.delete_project(release_env$res_project_a)
