@@ -134,7 +134,7 @@ delete_created_projects <- function() {
   }
   for (project in projects) {
     tryCatch({
-      armadillo.delete_project(project)
+      suppressMessages(armadillo.delete_project(project))
       cli_alert_success(sprintf("Deleted project: %s", project))
     }, error = function(e) {
       cli_alert_warning(sprintf("Failed to delete project %s: %s", project, e$message))
