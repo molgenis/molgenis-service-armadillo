@@ -721,6 +721,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
     when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
+    when(storage.getFilenameWithoutExtension("test.parquet")).thenReturn("test");
 
     mockMvc
         .perform(
@@ -772,6 +773,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testDownloadRawfileWrongObjectForbidden() throws Exception {
+    when(storage.getFilenameWithoutExtension("test.parquet")).thenReturn("test");
     MvcResult result =
         mockMvc
             .perform(
