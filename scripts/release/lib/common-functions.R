@@ -122,9 +122,17 @@ do_skip_test <- function(test_name) {
 
 skip_if_no_resources <- function(test_name) {
   do_skip_test(test_name)
-  testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+  # TODO: re-enable once resource tests work in admin mode
+  # testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
   testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
                     sprintf("resourcer not available for profile: %s", release_env$current_profile))
+}
+
+skip_if_localhosts <- function(url, test_name) {
+  do_skip_test(test_name)
+  # TODO: re-enable when version number can be reliably retrieved over localhost
+  testthat::skip_if(!"localhost" %in% url,
+                    sprintf("version cannot be retrieved locally"))
 }
 
 read_parquet_with_message <- function(file_path, dest) {
@@ -231,17 +239,4 @@ upload_many_resources <- function(resource, folder, ref) {
     pmap(function(resource, name) {
       armadillo.upload_resource(project = release_env$project1, folder = folder, resource = resource, name = name)
     })
-}
-
-assign_many_resources <- function(folder, ref) {
-  ref$object_name %>%
-    map(function(x) {
-      exp_resource_path <- paste0(release_env$project1, "/", folder, "/", x)
-      datashield.assign.resource(release_env$conns, resource = exp_resource_path, symbol = x)
-    })
-}
-
-resolve_many_resources <- function(resource_names) {
-  resource_names %>%
-    map(~ datashield.assign.expr(release_env$conns, symbol = .x, expr = as.symbol(paste0("as.resource.data.frame(", .x, ")"))))
 }

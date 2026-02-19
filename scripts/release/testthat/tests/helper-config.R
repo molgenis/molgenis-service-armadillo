@@ -49,11 +49,6 @@ configure_test <- function() {
     cli_progress_done()
   }
 
-  if(str_detect(armadillo_url, "localhost") & !any(skip_tests %in% "ds-omics")){
-    skip_tests <- c(skip_tests, "ds-omics")
-  }
-
-
   interactive <- TRUE
   if (Sys.getenv("INTERACTIVE") == "N") {
     interactive <- FALSE

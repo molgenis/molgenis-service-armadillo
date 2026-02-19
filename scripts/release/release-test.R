@@ -32,6 +32,7 @@ run_tests_for_profile <- function(profile) {
     cli_h2(paste0("Testing profile: ", profile))
     setup_profiles()
 
+    testthat::set_max_fails(Inf)
     testthat::test_dir(
       "testthat/tests",
       reporter = testthat::ProgressReporter$new(show_praise = FALSE, min_time = 0),
