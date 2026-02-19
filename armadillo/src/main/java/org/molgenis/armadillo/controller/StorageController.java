@@ -437,7 +437,7 @@ public class StorageController {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
     }
     if (claims.get("resource_project").equals(project)) {
-      String resourceObj = object.split("\\.")[0].toLowerCase();
+      String resourceObj = storage.getFilenameWithoutExtension(object).toLowerCase();
       if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
         return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
       } else {

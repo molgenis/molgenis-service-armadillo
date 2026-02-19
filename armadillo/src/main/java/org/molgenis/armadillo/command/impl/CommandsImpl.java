@@ -213,7 +213,8 @@ class CommandsImpl implements Commands {
     try {
       String resourceContent = readResource(armadilloStorage.loadResource(project, objectName));
       HashMap<String, String> resourceInfo = extractResourceInfo(resourceContent);
-      String resourceObjectName = resourceInfo.get("object").split("\\.")[0];
+      String obj = resourceInfo.get("object");
+      String resourceObjectName = armadilloStorage.getFilenameWithoutExtension(obj);
       JwtAuthenticationToken resourceAuth =
           resourceTokenService.generateResourceToken(
               principal, resourceInfo.get("project"), resourceObjectName);
