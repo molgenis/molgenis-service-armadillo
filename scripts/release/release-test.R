@@ -23,7 +23,8 @@ cli_h1("Starting release test")
 show_test_info()
 
 profiles <- unlist(stri_split_fixed(release_env$profile, ","))
-
+release_env$created_projects <- c()
+release_env$admin_demoted <- FALSE
 
 run_tests_for_profile <- function(profile) {
     release_env$current_profile <- profile
@@ -39,7 +40,18 @@ run_tests_for_profile <- function(profile) {
     )
 }
 
-invisible(lapply(profiles, run_tests_for_profile))
+tryCatch(
+  invisible(lapply(profiles, run_tests_for_profile)),
+  interrupt = function(i) {
+    cat("\n")
+    cli_alert_warning("Tests interrupted by user")
+  },
+  finally = {
+    cat("\n")
+    cli_h1("Teardown")
+    teardown()
+  }
+)
 
 cat("\n")
 cli_alert_info("Please test rest of UI manually, if impacted by this release")
