@@ -124,6 +124,7 @@ test_that("/objects/ (iii): resource file accessible, data inaccessible - assign
       symbol = "old_iii_resolved",
       expr = as.symbol("as.resource.object(old_iii)")
     ),
+    "invalid first argument",
     info = "/objects/: researcher must have access to data project to resolve"
   )
 })
@@ -138,6 +139,34 @@ test_that("/objects/ (iv): resource file inaccessible, data accessible - assign 
     datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "old_iv"),
     "\\$ operator is invalid for atomic vectors"
   )
+})
+reconnect()
+
+# ---- Cross-project with access to both ----
+#
+# Researcher now has access to both project-a and project-b.
+# Re-test the cross-project case: descriptor in project-a, data in project-b.
+
+set_user(FALSE, list(release_env$project1, release_env$res_project_a, release_env$res_project_b))
+
+test_that("/objects/ (v): resource file in project-a, data in project-b, has access to both - assign and resolve succeed", {
+  skip_if_no_resources(test_name)
+
+  resource_path <- sprintf("%s/ewas/old_iii", release_env$res_project_a)
+  expect_no_error(
+    datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "old_v")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("old_v" %in% symbols$armadillo$objects.found)
+
+  datashield.assign.expr(
+    release_env$conns,
+    symbol = "old_v_resolved",
+    expr = as.symbol("as.resource.object(old_v)")
+  )
+  symbols <- ds.ls(datasources = release_env$conns)
+  expect_true("old_v_resolved" %in% symbols$armadillo$objects.found,
+    info = "Cross-project resource should resolve when researcher has access to both projects")
 })
 reconnect()
 
