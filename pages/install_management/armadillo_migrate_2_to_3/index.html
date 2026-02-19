@@ -1,0 +1,1883 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://molgenis.github.io/molgenis-service-armadillo/pages/install_management/armadillo_migrate_2_to_3/">
+      
+      
+        <link rel="prev" href="../armadillo_minor_release_update/">
+      
+      
+        <link rel="next" href="../armadillo_migrate_3_to_4/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Migrate Armadillo 2 to 3 - MOLGENIS Armadillo Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../css/simple.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migrate-armadillo-2-to-armadillo-3" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MOLGENIS Armadillo Docs" class="md-header__button md-logo" aria-label="MOLGENIS Armadillo Docs" data-md-component="logo">
+      
+  <img src="../../../img/armadillo-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MOLGENIS Armadillo Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migrate Armadillo 2 to 3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/molgenis/molgenis-service-armadillo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MOLGENIS Armadillo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MOLGENIS Armadillo Docs" class="md-nav__button md-logo" aria-label="MOLGENIS Armadillo Docs" data-md-component="logo">
+      
+  <img src="../../../img/armadillo-logo.png" alt="logo">
+
+    </a>
+    MOLGENIS Armadillo Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/molgenis/molgenis-service-armadillo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MOLGENIS Armadillo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about_us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About us
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../basic_usage/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Usage
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Basic Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/armadillo_ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo User Interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/central_analysis_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Central Analysis Server (CAS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/ds_molgenis_armadillo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSMolgenisArmadillo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/molgenis_armadillo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MolgenisArmadillo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/dsupload_dsdictionaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dsUpload & dsDictionaries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/dslite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dsLite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_usage/auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install, Setup and Management
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Install, Setup and Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_docker_install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Docker Quicksetup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_minor_release_update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Minor Release Update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 2 to 3
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 2 to 3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-with-python-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install with Python virtual environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrate-projects-users-and-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate Projects, users and data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migrate Projects, users and data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-if-theres-enough-space-left-on-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Check if there's enough space left on the server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-backup-armadillo-2-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Backup Armadillo 2 settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-install-helper-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Install helper software
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-stop-all-docker-images-for-armadillo-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Stop all docker images for Armadillo 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-install-armadillo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Install armadillo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-export-data-from-armadillo-2-into-armadillo-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Export data from Armadillo 2 into armadillo 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-run-armadillo-3-using-exported-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Run Armadillo 3 using exported data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-optionally-acquire-a-permission-set-from-molgenis-team" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Optionally, acquire a permission set from MOLGENIS team
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-cleanup-ngnix-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cleanup ngnix config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-fix-applicationyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Fix application.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-fix-urls-in-the-lifecycle-fusionauth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Fix URLs in the lifecycle FusionAuth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-set-up-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Set up profiles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-remove-old-minio-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Remove old MinIO data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrate-projects-and-their-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate Projects and their users
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migrate Projects and their users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-export-projects-and-users-from-armadillo-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Export Projects and users from Armadillo 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-import-projects-and-users-tsvs-into-armadillo-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Import Projects and users TSVs into Armadillo 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_migrate_3_to_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 3 to 4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_migrate_4_to_5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 4 to 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev_guides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-with-python-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install with Python virtual environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrate-projects-users-and-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate Projects, users and data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migrate Projects, users and data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-if-theres-enough-space-left-on-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Check if there's enough space left on the server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-backup-armadillo-2-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Backup Armadillo 2 settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-install-helper-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Install helper software
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-stop-all-docker-images-for-armadillo-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Stop all docker images for Armadillo 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-install-armadillo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Install armadillo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-export-data-from-armadillo-2-into-armadillo-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Export data from Armadillo 2 into armadillo 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-run-armadillo-3-using-exported-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Run Armadillo 3 using exported data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-optionally-acquire-a-permission-set-from-molgenis-team" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Optionally, acquire a permission set from MOLGENIS team
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-cleanup-ngnix-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cleanup ngnix config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-fix-applicationyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Fix application.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-fix-urls-in-the-lifecycle-fusionauth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Fix URLs in the lifecycle FusionAuth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-set-up-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Set up profiles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-remove-old-minio-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Remove old MinIO data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrate-projects-and-their-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate Projects and their users
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migrate Projects and their users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-export-projects-and-users-from-armadillo-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Export Projects and users from Armadillo 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-import-projects-and-users-tsvs-into-armadillo-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Import Projects and users TSVs into Armadillo 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="migrate-armadillo-2-to-armadillo-3">Migrate Armadillo 2 to Armadillo 3</h1>
+<p>Migrating from Armadillo 2 to Armadillo 3 can be done in two variants, a full migration including <a href="#migrate-projects-users-and-data">projects, users and data</a> or <a href="#migrate-projects-and-their-users">just projects and their users</a>.
+Both options require Python (version 3.8) and additional python libraries, described in <a href="#getting-started">Getting started</a>.</p>
+<h2 id="getting-started">Getting started</h2>
+<p>To start the migration, python 3.8 is advised together with a number of utilitarian python libraries. Other python
+versions might work, but performance has only been tested with python 3.8.</p>
+<h3 id="install-with-python-virtual-environment">Install with Python virtual environment</h3>
+<p>For more info see <a href="https://docs.python.org/3/library/venv.html">python virtual environment</a>.</p>
+<p>The following code does not require superuser rights. The code does assume you are already in the <a href="https://github.com/molgenis/molgenis-service-armadillo/tree/master/scripts/upgrade">scripts/upgrade</a> directory.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>./venv/bin/activate
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span></code></pre></div>
+<details class="tip">
+<summary>Tip</summary>
+<p>If the installation of one (or more libraries) fails, try to install the libraries one by one.</p>
+</details>
+<h2 id="migrate-projects-users-and-data">Migrate Projects, users and data</h2>
+<h3 id="1-check-if-theres-enough-space-left-on-the-server">1. Check if there's enough space left on the server</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>df<span class="w"> </span>-h
+</span></code></pre></div>
+<p>Compare to:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>du<span class="w"> </span>-h<span class="w"> </span>/var/lib/minio
+</span></code></pre></div>
+<details class="warning">
+<summary>Warning</summary>
+<p>Available space should be at least twice the size of the MinIO folder.</p>
+</details>
+<h3 id="2-backup-armadillo-2-settings">2. Backup Armadillo 2 settings</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>mkdir<span class="w"> </span>armadillo2-backup<span class="w"> </span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>rsync<span class="w"> </span>-avr<span class="w"> </span>/usr/share/armadillo<span class="w"> </span>armadillo2-backup<span class="w"> </span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>cp<span class="w"> </span>/etc/armadillo/application.yml<span class="w"> </span>armadillo2-backup/application-armadillo2.yml<span class="w"> </span>
+</span></code></pre></div>
+<details class="note" open="open">
+<summary>Note</summary>
+<p>Change <code>/usr/share</code> to the path matching your local config.</p>
+</details>
+<h3 id="3-install-helper-software">3. Install helper software</h3>
+<p>FIXME: Skip these steps as you have already done installing the python code in a virtual env.</p>
+<p>Login to your server as root, using ssh.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>apt<span class="w"> </span>update
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">#apt install pip</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">#pip install minio</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1">#pip install fusionauth-client</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1">#pip install simple_term_menu</span>
+</span></code></pre></div>
+<p>If you get a purple message asking to update, accept and install everything.</p>
+<p>Restart of server is recommended after this.</p>
+<details class="note">
+<summary>Note</summary>
+<p>The commands in this manual are for Ubuntu, on other linux systems, the <code>apt</code> command needs to be replaced with the correct one.</p>
+</details>
+<h3 id="4-stop-all-docker-images-for-armadillo-2">4. Stop all docker images for Armadillo 2</h3>
+<p>List all docker images</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>ps<span class="w"> </span>-a
+</span></code></pre></div>
+<p>Stop and remove all Armadillo 2 related images (except for MinIO), e.g.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>rm<span class="w"> </span>armadillo_auth_1<span class="w"> </span>armadillo_console_1<span class="w"> </span>armadillo_rserver-default_1<span class="w"> </span>armadillo_rserver-mediation_1<span class="w"> </span>armadillo_rserver-exposome_1<span class="w"> </span>armadillo_rserver-omics_1<span class="w"> </span>armadillo_armadillo_1<span class="w"> </span>-f<span class="w"> </span>
+</span></code></pre></div>
+<p>Check with <code>docker ps -a</code> if there are still containers running, if so remove these (<strong>except for the MinIO</strong>) in the same way as the others.</p>
+<details class="warning" open="open">
+<summary>Warning</summary>
+<p>Make sure you do <strong>not</strong> remove the docker instance of MinIO before you migrated the data!</p>
+</details>
+<h3 id="5-install-armadillo">5. Install armadillo</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>apt<span class="w"> </span>update
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>apt<span class="w"> </span>install<span class="w"> </span>openjdk-19-jre-headless
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>apt<span class="w"> </span>install<span class="w"> </span>docker.io
+</span></code></pre></div>
+<p>The docker.io step might fail because containerd already exists, if that's the case, remove containerd and try again:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>apt<span class="w"> </span>remove<span class="w"> </span>containerd.io
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>apt<span class="w"> </span>install<span class="w"> </span>docker.io
+</span></code></pre></div>
+<p>Get armadillo:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>wget<span class="w"> </span>https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh<span class="w"> </span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>bash<span class="w"> </span>armadillo-setup.sh<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--admin-user<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--admin-password<span class="w"> </span>xxxxx<span class="w"> </span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--domain<span class="w"> </span>my.server.com<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>--oidc<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span>--oidc_url<span class="w"> </span>https://lifecycle-auth.molgenis.org<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span>--oidc_clientid<span class="w"> </span>clientid<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span>--oidc_clientsecret<span class="w"> </span>secret<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span>--cleanup<span class="w"> </span><span class="se">\</span>
+</span></code></pre></div>
+<p>Don't forget to set a proper admin password (use a generator), domain, clientid and clientsecret. The client id and
+secret can be found on the lifecycle auth server in the configuration for your server. If you don't have permissions to
+receive this, you can ask the support team to get it for you.</p>
+<p>Open armadillo in the browser and try to login using basicauth to check if the server is running properly. If it is not
+running at all, try:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>systemctl<span class="w"> </span>start<span class="w"> </span>armadillo
+</span></code></pre></div>
+<h3 id="6-export-data-from-armadillo-2-into-armadillo-3">6. Export data from Armadillo 2 into armadillo 3</h3>
+<p>Look up the user/password in the application.yml of the old armadillo. They are called MinIO access key and minio secret key.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cat<span class="w"> </span>/root/armadillo2-backup/application-armadillo2.yml
+</span></code></pre></div>
+<p>Do the following step in a separate screen. On ubuntu use:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>screen
+</span></code></pre></div>
+<p>Navigate to the armadillo folder:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">cd</span><span class="w"> </span>/usr/share/armadillo
+</span></code></pre></div>
+<p>This step will copy Armadillo 2 data from minio into the folder matching of an Armadillo 3 data folder:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>mkdir<span class="w"> </span>data
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>wget<span class="w"> </span>https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-minio.py
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>python3<span class="w"> </span>migrate-minio.py<span class="w">  </span>--minio<span class="w"> </span>http://localhost:9000<span class="w"> </span>--target<span class="w"> </span>/usr/share/armadillo/data<span class="w">  </span>
+</span></code></pre></div>
+<p>This might take a couple of minutes. You can detach the screen using <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-a">A</kbd></span> followed by <span class="keys"><kbd class="key-d">D</kbd></span> and reattach it using <code>screen -r</code>.</p>
+<h3 id="7-run-armadillo-3-using-exported-data">7. Run Armadillo 3 using exported data</h3>
+<p>Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>chown<span class="w"> </span>armadillo:armadillo<span class="w"> </span>-R<span class="w"> </span>data<span class="w"> </span>
+</span></code></pre></div>
+<p>Check if armadillo is running by going to the URL of your server in the browser, login and navigate to the projects tab.</p>
+<h3 id="8-optionally-acquire-a-permission-set-from-molgenis-team">8. Optionally, acquire a permission set from MOLGENIS team</h3>
+<p>If you previously ran a central authorisation server with MOLGENIS team, they can provide you with procedure to load pre-existing permissions. They will use:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>wget<span class="w"> </span>https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/upgrade/migrate-auth.py
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>python3<span class="w"> </span>migrate-auth.py<span class="w">  </span>--fusion-auth<span class="w"> </span>https://lifecycle-auth.molgenis.org<span class="w"> </span>--armadillo<span class="w"> </span>https://thearmadillourl.net
+</span></code></pre></div>
+<p>Now check if all users and data are properly migrated.</p>
+<details class="note">
+<summary>Note</summary>
+<p>If the script fails with a timeout, try pinging the armadillo url and lifecycle auth url to see if they're reachable from the server. In case they are not, you could choose to export the users using the <code>export-users.py</code> script locally and then manually enter them into the system.</p>
+</details>
+<h3 id="9-cleanup-ngnix-config">9. Cleanup ngnix config</h3>
+<p>Change <code>/etc/nginx/sites-available/armadillo.conf</code> to:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>server<span class="w"> </span><span class="o">{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span>listen<span class="w"> </span><span class="m">80</span><span class="p">;</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span>server_name<span class="w"> </span>urlofyourserver.org
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span>include<span class="w"> </span>/etc/nginx/global.d/*.conf<span class="p">;</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span>location<span class="w"> </span>/<span class="w"> </span><span class="o">{</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span>proxy_pass<span class="w"> </span>http://localhost:8080<span class="p">;</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">  </span>client_max_body_size<span class="w"> </span><span class="m">0</span><span class="p">;</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span>proxy_read_timeout<span class="w"> </span>600s<span class="p">;</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span>proxy_redirect<span class="w"> </span>http://localhost:8080/<span class="w"> </span><span class="nv">$scheme</span>://<span class="nv">$host</span>/<span class="p">;</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span>proxy_set_header<span class="w"> </span>Host<span class="w"> </span><span class="nv">$host</span><span class="p">;</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">  </span>proxy_http_version<span class="w"> </span><span class="m">1</span>.1<span class="p">;</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">  </span><span class="o">}</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="o">}</span>
+</span></code></pre></div>
+<details class="note">
+<summary>Note</summary>
+<p>Note that the <code>https://</code> is missing in the server_name part.</p>
+</details>
+<details class="note">
+<summary>Note</summary>
+<p>If port 443 and the SSL certificates are in the old config, you mind have to keep that part, so you should not comment that out. Keep the listen and certificate lines, comment out the rest and paste the config above below the existing config.</p>
+</details>
+<p>Remove the console, auth and storage file from: <code>/etc/nginx/sites-enabled/</code> and <code>/etc/nginx/sites-available/</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>systemctl<span class="w"> </span>restart<span class="w"> </span>nginx
+</span></code></pre></div>
+<h3 id="10-fix-applicationyml">10. Fix application.yml</h3>
+<p>Make sure the following is added:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>server:
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>forward-headers-strategy:<span class="w"> </span>framework
+</span></code></pre></div>
+<h3 id="11-fix-urls-in-the-lifecycle-fusionauth">11. Fix URLs in the lifecycle FusionAuth</h3>
+<p>Add the following to the config of your server: <code>https://yourserver.com/login/oauth2/code/molgenis</code></p>
+<h3 id="12-set-up-profiles">12. Set up profiles</h3>
+<p>Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:</p>
+<p>Name: <code>xenon</code><br />
+Image: <code>datashield/armadillo-rserver_caravan-xenon:latest</code><br />
+Package whitelist: <code>dsBase</code>, <code>resourcer</code>, <code>dsMediation</code>, <code>dsMTLBase</code>, <code>dsSurvival</code>, <code>dsExposome</code></p>
+<p>Assign a random 9-number seed and create and start the container.</p>
+<h3 id="13-remove-old-minio-data">13. Remove old MinIO data</h3>
+<p>First remove the MinIO docker container. First check the name of the container using <code>docker ps -a</code>, then:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>docker<span class="w"> </span>rm<span class="w"> </span>containername<span class="w"> </span>-f
+</span></code></pre></div>
+<p>After that remove the data:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>rm<span class="w"> </span>-Rf<span class="w"> </span>/var/lib/minio/
+</span></code></pre></div>
+<details class="warning" open="open">
+<summary>Warning</summary>
+<p>Be sure you have migrated your data successfully or created a backup prior to deleting your minio data folder!</p>
+</details>
+<h2 id="migrate-projects-and-their-users">Migrate Projects and their users</h2>
+<p>Migration of just the projects and their users (with their corresponding rights) can be done by using <a href="https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py">export-users.py</a> and <a href="https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py">import-users.py</a>.</p>
+<details class="warning" open="open">
+<summary>Warning</summary>
+<p>This options does not migrate the data!</p>
+</details>
+<h3 id="1-export-projects-and-users-from-armadillo-2">1. Export Projects and users from Armadillo 2</h3>
+<p>To export users from an Armadillo 2 server, one must use the <a href="https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/export-users.py">export-users.py</a> script. <code>export-users.py</code> can be used by using the following arguments:</p>
+<ul>
+<li>-f / --fusion-auth <strong>(required)</strong>: The full URL (including http) of the Armadillo 2 server of which you wish to export the Projects and their users from. <strong>Please note that <code>export-users.py</code> will prompt to supply the API key for this server once all arguments are valid!</strong></li>
+<li>-o / --output <strong>(required)</strong>: The output directory in which (unzipped) TSVs will be placed of all projects and their users, with the project name being the TSV name. <code>export-users.py</code> will create a new folder in the supplied output folder named: <code>YYYY-MM-DD</code>, where <code>YYYY</code> is the current year, <code>MM</code> is the current month and <code>DD</code> is the current day.</li>
+</ul>
+<p><strong>Again, note that <code>export-users.py</code> will prompt to supply the API key for the <code>-f / --fusion-auth</code> server once all arguments are valid!</strong></p>
+<p>Empty projects (without users) will also be exported as an empty TSV (containing only the header). This is a feature that <code>import-users.py</code>, the next step, is able to function with.</p>
+<p>Also note that some projects might change in name, as Armadillo 3 is stricter with naming projects.</p>
+<p>Example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pipenv<span class="w"> </span>shell
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>python3<span class="w"> </span>export-users.py<span class="w"> </span>-f<span class="w"> </span>https://armadillo2-server.org<span class="w"> </span>-o<span class="w"> </span>./armadillo_2_exports
+</span></code></pre></div>
+<h3 id="2-import-projects-and-users-tsvs-into-armadillo-3">2. Import Projects and users TSVs into Armadillo 3</h3>
+<p>To import users into an Armadillo 3 server, one must use the <a href="https://github.com/molgenis/molgenis-service-armadillo/blob/master/scripts/upgrade/import-users.py">import-users.py</a> script. <code>import-users</code> can be used by using the following arguments:</p>
+<ul>
+<li>-s / --server <strong>(required)</strong>: The full URL (including http) of the Armadillo 3 server of which you wish to import the Projects and their users TSVs in <a href="#1-export-projects-and-users-from-armadillo-2">step 1</a>. <strong>Please note that <code>import-users.py</code> will prompt to supply the API key for this server once all arguments are valid!</strong></li>
+<li>-d / --user-data <strong>(required)</strong>: The directory, including the folder named after the year-month-day combination, where the export TSVs from <a href="#1-export-projects-and-users-from-armadillo-2">step 1</a> are stored.</li>
+</ul>
+<p><strong>Again, note that <code>import-users.py</code> will prompt to supply the API key for the <code>-s / --server</code> server once all arguments are valid!</strong></p>
+<p>Empty TSVs from <a href="#1-export-projects-and-users-from-armadillo-2">step 1</a> will be imported as empty projects with no users.</p>
+<p>Example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>pipenv<span class="w"> </span>shell
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>python3<span class="w"> </span>import-users.py<span class="w"> </span>-s<span class="w"> </span>https://armadillo3-server.org<span class="w"> </span>-d<span class="w"> </span>./armadillo_2_exports/2023-11-09
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../armadillo_minor_release_update/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Armadillo Minor Release Update">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Armadillo Minor Release Update
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../armadillo_migrate_3_to_4/" class="md-footer__link md-footer__link--next" aria-label="Next: Migrate Armadillo 3 to 4">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Migrate Armadillo 3 to 4
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+    Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726" target="_blank">Cadman et al (2024)</a> when using MOLGENIS Armadillo.
+    <div>
+        Documentation made with
+        <a
+                href="https://squidfunk.github.io/mkdocs-material/"
+                target="_blank" rel="noopener"
+        >
+            Material for MkDocs
+        </a>
+    </div>
+
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/molgenis" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://x.com/molgenis" target="_blank" rel="noopener" title="x.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "content.tooltips", "navigation.indexes", "navigation.footer"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

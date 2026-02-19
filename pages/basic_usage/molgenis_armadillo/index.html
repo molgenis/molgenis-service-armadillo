@@ -1,0 +1,1648 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://molgenis.github.io/molgenis-service-armadillo/pages/basic_usage/molgenis_armadillo/">
+      
+      
+        <link rel="prev" href="../ds_molgenis_armadillo/">
+      
+      
+        <link rel="next" href="../dsupload_dsdictionaries/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>MolgenisArmadillo - MOLGENIS Armadillo Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../css/simple.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#molgenisarmadillo" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MOLGENIS Armadillo Docs" class="md-header__button md-logo" aria-label="MOLGENIS Armadillo Docs" data-md-component="logo">
+      
+  <img src="../../../img/armadillo-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MOLGENIS Armadillo Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MolgenisArmadillo
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/molgenis/molgenis-service-armadillo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MOLGENIS Armadillo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MOLGENIS Armadillo Docs" class="md-nav__button md-logo" aria-label="MOLGENIS Armadillo Docs" data-md-component="logo">
+      
+  <img src="../../../img/armadillo-logo.png" alt="logo">
+
+    </a>
+    MOLGENIS Armadillo Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/molgenis/molgenis-service-armadillo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MOLGENIS Armadillo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about_us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About us
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Usage
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Basic Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../armadillo_ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo User Interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../central_analysis_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Central Analysis Server (CAS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ds_molgenis_armadillo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSMolgenisArmadillo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MolgenisArmadillo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dsupload_dsdictionaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dsUpload & dsDictionaries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dslite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dsLite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../install_management/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install, Setup and Management
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Install, Setup and Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_docker_install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Docker Quicksetup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_minor_release_update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Armadillo Minor Release Update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_migrate_2_to_3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 2 to 3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_migrate_3_to_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 3 to 4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_management/armadillo_migrate_4_to_5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate Armadillo 4 to 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev_guides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="molgenisarmadillo">MolgenisArmadillo</h1>
+<p>Relevant for: <span class="twemoji" title="Data Managers"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm-4 17H7v-2h3zm0-3H7v-2h3zm0-3H7v-2h3zm4 6h-3v-2h3zm0-3h-3v-2h3zm0-3h-3v-2h3zm-1-4V3.5L18.5 9z"/></svg></span></p>
+<p>MolgenisArmadillo is a R library that can be used by data managers to share datasets on a MOLGENIS Armadillo server. Researchers can then analyse these datasets and datasets shared on other servers using DataSHIELD. Researchers will only be able to access aggregate information and cannot see individual rows.</p>
+<p>For more detailed information please visit <a href="https://molgenis.github.io/molgenis-r-armadillo/index.html">MolgenisArmadillo</a>.</p>
+<p>Below some basic operations to get you started using MolgenisArmadillo:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Prerequisite</label><label for="__tabbed_1_2">Basic usage</label><label for="__tabbed_1_3">Create subsets</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<details class="example" open="open">
+<summary>Example</summary>
+<div class="language-r highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Prerequisite.r</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># install the following packages</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;MolgenisArmadillo&quot;</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;dplyr&quot;</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;arrow&quot;</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="c1"># After installation make sure you can load the libraries</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="nf">library</span><span class="p">(</span><span class="n">MolgenisArmadillo</span><span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="nf">library</span><span class="p">(</span><span class="n">arrow</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="c1"># verify the loaded libraries (see: other attached packages)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="nf">sessionInfo</span><span class="p">()</span>
+</span></code></pre></div></td></tr></table></div>
+</details>
+</div>
+<div class="tabbed-block">
+<details class="example" open="open">
+<summary>Example</summary>
+<div class="language-r highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">MolgenisArmadillo.r</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">  1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">  2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">  3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">  4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">  5</a></span>
+<span class="normal"><a href="#__codelineno-1-6">  6</a></span>
+<span class="normal"><a href="#__codelineno-1-7">  7</a></span>
+<span class="normal"><a href="#__codelineno-1-8">  8</a></span>
+<span class="normal"><a href="#__codelineno-1-9">  9</a></span>
+<span class="normal"><a href="#__codelineno-1-10"> 10</a></span>
+<span class="normal"><a href="#__codelineno-1-11"> 11</a></span>
+<span class="normal"><a href="#__codelineno-1-12"> 12</a></span>
+<span class="normal"><a href="#__codelineno-1-13"> 13</a></span>
+<span class="normal"><a href="#__codelineno-1-14"> 14</a></span>
+<span class="normal"><a href="#__codelineno-1-15"> 15</a></span>
+<span class="normal"><a href="#__codelineno-1-16"> 16</a></span>
+<span class="normal"><a href="#__codelineno-1-17"> 17</a></span>
+<span class="normal"><a href="#__codelineno-1-18"> 18</a></span>
+<span class="normal"><a href="#__codelineno-1-19"> 19</a></span>
+<span class="normal"><a href="#__codelineno-1-20"> 20</a></span>
+<span class="normal"><a href="#__codelineno-1-21"> 21</a></span>
+<span class="normal"><a href="#__codelineno-1-22"> 22</a></span>
+<span class="normal"><a href="#__codelineno-1-23"> 23</a></span>
+<span class="normal"><a href="#__codelineno-1-24"> 24</a></span>
+<span class="normal"><a href="#__codelineno-1-25"> 25</a></span>
+<span class="normal"><a href="#__codelineno-1-26"> 26</a></span>
+<span class="normal"><a href="#__codelineno-1-27"> 27</a></span>
+<span class="normal"><a href="#__codelineno-1-28"> 28</a></span>
+<span class="normal"><a href="#__codelineno-1-29"> 29</a></span>
+<span class="normal"><a href="#__codelineno-1-30"> 30</a></span>
+<span class="normal"><a href="#__codelineno-1-31"> 31</a></span>
+<span class="normal"><a href="#__codelineno-1-32"> 32</a></span>
+<span class="normal"><a href="#__codelineno-1-33"> 33</a></span>
+<span class="normal"><a href="#__codelineno-1-34"> 34</a></span>
+<span class="normal"><a href="#__codelineno-1-35"> 35</a></span>
+<span class="normal"><a href="#__codelineno-1-36"> 36</a></span>
+<span class="normal"><a href="#__codelineno-1-37"> 37</a></span>
+<span class="normal"><a href="#__codelineno-1-38"> 38</a></span>
+<span class="normal"><a href="#__codelineno-1-39"> 39</a></span>
+<span class="normal"><a href="#__codelineno-1-40"> 40</a></span>
+<span class="normal"><a href="#__codelineno-1-41"> 41</a></span>
+<span class="normal"><a href="#__codelineno-1-42"> 42</a></span>
+<span class="normal"><a href="#__codelineno-1-43"> 43</a></span>
+<span class="normal"><a href="#__codelineno-1-44"> 44</a></span>
+<span class="normal"><a href="#__codelineno-1-45"> 45</a></span>
+<span class="normal"><a href="#__codelineno-1-46"> 46</a></span>
+<span class="normal"><a href="#__codelineno-1-47"> 47</a></span>
+<span class="normal"><a href="#__codelineno-1-48"> 48</a></span>
+<span class="normal"><a href="#__codelineno-1-49"> 49</a></span>
+<span class="normal"><a href="#__codelineno-1-50"> 50</a></span>
+<span class="normal"><a href="#__codelineno-1-51"> 51</a></span>
+<span class="normal"><a href="#__codelineno-1-52"> 52</a></span>
+<span class="normal"><a href="#__codelineno-1-53"> 53</a></span>
+<span class="normal"><a href="#__codelineno-1-54"> 54</a></span>
+<span class="normal"><a href="#__codelineno-1-55"> 55</a></span>
+<span class="normal"><a href="#__codelineno-1-56"> 56</a></span>
+<span class="normal"><a href="#__codelineno-1-57"> 57</a></span>
+<span class="normal"><a href="#__codelineno-1-58"> 58</a></span>
+<span class="normal"><a href="#__codelineno-1-59"> 59</a></span>
+<span class="normal"><a href="#__codelineno-1-60"> 60</a></span>
+<span class="normal"><a href="#__codelineno-1-61"> 61</a></span>
+<span class="normal"><a href="#__codelineno-1-62"> 62</a></span>
+<span class="normal"><a href="#__codelineno-1-63"> 63</a></span>
+<span class="normal"><a href="#__codelineno-1-64"> 64</a></span>
+<span class="normal"><a href="#__codelineno-1-65"> 65</a></span>
+<span class="normal"><a href="#__codelineno-1-66"> 66</a></span>
+<span class="normal"><a href="#__codelineno-1-67"> 67</a></span>
+<span class="normal"><a href="#__codelineno-1-68"> 68</a></span>
+<span class="normal"><a href="#__codelineno-1-69"> 69</a></span>
+<span class="normal"><a href="#__codelineno-1-70"> 70</a></span>
+<span class="normal"><a href="#__codelineno-1-71"> 71</a></span>
+<span class="normal"><a href="#__codelineno-1-72"> 72</a></span>
+<span class="normal"><a href="#__codelineno-1-73"> 73</a></span>
+<span class="normal"><a href="#__codelineno-1-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-1-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-1-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-1-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-1-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-1-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-1-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-1-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-1-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-1-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-1-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-1-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-1-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-1-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-1-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-1-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-1-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-1-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-1-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-1-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-1-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-1-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-1-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-1-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-1-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-1-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-1-100">100</a></span>
+<span class="normal"><a href="#__codelineno-1-101">101</a></span>
+<span class="normal"><a href="#__codelineno-1-102">102</a></span>
+<span class="normal"><a href="#__codelineno-1-103">103</a></span>
+<span class="normal"><a href="#__codelineno-1-104">104</a></span>
+<span class="normal"><a href="#__codelineno-1-105">105</a></span>
+<span class="normal"><a href="#__codelineno-1-106">106</a></span>
+<span class="normal"><a href="#__codelineno-1-107">107</a></span>
+<span class="normal"><a href="#__codelineno-1-108">108</a></span>
+<span class="normal"><a href="#__codelineno-1-109">109</a></span>
+<span class="normal"><a href="#__codelineno-1-110">110</a></span>
+<span class="normal"><a href="#__codelineno-1-111">111</a></span>
+<span class="normal"><a href="#__codelineno-1-112">112</a></span>
+<span class="normal"><a href="#__codelineno-1-113">113</a></span>
+<span class="normal"><a href="#__codelineno-1-114">114</a></span>
+<span class="normal"><a href="#__codelineno-1-115">115</a></span>
+<span class="normal"><a href="#__codelineno-1-116">116</a></span>
+<span class="normal"><a href="#__codelineno-1-117">117</a></span>
+<span class="normal"><a href="#__codelineno-1-118">118</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1">## Prerequisites</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="c1">#</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="c1"># - Run the code in Prerequisite.r</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="c1">#</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="nf">library</span><span class="p">(</span><span class="n">MolgenisArmadillo</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="c1">## </span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a><span class="c1"># To share your data using Armadillo, you first need to login</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="c1">## Login</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="c1">#</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="c1"># In order to access the files as a data manager, you need to log in. </span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a><span class="c1"># The login method needs the URLs of the Armadillo server.</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14"></a><span class="c1"># It will open a browser window where you can identify yourself with the ID provider.</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15"></a><span class="c1"># </span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16"></a><span class="c1"># If you are unsure how this login function (or any function) works ask R to provide documentation</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17"></a><span class="o">?</span><span class="n">armadillo.login</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19"></a><span class="nf">armadillo.login</span><span class="p">(</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20"></a><span class="w">    </span><span class="n">armadillo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://armadillo.test.molgenis.org&quot;</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21"></a><span class="p">)</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22"></a><span class="c1">#token &lt;- armadillo.get_token(&quot;https://armadillo.test.molgenis.org&quot;)</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23"></a>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24"></a><span class="c1"># armadillo.login will create a session and store the credentials in the environment.</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25"></a>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26"></a><span class="c1">## Structure</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27"></a><span class="c1"># To share data via Armadillo you can have a nested structure to save you data.</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28"></a>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29"></a><span class="c1"># We distinguish:</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30"></a><span class="c1"># - projects</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31"></a><span class="c1"># - folders</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32"></a><span class="c1"># - tables</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33"></a>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34"></a><span class="c1">### Projects</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35"></a><span class="c1"># Projects are root-folders you can give persons permissions on. </span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36"></a><span class="c1"># you can imagine that you will use a separate project for each study you need to support. </span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37"></a><span class="c1"># This way you make sure people can not see each others variables.</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38"></a>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39"></a><span class="c1">### Folders</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40"></a><span class="c1"># Folder objects can be used to version the different tables you want to share in Armadillo. </span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41"></a><span class="c1"># This is not mandatory and are free to use the folder level as you see fit. </span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42"></a><span class="c1"># In our examples we will go into the versioning part a bit deeper.</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43"></a>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44"></a><span class="c1">### Tables </span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45"></a><span class="c1"># Tables contain the data you want to share. </span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46"></a><span class="c1"># This can be all the data on a certain subject, mostly used in consortia or a specific study you want to expose.</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47"></a>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48"></a><span class="c1">## Sharing data</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49"></a><span class="c1"># Assume you are in a consortia which has core-variables and outcome-variables. </span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50"></a><span class="c1"># You want to share and version the whole dataset to all researchers which applied to access your data.</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51"></a>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52"></a><span class="c1"># First we will create the project. In our case &quot;ipec&quot;.</span>
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53"></a>
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54"></a><span class="n">cohort</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;workshop2&quot;</span>
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55"></a><span class="nf">armadillo.create_project</span><span class="p">(</span><span class="n">cohort</span><span class="p">)</span><span class="w"> </span>
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56"></a>
+</span><span id="__span-1-57"><a id="__codelineno-1-57" name="__codelineno-1-57"></a><span class="c1"># Secondly we will load the table(s) we want to upload to Armadillo in the R-environment. </span>
+</span><span id="__span-1-58"><a id="__codelineno-1-58" name="__codelineno-1-58"></a><span class="c1"># We have test data which is in `arrow` format, the upload will take any object that has a table like structure to upload into the Armadillo. </span>
+</span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59"></a><span class="c1"># This can be SPSS, STATA, SAS or R-based data as well.</span>
+</span><span id="__span-1-60"><a id="__codelineno-1-60" name="__codelineno-1-60"></a>
+</span><span id="__span-1-61"><a id="__codelineno-1-61" name="__codelineno-1-61"></a><span class="nf">library</span><span class="p">(</span><span class="n">arrow</span><span class="p">)</span>
+</span><span id="__span-1-62"><a id="__codelineno-1-62" name="__codelineno-1-62"></a>
+</span><span id="__span-1-63"><a id="__codelineno-1-63" name="__codelineno-1-63"></a><span class="c1"># load the core data (make sure you are working in the correct directory)</span>
+</span><span id="__span-1-64"><a id="__codelineno-1-64" name="__codelineno-1-64"></a><span class="n">nonrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="nf">read_parquet</span><span class="p">(</span><span class="s">&quot;data/nonrep.parquet&quot;</span><span class="p">)</span>
+</span><span id="__span-1-65"><a id="__codelineno-1-65" name="__codelineno-1-65"></a><span class="n">yearlyrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="nf">read_parquet</span><span class="p">(</span><span class="s">&quot;data/yearlyrep.parquet&quot;</span><span class="p">)</span>
+</span><span id="__span-1-66"><a id="__codelineno-1-66" name="__codelineno-1-66"></a>
+</span><span id="__span-1-67"><a id="__codelineno-1-67" name="__codelineno-1-67"></a><span class="c1"># explore your data (sanity check)</span>
+</span><span id="__span-1-68"><a id="__codelineno-1-68" name="__codelineno-1-68"></a><span class="nf">View</span><span class="p">(</span><span class="n">nonrep</span><span class="p">)</span>
+</span><span id="__span-1-69"><a id="__codelineno-1-69" name="__codelineno-1-69"></a><span class="nf">dim</span><span class="p">(</span><span class="n">nonrep</span><span class="p">)</span>
+</span><span id="__span-1-70"><a id="__codelineno-1-70" name="__codelineno-1-70"></a><span class="nf">names</span><span class="p">(</span><span class="n">nonrep</span><span class="p">)</span>
+</span><span id="__span-1-71"><a id="__codelineno-1-71" name="__codelineno-1-71"></a><span class="nf">table</span><span class="p">(</span><span class="n">nonrep</span><span class="o">$</span><span class="n">recruit_age</span><span class="p">)</span>
+</span><span id="__span-1-72"><a id="__codelineno-1-72" name="__codelineno-1-72"></a>
+</span><span id="__span-1-73"><a id="__codelineno-1-73" name="__codelineno-1-73"></a><span class="c1"># The third step is determining the second level, which contains in this case the datamodel-version the type of variables and the data-version.</span>
+</span><span id="__span-1-74"><a id="__codelineno-1-74" name="__codelineno-1-74"></a>
+</span><span id="__span-1-75"><a id="__codelineno-1-75" name="__codelineno-1-75"></a><span class="c1"># y_y-#variable-type#-x_x</span>
+</span><span id="__span-1-76"><a id="__codelineno-1-76" name="__codelineno-1-76"></a>
+</span><span id="__span-1-77"><a id="__codelineno-1-77" name="__codelineno-1-77"></a><span class="c1"># y_y = datamodel version</span>
+</span><span id="__span-1-78"><a id="__codelineno-1-78" name="__codelineno-1-78"></a><span class="c1"># x_x = data version</span>
+</span><span id="__span-1-79"><a id="__codelineno-1-79" name="__codelineno-1-79"></a>
+</span><span id="__span-1-80"><a id="__codelineno-1-80" name="__codelineno-1-80"></a><span class="c1"># upload the core variables</span>
+</span><span id="__span-1-81"><a id="__codelineno-1-81" name="__codelineno-1-81"></a><span class="nf">armadillo.upload_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">nonrep</span><span class="p">)</span>
+</span><span id="__span-1-82"><a id="__codelineno-1-82" name="__codelineno-1-82"></a><span class="nf">armadillo.upload_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">yearlyrep</span><span class="p">)</span>
+</span><span id="__span-1-83"><a id="__codelineno-1-83" name="__codelineno-1-83"></a>
+</span><span id="__span-1-84"><a id="__codelineno-1-84" name="__codelineno-1-84"></a><span class="c1">## Looking at the data</span>
+</span><span id="__span-1-85"><a id="__codelineno-1-85" name="__codelineno-1-85"></a><span class="c1"># There are helper functions to help you determine what is in the storage server. </span>
+</span><span id="__span-1-86"><a id="__codelineno-1-86" name="__codelineno-1-86"></a><span class="c1"># You can list projects and tables to what&#39;s in the storage.</span>
+</span><span id="__span-1-87"><a id="__codelineno-1-87" name="__codelineno-1-87"></a>
+</span><span id="__span-1-88"><a id="__codelineno-1-88" name="__codelineno-1-88"></a><span class="c1"># list of projects</span>
+</span><span id="__span-1-89"><a id="__codelineno-1-89" name="__codelineno-1-89"></a><span class="nf">armadillo.list_projects</span><span class="p">()</span>
+</span><span id="__span-1-90"><a id="__codelineno-1-90" name="__codelineno-1-90"></a>
+</span><span id="__span-1-91"><a id="__codelineno-1-91" name="__codelineno-1-91"></a><span class="c1"># listing tables per project</span>
+</span><span id="__span-1-92"><a id="__codelineno-1-92" name="__codelineno-1-92"></a><span class="nf">armadillo.list_tables</span><span class="p">(</span><span class="n">cohort</span><span class="p">)</span>
+</span><span id="__span-1-93"><a id="__codelineno-1-93" name="__codelineno-1-93"></a>
+</span><span id="__span-1-94"><a id="__codelineno-1-94" name="__codelineno-1-94"></a><span class="c1"># You can download the data in the R-environment as well.</span>
+</span><span id="__span-1-95"><a id="__codelineno-1-95" name="__codelineno-1-95"></a>
+</span><span id="__span-1-96"><a id="__codelineno-1-96" name="__codelineno-1-96"></a><span class="c1"># download table to local R environment</span>
+</span><span id="__span-1-97"><a id="__codelineno-1-97" name="__codelineno-1-97"></a><span class="n">download_nonrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">armadillo.load_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nonrep&quot;</span><span class="p">)</span>
+</span><span id="__span-1-98"><a id="__codelineno-1-98" name="__codelineno-1-98"></a>
+</span><span id="__span-1-99"><a id="__codelineno-1-99" name="__codelineno-1-99"></a><span class="c1"># check the column names from the local environment</span>
+</span><span id="__span-1-100"><a id="__codelineno-1-100" name="__codelineno-1-100"></a><span class="nf">colnames</span><span class="p">(</span><span class="n">download_nonrep</span><span class="p">)</span>
+</span><span id="__span-1-101"><a id="__codelineno-1-101" name="__codelineno-1-101"></a>
+</span><span id="__span-1-102"><a id="__codelineno-1-102" name="__codelineno-1-102"></a><span class="c1"># check if local data and uploaded data are equal (optional)</span>
+</span><span id="__span-1-103"><a id="__codelineno-1-103" name="__codelineno-1-103"></a><span class="nf">setequal</span><span class="p">(</span><span class="n">nonrep</span><span class="p">,</span><span class="w"> </span><span class="n">download_nonrep</span><span class="p">)</span>
+</span><span id="__span-1-104"><a id="__codelineno-1-104" name="__codelineno-1-104"></a>
+</span><span id="__span-1-105"><a id="__codelineno-1-105" name="__codelineno-1-105"></a><span class="c1"># Now you can also take a look at the files in the user interface of the MinIO file server</span>
+</span><span id="__span-1-106"><a id="__codelineno-1-106" name="__codelineno-1-106"></a><span class="c1"># open the MinIO server URL in a browser window (used in armadillo.login).</span>
+</span><span id="__span-1-107"><a id="__codelineno-1-107" name="__codelineno-1-107"></a>
+</span><span id="__span-1-108"><a id="__codelineno-1-108" name="__codelineno-1-108"></a><span class="c1"># &gt; !IMPORTANT: run this part after subsetting the data</span>
+</span><span id="__span-1-109"><a id="__codelineno-1-109" name="__codelineno-1-109"></a>
+</span><span id="__span-1-110"><a id="__codelineno-1-110" name="__codelineno-1-110"></a><span class="c1">## Deleting the data </span>
+</span><span id="__span-1-111"><a id="__codelineno-1-111" name="__codelineno-1-111"></a><span class="c1"># To delete the data you need to throw away the contents first.</span>
+</span><span id="__span-1-112"><a id="__codelineno-1-112" name="__codelineno-1-112"></a>
+</span><span id="__span-1-113"><a id="__codelineno-1-113" name="__codelineno-1-113"></a><span class="c1"># throw away the core tables</span>
+</span><span id="__span-1-114"><a id="__codelineno-1-114" name="__codelineno-1-114"></a><span class="nf">armadillo.delete_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nonrep&quot;</span><span class="p">)</span>
+</span><span id="__span-1-115"><a id="__codelineno-1-115" name="__codelineno-1-115"></a><span class="nf">armadillo.delete_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;yearlyrep&quot;</span><span class="p">)</span>
+</span><span id="__span-1-116"><a id="__codelineno-1-116" name="__codelineno-1-116"></a>
+</span><span id="__span-1-117"><a id="__codelineno-1-117" name="__codelineno-1-117"></a><span class="c1"># Now you can delete the project.</span>
+</span><span id="__span-1-118"><a id="__codelineno-1-118" name="__codelineno-1-118"></a><span class="nf">armadillo.delete_project</span><span class="p">(</span><span class="n">cohort</span><span class="p">)</span>
+</span></code></pre></div></td></tr></table></div>
+</details>
+</div>
+<div class="tabbed-block">
+<details class="example" open="open">
+<summary>Example</summary>
+<div class="language-r highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Creating_data_subsets_Armadillo.r</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span>
+<span class="normal"><a href="#__codelineno-2-15">15</a></span>
+<span class="normal"><a href="#__codelineno-2-16">16</a></span>
+<span class="normal"><a href="#__codelineno-2-17">17</a></span>
+<span class="normal"><a href="#__codelineno-2-18">18</a></span>
+<span class="normal"><a href="#__codelineno-2-19">19</a></span>
+<span class="normal"><a href="#__codelineno-2-20">20</a></span>
+<span class="normal"><a href="#__codelineno-2-21">21</a></span>
+<span class="normal"><a href="#__codelineno-2-22">22</a></span>
+<span class="normal"><a href="#__codelineno-2-23">23</a></span>
+<span class="normal"><a href="#__codelineno-2-24">24</a></span>
+<span class="normal"><a href="#__codelineno-2-25">25</a></span>
+<span class="normal"><a href="#__codelineno-2-26">26</a></span>
+<span class="normal"><a href="#__codelineno-2-27">27</a></span>
+<span class="normal"><a href="#__codelineno-2-28">28</a></span>
+<span class="normal"><a href="#__codelineno-2-29">29</a></span>
+<span class="normal"><a href="#__codelineno-2-30">30</a></span>
+<span class="normal"><a href="#__codelineno-2-31">31</a></span>
+<span class="normal"><a href="#__codelineno-2-32">32</a></span>
+<span class="normal"><a href="#__codelineno-2-33">33</a></span>
+<span class="normal"><a href="#__codelineno-2-34">34</a></span>
+<span class="normal"><a href="#__codelineno-2-35">35</a></span>
+<span class="normal"><a href="#__codelineno-2-36">36</a></span>
+<span class="normal"><a href="#__codelineno-2-37">37</a></span>
+<span class="normal"><a href="#__codelineno-2-38">38</a></span>
+<span class="normal"><a href="#__codelineno-2-39">39</a></span>
+<span class="normal"><a href="#__codelineno-2-40">40</a></span>
+<span class="normal"><a href="#__codelineno-2-41">41</a></span>
+<span class="normal"><a href="#__codelineno-2-42">42</a></span>
+<span class="normal"><a href="#__codelineno-2-43">43</a></span>
+<span class="normal"><a href="#__codelineno-2-44">44</a></span>
+<span class="normal"><a href="#__codelineno-2-45">45</a></span>
+<span class="normal"><a href="#__codelineno-2-46">46</a></span>
+<span class="normal"><a href="#__codelineno-2-47">47</a></span>
+<span class="normal"><a href="#__codelineno-2-48">48</a></span>
+<span class="normal"><a href="#__codelineno-2-49">49</a></span>
+<span class="normal"><a href="#__codelineno-2-50">50</a></span>
+<span class="normal"><a href="#__codelineno-2-51">51</a></span>
+<span class="normal"><a href="#__codelineno-2-52">52</a></span>
+<span class="normal"><a href="#__codelineno-2-53">53</a></span>
+<span class="normal"><a href="#__codelineno-2-54">54</a></span>
+<span class="normal"><a href="#__codelineno-2-55">55</a></span>
+<span class="normal"><a href="#__codelineno-2-56">56</a></span>
+<span class="normal"><a href="#__codelineno-2-57">57</a></span>
+<span class="normal"><a href="#__codelineno-2-58">58</a></span>
+<span class="normal"><a href="#__codelineno-2-59">59</a></span>
+<span class="normal"><a href="#__codelineno-2-60">60</a></span>
+<span class="normal"><a href="#__codelineno-2-61">61</a></span>
+<span class="normal"><a href="#__codelineno-2-62">62</a></span>
+<span class="normal"><a href="#__codelineno-2-63">63</a></span>
+<span class="normal"><a href="#__codelineno-2-64">64</a></span>
+<span class="normal"><a href="#__codelineno-2-65">65</a></span>
+<span class="normal"><a href="#__codelineno-2-66">66</a></span>
+<span class="normal"><a href="#__codelineno-2-67">67</a></span>
+<span class="normal"><a href="#__codelineno-2-68">68</a></span>
+<span class="normal"><a href="#__codelineno-2-69">69</a></span>
+<span class="normal"><a href="#__codelineno-2-70">70</a></span>
+<span class="normal"><a href="#__codelineno-2-71">71</a></span>
+<span class="normal"><a href="#__codelineno-2-72">72</a></span>
+<span class="normal"><a href="#__codelineno-2-73">73</a></span>
+<span class="normal"><a href="#__codelineno-2-74">74</a></span>
+<span class="normal"><a href="#__codelineno-2-75">75</a></span>
+<span class="normal"><a href="#__codelineno-2-76">76</a></span>
+<span class="normal"><a href="#__codelineno-2-77">77</a></span>
+<span class="normal"><a href="#__codelineno-2-78">78</a></span>
+<span class="normal"><a href="#__codelineno-2-79">79</a></span>
+<span class="normal"><a href="#__codelineno-2-80">80</a></span>
+<span class="normal"><a href="#__codelineno-2-81">81</a></span>
+<span class="normal"><a href="#__codelineno-2-82">82</a></span>
+<span class="normal"><a href="#__codelineno-2-83">83</a></span>
+<span class="normal"><a href="#__codelineno-2-84">84</a></span>
+<span class="normal"><a href="#__codelineno-2-85">85</a></span>
+<span class="normal"><a href="#__codelineno-2-86">86</a></span>
+<span class="normal"><a href="#__codelineno-2-87">87</a></span>
+<span class="normal"><a href="#__codelineno-2-88">88</a></span>
+<span class="normal"><a href="#__codelineno-2-89">89</a></span>
+<span class="normal"><a href="#__codelineno-2-90">90</a></span>
+<span class="normal"><a href="#__codelineno-2-91">91</a></span>
+<span class="normal"><a href="#__codelineno-2-92">92</a></span>
+<span class="normal"><a href="#__codelineno-2-93">93</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1">## Creating data subsets on the Armadillo server</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="c1"># When researchers request access to your data they may in many cases not be granted access to the whole data set, but only to a subset. </span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="c1"># Here you can see the different relevant steps you need to take to create these subsets.</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="c1">#</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="c1"># - Setting up the environment</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="c1"># - Logging into the servers</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="c1"># - Exploring the data</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="c1"># - Making subsets of the data</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="c1"># - Upload data subsets</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="c1">#</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11"></a><span class="c1"># - Delete data subsets</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13"></a><span class="c1">## Setting up the environment</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14"></a><span class="c1"># - Run the code in 0_Prerequisite.r</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15"></a>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16"></a><span class="c1"># load required libraries</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17"></a><span class="nf">library</span><span class="p">(</span><span class="n">MolgenisArmadillo</span><span class="p">)</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18"></a><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19"></a>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20"></a><span class="c1">## Logging in to the servers</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21"></a><span class="c1"># In order to access the files you need to log in using the URLs of the Armadillo server. </span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22"></a><span class="c1"># A browser window will be opened where you can identify yourself with the ID provider.</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23"></a>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24"></a><span class="nf">armadillo.login</span><span class="p">(</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25"></a><span class="w">    </span><span class="n">armadillo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://armadillo.test.molgenis.org&quot;</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26"></a><span class="p">)</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27"></a><span class="c1"># A session will be created and the credentials are stored in the environment.</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29"></a><span class="c1">## Explore the data</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30"></a><span class="c1"># Let&#39;s assume you are in a consortium which has core-variables and outcome-variables. </span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31"></a><span class="c1"># You want to share a subset of the whole data set with certain researchers that applied for access to your data.</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32"></a>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33"></a><span class="c1"># List projects on the Armadillo server.</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34"></a><span class="nf">armadillo.list_projects</span><span class="p">()</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35"></a>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36"></a><span class="c1"># Next create a study, here called &#39;subset1&#39;.</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37"></a><span class="c1"># NOTE: change the name of the subset for your own practice run</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38"></a>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39"></a><span class="n">study</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;study1&quot;</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40"></a><span class="nf">armadillo.create_project</span><span class="p">(</span><span class="n">study</span><span class="p">)</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41"></a>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42"></a><span class="c1"># List the tables in a project</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43"></a>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44"></a><span class="c1"># You want to share data from the cohort you just uploaded (MolgenisArmadillo.r). </span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45"></a><span class="c1"># Change the cohort_name to your own cohort name here:</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46"></a><span class="n">cohort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;workshop1&quot;</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47"></a>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48"></a><span class="c1"># List the available tables within this project.</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49"></a><span class="nf">armadillo.list_tables</span><span class="p">(</span><span class="n">cohort</span><span class="p">)</span>
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50"></a>
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51"></a><span class="c1"># Subset the core variables</span>
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52"></a><span class="c1"># Download the relevant core tables to the local environment</span>
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53"></a>
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54"></a><span class="n">nonrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">armadillo.load_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nonrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55"></a><span class="n">yearlyrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">armadillo.load_table</span><span class="p">(</span><span class="n">cohort</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;yearlyrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56"></a>
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57"></a><span class="c1"># List their variables</span>
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58"></a>
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59"></a><span class="nf">colnames</span><span class="p">(</span><span class="n">nonrep</span><span class="p">)</span>
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60"></a><span class="nf">colnames</span><span class="p">(</span><span class="n">yearlyrep</span><span class="p">)</span>
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61"></a>
+</span><span id="__span-2-62"><a id="__codelineno-2-62" name="__codelineno-2-62"></a><span class="c1"># Subset the variables that were requested per table.</span>
+</span><span id="__span-2-63"><a id="__codelineno-2-63" name="__codelineno-2-63"></a>
+</span><span id="__span-2-64"><a id="__codelineno-2-64" name="__codelineno-2-64"></a><span class="n">subset_core_nonrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nonrep</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="n">child_id</span><span class="p">,</span><span class="w"> </span><span class="n">asthma_m</span><span class="p">,</span><span class="w"> </span><span class="n">preg_cig</span><span class="p">,</span><span class="w"> </span><span class="n">preg_fever</span><span class="p">,</span><span class="w"> </span><span class="n">preg_alc</span><span class="p">)</span>
+</span><span id="__span-2-65"><a id="__codelineno-2-65" name="__codelineno-2-65"></a><span class="n">subset_core_yearlyrep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">yearlyrep</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="n">child_id</span><span class="p">,</span><span class="w"> </span><span class="n">cohab_</span><span class="p">,</span><span class="w"> </span><span class="n">smk_exp</span><span class="p">)</span>
+</span><span id="__span-2-66"><a id="__codelineno-2-66" name="__codelineno-2-66"></a>
+</span><span id="__span-2-67"><a id="__codelineno-2-67" name="__codelineno-2-67"></a><span class="c1">## Uploading the data subset</span>
+</span><span id="__span-2-68"><a id="__codelineno-2-68" name="__codelineno-2-68"></a><span class="c1"># Check the variables in the data subset before uploading</span>
+</span><span id="__span-2-69"><a id="__codelineno-2-69" name="__codelineno-2-69"></a>
+</span><span id="__span-2-70"><a id="__codelineno-2-70" name="__codelineno-2-70"></a><span class="nf">colnames</span><span class="p">(</span><span class="n">subset_core_nonrep</span><span class="p">)</span>
+</span><span id="__span-2-71"><a id="__codelineno-2-71" name="__codelineno-2-71"></a><span class="nf">colnames</span><span class="p">(</span><span class="n">subset_core_yearlyrep</span><span class="p">)</span>
+</span><span id="__span-2-72"><a id="__codelineno-2-72" name="__codelineno-2-72"></a>
+</span><span id="__span-2-73"><a id="__codelineno-2-73" name="__codelineno-2-73"></a><span class="c1"># Upload the data subsets</span>
+</span><span id="__span-2-74"><a id="__codelineno-2-74" name="__codelineno-2-74"></a><span class="nf">armadillo.upload_table</span><span class="p">(</span><span class="n">study</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">subset_core_nonrep</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nonrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-75"><a id="__codelineno-2-75" name="__codelineno-2-75"></a><span class="nf">armadillo.upload_table</span><span class="p">(</span><span class="n">study</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">subset_core_yearlyrep</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;yearlyrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-76"><a id="__codelineno-2-76" name="__codelineno-2-76"></a>
+</span><span id="__span-2-77"><a id="__codelineno-2-77" name="__codelineno-2-77"></a><span class="c1"># See if tables are uploaded</span>
+</span><span id="__span-2-78"><a id="__codelineno-2-78" name="__codelineno-2-78"></a><span class="nf">armadillo.list_tables</span><span class="p">(</span><span class="n">study</span><span class="p">)</span>
+</span><span id="__span-2-79"><a id="__codelineno-2-79" name="__codelineno-2-79"></a>
+</span><span id="__span-2-80"><a id="__codelineno-2-80" name="__codelineno-2-80"></a><span class="c1"># Now you can also take a look at the files in the user interface of the Armadillo server. In this case: https://armadillo.test.molgenis.org/#/projects</span>
+</span><span id="__span-2-81"><a id="__codelineno-2-81" name="__codelineno-2-81"></a>
+</span><span id="__span-2-82"><a id="__codelineno-2-82" name="__codelineno-2-82"></a><span class="c1"># &gt; !IMPORTANT: run this part after subsetting the data</span>
+</span><span id="__span-2-83"><a id="__codelineno-2-83" name="__codelineno-2-83"></a>
+</span><span id="__span-2-84"><a id="__codelineno-2-84" name="__codelineno-2-84"></a><span class="c1">## Deleting the data </span>
+</span><span id="__span-2-85"><a id="__codelineno-2-85" name="__codelineno-2-85"></a><span class="c1"># To delete the data you need to throw away the contents first.</span>
+</span><span id="__span-2-86"><a id="__codelineno-2-86" name="__codelineno-2-86"></a>
+</span><span id="__span-2-87"><a id="__codelineno-2-87" name="__codelineno-2-87"></a><span class="c1"># throw away the core tables</span>
+</span><span id="__span-2-88"><a id="__codelineno-2-88" name="__codelineno-2-88"></a><span class="nf">armadillo.delete_table</span><span class="p">(</span><span class="n">study</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nonrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-89"><a id="__codelineno-2-89" name="__codelineno-2-89"></a><span class="nf">armadillo.delete_table</span><span class="p">(</span><span class="n">study</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2_1-core-1_0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;yearlyrep&quot;</span><span class="p">)</span>
+</span><span id="__span-2-90"><a id="__codelineno-2-90" name="__codelineno-2-90"></a>
+</span><span id="__span-2-91"><a id="__codelineno-2-91" name="__codelineno-2-91"></a><span class="c1"># Now you can delete the project.</span>
+</span><span id="__span-2-92"><a id="__codelineno-2-92" name="__codelineno-2-92"></a>
+</span><span id="__span-2-93"><a id="__codelineno-2-93" name="__codelineno-2-93"></a><span class="nf">armadillo.delete_project</span><span class="p">(</span><span class="n">study</span><span class="p">)</span>
+</span></code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The example files used in the examples above can be found here: <a href="../../../data/nonrep.parquet">nonrep.parquet</a>, <a href="../../../data/yearlyrep.parquet">yearlyrep.parquet</a></p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../ds_molgenis_armadillo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: DSMolgenisArmadillo">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                DSMolgenisArmadillo
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../dsupload_dsdictionaries/" class="md-footer__link md-footer__link--next" aria-label="Next: dsUpload &amp; dsDictionaries">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                dsUpload & dsDictionaries
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+    Please cite <a href="https://doi.org/10.1093/bioinformatics/btae726" target="_blank">Cadman et al (2024)</a> when using MOLGENIS Armadillo.
+    <div>
+        Documentation made with
+        <a
+                href="https://squidfunk.github.io/mkdocs-material/"
+                target="_blank" rel="noopener"
+        >
+            Material for MkDocs
+        </a>
+    </div>
+
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/molgenis" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://x.com/molgenis" target="_blank" rel="noopener" title="x.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "content.tooltips", "navigation.indexes", "navigation.footer"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
