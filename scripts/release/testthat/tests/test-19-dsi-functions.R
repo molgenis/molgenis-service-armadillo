@@ -91,6 +91,11 @@ test_that("datashield.pkg_status returns package and version status", {
   # version_status is a named character matrix with one column per server
   expect_true(is.matrix(pkg$version_status))
   expect_type(pkg$version_status["dsBase", "armadillo"], "character")
+  package_names <- rownames(pkg$package_status)
+  expect_false("base" %in% package_names,
+    info = "base should not appear in pkg_status")
+  expect_false("stats" %in% package_names,
+    info = "stats should not appear in pkg_status")
 })
 
 # ---- 8. datashield.symbols ----
