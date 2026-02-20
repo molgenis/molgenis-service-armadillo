@@ -123,10 +123,10 @@ configure_test <- function() {
   # Override to TRUE - assume profiles are managed externally (already running)
   as_docker_container <- TRUE
 
-  profile <- Sys.getenv("PROFILE")
-  if (profile == "") {
-    cli_alert_warning("Profile not set, defaulting to xenon.")
-    profile <- "xenon"
+  container <- Sys.getenv("CONTAINER")
+  if (container == "") {
+    cli_alert_warning("Container not set, defaulting to xenon.")
+    container <- "xenon"
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
@@ -141,8 +141,8 @@ configure_test <- function() {
     debug <- TRUE
   }
 
-  # default profile settings in case a profile is missing
-  profile_defaults <- data.frame(
+  # default container settings in case a container is missing
+  container_defaults <- data.frame(
     name = c("xenon", "rock"),
     container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
     port = c("", ""),
@@ -166,11 +166,11 @@ configure_test <- function() {
   release_env$auth_type <- auth_type
   release_env$as_docker_container <- as_docker_container
   release_env$ADMIN_MODE <- ADMIN_MODE
-  release_env$profile <- profile
+  release_env$current_container <- container
   release_env$default_parquet_path <- default_parquet_path
   release_env$rda_dir <- rda_dir
   release_env$update_auto <- update_auto
-  release_env$profile_defaults <- profile_defaults
+  release_env$container_defaults <- container_defaults
   release_env$rda_url <- rda_url
   release_env$debug <- debug
 

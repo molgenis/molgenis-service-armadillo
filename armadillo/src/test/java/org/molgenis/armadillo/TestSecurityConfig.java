@@ -3,15 +3,9 @@ package org.molgenis.armadillo;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
-import org.molgenis.armadillo.metadata.AccessLoader;
-import org.molgenis.armadillo.metadata.AccessService;
-import org.molgenis.armadillo.metadata.DummyAccessLoader;
-import org.molgenis.armadillo.metadata.DummyProfilesLoader;
-import org.molgenis.armadillo.metadata.InitialProfileConfigs;
-import org.molgenis.armadillo.metadata.InsightService;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.metadata.ProfilesLoader;
-import org.molgenis.armadillo.profile.ProfileScope;
+import org.molgenis.armadillo.container.ContainerScope;
+import org.molgenis.armadillo.metadata.*;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
@@ -41,7 +35,7 @@ public class TestSecurityConfig {
     return http.authorizeHttpRequests(
             requests ->
                 requests
-                    .requestMatchers("/ds-profiles/status")
+                    .requestMatchers("/containers/status")
                     .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()
@@ -58,13 +52,13 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ProfilesLoader profilesLoader() {
-    return new DummyProfilesLoader();
+  ContainersLoader containersLoader() {
+    return new DummyContainersLoader();
   }
 
   @Bean
-  ProfileScope profileScope() {
-    return new ProfileScope();
+  ContainerScope containerScope() {
+    return new ContainerScope();
   }
 
   @Bean
@@ -83,11 +77,12 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  ProfileService profileService(ProfilesLoader profilesLoader, ProfileScope profileScope) {
-    var initialProfiles = new InitialProfileConfigs();
-    initialProfiles.setProfiles(emptyList());
+  ContainerService containerService(
+      ContainersLoader containersLoader, ContainerScope containerScope) {
+    var initialContainers = new InitialContainerConfigs();
+    initialContainers.setContainers(emptyList());
 
-    return new ProfileService(profilesLoader, initialProfiles, profileScope);
+    return new ContainerService(containersLoader, initialContainers, containerScope);
   }
 
   @Bean

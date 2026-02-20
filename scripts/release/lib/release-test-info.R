@@ -17,12 +17,13 @@ show_test_info <- function() {
                /:''/////// ``:::`;/|/                 OIDC User:            %s
               /'   ||||||     :://'`\\                 Admin password set:   %s
             .' ,   ||||||     `/(  e \\                Test data directory:  %s
-      -===~__-'\\__X_`````\\_____/~`-._ `.              Admin-only mode:      %s
-                  ~~        ~~       `~-'             Running in Docker:    %s
+      -===~__-'\\__X_`````\\_____/~`-._ `.              Container:            %s
+                  ~~        ~~       `~-'             Admin-only mode:      %s
+                                                      Running in Docker:    %s
                                                       Project name:         %s
                                                       Skipping tests:       %s
     ", release_env$version, release_env$armadillo_url, release_env$user, admin_pwd_msg,
-    release_env$dest, admin_mode, docker_mode, release_env$project1, skip_tests))
+    release_env$dest, release_env$current_container, admin_mode, docker_mode, release_env$project1, skip_tests))
 
   cat("\n")
   cli_h2("Loaded packages")
