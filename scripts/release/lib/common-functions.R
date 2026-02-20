@@ -124,7 +124,7 @@ skip_if_no_resources <- function(test_name) {
   do_skip_test(test_name)
   # TODO: re-enable once resource tests work in admin mode
   # testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  testthat::skip_if(!"resourcer" %in% release_env$container_info$packageWhitelist,
+  testthat::skip_if(!"resourcer" %in% release_env$container_info$specificContainerOptions$packageWhitelist,
                     sprintf("resourcer not available for container: %s", release_env$current_container))
 }
 

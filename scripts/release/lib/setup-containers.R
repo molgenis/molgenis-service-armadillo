@@ -10,13 +10,14 @@ obtain_existing_container_information <- function() {
   responses <- get_from_api_with_header("containers", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
   response_df <- data.frame(matrix(ncol = 5, nrow = 0, dimnames = list(NULL, c("name", "container", "port", "seed", "online"))))
   for (response in responses) {
-    if ("datashield.seed" %in% names(response$options)) {
-      datashield_seed <- response$options$datashield.seed
+    ds_options <- response$specificContainerOptions$datashieldROptions
+    if ("datashield.seed" %in% names(ds_options)) {
+      datashield_seed <- ds_options$datashield.seed
     } else {
       datashield_seed <- NA
     }
 
-    response_df[nrow(response_df) + 1, ] <- c(response$name, response$image, response$port, datashield_seed, response$container$status)
+    response_df[nrow(response_df) + 1, ] <- c(response$name, response$image, response$port, datashield_seed, response$dockerStatus$status)
   }
   return(response_df)
 }
@@ -38,13 +39,14 @@ create_container <- function(container_name) {
       port <- generate_project_port(current_containers$port)
     }
     args <- list(
+      type = "ds",
       name = container_name,
       image = container_default$container,
       host = "localhost",
       port = port,
       packageWhitelist = return_list_without_empty(whitelist),
       functionBlacklist = return_list_without_empty(blacklist),
-      options = list(datashield.seed = new_container_seed)
+      datashieldROptions = list(datashield.seed = new_container_seed)
     )
     response <- put_to_api("containers", release_env$token, release_env$auth_type, body_args = args, url = release_env$armadillo_url)
     if (response$status_code == 204) {
@@ -77,7 +79,7 @@ create_container_if_not_available <- function(container_name, available_containe
 
 start_container_if_not_running <- function(container_name) {
   response <- get_from_api_with_header(paste0("containers/", container_name), release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
-  if (!response$container$status == "RUNNING") {
+  if (!response$dockerStatus$status == "RUNNING") {
     cli_alert_info(sprintf("Detected container %s not running", container_name))
     start_container(container_name)
   }
@@ -175,8 +177,8 @@ setup_containers <- function() {
   if (!release_env$as_docker_container) {
     start_container_if_not_running("default")
   }
-  seed <- unlist(container_info$options$datashield.seed)
-  whitelist <- unlist(container_info$packageWhitelist)
+  seed <- unlist(container_info$specificContainerOptions$datashieldROptions$datashield.seed)
+  whitelist <- unlist(container_info$specificContainerOptions$packageWhitelist)
   if (is.null(seed)) {
     cli_alert_warning(sprintf("Seed of container [%s] is NULL, please set it in UI container tab and restart the container", release_env$current_container))
     wait_for_input(release_env$interactive)
