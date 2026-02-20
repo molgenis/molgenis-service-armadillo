@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.security;
 
+import static org.molgenis.armadillo.security.ResourceTokenService.INTERNAL_ISSUER;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 
 import java.util.Collection;
@@ -20,26 +21,59 @@ import org.springframework.security.oauth2.jwt.*;
 @Configuration
 public class JwtDecoderConfig {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
+  static Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
   @Value("${spring.containers.active:default}")
   private String activeContainer;
 
+  JwtClaimValidator<Collection<String>> getAudienceValidator(
+      OAuth2ResourceServerProperties properties) {
+    return new JwtClaimValidator<>(
+        AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
+  }
+
+  OAuth2TokenValidator<Jwt> getJwtValidator(
+      String issuerUri, JwtClaimValidator<Collection<String>> audienceValidator) {
+    return new DelegatingOAuth2TokenValidator<>(
+        JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
+  }
+
+  NimbusJwtDecoder getInternalDecoder(ResourceTokenService resourceTokenService) {
+    NimbusJwtDecoder internalDecoder =
+        NimbusJwtDecoder.withPublicKey(resourceTokenService.getPublicKey()).build();
+    OAuth2TokenValidator<Jwt> internalValidator = getInternalValidator();
+    internalDecoder.setJwtValidator(internalValidator);
+    return internalDecoder;
+  }
+
+  NimbusJwtDecoder getExternalDecoder(String issuerUri, OAuth2ResourceServerProperties properties) {
+    var audienceValidator = getAudienceValidator(properties);
+    OAuth2TokenValidator<Jwt> jwtValidator = getJwtValidator(issuerUri, audienceValidator);
+    NimbusJwtDecoder externalDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
+    externalDecoder.setJwtValidator(jwtValidator);
+    return externalDecoder;
+  }
+
+  OAuth2TokenValidator<Jwt> getInternalValidator() {
+    return new DelegatingOAuth2TokenValidator<>(
+        new JwtTimestampValidator(), new JwtIssuerValidator(INTERNAL_ISSUER));
+  }
+
   @Bean
-  public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
+  public JwtDecoder jwtDecoder(
+      OAuth2ResourceServerProperties properties, ResourceTokenService resourceTokenService) {
     try {
       String issuerUri = properties.getJwt().getIssuerUri();
-      NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
+      NimbusJwtDecoder externalDecoder = getExternalDecoder(issuerUri, properties);
+      NimbusJwtDecoder internalDecoder = getInternalDecoder(resourceTokenService);
 
-      var audienceValidator =
-          new JwtClaimValidator<Collection<String>>(
-              AUD, aud -> aud != null && aud.contains(properties.getOpaquetoken().getClientId()));
-      OAuth2TokenValidator<Jwt> jwtValidator =
-          new DelegatingOAuth2TokenValidator<>(
-              JwtValidators.createDefaultWithIssuer(issuerUri), audienceValidator);
-
-      jwtDecoder.setJwtValidator(jwtValidator);
-      return jwtDecoder;
+      return token -> {
+        try {
+          return internalDecoder.decode(token);
+        } catch (JwtException e) {
+          return externalDecoder.decode(token);
+        }
+      };
     } catch (Exception e) {
       if ("offline".equals(activeContainer)) {
         // allow offline development

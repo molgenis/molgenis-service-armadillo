@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.apache.logging.log4j.util.Strings.concat;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.molgenis.armadillo.security.ResourceTokenService.INTERNAL_ISSUER;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -25,10 +26,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.exceptions.UnknownObjectException;
@@ -39,6 +37,7 @@ import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -387,15 +386,69 @@ public class StorageController {
   public ResponseEntity<InputStreamResource> downloadObject(
       Principal principal, @PathVariable String project, @PathVariable String object) {
     try {
-      return auditor.audit(
-          () -> getObject(project, object),
-          principal,
-          DOWNLOAD_OBJECT,
-          Map.of(PROJECT, project, OBJECT, object));
+      return auditDownloadObject(project, object, principal, DOWNLOAD_OBJECT);
     } catch (UnknownObjectException | UnknownProjectException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @Operation(summary = "Download a resource with internal token")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Unknown project or object",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(mediaType = "application/json"))
+      })
+  @GetMapping(value = "/projects/{project}/rawfiles/{object}")
+  public ResponseEntity<InputStreamResource> downloadResource(
+      Principal principal, @PathVariable String project, @PathVariable String object) {
+    try {
+      Map<String, Object> data = new HashMap<>(Map.of(PROJECT, project, OBJECT, object));
+      if (principal instanceof JwtAuthenticationToken token) {
+        return downloadResourceWithToken(token, project, object, data);
+      } else {
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "Token must be issued by armadillo application with correct permissions");
+      }
+    } catch (UnknownObjectException | UnknownProjectException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (ResponseStatusException e) {
+      throw new ResponseStatusException(e.getStatusCode(), e.getMessage());
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  ResponseEntity<InputStreamResource> downloadResourceWithToken(
+      JwtAuthenticationToken token, String project, String object, Map<String, Object> data) {
+    Map<String, Object> claims = token.getTokenAttributes();
+    String errorMsg = "Token must be issued by armadillo application with correct permissions";
+    if (!claims.get("iss").equals(INTERNAL_ISSUER)) {
+      auditFailure(errorMsg, data, token);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+    }
+    if (claims.get("resource_project").equals(project)) {
+      String resourceObj = storage.getFilenameWithoutExtension(object).toLowerCase();
+      if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
+        return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
+      } else {
+        errorMsg = "Token has no permissions for resource object:" + object;
+        auditFailure(errorMsg, data, token);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
+      }
+    } else {
+      errorMsg = "Token has no permissions for resource project:" + project;
+      auditFailure(errorMsg, data, token);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
     }
   }
 
@@ -418,6 +471,22 @@ public class StorageController {
     } catch (IOException e) {
       throw new FileProcessingException();
     }
+  }
+
+  private ResponseEntity<InputStreamResource> auditDownloadObject(
+      String project, String object, Principal principal, String type) {
+    return auditor.audit(
+        () -> getObject(project, object),
+        principal,
+        type,
+        Map.of(PROJECT, project, OBJECT, object));
+  }
+
+  private void auditFailure(
+      String errorMsg, Map<String, Object> data, JwtAuthenticationToken principal) {
+    data.put(MESSAGE, errorMsg);
+    data.put(TYPE, ResponseStatusException.class.getSimpleName());
+    auditor.audit(principal, DOWNLOAD_RESOURCE + "_FAILURE", data);
   }
 
   @Operation(summary = "Retrieve columns of parquet file")
