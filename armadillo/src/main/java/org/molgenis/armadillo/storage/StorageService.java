@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 public interface StorageService {
   public String getRootDir();
 
+  public String getFilenameWithoutExtension(String filename);
+
   boolean objectExists(String bucket, String objectName);
 
   boolean bucketExists(String bucket);

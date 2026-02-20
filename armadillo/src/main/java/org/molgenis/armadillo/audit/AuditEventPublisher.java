@@ -34,7 +34,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String ASSIGN_FAILURE = "ASSIGN_FAILURE";
   public static final String EXECUTE = "EXECUTE";
   public static final String EXECUTE_FAILURE = "EXECUTE_FAILURE";
-  public static final String DEBUG = "DEBUG";
   public static final String GET_ASSIGN_METHODS = "GET_ASSIGN_METHODS";
   public static final String GET_AGGREGATE_METHODS = "GET_AGGREGATE_METHODS";
   public static final String GET_USER_WORKSPACES = "GET_USER_WORKSPACES";
@@ -81,6 +80,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_OBJECT_INFO = "GET_OBJECT_INFO";
   public static final String DELETE_OBJECT = "DELETE_OBJECT";
   public static final String DOWNLOAD_OBJECT = "DOWNLOAD_OBJECT";
+  public static final String DOWNLOAD_RESOURCE = "DOWNLOAD_RESOURCE";
   public static final String LIST_USERS = "LIST_USERS";
   public static final String GET_TABLES = "GET_TABLES";
   public static final String LOAD_TABLE = "LOAD_TABLE";

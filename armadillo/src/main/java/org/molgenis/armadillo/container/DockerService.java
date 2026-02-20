@@ -107,16 +107,16 @@ public class DockerService {
    */
   String asContainerName(String containerName) {
     if (!inContainer) {
-      LOG.warn("Image not running in docker container: " + containerName);
+      LOG.warn(String.format("Image not running in docker container: %s", containerName));
       return containerName;
     }
 
     if (containerPrefix.isEmpty()) {
-      LOG.error("Running in container without prefix: " + containerName);
+      LOG.error(String.format("Running in container without prefix: %s", containerName));
       return containerName;
     }
 
-    LOG.warn("Image running in docker container: " + containerName);
+    LOG.warn(String.format("Image running in docker container: %s", containerName));
     return containerPrefix + containerName + "-1";
   }
 
@@ -399,8 +399,12 @@ public class DockerService {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
-      LOG.warn("Couldn't inspect image", e);
-      // getting image tags is non-essential, don't throw error
+      if (e instanceof NotFoundException) {
+        LOG.warn("Couldn't inspect image, because: " + e.getMessage());
+      } else {
+        LOG.warn("Couldn't inspect image", e);
+        // getting image tags is non-essential, don't throw error
+      }
     }
     return emptyList();
   }
