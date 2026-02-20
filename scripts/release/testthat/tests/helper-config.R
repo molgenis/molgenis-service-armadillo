@@ -120,7 +120,7 @@ configure_test <- function() {
 
   auth_type <- get_auth_type(ADMIN_MODE)
 
-  # Override to TRUE - assume profiles are managed externally (already running)
+  # Override to TRUE - assume containers are managed externally (already running)
   as_docker_container <- TRUE
 
   container <- Sys.getenv("CONTAINER")
