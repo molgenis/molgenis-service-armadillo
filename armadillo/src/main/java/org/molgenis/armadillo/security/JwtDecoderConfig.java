@@ -24,7 +24,7 @@ public class JwtDecoderConfig {
   static Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
   @Value("${spring.containers.active:default}")
-  private String activeContainer;
+  String activeContainer;
 
   JwtClaimValidator<Collection<String>> getAudienceValidator(
       OAuth2ResourceServerProperties properties) {
