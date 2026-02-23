@@ -7,10 +7,10 @@ import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Stream;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
@@ -23,15 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/** Caches the datashield environments for one profile. */
+/** Caches the datashield environments for one container. */
 @Component
-@ProfileScope
+@ContainerScope
 public class DSEnvironmentCache {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private final ProfileConfig profileConfig;
+  private final ContainerConfig containerConfig;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -39,10 +39,10 @@ public class DSEnvironmentCache {
   public DSEnvironmentCache(
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
-      ProfileConfig profileConfig) {
+      ContainerConfig containerConfig) {
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
-    this.profileConfig = requireNonNull(profileConfig);
+    this.containerConfig = requireNonNull(containerConfig);
 
     this.aggregateEnvironment = new DataShieldEnvironment(DSMethodType.AGGREGATE);
     this.assignEnvironment = new DataShieldEnvironment(DSMethodType.ASSIGN);
@@ -111,7 +111,7 @@ public class DSEnvironmentCache {
   }
 
   private boolean isPackageWhitelisted(String rPackageName) {
-    if (!profileConfig.getPackageWhitelist().contains(rPackageName)) {
+    if (!containerConfig.getPackageWhitelist().contains(rPackageName)) {
       LOGGER.warn(
           "Package '{}' is not whitelisted and will not be added to environment", rPackageName);
       return false;
@@ -129,7 +129,7 @@ public class DSEnvironmentCache {
   }
 
   private boolean isMethodAllowed(DefaultDSMethod dsMethod) {
-    if (profileConfig.getFunctionBlacklist().contains(dsMethod.getName())) {
+    if (containerConfig.getFunctionBlacklist().contains(dsMethod.getName())) {
       LOGGER.warn(
           "Method '{}' in package '{}' is blacklisted and will not be added to environment",
           dsMethod.getName(),
