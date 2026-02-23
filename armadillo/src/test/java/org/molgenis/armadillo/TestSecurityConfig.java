@@ -35,7 +35,7 @@ public class TestSecurityConfig {
     return http.authorizeHttpRequests(
             requests ->
                 requests
-                    .requestMatchers("/containers/status")
+                    .requestMatchers("/manage/docker-containers/status")
                     .permitAll()
                     .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                     .permitAll()

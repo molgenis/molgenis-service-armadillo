@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("access")
+@RequestMapping("/access")
 public class AccessController {
 
   private final AccessService metadata;

@@ -62,7 +62,7 @@ export type UpdateSchedule = {
   time: string; // e.g., '01:00'
 };
 
-export type Profile = {
+export type Container = {
   name: string;
   image: string;
   versionId?: string;
@@ -145,7 +145,7 @@ export type Workspace = {
   checked?: boolean;
 };
 
-export type ProfileStartStatus = {
+export type ContainerStartStatus = {
   status: string;
   completedLayers: number | null;
   totalLayers: number | null;

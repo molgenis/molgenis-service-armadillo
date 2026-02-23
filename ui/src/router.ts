@@ -2,11 +2,11 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import Projects from "@/views/Projects.vue";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import Users from "@/views/Users.vue";
-import Profiles from "@/views/Profiles.vue";
 import Login from "@/views/Login.vue";
 import Actuator from "@/views/Actuator.vue";
 import Workspaces from "@/views/Workspaces.vue";
 import RemoteFiles from "@/views/RemoteFiles.vue";
+import Containers from "@/views/Containers.vue";
 
 const routes = [
   {
@@ -39,9 +39,9 @@ const routes = [
     component: ProjectsExplorer,
   },
   {
-    path: "/profiles",
-    name: "profiles",
-    component: Profiles,
+    path: "/containers",
+    name: "containers",
+    component: Containers,
   },
   {
     path: "/metrics",

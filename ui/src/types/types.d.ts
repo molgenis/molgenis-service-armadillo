@@ -100,26 +100,28 @@ export type UsersData = {
   searchString: string;
 };
 
-type statusMappingType = {
+type StatusMappingType = {
   status: "ONLINE" | "OFFLINE" | "ERROR";
   text: "Stop" | "Start" | "Error";
   color: BootstrapType;
   icon: string;
 };
 
-export type ProfilesData = {
-  addProfile: boolean;
+export type ContainerType = "ds" | "flwr-node" | "flwr-app" | "default";
+
+export type ContainersData = {
+  addContainer: boolean;
   recordToDelete: string;
   loading: boolean;
-  loadingProfile: string;
+  loadingContainer: string;
   successMessage: string;
   profileToEditIndex: number;
   profileToEdit: string;
   statusMapping: {
-    NOT_FOUND: statusMappingType;
-    NOT_RUNNING: statusMappingType;
-    RUNNING: statusMappingType;
-    DOCKER_OFFLINE: statusMappingType;
+    NOT_FOUND: StatusMappingType;
+    NOT_RUNNING: StatusMappingType;
+    RUNNING: StatusMappingType;
+    DOCKER_OFFLINE: StatusMappingType;
   };
 };
 

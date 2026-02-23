@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Tag(name = "containers")
-@RequestMapping("containers")
+@RequestMapping("/manage/docker-containers")
 public class ContainerStartStatusController {
   private final ContainerStatusService statusService;
 

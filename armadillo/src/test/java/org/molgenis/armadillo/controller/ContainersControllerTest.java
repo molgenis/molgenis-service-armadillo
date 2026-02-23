@@ -100,7 +100,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void containers_GET() throws Exception {
     mockMvc
-        .perform(get("/containers"))
+        .perform(get("/manage/docker-containers"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[" + DEFAULT_CONTAINER + "," + OMICS_CONTAINER + "]"));
@@ -110,7 +110,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void containers_name_GET() throws Exception {
     mockMvc
-        .perform(get("/containers/default"))
+        .perform(get("/manage/docker-containers/default"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(
@@ -141,7 +141,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            put("/containers")
+            put("/manage/docker-containers")
                 .content(new Gson().toJson(containerConfig))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -155,7 +155,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_DELETE_default() throws Exception {
-    mockMvc.perform(delete("/containers/default")).andExpect(status().isConflict());
+    mockMvc.perform(delete("/manage/docker-containers/default")).andExpect(status().isConflict());
 
     verify(containersLoader, never()).save(any());
   }
@@ -163,7 +163,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void containers_DELETE() throws Exception {
-    mockMvc.perform(delete("/containers/omics")).andExpect(status().isNoContent());
+    mockMvc.perform(delete("/manage/docker-containers/omics")).andExpect(status().isNoContent());
 
     var expected = createExampleSettings();
     expected.getContainers().remove("omics");
@@ -202,7 +202,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
 
     // Perform the GET request to fetch the container status
     mockMvc
-        .perform(get("/containers/status"))
+        .perform(get("/manage/docker-containers/status"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(

@@ -1,16 +1,16 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { ref, nextTick } from "vue";
-import FeedbackMessage from "@/components/ProfileStatusMessage.vue"; // <-- rename to the actual filename
+import FeedbackMessage from "@/components/ContainerStatusMessage.vue"; // <-- rename to the actual filename
 
-describe("Installing profile progress", () => {
+describe("Installing container progress", () => {
   let wrapper: VueWrapper<any>;
 
   beforeEach(function () {
     wrapper = mount(FeedbackMessage, {
       props: {
-        profileName: "MyProfile",
+        containerName: "MyContainer",
         status: {
-          status: "Installing profile",
+          status: "Installing container",
           totalLayers: 10,
           completedLayers: 5,
         },
@@ -18,9 +18,9 @@ describe("Installing profile progress", () => {
     });
   });
 
-  test("renders only when status is 'Installing profile'", async () => {
+  test("renders only when status is 'Installing container'", async () => {
     // Initially renders
-    expect(wrapper.text()).toContain("Installing profile 'MyProfile'");
+    expect(wrapper.text()).toContain("Installing container 'MyContainer'");
     expect(wrapper.find(".progress-bar").exists()).toBe(true);
 
     // Switch to a non-installing status -> should hide
@@ -48,7 +48,7 @@ describe("Installing profile progress", () => {
 
   test("shows 100% when server reports completion", async () => {
     await wrapper.setProps({
-      status: { status: "Installing profile", totalLayers: 10, completedLayers: 10 },
+      status: { status: "Installing container", totalLayers: 10, completedLayers: 10 },
     });
     const bar = wrapper.get(".progress-bar");
     const now = Number(bar.attributes("aria-valuenow"));
@@ -64,7 +64,7 @@ test("does not regress when totals are missing (stays at previous %)", async () 
   expect(before).toBeGreaterThanOrEqual(50);
 
   await wrapper.setProps({
-    status: { status: "Installing profile" }, 
+    status: { status: "Installing container" }, 
   });
 
   const after = Number(wrapper.get(".progress-bar").attributes("aria-valuenow"));
@@ -74,14 +74,14 @@ test("does not regress when totals are missing (stays at previous %)", async () 
 
 test("accepts a Ref status and updates on change", async () => {
   const statusRef = ref<any>({
-    status: "Installing profile",
+    status: "Installing container",
     totalLayers: 4,
     completedLayers: 1, // 25%
   });
 
   wrapper.unmount();
   wrapper = mount(FeedbackMessage, {
-    props: { profileName: "RefProfile", status: statusRef },
+    props: { containerName: "RefContainer", status: statusRef },
   });
 
   let bar = wrapper.get(".progress-bar");
@@ -90,7 +90,7 @@ test("accepts a Ref status and updates on change", async () => {
 
   // Update ref -> 75%
   statusRef.value = {
-    status: "Installing profile",
+    status: "Installing container",
     totalLayers: 4,
     completedLayers: 3,
   };
@@ -122,7 +122,7 @@ test("smoothServerPercentage is monotonic and respects cap behavior", async () =
   // Drop server-reported progress -> smoothed should NOT decrease
   await wrapper.setProps({
     status: {
-      status: "Installing profile",
+      status: "Installing container",
       totalLayers: 10,
       completedLayers: 3, // 30% server, visual must not regress
     },
@@ -134,7 +134,7 @@ test("smoothServerPercentage is monotonic and respects cap behavior", async () =
   // Jump to completion -> should snap to 100 (cap=100 when serverPerc=100)
   await wrapper.setProps({
     status: {
-      status: "Installing profile",
+      status: "Installing container",
       totalLayers: 10,
       completedLayers: 10,
     },

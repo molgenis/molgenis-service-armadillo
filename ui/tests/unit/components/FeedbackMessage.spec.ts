@@ -3,7 +3,6 @@ import FeedbackMessage from "@/components/FeedbackMessage.vue";
 
 describe("FeedbackMessage", () => {
   let wrapper: VueWrapper<any>;
-  let projects = ["lifecycle", "hallo", "molgenis"];
   beforeEach(function () {
     wrapper = mount(FeedbackMessage, {
       props: {

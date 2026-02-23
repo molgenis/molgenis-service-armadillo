@@ -96,7 +96,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(commands.getActiveContainerName()).thenReturn("b");
 
     mockMvc
-        .perform(get("/profiles"))
+        .perform(get("/ds/profiles"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("{\"available\": [\"a\", \"b\", \"c\"], \"current\":\"b\"}"));
@@ -105,7 +105,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testSelectContainer() throws Exception {
-    mockMvc.perform(post("/select-profile").content("b")).andExpect(status().isNoContent());
+    mockMvc.perform(post("/ds/select-profile").content("b")).andExpect(status().isNoContent());
     verify(commands).selectContainer("b");
   }
 
@@ -113,7 +113,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testSelectUnknownContainer() throws Exception {
     doThrow(new UnknownContainerException("unknown")).when(commands).selectContainer("unknown");
-    mockMvc.perform(post("/select-container").content("unknown")).andExpect(status().isNotFound());
+    mockMvc
+        .perform(post("/ds/select-container").content("unknown"))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -121,7 +123,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testGetPackages() throws Exception {
     when(commands.getPackages()).thenReturn(completedFuture(List.of(BASE, DESC)));
     mockMvc
-        .perform(get("/packages").session(session))
+        .perform(get("/ds/packages").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[{\"name\": \"base\"}, {\"name\": \"desc\"}]"));
@@ -142,7 +144,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         .thenReturn(List.of("gecko/1_1_core_2_1/core", "gecko/1_1_core_2_2/core"));
 
     mockMvc
-        .perform(get("/tables").session(session))
+        .perform(get("/ds/tables").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"gecko/1_1_core_2_1/core\",\"gecko/1_1_core_2_2/core\"]"));
@@ -160,7 +162,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testTableExists() throws Exception {
     when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(true);
     mockMvc
-        .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
+        .perform(head("/ds/tables/gecko/1_1_outcome_2_0/core").session(session))
         .andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -186,7 +188,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testTableNotFound() throws Exception {
     when(armadilloStorage.tableExists("gecko", "1_1_outcome_2_0/core")).thenReturn(false);
     mockMvc
-        .perform(head("/tables/gecko/1_1_outcome_2_0/core").session(session))
+        .perform(head("/ds/tables/gecko/1_1_outcome_2_0/core").session(session))
         .andExpect(status().isNotFound());
 
     auditEventValidator.validateAuditEvent(
@@ -214,7 +216,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(rexp.asStrings()).thenReturn(new String[] {"D"});
 
     mockMvc
-        .perform(get("/symbols").session(session))
+        .perform(get("/ds/symbols").session(session))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json("[\"D\"]"));
@@ -231,7 +233,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void deleteSymbol() throws Exception {
     when(commands.evaluate("base::rm(D)")).thenReturn(completedFuture(null));
-    mockMvc.perform(delete("/symbols/D").session(session)).andExpect(status().isOk());
+    mockMvc.perform(delete("/ds/symbols/D").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -249,7 +251,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
 
     mockMvc
-        .perform(get("/methods/assign").session(session))
+        .perform(get("/ds/methods/assign").session(session))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value("meanDS"))
@@ -273,7 +275,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(assignEnvironment.getMethods()).thenReturn(List.of(method));
 
     mockMvc
-        .perform(get("/methods/aggregate").session(session))
+        .perform(get("/ds/methods/aggregate").session(session))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value("ls"))
@@ -293,7 +295,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser
   void testGetLastResultNoResult() throws Exception {
     MvcResult result =
-        mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
+        mockMvc.perform(get("/ds/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
     mockMvc.perform(asyncDispatch(result)).andExpect(status().isNotFound());
   }
 
@@ -305,7 +307,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         .thenReturn(Optional.of(completedFuture(new RserveResult(new REXPRaw(bytes)))));
 
     MvcResult result =
-        mockMvc.perform(get("/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
+        mockMvc.perform(get("/ds/lastresult").accept(APPLICATION_OCTET_STREAM)).andReturn();
     mockMvc
         .perform(asyncDispatch(result))
         .andExpect(status().isOk())
@@ -318,7 +320,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser
   void testGetLastCommandNotFound() throws Exception {
-    mockMvc.perform(get("/lastcommand").accept(APPLICATION_JSON)).andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/ds/lastcommand").accept(APPLICATION_JSON))
+        .andExpect(status().isNotFound());
 
     verifyNoInteractions(applicationEventPublisher);
   }
@@ -337,7 +341,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(commands.getLastCommand()).thenReturn(Optional.of(command));
 
     mockMvc
-        .perform(get("/lastcommand").accept(APPLICATION_JSON))
+        .perform(get("/ds/lastcommand").accept(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(jsonPath("status").value("PENDING"));
@@ -348,7 +352,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(username = "henk")
   void testDeleteWorkspace() throws Exception {
-    mockMvc.perform(delete("/workspaces/test").session(session)).andExpect(status().isOk());
+    mockMvc.perform(delete("/ds/workspaces/test").session(session)).andExpect(status().isOk());
 
     verify(armadilloStorage).removeWorkspace(any(Principal.class), eq("test"));
 
@@ -364,7 +368,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU", username = "admin")
   void testDeleteWorkspaceDirectoryOfUser() throws Exception {
     mockMvc
-        .perform(delete("/workspaces/directory/user-henk@email.com").session(session))
+        .perform(delete("/ds/workspaces/directory/user-henk@email.com").session(session))
         .andExpect(status().isNoContent());
 
     verify(armadilloStorage).deleteDirectory("user-henk__at__email.com");
@@ -387,7 +391,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU", username = "admin")
   void testDeleteWorkspaceOfUser() throws Exception {
     mockMvc
-        .perform(delete("/workspaces/henk@email.com/test").session(session))
+        .perform(delete("/ds/workspaces/henk@email.com/test").session(session))
         .andExpect(status().isNoContent());
 
     verify(armadilloStorage).removeWorkspaceByStringUserId("henk__at__email.com", "test");
@@ -415,7 +419,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         .thenReturn(completedFuture(null));
 
     mockMvc
-        .perform(post("/workspaces/servername:test_dash").session(session))
+        .perform(post("/ds/workspaces/servername:test_dash").session(session))
         .andExpect(status().isCreated());
 
     auditEventValidator.validateAuditEvent(
@@ -437,7 +441,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testSaveWorkspaceWrongId() throws Exception {
     assertThrows(
         jakarta.servlet.ServletException.class,
-        () -> mockMvc.perform(post("/workspaces/)servername:*wrongid-dash")));
+        () -> mockMvc.perform(post("/ds/workspaces/)servername:*wrongid-dash")));
   }
 
   @Test
@@ -446,7 +450,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(commands.loadWorkspace(any(Principal.class), eq("blah")))
         .thenReturn(completedFuture(null));
 
-    mockMvc.perform(post("/load-workspace?id=blah").session(session)).andExpect(status().isOk());
+    mockMvc.perform(post("/ds/load-workspace?id=blah").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -468,7 +472,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            post("/execute")
+            post("/ds/execute")
                 .session(session)
                 .accept(APPLICATION_OCTET_STREAM)
                 .contentType(TEXT_PLAIN)
@@ -499,7 +503,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult result =
         mockMvc
             .perform(
-                post("/execute?async=true")
+                post("/ds/execute?async=true")
                     .session(session)
                     .contentType(TEXT_PLAIN)
                     .content("meanDS(D$age)")
@@ -538,7 +542,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult result =
         mockMvc
             .perform(
-                post("/symbols/E").session(session).contentType(TEXT_PLAIN).content(expression))
+                post("/ds/symbols/E").session(session).contentType(TEXT_PLAIN).content(expression))
             .andReturn();
 
     assignment.complete(null);
@@ -571,7 +575,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
+                post("/ds/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
             .andExpect(status().isBadRequest())
             .andReturn();
     assertEquals(
@@ -611,7 +615,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
+                post("/ds/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -646,7 +650,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult mvcResult =
         mockMvc
             .perform(
-                post("/execute?async=true")
+                post("/ds/execute?async=true")
                     .session(session)
                     .accept(APPLICATION_OCTET_STREAM)
                     .contentType(TEXT_PLAIN)
@@ -688,7 +692,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     MvcResult result =
         mockMvc
             .perform(
-                post("/symbols/E?async=true")
+                post("/ds/symbols/E?async=true")
                     .session(session)
                     .contentType(TEXT_PLAIN)
                     .content("meanDS(D$age)")
@@ -726,7 +730,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(armadilloStorage.hasObject("gecko", "core/core-all.parquet")).thenReturn(false);
 
     mockMvc
-        .perform(post("/load-table?symbol=D&table=gecko/core/core-all").session(session))
+        .perform(post("/ds/load-table?symbol=D&table=gecko/core/core-all").session(session))
         .andExpect(status().isNotFound());
 
     auditEventValidator.validateAuditEvent(
@@ -761,7 +765,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            post("/load-table?symbol=D&table=project/folder/table&async=false").session(session))
+            post("/ds/load-table?symbol=D&table=project/folder/table&async=false").session(session))
         .andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -809,7 +813,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
-            post("/load-table?symbol=D&table=project/folder/table-view&async=false")
+            post("/ds/load-table?symbol=D&table=project/folder/table-view&async=false")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -858,7 +862,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
-            post("/load-table?symbol=D&table=project/folder/table-view&async=false&variables=age,weight")
+            post("/ds/load-table?symbol=D&table=project/folder/table-view&async=false&variables=age,weight")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -932,7 +936,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            post("/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight")
+            post("/ds/load-table?symbol=D&table=project/folder/table&async=false&variables=age,weight")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -988,7 +992,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(armadilloStorage.listResources("gecko")).thenReturn(List.of("hpc-resource-1"));
     when(armadilloStorage.listResources("alspac")).thenReturn(List.of("hpc-resource-20"));
 
-    mockMvc.perform(get("/resources").session(session)).andExpect(status().isOk());
+    mockMvc.perform(get("/ds/resources").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -1004,7 +1008,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
 
     mockMvc
-        .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1").session(session))
+        .perform(head("/ds/resources/gecko/2_1-core-1_1/hpc-resource-1").session(session))
         .andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -1035,7 +1039,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
     mockMvc
         .perform(
-            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+            post("/ds/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -1065,7 +1069,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(false);
     mockMvc
         .perform(
-            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+            post("/ds/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -1094,7 +1098,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testGetWorkspaces() throws Exception {
-    mockMvc.perform(get("/workspaces").session(session)).andExpect(status().isOk());
+    mockMvc.perform(get("/ds/workspaces").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -1108,7 +1112,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void testGetAllWorkspaces() throws Exception {
 
-    mockMvc.perform(get("/all-workspaces").session(session)).andExpect(status().isOk());
+    mockMvc.perform(get("/ds/all-workspaces").session(session)).andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(

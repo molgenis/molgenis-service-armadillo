@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "JSESSIONID")
-@RequestMapping("insight")
+@RequestMapping("/insight")
 @PreAuthorize("hasRole('ROLE_SU')")
 public class InsightController {
   private final InsightService insightService;
