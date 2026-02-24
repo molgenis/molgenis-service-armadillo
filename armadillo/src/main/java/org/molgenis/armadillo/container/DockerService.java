@@ -39,8 +39,6 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
-// Container/image names are not user-controlled, they come from admin config - suppress S5145
-@SuppressWarnings("java:S5145")
 public class DockerService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
@@ -239,14 +237,15 @@ public class DockerService {
 
   boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
           "Image ID for container '{}' changed from '{}' to '{}'",
           containerName,
           previousImageId,
           currentImageId);
       return true;
     } else {
-      LOG.info("Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
+          "Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
       return false;
     }
   }
@@ -419,12 +418,15 @@ public class DockerService {
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
-        LOG.info("Image ID '{}' is still in use — skipping removal", imageId);
+        LOG.info(
+            "Image ID '{}' is still in use — skipping removal",
+            imageId); // NOSONAR - admin-controlled
         throw new ImageRemoveFailedException(
             imageId, "Image ID is still in use — skipping removal");
       }
       dockerClient.removeImageCmd(imageId).withForce(true).exec();
-      LOG.info("Removed image ID '{}' from local Docker cache", imageId);
+      LOG.info(
+          "Removed image ID '{}' from local Docker cache", imageId); // NOSONAR - admin-controlled
     } catch (NotFoundException e) {
       throw new ImageRemoveFailedException(imageId, "Image ID not found — skipping removal");
     }
