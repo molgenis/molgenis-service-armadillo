@@ -523,7 +523,19 @@ class DockerServiceTest {
   void testStartContainer() {
     var config =
         VanillaContainerConfig.create(
-            "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
+            "default",
+            "image:tag",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
     when(containerService.getByName("default")).thenReturn(config);
 
     var inspectResponse = mock(InspectContainerResponse.class);
@@ -627,11 +639,35 @@ class DockerServiceTest {
   private List<ContainerConfig> createExampleSettings() {
     ContainerConfig container1 =
         VanillaContainerConfig.create(
-            "platform-1", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
+            "platform-1",
+            "image:tag",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
 
     ContainerConfig container2 =
         VanillaContainerConfig.create(
-            "platform-2", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
+            "platform-2",
+            "image:tag",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
 
     return List.of(container1, container2);
   }
@@ -873,7 +909,19 @@ class DockerServiceTest {
 
     var config =
         VanillaContainerConfig.create(
-            "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
+            "default",
+            "image:tag",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
 
     when(containerService.getByName(containerName)).thenReturn(config);
 

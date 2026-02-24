@@ -2,14 +2,15 @@ package org.molgenis.armadillo.container;
 
 import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
-import com.google.auto.value.AutoValue.Builder;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import org.molgenis.armadillo.metadata.UpdateSchedule;
 
 @AutoValue
 @JsonTypeName("vanilla")
-public abstract class VanillaContainerConfig implements ContainerConfig {
+public abstract class VanillaContainerConfig
+    implements ContainerConfig, UpdatableContainer, OpenContainer {
 
   @Override
   @Nullable
@@ -48,6 +49,22 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
   public abstract Map<String, Object> getDockerOptions();
 
   @Override
+  @Nullable
+  public abstract Boolean getAutoUpdate();
+
+  @Override
+  @Nullable
+  public abstract UpdateSchedule getUpdateSchedule();
+
+  @Override
+  @Nullable
+  public abstract String getVersionId();
+
+  @Override
+  @Nullable
+  public abstract String getCreationDate();
+
+  @Override
   @JsonIgnore
   public String getType() {
     return "vanilla";
@@ -63,7 +80,11 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
       @JsonProperty("installDate") @Nullable String installDate,
       @JsonProperty("lastImageId") @Nullable String lastImageId,
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
-      @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
+      @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
+      @JsonProperty("autoUpdate") @Nullable Boolean autoUpdate,
+      @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
+      @JsonProperty("versionId") @Nullable String versionId,
+      @JsonProperty("creationDate") @Nullable String creationDate) {
 
     return builder()
         .name(name)
@@ -75,6 +96,10 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
         .lastImageId(lastImageId)
         .dockerArgs(dockerArgs)
         .dockerOptions(dockerOptions)
+        .autoUpdate(autoUpdate)
+        .updateSchedule(updateSchedule)
+        .versionId(versionId)
+        .creationDate(creationDate)
         .build();
   }
 
@@ -109,6 +134,14 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
 
     public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
 
+    public abstract Builder autoUpdate(@Nullable Boolean autoUpdate);
+
+    public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
+
+    public abstract Builder versionId(@Nullable String versionId);
+
+    public abstract Builder creationDate(@Nullable String creationDate);
+
     @Nullable
     abstract String getImage();
 
@@ -124,6 +157,9 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
     @Nullable
     abstract Map<String, Object> getDockerOptions();
 
+    @Nullable
+    abstract Boolean getAutoUpdate();
+
     abstract VanillaContainerConfig autoBuild();
 
     public VanillaContainerConfig build() {
@@ -132,6 +168,7 @@ public abstract class VanillaContainerConfig implements ContainerConfig {
       if (getPort() == null) port(6311);
       if (getDockerArgs() == null) dockerArgs(List.of());
       if (getDockerOptions() == null) dockerOptions(Map.of());
+      if (getAutoUpdate() == null) autoUpdate(false);
 
       return autoBuild();
     }

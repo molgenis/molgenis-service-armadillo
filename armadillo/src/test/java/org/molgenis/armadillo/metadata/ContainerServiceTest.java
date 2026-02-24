@@ -79,7 +79,19 @@ class ContainerServiceTest {
 
     VanillaContainerConfig defaultContainer =
         VanillaContainerConfig.create(
-            "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of());
+            "default",
+            "image",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
 
     containersMetadata.getContainers().put("default", defaultContainer);
     var containersLoader = new DummyContainersLoader(containersMetadata);
@@ -108,7 +120,19 @@ class ContainerServiceTest {
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var containersLoader = new DummyContainersLoader(containersMetadata);
     var containerService =
@@ -201,7 +225,19 @@ class ContainerServiceTest {
 
     VanillaContainerConfig existingContainer =
         VanillaContainerConfig.create(
-            containerName, "someImage", "localhost", 6311, null, null, null, List.of(), Map.of());
+            containerName,
+            "someImage",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
 
     ContainersMetadata metadata = ContainersMetadata.create();
     metadata.getContainers().put(containerName, existingContainer);
@@ -245,7 +281,19 @@ class ContainerServiceTest {
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var containerService =
         new ContainerService(
@@ -306,7 +354,19 @@ class ContainerServiceTest {
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var containerService =
         new ContainerService(
@@ -338,13 +398,37 @@ class ContainerServiceTest {
         .put(
             "alpha",
             VanillaContainerConfig.create(
-                "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "alpha",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
     containersMetadata
         .getContainers()
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var containerService =
         new ContainerService(
@@ -370,13 +454,37 @@ class ContainerServiceTest {
         .put(
             "alpha",
             VanillaContainerConfig.create(
-                "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "alpha",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var defaultContainerFactory = mock(DefaultContainerFactory.class);
     when(defaultContainerFactory.createDefault())
         .thenReturn(
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var containerService =
         new ContainerService(
@@ -435,13 +543,37 @@ class ContainerServiceTest {
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var initialConfig = mock(InitialContainerConfig.class);
     when(initialConfig.toContainerConfig(any(), any()))
         .thenReturn(
             VanillaContainerConfig.create(
-                "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "alpha",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
     when(initialContainerConfigs.getContainers()).thenReturn(List.of(initialConfig));
 
     var containerService =
@@ -466,19 +598,55 @@ class ContainerServiceTest {
         .put(
             "default",
             VanillaContainerConfig.create(
-                "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
     containersMetadata
         .getContainers()
         .put(
             "alpha",
             VanillaContainerConfig.create(
-                "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "alpha",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
 
     var initialConfig = mock(InitialContainerConfig.class);
     when(initialConfig.toContainerConfig(any(), any()))
         .thenReturn(
             VanillaContainerConfig.create(
-                "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
+                "alpha",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
     when(initialContainerConfigs.getContainers()).thenReturn(List.of(initialConfig));
 
     var containerService =

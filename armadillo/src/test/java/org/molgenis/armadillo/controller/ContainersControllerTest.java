@@ -121,7 +121,11 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 null,
                 null,
                 List.of(),
-                Map.of()));
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
     return settings;
   }
 

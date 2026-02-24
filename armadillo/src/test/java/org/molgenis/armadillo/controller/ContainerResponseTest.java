@@ -27,7 +27,11 @@ class ContainerResponseTest {
             "2024-01-01",
             "img1",
             java.util.List.of("--arg"),
-            Map.of("opt", "value"));
+            Map.of("opt", "value"),
+            false,
+            null,
+            null,
+            null);
     var info = ContainerInfo.create(ContainerStatus.RUNNING);
 
     ContainerResponse response = ContainerResponse.create(config, info);

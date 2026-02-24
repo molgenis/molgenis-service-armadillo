@@ -1,10 +1,13 @@
 package org.molgenis.armadillo.container;
 
 import org.molgenis.armadillo.metadata.DefaultImageMetadata;
+import org.molgenis.armadillo.metadata.OpenContainersImageMetadata;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VanillaContainerUpdater implements ContainerUpdater<VanillaContainerConfig> {
+public class VanillaContainerUpdater
+    implements ContainerUpdater<VanillaContainerConfig>,
+        OpenContainersUpdater<VanillaContainerConfig> {
 
   @Override
   public Class<VanillaContainerConfig> getSupportedType() {
@@ -21,6 +24,15 @@ public class VanillaContainerUpdater implements ContainerUpdater<VanillaContaine
             metadata.installDate() != null
                 ? metadata.installDate()
                 : existingConfig.getInstallDate())
+        .build();
+  }
+
+  @Override
+  public ContainerConfig updateOpenContainersMetaData(
+      VanillaContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
+    return existingConfig.toBuilder()
+        .versionId(metadata.openContainersId())
+        .creationDate(metadata.creationDate())
         .build();
   }
 }
