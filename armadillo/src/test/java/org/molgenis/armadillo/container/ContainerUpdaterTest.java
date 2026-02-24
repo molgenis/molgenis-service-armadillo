@@ -10,21 +10,21 @@ class ContainerUpdaterTest {
 
   @Test
   void supports_usesSupportedType() {
-    ContainerUpdater<DefaultContainerConfig> updater =
+    ContainerUpdater<VanillaContainerConfig> updater =
         new ContainerUpdater<>() {
           @Override
-          public Class<DefaultContainerConfig> getSupportedType() {
-            return DefaultContainerConfig.class;
+          public Class<VanillaContainerConfig> getSupportedType() {
+            return VanillaContainerConfig.class;
           }
 
           @Override
           public ContainerConfig updateDefaultImageMetadata(
-              DefaultContainerConfig existingConfig, DefaultImageMetadata metadata) {
+              VanillaContainerConfig existingConfig, DefaultImageMetadata metadata) {
             return existingConfig;
           }
         };
 
-    assertTrue(updater.supports(DefaultContainerConfig.createDefault()));
+    assertTrue(updater.supports(VanillaContainerConfig.createDefault()));
     assertFalse(
         updater.supports(
             DatashieldContainerConfig.builder()

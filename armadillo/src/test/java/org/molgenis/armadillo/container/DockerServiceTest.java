@@ -522,7 +522,7 @@ class DockerServiceTest {
   @Test
   void testStartContainer() {
     var config =
-        DefaultContainerConfig.create(
+        VanillaContainerConfig.create(
             "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
     when(containerService.getByName("default")).thenReturn(config);
 
@@ -626,11 +626,11 @@ class DockerServiceTest {
 
   private List<ContainerConfig> createExampleSettings() {
     ContainerConfig container1 =
-        DefaultContainerConfig.create(
+        VanillaContainerConfig.create(
             "platform-1", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     ContainerConfig container2 =
-        DefaultContainerConfig.create(
+        VanillaContainerConfig.create(
             "platform-2", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     return List.of(container1, container2);
@@ -872,7 +872,7 @@ class DockerServiceTest {
     String imageId = "sha256:basic-image";
 
     var config =
-        DefaultContainerConfig.create(
+        VanillaContainerConfig.create(
             "default", "image:tag", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     when(containerService.getByName(containerName)).thenReturn(config);

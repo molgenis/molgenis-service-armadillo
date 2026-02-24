@@ -112,7 +112,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .getContainers()
         .put(
             "non-datashield-default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default-other",
                 "other/image:1.0.0",
                 "localhost",
@@ -154,7 +154,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 .json(
                     """
             {
-              "type": "default",
+              "type": "vanilla",
               "name": "default-other",
               "image": "other/image:1.0.0",
               "port": 6311

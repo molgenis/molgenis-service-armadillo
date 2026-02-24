@@ -4,7 +4,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 import org.molgenis.armadillo.container.ContainerScope;
-import org.molgenis.armadillo.container.DefaultContainerConfig;
+import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.FileService;
@@ -84,7 +84,7 @@ public class TestSecurityConfig {
     initialContainers.setContainers(emptyList());
 
     var defaultCfg =
-        DefaultContainerConfig.builder()
+        VanillaContainerConfig.builder()
             .name("DEFAULT")
             .image("dummy-image")
             .host("localhost")

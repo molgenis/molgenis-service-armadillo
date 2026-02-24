@@ -15,9 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.DefaultContainerConfig;
 import org.molgenis.armadillo.container.DefaultContainerFactory;
-import org.molgenis.armadillo.container.DefaultContainerUpdater;
+import org.molgenis.armadillo.container.VanillaContainerConfig;
+import org.molgenis.armadillo.container.VanillaContainerUpdater;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 
@@ -77,8 +77,8 @@ class ContainerServiceTest {
   void addToWhitelist_throwsWhenNotDatashield() {
     var containersMetadata = ContainersMetadata.create();
 
-    DefaultContainerConfig defaultContainer =
-        DefaultContainerConfig.create(
+    VanillaContainerConfig defaultContainer =
+        VanillaContainerConfig.create(
             "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     containersMetadata.getContainers().put("default", defaultContainer);
@@ -107,7 +107,7 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var containersLoader = new DummyContainersLoader(containersMetadata);
@@ -199,8 +199,8 @@ class ContainerServiceTest {
     Long newImageSize = 123_456_789L;
     String newInstallDate = "2025-10-05T12:34:56Z";
 
-    DefaultContainerConfig existingContainer =
-        DefaultContainerConfig.create(
+    VanillaContainerConfig existingContainer =
+        VanillaContainerConfig.create(
             containerName, "someImage", "localhost", 6311, null, null, null, List.of(), Map.of());
 
     ContainersMetadata metadata = ContainersMetadata.create();
@@ -213,7 +213,7 @@ class ContainerServiceTest {
     when(loader.load()).thenReturn(metadata);
     when(loader.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    var updater = new DefaultContainerUpdater();
+    var updater = new VanillaContainerUpdater();
 
     ContainerService containerService =
         new ContainerService(
@@ -244,7 +244,7 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var containerService =
@@ -305,7 +305,7 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var containerService =
@@ -337,13 +337,13 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "alpha",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
     containersMetadata
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var containerService =
@@ -369,13 +369,13 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "alpha",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var defaultContainerFactory = mock(DefaultContainerFactory.class);
     when(defaultContainerFactory.createDefault())
         .thenReturn(
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var containerService =
@@ -434,13 +434,13 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var initialConfig = mock(InitialContainerConfig.class);
     when(initialConfig.toContainerConfig(any(), any()))
         .thenReturn(
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
     when(initialContainerConfigs.getContainers()).thenReturn(List.of(initialConfig));
 
@@ -465,19 +465,19 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "default", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
     containersMetadata
         .getContainers()
         .put(
             "alpha",
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
 
     var initialConfig = mock(InitialContainerConfig.class);
     when(initialConfig.toContainerConfig(any(), any()))
         .thenReturn(
-            DefaultContainerConfig.create(
+            VanillaContainerConfig.create(
                 "alpha", "image", "localhost", 6311, null, null, null, List.of(), Map.of()));
     when(initialContainerConfigs.getContainers()).thenReturn(List.of(initialConfig));
 

@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 @AutoValue
-@JsonTypeName("default")
-public abstract class DefaultContainerConfig implements ContainerConfig {
+@JsonTypeName("vanilla")
+public abstract class VanillaContainerConfig implements ContainerConfig {
 
   @Override
   @Nullable
@@ -50,11 +50,11 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   @Override
   @JsonIgnore
   public String getType() {
-    return "default";
+    return "vanilla";
   }
 
   @JsonCreator
-  public static DefaultContainerConfig create(
+  public static VanillaContainerConfig create(
       @JsonProperty("name") @Nullable String name,
       @JsonProperty("image") @Nullable String image,
       @JsonProperty("host") @Nullable String host,
@@ -78,12 +78,12 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
         .build();
   }
 
-  public static DefaultContainerConfig createDefault() {
+  public static VanillaContainerConfig createDefault() {
     return builder().name("default").build();
   }
 
-  public static DefaultContainerConfig.Builder builder() {
-    return new AutoValue_DefaultContainerConfig.Builder();
+  public static VanillaContainerConfig.Builder builder() {
+    return new AutoValue_VanillaContainerConfig.Builder();
   }
 
   public abstract Builder toBuilder();
@@ -124,9 +124,9 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
     @Nullable
     abstract Map<String, Object> getDockerOptions();
 
-    abstract DefaultContainerConfig autoBuild();
+    abstract VanillaContainerConfig autoBuild();
 
-    public DefaultContainerConfig build() {
+    public VanillaContainerConfig build() {
       if (getImage() == null) image("library/r-base");
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);

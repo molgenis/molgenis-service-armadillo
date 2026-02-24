@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.ContainerInfo;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.DefaultContainerConfig;
+import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.controller.ContainerResponse.DatashieldResponse;
 import org.molgenis.armadillo.controller.ContainerResponse.DefaultResponse;
 import org.molgenis.armadillo.metadata.ContainerStatus;
@@ -18,7 +18,7 @@ class ContainerResponseTest {
   @Test
   void create_forDefaultContainer() {
     var config =
-        DefaultContainerConfig.create(
+        VanillaContainerConfig.create(
             "default",
             "image",
             "localhost",
@@ -34,7 +34,7 @@ class ContainerResponseTest {
 
     assertTrue(response instanceof DefaultResponse);
     var defaultResponse = (DefaultResponse) response;
-    assertEquals("default", defaultResponse.type());
+    assertEquals("vanilla", defaultResponse.type());
     assertEquals("default", defaultResponse.name());
     assertEquals("image", defaultResponse.image());
     assertEquals(6311, defaultResponse.port());

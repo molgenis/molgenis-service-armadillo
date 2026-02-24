@@ -3,15 +3,15 @@ package org.molgenis.armadillo.container;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultContainerFactoryImpl implements DefaultContainerFactory {
+public class VanillaContainerFactory implements DefaultContainerFactory {
 
   @Override
   public String getType() {
-    return "default";
+    return "vanilla";
   }
 
   @Override
   public ContainerConfig createDefault() {
-    return DefaultContainerConfig.createDefault();
+    return VanillaContainerConfig.createDefault();
   }
 }

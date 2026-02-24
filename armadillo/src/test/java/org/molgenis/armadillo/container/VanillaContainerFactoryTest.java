@@ -5,23 +5,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 
-class DefaultContainerFactoryImplTest {
+class VanillaContainerFactoryTest {
 
   @Test
   void getType_returnsDefault() {
-    DefaultContainerFactoryImpl factory = new DefaultContainerFactoryImpl();
+    VanillaContainerFactory factory = new VanillaContainerFactory();
 
-    assertEquals("default", factory.getType());
+    assertEquals("vanilla", factory.getType());
   }
 
   @Test
   void createDefault_returnsDefaultConfig() {
-    DefaultContainerFactoryImpl factory = new DefaultContainerFactoryImpl();
+    VanillaContainerFactory factory = new VanillaContainerFactory();
 
     ContainerConfig config = factory.createDefault();
 
     assertNotNull(config);
-    assertEquals("default", config.getType());
+    assertEquals("vanilla", config.getType());
     assertEquals("default", config.getName());
   }
 }

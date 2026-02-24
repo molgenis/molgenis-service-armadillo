@@ -9,7 +9,7 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = DatashieldContainerConfig.class, name = "ds"),
-  @JsonSubTypes.Type(value = DefaultContainerConfig.class, name = "default")
+  @JsonSubTypes.Type(value = VanillaContainerConfig.class, name = "vanilla")
 })
 public interface ContainerConfig {
 
