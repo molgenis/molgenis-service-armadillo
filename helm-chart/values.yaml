@@ -6,8 +6,10 @@ replicaCount: 1
 
 
 config:
-  container-default-type: ds
   armadillo:
+    container:
+      defaults:
+        type: ds
     docker-management-enabled: false
     docker-run-in-container: true
     container-prefix: 'dev-'

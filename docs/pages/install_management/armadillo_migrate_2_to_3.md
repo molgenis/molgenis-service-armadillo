@@ -231,9 +231,9 @@ forward-headers-strategy: framework
 
 Add the following to the config of your server: `https://yourserver.com/login/oauth2/code/molgenis`
 
-### 12. Set up containers
+### 12. Set up profiles
 
-Login to armadillo in the browser. Navigate to the "Containers" tab. Add a new container with the following properties:
+Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
 
 Name: `xenon`  
 Image: `datashield/armadillo-rserver_caravan-xenon:latest`  

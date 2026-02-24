@@ -5,7 +5,7 @@ Upgrade to Armadillo 4 (rock only)
 ??? note
     We assume Ubuntu with systemd is used.
 
-The upgrade from Armadillo v3.4 to 4.x is breaking as the containers must be Rock containers.
+The upgrade from Armadillo v3.4 to 4.x is breaking as the profiles must be Rock profiles.
 
 Additionally, when working with an armadillo 4 instance, researchers should update `DSMolgenisArmadillo` to version 2.0.5 (this version is compatible with armadillo 3 as well).
 
@@ -15,9 +15,9 @@ For the latest 4.x release check https://github.com/molgenis/molgenis-service-ar
 
 Make a note of the version as you will use this below.
 
-## 1. Check your container types
+## 1. Check your profiles types
 
-Check if the new containers are compatible with your needs, these container names can be edited later on in the manual:
+Check if the new profiles are compatible with your needs, these profile names can be edited later on in the manual:
 
     - datashield/rock-base:latest
     - datashield/rock-dolomite-xenon:latest
@@ -39,9 +39,9 @@ If you have 15 GB or more available, you can continue. If you have less availabl
 
 ### 2.2 Check docker images
 
-First stop all containers through the Armadillo UI.
+First stop all profiles through the Armadillo UI.
 
-Now that the containers are not running you can delete the old versions of their docker images.
+Now that the profiles are not running you can delete the old versions of their docker images.
 
 The command are indicative so change as needed.
 
@@ -150,7 +150,7 @@ should result in:
 
 ```bash
 ls system/
-# access.json  containers.json
+# access.json  profiles.json
 ```
 
 ## 5. Restart application using new version
@@ -190,17 +190,17 @@ systemctl status armadillo
 
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful.
 
-## 7. Update containers
+## 7. Update profiles
 
-Login into the website and go to the containers tab. Here two containers should be listed: `default` and `xenon`.
-Any other containers can be removed.
+Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`.
+Any other profiles can be removed.
 
-1. Edit the default container.
+1. Edit the default profiles.
 2. Change the "image" to `datashield/rock-base:latest` and save.
-3. Start the default container.
-4. Edit the "xenon" container.
+3. Start the default profiles.
+4. Edit the "xenon" profiles.
 5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-6. Start the xenon container.
+6. Start the xenon profiles.
 
 Everything should now be working correctly. You can try and login to your server via the central analysis server, using
 the `DSMolgenisArmadillo` (2.0.5 or up) package to test.

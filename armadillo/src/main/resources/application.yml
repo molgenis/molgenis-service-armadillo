@@ -2,14 +2,16 @@ armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
 
-  # default container type for containers created without an explicit type
-  container-default-type: ds
-
-  # default image and packages for new DataSHIELD containers
-  container-default-image: datashield/molgenis-rock-base
-  datashield-default-whitelist:
-    - dsBase
-    - dsTidyverse
+  # default settings for new containers
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
 
   # set this true if you want Armadillo to create/edit/delete container docker images
   docker-management-enabled: true

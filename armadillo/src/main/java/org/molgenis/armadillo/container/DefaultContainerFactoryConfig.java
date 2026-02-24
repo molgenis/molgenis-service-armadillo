@@ -14,7 +14,7 @@ public class DefaultContainerFactoryConfig {
   private final String defaultType;
 
   public DefaultContainerFactoryConfig(
-      @Value("${armadillo.container-default-type:ds}") String defaultType) {
+      @Value("${armadillo.container.defaults.type:ds}") String defaultType) {
     this.defaultType = defaultType;
   }
 

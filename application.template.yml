@@ -1,13 +1,14 @@
 armadillo:
-  # default container type for containers created without an explicit type. Chose 'ds' for DataSHIELD and 'vanilla' for
-  # generic docker container
-  container-default-type: ds
-
-  # default image and packages for new DataSHIELD containers
-  container-default-image: datashield/molgenis-rock-base
-  datashield-default-whitelist:
-    - dsBase
-    - dsTidyverse
+  # default settings for new containers
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
 
   # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
   docker-management-enabled: true

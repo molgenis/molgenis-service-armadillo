@@ -1,12 +1,13 @@
 armadillo:
-  # default container type for containers created without an explicit type
-  container-default-type: ds
-
-  # default image and packages for new DataSHIELD containers
-  container-default-image: datashield/molgenis-rock-base
-  datashield-default-whitelist:
-    - dsBase
-    - dsTidyverse
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
 
   docker-management-enabled: false
   docker-run-in-container: true
