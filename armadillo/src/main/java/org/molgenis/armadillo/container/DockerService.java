@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
@@ -237,21 +236,15 @@ public class DockerService {
   }
 
   boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
-    String escapedContainer = StringEscapeUtils.escapeJava(containerName);
-    String escapedPreviousId =
-        previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
-    String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
-
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
       LOG.info(
           "Image ID for container '{}' changed from '{}' to '{}'",
-          escapedContainer,
-          escapedPreviousId,
-          escapedCurrentId);
+          containerName,
+          previousImageId,
+          currentImageId);
       return true;
     } else {
-      LOG.info(
-          "Image ID for container '{}' unchanged (still '{}')", escapedContainer, escapedCurrentId);
+      LOG.info("Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
       return false;
     }
   }
@@ -418,22 +411,20 @@ public class DockerService {
       return;
     }
 
-    String safeImageId = StringEscapeUtils.escapeJava(imageId);
-
     try {
       boolean isInUse =
           dockerClient.listContainersCmd().exec().stream()
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
-        LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
+        LOG.info("Image ID '{}' is still in use — skipping removal", imageId);
         throw new ImageRemoveFailedException(
-            safeImageId, "Image ID is still in use — skipping removal");
+            imageId, "Image ID is still in use — skipping removal");
       }
       dockerClient.removeImageCmd(imageId).withForce(true).exec();
-      LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
+      LOG.info("Removed image ID '{}' from local Docker cache", imageId);
     } catch (NotFoundException e) {
-      throw new ImageRemoveFailedException(safeImageId, "Image ID not found — skipping removal");
+      throw new ImageRemoveFailedException(imageId, "Image ID not found — skipping removal");
     }
   }
 }
