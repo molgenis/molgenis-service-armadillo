@@ -59,7 +59,3 @@ build/
 /application.properties
 .Rproj.user
 site/
-CONTAINER_COVERAGE_CHECKLIST.md
-BRANCH_DIFF_MASTER.patch
-BRANCH_REFACTOR_SUMMARY.md
-BRANCH_REVIEW_CHECKLIST.md
