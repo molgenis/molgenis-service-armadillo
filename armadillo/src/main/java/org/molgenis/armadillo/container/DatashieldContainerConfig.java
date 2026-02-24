@@ -15,6 +15,8 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
   @Override
   @Nullable
   public abstract String getName();
@@ -230,7 +232,7 @@ public abstract class DatashieldContainerConfig
       if (getPackageWhitelist() == null) packageWhitelist(Set.of("dsBase"));
       if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
       if (getDatashieldROptions() == null) {
-        long seed = new SecureRandom().nextLong(900_000_000L);
+        long seed = SECURE_RANDOM.nextLong(900_000_000L);
         datashieldROptions(Map.of("datashield.seed", String.valueOf(seed)));
       }
       if (getDockerArgs() == null) dockerArgs(List.of());
