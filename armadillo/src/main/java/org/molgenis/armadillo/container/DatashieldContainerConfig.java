@@ -3,6 +3,7 @@ package org.molgenis.armadillo.container;
 import com.fasterxml.jackson.annotation.*;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -228,8 +229,10 @@ public abstract class DatashieldContainerConfig
       if (getAutoUpdate() == null) autoUpdate(false);
       if (getPackageWhitelist() == null) packageWhitelist(Set.of("dsBase"));
       if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
-      if (getDatashieldROptions() == null)
-        datashieldROptions(Map.of("datashield.seed", "342325352"));
+      if (getDatashieldROptions() == null) {
+        long seed = new SecureRandom().nextLong(900_000_000L);
+        datashieldROptions(Map.of("datashield.seed", String.valueOf(seed)));
+      }
       if (getDockerArgs() == null) dockerArgs(List.of());
       if (getDockerOptions() == null) dockerOptions(Map.of());
 

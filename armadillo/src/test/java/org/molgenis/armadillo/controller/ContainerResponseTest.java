@@ -56,6 +56,7 @@ class ContainerResponseTest {
             .port(6311)
             .packageWhitelist(Set.of("dsBase"))
             .functionBlacklist(Set.of())
+            .datashieldROptions(Map.of("datashield.seed", "123456789"))
             .build();
     var info = ContainerInfo.create(ContainerStatus.NOT_RUNNING);
 
@@ -75,7 +76,7 @@ class ContainerResponseTest {
             "functionBlacklist",
             Set.of(),
             "datashieldROptions",
-            Map.of("datashield.seed", "342325352")),
+            Map.of("datashield.seed", "123456789")),
         dsResponse.specificContainerOptions());
   }
 }

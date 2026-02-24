@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.metadata;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
 
 import java.util.HashMap;
@@ -109,6 +108,9 @@ public class DatashieldContainerConfigTest {
             List.of(),
             Map.of());
 
-    assertEquals(Map.of("datashield.seed", "342325352"), config.getDatashieldROptions());
+    Map<String, String> options = config.getDatashieldROptions();
+    assertTrue(options.containsKey("datashield.seed"), "Should have datashield.seed key");
+    long seed = Long.parseLong(options.get("datashield.seed"));
+    assertTrue(seed >= 0 && seed < 900_000_000L, "Seed should be in valid range");
   }
 }
