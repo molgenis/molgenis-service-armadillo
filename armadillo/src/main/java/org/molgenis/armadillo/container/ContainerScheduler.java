@@ -102,42 +102,39 @@ public class ContainerScheduler {
       var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
 
       if (containerInfo != null && containerInfo.getStatus() == ContainerStatus.RUNNING) {
-
         if (container instanceof UpdatableContainer updatableContainer) {
-
           if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
-
-            String previousImageId = container.getLastImageId();
-            String imageName = container.getImage();
-
-            if (imageName != null && !imageName.isEmpty()) {
-              dockerClient
-                  .pullImageCmd(imageName)
-                  .start()
-                  .awaitCompletion(); // Pull image if necessary
-              String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
-              LOG.info("Latest imageId is {}", latestImageId);
-
-              if (dockerService.hasImageIdChanged(
-                  container.getName(), previousImageId, latestImageId)) {
-                LOG.info("Image updated for '{}', restarting...", container.getName());
-                dockerService.pullImageStartContainer(container.getName());
-              } else {
-                LOG.info("No image update for '{}', skipping restart", container.getName());
-              }
-            } else {
-              LOG.error(
-                  "Image name is null or empty for container '{}'. Skipping update.",
-                  container.getName());
-            }
+            pullDockerImage(container);
           }
         }
       }
     } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt(); // Preserve interrupt status
+      Thread.currentThread().interrupt();
       LOG.error("Thread interrupted while updating container '{}'", container.getName(), ie);
     } catch (Exception e) {
       LOG.error("Error while checking container '{}': {}", container.getName(), e.getMessage(), e);
+    }
+  }
+
+  private void pullDockerImage(ContainerConfig container) throws InterruptedException {
+    String previousImageId = container.getLastImageId();
+    String imageName = container.getImage();
+
+    if (imageName == null || imageName.isEmpty()) {
+      LOG.error(
+          "Image name is null or empty for container '{}'. Skipping update.", container.getName());
+      return;
+    }
+
+    dockerClient.pullImageCmd(imageName).start().awaitCompletion();
+    String latestImageId = dockerClient.inspectImageCmd(imageName).exec().getId();
+    LOG.info("Latest imageId is {}", latestImageId);
+
+    if (dockerService.hasImageIdChanged(container.getName(), previousImageId, latestImageId)) {
+      LOG.info("Image updated for '{}', restarting...", container.getName());
+      dockerService.pullImageStartContainer(container.getName());
+    } else {
+      LOG.info("No image update for '{}', skipping restart", container.getName());
     }
   }
 }
