@@ -34,6 +34,7 @@ armadillo:
       port: 6311
       package-whitelist:
         - dsBase
+        - dsTidyverse
       function-blacklist: [ ]
       options:
         datashield:

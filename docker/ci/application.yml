@@ -29,6 +29,7 @@ armadillo:
       host: default
       package-whitelist:
         - dsBase
+        - dsTidyverse
       function-blacklist: [ ]
       options:
         datashield:
