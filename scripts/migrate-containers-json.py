@@ -13,10 +13,25 @@ import shutil
 from pathlib import Path
 
 
+def infer_type(container: dict) -> str:
+    """Infer container type based on DataSHIELD-specific fields."""
+    whitelist = container.get('packageWhitelist', [])
+    blacklist = container.get('functionBlacklist', [])
+    options = container.get('options') or container.get('datashieldROptions', {})
+
+    # If any DataSHIELD-specific fields are set, it's a ds container
+    if whitelist or blacklist or options:
+        return 'ds'
+    return 'vanilla'
+
+
 def migrate_container(name: str, container: dict) -> dict:
     """Migrate a single container to the new schema."""
+    container_type = container.get('type') or infer_type(container)
+
+    # Common fields for all container types
     new = {
-        'type': container.get('type', 'ds'),
+        'type': container_type,
         'name': container.get('name', name),
         'image': container.get('image'),
         'host': container.get('host', 'localhost'),
@@ -26,14 +41,18 @@ def migrate_container(name: str, container: dict) -> dict:
         'lastImageId': container.get('lastImageId'),
         'dockerArgs': container.get('dockerArgs', []),
         'dockerOptions': container.get('dockerOptions', {}),
-        'packageWhitelist': container.get('packageWhitelist', []),
-        'functionBlacklist': container.get('functionBlacklist', []),
-        'datashieldROptions': container.get('options') or container.get('datashieldROptions', {}),
         'autoUpdate': container.get('autoUpdate', False),
         'updateSchedule': container.get('updateSchedule'),
         'versionId': container.get('versionId'),
         'creationDate': container.get('CreationDate') or container.get('creationDate'),
     }
+
+    # DataSHIELD-specific fields only for 'ds' type
+    if container_type == 'ds':
+        new['packageWhitelist'] = container.get('packageWhitelist', [])
+        new['functionBlacklist'] = container.get('functionBlacklist', [])
+        new['datashieldROptions'] = container.get('options') or container.get('datashieldROptions', {})
+
     return new
 
 
