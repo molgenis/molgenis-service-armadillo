@@ -34,7 +34,7 @@ class ContainerResponseTest {
 
     assertTrue(response instanceof DefaultResponse);
     var defaultResponse = (DefaultResponse) response;
-    assertEquals("default", defaultResponse.type());
+    assertEquals("vanilla", defaultResponse.type());
     assertEquals("default", defaultResponse.name());
     assertEquals("image", defaultResponse.image());
     assertEquals(6311, defaultResponse.port());

@@ -7,7 +7,7 @@ public class DefaultContainerFactoryImpl implements DefaultContainerFactory {
 
   @Override
   public String getType() {
-    return "default";
+    return "vanilla";
   }
 
   @Override

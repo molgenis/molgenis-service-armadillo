@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @AutoValue
-@JsonTypeName("default")
+@JsonTypeName("vanilla")
 public abstract class DefaultContainerConfig implements ContainerConfig {
 
   @Override
@@ -50,7 +50,7 @@ public abstract class DefaultContainerConfig implements ContainerConfig {
   @Override
   @JsonIgnore
   public String getType() {
-    return "default";
+    return "vanilla";
   }
 
   @JsonCreator

@@ -16,7 +16,7 @@ import org.molgenis.armadillo.container.DatashieldContainerConfig;
     property = "type",
     visible = true)
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = ContainerResponse.DefaultResponse.class, name = "default"),
+  @JsonSubTypes.Type(value = ContainerResponse.DefaultResponse.class, name = "vanilla"),
   @JsonSubTypes.Type(value = ContainerResponse.DatashieldResponse.class, name = "ds")
 })
 public sealed interface ContainerResponse {

@@ -11,7 +11,7 @@ class DefaultContainerFactoryImplTest {
   void getType_returnsDefault() {
     DefaultContainerFactoryImpl factory = new DefaultContainerFactoryImpl();
 
-    assertEquals("default", factory.getType());
+    assertEquals("vanilla", factory.getType());
   }
 
   @Test
@@ -21,7 +21,7 @@ class DefaultContainerFactoryImplTest {
     ContainerConfig config = factory.createDefault();
 
     assertNotNull(config);
-    assertEquals("default", config.getType());
+    assertEquals("vanilla", config.getType());
     assertEquals("default", config.getName());
   }
 }

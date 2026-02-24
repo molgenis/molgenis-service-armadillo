@@ -154,7 +154,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
                 .json(
                     """
             {
-              "type": "default",
+              "type": "vanilla",
               "name": "default-other",
               "image": "other/image:1.0.0",
               "port": 6311
