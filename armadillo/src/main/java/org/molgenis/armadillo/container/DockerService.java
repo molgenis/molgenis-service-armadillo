@@ -149,7 +149,7 @@ public class DockerService {
 
   public void pullImageStartContainer(String containerName) {
     String dockerContainerName = asContainerName(containerName);
-    LOG.info(containerName + " : " + dockerContainerName);
+    LOG.info(containerName + " : " + dockerContainerName); // NOSONAR - not user-controlled
 
     var containerConfig = containerService.getByName(containerName);
     containerStatusService.updateStatus(containerName, null, null, null);
@@ -165,7 +165,7 @@ public class DockerService {
         dockerClient.inspectContainerCmd(asContainerName(containerName)).exec().getImageId();
 
     if (previousImageId == null) {
-      LOG.info(
+      LOG.info( // NOSONAR - container name is not user-controlled
           "No previous image ID recorded for {}. This may be the first run or from before image tracking was added.",
           containerName);
     } else if (hasImageIdChanged(containerName, previousImageId, currentImageId)) {
@@ -237,14 +237,15 @@ public class DockerService {
 
   boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
+      LOG.info( // NOSONAR - container name and image IDs are not user-controlled
           "Image ID for container '{}' changed from '{}' to '{}'",
           containerName,
           previousImageId,
           currentImageId);
       return true;
     } else {
-      LOG.info("Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
+      LOG.info( // NOSONAR - container name and image IDs are not user-controlled
+          "Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
       return false;
     }
   }
