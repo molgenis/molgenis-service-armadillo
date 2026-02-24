@@ -1,5 +1,6 @@
 armadillo:
-  # default container type for containers created without an explicit type
+  # default container type for containers created without an explicit type. Chose 'ds' for DataSHIELD and 'vanilla' for
+  # generic docker container
   container-default-type: ds
 
   # default image and packages for new DataSHIELD containers
