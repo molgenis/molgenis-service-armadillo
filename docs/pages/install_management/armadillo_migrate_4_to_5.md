@@ -50,7 +50,7 @@ cp -r /usr/share/armadillo/data/system ./
 
 ```bash
 ls system/
-# access.json  containers.json
+# access.json  profiles.json
 ```
 
 ## 4. Stop Armadillo
