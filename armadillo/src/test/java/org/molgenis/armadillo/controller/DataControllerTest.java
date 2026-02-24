@@ -756,7 +756,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTable() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(emptyList())))
+    when(commands.loadTable("D", "project/folder/table", emptyList()))
         .thenReturn(completedFuture(null));
 
     mockMvc
@@ -803,9 +803,9 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
     when(commands.loadTable(
-            eq("D"),
-            eq(sourceProject + "/" + sourceObject),
-            eq(new ArrayList<>(Arrays.asList(variables.split(","))))))
+            "D",
+            sourceProject + "/" + sourceObject,
+            new ArrayList<>(Arrays.asList(variables.split(",")))))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -854,7 +854,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getSourceProject()).thenReturn(sourceProject);
     when(alfMock.getVariables()).thenReturn(variables);
     when(armadilloStorage.hasObject(sourceProject, sourceObject + PARQUET)).thenReturn(true);
-    when(commands.loadTable(eq("D"), eq(sourceProject + "/" + sourceObject), eq(selectedVariables)))
+    when(commands.loadTable("D", sourceProject + "/" + sourceObject, selectedVariables))
         .thenReturn(completedFuture(null));
     mockMvc
         .perform(
@@ -927,7 +927,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testLoadTableWithVariables() throws Exception {
     when(armadilloStorage.hasObject("project", "folder/table.alf")).thenReturn(false);
     when(armadilloStorage.hasObject("project", "folder/table.parquet")).thenReturn(true);
-    when(commands.loadTable(eq("D"), eq("project/folder/table"), eq(List.of("age", "weight"))))
+    when(commands.loadTable("D", "project/folder/table", List.of("age", "weight")))
         .thenReturn(completedFuture(null));
 
     mockMvc

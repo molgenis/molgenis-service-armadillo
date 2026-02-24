@@ -45,17 +45,15 @@ public class ContainerScheduler {
   public void reschedule(ContainerConfig container) {
     cancel(container.getName());
 
-    if (container instanceof UpdatableContainer updatableContainer) {
-
-      if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())
-          && updatableContainer.getUpdateSchedule() != null) {
-        String cron = toCron(updatableContainer.getUpdateSchedule());
-        Runnable task = () -> runAsSystem(() -> runUpdateForContainer(container));
-        ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
-        scheduledTasks.put(container.getName(), future);
-        LOG.info(
-            "Scheduled auto-update for container '{}' with cron '{}'", container.getName(), cron);
-      }
+    if (container instanceof UpdatableContainer updatableContainer
+        && Boolean.TRUE.equals(updatableContainer.getAutoUpdate())
+        && updatableContainer.getUpdateSchedule() != null) {
+      String cron = toCron(updatableContainer.getUpdateSchedule());
+      Runnable task = () -> runAsSystem(() -> runUpdateForContainer(container));
+      ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cron));
+      scheduledTasks.put(container.getName(), future);
+      LOG.info(
+          "Scheduled auto-update for container '{}' with cron '{}'", container.getName(), cron);
     }
   }
 
@@ -101,12 +99,11 @@ public class ContainerScheduler {
     try {
       var containerInfo = dockerService.getAllContainerStatuses().get(container.getName());
 
-      if (containerInfo != null && containerInfo.getStatus() == ContainerStatus.RUNNING) {
-        if (container instanceof UpdatableContainer updatableContainer) {
-          if (Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
-            pullDockerImage(container);
-          }
-        }
+      if (containerInfo != null
+          && containerInfo.getStatus() == ContainerStatus.RUNNING
+          && container instanceof UpdatableContainer updatableContainer
+          && Boolean.TRUE.equals(updatableContainer.getAutoUpdate())) {
+        pullDockerImage(container);
       }
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();

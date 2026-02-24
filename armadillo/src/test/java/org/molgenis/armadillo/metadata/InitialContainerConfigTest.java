@@ -65,10 +65,11 @@ class InitialContainerConfigTest {
   void toContainerConfig_throwsWhenBuilderMissing() {
     InitialContainerConfig config = new InitialContainerConfig();
     config.setType("missing");
+    Map<String, InitialConfigBuilder> builders = Map.of();
 
     IllegalArgumentException ex =
         assertThrows(
-            IllegalArgumentException.class, () -> config.toContainerConfig(Map.of(), "default"));
+            IllegalArgumentException.class, () -> config.toContainerConfig(builders, "default"));
 
     assertEquals("No container builder found for type: missing", ex.getMessage());
   }

@@ -12,10 +12,13 @@ import org.molgenis.r.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonTypeName("ds")
+// AutoValue requires redeclaring interface methods as abstract - suppress S1161
+@SuppressWarnings("java:S1161")
 public abstract class DatashieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+  private static final String DEFAULT_PACKAGE = "dsBase";
 
   @Override
   @Nullable
@@ -102,7 +105,7 @@ public abstract class DatashieldContainerConfig
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
 
     Set<String> resolvedPackageWhitelist =
-        packageWhitelist != null ? packageWhitelist : Set.of("dsBase");
+        packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE);
     Set<String> resolvedFunctionBlacklist =
         functionBlacklist != null ? functionBlacklist : Set.of();
     Builder builder =
@@ -141,7 +144,7 @@ public abstract class DatashieldContainerConfig
     return builder()
         .name("default")
         .image(image != null ? image : "datashield/molgenis-rock-base")
-        .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of("dsBase"))
+        .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE))
         .functionBlacklist(Set.of())
         .build();
   }
@@ -229,7 +232,7 @@ public abstract class DatashieldContainerConfig
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);
       if (getAutoUpdate() == null) autoUpdate(false);
-      if (getPackageWhitelist() == null) packageWhitelist(Set.of("dsBase"));
+      if (getPackageWhitelist() == null) packageWhitelist(Set.of(DEFAULT_PACKAGE));
       if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
       if (getDatashieldROptions() == null) {
         long seed = SECURE_RANDOM.nextLong(900_000_000L);

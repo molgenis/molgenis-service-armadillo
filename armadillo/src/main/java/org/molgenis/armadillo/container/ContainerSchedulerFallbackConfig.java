@@ -17,10 +17,14 @@ public class ContainerSchedulerFallbackConfig {
   public ContainerScheduler noOpContainerScheduler() {
     return new ContainerScheduler(null, null) {
       @Override
-      public void reschedule(ContainerConfig container) {}
+      public void reschedule(ContainerConfig container) {
+        // No-op: scheduling disabled when docker-management-enabled=false
+      }
 
       @Override
-      public void cancel(String containerName) {}
+      public void cancel(String containerName) {
+        // No-op: scheduling disabled when docker-management-enabled=false
+      }
     };
   }
 }

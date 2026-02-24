@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.config.EnvironmentConfigProps;
 
-public class DatashieldContainerConfigTest {
+class DatashieldContainerConfigTest {
 
   @Test
-  public void testToEnvironmentConfigProps() {
+  void testToEnvironmentConfigProps() {
     String name = "myName";
     String img = "myImage";
     String host = "localhost";
@@ -42,7 +42,7 @@ public class DatashieldContainerConfigTest {
   }
 
   @Test
-  public void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
+  void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
     DatashieldContainerConfig config =
         create(
             "myName",
@@ -65,7 +65,7 @@ public class DatashieldContainerConfigTest {
   }
 
   @Test
-  public void testCreateEmptyHost() {
+  void testCreateEmptyHost() {
     DatashieldContainerConfig config =
         create(
             "myName",
@@ -88,7 +88,7 @@ public class DatashieldContainerConfigTest {
   }
 
   @Test
-  public void testCreateEmptyOptions() {
+  void testCreateEmptyOptions() {
     DatashieldContainerConfig config =
         create(
             "myName",

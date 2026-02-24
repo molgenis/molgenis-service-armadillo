@@ -20,20 +20,20 @@ class ActiveContainerNameAccessorTest {
 
   @Test
   void constructor_throwsUnsupportedOperationException() {
-    assertThrows(
-        UnsupportedOperationException.class,
-        () -> {
-          try {
-            var ctor = ActiveContainerNameAccessor.class.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            ctor.newInstance();
-          } catch (Exception e) {
-            if (e.getCause() instanceof RuntimeException re) {
-              throw re;
-            }
-            throw new RuntimeException(e);
-          }
-        });
+    assertThrows(UnsupportedOperationException.class, this::instantiateViaReflection);
+  }
+
+  private void instantiateViaReflection() {
+    try {
+      var ctor = ActiveContainerNameAccessor.class.getDeclaredConstructor();
+      ctor.setAccessible(true);
+      ctor.newInstance();
+    } catch (Exception e) {
+      if (e.getCause() instanceof RuntimeException re) {
+        throw re;
+      }
+      throw new RuntimeException(e);
+    }
   }
 
   @Test

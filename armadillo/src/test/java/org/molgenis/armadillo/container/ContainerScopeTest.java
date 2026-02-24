@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.container;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -68,7 +69,7 @@ class ContainerScopeTest {
   @Test
   void registerDestructionCallback_noop() {
     ContainerScope scope = new ContainerScope();
-    scope.registerDestructionCallback("bean", () -> {});
+    assertDoesNotThrow(() -> scope.registerDestructionCallback("bean", () -> {}));
   }
 
   @Test

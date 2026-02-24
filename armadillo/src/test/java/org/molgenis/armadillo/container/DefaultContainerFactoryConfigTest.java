@@ -23,11 +23,10 @@ class DefaultContainerFactoryConfigTest {
   @Test
   void defaultContainerFactory_throwsWhenTypeMissing() {
     DefaultContainerFactoryConfig config = new DefaultContainerFactoryConfig("missing");
+    List<DefaultContainerFactory> factories = List.of(new StubFactory("ds"));
 
     IllegalStateException ex =
-        assertThrows(
-            IllegalStateException.class,
-            () -> config.defaultContainerFactory(List.of(new StubFactory("ds"))));
+        assertThrows(IllegalStateException.class, () -> config.defaultContainerFactory(factories));
 
     assertEquals("No DefaultContainerFactory registered for type 'missing'.", ex.getMessage());
   }

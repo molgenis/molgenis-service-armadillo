@@ -9,7 +9,7 @@ import com.github.dockerjava.api.command.InspectImageCmd;
 import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.PullImageResultCallback;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.jupiter.api.Test;
@@ -120,13 +120,13 @@ class ContainerSchedulerTest {
     var spyScheduler = spy(scheduler);
     ReflectionTestUtils.setField(containerScheduler, "taskScheduler", spyScheduler);
 
-    Date startTime = new Date();
+    Instant startTime = Instant.now();
 
-    doReturn(scheduledFuture).when(spyScheduler).schedule(any(Runnable.class), any(Date.class));
+    doReturn(scheduledFuture).when(spyScheduler).schedule(any(Runnable.class), any(Instant.class));
 
     spyScheduler.schedule(() -> {}, startTime);
 
-    verify(spyScheduler).schedule(any(Runnable.class), any(Date.class));
+    verify(spyScheduler).schedule(any(Runnable.class), any(Instant.class));
   }
 
   @Test
@@ -199,10 +199,10 @@ class ContainerSchedulerTest {
     when(container.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
 
     // Only stub container info and its status
-    var containerInfo = mock(ContainerInfo.class);
-    when(containerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
+    var localContainerInfo = mock(ContainerInfo.class);
+    when(localContainerInfo.getStatus()).thenReturn(ContainerStatus.RUNNING);
     when(dockerService.getAllContainerStatuses())
-        .thenReturn(Map.of("testContainer", containerInfo));
+        .thenReturn(Map.of("testContainer", localContainerInfo));
 
     invokeRunUpdateForContainer(container);
 
