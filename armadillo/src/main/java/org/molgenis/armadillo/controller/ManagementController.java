@@ -37,6 +37,6 @@ public class ManagementController {
   @Operation(summary = "Restart armadillo")
   @PostMapping("app/restart")
   public void restart(Principal principal) {
-    auditor.audit(managementService::restartApplictation, principal, "TRIGGER_RESTART");
+    auditor.audit(managementService::restartApplication, principal, "TRIGGER_RESTART");
   }
 }
