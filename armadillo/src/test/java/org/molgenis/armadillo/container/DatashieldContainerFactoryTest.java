@@ -45,7 +45,7 @@ class DatashieldContainerFactoryTest {
     DatashieldContainerConfig result = (DatashieldContainerConfig) factory.createDefault();
 
     assertEquals("default", result.getName());
-    assertEquals("datashield/molgenis-rock-base", result.getImage());
+    assertEquals("datashield/molgenis-rock-base:latest", result.getImage());
     assertEquals(Set.of("dsBase"), result.getPackageWhitelist());
     assertEquals(Set.of(), result.getFunctionBlacklist());
   }

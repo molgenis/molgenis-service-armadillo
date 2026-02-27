@@ -143,7 +143,7 @@ public abstract class DatashieldContainerConfig
       String image, Set<String> packageWhitelist, Set<String> functionBlacklist) {
     return builder()
         .name("default")
-        .image(image != null ? image : "datashield/molgenis-rock-base")
+        .image(image != null ? image : "datashield/molgenis-rock-base:latest")
         .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE))
         .functionBlacklist(functionBlacklist != null ? functionBlacklist : Set.of())
         .build();
@@ -228,7 +228,7 @@ public abstract class DatashieldContainerConfig
     abstract DatashieldContainerConfig autoBuild();
 
     public DatashieldContainerConfig build() {
-      if (getImage() == null) image("datashield/molgenis-rock-base");
+      if (getImage() == null) image("datashield/molgenis-rock-base:latest");
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);
       if (getAutoUpdate() == null) autoUpdate(false);
