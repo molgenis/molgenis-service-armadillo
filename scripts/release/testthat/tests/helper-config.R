@@ -117,8 +117,8 @@ configure_test <- function() {
 
   profile <- Sys.getenv("PROFILE")
   if (profile == "") {
-    cli_alert_warning("Profile not set, defaulting to xenon.")
-    profile <- "xenon"
+    cli_alert_warning("Profile not set, defaulting to donkey.")
+    profile <- "donkey"
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
