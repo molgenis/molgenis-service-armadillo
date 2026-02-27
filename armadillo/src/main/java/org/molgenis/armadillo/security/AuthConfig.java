@@ -59,8 +59,8 @@ public class AuthConfig {
   private final AccessService accessService;
 
   public AuthConfig(AccessService accessService, ManagementService managementService) {
-    this.accessService = accessService;
     this.oidcClientId = managementService.getClientId();
+    this.accessService = accessService;
   }
 
   @Order(1)

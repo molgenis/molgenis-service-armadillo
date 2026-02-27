@@ -6,18 +6,12 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.Map;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.metadata.*;
-import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
-@PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementService {
-  public static final String AUDIT_FILE = "AUDIT_FILE";
-  public static final String LOG_FILE = "LOG_FILE";
-
-  private final ArmadilloStorageService storage;
   private final AuthLoader loader;
   private AuthMetadata settings;
   private String clientId;
@@ -25,7 +19,6 @@ public class ManagementService {
   static String authServerUri;
 
   public ManagementService(
-      ArmadilloStorageService armadilloStorageService,
       AuthLoader authLoader,
       @Value("${spring.security.oauth2.client.provider.molgenis.issuer-uri:#{null}}")
           String defaultAuthServerUri,
@@ -34,7 +27,6 @@ public class ManagementService {
       @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
           String defaultClientId) {
     this.loader = requireNonNull(authLoader);
-    this.storage = requireNonNull(armadilloStorageService);
     authServerUri = defaultAuthServerUri;
     clientId = defaultClientId;
     clientSecret = defaultClientSecret;
@@ -50,6 +42,7 @@ public class ManagementService {
     bootstrap();
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, String> getClient() {
     return Map.of(
         "client-id", clientId,
@@ -61,9 +54,10 @@ public class ManagementService {
   }
 
   public Boolean getOidcPermissionsEnabled() {
-    return clientId == null || clientSecret == null || authServerUri == null;
+    return clientId != null && clientSecret != null && authServerUri != null;
   }
 
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void restartApplication() {
     ArmadilloServiceApplication.restart();
   }

@@ -5,7 +5,12 @@ import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
@@ -25,6 +30,7 @@ public class AccessService {
   private AccessMetadata settings;
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
+
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
@@ -36,8 +42,8 @@ public class AccessService {
       @Value("${armadillo.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(accessLoader);
     this.storage = requireNonNull(armadilloStorageService);
-    this.adminUser = adminUser;
     this.oidcPermissionsEnabled = managementService.getOidcPermissionsEnabled();
+    this.adminUser = adminUser;
     runAsSystem(this::initialize);
   }
 
