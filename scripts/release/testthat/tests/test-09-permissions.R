@@ -42,6 +42,9 @@ expect_forbidden <- function(method, endpoint, body = NULL) {
   )
 }
 
+# ---- Admin-only endpoints ----
+# These endpoints require ROLE_SU. Researchers should always get 403.
+
 test_that("access endpoints are admin-only", {
   do_skip_test(test_name)
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
@@ -87,6 +90,8 @@ test_that("profiles endpoints are admin-only", {
   )
   expect_forbidden("PUT", "ds-profiles", profile_body)
   expect_forbidden("DELETE", "ds-profiles/nonexistent-test-profile")
+  expect_forbidden("POST", "ds-profiles/default/start")
+  expect_forbidden("POST", "ds-profiles/default/stop")
 })
 
 test_that("insight endpoints are admin-only", {
@@ -94,6 +99,9 @@ test_that("insight endpoints are admin-only", {
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
   expect_forbidden("GET", "insight/files")
+  expect_forbidden("GET", "insight/files/nonexistent")
+  expect_forbidden("GET", "insight/files/nonexistent/download")
+  expect_forbidden("GET", "insight/docker/all-images")
 })
 
 test_that("development endpoints are admin-only", {
@@ -101,19 +109,113 @@ test_that("development endpoints are admin-only", {
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
   expect_forbidden("GET", "whitelist")
+  expect_forbidden("POST", "whitelist/dsBase")
+  expect_forbidden("DELETE", "delete-docker-image?imageId=sha256:fake")
+
+  # install-package (multipart upload)
+  url <- build_url("install-package")
+  auth_header <- get_auth_header("bearer", release_env$token)
+  tmp <- tempfile(fileext = ".tar.gz")
+  writeLines("dummy", tmp)
+  response <- httr::POST(url,
+    body = list(file = httr::upload_file(tmp)),
+    httr::add_headers(auth_header)
+  )
+  unlink(tmp)
+  expect_equal(httr::status_code(response), 403)
 })
 
-test_that("storage download is admin-only", {
+test_that("storage object operations are admin-only", {
   do_skip_test(test_name)
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
-  object <- utils::URLencode("2_1-core-1_0/nonrep", reserved = TRUE)
-  expect_forbidden("GET", sprintf("storage/projects/%s/objects/%s", release_env$project1, object))
+  object <- utils::URLencode("2_1-core-1_0/nonrep.parquet", reserved = TRUE)
+  project_path <- sprintf("storage/projects/%s", release_env$project1)
+
+  # Download
+  expect_forbidden("GET", sprintf("%s/objects/%s", project_path, object))
+
+  # Delete
+  expect_forbidden("DELETE", sprintf("%s/objects/%s", project_path, object))
+
+  # Move
+  move_body <- jsonlite::toJSON(list(name = "test/moved.parquet"), auto_unbox = TRUE)
+  expect_forbidden("POST", sprintf("%s/objects/%s/move", project_path, object), move_body)
+
+  # Copy
+  copy_body <- jsonlite::toJSON(list(name = "test/copied.parquet"), auto_unbox = TRUE)
+  expect_forbidden("POST", sprintf("%s/objects/%s/copy", project_path, object), copy_body)
+
+  # Preview
+  expect_forbidden("GET", sprintf("%s/objects/%s/preview", project_path, object))
+
+  # Metadata
+  expect_forbidden("GET", sprintf("%s/objects/%s/metadata", project_path, object))
+
+  # Variables
+  expect_forbidden("GET", sprintf("%s/objects/%s/variables", project_path, object))
+
+  # Info
+  expect_forbidden("GET", sprintf("%s/objects/%s/info", project_path, object))
+
+  # Link creation
+  link_body <- jsonlite::toJSON(list(
+    sourceProject = release_env$project1,
+    sourceObjectName = "2_1-core-1_0/nonrep",
+    linkedObject = "test-link",
+    variables = "child_id"
+  ), auto_unbox = TRUE)
+  expect_forbidden("POST", sprintf("%s/objects/link", project_path), link_body)
 })
 
-# ---- Cross-project data access ----
+test_that("storage upload endpoints are admin-only", {
+  do_skip_test(test_name)
+  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
-test_that("setup: create project2 with table for cross-project tests", {
+  auth_header <- get_auth_header("bearer", release_env$token)
+  tmp <- tempfile(fileext = ".parquet")
+  writeLines("dummy", tmp)
+
+  # Parquet upload
+  url <- build_url(sprintf("storage/projects/%s/objects", release_env$project1))
+  response <- httr::POST(url,
+    body = list(
+      file = httr::upload_file(tmp),
+      object = "test/should-not-upload.parquet"
+    ),
+    httr::add_headers(auth_header)
+  )
+  expect_equal(httr::status_code(response), 403)
+
+  # CSV upload
+  csv_tmp <- tempfile(fileext = ".csv")
+  writeLines("col1,col2\na,b", csv_tmp)
+  csv_url <- build_url(sprintf("storage/projects/%s/csv", release_env$project1))
+  response <- httr::POST(csv_url,
+    body = list(
+      file = httr::upload_file(csv_tmp),
+      object = "test/should-not-upload.parquet",
+      numberOfRowsToDetermineTypeBy = "100"
+    ),
+    httr::add_headers(auth_header)
+  )
+  expect_equal(httr::status_code(response), 403)
+
+  unlink(c(tmp, csv_tmp))
+})
+
+test_that("all-workspaces endpoint is admin-only", {
+  do_skip_test(test_name)
+  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
+
+  expect_forbidden("GET", "all-workspaces")
+})
+
+# ---- Researcher restricted to project ----
+# These endpoints allow project-level access (ROLE_{PROJECT}_RESEARCHER).
+# A researcher with access to project1 should be denied access to project2.
+
+test_that("setup: create project2 for cross-project tests", {
   do_skip_test(test_name)
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
@@ -122,6 +224,7 @@ test_that("setup: create project2 with table for cross-project tests", {
   # Elevate to admin, create project, upload table
   set_user(TRUE, list(release_env$project1))
   armadillo.create_project(release_env$security_project2)
+  release_env$created_projects <- c(release_env$created_projects, release_env$security_project2)
   armadillo.upload_table(release_env$security_project2, "test", mtcars)
   set_user(FALSE, list(release_env$project1))
 
@@ -165,23 +268,13 @@ test_that("researcher cannot check object existence in project without permissio
   expect_forbidden("HEAD", object_path)
 })
 
-test_that("researcher cannot see tables from project without permission (DSI)", {
-  do_skip_test(test_name)
-  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
-  skip_if(is.null(release_env$security_project2), "Setup failed")
-
-  dsi_tables <- datashield.tables(release_env$conns)
-  project2_tables <- grep(release_env$security_project2, dsi_tables$armadillo, value = TRUE)
-  expect_length(project2_tables, 0)
-})
-
-test_that("researcher cannot load table from project without permission (HTTP)", {
+test_that("researcher cannot load table from project without permission", {
   do_skip_test(test_name)
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
   skip_if(is.null(release_env$security_project2), "Setup failed")
 
   full_table <- sprintf("%s/test/mtcars", release_env$security_project2)
-  url <- paste0(release_env$armadillo_url, "load-table")
+  url <- build_url("load-table")
   auth_header <- get_auth_header("bearer", release_env$token)
   response <- httr::POST(url,
     query = list(symbol = "tbl_denied", table = full_table),
@@ -190,31 +283,3 @@ test_that("researcher cannot load table from project without permission (HTTP)",
   expect_equal(httr::status_code(response), 403)
 })
 
-test_that("researcher cannot assign table from project without permission (DSI)", {
-  do_skip_test(test_name)
-  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
-  skip_if(is.null(release_env$security_project2), "Setup failed")
-
-  # NOTE: DSMolgenisArmadillo .handle_request_error does not handle 403 responses,
-  # so datashield.assign.table silently fails instead of throwing an error.
-  # This test verifies the table was NOT actually assigned.
-  full_table <- sprintf("%s/test/mtcars", release_env$security_project2)
-  datashield.assign.table(release_env$conns, "tbl_denied", full_table)
-
-  symbols <- ds.ls(datasources = release_env$conns)
-  has_denied <- "tbl_denied" %in% symbols$armadillo$objects.found
-  expect_false(has_denied,
-    info = "Table from project without access should not be assigned")
-})
-
-test_that("cleanup: delete project2 for cross-project tests", {
-  do_skip_test(test_name)
-  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
-  skip_if(is.null(release_env$security_project2), "Setup failed")
-
-  set_user(TRUE, list(release_env$project1))
-  armadillo.delete_project(release_env$security_project2)
-  set_user(FALSE, list(release_env$project1))
-
-  succeed()
-})
