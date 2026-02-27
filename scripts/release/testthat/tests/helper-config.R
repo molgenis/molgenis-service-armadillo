@@ -133,18 +133,6 @@ configure_test <- function() {
     debug <- TRUE
   }
 
-  # default profile settings in case a profile is missing
-  profile_defaults <- data.frame(
-    name = c("xenon", "rock"),
-    container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
-    port = c("", ""),
-    # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
-    # Not adding dsBase since that is always(?) required
-    whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
-    blacklist = c("", "")
-  )
-
-
   options(timeout = 300)
 
   release_env$skip_tests <- skip_tests
@@ -164,6 +152,5 @@ configure_test <- function() {
   release_env$update_auto <- update_auto
   release_env$rda_url <- rda_url
   release_env$debug <- debug
-  release_env$profile_defaults <- profile_defaults
 
 }
