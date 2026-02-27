@@ -133,19 +133,20 @@ skip_ds_test <- function(test_name) {
   skip_if_no_package(test_name)
 }
 
-skip_if_no_resources <- function(test_name) {
+skip_if_no_resources <- function(test_name, package = NULL) {
   do_skip_test(test_name)
   # TODO: re-enable once resource tests work in admin mode
   # testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
   testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
                     sprintf("resourcer not available for profile: %s", release_env$current_profile))
+  if (!is.null(package)) skip_if_no_package(package)
 }
 
 skip_if_localhosts <- function(url, test_name) {
   do_skip_test(test_name)
   # TODO: re-enable when version number can be reliably retrieved over localhost
-  testthat::skip_if(!"localhost" %in% url,
-                    sprintf("version cannot be retrieved locally"))
+  testthat::skip_if(grepl("localhost", url),
+                    "Skipping test on localhost")
 }
 
 read_parquet_with_message <- function(file_path, dest) {
