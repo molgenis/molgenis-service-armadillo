@@ -8,12 +8,13 @@
 
 ## 4. Stop Armadillo
 
-## 5. Migrate containers.json
+## 5. Run the migration script
 
 In Armadillo 6, "Profiles" have been renamed to "Containers" throughout the application:
 
 - **UI**: The "Profiles" tab is now called "Containers"
 - **Config file**: `profiles.json` → `containers.json`
+- **application.yml**: The old `profiles:` section can be removed; new `container.defaults` section is optional (see `application.template.yml` for reference)
 - **Schema changes**: The configuration schema has been updated to support different container types
 
 ### Key changes
@@ -36,15 +37,20 @@ wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v6.x.
 
 ### 5.2 Run the migration
 
-The script reads `profiles.json` and creates `containers.json` with the new schema. If `containers.json` already exists, it does nothing.
+The script migrates `profiles.json` to `containers.json`. Pass the Armadillo data directory:
 
 ```bash
-python3 migrate-containers-json.py /usr/share/armadillo/data/system
+python3 migrate-containers-json.py /usr/share/armadillo/data
 ```
+
+This will:
+- Create `containers.json` from `profiles.json` (if `containers.json` doesn't already exist)
+
+The script is safe to run multiple times — it skips steps that are already done.
 
 ### 5.3 Verify and clean up
 
-Check that the migrated file looks correct:
+Check that the migrated containers look correct:
 
 ```bash
 cat /usr/share/armadillo/data/system/containers.json | python3 -m json.tool | head -50
@@ -56,9 +62,9 @@ Once you've confirmed your containers work in Armadillo 6, remove the old file:
 rm /usr/share/armadillo/data/system/profiles.json
 ```
 
-## 6. Update application.yml
+You can also remove the old `profiles:` section from your `application.yml` — it is no longer used by Armadillo 6.
 
-## 7. Link new version
+## 6. Link new version
 
 ## 8. Restart Armadillo
 

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Migrate profiles.json to containers.json with the new schema.
+Migrate Armadillo 5 to 6: profiles.json -> containers.json.
 
 Usage:
-    python migrate-containers-json.py /usr/share/armadillo/data/system
+    python migrate-containers-json.py <data-dir>
+    python migrate-containers-json.py /usr/share/armadillo/data
 """
 
 import json
 import sys
 from pathlib import Path
 
-DEFAULT_DIR = Path('/usr/share/armadillo/data/system')
+DEFAULT_DATA_DIR = Path('/usr/share/armadillo/data')
 
 GREEN = '\033[32m'
 RED = '\033[31m'
@@ -30,6 +31,8 @@ def warn(msg):
 def error(msg):
     print(f"  {RED}✖{RESET} {msg}")
 
+
+# --- containers.json migration ---
 
 def infer_type(container: dict) -> str:
     """Infer container type based on DataSHIELD-specific fields."""
@@ -71,7 +74,7 @@ def migrate_container(name: str, container: dict) -> dict:
     return new
 
 
-def migrate(data: dict) -> dict:
+def migrate_json(data: dict) -> dict:
     """Migrate the entire profiles.json structure."""
     source = data.get('profiles') or data.get('containers') or {}
     new_containers = {}
@@ -80,21 +83,18 @@ def migrate(data: dict) -> dict:
     return {'containers': new_containers}
 
 
-def main():
-    data_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_DIR
+def migrate_containers_json(data_dir: Path):
+    """Migrate profiles.json to containers.json."""
+    system_dir = data_dir / 'system'
+    containers_path = system_dir / 'containers.json'
+    profiles_path = system_dir / 'profiles.json'
 
-    containers_path = data_dir / 'containers.json'
-    profiles_path = data_dir / 'profiles.json'
-
-    print()
     if containers_path.exists():
-        warn(f"containers.json already exists at {BOLD}{containers_path}{RESET}, nothing to do.")
-        print()
-        sys.exit(0)
+        warn(f"containers.json already exists at {BOLD}{containers_path}{RESET}, skipping.")
+        return
 
     if not profiles_path.exists():
-        error(f"Neither containers.json nor profiles.json found in {BOLD}{data_dir}{RESET}")
-        print()
+        error(f"Neither containers.json nor profiles.json found in {BOLD}{system_dir}{RESET}")
         sys.exit(1)
 
     info(f"Found {BOLD}{profiles_path}{RESET}")
@@ -102,16 +102,26 @@ def main():
     with open(profiles_path, 'r') as f:
         data = json.load(f)
 
-    migrated = migrate(data)
+    migrated = migrate_json(data)
     n = len(migrated.get('containers', {}))
 
     with open(containers_path, 'w') as f:
         json.dump(migrated, f)
 
     info(f"Migrated {BOLD}{n}{RESET} container(s) to {BOLD}{containers_path}{RESET}")
+
+
+# --- main ---
+
+def main():
+    data_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_DATA_DIR
+
+    print()
+    migrate_containers_json(data_dir)
     print()
     warn("Please verify that your containers work correctly in Armadillo 6.")
-    warn(f"Once verified, remove the old file: {BOLD}rm {profiles_path}{RESET}")
+    warn(f"Once verified, remove the old files:")
+    warn(f"  {BOLD}rm {data_dir / 'system' / 'profiles.json'}{RESET}")
     print()
 
 
