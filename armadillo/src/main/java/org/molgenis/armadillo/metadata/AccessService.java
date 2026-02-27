@@ -5,16 +5,12 @@ import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,8 +25,6 @@ public class AccessService {
   private AccessMetadata settings;
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
-
-  @Value("#{new Boolean('${spring.security.oauth2.client.registration.molgenis.client-id:false}')}")
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
@@ -38,10 +32,12 @@ public class AccessService {
   public AccessService(
       ArmadilloStorageService armadilloStorageService,
       AccessLoader accessLoader,
+      ManagementService managementService,
       @Value("${armadillo.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(accessLoader);
     this.storage = requireNonNull(armadilloStorageService);
     this.adminUser = adminUser;
+    this.oidcPermissionsEnabled = managementService.getOidcPermissionsEnabled();
     runAsSystem(this::initialize);
   }
 

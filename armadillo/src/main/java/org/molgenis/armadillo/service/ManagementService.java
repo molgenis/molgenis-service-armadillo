@@ -56,6 +56,14 @@ public class ManagementService {
         "client-secret", clientSecret);
   }
 
+  public String getClientId() {
+    return clientId;
+  }
+
+  public Boolean getOidcPermissionsEnabled() {
+    return clientId == null || clientSecret == null || authServerUri == null;
+  }
+
   public void restartApplication() {
     ArmadilloServiceApplication.restart();
   }
@@ -65,13 +73,12 @@ public class ManagementService {
   }
 
   private void bootstrap() {
-    String authServerUriConfig =
+    authServerUri =
         settings.getAuthServerUri().isEmpty() ? authServerUri : settings.getAuthServerUri();
-    String clientIdConfig =
-        settings.getAuthServerUri().isEmpty() ? clientId : settings.getClientId();
-    String clientSecretConfig =
+    clientId = settings.getAuthServerUri().isEmpty() ? clientId : settings.getClientId();
+    clientSecret =
         settings.getAuthServerUri().isEmpty() ? clientSecret : settings.getClientSecret();
-    settings = AuthMetadata.create(clientIdConfig, clientSecretConfig, authServerUriConfig);
+    settings = AuthMetadata.create(clientId, clientSecret, authServerUri);
     save();
   }
 }

@@ -21,6 +21,7 @@ import org.springframework.web.servlet.view.RedirectView;
 public class WelcomeController {
   private String clientId;
 
+  // TODO: do we still use this? See comment on top, we have a UI now
   public WelcomeController(
       @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
           String clientId) {

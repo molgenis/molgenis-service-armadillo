@@ -4,6 +4,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.*;
 import org.molgenis.armadillo.metadata.AccessService;
+import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -44,16 +45,23 @@ import org.springframework.web.cors.CorsConfigurationSource;
 // they are ordered, so jwt config is most dominant and oauth2Login least dominant
 // in 'test' profile they are not enabled
 public class AuthConfig {
+  private String oidcClientId;
+
+  // we do this by hand because auto configure is disabled when oauth2 is enabled
+  @Value("${spring.security.user.name}")
+  private String userName;
+
+  @Value("${spring.security.user.password}")
+  private String userPassword;
+
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
   private final AccessService accessService;
 
-  public AuthConfig(AccessService accessService) {
+  public AuthConfig(AccessService accessService, ManagementService managementService) {
     this.accessService = accessService;
+    this.oidcClientId = managementService.getClientId();
   }
-
-  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
-  private String oidcClientId;
 
   @Order(1)
   @Bean
@@ -158,13 +166,6 @@ public class AuthConfig {
     firewall.setAllowUrlEncodedSlash(true);
     return firewall;
   }
-
-  // we do this by hand because auto configure is disabled when oauth2 is enabled
-  @Value("${spring.security.user.name}")
-  private String userName;
-
-  @Value("${spring.security.user.password}")
-  private String userPassword;
 
   @Bean
   public UserDetailsService userDetailsService() {
