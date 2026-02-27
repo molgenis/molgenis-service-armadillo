@@ -140,12 +140,12 @@ public abstract class DatashieldContainerConfig
    * AutoValue builder getters throw IllegalStateException for unset properties.
    */
   public static DatashieldContainerConfig createDefault(
-      String image, Set<String> packageWhitelist) {
+      String image, Set<String> packageWhitelist, Set<String> functionBlacklist) {
     return builder()
         .name("default")
         .image(image != null ? image : "datashield/molgenis-rock-base")
         .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE))
-        .functionBlacklist(Set.of())
+        .functionBlacklist(functionBlacklist != null ? functionBlacklist : Set.of())
         .build();
   }
 

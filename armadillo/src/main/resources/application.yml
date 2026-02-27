@@ -12,6 +12,7 @@ armadillo:
         whitelist:
           - dsBase
           - dsTidyverse
+        blacklist: [ ]
 
   # set this true if you want Armadillo to create/edit/delete container docker images
   docker-management-enabled: true

@@ -38,6 +38,10 @@ public class InitialContainerConfigs {
     return container.getDefaults().getDatashield().getWhitelist();
   }
 
+  public Set<String> getDatashieldDefaultBlacklist() {
+    return container.getDefaults().getDatashield().getBlacklist();
+  }
+
   public static class ContainerSettings {
     private Defaults defaults = new Defaults();
 
@@ -82,6 +86,7 @@ public class InitialContainerConfigs {
 
   public static class DatashieldDefaults {
     private Set<String> whitelist = Set.of("dsBase", "dsTidyverse");
+    private Set<String> blacklist = Set.of();
 
     public Set<String> getWhitelist() {
       return whitelist;
@@ -89,6 +94,14 @@ public class InitialContainerConfigs {
 
     public void setWhitelist(Set<String> whitelist) {
       this.whitelist = whitelist;
+    }
+
+    public Set<String> getBlacklist() {
+      return blacklist;
+    }
+
+    public void setBlacklist(Set<String> blacklist) {
+      this.blacklist = blacklist;
     }
   }
 }
