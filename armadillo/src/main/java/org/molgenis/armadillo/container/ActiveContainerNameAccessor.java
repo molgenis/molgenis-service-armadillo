@@ -9,9 +9,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 public class ActiveContainerNameAccessor {
 
   public static final String DEFAULT = "default";
-  private static final String PROFILE_CONTEXT_KEY = "container";
+  private static final String CONTAINER_CONTEXT_KEY = "container";
 
-  private static final ThreadLocal<String> ACTIVE_PROFILE = ThreadLocal.withInitial(() -> DEFAULT);
+  private static final ThreadLocal<String> ACTIVE_CONTAINER =
+      ThreadLocal.withInitial(() -> DEFAULT);
 
   private ActiveContainerNameAccessor() {
     throw new UnsupportedOperationException("Do not instantiate");
@@ -21,16 +22,16 @@ public class ActiveContainerNameAccessor {
    * Sets the active container name in the user session or in the current thread if no
    * RequestAttributes object is bound to the current thread.
    *
-   * @param activeProfileName the container name to select
+   * @param activeContainerName the container name to select
    * @throws IllegalStateException if no RequestAttributes object is bound to the current thread
    */
-  public static void setActiveContainerName(String activeProfileName) {
+  public static void setActiveContainerName(String activeContainerName) {
     Optional.ofNullable(getRequestAttributes())
         .ifPresentOrElse(
             requestAttributes ->
                 requestAttributes.setAttribute(
-                    PROFILE_CONTEXT_KEY, activeProfileName, SCOPE_SESSION),
-            () -> ACTIVE_PROFILE.set(activeProfileName));
+                    CONTAINER_CONTEXT_KEY, activeContainerName, SCOPE_SESSION),
+            () -> ACTIVE_CONTAINER.set(activeContainerName));
   }
 
   /**
@@ -39,11 +40,11 @@ public class ActiveContainerNameAccessor {
    */
   public static String getActiveContainerName() {
     return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
-        .map(it -> (String) it.getAttribute(PROFILE_CONTEXT_KEY, SCOPE_SESSION))
-        .orElseGet(ACTIVE_PROFILE::get);
+        .map(it -> (String) it.getAttribute(CONTAINER_CONTEXT_KEY, SCOPE_SESSION))
+        .orElseGet(ACTIVE_CONTAINER::get);
   }
 
   public static void resetActiveContainerName() {
-    ACTIVE_PROFILE.remove();
+    ACTIVE_CONTAINER.remove();
   }
 }

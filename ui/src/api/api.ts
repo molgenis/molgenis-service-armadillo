@@ -15,6 +15,7 @@ import {
   Metric,
   HalResponse,
   Metrics,
+  ContainerPayload,
 } from "@/types/api";
 
 import {
@@ -244,23 +245,23 @@ export async function deleteObject(project: string, name: string) {
 }
 
 export async function getProfiles(): Promise<Profile[]> {
-  return get("/ds-profiles");
+  return get("/containers");
 }
 
 export async function deleteProfile(name: string) {
-  return delete_("/ds-profiles", name);
+  return delete_("/containers", name);
 }
 
-export async function putProfile(profileJson: Profile) {
-  return put("/ds-profiles", profileJson);
+export async function putProfile(profileJson: ContainerPayload) {
+  return put("/containers", profileJson);
 }
 
 export async function startProfile(name: string) {
-  return post(`/ds-profiles/${name}/start`);
+  return post(`/containers/${name}/start`);
 }
 
 export async function stopProfile(name: string) {
-  return post(`/ds-profiles/${name}/stop`);
+  return post(`/containers/${name}/stop`);
 }
 
 export async function uploadIntoProject(
@@ -373,5 +374,5 @@ export async function getMetaData(project: string, object: string) {
 }
 
 export async function getProfileStatus(name: string) {
-  return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
+  return get(`/containers/${encodeURIComponent(name)}/status`);
 }

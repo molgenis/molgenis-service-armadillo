@@ -4,6 +4,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 import org.molgenis.armadillo.container.ContainerScope;
+import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.service.FileService;
@@ -82,7 +83,25 @@ public class TestSecurityConfig {
     var initialContainers = new InitialContainerConfigs();
     initialContainers.setContainers(emptyList());
 
-    return new ContainerService(containersLoader, initialContainers, containerScope);
+    var defaultCfg =
+        VanillaContainerConfig.builder()
+            .name("DEFAULT")
+            .image("dummy-image")
+            .host("localhost")
+            .port(8080)
+            .build();
+
+    var factory =
+        org.mockito.Mockito.mock(org.molgenis.armadillo.container.DefaultContainerFactory.class);
+    org.mockito.Mockito.when(factory.createDefault()).thenReturn(defaultCfg);
+
+    return new ContainerService(
+        containersLoader,
+        initialContainers,
+        containerScope,
+        java.util.List.of(),
+        factory,
+        java.util.List.of());
   }
 
   @Bean

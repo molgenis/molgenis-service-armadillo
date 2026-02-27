@@ -26,8 +26,8 @@
     <!-- Actual table -->
     <Table
       v-else
-      :dataToShow="profiles"
-      :allData="profiles"
+      :dataToShow="containers"
+      :allData="containers"
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
       :isSmall="true"
@@ -139,7 +139,6 @@
         </div>
       </template>
       <template #extraColumn="columnProps">
-        <!-- Add buttons for editing/deleting profiles -->
         <th scope="row">
           <ButtonGroup
             :buttonIcons="['pencil-fill', 'trash-fill']"
@@ -218,7 +217,7 @@
           type="checkbox"
           :checked="boolProps.data"
           @change="updateAutoUpdate(boolProps.row, boolProps.data)"
-          :disabled="profileToEditIndex !== profiles.indexOf(boolProps.row)"
+          :disabled="profileToEditIndex !== containers.indexOf(boolProps.row)"
         />
       </template>
       <template #customType="{ data, row }">
@@ -278,7 +277,7 @@ export default defineComponent({
     ProfileStatusMessage,
   },
   setup() {
-    const profiles: Ref<Profile[]> = ref([]);
+    const containers: Ref<Profile[]> = ref([]);
     const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
@@ -293,18 +292,44 @@ export default defineComponent({
       await loadProfiles();
     });
     const loadProfiles = async () => {
-      profiles.value = await getProfiles()
+      containers.value = await getProfiles()
         .then((profiles) => {
-          dockerManagementEnabled.value = "container" in profiles[0];
+          dockerManagementEnabled.value = profiles.some(
+            (profile) => "dockerStatus" in profile
+          );
 
           return profiles.map((profile) => {
-            // Extract datashieldSeed
-            const datashieldSeed = profile.options["datashield.seed"];
-            delete profile.options["datashield.seed"];
+            const specificOptions = {
+              packageWhitelist: profile.packageWhitelist,
+              functionBlacklist: profile.functionBlacklist,
+              datashieldROptions: profile.options || {},
+              ...profile.specificContainerOptions,
+            };
+            const datashieldROptions = {
+              ...(specificOptions.datashieldROptions || {}),
+            };
+            const datashieldSeed = datashieldROptions["datashield.seed"];
+            delete datashieldROptions["datashield.seed"];
+
+            const containerStatus = profile.container ||
+              profile.dockerStatus || {
+                tags: [],
+                status: "NOT_RUNNING",
+              };
 
             return {
               ...profile,
+              specificContainerOptions: {
+                ...specificOptions,
+                datashieldROptions: {
+                  ...(specificOptions.datashieldROptions || {}),
+                },
+              },
+              options: datashieldROptions,
               datashieldSeed,
+              packageWhitelist: specificOptions.packageWhitelist || [],
+              functionBlacklist: specificOptions.functionBlacklist || [],
+              container: containerStatus,
               updateSchedule: profile.updateSchedule || {
                 frequency: "weekly",
                 day: "Sunday",
@@ -314,7 +339,11 @@ export default defineComponent({
           });
         })
         .catch((error: string) => {
-          errorMessage.value = processErrorMessages(error, "profiles", router);
+          errorMessage.value = processErrorMessages(
+            error,
+            "containers",
+            router
+          );
           return [];
         });
 
@@ -322,7 +351,7 @@ export default defineComponent({
     };
     return {
       profilesLoading,
-      profiles,
+      containers,
       errorMessage,
       loadProfiles,
       dockerManagementEnabled,
@@ -372,7 +401,7 @@ export default defineComponent({
   computed: {
     firstFreePort(): number {
       let port = 6311;
-      while (this.profiles.find((profile) => profile.port === port)) {
+      while (this.containers.find((profile) => profile.port === port)) {
         port++;
       }
       return port;
@@ -380,7 +409,7 @@ export default defineComponent({
     firstFreeSeed(): string {
       let seed = 100000000;
       while (
-        this.profiles.find(
+        this.containers.find(
           (profile) => profile.datashieldSeed == seed.toString()
         )
       ) {
@@ -431,7 +460,7 @@ export default defineComponent({
     profileToEdit() {
       this.profileToEditIndex = this.getEditIndex();
     },
-    profiles: {
+    containers: {
       handler(newProfiles) {
         newProfiles.forEach((profile: Profile) => {
           if (
@@ -465,8 +494,8 @@ export default defineComponent({
     },
     saveEditedProfile() {
       this.clearUserMessages();
-      const profile: Profile = this.profiles[this.profileToEditIndex];
-      const profileNames = this.profiles.map((profile) => {
+      const profile: Profile = this.containers[this.profileToEditIndex];
+      const profileNames = this.containers.map((profile) => {
         return profile.name;
       });
 
@@ -482,7 +511,7 @@ export default defineComponent({
 
       const hostPortCombo = `${profile.host}:${profile.port}`;
 
-      const hasDuplicates = this.profiles.some(
+      const hasDuplicates = this.containers.some(
         (prof) =>
           prof !== profile && `${prof.host}:${prof.port}` === hostPortCombo
       );
@@ -510,10 +539,44 @@ export default defineComponent({
     },
     proceedEdit(profile: Profile) {
       this.addProfile = false;
-      profile.options["datashield.seed"] = profile.datashieldSeed;
+      const containerOptions: Profile["specificContainerOptions"] = {
+        ...profile.specificContainerOptions,
+        packageWhitelist: profile.packageWhitelist,
+        functionBlacklist: profile.functionBlacklist,
+      };
+      const datashieldOptions = {
+        ...(profile.options || {}),
+        ...(containerOptions.datashieldROptions || {}),
+        "datashield.seed": profile.datashieldSeed,
+      };
+      containerOptions.datashieldROptions = datashieldOptions;
+      profile.specificContainerOptions = containerOptions;
+      profile.options = {
+        ...datashieldOptions,
+      };
+      delete profile.options["datashield.seed"];
+      const payload = {
+        type: profile.type || "ds",
+        name: profile.name,
+        image: profile.image,
+        host: profile.host,
+        port: profile.port,
+        imageSize: profile.imageSize,
+        installDate: profile.installDate,
+        lastImageId: profile.lastImageId,
+        versionId: profile.versionId,
+        creationDate: profile.creationDate,
+        dockerArgs: profile.dockerArgs,
+        dockerOptions: profile.dockerOptions,
+        packageWhitelist: profile.packageWhitelist,
+        functionBlacklist: profile.functionBlacklist,
+        autoUpdate: profile.autoUpdate,
+        updateSchedule: profile.updateSchedule,
+        datashieldROptions: datashieldOptions,
+      };
       //add/update
       this.loadingProfile = profile.name;
-      putProfile(profile)
+      putProfile(payload)
         .then(() => {
           this.successMessage = `[${profile.name}] was successfully saved.`;
           this.clearProfileToEdit();
@@ -548,7 +611,7 @@ export default defineComponent({
       this.addProfile = false;
     },
     getEditIndex() {
-      const index = this.profiles.findIndex((profile: Profile) => {
+      const index = this.containers.findIndex((profile: Profile) => {
         return profile.name === this.profileToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when name is altered
@@ -560,7 +623,8 @@ export default defineComponent({
       this.addProfile = true;
       this.clearUserMessages();
 
-      this.profiles.unshift({
+      this.containers.unshift({
+        type: "ds",
         name: "",
         image: "datashield/rock-base:latest",
         versionId: "",
@@ -629,7 +693,7 @@ export default defineComponent({
         this.clearLoading();
       } catch (error) {
         this.clearLoading();
-        this.errorMessage = `Could not load profiles: ${error}.`;
+        this.errorMessage = `Could not load containers: ${error}.`;
       }
     },
   },

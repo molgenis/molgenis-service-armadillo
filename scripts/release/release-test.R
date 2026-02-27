@@ -22,15 +22,15 @@ source("lib/setup.R")
 cli_h1("Starting release test")
 show_test_info()
 
-profiles <- unlist(stri_split_fixed(release_env$profile, ","))
+containers <- unlist(stri_split_fixed(release_env$container, ","))
 release_env$created_projects <- c()
 release_env$admin_demoted <- FALSE
 
-run_tests_for_profile <- function(profile) {
-    release_env$current_profile <- profile
+run_tests_for_container <- function(container) {
+    release_env$current_container <- container
 
-    cli_h2(paste0("Testing profile: ", profile))
-    setup_profiles()
+    cli_h2(paste0("Testing container: ", container))
+    setup_containers()
 
     testthat::set_max_fails(Inf)
     testthat::test_dir(
@@ -41,7 +41,7 @@ run_tests_for_profile <- function(profile) {
 }
 
 tryCatch(
-  invisible(lapply(profiles, run_tests_for_profile)),
+  invisible(lapply(containers, run_tests_for_container)),
   interrupt = function(i) {
     cat("\n")
     cli_alert_warning("Tests interrupted by user")

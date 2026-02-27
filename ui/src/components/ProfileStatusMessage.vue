@@ -17,6 +17,11 @@ const serverPerc = computed(() => {
   return total > 0 ? Math.round((completed / total) * 100) : 0;
 });
 
+const isInstalling = computed(() => {
+  const statusText = current.value?.status;
+  return statusText?.toLowerCase().startsWith("installing") ?? false;
+});
+
 const smoothedPerc = ref(0);
 const displayedPerc = computed(() => Math.round(smoothedPerc.value));
 
@@ -39,7 +44,7 @@ watch(() => current.value, smoothServerPercentage, { immediate: true });
 
 <template>
   <div
-    v-if="current?.status === 'Installing profile'"
+    v-if="isInstalling"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center; gap: 0.5rem"
   >

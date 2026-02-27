@@ -12,7 +12,7 @@ import org.molgenis.armadillo.container.ContainerStatusService;
 import org.molgenis.armadillo.metadata.ContainerStartStatus;
 
 @ExtendWith(MockitoExtension.class)
-class ContainerStartStatusControllerMockitoTest {
+class ContainerStartStatusControllerTest {
 
   @Mock private ContainerStatusService statusService;
 
@@ -44,10 +44,10 @@ class ContainerStartStatusControllerMockitoTest {
 
     // assert
     assertNotNull(actual);
-    assertNull(actual.getContainerName());
-    assertNull(actual.getStatus());
-    assertNull(actual.getCompletedLayers());
-    assertNull(actual.getTotalLayers());
+    assertNull(actual.containerName());
+    assertNull(actual.status());
+    assertNull(actual.completedLayers());
+    assertNull(actual.totalLayers());
     verify(statusService).getStatus("missing");
     verifyNoMoreInteractions(statusService);
   }
@@ -55,15 +55,15 @@ class ContainerStartStatusControllerMockitoTest {
   @Test
   void pathVariable_isPassedThroughUnchanged() {
     // arrange
-    var expected = new ContainerStartStatus("ShReK", "Profile installed", 24, 24);
+    var expected = new ContainerStartStatus("ShReK", "Container installed", 24, 24);
     when(statusService.getStatus("ShReK")).thenReturn(expected);
 
     // act
     ContainerStartStatus actual = controller.getStatus("ShReK");
 
     // assert
-    assertEquals("ShReK", actual.getContainerName());
-    assertEquals("Profile installed", actual.getStatus());
+    assertEquals("ShReK", actual.containerName());
+    assertEquals("Container installed", actual.status());
     verify(statusService).getStatus("ShReK");
     verifyNoMoreInteractions(statusService);
   }

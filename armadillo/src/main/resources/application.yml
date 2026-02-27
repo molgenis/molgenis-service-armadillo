@@ -2,6 +2,18 @@ armadillo:
   # set this to 'true' if you want to accept permissions from oidc provider
   oidc-permission-enabled: false
 
+  # default settings for new containers
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
+        blacklist: [ ]
+
   # set this true if you want Armadillo to create/edit/delete container docker images
   docker-management-enabled: true
 
@@ -23,6 +35,7 @@ armadillo:
       port: 6311
       package-whitelist:
         - dsBase
+        - dsTidyverse
       function-blacklist: [ ]
       options:
         datashield:

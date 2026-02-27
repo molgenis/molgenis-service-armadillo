@@ -26,10 +26,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.ContainerScheduler;
-import org.molgenis.armadillo.container.DockerService;
-import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -115,11 +112,11 @@ public class ContainersController {
   }
 
   private List<ContainersStatusResponse> getDockerContainerInformation() {
-    List<ContainerResponse> containers = runAsSystem(this::getContainers);
+    List<ContainerResponse> containersList = runAsSystem(this::getContainers);
     List<ContainersStatusResponse> result = new ArrayList<>();
-    containers.forEach(
+    containersList.forEach(
         (container) -> {
-          String containerName = container.getName();
+          String containerName = container.name();
           if (dockerService != null) {
             String status =
                 runAsSystem(
@@ -138,9 +135,9 @@ public class ContainersController {
             }
             result.add(
                 ContainersStatusResponse.create(
-                    container.getImage(), containerName, versions, status));
+                    container.image(), containerName, versions, status));
           } else {
-            result.add(ContainersStatusResponse.create(container.getImage(), containerName));
+            result.add(ContainersStatusResponse.create(container.image(), containerName));
           }
         });
     return result;

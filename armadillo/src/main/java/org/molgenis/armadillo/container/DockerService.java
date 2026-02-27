@@ -25,9 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
@@ -103,7 +101,7 @@ public class DockerService {
    * `docker container ps` to see this name structure.
    *
    * @param containerName the container name set by DataManager.
-   * @return adjusted container name if applicable.
+   * @return adjusted container name if applicable
    */
   String asContainerName(String containerName) {
     if (!inContainer) {
@@ -156,7 +154,7 @@ public class DockerService {
     var containerConfig = containerService.getByName(containerName);
     containerStatusService.updateStatus(containerName, null, null, null);
     pullImage(containerConfig);
-    containerStatusService.updateStatus(containerName, "Profile installed", null, null);
+    containerStatusService.updateStatus(containerName, "Container installed", null, null);
     stopContainer(dockerContainerName);
     removeContainer(dockerContainerName);
     installImage(containerConfig);
@@ -238,21 +236,16 @@ public class DockerService {
   }
 
   boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
-    String escapedContainer = StringEscapeUtils.escapeJava(containerName);
-    String escapedPreviousId =
-        previousImageId != null ? StringEscapeUtils.escapeJava(previousImageId) : null;
-    String escapedCurrentId = StringEscapeUtils.escapeJava(currentImageId);
-
     if (previousImageId != null && !previousImageId.equals(currentImageId)) {
-      LOG.info(
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
           "Image ID for container '{}' changed from '{}' to '{}'",
-          escapedContainer,
-          escapedPreviousId,
-          escapedCurrentId);
+          containerName,
+          previousImageId,
+          currentImageId);
       return true;
     } else {
-      LOG.info(
-          "Image ID for container '{}' unchanged (still '{}')", escapedContainer, escapedCurrentId);
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
+          "Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
       return false;
     }
   }
@@ -290,8 +283,6 @@ public class DockerService {
   }
 
   private void stopContainer(String dockerContainerName) {
-    String containerIdForLog =
-        "stoppingContainer has not containerIdForLog: " + dockerContainerName;
     try {
       dockerClient.stopContainerCmd(dockerContainerName).exec();
     } catch (DockerException e) {
@@ -300,16 +291,16 @@ public class DockerService {
             dockerClient.inspectContainerCmd(dockerContainerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(containerIdForLog, e);
+          throw new ImageStopFailedException(dockerContainerName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop container '{}' because it doesn't exist", containerIdForLog);
+        LOG.info("Failed to stop container '{}' because it doesn't exist", dockerContainerName);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(containerIdForLog, e);
+        throw new ImageStopFailedException(dockerContainerName, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(containerIdForLog, e);
+      throw new ImageStopFailedException(dockerContainerName, e);
     }
   }
 
@@ -421,22 +412,20 @@ public class DockerService {
       return;
     }
 
-    String safeImageId = StringEscapeUtils.escapeJava(imageId);
-
     try {
       boolean isInUse =
           dockerClient.listContainersCmd().exec().stream()
               .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
 
       if (isInUse) {
-        LOG.info("Image ID '{}' is still in use — skipping removal", safeImageId);
+        LOG.info("Image ID '{}' is still in use — skipping removal", imageId); // NOSONAR
         throw new ImageRemoveFailedException(
-            safeImageId, "Image ID is still in use — skipping removal");
+            imageId, "Image ID is still in use — skipping removal");
       }
       dockerClient.removeImageCmd(imageId).withForce(true).exec();
-      LOG.info("Removed image ID '{}' from local Docker cache", safeImageId);
+      LOG.info("Removed image ID '{}' from local Docker cache", imageId); // NOSONAR
     } catch (NotFoundException e) {
-      throw new ImageRemoveFailedException(safeImageId, "Image ID not found — skipping removal");
+      throw new ImageRemoveFailedException(imageId, "Image ID not found — skipping removal");
     }
   }
 }

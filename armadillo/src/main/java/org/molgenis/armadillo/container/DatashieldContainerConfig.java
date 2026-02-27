@@ -1,0 +1,247 @@
+package org.molgenis.armadillo.container;
+
+import com.fasterxml.jackson.annotation.*;
+import com.google.auto.value.AutoValue;
+import jakarta.annotation.Nullable;
+import java.security.SecureRandom;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.molgenis.armadillo.metadata.UpdateSchedule;
+import org.molgenis.r.config.EnvironmentConfigProps;
+
+@AutoValue
+@JsonTypeName("ds")
+// AutoValue requires redeclaring interface methods as abstract - suppress S1161
+@SuppressWarnings("java:S1161")
+public abstract class DatashieldContainerConfig
+    implements ContainerConfig, UpdatableContainer, OpenContainer {
+
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+  private static final String DEFAULT_PACKAGE = "dsBase";
+
+  @Override
+  @Nullable
+  public abstract String getName();
+
+  @Override
+  @Nullable
+  public abstract String getImage();
+
+  @Override
+  @Nullable
+  public abstract String getHost();
+
+  @Override
+  @Nullable
+  public abstract Integer getPort();
+
+  @Override
+  @Nullable
+  public abstract Long getImageSize();
+
+  @Override
+  @Nullable
+  public abstract String getInstallDate();
+
+  @Override
+  @Nullable
+  public abstract String getLastImageId();
+
+  @Override
+  @Nullable
+  public abstract String getVersionId();
+
+  @Override
+  @Nullable
+  public abstract String getCreationDate();
+
+  @Override
+  @Nullable
+  public abstract List<String> getDockerArgs();
+
+  @Override
+  @Nullable
+  public abstract Map<String, Object> getDockerOptions();
+
+  public abstract Set<String> getPackageWhitelist();
+
+  public abstract Set<String> getFunctionBlacklist();
+
+  @Nullable
+  public abstract Map<String, String> getDatashieldROptions();
+
+  @JsonIgnore
+  public Map<String, Object> getSpecificContainerOptions() {
+    return Map.of(
+        "packageWhitelist", getPackageWhitelist(),
+        "functionBlacklist", getFunctionBlacklist(),
+        "datashieldROptions", getDatashieldROptions() == null ? Map.of() : getDatashieldROptions());
+  }
+
+  @Override
+  @JsonIgnore
+  public String getType() {
+    return "ds";
+  }
+
+  @JsonCreator
+  public static DatashieldContainerConfig create(
+      @JsonProperty("name") @Nullable String name,
+      @JsonProperty("image") @Nullable String image,
+      @JsonProperty("host") @Nullable String host,
+      @JsonProperty("port") @Nullable Integer port,
+      @JsonProperty("lastImageId") @Nullable String lastImageId,
+      @JsonProperty("imageSize") @Nullable Long imageSize,
+      @JsonProperty("installDate") @Nullable String installDate,
+      @JsonProperty("versionId") @Nullable String versionId,
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("autoUpdate") @Nullable Boolean autoUpdate,
+      @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
+      @JsonProperty("packageWhitelist") @Nullable Set<String> packageWhitelist,
+      @JsonProperty("functionBlacklist") @Nullable Set<String> functionBlacklist,
+      @JsonProperty("datashieldROptions") @Nullable Map<String, String> datashieldROptions,
+      @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
+      @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions) {
+
+    Set<String> resolvedPackageWhitelist =
+        packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE);
+    Set<String> resolvedFunctionBlacklist =
+        functionBlacklist != null ? functionBlacklist : Set.of();
+    Builder builder =
+        builder()
+            .name(name)
+            .image(image)
+            .host(host)
+            .port(port)
+            .lastImageId(lastImageId)
+            .imageSize(imageSize)
+            .installDate(installDate)
+            .versionId(versionId)
+            .creationDate(creationDate)
+            .autoUpdate(autoUpdate)
+            .updateSchedule(updateSchedule)
+            .packageWhitelist(resolvedPackageWhitelist)
+            .functionBlacklist(resolvedFunctionBlacklist);
+    if (datashieldROptions != null) {
+      builder.datashieldROptions(datashieldROptions);
+    }
+    if (dockerArgs != null) {
+      builder.dockerArgs(dockerArgs);
+    }
+    if (dockerOptions != null) {
+      builder.dockerOptions(dockerOptions);
+    }
+    return builder.build();
+  }
+
+  /**
+   * Creates a default container config. Applies fallback defaults when parameters are null, since
+   * AutoValue builder getters throw IllegalStateException for unset properties.
+   */
+  public static DatashieldContainerConfig createDefault(
+      String image, Set<String> packageWhitelist, Set<String> functionBlacklist) {
+    return builder()
+        .name("default")
+        .image(image != null ? image : "datashield/molgenis-rock-base:latest")
+        .packageWhitelist(packageWhitelist != null ? packageWhitelist : Set.of(DEFAULT_PACKAGE))
+        .functionBlacklist(functionBlacklist != null ? functionBlacklist : Set.of())
+        .build();
+  }
+
+  public EnvironmentConfigProps toEnvironmentConfigProps() {
+    var props = new EnvironmentConfigProps();
+    props.setName(getName());
+    props.setHost(getHost());
+    props.setPort(getPort());
+    props.setImage(getImage());
+    return props;
+  }
+
+  public abstract Builder toBuilder();
+
+  public static Builder builder() {
+    return new AutoValue_DatashieldContainerConfig.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract Builder name(@Nullable String name);
+
+    public abstract Builder image(@Nullable String image);
+
+    public abstract Builder host(@Nullable String host);
+
+    public abstract Builder port(@Nullable Integer port);
+
+    public abstract Builder lastImageId(@Nullable String lastImageId);
+
+    public abstract Builder imageSize(@Nullable Long imageSize);
+
+    public abstract Builder installDate(@Nullable String installDate);
+
+    public abstract Builder versionId(@Nullable String versionId);
+
+    public abstract Builder creationDate(@Nullable String creationDate);
+
+    public abstract Builder autoUpdate(@Nullable Boolean autoUpdate);
+
+    public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
+
+    public abstract Builder packageWhitelist(Set<String> packageWhitelist);
+
+    public abstract Builder functionBlacklist(Set<String> functionBlacklist);
+
+    public abstract Builder datashieldROptions(@Nullable Map<String, String> datashieldROptions);
+
+    public abstract Builder dockerArgs(@Nullable List<String> dockerArgs);
+
+    public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
+
+    @Nullable
+    abstract String getImage();
+
+    @Nullable
+    abstract String getHost();
+
+    @Nullable
+    abstract Integer getPort();
+
+    @Nullable
+    abstract Boolean getAutoUpdate();
+
+    @Nullable
+    abstract Set<String> getPackageWhitelist();
+
+    @Nullable
+    abstract Set<String> getFunctionBlacklist();
+
+    @Nullable
+    abstract Map<String, String> getDatashieldROptions();
+
+    @Nullable
+    abstract List<String> getDockerArgs();
+
+    @Nullable
+    abstract Map<String, Object> getDockerOptions();
+
+    abstract DatashieldContainerConfig autoBuild();
+
+    public DatashieldContainerConfig build() {
+      if (getImage() == null) image("datashield/molgenis-rock-base:latest");
+      if (getHost() == null) host("localhost");
+      if (getPort() == null) port(6311);
+      if (getAutoUpdate() == null) autoUpdate(false);
+      if (getPackageWhitelist() == null) packageWhitelist(Set.of(DEFAULT_PACKAGE));
+      if (getFunctionBlacklist() == null) functionBlacklist(Set.of());
+      if (getDatashieldROptions() == null) {
+        long seed = SECURE_RANDOM.nextLong(900_000_000L);
+        datashieldROptions(Map.of("datashield.seed", String.valueOf(seed)));
+      }
+      if (getDockerArgs() == null) dockerArgs(List.of());
+      if (getDockerOptions() == null) dockerOptions(Map.of());
+
+      return autoBuild();
+    }
+  }
+}

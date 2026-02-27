@@ -1,17 +1,18 @@
 package org.molgenis.armadillo;
 
-import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.r.RConnectionFactory;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
@@ -38,23 +39,21 @@ class DataShieldOptionsImplTest {
   void init() {
     ImmutableMap<String, String> configOptions =
         ImmutableMap.of("a", "overrideA", "c", "overrideC");
-    ContainerConfig containerConfig =
-        ContainerConfig.create(
-            "dummy",
-            "dummy",
-            false,
-            null,
-            "localhost",
-            6311,
-            Set.of(),
-            emptySet(),
-            configOptions,
-            null,
-            null,
-            null,
-            null,
-            null);
-    options = new DataShieldOptionsImpl(containerConfig, packageService);
+
+    DatashieldContainerConfig datashieldContainerConfig =
+        DatashieldContainerConfig.builder()
+            .name("dummy")
+            .image("dummy")
+            .host("localhost")
+            .port(6311)
+            .packageWhitelist(Set.of())
+            .functionBlacklist(Set.of())
+            .datashieldROptions(configOptions)
+            .dockerArgs(List.of())
+            .dockerOptions(Map.of())
+            .build();
+
+    options = new DataShieldOptionsImpl(datashieldContainerConfig, packageService);
     ImmutableMap<String, String> packageOptions = ImmutableMap.of("a", "defaultA", "b", "defaultB");
     doReturn(rConnection).when(rConnectionFactory).tryCreateConnection();
 
@@ -66,10 +65,12 @@ class DataShieldOptionsImplTest {
             .setLibPath("/var/lib/R")
             .setOptions(packageOptions)
             .build();
+
     when(packageService.getInstalledPackages(rConnection))
         .thenReturn(ImmutableList.of(datashieldPackage, BASE));
+
     assertEquals(
-        options.getValue(rConnectionFactory.tryCreateConnection()),
-        ImmutableMap.of("a", "overrideA", "b", "defaultB", "c", "overrideC"));
+        ImmutableMap.of("a", "overrideA", "b", "defaultB", "c", "overrideC"),
+        options.getValue(rConnectionFactory.tryCreateConnection()));
   }
 }

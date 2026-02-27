@@ -7,7 +7,6 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.status;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,11 +23,12 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -48,30 +48,25 @@ public class DevelopmentController {
   private final AuditEventPublisher auditEventPublisher;
   private final ContainerService containers;
   private final DockerService dockerService;
+  private final DatashieldContainerConfig datashieldContainerConfig;
 
   public DevelopmentController(
       Commands commands,
       AuditEventPublisher auditEventPublisher,
       ContainerService containerService,
-      @Nullable DockerService dockerService) {
+      @Nullable DockerService dockerService,
+      DatashieldContainerConfig datashieldContainerConfig) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
     this.containers = requireNonNull(containerService);
     this.dockerService = dockerService;
+    this.datashieldContainerConfig = requireNonNull(datashieldContainerConfig);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  @Operation(
-      summary = "Install a package",
-      description = "Install a package in the currently selected container")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
-      })
   @PostMapping(
       value = "install-package",
-      consumes = {MULTIPART_FORM_DATA_VALUE})
+      consumes = {"multipart/form-data"})
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public CompletableFuture<ResponseEntity<Void>> installPackage(
@@ -83,6 +78,18 @@ public class DevelopmentController {
       auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
       return completedFuture(status(INTERNAL_SERVER_ERROR).build());
     } else {
+
+      String containerName;
+      try {
+        containerName = datashieldContainerConfig.getName();
+      } catch (IllegalArgumentException e) {
+        Map<String, Object> data = new HashMap<>();
+        data.put(MESSAGE, e.getMessage());
+        data.put(CONTAINER, getActiveContainerName());
+        auditEventPublisher.audit(principal, INSTALL_PACKAGES_FAILURE, data);
+        return completedFuture(status(HttpStatus.BAD_REQUEST).build());
+      }
+
       String filename = file.getOriginalFilename();
 
       auditEventPublisher.audit(principal, INSTALL_PACKAGES, Map.of(INSTALL_PACKAGES, filename));
@@ -100,55 +107,27 @@ public class DevelopmentController {
       return result
           .thenApply(
               body -> {
-                containers.addToWhitelist(getActiveContainerName(), packageName);
-                return ResponseEntity.ok(body);
+                containers.addToWhitelist(containerName, packageName);
+                return ResponseEntity.ok().<Void>build();
               })
-          .exceptionally(
-              t -> new ResponseEntity(t.getCause().getCause().getMessage(), INTERNAL_SERVER_ERROR));
+          .exceptionally(t -> ResponseEntity.status(INTERNAL_SERVER_ERROR).build());
     }
   }
 
-  @Operation(summary = "Get whitelist")
   @GetMapping("whitelist")
-  @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return containers.getByName(getActiveContainerName()).getPackageWhitelist();
+    return containers.getPackageWhitelist(datashieldContainerConfig.getName());
   }
 
-  @Operation(
-      summary = "Add package to whitelist",
-      description =
-          "Adds a package to the runtime whitelist. The whitelist is reset when the application "
-              + "restarts. Admin use only.")
   @PostMapping("whitelist/{pkg}")
-  @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ContainerConfig currentConfig = containers.getByName(getActiveContainerName());
-    Set<String> whitelist = currentConfig.getPackageWhitelist();
-    whitelist.add(pkg);
-    ContainerConfig containerConfig =
-        ContainerConfig.create(
-            currentConfig.getName(),
-            currentConfig.getImage(),
-            currentConfig.getAutoUpdate(),
-            currentConfig.getUpdateSchedule(),
-            currentConfig.getHost(),
-            currentConfig.getPort(),
-            whitelist,
-            currentConfig.getFunctionBlacklist(),
-            currentConfig.getOptions(),
-            currentConfig.getLastImageId(),
-            currentConfig.getVersionId(),
-            currentConfig.getImageSize(),
-            currentConfig.getCreationDate(),
-            currentConfig.getInstallDate());
     auditEventPublisher.audit(
-        () -> containers.upsert(containerConfig),
+        () -> containers.addToWhitelist(datashieldContainerConfig.getName(), pkg),
         principal,
         UPSERT_CONTAINER,
-        Map.of(CONTAINER, containerConfig));
+        Map.of(CONTAINER, datashieldContainerConfig.getName()));
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")
@@ -171,5 +150,10 @@ public class DevelopmentController {
 
   protected String getPackageNameFromFilename(String filename) {
     return filename.replaceFirst("_[^_]+$", "");
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleBadRequest(IllegalArgumentException e) {
+    return ResponseEntity.badRequest().body(e.getMessage());
   }
 }

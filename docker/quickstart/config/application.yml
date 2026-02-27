@@ -1,13 +1,24 @@
 armadillo:
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
+
   docker-management-enabled: false
   docker-run-in-container: true
-  profiles:
+  containers:
     - name: default
       image: datashield/rock-base:latest
       port: 6311 
       host: localhost:6311 
       package-whitelist:
         - dsBase
+        - dsTidyverse
       function-blacklist: [ ]
       options:
         datashield:
@@ -30,7 +41,7 @@ spring:
             client-secret: 'nAZS57Lj2BvHpcXXMFfyx5rqfnPd5BCu'
             scope:
               - openid
-              - profile
+              - container
               - email
       resourceserver:
         jwt:

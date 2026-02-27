@@ -76,7 +76,6 @@ public class AuthConfig {
                     "/ui/**",
                     "/containers/status",
                     "/actuator/prometheus",
-                    "/ds-profiles/status",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
@@ -116,6 +115,7 @@ public class AuthConfig {
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
+
     return http.build();
   }
 
@@ -146,7 +146,7 @@ public class AuthConfig {
     };
   }
 
-  /** Allow CORS requests, needed for swagger UI to work, if the development container is active. */
+  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;

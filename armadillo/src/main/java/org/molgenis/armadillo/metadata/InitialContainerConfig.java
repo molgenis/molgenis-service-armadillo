@@ -2,13 +2,9 @@ package org.molgenis.armadillo.metadata;
 
 import java.util.Map;
 import java.util.Set;
+import org.molgenis.armadillo.container.ContainerConfig;
+import org.molgenis.armadillo.container.InitialConfigBuilder;
 
-/**
- * Container that is passed as configuration parameters. Don't use at runtime.
- *
- * <p>This class can't be @AutoValue'd because Spring's @ConfigurationProperties can't bind to it
- * without setters.
- */
 public class InitialContainerConfig {
   private String name;
   private String image;
@@ -19,23 +15,59 @@ public class InitialContainerConfig {
   private Set<String> packageWhitelist;
   private Set<String> functionBlacklist;
   private Map<String, String> options;
+  private String type;
 
-  public ContainerConfig toContainerConfig() {
-    return ContainerConfig.create(
-        name,
-        image,
-        autoUpdate,
-        updateSchedule,
-        host,
-        port,
-        packageWhitelist,
-        functionBlacklist,
-        options,
-        null,
-        null,
-        null,
-        null,
-        null);
+  public ContainerConfig toContainerConfig(
+      Map<String, InitialConfigBuilder> builderRegistry, String defaultType) {
+
+    String configType = this.type != null ? this.type : defaultType;
+    InitialConfigBuilder builder = builderRegistry.get(configType);
+
+    if (builder == null) {
+      throw new IllegalArgumentException("No container builder found for type: " + configType);
+    }
+
+    return builder.build(this);
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getImage() {
+    return image;
+  }
+
+  public boolean getAutoUpdate() {
+    return autoUpdate;
+  }
+
+  public UpdateSchedule getUpdateSchedule() {
+    return updateSchedule;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public Set<String> getPackageWhitelist() {
+    return packageWhitelist;
+  }
+
+  public Set<String> getFunctionBlacklist() {
+    return functionBlacklist;
+  }
+
+  public Map<String, String> getOptions() {
+    return options;
+  }
+
+  public String getType() {
+    return type;
   }
 
   public void setName(String name) {
@@ -47,7 +79,7 @@ public class InitialContainerConfig {
   }
 
   public void setAutoUpdate(Boolean autoUpdate) {
-    this.autoUpdate = autoUpdate;
+    this.autoUpdate = Boolean.TRUE.equals(autoUpdate);
   }
 
   public void setUpdateSchedule(UpdateSchedule updateSchedule) {
@@ -72,5 +104,9 @@ public class InitialContainerConfig {
 
   public void setOptions(Map<String, String> options) {
     this.options = options;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 }

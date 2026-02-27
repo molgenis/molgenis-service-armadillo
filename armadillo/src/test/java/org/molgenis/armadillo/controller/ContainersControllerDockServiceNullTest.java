@@ -9,11 +9,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.container.ContainerScheduler;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,40 +47,44 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
         .getContainers()
         .put(
             "default",
-            ContainerConfig.create(
+            DatashieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
-                false,
-                null,
                 "localhost",
                 6311,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase"),
                 emptySet(),
                 emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                List.of(),
+                Map.of()));
     settings
         .getContainers()
         .put(
             "omics",
-            ContainerConfig.create(
+            DatashieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
-                false,
-                null,
                 "localhost",
                 6312,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
                 Set.of("dsBase", "dsOmics"),
                 emptySet(),
                 emptyMap(),
-                null,
-                null,
-                null,
-                null,
-                null));
+                List.of(),
+                Map.of()));
     return settings;
   }
 

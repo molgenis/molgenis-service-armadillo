@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -24,8 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
-import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
@@ -59,6 +60,7 @@ class CommandsImplTest {
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
+  @Mock Resource resource;
 
   static ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
   CommandsImpl commands;
@@ -189,15 +191,12 @@ class CommandsImplTest {
 
   @Test
   void testInstallPackage() throws Exception {
-    ArmadilloCommandImpl<REXP> command =
-        new ArmadilloCommandImpl<>("Install package", false) {
-          @Override
-          protected REXP doWithConnection(RServerConnection connection) {
-            verify(rExecutorService)
-                .installPackage(eq(rConnection), any(Resource.class), any(String.class));
-            return null;
-          }
-        };
+    when(connectionFactory.createConnection()).thenReturn(rConnection);
+    when(processService.getPid(rConnection)).thenReturn(218);
+
+    commands.installPackage(principal, resource, "mypackage").get();
+
+    verify(rExecutorService).installPackage(rConnection, resource, "mypackage");
   }
 
   @Test
@@ -257,23 +256,25 @@ class CommandsImplTest {
   @Test
   void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ContainerConfig containerConfig =
-        ContainerConfig.create(
+    DatashieldContainerConfig datashieldContainerConfig =
+        DatashieldContainerConfig.create(
             "exposome",
             "dummy",
-            false,
-            null,
             "localhost",
             6311,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
             Set.of(),
             Set.of(),
             Map.of(),
-            null,
-            null,
-            null,
-            null,
-            null);
-    when(containerService.getByName("exposome")).thenReturn(containerConfig);
+            List.of(),
+            Map.of());
+    when(containerService.getByName("exposome")).thenReturn(datashieldContainerConfig);
     commands.selectContainer("exposome");
     verify(attrs).setAttribute("container", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();

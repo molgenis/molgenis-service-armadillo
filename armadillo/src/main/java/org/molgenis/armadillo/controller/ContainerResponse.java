@@ -1,83 +1,105 @@
 package org.molgenis.armadillo.controller;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.auto.value.AutoValue;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.metadata.ContainerConfig;
-import org.molgenis.armadillo.metadata.UpdateSchedule;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
 
-@AutoValue
-@JsonInclude(Include.NON_NULL)
-public abstract class ContainerResponse {
-  public abstract String getName();
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type",
+    visible = true)
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = ContainerResponse.DefaultResponse.class, name = "vanilla"),
+  @JsonSubTypes.Type(value = ContainerResponse.DatashieldResponse.class, name = "ds")
+})
+public sealed interface ContainerResponse {
+  String name();
 
-  @Nullable // only required when docker enabled
-  public abstract String getImage();
+  String type();
 
-  @Nullable
-  @JsonProperty("autoUpdate")
-  public abstract Boolean getAutoUpdate();
+  String image();
 
-  @Nullable
-  @JsonProperty("updateSchedule")
-  public abstract UpdateSchedule getUpdateSchedule();
-
-  public abstract String getHost();
-
-  public abstract Integer getPort();
-
-  public abstract Set<String> getPackageWhitelist();
-
-  public abstract Set<String> getFunctionBlacklist();
-
-  public abstract Map<String, String> getOptions();
-
-  @JsonProperty("container")
-  @Nullable // only present when docker management is enabled and Docker is online
-  public abstract ContainerInfo getContainer();
+  Integer port();
 
   @Nullable
-  @JsonProperty("lastImageId") // Add this line to include lastImageId in the response
-  public abstract String getLastImageId();
+  Long imageSize();
 
   @Nullable
-  @JsonProperty("versionId") //
-  public abstract String getVersionId();
+  String installDate();
 
-  @JsonProperty("imageSize")
   @Nullable
-  public abstract Long getImageSize();
+  String lastImageId();
 
-  @JsonProperty("creationDate")
   @Nullable
-  public abstract String getCreationDate();
+  List<String> dockerArgs();
 
-  @JsonProperty("installDate")
   @Nullable
-  public abstract String getInstallDate();
+  Map<String, Object> dockerOptions();
 
-  public static ContainerResponse create(
-      ContainerConfig containerConfig, ContainerInfo containerInfo) {
-    return new AutoValue_ContainerResponse(
-        containerConfig.getName(),
-        containerConfig.getImage(),
-        containerConfig.getAutoUpdate(),
-        containerConfig.getUpdateSchedule(),
-        containerConfig.getHost(),
-        containerConfig.getPort(),
-        containerConfig.getPackageWhitelist(),
-        containerConfig.getFunctionBlacklist(),
-        containerConfig.getOptions(),
-        containerInfo,
-        containerConfig.getLastImageId(),
-        containerConfig.getVersionId(),
-        containerConfig.getImageSize(),
-        containerConfig.getCreationDate(),
-        containerConfig.getInstallDate());
+  record DefaultResponse(
+      String type,
+      String name,
+      String image,
+      Integer port,
+      @Nullable Long imageSize,
+      @Nullable String installDate,
+      @Nullable String lastImageId,
+      @Nullable List<String> dockerArgs,
+      @Nullable Map<String, Object> dockerOptions,
+      @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
+      implements ContainerResponse {}
+
+  record DatashieldResponse(
+      String type,
+      String name,
+      String image,
+      Integer port,
+      @Nullable Long imageSize,
+      @Nullable String installDate,
+      @Nullable String lastImageId,
+      @Nullable List<String> dockerArgs,
+      @Nullable Map<String, Object> dockerOptions,
+      @Nullable String versionId,
+      @Nullable String creationDate,
+      @Nullable Map<String, Object> specificContainerOptions,
+      @JsonProperty("dockerStatus") @Nullable ContainerInfo containerInfo)
+      implements ContainerResponse {}
+
+  static ContainerResponse create(ContainerConfig config, @Nullable ContainerInfo info) {
+    if (config instanceof DatashieldContainerConfig ds) {
+      return new DatashieldResponse(
+          ds.getType(),
+          ds.getName(),
+          ds.getImage(),
+          ds.getPort(),
+          ds.getImageSize(),
+          ds.getInstallDate(),
+          ds.getLastImageId(),
+          ds.getDockerArgs(),
+          ds.getDockerOptions(),
+          ds.getVersionId(),
+          ds.getCreationDate(),
+          ds.getSpecificContainerOptions(),
+          info);
+    }
+
+    return new DefaultResponse(
+        config.getType(),
+        config.getName(),
+        config.getImage(),
+        config.getPort(),
+        config.getImageSize(),
+        config.getInstallDate(),
+        config.getLastImageId(),
+        config.getDockerArgs(),
+        config.getDockerOptions(),
+        info);
   }
 }

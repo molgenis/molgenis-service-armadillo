@@ -5,8 +5,12 @@ import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAU
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import org.molgenis.armadillo.container.ContainerScope;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
@@ -20,22 +24,35 @@ public class ContainerService {
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
   private final ContainerScope containerScope;
+  private final List<ContainerUpdater<? extends ContainerConfig>> updaters;
+  private final DefaultContainerFactory defaultContainerFactory;
+  private final Map<String, InitialConfigBuilder> initialConfigBuilders;
   private ContainersMetadata settings;
 
   public ContainerService(
       ContainersLoader containersLoader,
       InitialContainerConfigs initialContainerConfigs,
-      ContainerScope containerScope) {
+      ContainerScope containerScope,
+      List<ContainerUpdater<? extends ContainerConfig>> allUpdaters,
+      DefaultContainerFactory defaultContainerFactory,
+      List<InitialConfigBuilder> allInitialConfigBuilders) {
     this.loader = requireNonNull(containersLoader);
     initialContainer = requireNonNull(initialContainerConfigs);
     this.containerScope = requireNonNull(containerScope);
+    this.defaultContainerFactory = requireNonNull(defaultContainerFactory);
+
+    this.initialConfigBuilders =
+        allInitialConfigBuilders.stream()
+            .collect(Collectors.toMap(InitialConfigBuilder::getType, builder -> builder));
+
+    this.updaters = allUpdaters;
+  }
+
+  @jakarta.annotation.PostConstruct
+  public void init() {
     runAsSystem(this::initialize);
   }
 
-  /**
-   * Initialization separated from constructor so that it can be called in WebMvc tests
-   * <strong>after</strong> mocks have been initialized.
-   */
   public void initialize() {
     settings = loader.load();
     bootstrap();
@@ -53,34 +70,41 @@ public class ContainerService {
   }
 
   public void upsert(ContainerConfig containerConfig) {
+
     String containerName = containerConfig.getName();
-    settings
-        .getContainers()
-        .put(
-            containerName,
-            ContainerConfig.create(
-                containerName,
-                containerConfig.getImage(),
-                containerConfig.getAutoUpdate(),
-                containerConfig.getUpdateSchedule(),
-                containerConfig.getHost(),
-                containerConfig.getPort(),
-                containerConfig.getPackageWhitelist(),
-                containerConfig.getFunctionBlacklist(),
-                containerConfig.getOptions(),
-                containerConfig.getLastImageId(),
-                containerConfig.getVersionId(),
-                containerConfig.getImageSize(),
-                containerConfig.getCreationDate(),
-                containerConfig.getInstallDate()));
+
+    settings.getContainers().put(containerName, containerConfig);
+
     flushContainerBeans(containerName);
     save();
   }
 
+  public java.util.Set<String> getPackageWhitelist(String containerName) {
+    ContainerConfig config = getByName(containerName);
+
+    if (config instanceof DatashieldContainerConfig dsConfig) {
+      return dsConfig.getPackageWhitelist();
+    }
+
+    return java.util.Set.of();
+  }
+
   public void addToWhitelist(String containerName, String pack) {
-    getByName(containerName).getPackageWhitelist().add(pack);
-    flushContainerBeans(containerName);
-    save();
+    ContainerConfig existing = getByName(containerName);
+
+    if (!(existing instanceof DatashieldContainerConfig dsConfig)) {
+      throw new UnsupportedOperationException(
+          "Whitelisting is only supported for DataSHIELD containers. Found type: "
+              + existing.getClass().getSimpleName());
+    }
+
+    Set<String> updatedWhitelist =
+        new HashSet<>(
+            dsConfig.getPackageWhitelist() == null ? Set.of() : dsConfig.getPackageWhitelist());
+    updatedWhitelist.add(pack);
+
+    ContainerConfig updatedConfig = dsConfig.toBuilder().packageWhitelist(updatedWhitelist).build();
+    upsert(updatedConfig);
   }
 
   public void delete(String containerName) {
@@ -108,13 +132,16 @@ public class ContainerService {
 
     if (initialContainer.getContainers() != null) {
       initialContainer.getContainers().stream()
-          .map(InitialContainerConfig::toContainerConfig)
+          .map(
+              config ->
+                  config.toContainerConfig(
+                      initialConfigBuilders, defaultContainerFactory.getType()))
           .filter(container -> !settings.getContainers().containsKey(container.getName()))
           .forEach(this::upsert);
     }
 
     if (!settings.getContainers().containsKey(DEFAULT)) {
-      upsert(ContainerConfig.createDefault());
+      upsert(defaultContainerFactory.createDefault());
     }
   }
 
@@ -125,27 +152,47 @@ public class ContainerService {
       Long newImageSize,
       String newCreationDate,
       @Nullable String newInstallDate) {
+
     ContainerConfig existing = getByName(containerName);
 
-    ContainerConfig updated =
-        ContainerConfig.create(
-            existing.getName(),
-            existing.getImage(),
-            existing.getAutoUpdate(),
-            existing.getUpdateSchedule(),
-            existing.getHost(),
-            existing.getPort(),
-            existing.getPackageWhitelist(),
-            existing.getFunctionBlacklist(),
-            existing.getOptions(),
-            newImageId,
-            newVersionId,
-            newImageSize,
-            newCreationDate,
-            newInstallDate != null ? newInstallDate : existing.getInstallDate());
+    ContainerUpdater<? extends ContainerConfig> updater =
+        updaters.stream()
+            .filter(u -> u.supports(existing))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new UnsupportedOperationException(
+                        "No image metadata updater found for container type: "
+                            + existing.getClass().getSimpleName()));
+
+    DefaultImageMetadata defaultMetaData =
+        new DefaultImageMetadata(newImageId, newImageSize, newInstallDate);
+
+    ContainerConfig updated = updateDefaultMeta(updater, existing, defaultMetaData);
+
+    if (updater instanceof OpenContainersUpdater<?> openUpdater) {
+      OpenContainersImageMetadata openMetaData =
+          new OpenContainersImageMetadata(newVersionId, newCreationDate);
+
+      updated = updateOpenContainersMeta(openUpdater, updated, openMetaData);
+    }
 
     settings.getContainers().put(containerName, updated);
     flushContainerBeans(containerName);
     save();
+  }
+
+  private static <T extends ContainerConfig> ContainerConfig updateDefaultMeta(
+      ContainerUpdater<T> updater, ContainerConfig existing, DefaultImageMetadata metadata) {
+    T typedConfig = updater.getSupportedType().cast(existing);
+    return updater.updateDefaultImageMetadata(typedConfig, metadata);
+  }
+
+  private static <T extends ContainerConfig> ContainerConfig updateOpenContainersMeta(
+      OpenContainersUpdater<T> updater,
+      ContainerConfig existing,
+      OpenContainersImageMetadata metadata) {
+    T typedConfig = updater.getSupportedType().cast(existing);
+    return updater.updateOpenContainersMetaData(typedConfig, metadata);
   }
 }
