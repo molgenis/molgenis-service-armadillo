@@ -1,5 +1,5 @@
 # Setup
-test_name <- "researcher_login"
+test_name <- "researcher-login"
 table <- "2_1-core-1_0/nonrep"
 object <- "nonrep"
 variables <- "coh_country"
