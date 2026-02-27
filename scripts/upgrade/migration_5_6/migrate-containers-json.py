@@ -1,16 +1,34 @@
 #!/usr/bin/env python3
 """
-Migrate containers.json from old schema to new schema.
+Migrate profiles.json to containers.json with the new schema.
 
 Usage:
-    python migrate-containers-json.py <input.json> [output.json]
-    python migrate-containers-json.py data/system/containers.json --in-place
+    python migrate-containers-json.py /usr/share/armadillo/data/system
 """
 
 import json
 import sys
-import shutil
 from pathlib import Path
+
+DEFAULT_DIR = Path('/usr/share/armadillo/data/system')
+
+GREEN = '\033[32m'
+RED = '\033[31m'
+CYAN = '\033[36m'
+BOLD = '\033[1m'
+RESET = '\033[0m'
+
+
+def info(msg):
+    print(f"  {GREEN}✔{RESET} {msg}")
+
+
+def warn(msg):
+    print(f"  {CYAN}ℹ{RESET} {msg}")
+
+
+def error(msg):
+    print(f"  {RED}✖{RESET} {msg}")
 
 
 def infer_type(container: dict) -> str:
@@ -19,7 +37,6 @@ def infer_type(container: dict) -> str:
     blacklist = container.get('functionBlacklist', [])
     options = container.get('options') or container.get('datashieldROptions', {})
 
-    # If any DataSHIELD-specific fields are set, it's a ds container
     if whitelist or blacklist or options:
         return 'ds'
     return 'vanilla'
@@ -29,7 +46,6 @@ def migrate_container(name: str, container: dict) -> dict:
     """Migrate a single container to the new schema."""
     container_type = container.get('type') or infer_type(container)
 
-    # Common fields for all container types
     new = {
         'type': container_type,
         'name': container.get('name', name),
@@ -47,7 +63,6 @@ def migrate_container(name: str, container: dict) -> dict:
         'creationDate': container.get('CreationDate') or container.get('creationDate'),
     }
 
-    # DataSHIELD-specific fields only for 'ds' type
     if container_type == 'ds':
         new['packageWhitelist'] = container.get('packageWhitelist', [])
         new['functionBlacklist'] = container.get('functionBlacklist', [])
@@ -57,38 +72,47 @@ def migrate_container(name: str, container: dict) -> dict:
 
 
 def migrate(data: dict) -> dict:
-    """Migrate the entire containers.json structure."""
+    """Migrate the entire profiles.json structure."""
+    source = data.get('profiles') or data.get('containers') or {}
     new_containers = {}
-    for name, container in data.get('containers', {}).items():
+    for name, container in source.items():
         new_containers[name] = migrate_container(name, container)
     return {'containers': new_containers}
 
 
 def main():
-    if len(sys.argv) < 2:
-        print(__doc__)
+    data_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_DIR
+
+    containers_path = data_dir / 'containers.json'
+    profiles_path = data_dir / 'profiles.json'
+
+    print()
+    if containers_path.exists():
+        warn(f"containers.json already exists at {BOLD}{containers_path}{RESET}, nothing to do.")
+        print()
+        sys.exit(0)
+
+    if not profiles_path.exists():
+        error(f"Neither containers.json nor profiles.json found in {BOLD}{data_dir}{RESET}")
+        print()
         sys.exit(1)
 
-    in_place = '--in-place' in sys.argv
-    args = [a for a in sys.argv[1:] if not a.startswith('--')]
-    input_path = Path(args[0])
+    info(f"Found {BOLD}{profiles_path}{RESET}")
 
-    with open(input_path, 'r') as f:
+    with open(profiles_path, 'r') as f:
         data = json.load(f)
 
     migrated = migrate(data)
-    output_json = json.dumps(migrated)
+    n = len(migrated.get('containers', {}))
 
-    if in_place:
-        shutil.copy(input_path, input_path.with_suffix('.json.bak'))
-        with open(input_path, 'w') as f:
-            f.write(output_json)
-        print(f"Migrated {input_path} (backup: {input_path.with_suffix('.json.bak')})")
-    elif len(args) > 1:
-        with open(args[1], 'w') as f:
-            f.write(output_json)
-    else:
-        print(output_json)
+    with open(containers_path, 'w') as f:
+        json.dump(migrated, f)
+
+    info(f"Migrated {BOLD}{n}{RESET} container(s) to {BOLD}{containers_path}{RESET}")
+    print()
+    warn("Please verify that your containers work correctly in Armadillo 6.")
+    warn(f"Once verified, remove the old file: {BOLD}rm {profiles_path}{RESET}")
+    print()
 
 
 if __name__ == '__main__':
