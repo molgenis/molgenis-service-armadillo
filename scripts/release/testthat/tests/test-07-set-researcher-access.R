@@ -10,6 +10,7 @@ test_that("set researcher access", {
       update_auto <- readLines("stdin", n = 1)
     }
     set_user(F, list(release_env$project1))
+    release_env$admin_demoted <- TRUE
     if (release_env$update_auto != "y") {
       cat("\nGo to the Users tab")
       cat(sprintf("\nAdd [%s]' and [%s] to the project column for your account", unlist(list(release_env$project1))))

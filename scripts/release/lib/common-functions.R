@@ -133,16 +133,19 @@ skip_ds_test <- function(test_name) {
   skip_if_no_package(test_name)
 }
 
-skip_resource_test <- function(test_name) {
+skip_if_no_resources <- function(test_name) {
   do_skip_test(test_name)
-  testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  skip_if_no_package("resourcer")
+  # TODO: re-enable once resource tests work in admin mode
+  # testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+  testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
+                    sprintf("resourcer not available for profile: %s", release_env$current_profile))
 }
 
-skip_ds_resource_test <- function(test_name) {
-  skip_ds_test(test_name)
-  testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  skip_if_no_package("resourcer")
+skip_if_localhosts <- function(url, test_name) {
+  do_skip_test(test_name)
+  # TODO: re-enable when version number can be reliably retrieved over localhost
+  testthat::skip_if(!"localhost" %in% url,
+                    sprintf("version cannot be retrieved locally"))
 }
 
 read_parquet_with_message <- function(file_path, dest) {
@@ -257,6 +260,33 @@ assign_many_resources <- function(folder, ref) {
       exp_resource_path <- paste0(release_env$project1, "/", folder, "/", x)
       datashield.assign.resource(release_env$conns, resource = exp_resource_path, symbol = x)
     })
+}
+
+create_dsi_builder <- function(server = "armadillo", table = "", resource = "") {
+  builder <- DSI::newDSLoginBuilder()
+  if (release_env$ADMIN_MODE) {
+    builder$append(
+      server = server,
+      url = release_env$armadillo_url,
+      profile = release_env$current_profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      user = "admin",
+      password = release_env$admin_pwd,
+      resource = resource
+    )
+  } else {
+    builder$append(
+      server = server,
+      url = release_env$armadillo_url,
+      profile = release_env$current_profile,
+      table = table,
+      driver = "ArmadilloDriver",
+      token = release_env$token,
+      resource = resource
+    )
+  }
+  return(builder$build())
 }
 
 resolve_many_resources <- function(resource_names) {
