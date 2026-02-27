@@ -1,6 +1,6 @@
 # Upgrade Armadillo installs for developers
 
-See [docs](../docs/upgrade-2-3.md) for ops info.
+See [docs](../../../docs/pages/install_management/armadillo_migrate_2_to_3.md) for ops info.
 
 This project uses `pipenv` for managing dependencies as a developer.
 
