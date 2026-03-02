@@ -9,7 +9,9 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = DatashieldContainerConfig.class, name = "ds"),
-  @JsonSubTypes.Type(value = VanillaContainerConfig.class, name = "vanilla")
+  @JsonSubTypes.Type(value = VanillaContainerConfig.class, name = "vanilla"),
+  @JsonSubTypes.Type(value = FlowerSupernodeContainerConfig.class, name = "flower-supernode"),
+  @JsonSubTypes.Type(value = FlowerSuperexecContainerConfig.class, name = "flower-superexec")
 })
 public interface ContainerConfig {
 
@@ -17,8 +19,10 @@ public interface ContainerConfig {
 
   String getImage();
 
+  @Nullable
   String getHost();
 
+  @Nullable
   Integer getPort();
 
   @Nullable
