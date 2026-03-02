@@ -265,8 +265,8 @@ public class DockerService {
       configurePortBindings(cmd, hostConfig, config);
       configureNetworkMode(hostConfig, config);
 
-      cmd.withHostConfig(hostConfig).withName(config.getName()).withEnv("DEBUG=FALSE");
-
+      cmd.withHostConfig(hostConfig).withName(config.getName());
+      configureEnv(cmd, config);
       configureDockerCmd(cmd, config);
 
       cmd.exec();
@@ -291,6 +291,14 @@ public class DockerService {
   private void configureNetworkMode(HostConfig hostConfig, ContainerConfig config) {
     if (config instanceof FlowerContainer) {
       hostConfig.withNetworkMode(FlowerContainer.NETWORK_NAME);
+    }
+  }
+
+  private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
+    if (config instanceof FlowerSuperexecContainerConfig) {
+      cmd.withEnv("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName());
+    } else {
+      cmd.withEnv("DEBUG=FALSE");
     }
   }
 
