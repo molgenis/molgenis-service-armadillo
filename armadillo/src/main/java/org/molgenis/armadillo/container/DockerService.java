@@ -157,6 +157,9 @@ public class DockerService {
     containerStatusService.updateStatus(containerName, "Container installed", null, null);
     stopContainer(dockerContainerName);
     removeContainer(dockerContainerName);
+    if (containerConfig instanceof FlowerContainer) {
+      createNetworkIfNotExists(FlowerContainer.NETWORK_NAME);
+    }
     installImage(containerConfig);
     startContainer(dockerContainerName);
 
@@ -250,27 +253,59 @@ public class DockerService {
     }
   }
 
-  void installImage(ContainerConfig containerConfig) {
-    if (containerConfig.getImage() == null) {
-      throw new MissingImageException(containerConfig.getImage());
+  void installImage(ContainerConfig config) {
+    if (config.getImage() == null) {
+      throw new MissingImageException(config.getImage());
     }
 
-    // if rock is in the image name, it's rock
-    int imageExposed = containerConfig.getImage().contains("rock") ? 8085 : 6311;
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(config.getImage())) {
+      HostConfig hostConfig =
+          new HostConfig().withRestartPolicy(RestartPolicy.unlessStoppedRestart());
+
+      configurePortBindings(cmd, hostConfig, config);
+      configureNetworkMode(hostConfig, config);
+
+      cmd.withHostConfig(hostConfig).withName(config.getName()).withEnv("DEBUG=FALSE");
+
+      configureDockerCmd(cmd, config);
+
+      cmd.exec();
+    } catch (DockerException e) {
+      throw new ImageStartFailedException(config.getImage(), e);
+    }
+  }
+
+  /** Binds container port to host. Skipped when port is null (e.g. flower containers). */
+  private void configurePortBindings(
+      CreateContainerCmd cmd, HostConfig hostConfig, ContainerConfig config) {
+    if (config.getPort() == null) return;
+
+    int imageExposed = config.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(containerConfig.getPort()));
-    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(containerConfig.getImage())) {
-      cmd.withExposedPorts(exposed)
-          .withHostConfig(
-              new HostConfig()
-                  .withPortBindings(portBindings)
-                  .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withName(containerConfig.getName())
-          .withEnv("DEBUG=FALSE")
-          .exec();
-    } catch (DockerException e) {
-      throw new ImageStartFailedException(containerConfig.getImage(), e);
+    portBindings.bind(exposed, Ports.Binding.bindPort(config.getPort()));
+    hostConfig.withPortBindings(portBindings);
+    cmd.withExposedPorts(exposed);
+  }
+
+  private void configureNetworkMode(HostConfig hostConfig, ContainerConfig config) {
+    if (config instanceof FlowerContainer) {
+      hostConfig.withNetworkMode(FlowerContainer.NETWORK_NAME);
+    }
+  }
+
+  private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
+    List<String> args = config.getDockerArgs();
+    if (args != null && !args.isEmpty()) {
+      cmd.withCmd(args.toArray(new String[0]));
+    }
+  }
+
+  private void createNetworkIfNotExists(String networkName) {
+    List<Network> networks = dockerClient.listNetworksCmd().withNameFilter(networkName).exec();
+    if (networks.isEmpty()) {
+      LOG.info("Creating docker network '{}'", networkName);
+      dockerClient.createNetworkCmd().withName(networkName).withDriver("bridge").exec();
     }
   }
 
