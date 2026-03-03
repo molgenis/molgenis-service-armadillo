@@ -41,125 +41,155 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-// we have three configs that enable jwt, formLogin and oauth2Login respectively.
-// they are ordered, so jwt config is most dominant and oauth2Login least dominant
-// in 'test' profile they are not enabled
+// Three auth mechanisms are supported: JWT (order 1, most dominant), basic auth, and OAuth2 login
+// (least dominant). In the 'test' profile none of these are enabled.
 public class AuthConfig {
-  private String oidcClientId;
 
-  // we do this by hand because auto configure is disabled when oauth2 is enabled
+  private static final CorsConfiguration ALLOW_CORS =
+      new CorsConfiguration().applyPermitDefaultValues();
+
+  private static final String[] PUBLIC_PATHS = {
+    "/",
+    "/index.html",
+    "/logout",
+    "/basic-login",
+    "/my/**",
+    "/armadillo-logo.png",
+    "/favicon.ico",
+    "/assets/**",
+    "/v3/**",
+    "/swagger-ui/**",
+    "/ui/**",
+    "/ds-profiles/status",
+    "/swagger-ui.html"
+  };
+
+  // Whether OIDC login is available depends on a client ID being configured
+  private final boolean oidcEnabled;
+  private final AccessService accessService;
+
+  @Value("${armadillo.api-key:#{null}}")
+  private String apiKey;
+
   @Value("${spring.security.user.name}")
   private String userName;
 
   @Value("${spring.security.user.password}")
   private String userPassword;
 
-  private static final CorsConfiguration ALLOW_CORS =
-      new CorsConfiguration().applyPermitDefaultValues();
-  private final AccessService accessService;
-
   public AuthConfig(AccessService accessService, ManagementService managementService) {
-    this.oidcClientId = managementService.getClientId();
+    this.oidcEnabled = managementService.getClientId() != null;
     this.accessService = accessService;
   }
 
+  // -------------------------------------------------------------------------
+  // Security filter chain
+  // -------------------------------------------------------------------------
+
   @Order(1)
   @Bean
-  protected SecurityFilterChain oauthAndBasic(
-      HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
+  protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    configurePublicAndAuthenticatedPaths(http);
+    configureBasicAuth(http);
+    if (oidcEnabled) {
+      configureOAuth2AndJwt(http);
+    }
+    http.csrf(AbstractHttpConfigurer::disable);
+    http.cors(Customizer.withDefaults());
+    http.addFilterAfter(apiKeyFilter(), BasicAuthenticationFilter.class);
+    return http.build();
+  }
+
+  private void configurePublicAndAuthenticatedPaths(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(
         requests ->
             requests
-                .requestMatchers(
-                    "/",
-                    "/index.html",
-                    "/logout",
-                    "/basic-login",
-                    "/my/**",
-                    "/armadillo-logo.png",
-                    "/favicon.ico",
-                    "/assets/**",
-                    "/v3/**",
-                    "/swagger-ui/**",
-                    "/ui/**",
-                    "/ds-profiles/status",
-                    "/swagger-ui.html")
+                .requestMatchers(PUBLIC_PATHS)
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
                 .permitAll()
                 .anyRequest()
                 .authenticated());
-    http.csrf(AbstractHttpConfigurer::disable);
-    http.cors(Customizer.withDefaults());
-    AuthenticationFilter authFilter = new AuthenticationFilter();
-    authFilter.setAuthToken(authToken);
-    http.addFilterAfter(authFilter, BasicAuthenticationFilter.class);
-    http.httpBasic(
-        httpBasicConfigurer ->
-            httpBasicConfigurer
-                .withObjectPostProcessor(
-                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
-                      // save of basic auth in the session because oauth2 make it stateless
-                      // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
-                      @Override
-                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                        filter.setSecurityContextRepository(
-                            new HttpSessionSecurityContextRepository());
-                        return filter;
-                      }
-                    })
-                .realmName("Armadillo")
-                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
-    if (oidcClientId != null) {
-      http.oauth2Login(
-          oauth2Login ->
-              oauth2Login
-                  .userInfoEndpoint(
-                      userInfoEndpoint ->
-                          userInfoEndpoint.userAuthoritiesMapper(this.userAuthoritiesMapper()))
-                  .defaultSuccessUrl("/", true));
-      http.oauth2ResourceServer(
-          oauth2 ->
-              oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
-    }
-
-    return http.build();
   }
 
-  Converter<Jwt, AbstractAuthenticationToken> grantedAuthoritiesExtractor() {
-    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-        new JwtRolesExtractor(accessService));
-    return jwtAuthenticationConverter;
+  private void configureBasicAuth(HttpSecurity http) throws Exception {
+    http.httpBasic(
+        configurer ->
+            configurer
+                // Store basic auth in the session so it survives alongside stateless OAuth2.
+                // See:
+                // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#storing-stateless-authentication-in-the-session
+                .withObjectPostProcessor(saveBasicAuthToSession())
+                .realmName("Armadillo")
+                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+  }
+
+  private void configureOAuth2AndJwt(HttpSecurity http) throws Exception {
+    http.oauth2Login(
+        configurer ->
+            configurer
+                .userInfoEndpoint(
+                    endpoint -> endpoint.userAuthoritiesMapper(userAuthoritiesMapper()))
+                .defaultSuccessUrl("/", true));
+    http.oauth2ResourceServer(
+        configurer -> configurer.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())));
+  }
+
+  // -------------------------------------------------------------------------
+  // Auth helpers
+  // -------------------------------------------------------------------------
+
+  private AuthenticationFilter apiKeyFilter() {
+    AuthenticationFilter filter = new AuthenticationFilter();
+    filter.setAuthToken(apiKey);
+    return filter;
+  }
+
+  private ObjectPostProcessor<BasicAuthenticationFilter> saveBasicAuthToSession() {
+    return new ObjectPostProcessor<>() {
+      @Override
+      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+        filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+        return filter;
+      }
+    };
+  }
+
+  private Converter<Jwt, AbstractAuthenticationToken> jwtConverter() {
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(new JwtRolesExtractor(accessService));
+    return converter;
   }
 
   private GrantedAuthoritiesMapper userAuthoritiesMapper() {
     return authorities -> {
-      Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-
+      Set<GrantedAuthority> mapped = new HashSet<>();
       authorities.forEach(
           authority -> {
             if (authority instanceof OAuth2UserAuthority oAuth2UserAuthority) {
-              final Map<String, Object> userAttributes = oAuth2UserAuthority.getAttributes();
-              mappedAuthorities.addAll(
+              Map<String, Object> attributes = oAuth2UserAuthority.getAttributes();
+              mapped.addAll(
                   runAsSystem(
                       () ->
                           accessService.getAuthoritiesForEmail(
-                              (String) userAttributes.get("email"), userAttributes)));
+                              (String) attributes.get("email"), attributes)));
             }
           });
-
-      return mappedAuthorities;
+      return mapped;
     };
   }
 
-  /** Allow CORS requests, needed for swagger UI to work, if the development profile is active. */
+  // -------------------------------------------------------------------------
+  // Infrastructure beans
+  // -------------------------------------------------------------------------
+
+  /** Permit CORS requests — required for Swagger UI when the dev profile is active. */
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     return request -> ALLOW_CORS;
   }
 
-  /** Allow URL encoded slashes. Needed for the Storage API's object endpoints. */
+  /** Allow URL-encoded slashes, required by the Storage API's object endpoints. */
   @Bean
   public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
     DefaultHttpFirewall firewall = new DefaultHttpFirewall();
