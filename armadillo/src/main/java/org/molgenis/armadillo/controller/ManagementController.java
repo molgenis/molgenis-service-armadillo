@@ -1,13 +1,23 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.metadata.OidcDetails;
+import org.molgenis.armadillo.security.OidcConfigService;
 import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +32,16 @@ import org.springframework.web.bind.annotation.*;
 public class ManagementController {
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
+  private final OidcConfigService oidcService;
 
-  public ManagementController(ManagementService managementService, AuditEventPublisher auditor) {
+  //  private final DynamicClientRegistrationRepository clientRegistration;
+
+  public ManagementController(
+      ManagementService managementService,
+      AuditEventPublisher auditor,
+      OidcConfigService oidcService) {
     this.managementService = requireNonNull(managementService);
+    this.oidcService = requireNonNull(oidcService);
     this.auditor = auditor;
   }
 
@@ -38,5 +55,33 @@ public class ManagementController {
   @PostMapping("app/restart")
   public void restart(Principal principal) {
     auditor.audit(managementService::restartApplication, principal, "TRIGGER_RESTART");
+  }
+
+  @PostMapping("auth/reload")
+  public void reloadAuth(Principal principal) {
+    auditor.audit(oidcService::reload, principal, "RELOAD_OIDC");
+  }
+
+  @Operation(summary = "Change the OIDC config")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "OIDC config updated"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @PutMapping(value = "oidc", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void projectsUpsert(Principal principal, @Valid @RequestBody OidcDetails oidcDetails) {
+    auditor.audit(
+        () ->
+            managementService.saveNewOidcConfig(
+                oidcDetails.getAuthServerUri(),
+                oidcDetails.getClientId(),
+                oidcDetails.getClientSecret()),
+        principal,
+        UPDATE_OIDC_CONFIG,
+        Map.of(PROJECT, oidcDetails));
   }
 }

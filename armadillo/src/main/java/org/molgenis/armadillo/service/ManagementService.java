@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.Map;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.metadata.*;
+import org.molgenis.armadillo.security.OidcConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,17 @@ public class ManagementService {
 
   public void save() {
     loader.save(settings);
+  }
+
+  public OidcConfig getOidcConfig() {
+    return new OidcConfig(authServerUri, clientId, clientSecret);
+  }
+
+  public void saveNewOidcConfig(String authServer, String id, String secret) {
+    authServerUri = authServer;
+    this.clientId = id;
+    this.clientSecret = secret;
+    bootstrap();
   }
 
   private void bootstrap() {

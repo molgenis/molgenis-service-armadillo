@@ -2,9 +2,9 @@ package org.molgenis.armadillo.security;
 
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import org.molgenis.armadillo.metadata.AccessService;
-import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -26,6 +26,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -41,8 +45,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-// Three auth mechanisms are supported: JWT (order 1, most dominant), basic auth, and OAuth2 login
+// Three auth mechanisms are supported: JWT (most dominant), basic auth, and OAuth2 login
 // (least dominant). In the 'test' profile none of these are enabled.
+// OAuth2/JWT are only active when an OIDC config has been loaded via OidcConfigService.reload().
 public class AuthConfig {
 
   private static final CorsConfiguration ALLOW_CORS =
@@ -64,8 +69,6 @@ public class AuthConfig {
     "/swagger-ui.html"
   };
 
-  // Whether OIDC login is available depends on a client ID being configured
-  private final boolean oidcEnabled;
   private final AccessService accessService;
 
   @Value("${armadillo.api-key:#{null}}")
@@ -77,9 +80,22 @@ public class AuthConfig {
   @Value("${spring.security.user.password}")
   private String userPassword;
 
-  public AuthConfig(AccessService accessService, ManagementService managementService) {
-    this.oidcEnabled = managementService.getClientId() != null;
+  public AuthConfig(AccessService accessService) {
     this.accessService = accessService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Beans
+  // -------------------------------------------------------------------------
+
+  /**
+   * The registration repository is a singleton shared between {@link AuthConfig} and {@link
+   * OidcConfigService}. OidcConfigService.reload() swaps its contents at runtime; Spring's OAuth2
+   * login reads from it on every request.
+   */
+  @Bean
+  public DynamicClientRegistrationRepository clientRegistrationRepository() {
+    return new DynamicClientRegistrationRepository();
   }
 
   // -------------------------------------------------------------------------
@@ -88,12 +104,12 @@ public class AuthConfig {
 
   @Order(1)
   @Bean
-  protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  protected SecurityFilterChain securityFilterChain(
+      HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository)
+      throws Exception {
     configurePublicAndAuthenticatedPaths(http);
     configureBasicAuth(http);
-    if (oidcEnabled) {
-      configureOAuth2AndJwt(http);
-    }
+    configureOAuth2AndJwt(http, clientRegistrationRepository);
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
     http.addFilterAfter(apiKeyFilter(), BasicAuthenticationFilter.class);
@@ -124,10 +140,28 @@ public class AuthConfig {
                 .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
   }
 
-  private void configureOAuth2AndJwt(HttpSecurity http) throws Exception {
+  /**
+   * OAuth2 login and JWT are always wired, but the {@link DynamicClientRegistrationRepository}
+   * returns null when no config is loaded — Spring Security then skips OAuth2 login and falls back
+   * to basic auth transparently.
+   *
+   * <p>The authorization request resolver must be lazy. When you supply your own
+   * ClientRegistrationRepository bean, Spring's OAuth2 auto-configuration backs off completely. An
+   * eagerly constructed DefaultOAuth2AuthorizationRequestResolver would capture the repository
+   * state at startup — before OidcConfigService.reload() runs — and never redirect correctly. The
+   * lazy resolver re-evaluates the repository on every incoming request instead.
+   */
+  private void configureOAuth2AndJwt(
+      HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository)
+      throws Exception {
     http.oauth2Login(
         configurer ->
             configurer
+                .clientRegistrationRepository(clientRegistrationRepository)
+                .authorizationEndpoint(
+                    endpoint ->
+                        endpoint.authorizationRequestResolver(
+                            lazyAuthorizationRequestResolver(clientRegistrationRepository)))
                 .userInfoEndpoint(
                     endpoint -> endpoint.userAuthoritiesMapper(userAuthoritiesMapper()))
                 .defaultSuccessUrl("/", true));
@@ -138,6 +172,31 @@ public class AuthConfig {
   // -------------------------------------------------------------------------
   // Auth helpers
   // -------------------------------------------------------------------------
+
+  /**
+   * Returns a resolver that constructs a fresh {@link DefaultOAuth2AuthorizationRequestResolver} on
+   * every request. This is necessary because the repository may be empty at filter chain build time
+   * (before OidcConfigService.reload() is called) — an eagerly constructed resolver would capture a
+   * null registration and never redirect to the auth server.
+   */
+  private OAuth2AuthorizationRequestResolver lazyAuthorizationRequestResolver(
+      ClientRegistrationRepository repo) {
+    return new OAuth2AuthorizationRequestResolver() {
+      @Override
+      public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+        return newResolver().resolve(request);
+      }
+
+      @Override
+      public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
+        return newResolver().resolve(request, registrationId);
+      }
+
+      private DefaultOAuth2AuthorizationRequestResolver newResolver() {
+        return new DefaultOAuth2AuthorizationRequestResolver(repo, "/oauth2/authorization");
+      }
+    };
+  }
 
   private AuthenticationFilter apiKeyFilter() {
     AuthenticationFilter filter = new AuthenticationFilter();
