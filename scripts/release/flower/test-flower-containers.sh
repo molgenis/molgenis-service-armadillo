@@ -2,10 +2,14 @@
 #
 # Integration test for Flower container management via Armadillo.
 #
-# Starts a superlink, two Armadillo instances (simulating two data nodes),
+# Starts a superlink, three Armadillo instances (simulating three data nodes),
 # then uses the Armadillo API to create and start flower-supernode and
 # flower-superexec (clientapp) containers on each. Finally runs the serverapp
 # to trigger a federated learning job and checks for success.
+#
+# Nodes 1+2 run app-id=study-a (process mode with separate clientapp).
+# Node 3 runs app-id=study-b (subprocess mode with app baked into supernode).
+# The discovery protocol verifies that only nodes 1+2 participate in training.
 #
 # Prerequisites:
 #   - Docker running
@@ -33,23 +37,28 @@ ADMIN_PASS="admin"
 
 ARMADILLO_1_PORT=8080
 ARMADILLO_2_PORT=8081
+ARMADILLO_3_PORT=8082
 ARMADILLO_1_DATA="$SCRIPT_DIR/data1"
 ARMADILLO_2_DATA="$SCRIPT_DIR/data2"
+ARMADILLO_3_DATA="$SCRIPT_DIR/data3"
 
 FLOWER_NETWORK="flower-network"
 
-# Container names (must be unique across both Armadillo instances)
+# Container names (must be unique across all Armadillo instances)
 SUPERNODE_1="flower-supernode-1"
 SUPERNODE_2="flower-supernode-2"
+SUPERNODE_3="flower-supernode-3"
 CLIENTAPP_1="flower-clientapp-1"
 CLIENTAPP_2="flower-clientapp-2"
 SUPERLINK="flower-test-superlink"
 SERVERAPP="flower-test-serverapp"
 SUPEREXEC_IMAGE="timmyjc/superexec-test:0.0.1"
+SUPERNODE_APP_IMAGE="timmyjc/supernode-app-test:0.0.1"
 
 # PIDs for cleanup
 ARMADILLO_1_PID=""
 ARMADILLO_2_PID=""
+ARMADILLO_3_PID=""
 
 # --- Helpers -----------------------------------------------------------------
 
@@ -60,7 +69,7 @@ cleanup() {
   log "Cleaning up..."
 
   # Stop Armadillo instances
-  for pid in $ARMADILLO_1_PID $ARMADILLO_2_PID; do
+  for pid in $ARMADILLO_1_PID $ARMADILLO_2_PID $ARMADILLO_3_PID; do
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
       wait "$pid" 2>/dev/null || true
@@ -68,7 +77,7 @@ cleanup() {
   done
 
   # Stop Docker containers
-  for c in $SERVERAPP $CLIENTAPP_1 $CLIENTAPP_2 $SUPERNODE_1 $SUPERNODE_2 $SUPERLINK; do
+  for c in $SERVERAPP $CLIENTAPP_1 $CLIENTAPP_2 $SUPERNODE_1 $SUPERNODE_2 $SUPERNODE_3 $SUPERLINK; do
     docker rm -f "$c" 2>/dev/null || true
   done
 
@@ -76,7 +85,7 @@ cleanup() {
   docker network rm "$FLOWER_NETWORK" 2>/dev/null || true
 
   # Remove temp data dirs
-  rm -rf "$ARMADILLO_1_DATA" "$ARMADILLO_2_DATA"
+  rm -rf "$ARMADILLO_1_DATA" "$ARMADILLO_2_DATA" "$ARMADILLO_3_DATA"
 
   log "Cleanup done."
 }
@@ -195,8 +204,20 @@ java -jar "$ARMADILLO_JAR" \
   > "$SCRIPT_DIR/armadillo2.log" 2>&1 &
 ARMADILLO_2_PID=$!
 
+log "Starting Armadillo instance 3 (port $ARMADILLO_3_PORT)..."
+mkdir -p "$ARMADILLO_3_DATA"
+java -jar "$ARMADILLO_JAR" \
+  --server.port=$ARMADILLO_3_PORT \
+  --storage.root-dir="$ARMADILLO_3_DATA" \
+  --spring.security.user.name=$ADMIN_USER \
+  --spring.security.user.password=$ADMIN_PASS \
+  --armadillo.docker-management-enabled=true \
+  > "$SCRIPT_DIR/armadillo3.log" 2>&1 &
+ARMADILLO_3_PID=$!
+
 wait_for_armadillo $ARMADILLO_1_PORT
 wait_for_armadillo $ARMADILLO_2_PORT
+wait_for_armadillo $ARMADILLO_3_PORT
 
 # --- Step 3: Create flower container configs via API --------------------------
 
@@ -210,7 +231,7 @@ put_container $ARMADILLO_1_PORT "$(cat <<'EOF'
   "dockerArgs": [
     "--insecure",
     "--superlink", "host.docker.internal:9092",
-    "--node-config", "partition-id=0 num-partitions=2 node-name='node1'",
+    "--node-config", "partition-id=0 num-partitions=3 node-name='node1' app-id='study-a'",
     "--clientappio-api-address", "0.0.0.0:9094",
     "--isolation", "process"
   ]
@@ -242,7 +263,7 @@ put_container $ARMADILLO_2_PORT "$(cat <<'EOF'
   "dockerArgs": [
     "--insecure",
     "--superlink", "host.docker.internal:9092",
-    "--node-config", "partition-id=1 num-partitions=2 node-name='node2'",
+    "--node-config", "partition-id=1 num-partitions=3 node-name='node2' app-id='study-a'",
     "--clientappio-api-address", "0.0.0.0:9095",
     "--isolation", "process"
   ]
@@ -264,6 +285,24 @@ put_container $ARMADILLO_2_PORT "$(cat <<'EOF'
 EOF
 )"
 
+log "Creating container configs on Armadillo 3..."
+
+put_container $ARMADILLO_3_PORT "$(cat <<'EOF'
+{
+  "type": "flower-supernode",
+  "name": "flower-supernode-3",
+  "image": "timmyjc/supernode-app-test:0.0.1",
+  "dockerArgs": [
+    "--insecure",
+    "--superlink", "host.docker.internal:9092",
+    "--node-config", "partition-id=2 num-partitions=3 node-name='node3' app-id='study-b'",
+    "--isolation", "subprocess",
+    "--app-dir", "/app"
+  ]
+}
+EOF
+)"
+
 # --- Step 4: Start containers via API -----------------------------------------
 
 start_container $ARMADILLO_1_PORT "$SUPERNODE_1"
@@ -271,6 +310,9 @@ wait_for_container_running "$SUPERNODE_1"
 
 start_container $ARMADILLO_2_PORT "$SUPERNODE_2"
 wait_for_container_running "$SUPERNODE_2"
+
+start_container $ARMADILLO_3_PORT "$SUPERNODE_3"
+wait_for_container_running "$SUPERNODE_3"
 
 # Give supernodes a moment to register with superlink
 sleep 3
@@ -300,7 +342,7 @@ wait_for_container_running "$SERVERAPP"
 log "Running FL job via 'flwr run --stream' (local-deployment federation)..."
 log "App directory: $FLWR_APP_DIR"
 
-(cd "$FLWR_APP_DIR" && flwr run . local-deployment --stream 2>&1 | tee "$SCRIPT_DIR/flwr-run.log")
+(cd "$FLWR_APP_DIR" && flwr run . local-deployment --stream --run-config 'app-id="study-a"' 2>&1 | tee "$SCRIPT_DIR/flwr-run.log")
 FLWR_EXIT=${PIPESTATUS[0]}
 
 if [ "$FLWR_EXIT" -ne 0 ]; then
@@ -309,6 +351,8 @@ if [ "$FLWR_EXIT" -ne 0 ]; then
   docker logs "$SUPERNODE_1" 2>&1 | tail -30
   echo "--- supernode-2 logs ---"
   docker logs "$SUPERNODE_2" 2>&1 | tail -30
+  echo "--- supernode-3 logs ---"
+  docker logs "$SUPERNODE_3" 2>&1 | tail -30
   echo "--- clientapp-1 logs ---"
   docker logs "$CLIENTAPP_1" 2>&1 | tail -30
   echo "--- clientapp-2 logs ---"
@@ -341,8 +385,17 @@ done
 
 # --- Step 8: Verify ----------------------------------------------------------
 
+# Verify discovery filtered to 2 nodes
+if docker logs "$SERVERAPP" 2>&1 | grep -q "Discovered 2 nodes"; then
+  log "Discovery filtering verified: only 2 nodes matched app-id=study-a"
+else
+  echo "--- serverapp logs ---"
+  docker logs "$SERVERAPP" 2>&1 | tail -40
+  fail "Expected 'Discovered 2 nodes' in serverapp logs"
+fi
+
 log "Checking container states..."
-for c in $SUPERNODE_1 $SUPERNODE_2 $CLIENTAPP_1 $CLIENTAPP_2; do
+for c in $SUPERNODE_1 $SUPERNODE_2 $SUPERNODE_3 $CLIENTAPP_1 $CLIENTAPP_2; do
   state=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo "missing")
   if [ "$state" != "running" ] && [ "$state" != "exited" ]; then
     echo "--- $c logs ---"

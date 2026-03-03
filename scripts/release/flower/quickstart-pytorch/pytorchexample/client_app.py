@@ -3,6 +3,7 @@
 import torch
 from flwr.app import ArrayRecord, Context, Message, MetricRecord, RecordDict
 from flwr.clientapp import ClientApp
+from molgenis_flwr_armadillo import handle_discovery
 
 from pytorchexample.task import Net, load_data
 from pytorchexample.task import test as test_fn
@@ -10,6 +11,11 @@ from pytorchexample.task import train as train_fn
 
 # Flower ClientApp
 app = ClientApp()
+
+
+@app.query()
+def query(message: Message, context: Context) -> Message:
+    return handle_discovery(message, context)
 
 
 @app.train()

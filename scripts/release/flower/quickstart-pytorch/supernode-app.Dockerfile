@@ -1,4 +1,4 @@
-FROM flwr/superexec:1.23.0
+FROM flwr/supernode:1.23.0
 
 USER root
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -12,4 +12,4 @@ COPY pytorchexample/ ./pytorchexample/
 RUN sed -i 's/.*flwr\[simulation\].*//' pyproject.toml \
    && python -m pip install -U --no-cache-dir .
 
-ENTRYPOINT [ "flower-superexec" ]
+ENTRYPOINT [ "flower-supernode" ]
