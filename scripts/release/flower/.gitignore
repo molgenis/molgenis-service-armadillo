@@ -7,3 +7,6 @@ __pycache__/
 data/
 molgenis_flwr_armadillo/
 flower-nodes.yaml
+.armadillo-pids
+.env
+.venv/

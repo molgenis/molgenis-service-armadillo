@@ -31,16 +31,25 @@ def main(grid: Grid, context: Context) -> None:
     # Initialize FedAvg strategy
     strategy = FedAvg(fraction_train=fraction_train)
 
-    # Build train config: hyperparams + tokens + URLs + project
+    # Build configs: both train and evaluate need tokens + URLs + project
     train_config = ConfigRecord({"lr": lr, "project": project, **tokens})
+    evaluate_config = ConfigRecord({"project": project, **tokens})
 
     # Start strategy
     result = strategy.start(
         grid=grid,
         initial_arrays=arrays,
         train_config=train_config,
+        evaluate_config=evaluate_config,
         num_rounds=num_rounds,
     )
+
+    # Check if any training actually happened
+    if not result.train_metrics_clientapp:
+        raise RuntimeError(
+            "Federated learning failed: no successful training rounds. "
+            "All client nodes returned errors. Check the clientapp logs for details."
+        )
 
     # Save final model to disk
     print("\nSaving final model to disk...")
