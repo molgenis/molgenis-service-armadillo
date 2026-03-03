@@ -102,6 +102,66 @@ start_profile <- function(profile_name) {
 }
 
 
+close_connections <- function() {
+  if (is.null(release_env$conns)) {
+    cli_alert_info("No open connections")
+    return()
+  }
+  cli_progress_step("Closing DataSHIELD connections")
+  datashield.logout(release_env$conns)
+  cli_progress_done()
+}
+
+restore_admin_permissions <- function() {
+  if (release_env$ADMIN_MODE) {
+    cli_alert_info("Running as admin, no permissions to restore")
+    return()
+  }
+  if (!isTRUE(release_env$admin_demoted)) {
+    cli_alert_info("Admin was not demoted, no permissions to restore")
+    return()
+  }
+  cli_progress_step("Restoring admin permissions")
+  set_user(TRUE, list())
+  cli_progress_done()
+}
+
+delete_created_projects <- function() {
+  projects <- unique(release_env$created_projects)
+  if (length(projects) == 0) {
+    cli_alert_info("No projects to delete")
+    return()
+  }
+  for (project in projects) {
+    tryCatch({
+      suppressMessages(armadillo.delete_project(project))
+      cli_alert_success(sprintf("Deleted project: %s", project))
+    }, error = function(e) {
+      cli_alert_warning(sprintf("Failed to delete project %s: %s", project, e$message))
+    })
+  }
+}
+
+teardown <- function() {
+  tryCatch(close_connections(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to close connections: %s", e$message))
+  })
+
+  tryCatch(restore_admin_permissions(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to restore admin permissions: %s", e$message))
+  })
+
+  if(!release_env$debug) {
+    tryCatch(delete_created_projects(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to delete projects: %s", e$message))
+    })
+  } else {
+    cli_alert_warning("Running in debug mode - project deletion skipped")
+  }
+
+  cli_alert_success("Teardown complete")
+}
+
 setup_profiles <- function() {
   test_name <- "setup-profiles"
   if (should_skip_test(test_name)) {

@@ -136,6 +136,11 @@ configure_test <- function() {
   rda_url <- "https://github.com/isglobal-brge/brge_data_large/raw/master/data/gse66351_1.rda"
   update_auto <- ifelse(ADMIN_MODE, "n", "y")
 
+  debug <- FALSE
+  if (Sys.getenv("DEBUG") == "Y") {
+    debug <- TRUE
+  }
+
   # default profile settings in case a profile is missing
   profile_defaults <- data.frame(
     name = c("xenon", "rock"),
@@ -167,6 +172,7 @@ configure_test <- function() {
   release_env$update_auto <- update_auto
   release_env$profile_defaults <- profile_defaults
   release_env$rda_url <- rda_url
+  release_env$debug <- debug
 
   # Generate random project name (actual creation happens in test-03)
   cli_progress_step("Generating random project name")
