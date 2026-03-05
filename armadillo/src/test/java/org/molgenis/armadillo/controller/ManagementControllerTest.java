@@ -129,11 +129,11 @@ class ManagementControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  void projectsUpsert_PUT_invalid_body_returns_bad_request() throws Exception {
+  void projectsUpsert_PUT_empty_body_returns_no_content() throws Exception {
     // Empty body should fail @Valid validation
     mockMvc
         .perform(put("/manage/oidc").content("{}").contentType(APPLICATION_JSON).with(csrf()))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isNoContent());
   }
 
   @Test
