@@ -3,7 +3,7 @@
 import torch
 from flwr.app import ArrayRecord, ConfigRecord, Context, MetricRecord
 from flwr.serverapp import Grid, ServerApp
-from molgenis_flwr_armadillo import MolgenisFedAvg, discover_nodes
+from flwr.serverapp.strategy import FedAvg
 
 from pytorchexample.task import Net, load_centralized_dataset, test
 
@@ -19,21 +19,13 @@ def main(grid: Grid, context: Context) -> None:
     fraction_evaluate: float = context.run_config["fraction-evaluate"]
     num_rounds: int = context.run_config["num-server-rounds"]
     lr: float = context.run_config["learning-rate"]
-    app_id: str = context.run_config["app-id"]
-
-    # Discovery: find nodes running this app
-    node_ids = discover_nodes(grid, app_id)
-    print(f"Discovered {len(node_ids)} nodes for app-id='{app_id}'")
 
     # Load global model
     global_model = Net()
     arrays = ArrayRecord(global_model.state_dict())
 
-    # Initialize MolgenisFedAvg strategy (dispatches only to discovered nodes)
-    strategy = MolgenisFedAvg(
-        node_ids=node_ids,
-        fraction_evaluate=fraction_evaluate,
-    )
+    # Initialize FedAvg strategy
+    strategy = FedAvg(fraction_evaluate=fraction_evaluate)
 
     # Start strategy, run FedAvg for `num_rounds`
     result = strategy.start(
