@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
  * A {@link ClientRegistrationRepository} whose registration can be replaced at runtime without
  * restarting the application. When no OIDC config is loaded, {@link #findByRegistrationId} returns
  * {@code null}, causing Spring Security to skip OAuth2 login and fall back to basic auth.
+ *
+ * <p>Declared as a {@code @Component} rather than an {@code @Bean} inside {@link AuthConfig} to
+ * avoid a circular dependency: AuthConfig → this → OidcConfigService → ManagementService → ...
  */
 @Component
 public class DynamicClientRegistrationRepository
@@ -48,7 +51,7 @@ public class DynamicClientRegistrationRepository
    * document — the caller is responsible for handling this.
    */
   public void load(OidcConfig config) {
-    registration.set(discoverRegistration(config));
+    discoverAndLoad(config);
   }
 
   /** Clears the active registration, effectively disabling OAuth2 login. */
@@ -57,16 +60,24 @@ public class DynamicClientRegistrationRepository
   }
 
   /**
-   * Uses OIDC discovery to resolve all endpoint URIs from the issuer's
-   * /.well-known/openid-configuration, then overlays the client credentials. Throws {@link
-   * IllegalStateException} if discovery fails.
+   * Performs OIDC discovery and stores the result. Package-private so tests can override it to skip
+   * the HTTP call to /.well-known/openid-configuration.
    */
-  private static ClientRegistration discoverRegistration(OidcConfig config) {
-    return ClientRegistrations.fromIssuerLocation(config.issuerUri())
-        .registrationId(REGISTRATION_ID)
-        .clientId(config.clientId())
-        .clientSecret(config.clientSecret())
-        .scope("openid", "email", "profile")
-        .build();
+  void discoverAndLoad(OidcConfig config) {
+    forceLoad(
+        ClientRegistrations.fromIssuerLocation(config.issuerUri())
+            .registrationId(REGISTRATION_ID)
+            .clientId(config.clientId())
+            .clientSecret(config.clientSecret())
+            .scope("openid", "email", "profile")
+            .build());
+  }
+
+  /**
+   * Directly stores a {@link ClientRegistration}, bypassing discovery. Package-private for use in
+   * tests.
+   */
+  void forceLoad(ClientRegistration reg) {
+    registration.set(reg);
   }
 }
