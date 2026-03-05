@@ -33,8 +33,6 @@ public class ManagementController {
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
 
-  //  private final DynamicClientRegistrationRepository clientRegistration;
-
   public ManagementController(ManagementService managementService, AuditEventPublisher auditor) {
     this.managementService = requireNonNull(managementService);
     this.auditor = auditor;
