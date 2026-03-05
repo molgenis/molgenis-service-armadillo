@@ -1,12 +1,16 @@
 package org.molgenis.armadillo.security;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.util.Iterator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
@@ -30,28 +34,11 @@ class DynamicClientRegistrationRepositoryTest {
   private static final OidcConfig CONFIG =
       new OidcConfig("https://issuer.example.com", "test-client", "test-secret");
 
-  // Subclass that overrides discoverRegistration to skip the HTTP call,
-  // letting us test all other behaviour in isolation.
-  private static class TestableRepository extends DynamicClientRegistrationRepository {
-    private OidcConfig lastLoadedConfig;
-
-    @Override
-    void discoverAndLoad(OidcConfig config) {
-      this.lastLoadedConfig = config;
-      forceLoad(REGISTRATION);
-    }
-
-    // Direct backdoor to set the stored registration without going through discovery
-    public void forceLoad(ClientRegistration reg) {
-      super.forceLoad(reg);
-    }
-  }
-
-  private TestableRepository repository;
+  private TestableClientRegistrationRepository repository;
 
   @BeforeEach
   void setUp() {
-    repository = new TestableRepository();
+    repository = new TestableClientRegistrationRepository();
   }
 
   // -------------------------------------------------------------------------
@@ -119,7 +106,7 @@ class DynamicClientRegistrationRepositoryTest {
 
     // Override what the next discoverAndLoad returns
     repository =
-        new TestableRepository() {
+        new TestableClientRegistrationRepository() {
           @Override
           void discoverAndLoad(OidcConfig config) {
             forceLoad(newRegistration);
@@ -226,5 +213,77 @@ class DynamicClientRegistrationRepositoryTest {
     threads.forEach(Thread::start);
     for (Thread t : threads) t.join();
     // No assertion needed — we're verifying no exception is thrown
+  }
+
+  // -------------------------------------------------------------------------
+  // discoverAndLoad() — uses WireMock to simulate OIDC discovery endpoint
+  // -------------------------------------------------------------------------
+
+  @RegisterExtension
+  static WireMockExtension wireMock =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @Test
+  void discoverAndLoad_populatesRegistrationFromDiscoveryDocument() {
+    String issuerUri = wireMock.baseUrl();
+    stubOidcDiscovery(issuerUri);
+
+    DynamicClientRegistrationRepository real = new DynamicClientRegistrationRepository();
+    real.discoverAndLoad(new OidcConfig(issuerUri, "my-client", "my-secret"));
+
+    ClientRegistration reg = real.findByRegistrationId("molgenis");
+    assertThat(reg).isNotNull();
+    assertThat(reg.getClientId()).isEqualTo("my-client");
+    assertThat(reg.getClientSecret()).isEqualTo("my-secret");
+    assertThat(reg.getProviderDetails().getAuthorizationUri()).isEqualTo(issuerUri + "/auth");
+    assertThat(reg.getProviderDetails().getTokenUri()).isEqualTo(issuerUri + "/token");
+    assertThat(reg.getProviderDetails().getJwkSetUri()).isEqualTo(issuerUri + "/jwks");
+  }
+
+  @Test
+  void discoverAndLoad_throwsWhenIssuerUnreachable() {
+    DynamicClientRegistrationRepository real = new DynamicClientRegistrationRepository();
+
+    assertThatThrownBy(
+            () ->
+                real.discoverAndLoad(
+                    new OidcConfig("https://unreachable.example.com", "client", "secret")))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void discoverAndLoad_throwsWhenDiscoveryDocumentInvalid() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/.well-known/openid-configuration"))
+            .willReturn(okJson("{\"invalid\": \"document\"}")));
+    wireMock.stubFor(
+        get(urlPathEqualTo("/.well-known/oauth-authorization-server"))
+            .willReturn(okJson("{\"invalid\": \"document\"}")));
+
+    DynamicClientRegistrationRepository real = new DynamicClientRegistrationRepository();
+
+    assertThatThrownBy(
+            () -> real.discoverAndLoad(new OidcConfig(wireMock.baseUrl(), "client", "secret")))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  private void stubOidcDiscovery(String issuerUri) {
+    String document =
+        """
+            {
+              "issuer": "%s",
+              "authorization_endpoint": "%s/auth",
+              "token_endpoint": "%s/token",
+              "jwks_uri": "%s/jwks",
+              "userinfo_endpoint": "%s/userinfo",
+              "response_types_supported": ["code"],
+              "subject_types_supported": ["public"],
+              "id_token_signing_alg_values_supported": ["RS256"]
+            }
+            """
+            .formatted(issuerUri, issuerUri, issuerUri, issuerUri, issuerUri);
+
+    wireMock.stubFor(
+        get(urlPathEqualTo("/.well-known/openid-configuration")).willReturn(okJson(document)));
   }
 }

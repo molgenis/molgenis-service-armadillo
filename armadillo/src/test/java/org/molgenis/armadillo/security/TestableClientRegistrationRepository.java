@@ -5,12 +5,16 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 /**
  * Test helper that bypasses OIDC discovery so tests don't make real HTTP calls. Lives in the
- * security package to access the package-private discoverAndLoad() method.
+ * security package to access the package-private discoverAndLoad() method. Tracks the last config
+ * passed to discoverAndLoad() for assertion in tests.
  */
 public class TestableClientRegistrationRepository extends DynamicClientRegistrationRepository {
 
+  public OidcConfig lastLoadedConfig;
+
   @Override
   void discoverAndLoad(OidcConfig config) {
+    lastLoadedConfig = config;
     forceLoad(
         ClientRegistration.withRegistrationId(REGISTRATION_ID)
             .clientId(config.clientId())
