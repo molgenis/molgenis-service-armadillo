@@ -77,7 +77,7 @@ public class DynamicClientRegistrationRepository
    * Directly stores a {@link ClientRegistration}, bypassing discovery. Package-private for use in
    * tests.
    */
-  void forceLoad(ClientRegistration reg) {
+  protected void forceLoad(ClientRegistration reg) {
     registration.set(reg);
   }
 }

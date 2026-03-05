@@ -93,7 +93,7 @@ public class ManagementService {
   // Application management
   // -------------------------------------------------------------------------
 
-  @PreAuthorize(" hasRole('ROLE_SU')")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, String> getClient() {
     return Map.of(
         "clientId", clientId,
@@ -114,10 +114,10 @@ public class ManagementService {
   // -------------------------------------------------------------------------
 
   private void bootstrap() {
-    String auth = settings.getIssuerUri().isEmpty() ? issuerUri : settings.getIssuerUri();
-    String client = settings.getClientId().isEmpty() ? clientId : settings.getClientId();
+    String auth = isNullOrEmpty(settings.getIssuerUri()) ? issuerUri : settings.getIssuerUri();
+    String client = isNullOrEmpty(settings.getClientId()) ? clientId : settings.getClientId();
     String secret =
-        settings.getClientSecret().isEmpty() ? clientSecret : settings.getClientSecret();
+        isNullOrEmpty(settings.getClientSecret()) ? clientSecret : settings.getClientSecret();
     saveSettings(auth, client, secret);
   }
 
@@ -125,8 +125,12 @@ public class ManagementService {
     issuerUri = newIssuerUri;
     this.clientId = newClientId;
     this.clientSecret = newClientSecret;
-    settings = OidcDetails.create(newClientId, newClientSecret, newIssuerUri);
+    settings = OidcDetails.create(newIssuerUri, newClientId, newClientSecret);
     save();
+  }
+
+  private static boolean isNullOrEmpty(String value) {
+    return value == null || value.isEmpty();
   }
 
   /**

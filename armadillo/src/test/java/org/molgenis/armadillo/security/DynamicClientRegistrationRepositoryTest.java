@@ -42,7 +42,7 @@ class DynamicClientRegistrationRepositoryTest {
     }
 
     // Direct backdoor to set the stored registration without going through discovery
-    void forceLoad(ClientRegistration reg) {
+    public void forceLoad(ClientRegistration reg) {
       super.forceLoad(reg);
     }
   }
