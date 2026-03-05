@@ -22,6 +22,7 @@ import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.Commands;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
@@ -43,6 +44,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private ProfileService profileService;
   @MockitoBean private Commands commands;
   @MockitoBean private ArmadilloStorageService armadilloStorage;
+  @MockitoBean private ManagementService managementService;
 
   @Mock(lenient = true)
   private Clock clock;
