@@ -13,7 +13,6 @@ import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.service.FileService;
-import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -69,11 +68,8 @@ public class TestSecurityConfig {
   }
 
   @Bean
-  AccessService accessService(
-      ArmadilloStorageService storageService,
-      AccessLoader accessLoader,
-      ManagementService managementService) {
-    return new AccessService(storageService, accessLoader, managementService, null);
+  AccessService accessService(ArmadilloStorageService storageService, AccessLoader accessLoader) {
+    return new AccessService(storageService, accessLoader, null);
   }
 
   @Bean

@@ -11,19 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class AccessServiceTest {
 
   @Mock private ArmadilloStorageService storage;
-  @Mock private ManagementService managementService;
 
   @Test
   void testBootstrapAdmin() {
     var loader = new DummyAccessLoader();
-    var metadataService = new AccessService(storage, loader, managementService, "bofke@gmail.com");
+    var metadataService = new AccessService(storage, loader, "bofke@gmail.com");
     metadataService.initialize();
 
     assertEquals(Boolean.TRUE, metadataService.userByEmail("bofke@gmail.com").getAdmin());
@@ -41,7 +39,7 @@ class AccessServiceTest {
     var loader = new DummyAccessLoader(metadata);
     when(storage.listProjects()).thenReturn(List.of("project1", "project2"));
 
-    var metadataService = new AccessService(storage, loader, managementService, null);
+    var metadataService = new AccessService(storage, loader, null);
     metadataService.initialize();
 
     assertEquals(List.of(project2, project1), metadataService.projectsList());

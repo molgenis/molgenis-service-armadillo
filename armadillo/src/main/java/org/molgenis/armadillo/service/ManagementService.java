@@ -74,11 +74,6 @@ public class ManagementService {
     }
   }
 
-  /** Returns true if OAuth2 login is currently active. */
-  public boolean isOidcEnabled() {
-    return registrationRepository.isConfigured();
-  }
-
   // -------------------------------------------------------------------------
   // OIDC config read/write
   // -------------------------------------------------------------------------
@@ -98,15 +93,11 @@ public class ManagementService {
   // Application management
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ROLE_SU')")
+  @PreAuthorize(" hasRole('ROLE_SU')")
   public Map<String, String> getClient() {
     return Map.of(
         "client-id", clientId,
         "client-secret", clientSecret);
-  }
-
-  public Boolean getOidcPermissionsEnabled() {
-    return clientId != null && clientSecret != null && issuerUri != null;
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

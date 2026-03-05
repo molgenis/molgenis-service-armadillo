@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
-import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +30,7 @@ public class AccessService {
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
 
+  @Value("#{new Boolean('${armadillo.oidc-permission-enabled:false}')}")
   private boolean oidcPermissionsEnabled;
 
   private final String adminUser;
@@ -38,11 +38,9 @@ public class AccessService {
   public AccessService(
       ArmadilloStorageService armadilloStorageService,
       AccessLoader accessLoader,
-      ManagementService managementService,
       @Value("${armadillo.oidc-admin-user:#{null}}") String adminUser) {
     this.loader = requireNonNull(accessLoader);
     this.storage = requireNonNull(armadilloStorageService);
-    this.oidcPermissionsEnabled = managementService.getOidcPermissionsEnabled();
     this.adminUser = adminUser;
     runAsSystem(this::initialize);
   }
