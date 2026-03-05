@@ -22,7 +22,7 @@ public class ManagementService {
 
   private final AuthLoader loader;
   private final DynamicClientRegistrationRepository registrationRepository;
-  private AuthMetadata settings;
+  private OidcDetails settings;
   private String clientId;
   private String clientSecret;
   static String issuerUri;
@@ -96,8 +96,8 @@ public class ManagementService {
   @PreAuthorize(" hasRole('ROLE_SU')")
   public Map<String, String> getClient() {
     return Map.of(
-        "client-id", clientId,
-        "client-secret", clientSecret);
+        "clientId", clientId,
+        "clientSecret", clientSecret);
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -125,7 +125,7 @@ public class ManagementService {
     issuerUri = newIssuerUri;
     this.clientId = newClientId;
     this.clientSecret = newClientSecret;
-    settings = AuthMetadata.create(newClientId, newClientSecret, newIssuerUri);
+    settings = OidcDetails.create(newClientId, newClientSecret, newIssuerUri);
     save();
   }
 

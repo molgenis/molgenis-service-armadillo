@@ -3,16 +3,16 @@ package org.molgenis.armadillo.metadata;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthLoader extends StorageJsonLoader<AuthMetadata> {
+public class AuthLoader extends StorageJsonLoader<OidcDetails> {
 
   @Override
-  public AuthMetadata createDefault() {
-    return AuthMetadata.create();
+  public OidcDetails createDefault() {
+    return OidcDetails.create();
   }
 
   @Override
   public Class<? extends Persistable> getTargetClass() {
-    return AuthMetadata.class;
+    return OidcDetails.class;
   }
 
   @Override

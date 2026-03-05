@@ -8,7 +8,8 @@ import jakarta.validation.constraints.NotEmpty;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class OidcDetails {
+public abstract class OidcDetails implements Persistable {
+
   @JsonProperty("issuerUri")
   @NotEmpty
   public abstract String getIssuerUri();
@@ -20,6 +21,11 @@ public abstract class OidcDetails {
   @JsonProperty("clientSecret")
   @NotEmpty
   public abstract String getClientSecret();
+
+  /** Creates an empty instance used as a default when no config has been persisted yet. */
+  public static OidcDetails create() {
+    return new AutoValue_OidcDetails("", "", "");
+  }
 
   @JsonCreator
   public static OidcDetails create(
