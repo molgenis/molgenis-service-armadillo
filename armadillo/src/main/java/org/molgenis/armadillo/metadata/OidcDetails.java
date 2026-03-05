@@ -9,6 +9,10 @@ import jakarta.validation.constraints.NotEmpty;
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class OidcDetails {
+  @JsonProperty("issuerUri")
+  @NotEmpty
+  public abstract String getIssuerUri();
+
   @JsonProperty("clientId")
   @NotEmpty
   public abstract String getClientId();
@@ -17,15 +21,11 @@ public abstract class OidcDetails {
   @NotEmpty
   public abstract String getClientSecret();
 
-  @JsonProperty("authServerUri")
-  @NotEmpty
-  public abstract String getAuthServerUri();
-
   @JsonCreator
   public static OidcDetails create(
-      @JsonProperty("authServerUri") String authServerUri,
+      @JsonProperty("issuerUri") String issuerUri,
       @JsonProperty("clientId") String clientId,
       @JsonProperty("clientSecret") String clientSecret) {
-    return new AutoValue_OidcDetails(authServerUri, clientId, clientSecret);
+    return new AutoValue_OidcDetails(issuerUri, clientId, clientSecret);
   }
 }

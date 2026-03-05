@@ -17,7 +17,7 @@ import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.OidcDetails;
-import org.molgenis.armadillo.security.OidcConfigService;
+import org.molgenis.armadillo.security.OidcConfig;
 import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,23 +32,18 @@ import org.springframework.web.bind.annotation.*;
 public class ManagementController {
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
-  private final OidcConfigService oidcService;
 
   //  private final DynamicClientRegistrationRepository clientRegistration;
 
-  public ManagementController(
-      ManagementService managementService,
-      AuditEventPublisher auditor,
-      OidcConfigService oidcService) {
+  public ManagementController(ManagementService managementService, AuditEventPublisher auditor) {
     this.managementService = requireNonNull(managementService);
-    this.oidcService = requireNonNull(oidcService);
     this.auditor = auditor;
   }
 
   @Operation(summary = "Get oidc client information")
-  @GetMapping("auth/oidc-client")
-  public Map<String, String> getOidcClient(Principal principal) {
-    return auditor.audit(managementService::getClient, principal, "GET_OIDC_CLIENT");
+  @GetMapping("auth/oidc-config")
+  public OidcConfig getOidcConfig(Principal principal) {
+    return auditor.audit(managementService::getOidcConfig, principal, "GET_OIDC_CONFIG");
   }
 
   @Operation(summary = "Restart armadillo")
@@ -59,7 +54,7 @@ public class ManagementController {
 
   @PostMapping("auth/reload")
   public void reloadAuth(Principal principal) {
-    auditor.audit(oidcService::reload, principal, "RELOAD_OIDC");
+    auditor.audit(managementService::reloadOidcRegistration, principal, "RELOAD_OIDC");
   }
 
   @Operation(summary = "Change the OIDC config")
@@ -77,7 +72,7 @@ public class ManagementController {
     auditor.audit(
         () ->
             managementService.saveNewOidcConfig(
-                oidcDetails.getAuthServerUri(),
+                oidcDetails.getIssuerUri(),
                 oidcDetails.getClientId(),
                 oidcDetails.getClientSecret()),
         principal,

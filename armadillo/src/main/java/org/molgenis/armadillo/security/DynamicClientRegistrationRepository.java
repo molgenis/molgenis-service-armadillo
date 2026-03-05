@@ -6,12 +6,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
+import org.springframework.stereotype.Component;
 
 /**
  * A {@link ClientRegistrationRepository} whose registration can be replaced at runtime without
  * restarting the application. When no OIDC config is loaded, {@link #findByRegistrationId} returns
  * {@code null}, causing Spring Security to skip OAuth2 login and fall back to basic auth.
  */
+@Component
 public class DynamicClientRegistrationRepository
     implements ClientRegistrationRepository, Iterable<ClientRegistration> {
 

@@ -12,8 +12,8 @@ public abstract class AuthMetadata implements Persistable {
   @JsonProperty("client-secret")
   public abstract String getClientSecret();
 
-  @JsonProperty("auth-server-uri")
-  public abstract String getAuthServerUri();
+  @JsonProperty("issuer-uri")
+  public abstract String getIssuerUri();
 
   public static AuthMetadata create() {
     return new AutoValue_AuthMetadata("", "", "");
@@ -23,7 +23,7 @@ public abstract class AuthMetadata implements Persistable {
   public static AuthMetadata create(
       @JsonProperty("client-id") String newClientId,
       @JsonProperty("client-secret") String newClientSecret,
-      @JsonProperty("auth-server-uri") String newAuthServerUri) {
-    return new AutoValue_AuthMetadata(newClientId, newClientSecret, newAuthServerUri);
+      @JsonProperty("issuer-uri") String newIssuerUri) {
+    return new AutoValue_AuthMetadata(newClientId, newClientSecret, newIssuerUri);
   }
 }

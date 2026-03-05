@@ -47,7 +47,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 // Three auth mechanisms are supported: JWT (most dominant), basic auth, and OAuth2 login
 // (least dominant). In the 'test' profile none of these are enabled.
-// OAuth2/JWT are only active when an OIDC config has been loaded via OidcConfigService.reload().
+// OAuth2/JWT are only active when an OIDC config has been loaded via ManagementService.reload().
 public class AuthConfig {
 
   private static final CorsConfiguration ALLOW_CORS =
@@ -82,20 +82,6 @@ public class AuthConfig {
 
   public AuthConfig(AccessService accessService) {
     this.accessService = accessService;
-  }
-
-  // -------------------------------------------------------------------------
-  // Beans
-  // -------------------------------------------------------------------------
-
-  /**
-   * The registration repository is a singleton shared between {@link AuthConfig} and {@link
-   * OidcConfigService}. OidcConfigService.reload() swaps its contents at runtime; Spring's OAuth2
-   * login reads from it on every request.
-   */
-  @Bean
-  public DynamicClientRegistrationRepository clientRegistrationRepository() {
-    return new DynamicClientRegistrationRepository();
   }
 
   // -------------------------------------------------------------------------
@@ -148,7 +134,7 @@ public class AuthConfig {
    * <p>The authorization request resolver must be lazy. When you supply your own
    * ClientRegistrationRepository bean, Spring's OAuth2 auto-configuration backs off completely. An
    * eagerly constructed DefaultOAuth2AuthorizationRequestResolver would capture the repository
-   * state at startup — before OidcConfigService.reload() runs — and never redirect correctly. The
+   * state at startup — before ManagementService.reload() runs — and never redirect correctly. The
    * lazy resolver re-evaluates the repository on every incoming request instead.
    */
   private void configureOAuth2AndJwt(
@@ -176,7 +162,7 @@ public class AuthConfig {
   /**
    * Returns a resolver that constructs a fresh {@link DefaultOAuth2AuthorizationRequestResolver} on
    * every request. This is necessary because the repository may be empty at filter chain build time
-   * (before OidcConfigService.reload() is called) — an eagerly constructed resolver would capture a
+   * (before ManagementService.reload() is called) — an eagerly constructed resolver would capture a
    * null registration and never redirect to the auth server.
    */
   private OAuth2AuthorizationRequestResolver lazyAuthorizationRequestResolver(
