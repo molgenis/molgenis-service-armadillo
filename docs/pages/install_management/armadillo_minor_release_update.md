@@ -93,7 +93,7 @@ should result in:
 
 ```bash
 ls system/
-# access.json  profiles.json
+# access.json  containers.json
 ```
 
 ### 4. Restart application using new version
@@ -133,8 +133,8 @@ systemctl status armadillo
 
 Go to your armadillo website. Is the version in the left top corner updated? This means the update was successful.
 
-### 6. Start profiles
+### 6. Start containers
 
-Login into the website and go to the profiles tab. Now you can start all the profiles again.
+Login into the website and go to the containers tab. Now you can start all the containers again.
 
 Everything should now be working correctly. You can try and login to your server via the central analysis server, using the `DSMolgenisArmadillo` (2.0.5 or up) package to test.

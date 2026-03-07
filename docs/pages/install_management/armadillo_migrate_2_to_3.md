@@ -231,7 +231,7 @@ forward-headers-strategy: framework
 
 Add the following to the config of your server: `https://yourserver.com/login/oauth2/code/molgenis`
 
-### 12. Set up profiles
+### 12. Set up containers
 
 Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
 

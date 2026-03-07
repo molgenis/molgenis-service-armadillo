@@ -28,8 +28,8 @@ This is where custom exceptions for the application are defined.
 
 ## Helpers
 
-The other directories are `audit`, `command`, `info`, `interceptor`, `metadata`, `profile`: These directories could contain various utilities, helpers, or additional functionalities specific to your application.
+The other directories are `audit`, `command`, `info`, `interceptor`, `metadata`, `container`: These directories could contain various utilities, helpers, or additional functionalities specific to your application.
 
-### Profile
+### Container
 
-A profile is connected with a Docker container having a DataShield image.
+A Docker container based on a DataShield image.

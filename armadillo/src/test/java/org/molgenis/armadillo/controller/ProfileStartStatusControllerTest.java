@@ -8,24 +8,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.metadata.ProfileStartStatus;
-import org.molgenis.armadillo.profile.ProfileStatusService;
+import org.molgenis.armadillo.container.ContainerStatusService;
+import org.molgenis.armadillo.metadata.ContainerStartStatus;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileStartStatusControllerMockitoTest {
+class ContainerStartStatusControllerMockitoTest {
 
-  @Mock private ProfileStatusService statusService;
+  @Mock private ContainerStatusService statusService;
 
-  @InjectMocks private ProfileStartStatusController controller;
+  @InjectMocks private ContainerStartStatusController controller;
 
   @Test
   void getStatus_returnsServiceResult() {
     // arrange
-    var expected = new ProfileStartStatus("donkey", "Installing profile", 22, 24);
+    var expected = new ContainerStartStatus("donkey", "Installing container", 22, 24);
     when(statusService.getStatus("donkey")).thenReturn(expected);
 
     // act
-    ProfileStartStatus actual = controller.getStatus("donkey");
+    ContainerStartStatus actual = controller.getStatus("donkey");
 
     // assert
     assertSame(expected, actual); // same instance passed through
@@ -36,15 +36,15 @@ class ProfileStartStatusControllerMockitoTest {
   @Test
   void getStatus_unknown_returnsAllNulls() {
     // arrange
-    var expected = new ProfileStartStatus(null, null, null, null);
+    var expected = new ContainerStartStatus(null, null, null, null);
     when(statusService.getStatus("missing")).thenReturn(expected);
 
     // act
-    ProfileStartStatus actual = controller.getStatus("missing");
+    ContainerStartStatus actual = controller.getStatus("missing");
 
     // assert
     assertNotNull(actual);
-    assertNull(actual.getProfileName());
+    assertNull(actual.getContainerName());
     assertNull(actual.getStatus());
     assertNull(actual.getCompletedLayers());
     assertNull(actual.getTotalLayers());
@@ -55,14 +55,14 @@ class ProfileStartStatusControllerMockitoTest {
   @Test
   void pathVariable_isPassedThroughUnchanged() {
     // arrange
-    var expected = new ProfileStartStatus("ShReK", "Profile installed", 24, 24);
+    var expected = new ContainerStartStatus("ShReK", "Profile installed", 24, 24);
     when(statusService.getStatus("ShReK")).thenReturn(expected);
 
     // act
-    ProfileStartStatus actual = controller.getStatus("ShReK");
+    ContainerStartStatus actual = controller.getStatus("ShReK");
 
     // assert
-    assertEquals("ShReK", actual.getProfileName());
+    assertEquals("ShReK", actual.getContainerName());
     assertEquals("Profile installed", actual.getStatus());
     verify(statusService).getStatus("ShReK");
     verifyNoMoreInteractions(statusService);
