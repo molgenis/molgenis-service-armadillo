@@ -41,7 +41,7 @@
 import Navbar from "@/components/Navbar.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
-import Footer from "./components/Footer.vue";
+import Footer from "@/components/Footer.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
 import {
   getPrincipal,
@@ -128,6 +128,7 @@ export default defineComponent({
         Workspaces: "string",
         Profiles: "string",
         Insight: ["Metrics", "Logs"],
+        System: "string",
       },
       tabIcons: [
         "clipboard2-data",
@@ -135,6 +136,7 @@ export default defineComponent({
         "person-workspace",
         "shield-shaded",
         "brilliance",
+        "gear-fill",
       ],
     };
   },
