@@ -22,6 +22,7 @@
             id="inputServer"
             v-model="serverUri"
             :disabled="!isEditMode"
+            :placeholder="serverUri"
           />
         </div>
       </div>
@@ -36,6 +37,7 @@
             id="inputClient"
             v-model="clientId"
             :disabled="!isEditMode"
+            :placeholder="clientId"
           />
         </div>
       </div>
@@ -49,6 +51,7 @@
             class="form-control"
             id="inputSecret"
             v-model="clientSecret"
+            :placeholder="clientSecret"
             :disabled="!isEditMode"
           />
         </div>
