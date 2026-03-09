@@ -64,7 +64,7 @@ public class ManagementController {
             description = "Unauthorized",
             content = @Content(schema = @Schema(hidden = true)))
       })
-  @PutMapping(value = "oidc", produces = TEXT_PLAIN_VALUE)
+  @PutMapping(value = "auth/oidc-config", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
   public void projectsUpsert(Principal principal, @Valid @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
