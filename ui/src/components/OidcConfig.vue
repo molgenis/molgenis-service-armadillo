@@ -7,7 +7,7 @@
         @click="turnOnEditmode"
         v-if="!isEditMode"
       >
-        <i class="bi bi-pen-fill"></i>
+        <i class="bi bi-pencil-fill"></i>
       </button>
     </h5>
     <div class="card-body">

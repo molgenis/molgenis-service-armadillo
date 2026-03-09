@@ -6,6 +6,7 @@
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
+          :warningMessage="warningMessage"
         ></FeedbackMessage>
         <ConfirmationDialog
           v-if="isRestartServerPushed"
@@ -118,12 +119,15 @@ export default defineComponent({
   data() {
     return {
       successMessage: "",
+      warningMessage: "",
       updateOidcTriggered: false,
       isRestartServerPushed: false,
     };
   },
   methods: {
     proceedRestartServer() {
+      this.warningMessage =
+        "Server will restart now. Please refresh and log back in.";
       restartServer();
     },
     cancelRestartServer() {
