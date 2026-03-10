@@ -56,7 +56,7 @@
           />
         </div>
       </div>
-      <button class="btn btn-danger" v-if="isEditMode" @click="turnOffEditmode">
+      <button class="btn btn-danger" v-if="isEditMode" @click="cancelEdit">
         <i class="bi bi-x-lg"></i> Cancel
       </button>
       <button class="btn btn-primary" v-if="isEditMode" @click="triggerSave">
@@ -92,6 +92,12 @@ export default defineComponent({
     },
     turnOnEditmode() {
       this.isEditMode = true;
+    },
+    cancelEdit() {
+      this.turnOffEditmode();
+      this.serverUri = this.presetServerUri;
+      this.clientId = this.presetClientId;
+      this.clientSecret = this.presetClientSecret;
     },
     triggerSave() {
       this.turnOffEditmode();
