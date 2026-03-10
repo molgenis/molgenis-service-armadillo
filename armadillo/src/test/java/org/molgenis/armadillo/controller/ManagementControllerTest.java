@@ -117,7 +117,7 @@ class ManagementControllerTest {
 
     mockMvc
         .perform(
-            put("/manage/oidc")
+            put("/manage/auth/oidc-config")
                 .content(new Gson().toJson(oidcDetails))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -132,7 +132,11 @@ class ManagementControllerTest {
   void projectsUpsert_PUT_empty_body_returns_no_content() throws Exception {
     // Empty body should fail @Valid validation
     mockMvc
-        .perform(put("/manage/oidc").content("{}").contentType(APPLICATION_JSON).with(csrf()))
+        .perform(
+            put("/manage/auth/oidc-config")
+                .content("{}")
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
         .andExpect(status().isNoContent());
   }
 
@@ -144,7 +148,7 @@ class ManagementControllerTest {
 
     mockMvc
         .perform(
-            put("/manage/oidc")
+            put("/manage/auth/oidc-config")
                 .content(new Gson().toJson(oidcDetails))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
@@ -158,7 +162,7 @@ class ManagementControllerTest {
 
     mockMvc
         .perform(
-            put("/manage/oidc")
+            put("/manage/auth/oidc-config")
                 .content(new Gson().toJson(oidcDetails))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
