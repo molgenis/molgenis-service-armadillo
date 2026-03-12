@@ -16,7 +16,7 @@
         ref="serverUri"
         label="Server URL"
         icon="database-fill"
-        :value="serverUri"
+        :value="presetServerUri"
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
@@ -26,7 +26,7 @@
         ref="clientId"
         label="Client ID"
         icon="fingerprint"
-        :value="clientId"
+        :value="presetClientId"
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
@@ -36,7 +36,7 @@
         ref="clientSecret"
         label="Client Secret"
         icon="incognito"
-        :value="clientSecret"
+        :value="presetClientSecret"
         :hasCopyButton="true"
         type="password"
         :isEditMode="isEditMode"
@@ -75,9 +75,6 @@ export default defineComponent({
   data() {
     return {
       renderComponent: true,
-      serverUri: this.presetServerUri,
-      clientId: this.presetClientId,
-      clientSecret: this.presetClientSecret,
       isEditMode: false,
     };
   },
@@ -99,9 +96,6 @@ export default defineComponent({
     },
     cancelEdit() {
       this.turnOffEditmode();
-      this.serverUri = this.presetServerUri;
-      this.clientId = this.presetClientId;
-      this.clientSecret = this.presetClientSecret;
       this.forceRerender();
     },
     triggerSave() {
