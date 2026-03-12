@@ -122,6 +122,7 @@ export default defineComponent({
       warningMessage: "",
       updateOidcTriggered: false,
       isRestartServerPushed: false,
+      configToSave: {},
     };
   },
   methods: {
@@ -136,19 +137,15 @@ export default defineComponent({
     cancelOidcUpdate() {
       this.updateOidcTriggered = false;
     },
-    askIfSureUpdateOidc() {
+    askIfSureUpdateOidc(event: Event) {
       this.updateOidcTriggered = true;
+      this.configToSave = event;
     },
     saveOidcConfig() {
-      const config = {
-        issuerUri: (this.$refs.updatedOidcConfig as any).serverUri,
-        clientId: (this.$refs.updatedOidcConfig as any).clientId,
-        clientSecret: (this.$refs.updatedOidcConfig as any).clientSecret,
-      };
-      putAuthServerConfig(config)
+      putAuthServerConfig(this.configToSave)
         .then(() => {
           this.successMessage = "Successfully updated OIDC config";
-          this.authConfig = config;
+          this.authConfig = this.configToSave;
           this.cancelOidcUpdate();
         })
         .catch((errrorMsg) => {

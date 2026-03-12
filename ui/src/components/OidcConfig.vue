@@ -11,75 +11,36 @@
       </button>
     </h5>
     <div class="card-body">
-      <div class="mb-3 row">
-        <label for="inputServer" class="col-sm-2 col-form-label">
-          <i class="bi bi-database-fill"></i> Server URL
-        </label>
-        <div class="col-sm-10">
-          <input
-            type="text"
-            class="form-control"
-            id="inputServer"
-            v-model="serverUri"
-            :disabled="!isEditMode"
-            :placeholder="serverUri"
-          />
-        </div>
-      </div>
-      <div class="mb-3 row">
-        <label for="inputClient" class="col-sm-2 col-form-label">
-          <i class="bi bi-fingerprint"></i> Client ID
-        </label>
-        <div class="col-sm-10">
-          <input
-            type="text"
-            class="form-control"
-            id="inputClient"
-            v-model="clientId"
-            :disabled="!isEditMode"
-            :placeholder="clientId"
-          />
-        </div>
-      </div>
-      <div class="mb-3 row">
-        <label for="inputSecret" class="col-sm-2 col-form-label">
-          <i class="bi bi-incognito"></i> Client Secret
-        </label>
-        <div class="col-sm-10">
-          <div class="input-group">
-            <input
-              :type="showSecret ? 'text' : 'password'"
-              class="form-control"
-              id="inputSecret"
-              v-model="clientSecret"
-              :placeholder="clientSecret"
-              :disabled="!isEditMode"
-            />
-            <!-- toggle visibility here -->
-            <button
-              class="btn btn-info"
-              type="button"
-              @click="toggleVisibilityClientSecret"
-            >
-              <i class="bi bi-eye-slash-fill" v-if="showSecret"></i
-              ><i class="bi bi-eye-fill" v-else></i>
-            </button>
-            <!-- copy here -->
-            <button
-              class="btn"
-              :class="isCopied['secret'] ? 'btn-success' : 'btn-secondary'"
-              type="button"
-              @click="copy(clientSecret, 'secret')"
-            >
-              <i
-                class="bi bi-clipboard-check-fill"
-                v-if="isCopied['secret']"
-              ></i
-              ><i class="bi bi-clipboard-fill" v-else></i>
-            </button>
-          </div>
-        </div>
-      </div>
+      <FormInput
+        v-if="renderComponent"
+        ref="serverUri"
+        label="Server URL"
+        icon="database-fill"
+        :value="serverUri"
+        :hasCopyButton="true"
+        type="text"
+        :isEditMode="isEditMode"
+      />
+      <FormInput
+        v-if="renderComponent"
+        ref="clientId"
+        label="Client ID"
+        icon="fingerprint"
+        :value="clientId"
+        :hasCopyButton="true"
+        type="text"
+        :isEditMode="isEditMode"
+      />
+      <FormInput
+        v-if="renderComponent"
+        ref="clientSecret"
+        label="Client Secret"
+        icon="incognito"
+        :value="clientSecret"
+        :hasCopyButton="true"
+        type="password"
+        :isEditMode="isEditMode"
+      />
       <button class="btn btn-danger" v-if="isEditMode" @click="cancelEdit">
         <i class="bi bi-x-lg"></i> Cancel
       </button>
@@ -92,6 +53,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import FormInput from "./FormInput.vue";
 
 export default defineComponent({
   name: "OidcConfig",
@@ -109,14 +71,10 @@ export default defineComponent({
       required: true,
     },
   },
+  components: { FormInput },
   data() {
     return {
-      showSecret: false,
-      isCopied: {
-        secret: false,
-        id: false,
-        uri: false,
-      },
+      renderComponent: true,
       serverUri: this.presetServerUri,
       clientId: this.presetClientId,
       clientSecret: this.presetClientSecret,
@@ -125,8 +83,13 @@ export default defineComponent({
   },
   emits: ["saveOidcConfig"],
   methods: {
-    toggleVisibilityClientSecret() {
-      this.showSecret = !this.showSecret;
+    async forceRerender() {
+      // Remove MyComponent from the DOM
+      this.renderComponent = false;
+      // Wait for the change to get flushed to the DOM
+      await this.$nextTick();
+      // Add the component back in
+      this.renderComponent = true;
     },
     turnOffEditmode() {
       this.isEditMode = false;
@@ -139,37 +102,14 @@ export default defineComponent({
       this.serverUri = this.presetServerUri;
       this.clientId = this.presetClientId;
       this.clientSecret = this.presetClientSecret;
-    },
-    copy(variableToCopy: string, typeToCopy: "id" | "secret" | "uri") {
-      const textBlob = new Blob([variableToCopy], { type: "text/plain" });
-      const clipboardItemData: {
-        [mimeType: string]: Blob | string | Promise<Blob | string>;
-      } = {
-        "text/plain": textBlob,
-      };
-
-      const clipboardItem = new ClipboardItem(clipboardItemData);
-
-      navigator.clipboard
-        .write([clipboardItem])
-        .then(() => {
-          // otherwise this is the context of the then function we're in, rather than our data prop
-          const self = this;
-          this.isCopied[typeToCopy] = true;
-          setTimeout(function () {
-            self.isCopied[typeToCopy] = false;
-          }, 1000);
-        })
-        .catch((err) => {
-          console.error("Error copying to clipboard:", err);
-        });
+      this.forceRerender();
     },
     triggerSave() {
       this.turnOffEditmode();
       this.$emit("saveOidcConfig", {
-        issuerUri: this.serverUri,
-        clientId: this.clientId,
-        clientSecret: this.clientSecret,
+        issuerUri: (this.$refs as any).serverUri.mappedValue,
+        clientId: (this.$refs as any).clientId.mappedValue,
+        clientSecret: (this.$refs as any).clientSecret.mappedValue,
       });
     },
   },
