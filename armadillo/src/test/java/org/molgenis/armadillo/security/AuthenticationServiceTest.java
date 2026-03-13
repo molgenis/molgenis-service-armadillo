@@ -39,8 +39,6 @@ class AuthenticationServiceTest {
     when(request.getHeader("Authorization")).thenReturn("Bearer some.jwt.token");
 
     Authentication auth = AuthenticationService.getAuthentication(request, VALID_API_KEY);
-
-    assertThat(auth).isNotNull();
     assertThat(auth).isInstanceOf(KeyAuthentication.class);
   }
 
@@ -72,8 +70,6 @@ class AuthenticationServiceTest {
     when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
 
     Authentication auth = AuthenticationService.getAuthentication(request, VALID_API_KEY);
-
-    assertThat(auth).isNotNull();
     assertThat(auth).isInstanceOf(KeyAuthentication.class);
   }
 
@@ -105,8 +101,6 @@ class AuthenticationServiceTest {
         .thenReturn(sessionContextWithAuthenticatedUser("user", "creds"));
 
     Authentication auth = AuthenticationService.getAuthentication(request, VALID_API_KEY);
-
-    assertThat(auth).isNotNull();
     assertThat(auth).isInstanceOf(KeyAuthentication.class);
   }
 
@@ -173,8 +167,6 @@ class AuthenticationServiceTest {
     when(request.getHeader("X-API-KEY")).thenReturn(VALID_API_KEY);
 
     Authentication auth = AuthenticationService.getAuthentication(request, VALID_API_KEY);
-
-    assertThat(auth).isNotNull();
     assertThat(auth).isInstanceOf(KeyAuthentication.class);
   }
 

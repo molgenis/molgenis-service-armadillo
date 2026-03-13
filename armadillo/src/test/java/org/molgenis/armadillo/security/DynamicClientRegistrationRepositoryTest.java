@@ -15,22 +15,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 class DynamicClientRegistrationRepositoryTest {
-
-  // A pre-built ClientRegistration we can use without hitting a real OIDC server.
-  // discoverRegistration() is the only method that does I/O; everything else works
-  // with whatever ClientRegistration is stored in the AtomicReference.
-  private static final ClientRegistration REGISTRATION =
-      ClientRegistration.withRegistrationId("molgenis")
-          .clientId("test-client")
-          .clientSecret("test-secret")
-          .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-          .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-          .authorizationUri("https://issuer.example.com/auth")
-          .tokenUri("https://issuer.example.com/token")
-          .jwkSetUri("https://issuer.example.com/jwks")
-          .scope("openid", "email", "profile")
-          .build();
-
   private static final OidcConfig CONFIG =
       new OidcConfig("https://issuer.example.com", "test-client", "test-secret");
 
