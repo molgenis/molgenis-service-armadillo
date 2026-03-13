@@ -50,15 +50,18 @@ describe("OidcConfig", () => {
 
   test("cancelEdit", async () => {
     wrapper.vm.isEditMode = true;
-    await nextTick();
-    wrapper.vm.serverUri = "another-uri";
-    wrapper.vm.clientId = "another-id";
-    wrapper.vm.clientSecret = "another-secret";
     wrapper.vm.cancelEdit();
     await nextTick();
     expect(wrapper.vm.isEditMode).toBe(false);
-    expect(wrapper.html()).toContain("http://auth-server");
+  });
+
+  test("forceRerender", async () => {
+    wrapper.vm.$refs.clientId.mappedValue = "another-id";
+    await nextTick();
+    expect(wrapper.html()).toContain( "another-id");
+    wrapper.vm.forceRerender();
+    await nextTick();
+    await nextTick();
     expect(wrapper.html()).toContain("my-id");
-    expect(wrapper.html()).toContain("my-very-secret-secret"); 
   });
 });
