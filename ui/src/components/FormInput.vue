@@ -24,6 +24,7 @@
         </button>
         <!-- copy here -->
         <button
+          v-if="hasCopyButton"
           class="btn"
           :class="isCopied ? 'btn-success' : 'btn-secondary'"
           type="button"
@@ -60,17 +61,8 @@ export default defineComponent({
   },
   methods: {
     copy() {
-      const textBlob = new Blob([this.mappedValue], { type: "text/plain" });
-      const clipboardItemData: {
-        [mimeType: string]: Blob | string | Promise<Blob | string>;
-      } = {
-        "text/plain": textBlob,
-      };
-
-      const clipboardItem = new ClipboardItem(clipboardItemData);
-
       navigator.clipboard
-        .write([clipboardItem])
+        .writeText(this.mappedValue)
         .then(() => {
           // otherwise this is the context of the then function we're in, rather than our data prop
           const self = this;
