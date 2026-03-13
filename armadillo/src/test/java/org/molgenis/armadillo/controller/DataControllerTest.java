@@ -39,6 +39,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.exceptions.UnknownVariableException;
 import org.molgenis.armadillo.service.DSEnvironmentCache;
 import org.molgenis.armadillo.service.ExpressionRewriter;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.model.RPackage;
@@ -83,6 +84,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private ExpressionRewriter expressionRewriter;
   @MockitoBean private Commands commands;
   @MockitoBean DockerClient dockerClient;
+  @MockitoBean ManagementService managementService;
   @MockitoBean private ArmadilloStorageService armadilloStorage;
   @MockitoBean private DSEnvironmentCache environments;
   @Mock private RockResult rexp;

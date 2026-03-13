@@ -28,6 +28,7 @@ import org.mockito.Captor;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -49,6 +50,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
 
   @MockitoBean DockerClient dockerClient;
   @MockitoBean ArmadilloStorageService storage;
+  @MockitoBean ManagementService managementService;
 
   @Captor protected ArgumentCaptor<InputStream> inputStreamCaptor;
 

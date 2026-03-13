@@ -47,6 +47,7 @@ nav:
       - pages/basic_usage/index.md
       - "Armadillo User Interface": pages/basic_usage/armadillo_ui.md
       - "Central Analysis Server (CAS)": pages/basic_usage/central_analysis_server.md
+      - "Data in Armadillo": pages/basic_usage/data_in_armadillo.md
       - "DSMolgenisArmadillo": pages/basic_usage/ds_molgenis_armadillo.md
       - "MolgenisArmadillo": pages/basic_usage/molgenis_armadillo.md
       - "dsUpload & dsDictionaries": pages/basic_usage/dsupload_dsdictionaries.md
@@ -63,7 +64,9 @@ nav:
       - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md
       - "Migrate Armadillo 3 to 4": pages/install_management/armadillo_migrate_3_to_4.md
       - "Migrate Armadillo 4 to 5": pages/install_management/armadillo_migrate_4_to_5.md
-  - "Developer guides": pages/dev_guides.md
+  - Development:
+    - pages/development/index.md
+    - "System files in Armadillo": pages/development/system_files_in_armadillo.md
   - "License": pages/license.md
   - "FAQ": pages/faq.md
 #  - "Troubleshooting": pages/troubleshooting.md
