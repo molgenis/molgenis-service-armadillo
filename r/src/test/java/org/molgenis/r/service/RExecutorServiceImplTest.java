@@ -169,7 +169,7 @@ class RExecutorServiceImplTest {
         .eval(
             "is.null(base::assign('R', value={resourcer::newResource(\n"
                 + "        name = rds$name,\n"
-                + "        url = rds$url,\n"
+                + "        url = gsub('/objects/', '/rawfiles/', rds$url),\n"
                 + "        format = rds$format,\n"
                 + "        secret = \"token\"\n"
                 + ")}))",
@@ -187,7 +187,7 @@ class RExecutorServiceImplTest {
         .eval(
             "is.null(base::assign('R', value={resourcer::newResource(\n"
                 + "        name = rds$name,\n"
-                + "        url = rds$url,\n"
+                + "        url = gsub('/objects/', '/rawfiles/', rds$url),\n"
                 + "        format = rds$format,\n"
                 + "        secret = \"token\"\n"
                 + ")}))",

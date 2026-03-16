@@ -88,7 +88,8 @@ the 'levels' column.
 ![preview-metadata.png](../../img/ui/preview-metadata.png)
 
 To upload files, either drag a file from your file browser to the file upload area, or click the area and select the
-file.
+file. If a csv or tsv file is selected, it's possible to convert them to a `.parquet` file, so it can be used as a 
+table.
 
 ![Armadillo upload a file](../../img/ui/upload-a-file.png)
 
@@ -112,7 +113,7 @@ The URL of your resources should consist of:
 {your url}/storage/projects/{project name}/objects/{name of the folder}%2F{the resource file}
 ```
 
-Here is an example, with some example parameters:
+That means that the following parameters:
 
 ```r
 url = "https://armadillo3.demo.molgenis.net"
@@ -121,7 +122,7 @@ folder = "ewas"
 file = "gse66351_1.rda"
 ```
 
-Which results in the following url:
+Will result in this url:
 
 ```r
 https://armadillo3.demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66351_1.rda
