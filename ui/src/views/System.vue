@@ -15,7 +15,7 @@
           recordType="application"
           @proceed="proceedRestartServer"
           @cancel="cancelRestartServer"
-          extraInfo="The website will be down for a short period of time. Refresh until it's back up."
+          extraInfo="The website will be down for a short period of time. Try refreshing until it is back up."
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="updateOidcTriggered"
@@ -24,7 +24,7 @@
           recordType="the authentication server"
           @proceed="saveOidcConfig"
           @cancel="cancelOidcUpdate"
-          extraInfo="Another authentication server might be used when proceeding, meaning that current users possibly cannot login if they are not registered to the new oidc config."
+          extraInfo="Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access."
         ></ConfirmationDialog>
       </div>
     </div>

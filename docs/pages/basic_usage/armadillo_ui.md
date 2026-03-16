@@ -196,10 +196,10 @@ From Armadillo v.5.2.0 and higher, it is also possible to automatically update p
 On the insight page application and server information can be shown on the Metrics page. There's also a Logs page where the audit log and general application logs can be viewed and downloaded.
 
 ## System
-From Armadillo 5.13 on, the System page is added, so that datamanagers have more freedom over their Armadillo server, without having to contact IT support.
+From Armadillo 5.13 on the System page is added, which gives data managers more control over their Armadillo server, without having to contact IT support
 
 ### Authentication server configuration
-On this page, the authentication server, used for OIDC authentication of the application, can be reconfigured. The initial authentication server configuration for oAuth/OIDC login, can be set in the `application.yml`, before starting Armadillo for the first time. When armadillo starts,
+On this page the authentication server -- used for OIDC authentication of the application -- can be reconfigured. The initial authentication server configuration for oAuth/OIDC login can be set in the application.yml before starting Armadillo for the first time. When armadillo starts,
 it will create a `auth.json` from the configuration in the `application.yml`, if configuration is available there, else it will create an empty configuration file. This file resides in the system folder of the data folder of the application (this folder is also configured in the `application.yml` as `storage.root-dir`). This file contains the Authentication server configuration that will be used in the application. 
 
 ### Restart button
