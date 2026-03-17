@@ -41,7 +41,7 @@ describe("Workspaces", () => {
       buttons[0].trigger("click");
       await nextTick();
       expect(wrapper.vm.isRestartServerPushed).toBe(true);
-      expect(wrapper.html()).toContain("The website will be down for a short period of time. Refresh until it's back up.");
+      expect(wrapper.html()).toContain("The website will be down for a short period of time. Try refreshing until it is back up.");
     });
 
     test("Verify restart cancel closes confirmation dialog", async () => {
