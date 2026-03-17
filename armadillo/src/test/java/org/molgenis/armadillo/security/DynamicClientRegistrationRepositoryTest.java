@@ -227,11 +227,8 @@ class DynamicClientRegistrationRepositoryTest {
   @Test
   void discoverAndLoad_throwsWhenIssuerUnreachable() {
     DynamicClientRegistrationRepository real = new DynamicClientRegistrationRepository();
-
-    assertThatThrownBy(
-            () ->
-                real.discoverAndLoad(
-                    new OidcConfig("https://unreachable.example.com", "client", "secret")))
+    OidcConfig oidcConfig = new OidcConfig("https://unreachable.example.com", "client", "secret");
+    assertThatThrownBy(() -> real.discoverAndLoad(oidcConfig))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -244,10 +241,10 @@ class DynamicClientRegistrationRepositoryTest {
         get(urlPathEqualTo("/.well-known/oauth-authorization-server"))
             .willReturn(okJson("{\"invalid\": \"document\"}")));
 
+    OidcConfig oidcConfig = new OidcConfig(wireMock.baseUrl(), "client", "secret");
     DynamicClientRegistrationRepository real = new DynamicClientRegistrationRepository();
 
-    assertThatThrownBy(
-            () -> real.discoverAndLoad(new OidcConfig(wireMock.baseUrl(), "client", "secret")))
+    assertThatThrownBy(() -> real.discoverAndLoad(oidcConfig))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
