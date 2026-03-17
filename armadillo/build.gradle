@@ -14,6 +14,9 @@ repositories {
     maven {
         url = 'https://obiba.jfrog.io/artifactory/libs-release-local/'
     }
+    flatDir {
+        dirs '../repo-local'
+    }
 }
 
 bootJar.enabled = false
@@ -44,8 +47,8 @@ dependencies {
     testImplementation "junit:junit"
 
     //other
-    implementation 'org.rosuda.REngine:REngine:2.1.0'
-    implementation 'org.rosuda.REngine:Rserve:1.8.1'
+    implementation 'org.rosuda.REngine:REngine:2.1.1-SNAPSHOT'
+    implementation 'org.rosuda.REngine:Rserve:1.8.2-SNAPSHOT'
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.30'
     implementation("io.swagger.core.v3:swagger-core-jakarta:2.2.30")
     implementation 'com.google.auto.value:auto-value-annotations:1.10.4'
