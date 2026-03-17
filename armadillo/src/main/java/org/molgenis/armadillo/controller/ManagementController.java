@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
@@ -66,7 +65,7 @@ public class ManagementController {
       })
   @PutMapping(value = "auth/oidc-config", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void oidcUpsert(Principal principal, @Valid @RequestBody OidcDetails oidcDetails) {
+  public void oidcUpsert(Principal principal, @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
         () ->
             managementService.saveNewOidcConfig(

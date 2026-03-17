@@ -123,7 +123,7 @@ public class ManagementService {
     ArmadilloServiceApplication.restart();
   }
 
-  public void save() {
+  void save() {
     loader.save(settings);
   }
 
