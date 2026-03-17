@@ -47,9 +47,9 @@ du -h /var/lib/minio
 ### 2. Backup Armadillo 2 settings
 
 ```bash
-mkdir armadillo2-backup
-rsync -avr /usr/share/armadillo armadillo2-backup
-cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml
+mkdir armadillo2-backup 
+rsync -avr /usr/share/armadillo armadillo2-backup 
+cp /etc/armadillo/application.yml armadillo2-backup/application-armadillo2.yml 
 ```
 
 ???+ note
@@ -88,7 +88,7 @@ docker ps -a
 Stop and remove all Armadillo 2 related images (except for MinIO), e.g.
 
 ```bash
-docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f
+docker rm armadillo_auth_1 armadillo_console_1 armadillo_rserver-default_1 armadillo_rserver-mediation_1 armadillo_rserver-exposome_1 armadillo_rserver-omics_1 armadillo_armadillo_1 -f 
 ```
 
 Check with `docker ps -a` if there are still containers running, if so remove these (**except for the MinIO**) in the same way as the others.
@@ -114,10 +114,10 @@ apt install docker.io
 Get armadillo:
 
 ```bash
-wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh
+wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/master/scripts/install/armadillo-setup.sh 
 bash armadillo-setup.sh \
     --admin-user admin \
-    --admin-password xxxxx
+    --admin-password xxxxx 
     --domain my.server.com \
     --oidc \
     --oidc_url https://lifecycle-auth.molgenis.org \
@@ -162,7 +162,7 @@ This step will copy Armadillo 2 data from minio into the folder matching of an A
 ```bash
 mkdir data
 wget https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v3.4.0/scripts/upgrade/migrate-minio.py
-python3 migrate-minio.py  --minio http://localhost:9000 --target /usr/share/armadillo/data
+python3 migrate-minio.py  --minio http://localhost:9000 --target /usr/share/armadillo/data  
 ```
 
 This might take a couple of minutes. You can detach the screen using ++ctrl+a++ followed by ++d++ and reattach it using `screen -r`.
@@ -172,7 +172,7 @@ This might take a couple of minutes. You can detach the screen using ++ctrl+a++ 
 Make sure to move the exported data into the new 'data' folder. Optionally you might need to fix user permissions, e.g.:
 
 ```bash
-chown armadillo:armadillo -R data
+chown armadillo:armadillo -R data 
 ```
 
 Check if armadillo is running by going to the URL of your server in the browser, login and navigate to the projects tab.
@@ -239,8 +239,8 @@ Add the following to the config of your server: `https://yourserver.com/login/oa
 
 Login to armadillo in the browser. Navigate to the "Profiles" tab. Add a new profile with the following properties:
 
-Name: `xenon`
-Image: `datashield/armadillo-rserver_caravan-xenon:latest`
+Name: `xenon`  
+Image: `datashield/armadillo-rserver_caravan-xenon:latest`  
 Package whitelist: `dsBase`, `resourcer`, `dsMediation`, `dsMTLBase`, `dsSurvival`, `dsExposome`
 
 Assign a random 9-number seed and create and start the container.
