@@ -67,6 +67,9 @@ repositories {
     maven {
         url = 'https://obiba.jfrog.io/artifactory/libs-release-local/'
     }
+    flatDir {
+        dirs './repo-local'
+    }
 }
 
 //helper function to get the githash
