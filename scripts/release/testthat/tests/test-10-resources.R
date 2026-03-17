@@ -70,10 +70,9 @@ test_that("/objects/ (ii): resource file and object in same project, no access -
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/old_ii", release_env$res_project_b)
-  # TODO: should be "Access Denied" once ArmadilloResult.R is fixed
   expect_error(
     datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "old_ii"),
-    "\\$ operator is invalid for atomic vectors"
+    "Access denied"
   )
 })
 reconnect()
@@ -105,10 +104,9 @@ test_that("/objects/ (iv): resource file inaccessible, data accessible - assign 
   skip_if_no_resources(test_name)
 
   resource_path <- sprintf("%s/ewas/old_iv", release_env$res_project_b)
-  # TODO: should be "Access Denied" once ArmadilloResult.R is fixed
   expect_error(
     datashield.assign.resource(release_env$conns, resource = resource_path, symbol = "old_iv"),
-    "\\$ operator is invalid for atomic vectors"
+    "Access denied"
   )
 })
 reconnect()
