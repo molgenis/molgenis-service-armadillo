@@ -4,7 +4,7 @@ library(purrr)
 # Setup
 test_name <- "setup-resources"
 
-# EWAS resources (for test-11)
+# EWAS resources (for test-09)
 test_that("upload ewas sources", {
   do_skip_test(test_name)
   upload_resource(folder = "ewas", file_name = "gse66351_1.rda")
@@ -30,7 +30,7 @@ test_that("create and upload ewas resources", {
   expect_true(all(expected %in% all_resources))
 })
 
-# Exposome resources (for test-16)
+# Exposome resources (for test-14)
 test_that("upload exposome sources", {
   do_skip_test(test_name)
   do_skip_test("ds-exposome")
@@ -48,7 +48,7 @@ test_that("create and upload exposome resources", {
   expect_true(all(expected %in% all_resources))
 })
 
-# Omics resources (for test-17)
+# Omics resources (for test-15)
 test_that("upload omics sources", {
   do_skip_test(test_name)
   do_skip_test("ds-omics")
@@ -68,7 +68,7 @@ test_that("create and upload omics resources", {
 
 # ---- Resource permission test data ----
 # Creates two extra projects with resources for cross-project permission
-# tests in test-09-permissions.R. Researcher access is configured there.
+# tests in test-08-resources.R. Researcher access is configured there.
 
 test_that("create projects for resource permission tests", {
   do_skip_test(test_name)

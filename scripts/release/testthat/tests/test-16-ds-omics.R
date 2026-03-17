@@ -19,7 +19,7 @@ gwas_prepare_data <- function() {
 
 # Assign resources individually
 test_that("assign chr1 resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   datashield.assign.resource(release_env$conns,
     resource = paste0(release_env$project1, "/omics/chr1"), symbol = "chr1")
   resource_class <- ds.class("chr1", datasources = release_env$conns)
@@ -28,7 +28,7 @@ test_that("assign chr1 resource", {
 })
 
 test_that("assign chr2 resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   datashield.assign.resource(release_env$conns,
     resource = paste0(release_env$project1, "/omics/chr2"), symbol = "chr2")
   resource_class <- ds.class("chr2", datasources = release_env$conns)
@@ -37,7 +37,7 @@ test_that("assign chr2 resource", {
 })
 
 test_that("assign ega_phenotypes resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   datashield.assign.resource(release_env$conns,
     resource = paste0(release_env$project1, "/omics/ega_phenotypes"), symbol = "ega_phenotypes")
   resource_class <- ds.class("ega_phenotypes", datasources = release_env$conns)
@@ -47,7 +47,7 @@ test_that("assign ega_phenotypes resource", {
 
 # Resolve resources individually
 test_that("resolve chr1 resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   DSI::datashield.assign.expr(release_env$conns, symbol = "chr1",
     expr = as.symbol("as.resource.object(chr1)"))
   resource_class <- ds.class("chr1", datasources = release_env$conns)
@@ -56,7 +56,7 @@ test_that("resolve chr1 resource", {
 })
 
 test_that("resolve chr2 resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   DSI::datashield.assign.expr(release_env$conns, symbol = "chr2",
     expr = as.symbol("as.resource.object(chr2)"))
   resource_class <- ds.class("chr2", datasources = release_env$conns)
@@ -65,7 +65,7 @@ test_that("resolve chr2 resource", {
 })
 
 test_that("resolve ega_phenotypes resource", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   DSI::datashield.assign.expr(release_env$conns, symbol = "pheno_object",
     expr = quote(as.resource.data.frame(ega_phenotypes)))
   resource_class <- ds.class("pheno_object", datasources = release_env$conns)
@@ -77,7 +77,7 @@ test_that("resolve ega_phenotypes resource", {
 
 # Function tests
 test_that("ds.genoDimensions", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   skip_if_omics_not_resolved()
   dims <- ds.genoDimensions("chr1", datasources = release_env$conns)
   expect_identical(dims$armadillo$snp_number, 69806L)
@@ -86,7 +86,7 @@ test_that("ds.genoDimensions", {
 })
 
 test_that("ds.alleleFrequency", {
-  skip_if_no_resources(test_name)
+  skip_if_no_resources(test_name, "dsOmics")
   skip_if_omics_not_resolved()
   gwas_prepare_data()
   freqs <- ds.alleleFrequency("gds.Data1", datasources = release_env$conns)
