@@ -33,9 +33,9 @@ dependencies {
     implementation 'org.rosuda.REngine:Rserve:1.8.1'
     implementation 'com.google.guava:guava:33.1.0-jre'
     implementation 'com.google.auto.value:auto-value-annotations:1.10.4'
-    implementation 'org.apache.commons:commons-text:1.11.0'
+    implementation 'org.apache.commons:commons-text:1.15.0'
     implementation 'org.json:json:20240303'
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
 
     //test
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
