@@ -25,7 +25,7 @@ public class ManagementService {
   private OidcDetails settings;
   private String clientId;
   private String clientSecret;
-  static String issuerUri;
+  private String issuerUri;
 
   public ManagementService(
       AuthLoader authLoader,
@@ -122,7 +122,7 @@ public class ManagementService {
   }
 
   private void saveSettings(String newIssuerUri, String newClientId, String newClientSecret) {
-    issuerUri = newIssuerUri;
+    this.issuerUri = newIssuerUri;
     this.clientId = newClientId;
     this.clientSecret = newClientSecret;
     settings = OidcDetails.create(newIssuerUri, newClientId, newClientSecret);

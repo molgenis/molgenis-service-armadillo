@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.util.Iterator;
@@ -195,7 +196,10 @@ class DynamicClientRegistrationRepositoryTest {
                 }));
 
     threads.forEach(Thread::start);
-    for (Thread t : threads) t.join();
+    assertDoesNotThrow(
+        () -> {
+          for (Thread t : threads) t.join();
+        });
     // No assertion needed — we're verifying no exception is thrown
   }
 
