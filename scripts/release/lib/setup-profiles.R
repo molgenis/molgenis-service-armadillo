@@ -137,7 +137,6 @@ update_whitelist_if_needed <- function(ds_packages) {
 show_profile_info <- function() {
   image <- release_env$profile_info$image
   ds_packages <- release_env$installed_ds_packages
-  has_resourcer <- "resourcer" %in% ds_packages
 
   all_ds_tests <- c("dsBase", "dsMediation", "dsSurvival", "dsMTLBase", "dsExposome", "dsOmics", "dsTidyverse")
 
@@ -146,8 +145,7 @@ show_profile_info <- function() {
 
   cat("\n")
   cli_alert_info(sprintf("Image: %s", image))
-  cli_alert_info(sprintf("Resource support: %s", if (has_resourcer) "Yes" else "No"))
-  cli_alert_info(sprintf("DS packages (%d): %s", length(ds_packages), paste(ds_packages, collapse = ", ")))
+  cli_alert_info(sprintf("DS packages: %s", paste(ds_packages, collapse = ", ")))
   cli_alert_info(sprintf("Skipped by user: %s",
     if (length(user_skips) == 0) "None" else paste(user_skips, collapse = ", ")))
   cli_alert_info(sprintf("Skipped (package not available): %s",
