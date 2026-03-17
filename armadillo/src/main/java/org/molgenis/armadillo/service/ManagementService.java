@@ -6,6 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
+import org.molgenis.armadillo.exceptions.OidcConfigError;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.security.DynamicClientRegistrationRepository;
 import org.molgenis.armadillo.security.OidcConfig;
@@ -63,14 +64,23 @@ public class ManagementService {
    * automatically on startup and can be triggered explicitly via the admin endpoint.
    */
   @PostConstruct
-  public void reloadOidcRegistration() {
+  public void reloadOidcRegistration() throws OidcConfigError {
     OidcConfig config = runAsSystem(this::getOidcConfig);
     if (!isOidcConfigComplete(config)) {
       logger.info("No OIDC config available - OAuth2 login disabled, falling back to basic auth");
       registrationRepository.clear();
+      throw new OidcConfigError(
+          "OIDC config incomplete: authserver uri, client id or client secret is missing.");
     } else {
       logger.info("Loading OIDC config for issuer: {}", config.issuerUri());
-      registrationRepository.load(config);
+      try {
+        registrationRepository.load(config);
+      } catch (Exception e) {
+        logger.info(
+            "Loading of OIDC config failed - OAuth2 login disabled, falling back to basic auth");
+        registrationRepository.clear();
+        throw new OidcConfigError("Cannot reload OIDC config because: " + e.getMessage());
+      }
     }
   }
 
@@ -85,8 +95,16 @@ public class ManagementService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void saveNewOidcConfig(String newIssuerUri, String newClientId, String newClientSecret) {
+    String oldIssuerUri = issuerUri;
+    String oldClientId = clientId;
+    String oldClientSecret = clientSecret;
     saveSettings(newIssuerUri, newClientId, newClientSecret);
-    reloadOidcRegistration();
+    try {
+      reloadOidcRegistration();
+    } catch (OidcConfigError e) {
+      saveSettings(oldIssuerUri, oldClientId, oldClientSecret);
+      throw new OidcConfigError(e.getMessage() + ". Rolling back previous config");
+    }
   }
 
   // -------------------------------------------------------------------------

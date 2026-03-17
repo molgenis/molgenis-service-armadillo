@@ -66,7 +66,7 @@ public class ManagementController {
       })
   @PutMapping(value = "auth/oidc-config", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  public void projectsUpsert(Principal principal, @Valid @RequestBody OidcDetails oidcDetails) {
+  public void oidcUpsert(Principal principal, @Valid @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
         () ->
             managementService.saveNewOidcConfig(
@@ -75,6 +75,6 @@ public class ManagementController {
                 oidcDetails.getClientSecret()),
         principal,
         UPDATE_OIDC_CONFIG,
-        Map.of(PROJECT, oidcDetails));
+        Map.of(OIDC_DETAILS, oidcDetails));
   }
 }

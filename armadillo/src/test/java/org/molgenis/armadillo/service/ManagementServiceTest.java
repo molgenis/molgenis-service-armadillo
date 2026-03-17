@@ -1,12 +1,15 @@
 package org.molgenis.armadillo.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.molgenis.armadillo.exceptions.OidcConfigError;
 import org.molgenis.armadillo.metadata.AuthLoader;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.security.OidcConfig;
@@ -54,32 +57,25 @@ class ManagementServiceTest {
   void reloadOidcRegistration_loadsRepository_whenConfigIsComplete() {
     service = serviceWith("https://issuer.example.com", "secret", "client-id");
     service.reloadOidcRegistration();
-
     assertThat(registrationRepository.isConfigured()).isTrue();
   }
 
   @Test
   void reloadOidcRegistration_clearsRepository_whenIssuerUriMissing() {
     service = serviceWith(null, "secret", "client-id");
-    service.reloadOidcRegistration();
-
-    assertThat(registrationRepository.isConfigured()).isFalse();
+    assertThrows(OidcConfigError.class, () -> service.reloadOidcRegistration());
   }
 
   @Test
   void reloadOidcRegistration_clearsRepository_whenClientIdMissing() {
     service = serviceWith("https://issuer.example.com", "secret", null);
-    service.reloadOidcRegistration();
-
-    assertThat(registrationRepository.isConfigured()).isFalse();
+    assertThrows(OidcConfigError.class, () -> service.reloadOidcRegistration());
   }
 
   @Test
   void reloadOidcRegistration_clearsRepository_whenClientSecretMissing() {
     service = serviceWith("https://issuer.example.com", null, "client-id");
-    service.reloadOidcRegistration();
-
-    assertThat(registrationRepository.isConfigured()).isFalse();
+    assertThrows(OidcConfigError.class, () -> service.reloadOidcRegistration());
   }
 
   // -------------------------------------------------------------------------
@@ -126,10 +122,15 @@ class ManagementServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void saveNewOidcConfig_clearsRepository_whenFieldsAreNull() {
-    service = serviceWith("https://issuer.example.com", "secret", "client-id");
-    service.saveNewOidcConfig(null, null, null);
-
-    assertThat(registrationRepository.isConfigured()).isFalse();
+    String issuer = "https://issuer.example.com";
+    String clientId = "client-id";
+    String clientSecret = "secret";
+    service = serviceWith(issuer, clientSecret, clientId);
+    assertThrows(OidcConfigError.class, () -> service.saveNewOidcConfig(null, null, null));
+    // assert previous state is rolled back
+    assertEquals(clientId, service.getOidcConfig().clientId());
+    assertEquals(clientSecret, service.getOidcConfig().clientSecret());
+    assertEquals(issuer, service.getOidcConfig().issuerUri());
   }
 
   // -------------------------------------------------------------------------
