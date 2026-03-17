@@ -45,8 +45,8 @@ const routes = [
     component: Profiles,
   },
   {
-    path: "/system",
-    name: "system",
+    path: "/control",
+    name: "control",
     component: System,
   },
   {

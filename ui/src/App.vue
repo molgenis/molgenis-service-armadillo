@@ -127,15 +127,13 @@ export default defineComponent({
         Users: "string",
         Workspaces: "string",
         Profiles: "string",
-        Insight: ["Metrics", "Logs"],
-        System: "string",
+        System: ["Metrics", "Logs", "Control"],
       },
       tabIcons: [
         "clipboard2-data",
         "people-fill",
         "person-workspace",
         "shield-shaded",
-        "brilliance",
         "gear-fill",
       ],
     };
