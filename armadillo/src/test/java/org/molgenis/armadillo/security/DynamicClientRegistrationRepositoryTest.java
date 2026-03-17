@@ -175,7 +175,7 @@ class DynamicClientRegistrationRepositoryTest {
   // -------------------------------------------------------------------------
 
   @Test
-  void concurrentLoadAndClear_doesNotThrow() throws InterruptedException {
+  void concurrentLoadAndClear_doesNotThrow() {
     List<Thread> threads =
         List.of(
             new Thread(
