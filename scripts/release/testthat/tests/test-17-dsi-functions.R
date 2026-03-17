@@ -56,7 +56,7 @@ test_that("datashield.profiles returns available and current profiles", {
 test_that("datashield.methods returns aggregate methods including meanDS", {
   do_skip_test(test_name)
   methods <- datashield.methods(conns = release_env$conns, type = "aggregate")
-  expected_cols <- c("name", "function.", "version", "package", "type", "class", "server")
+  expected_cols <- c("name", "value", "version", "package", "type", "class", "server")
   expect_equal(colnames(methods), expected_cols)
   expect_true("meanDS" %in% methods$name)
   expect_true(all(methods$type == "aggregate"))
@@ -65,7 +65,7 @@ test_that("datashield.methods returns aggregate methods including meanDS", {
 test_that("datashield.methods returns assign methods", {
   do_skip_test(test_name)
   methods <- datashield.methods(conns = release_env$conns, type = "assign")
-  expected_cols <- c("name", "function.", "version", "package", "type", "class", "server")
+  expected_cols <- c("name", "value", "version", "package", "type", "class", "server")
   expect_equal(colnames(methods), expected_cols)
   expect_true(nrow(methods) > 0)
   expect_true(all(methods$type == "assign"))
@@ -91,6 +91,11 @@ test_that("datashield.pkg_status returns package and version status", {
   # version_status is a named character matrix with one column per server
   expect_true(is.matrix(pkg$version_status))
   expect_type(pkg$version_status["dsBase", "armadillo"], "character")
+  package_names <- rownames(pkg$package_status)
+  expect_false("base" %in% package_names,
+    info = "base should not appear in pkg_status")
+  expect_false("stats" %in% package_names,
+    info = "stats should not appear in pkg_status")
 })
 
 # ---- 8. datashield.symbols ----
