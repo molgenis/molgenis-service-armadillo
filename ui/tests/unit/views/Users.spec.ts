@@ -388,7 +388,7 @@ describe("Users", () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
-    expect(saveMock).toBeCalledWith(userToAdd);
+    expect(saveMock).toHaveBeenCalledWith(userToAdd);
     expect(wrapper.vm.errorMessage).toBe("");
     expect(wrapper.vm.successMessage).toBe(
       "[h.t.gump@psr.com] was successfully saved."
@@ -396,8 +396,8 @@ describe("Users", () => {
     expect(wrapper.vm.successMessage).toBe(
       "[h.t.gump@psr.com] was successfully saved."
     );
-    expect(getMock).toBeCalled();
-    expect(callback).toBeCalled();
+    expect(getMock).toHaveBeenCalled();
+    expect(callback).toHaveBeenCalled();
   });
 
   test("cannot create user with empty email", () => {
@@ -444,7 +444,7 @@ describe("Users", () => {
       return Promise.resolve();
     });
     wrapper.vm.updateAdmin(adminToBe, false);
-    expect(saveMock).toBeCalledWith(adminToBe);
+    expect(saveMock).toHaveBeenCalledWith(adminToBe);
     expect(adminToBe.admin).toBe(true);
   });
 
