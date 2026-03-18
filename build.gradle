@@ -19,7 +19,6 @@ plugins {
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.36.0'
     id 'se.patrikerdes.use-latest-versions' version '0.2.19'
     id 'com.github.ben-manes.versions' version '0.53.0'
 }
@@ -139,14 +138,17 @@ task ci(type: WriteProperties) {
     property 'TAG_NAME', tagName
 }
 
-docker {
-    name imageName
-    tags tagName
-    dockerfile file('Dockerfile')
-    files bootJar.archiveFile
-    buildArgs(['JAR_FILE': "${bootJar.archiveFile.get().asFile.name}"])
+task docker(type: Exec, dependsOn: bootJar) {
+    commandLine 'docker', 'build',
+        '-t', "${imageName}:${tagName}",
+        '--build-arg', "JAR_FILE=build/libs/${bootJar.archiveFile.get().asFile.name}",
+        '-f', 'Dockerfile',
+        '.'
 }
-dockerPrepare.dependsOn bootJar
+
+task dockerPush(type: Exec, dependsOn: docker) {
+    commandLine 'docker', 'push', "${imageName}:${tagName}"
+}
 
 //merge test reports
 task jacocoMergedReport(type: JacocoReport) {
