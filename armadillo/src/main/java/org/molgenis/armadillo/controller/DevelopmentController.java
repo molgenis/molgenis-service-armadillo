@@ -3,8 +3,8 @@ package org.molgenis.armadillo.controller;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROFILE;
-import static org.molgenis.armadillo.profile.ActiveProfileNameAccessor.getActiveProfileName;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
+import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.getActiveContainerName;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -24,10 +24,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +35,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "developer", description = "API only available for admin users or in profile=test")
+@Tag(name = "developer", description = "API only available for admin users or in container=test")
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
@@ -46,24 +46,24 @@ public class DevelopmentController {
 
   private final Commands commands;
   private final AuditEventPublisher auditEventPublisher;
-  private final ProfileService profiles;
+  private final ContainerService containers;
   private final DockerService dockerService;
 
   public DevelopmentController(
       Commands commands,
       AuditEventPublisher auditEventPublisher,
-      ProfileService profileService,
+      ContainerService containerService,
       @Nullable DockerService dockerService) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
-    this.profiles = requireNonNull(profileService);
+    this.containers = requireNonNull(containerService);
     this.dockerService = dockerService;
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Operation(
       summary = "Install a package",
-      description = "Install a package in the currently selected profile")
+      description = "Install a package in the currently selected container")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
@@ -100,7 +100,7 @@ public class DevelopmentController {
       return result
           .thenApply(
               body -> {
-                profiles.addToWhitelist(getActiveProfileName(), packageName);
+                containers.addToWhitelist(getActiveContainerName(), packageName);
                 return ResponseEntity.ok(body);
               })
           .exceptionally(
@@ -113,7 +113,7 @@ public class DevelopmentController {
   @ResponseBody
   @PreAuthorize("hasRole('ROLE_SU')")
   public Set<String> getWhitelist() {
-    return profiles.getByName(getActiveProfileName()).getPackageWhitelist();
+    return containers.getByName(getActiveContainerName()).getPackageWhitelist();
   }
 
   @Operation(
@@ -125,11 +125,11 @@ public class DevelopmentController {
   @ResponseStatus(NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_SU')")
   public void addToWhitelist(@PathVariable String pkg, Principal principal) {
-    ProfileConfig currentConfig = profiles.getByName(getActiveProfileName());
+    ContainerConfig currentConfig = containers.getByName(getActiveContainerName());
     Set<String> whitelist = currentConfig.getPackageWhitelist();
     whitelist.add(pkg);
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    ContainerConfig containerConfig =
+        ContainerConfig.create(
             currentConfig.getName(),
             currentConfig.getImage(),
             currentConfig.getAutoUpdate(),
@@ -145,10 +145,10 @@ public class DevelopmentController {
             currentConfig.getCreationDate(),
             currentConfig.getInstallDate());
     auditEventPublisher.audit(
-        () -> profiles.upsert(profileConfig),
+        () -> containers.upsert(containerConfig),
         principal,
-        UPSERT_PROFILE,
-        Map.of(PROFILE, profileConfig));
+        UPSERT_CONTAINER,
+        Map.of(CONTAINER, containerConfig));
   }
 
   @Operation(summary = "Delete a docker image", description = "Delete a docker image based on id")
@@ -163,7 +163,7 @@ public class DevelopmentController {
   public void deleteDockerImage(Principal principal, @RequestParam String imageId) {
     assert dockerService != null;
     auditEventPublisher.audit(
-        () -> dockerService.removeImageIfUnused(imageId),
+        () -> dockerService.deleteImageIfUnused(imageId),
         principal,
         DELETE_DOCKER_IMAGE,
         Map.of(DELETE_DOCKER_IMAGE, imageId));
