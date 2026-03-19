@@ -11,6 +11,9 @@ repositories {
         url 'https://repo1.maven.org/maven2'
     }
     mavenCentral()
+    flatDir {
+        dirs '../repo-local'
+    }
 }
 
 bootJar.enabled = false
@@ -29,8 +32,8 @@ dependencies {
 
     //other
     implementation 'commons-io:commons-io:2.15.1'
-    implementation 'org.rosuda.REngine:REngine:2.1.0'
-    implementation 'org.rosuda.REngine:Rserve:1.8.1'
+    implementation 'org.rosuda.REngine:REngine:2.1.1-SNAPSHOT'
+    implementation 'org.rosuda.REngine:Rserve:1.8.2-SNAPSHOT'
     implementation 'com.google.guava:guava:33.5.0-jre'
     implementation 'com.google.auto.value:auto-value-annotations:1.11.1'
     implementation 'org.apache.commons:commons-text:1.11.0'
