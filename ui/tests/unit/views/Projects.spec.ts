@@ -278,9 +278,9 @@ describe("Projects", () => {
     };
     wrapper.vm.saveNewProject();
     await wrapper.vm.$nextTick();
-    expect(putMock).toBeCalled();
-    expect(reloadMock).toBeCalled();
-    expect(deleteMock).not.toBeCalled();
+    expect(putMock).toHaveBeenCalled();
+    expect(reloadMock).toHaveBeenCalled();
+    expect(deleteMock).not.toHaveBeenCalled();
   });
 
   describe("isEditingProject", () => {
