@@ -12,7 +12,7 @@ const testData = {
   "clientId": "my-client-id",
   "clientSecret": "VeryS3cretP@ssw0rd"
 }
-describe("Workspaces", () => {
+describe("System", () => {
     let wrapper: VueWrapper<any>;
 
     beforeEach(function() {
