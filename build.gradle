@@ -15,17 +15,18 @@ plugins {
     id 'org.springframework.boot' version '3.5.6'
     id "io.spring.dependency-management" version "1.1.7"
     id "java"
-    id "org.sonarqube" version "4.4.1.3373"
+    id "org.sonarqube" version "7.2.3.7755"
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.36.0'
-    id 'se.patrikerdes.use-latest-versions' version '0.2.18'
-    id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'se.patrikerdes.use-latest-versions' version '0.2.19'
+    id 'com.github.ben-manes.versions' version '0.53.0'
 }
 
-targetCompatibility = '21'
-sourceCompatibility = '21'
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.previousVersion
 
@@ -93,7 +94,6 @@ String getGitNameRef() {
 }
 
 // configure artifact
-mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 dependencies {
     implementation project(':armadillo')
 }
@@ -105,7 +105,7 @@ springBoot {
     buildInfo()
 }
 bootJar {
-    mainClass = mainClassName
+    mainClass = 'org.molgenis.armadillo.ArmadilloServiceApplication'
     manifest {
         attributes(
                 'Specification-Version': project.version.toString(),
@@ -120,7 +120,7 @@ bootJar {
 
 //define run
 application {
-    mainClass.set(rootProject.mainClassName)
+    mainClass.set('org.molgenis.armadillo.ArmadilloServiceApplication')
 }
 
 //define release
@@ -135,18 +135,21 @@ if (version.toString().endsWith('-SNAPSHOT')) {
     tagName = "${project.version.toString()}-${ext.hash}"
 }
 task ci(type: WriteProperties) {
-    outputFile file('build/ci.properties')
+    destinationFile = file('build/ci.properties')
     property 'TAG_NAME', tagName
 }
 
-docker {
-    name imageName
-    tags tagName
-    dockerfile file('Dockerfile')
-    files bootJar.archiveFile
-    buildArgs(['JAR_FILE': "${bootJar.archiveFile.get().asFile.name}"])
+task docker(type: Exec, dependsOn: bootJar) {
+    commandLine 'docker', 'build',
+        '-t', "${imageName}:${tagName}",
+        '--build-arg', "JAR_FILE=build/libs/${bootJar.archiveFile.get().asFile.name}",
+        '-f', 'Dockerfile',
+        '.'
 }
-dockerPrepare.dependsOn bootJar
+
+task dockerPush(type: Exec, dependsOn: docker) {
+    commandLine 'docker', 'push', "${imageName}:${tagName}"
+}
 
 //merge test reports
 task jacocoMergedReport(type: JacocoReport) {
@@ -187,7 +190,9 @@ sonar {
 task installLocalGitHook(type: Copy) {
     from new File(rootProject.rootDir, 'pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
-    fileMode 0775
+    filePermissions {
+        unix('0775')
+    }
 }
 build.dependsOn installLocalGitHook
 
