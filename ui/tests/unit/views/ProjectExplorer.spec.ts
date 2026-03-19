@@ -2,6 +2,7 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import ProjectsExplorer from "@/views/ProjectsExplorer.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import * as _api from "@/api/api";
+import { StringObject } from "@/types/types";
 
 const api = _api as any;
 
@@ -9,6 +10,7 @@ jest.mock("@/api/api");
 
 describe("ProjectsExplorer", () => {
     let testData: Array<string>;
+    let metaData: Record<string, StringObject>;
 
     const mock_routes = [
         {
@@ -60,9 +62,58 @@ describe("ProjectsExplorer", () => {
             "some-project/folder-c-three/file1.parquet"
         ];
 
+        metaData = {
+            "sample_id": {
+                "type": "BINARY",
+                "missing": "0/243"
+            },
+            "age": {
+                "type": "DOUBLE",
+                "missing": "0/243"
+            },
+            "sex": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "female",
+                "male"
+                ]
+            },
+            "diagnosis": {
+                "type": "BINARY",
+                "missing": "0/243",
+                "levels": [
+                "benign",
+                "cancer"
+                ]
+            },
+            "stage": {
+                "type": "BINARY",
+                "missing": "81/243",
+                "levels": [
+                "II",
+                "IIA",
+                "IIB",
+                "IA",
+                "III",
+                "I",
+                "IB",
+                "IV"
+                ]
+            },
+            "plasma_CA19_9": {
+                "type": "DOUBLE",
+                "missing": "80/243"
+            }
+            };
+
         api.getProject.mockImplementationOnce(() => {
             return Promise.resolve(testData);
         });
+
+        api.getMetaData.mockImplementationOnce(() => {
+            return Promise.resolve(metaData);
+        })
 
         wrapper = shallowMount(ProjectsExplorer, {
             global: {

@@ -1,8 +1,10 @@
 #FROM --platform=linux/amd64 eclipse-temurin:17.0.12_7-jdk-focal
-FROM --platform=linux/amd64 eclipse-temurin:21-jre-alpine
+FROM --platform=linux/amd64 eclipse-temurin:21.0.10_7-jre-alpine
 VOLUME /data
 VOLUME /config
 VOLUME /logs
+
+RUN apk update && apk add --no-cache libc6-compat
 
 ARG JAR_FILE
 EXPOSE 8080

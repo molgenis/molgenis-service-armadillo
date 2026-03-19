@@ -21,9 +21,14 @@ import {
   diskSpaceBelowThreshold,
   isEmpty,
   convertStringToBytes,
-  isDate
+  isDate,
+  toPercentage, 
+  useProfileStatus
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
+import { defineComponent } from "vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import * as api from "@/api/api";
 
 describe("utils", () => {
   describe("stringIncludesOtherString", () => {
@@ -437,22 +442,207 @@ describe("utils", () => {
   });
 
   describe('isDate', () => {
-  // Valid ISO 8601 date strings
-  it('should return true for valid ISO 8601 date strings', () => {
-    expect(isDate('2023-01-31T15:45:00Z')).toBe(true); // UTC with Z
-    expect(isDate('2023-01-31T15:45:00+02:00')).toBe(true); // With timezone offset
-    expect(isDate('2023-01-31T15:45:00-05:00')).toBe(true); // With negative timezone offset
-    expect(isDate('2023-01-31T15:45:00.123Z')).toBe(true); // With milliseconds and UTC
-    expect(isDate('2023-01-31T15:45:00.123+01:00')).toBe(true); // With milliseconds and timezone offset
+    // Valid ISO 8601 date strings
+    it('should return true for valid ISO 8601 date strings', () => {
+      expect(isDate('2023-01-31T15:45:00Z')).toBe(true); // UTC with Z
+      expect(isDate('2023-01-31T15:45:00+02:00')).toBe(true); // With timezone offset
+      expect(isDate('2023-01-31T15:45:00-05:00')).toBe(true); // With negative timezone offset
+      expect(isDate('2023-01-31T15:45:00.123Z')).toBe(true); // With milliseconds and UTC
+      expect(isDate('2023-01-31T15:45:00.123+01:00')).toBe(true); // With milliseconds and timezone offset
+    });
+
+    // Empty strings and non-date inputs
+    it('should return false for empty strings or non-date values', () => {
+      expect(isDate('')).toBe(false); // Empty string
+      expect(isDate('Hello, world!')).toBe(false); // Random text
+      expect(isDate('12345')).toBe(false); // Random number as string
+    });
   });
 
-  // Empty strings and non-date inputs
-  it('should return false for empty strings or non-date values', () => {
-    expect(isDate('')).toBe(false); // Empty string
-    expect(isDate('Hello, world!')).toBe(false); // Random text
-    expect(isDate('12345')).toBe(false); // Random number as string
+  describe('toPercentage', () => {
+    it('calculates percentage', () => {
+      expect(toPercentage(236, 4598)).toEqual(5.132666376685515); 
+    });
+  });
+
+const mockedGetProfileStatus = jest.spyOn(api, "getProfileStatus");
+
+describe("useProfileStatus", () => {
+  let wrapper: VueWrapper<any> | null = null;
+
+  const Harness = defineComponent({
+    template: "<div/>",
+    setup() {
+      return useProfileStatus(); // { status, startPolling, stopPolling }
+    },
+  });
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    wrapper = mount(Harness);
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    if (wrapper) {
+      wrapper.unmount();
+      wrapper = null;
+    }
+  });
+
+  test("startPolling triggers an immediate fetch and sets status", async () => {
+    mockedGetProfileStatus.mockResolvedValue({
+      status: "Installing profile",
+      totalLayers: 4,
+      completedLayers: 1,
+    } as any);
+
+    await wrapper!.vm.startPolling("MyProfile", 1000);
+
+    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(1);
+    expect(mockedGetProfileStatus).toHaveBeenCalledWith("MyProfile");
+
+    await Promise.resolve();
+
+    expect(wrapper!.vm.status).toEqual({
+      status: "Installing profile",
+      totalLayers: 4,
+      completedLayers: 1,
+    });
+  });
+
+  test("polls repeatedly at the given interval", async () => {
+    mockedGetProfileStatus
+      .mockResolvedValueOnce({ status: "Installing profile" } as any)
+      .mockResolvedValueOnce({ status: "Installing profile" } as any)
+      .mockResolvedValueOnce({ status: "Installing profile" } as any);
+
+    await wrapper!.vm.startPolling("MyProfile", 1000);
+    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(1000);
+    await Promise.resolve();
+    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(1000);
+    await Promise.resolve();
+    expect(mockedGetProfileStatus).toHaveBeenCalledTimes(3);
+  });
+
+  test("useProfileStatus stops polling when status becomes 'Profile Installed'", async () => {
+  jest.useFakeTimers();
+
+  const responses = [
+    { status: "Installing profile" },
+    { status: "Installing profile" },
+    { status: "Profile installed" }, // must match the hook’s stop condition
+  ];
+
+  mockedGetProfileStatus.mockImplementation(() =>
+    Promise.resolve(
+      responses.length
+        ? responses.shift()!
+        : { status: "Profile installed" },
+    ),
+  );
+
+  // Tiny test component that uses the composable inside setup()
+  const TestComp = defineComponent({
+    setup() {
+      const composable = useProfileStatus();
+      // expose to wrapper.vm
+      return composable;
+    },
+    template: "<div></div>",
+  });
+
+  const wrapper = mount(TestComp);
+  const vm = wrapper.vm as any;
+
+  // Start polling with required name + known interval
+  vm.startPolling("MyProfile", 1000);
+
+  const flush = async (ms: number) => {
+    jest.advanceTimersByTime(ms);
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
+  // Immediate call from startPolling + 2 interval ticks to consume our scripted responses
+  await flush(0);      // initial fetch
+  await flush(1000);   // installing
+  await flush(1000);   // profile installed → stopPolling should be called inside hook
+
+  const callsAtInstalled = mockedGetProfileStatus.mock.calls.length;
+  expect(callsAtInstalled).toBeGreaterThanOrEqual(3); // sanity
+
+  // After "Profile installed", no more polling
+  await flush(5000);
+
+  expect(mockedGetProfileStatus).toHaveBeenCalledTimes(callsAtInstalled);
+});
+
+
+  test("stopPolling clears the interval", async () => {
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    await wrapper!.vm.startPolling("MyProfile", 1000);
+
+    jest.advanceTimersByTime(1000);
+    await Promise.resolve();
+    const calls = mockedGetProfileStatus.mock.calls.length;
+
+    wrapper!.vm.stopPolling();
+    jest.advanceTimersByTime(3000);
+    await Promise.resolve();
+
+    expect(mockedGetProfileStatus.mock.calls.length).toBe(calls);
+  });
+
+  test("does nothing if name is empty", async () => {
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+
+    await wrapper!.vm.startPolling("", 1000);
+
+    expect(mockedGetProfileStatus).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(2000);
+    await Promise.resolve();
+
+    expect(mockedGetProfileStatus).not.toHaveBeenCalled();
+    expect(wrapper!.vm.status).toBeNull();
+  });
+
+  test("on error: logs and stops polling", async () => {
+    const err = new Error("boom");
+    const logSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockedGetProfileStatus.mockRejectedValue(err);
+
+    await wrapper!.vm.startPolling("MyProfile", 1000);
+    await Promise.resolve();
+
+    const afterReject = mockedGetProfileStatus.mock.calls.length;
+
+    jest.advanceTimersByTime(3000);
+    await Promise.resolve();
+
+    expect(mockedGetProfileStatus.mock.calls.length).toBe(afterReject);
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  test("cleans up interval on unmount", async () => {
+    mockedGetProfileStatus.mockResolvedValue({ status: "Installing profile" } as any);
+    await wrapper!.vm.startPolling("MyProfile", 1000);
+
+    wrapper!.unmount();
+    wrapper = null;
+
+    const before = mockedGetProfileStatus.mock.calls.length;
+    jest.advanceTimersByTime(5000);
+    await Promise.resolve();
+
+    expect(mockedGetProfileStatus.mock.calls.length).toBe(before);
   });
 });
 });
-
-  

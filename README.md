@@ -1,9 +1,9 @@
 # Armadillo suite
 
-[![CircleCI](https://circleci.com/gh/molgenis/molgenis-service-armadillo.svg?style=shield)](https://circleci.com/gh/molgenis/molgenis-service-armadillo)
-[![Build Status](https://dev.azure.com/molgenis/molgenis-service-armadillo/_apis/build/status/molgenis.molgenis-service-armadillo?branchName=master)](https://dev.azure.com/molgenis/molgenis-service-armadillo/_build/latest?definitionId=1&branchName=master)
+<!-- [![CircleCI](https://circleci.com/gh/molgenis/molgenis-service-armadillo.svg?style=shield)](https://circleci.com/gh/molgenis/molgenis-service-armadillo) -->
+<!-- [![Build Status](https://dev.azure.com/molgenis/molgenis-service-armadillo/_apis/build/status/molgenis.molgenis-service-armadillo?branchName=master)](https://dev.azure.com/molgenis/molgenis-service-armadillo/_build/latest?definitionId=1&branchName=master) -->
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=coverage)](https://sonarcloud.io/project/overview?id=org.molgenis%3Aarmadillo-service)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service)
+<!-- [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=org.molgenis%3Aarmadillo-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.molgenis%3Aarmadillo-service) -->
 
 # Overview
 
@@ -32,12 +32,5 @@ For developing and contributing see [our dev guides](https://molgenis.github.io/
 2. Copy paste the contents of 
 [application-template.yml](https://github.com/molgenis/molgenis-service-armadillo/blob/master/application.template.yml).
 and paste it in a file called `application.yml`, in the same folder as the downloaded jar. 
-3. To start the application, run `java -jar molgenis-armadillo-x.yy.zz.jar`.
+3. To start the application, run: `java -jar molgenis-armadillo-x.yy.zz.jar`.
 4. Go to `http://localhost:8080` to see the Armadillo UI.
-
-#### Docker
-For testing without having to installing Java you can run using docker:
-1. Install [docker-compose](https://docs.docker.com/compose/install/).
-2. Download this [docker-compose.yml](docker-compose.yml).
-3. Execute `docker-compose up`.
-4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2 class="mt-3">Projects</h2>
     <div class="row">
       <div class="col">
         <!-- Error messages will appear here -->
@@ -34,7 +33,7 @@
       </div>
     </div>
     <!-- Loading spinner -->
-    <LoadingSpinner v-if="loading"></LoadingSpinner>
+    <LoadingSpinner v-if="loading" class="mt-5"></LoadingSpinner>
     <!-- Actual table -->
     <Table
       v-else

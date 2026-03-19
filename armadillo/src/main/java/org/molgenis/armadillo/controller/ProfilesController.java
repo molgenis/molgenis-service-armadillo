@@ -30,6 +30,7 @@ import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ContainerInfo;
 import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.profile.ProfileScheduler;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,14 +51,18 @@ public class ProfilesController {
   private final ProfileService profiles;
   private final DockerService dockerService;
   private final AuditEventPublisher auditor;
+  private final ProfileScheduler profileScheduler;
 
   public ProfilesController(
       ProfileService profileService,
       @Nullable DockerService dockerService,
-      AuditEventPublisher auditor) {
+      AuditEventPublisher auditor,
+      ProfileScheduler profileScheduler) {
+
     this.profiles = requireNonNull(profileService);
     this.dockerService = dockerService;
     this.auditor = requireNonNull(auditor);
+    this.profileScheduler = requireNonNull(profileScheduler);
   }
 
   @Operation(
@@ -202,7 +207,11 @@ public class ProfilesController {
   @ResponseStatus(NO_CONTENT)
   public void profileUpsert(Principal principal, @Valid @RequestBody ProfileConfig profileConfig) {
     auditor.audit(
-        () -> profiles.upsert(profileConfig),
+        () -> {
+          profiles.upsert(profileConfig); // Save profile
+          profileScheduler.reschedule(profileConfig); // 🔁 Trigger scheduling
+          return null;
+        },
         principal,
         UPSERT_PROFILE,
         Map.of(PROFILE, profileConfig));
@@ -239,7 +248,7 @@ public class ProfilesController {
 
   private void deleteProfile(String name) {
     if (dockerService != null) {
-      dockerService.removeProfile(name);
+      dockerService.deleteProfile(name);
     }
     profiles.delete(name);
   }

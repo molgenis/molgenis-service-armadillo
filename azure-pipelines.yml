@@ -10,6 +10,7 @@ pr:
   - master
 
 steps:
+  - script: git fetch --all --tags
   - script: |
       sudo update-alternatives --display java
     displayName: list available java versions (for debug purposes)

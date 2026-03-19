@@ -62,7 +62,7 @@ class UserInformationRetrieverTest {
   @Test
   void testAuthenticationOfUser() {
     var principal = mock(DefaultOAuth2User.class, RETURNS_DEEP_STUBS);
-    when(principal.getAttributes().get("email")).thenReturn("bofke@molgenis.nl");
+    when(principal.getAttribute("email")).thenReturn("bofke@molgenis.nl");
 
     Assertions.assertEquals("bofke@molgenis.nl", getUser(principal));
   }

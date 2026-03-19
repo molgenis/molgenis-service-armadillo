@@ -1,13 +1,8 @@
 <template>
-  <button class="btn btn-link pt-0 pb-0 mt-1 status" :disabled="disabled">
-    <div>
-      <LoadingSpinner
-        imageWidth="30"
-        v-if="icon === 'spinner'"
-      ></LoadingSpinner>
-      <h3 v-else class="p-0 m-0"><i :class="`bi bi-${icon}`"></i></h3>
-      <span>{{ text }}</span>
-    </div>
+  <button class="btn btn-link p-0 mt-1 status btn-sm" :disabled="disabled">
+    <LoadingSpinner imageWidth="30" v-if="icon === 'spinner'"></LoadingSpinner>
+    <h3 v-else class="p-0 m-0"><i :class="`bi bi-${icon}`"></i></h3>
+    <span>{{ text }}</span>
   </button>
 </template>
 
@@ -39,6 +34,6 @@ export default defineComponent({
 
 <style scoped>
 .status {
-  width: 8rem;
+  width: 6rem;
 }
 </style>

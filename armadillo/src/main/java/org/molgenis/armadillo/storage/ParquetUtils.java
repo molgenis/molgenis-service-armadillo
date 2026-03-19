@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.storage;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,8 +14,15 @@ import org.apache.parquet.io.ColumnIOFactory;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.Type;
+import org.molgenis.armadillo.exceptions.StorageException;
+import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 
 public class ParquetUtils {
+  private static final String BINARY_TYPE = "BINARY";
+  private static final String NA_VALUE = "NA";
+
   public static List<Map<String, String>> previewRecords(
       Path path, int rowLimit, int columnLimit, String[] variables) throws IOException {
     List<Map<String, String>> result = new ArrayList<>();
@@ -49,7 +55,7 @@ public class ParquetUtils {
               try {
                 row.put(column, group.getValueToString(schema.getFieldIndex(column), 0));
               } catch (Exception e) {
-                row.put(column, "NA");
+                row.put(column, NA_VALUE);
               }
             }
           }
@@ -84,6 +90,159 @@ public class ParquetUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static Map<String, String> getDatatypes(Path path) throws IOException {
+    try (ParquetFileReader reader = getFileReader(path)) {
+      List<Type> schema = getSchemaFromReader(reader).getFields();
+      Map<String, String> datatypes = new LinkedHashMap<>();
+      schema.forEach(
+          field ->
+              datatypes.put(
+                  field.getName(), ((PrimitiveType) field).getPrimitiveTypeName().toString()));
+      return datatypes;
+    }
+  }
+
+  public static Map<String, ArmadilloColumnMetaData> getColumnMetaData(Path path)
+      throws IOException {
+    HashMap<String, Set<String>> rawLevels = new LinkedHashMap<>();
+    HashMap<String, Integer> levelCounts = new LinkedHashMap<>();
+    Map<String, String> datatypes = getDatatypes(path);
+    HashMap<String, ArmadilloColumnMetaData> columnMetaData = new LinkedHashMap<>();
+
+    try (ParquetFileReader reader = getFileReader(path)) {
+      long numberOfRows = reader.getRecordCount();
+      MessageType schema = getSchemaFromReader(reader);
+      RecordReader<Group> recordReader = getRecordReader(schema, reader);
+      List<String> columns = getColumnsFromSchema(schema);
+
+      processRows(
+          recordReader,
+          numberOfRows,
+          schema,
+          columns,
+          datatypes,
+          columnMetaData,
+          rawLevels,
+          levelCounts);
+
+      addLevelsToMetaData(rawLevels, levelCounts, numberOfRows, columnMetaData);
+    }
+
+    return columnMetaData;
+  }
+
+  static void processRows(
+      RecordReader<Group> recordReader,
+      long numberOfRows,
+      MessageType schema,
+      List<String> columns,
+      Map<String, String> datatypes,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts) {
+    for (int i = 0; i < numberOfRows; i++) {
+      Group group = recordReader.read();
+      for (String column : columns) {
+        initializeColumnMetadata(
+            column, datatypes, columnMetaData, rawLevels, levelCounts, numberOfRows);
+        handleColumnValue(group, schema, column, datatypes, columnMetaData, rawLevels, levelCounts);
+      }
+    }
+  }
+
+  static void initializeColumnMetadata(
+      String column,
+      Map<String, String> datatypes,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts,
+      long numberOfRows) {
+    if (!columnMetaData.containsKey(column)) {
+      ArmadilloColumnMetaData armadilloColumnMetaData =
+          ArmadilloColumnMetaData.create(datatypes.get(column));
+      armadilloColumnMetaData.setTotal(numberOfRows);
+      levelCounts.put(column, 0);
+      rawLevels.put(column, new HashSet<>());
+      columnMetaData.put(column, armadilloColumnMetaData);
+    }
+  }
+
+  static void handleColumnValue(
+      Group group,
+      MessageType schema,
+      String column,
+      Map<String, String> datatypes,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData,
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts) {
+    try {
+      String value = group.getValueToString(schema.getFieldIndex(column), 0);
+
+      if (isEmpty(value)) {
+        columnMetaData.get(column).countMissingValue();
+      } else if (Objects.equals(datatypes.get(column), BINARY_TYPE)) {
+        handleBinaryLevel(column, value, rawLevels, levelCounts);
+      }
+
+    } catch (Exception e) {
+      columnMetaData.get(column).countMissingValue();
+    }
+  }
+
+  private static void handleBinaryLevel(
+      String column,
+      String value,
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts) {
+    try {
+      Set<String> currentLevels = rawLevels.get(column);
+      if (!currentLevels.contains(value)) {
+        currentLevels.add(value);
+        countLevelValue(rawLevels, levelCounts, column, value);
+      }
+    } catch (Exception ignored) {
+      throw new StorageException("Cannot handle binary level for column: " + column);
+    }
+  }
+
+  private static void countLevelValue(
+      HashMap<String, Set<String>> raw_levels,
+      HashMap<String, Integer> level_counts,
+      String column,
+      String levelToAdd) {
+    Set<String> currentLevels = raw_levels.get(column);
+    currentLevels.add(levelToAdd);
+    raw_levels.put(column, currentLevels);
+    level_counts.put(column, level_counts.get(column) + 1);
+  }
+
+  static void addLevelsToMetaData(
+      HashMap<String, Set<String>> rawLevels,
+      HashMap<String, Integer> levelCounts,
+      long numberOfRows,
+      HashMap<String, ArmadilloColumnMetaData> columnMetaData) {
+    rawLevels.forEach(
+        (column, columnLevels) -> {
+          if (!isUnique(levelCounts.get(column), numberOfRows)
+              && columnMetaData.get(column).getType().equals(BINARY_TYPE)) {
+            columnMetaData.get(column).setPossibleLevels(columnLevels);
+          } else {
+            columnMetaData.get(column).setPossibleLevels(null);
+          }
+        });
+  }
+
+  static boolean isUnique(int occurrences, long totalRows) {
+    if (totalRows == 0) {
+      throw new ArithmeticException("Number of rows is 0, cannot divide by 0");
+    }
+    return ((double) occurrences / totalRows) >= 0.3;
+  }
+
+  static boolean isEmpty(String value) {
+    return value == null || value.isEmpty() || Objects.equals(value, NA_VALUE);
   }
 
   public static Map<String, String> retrieveDimensions(Path path) throws FileNotFoundException {

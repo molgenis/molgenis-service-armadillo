@@ -12,6 +12,8 @@ import java.util.Set;
 public class InitialProfileConfig {
   private String name;
   private String image;
+  private boolean autoUpdate;
+  private UpdateSchedule updateSchedule;
   private String host;
   private int port;
   private Set<String> packageWhitelist;
@@ -20,7 +22,20 @@ public class InitialProfileConfig {
 
   public ProfileConfig toProfileConfig() {
     return ProfileConfig.create(
-        name, image, host, port, packageWhitelist, functionBlacklist, options);
+        name,
+        image,
+        autoUpdate,
+        updateSchedule,
+        host,
+        port,
+        packageWhitelist,
+        functionBlacklist,
+        options,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   public void setName(String name) {
@@ -29,6 +44,14 @@ public class InitialProfileConfig {
 
   public void setImage(String image) {
     this.image = image;
+  }
+
+  public void setAutoUpdate(Boolean autoUpdate) {
+    this.autoUpdate = autoUpdate;
+  }
+
+  public void setUpdateSchedule(UpdateSchedule updateSchedule) {
+    this.updateSchedule = updateSchedule;
   }
 
   public void setHost(String host) {

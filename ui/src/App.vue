@@ -7,6 +7,8 @@
           :username="username"
           @logout="logoutUser"
           :showLogin="false"
+          :menu="tabs"
+          :icons="tabIcons"
         />
         <div class="container">
           <div class="row mt-2">
@@ -24,11 +26,7 @@
                 </div>
               </Alert>
               {{ errorMessage }}
-              <Tabs
-                v-if="username && !isUnauthorised"
-                :menu="tabs"
-                :icons="tabIcons"
-              />
+              <router-view />
             </div>
             <Login @loginEvent="reloadUser" v-else />
           </div>
@@ -41,7 +39,6 @@
 
 <script lang="ts">
 import Navbar from "@/components/Navbar.vue";
-import Tabs from "@/components/Tabs.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
 import Footer from "./components/Footer.vue";
@@ -65,7 +62,6 @@ export default defineComponent({
   name: "ArmadilloPortal",
   components: {
     Navbar,
-    Tabs,
     Login,
     Alert,
     Footer,
@@ -126,7 +122,13 @@ export default defineComponent({
   data() {
     return {
       loading: false,
-      tabs: ["Projects", "Users", "Workspaces", "Profiles", "Insight"],
+      tabs: {
+        Projects: "string",
+        Users: "string",
+        Workspaces: "string",
+        Profiles: "string",
+        Insight: ["Metrics", "Logs"],
+      },
       tabIcons: [
         "clipboard2-data",
         "people-fill",

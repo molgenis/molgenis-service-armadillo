@@ -23,6 +23,7 @@ To grant a user superuser permissions simply search for that user in the `Users`
 
 ![Grant user superuser rights](../../img/ui/admin.png)
 
+
 ## Projects
 
 Once you're logged in, you will be redirected to the `Projects` page. On this page you can add and edit projects.
@@ -78,8 +79,17 @@ Here you can upload files to that folder, or click on the tables (files) to prev
 
 ![Armadillo project file preview](../../img/ui/preview-file.png)
 
+You can also see the metadata of the file you uploaded. For each column, the datatype will be shown in two ways: 
+a more general term (string, integer, decimal, boolean, categorical) and the datatype as it is saved in armadillo 
+(binary for string/categorical, boolean, int32 for integer, double for decimal). For all columns, the number and 
+percentage of missing values will be shown. For categorical values, the different categorical options will be shown in
+the 'levels' column.
+
+![preview-metadata.png](../../img/ui/preview-metadata.png)
+
 To upload files, either drag a file from your file browser to the file upload area, or click the area and select the
-file.
+file. If a csv or tsv file is selected, it's possible to convert them to a `.parquet` file, so it can be used as a 
+table.
 
 ![Armadillo upload a file](../../img/ui/upload-a-file.png)
 
@@ -103,7 +113,7 @@ The URL of your resources should consist of:
 {your url}/storage/projects/{project name}/objects/{name of the folder}%2F{the resource file}
 ```
 
-Here is an example, with some example parameters:
+That means that the following parameters:
 
 ```r
 url = "https://armadillo3.demo.molgenis.net"
@@ -112,7 +122,7 @@ folder = "ewas"
 file = "gse66351_1.rda"
 ```
 
-Which results in the following url:
+Will result in this url:
 
 ```r
 https://armadillo3.demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66351_1.rda
@@ -146,6 +156,12 @@ By clicking on the plus button ![Armadillo user add](../../img/ui/add.png){width
 
 Users can be added before they have logged in previously. These users can be added to projects, which will grant them permission to use the data from those projects upon their first login. Researchers should not be set as admin.
 
+## Workspaces
+
+When users conduct analyses with DataSHIELD, they can save R workspaces on the server which saves any new objects they've created in their analysis. These workspaces take up space, and you may want to delete them once a researcher has finished their project. To do so, you can select a workspace and click the 'delete' button. You also have the option to delete all workspaces for one particular user.
+
+![Manage workspaces](../../img/ui/workspaces.png)
+
 ## Analysis Profiles
 
 ![Armadillo Profiles page](../../img/ui/profiles.png)
@@ -170,3 +186,8 @@ Possible images can be found on [dockerhub](https://hub.docker.com/search?q=data
 Although the default `port` setting should find an available port, please keep in mind that the port has to be unique, otherwise you cannot start your profile and will receive an error message.
 
 R packages can be whitelisted by adding them to the `package whitelist` column so researchers can use them. 'Whitelisting' a package allows analysts to use it. If you want to whitelist a package, you need to make sure it is installed on the image you selected. Additionally, it is possible to blacklist certain R functions in the `blacklist function` column. This can be useful if certain functions are not allowed to be used on certain data or within certain cohorts.
+
+Sometimes profiles are updated, for example if new features are added or security updates are applied. To manually update a profile, you just need to start and stop the profile and the new version will be installed. 
+
+From Armadillo v.5.2.0 and higher, it is also possible to automatically update profiles. Edit the profile, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
+![Automaticall update profile](../../img/ui/update-profile.png)

@@ -26,7 +26,8 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
+
     working_directory: ~/repo
     resource_class: large
     environment:
@@ -38,7 +39,8 @@ definitions:
 jobs:
   build:
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
+
 
     working_directory: ~/repo
     resource_class: large
@@ -51,7 +53,11 @@ jobs:
 
     steps:
       - checkout
-
+      - run:
+          name: Hydrate Blobless Clone for Sonar
+          command: |
+            git config --global --add safe.directory '*'
+            git fetch --refetch --no-filter
       - setup_remote_docker:
           version: previous
           docker_layer_caching: true
@@ -96,6 +102,16 @@ jobs:
                   -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
                 dockerPush
             fi
+      
+      - run:
+          name: Docker-Scout scanning on cves, break on critical.
+          command: |
+            export $( cat build/ci.properties | xargs )
+            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+              docker scout cves molgenis/molgenis-armadillo:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+            else
+              docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+            fi
 
       - run:
           name: deploy preview to Azure
@@ -112,8 +128,8 @@ jobs:
             fi
 
       - run:
-          name: Wait 10s for deployment to get ingress configuration to come up
-          command: sleep 10;
+          name: Wait 30s for deployment to get ingress configuration to come up
+          command: sleep 30;
 
       - run:
           name: Wait for preview to be up, poll every 10 seconds
@@ -152,7 +168,7 @@ jobs:
       GHA_PREVIEW_NR: << pipeline.parameters.GHA_Meta >>
 
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.5
+      - image: molgenis/ci-build-armadillo:1.1.6
 
     working_directory: ~/repo
     resource_class: large
