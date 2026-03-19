@@ -37,7 +37,7 @@ RESEARCHER_EMAIL="${RESEARCHER_EMAIL:-t.j.cadman@umcg.nl}"
 
 # --- Docker images -----------------------------------------------------------
 
-SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-flwr/superlink:1.23.0}"
+SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-flwr/superlink:1.27.0}"
 SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-data-test:0.0.1}"
 FLWR_ARMADILLO_DIR="$PROJECT_ROOT/../molgenis-flwr-armadillo"
 

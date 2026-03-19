@@ -34,10 +34,10 @@ Creates `/tmp/consortium.key` (private) and `/tmp/consortium.pub` (public), and 
 ```bash
 python3 -c "
 from pathlib import Path; import yaml
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.serialization.ssh import load_ssh_public_key
 from molgenis_flwr_armadillo.signing import derive_key_id
 pub = Path('/tmp/consortium.pub').read_bytes()
-kid = derive_key_id(load_pem_public_key(pub))
+kid = derive_key_id(load_ssh_public_key(pub))
 Path('/tmp/trusted-entities.yaml').write_text(yaml.dump({kid: pub.decode()}, default_flow_style=False))
 print(f'Written /tmp/trusted-entities.yaml with key {kid}')
 "

@@ -31,7 +31,7 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
-VERIFIED_SUPERNODE_IMAGE="${VERIFIED_SUPERNODE_IMAGE:-timmyjc/verified-supernode:test}"
+SUPERNODE_IMAGE="${SUPERNODE_IMAGE:-flwr/supernode:1.27.0}"
 
 # --- Preflight checks --------------------------------------------------------
 
@@ -178,7 +178,12 @@ put_container $ARMADILLO_1_PORT "$(cat <<EOF
 {
   "type": "flower-supernode",
   "name": "$SUPERNODE_1",
-  "image": "$VERIFIED_SUPERNODE_IMAGE",
+  "image": "$SUPERNODE_IMAGE",
+  "dockerOptions": {
+    "volumes": {
+      "/tmp/trusted-entities.yaml": "/app/trusted-entities.yaml"
+    }
+  },
   "dockerArgs": [
     "--trusted-entities", "/app/trusted-entities.yaml",
     "--insecure",
@@ -211,7 +216,12 @@ put_container $ARMADILLO_2_PORT "$(cat <<EOF
 {
   "type": "flower-supernode",
   "name": "$SUPERNODE_2",
-  "image": "$VERIFIED_SUPERNODE_IMAGE",
+  "image": "$SUPERNODE_IMAGE",
+  "dockerOptions": {
+    "volumes": {
+      "/tmp/trusted-entities.yaml": "/app/trusted-entities.yaml"
+    }
+  },
   "dockerArgs": [
     "--trusted-entities", "/app/trusted-entities.yaml",
     "--insecure",
