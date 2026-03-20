@@ -7,6 +7,7 @@ import Login from "@/views/Login.vue";
 import Actuator from "@/views/Actuator.vue";
 import Workspaces from "@/views/Workspaces.vue";
 import RemoteFiles from "@/views/RemoteFiles.vue";
+import System from "@/views/System.vue";
 
 const routes = [
   {
@@ -42,6 +43,11 @@ const routes = [
     path: "/profiles",
     name: "profiles",
     component: Profiles,
+  },
+  {
+    path: "/control",
+    name: "control",
+    component: System,
   },
   {
     path: "/metrics",

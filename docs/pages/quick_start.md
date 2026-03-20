@@ -127,4 +127,4 @@ there), and press the play button on the main function. You might have to first 
 will initialise up without oAuth configured, so you can login using the username `admin` and the password specified in 
 `application.yml` (default: `admin`). 
 
-For more information, see our [Developer guides](dev_guides.md) and [License](license.md). 
+For more information, see our [Developer guides](development/index.md) and [License](license.md). 

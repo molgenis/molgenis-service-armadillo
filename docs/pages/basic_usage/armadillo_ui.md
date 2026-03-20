@@ -8,7 +8,7 @@ Armadillo features a user interface, or UI for short.
 
 ![Login screen of Armadillo](../../img/ui/login.png)
 
-To login to the UI, select the **Institute account (oath2)** button and login using the institute or organisation login screen you will be redirected to.
+To login to the UI, select the **Institute account (oath2)** button, select your organisation or LS Login, and login using the institute or organisation login screen you will be redirected to.
 
 ### Superuser
 
@@ -191,3 +191,16 @@ Sometimes profiles are updated, for example if new features are added or securit
 
 From Armadillo v.5.2.0 and higher, it is also possible to automatically update profiles. Edit the profile, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
 ![Automaticall update profile](../../img/ui/update-profile.png)
+
+## Insight
+On the insight page application and server information can be shown on the Metrics page. There's also a Logs page where the audit log and general application logs can be viewed and downloaded.
+
+## System
+From Armadillo 5.13 on the System page is added, which gives data managers more control over their Armadillo server, without having to contact IT support
+
+### Authentication server configuration
+On this page the authentication server -- used for OIDC authentication of the application -- can be reconfigured. The initial authentication server configuration for oAuth/OIDC login can be set in the application.yml before starting Armadillo for the first time. When armadillo starts,
+it will create a `auth.json` from the configuration in the `application.yml`, if configuration is available there, else it will create an empty configuration file. This file resides in the system folder of the data folder of the application (this folder is also configured in the `application.yml` as `storage.root-dir`). This file contains the Authentication server configuration that will be used in the application. 
+
+### Restart button
+The system page also contains a restart button, allowing users to restart the entire Armadilllo application, in case of emergencies.

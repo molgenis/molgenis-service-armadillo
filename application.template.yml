@@ -19,7 +19,8 @@ spring:
     user:
       # please change this admin password!
       password: admin
-    ## uncomment oauth2 settings below to enable oidcgit
+    ## uncomment oauth2 settings below to enable oidc
+    ## this is the initial oauth config, please note that when this is changed via the UI or API, these settings will not be used anymore, instead you can find the configuration in auth.json in the system folder, located in the configured data folder of armadillo
 #    oauth2:
 #      client:
 #        provider:

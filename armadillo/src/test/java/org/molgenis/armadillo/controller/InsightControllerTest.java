@@ -18,6 +18,7 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.InsightService;
 import org.molgenis.armadillo.model.DockerImageInfo;
 import org.molgenis.armadillo.profile.DockerService;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +42,7 @@ public class InsightControllerTest {
   @Autowired InsightService insightService;
 
   @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean ManagementService managementService;
   @Autowired AccessService accessService;
 
   @MockitoBean DockerService dockerService;

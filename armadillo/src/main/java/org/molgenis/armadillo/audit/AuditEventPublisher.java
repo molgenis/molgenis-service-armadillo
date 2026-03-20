@@ -63,6 +63,8 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String GET_PROJECT = "GET_PROJECT";
   public static final String LIST_PROFILES = "LIST_PROFILES";
   public static final String LIST_PROFILES_STATUS = "LIST_PROFILES_STATUS";
+  public static final String UPDATE_OIDC_CONFIG = "UPDATE_OIDC_CONFIG";
+  public static final String OIDC_DETAILS = "OIDC_DETAILS";
   public static final String UPSERT_PROFILE = "UPSERT_PROFILE";
   public static final String DELETE_PROFILE = "DELETE_PROFILE";
   public static final String GET_PROFILE = "GET_PROFILE";

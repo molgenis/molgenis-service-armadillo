@@ -150,3 +150,9 @@ export type ProfileStartStatus = {
   completedLayers: number | null;
   totalLayers: number | null;
 };
+
+export type AuthServerConfig = {
+  issuerUri?: string;
+  clientId?: string;
+  clientSecret?: string;
+};
