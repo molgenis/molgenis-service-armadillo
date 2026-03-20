@@ -1,4 +1,4 @@
-FROM molgenis/ci-build:1.2.4 
+FROM molgenis/ci-build:1.5.1
 
 
 RUN echo "deb https://cran.r-project.org/bin/linux/ubuntu jammy-cran40/" >> /etc/apt/sources.list
