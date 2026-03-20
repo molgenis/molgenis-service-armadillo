@@ -5,6 +5,8 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.exceptions.OidcConfigError;
 import org.molgenis.armadillo.metadata.*;
@@ -24,9 +26,9 @@ public class ManagementService {
   private final AuthLoader loader;
   private final DynamicClientRegistrationRepository registrationRepository;
   private OidcDetails settings;
-  private String clientId;
-  private String clientSecret;
-  private String issuerUri;
+  private AtomicReference<String> clientId = new AtomicReference<>();
+  private AtomicReference<String> clientSecret = new AtomicReference<>();
+  private AtomicReference<String> issuerUri = new AtomicReference<>();
 
   public ManagementService(
       AuthLoader authLoader,
@@ -39,9 +41,9 @@ public class ManagementService {
           String defaultClientId) {
     this.loader = requireNonNull(authLoader);
     this.registrationRepository = requireNonNull(registrationRepository);
-    issuerUri = defaultAuthServerUri;
-    clientId = defaultClientId;
-    clientSecret = defaultClientSecret;
+    issuerUri.set(defaultAuthServerUri);
+    clientId.set(defaultClientId);
+    clientSecret.set(defaultClientSecret);
     runAsSystem(this::initialize);
   }
 
@@ -90,14 +92,14 @@ public class ManagementService {
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public OidcConfig getOidcConfig() {
-    return new OidcConfig(issuerUri, clientId, clientSecret);
+    return new OidcConfig(issuerUri.get(), clientId.get(), clientSecret.get());
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
   public void saveNewOidcConfig(String newIssuerUri, String newClientId, String newClientSecret) {
-    String oldIssuerUri = issuerUri;
-    String oldClientId = clientId;
-    String oldClientSecret = clientSecret;
+    String oldIssuerUri = issuerUri.get();
+    String oldClientId = clientId.get();
+    String oldClientSecret = clientSecret.get();
     saveSettings(newIssuerUri, newClientId, newClientSecret);
     try {
       reloadOidcRegistration();
@@ -114,8 +116,8 @@ public class ManagementService {
   @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, String> getClient() {
     return Map.of(
-        "clientId", clientId,
-        "clientSecret", clientSecret);
+        "clientId", clientId.get(),
+        "clientSecret", clientSecret.get());
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
@@ -132,17 +134,17 @@ public class ManagementService {
   // -------------------------------------------------------------------------
 
   private void bootstrap() {
-    String auth = isNullOrEmpty(settings.getIssuerUri()) ? issuerUri : settings.getIssuerUri();
-    String client = isNullOrEmpty(settings.getClientId()) ? clientId : settings.getClientId();
+    String auth = isNullOrEmpty(settings.getIssuerUri()) ? issuerUri.get() : settings.getIssuerUri();
+    String client = isNullOrEmpty(settings.getClientId()) ? clientId.get() : settings.getClientId();
     String secret =
-        isNullOrEmpty(settings.getClientSecret()) ? clientSecret : settings.getClientSecret();
+        isNullOrEmpty(settings.getClientSecret()) ? clientSecret.get() : settings.getClientSecret();
     saveSettings(auth, client, secret);
   }
 
   private void saveSettings(String newIssuerUri, String newClientId, String newClientSecret) {
-    this.issuerUri = newIssuerUri;
-    this.clientId = newClientId;
-    this.clientSecret = newClientSecret;
+    this.issuerUri.set(newIssuerUri);
+    this.clientId.set(newClientId);
+    this.clientSecret.set(newClientSecret);
     settings = OidcDetails.create(newIssuerUri, newClientId, newClientSecret);
     save();
   }
