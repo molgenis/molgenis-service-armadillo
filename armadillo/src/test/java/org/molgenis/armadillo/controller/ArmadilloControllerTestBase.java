@@ -13,7 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Import(AuditEventPublisher.class)
+@AutoConfigureMockMvc
 @WebMvcTest
 public class ArmadilloControllerTestBase {
 

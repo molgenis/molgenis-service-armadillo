@@ -25,7 +25,7 @@ import org.molgenis.armadillo.profile.DockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;

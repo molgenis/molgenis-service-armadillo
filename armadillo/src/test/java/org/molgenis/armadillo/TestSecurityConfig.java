@@ -3,6 +3,7 @@ package org.molgenis.armadillo;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+import org.mockito.Mockito;
 import org.molgenis.armadillo.metadata.AccessLoader;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.DummyAccessLoader;
@@ -14,9 +15,9 @@ import org.molgenis.armadillo.metadata.ProfilesLoader;
 import org.molgenis.armadillo.profile.ProfileScope;
 import org.molgenis.armadillo.service.FileService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -27,6 +28,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -101,5 +103,10 @@ public class TestSecurityConfig {
           }
         };
     return new InMemoryUserDetailsManager(List.of(userDetails));
+  }
+
+  @Bean
+  ClientRegistrationRepository clientRegistrationRepository() {
+    return Mockito.mock(ClientRegistrationRepository.class);
   }
 }
