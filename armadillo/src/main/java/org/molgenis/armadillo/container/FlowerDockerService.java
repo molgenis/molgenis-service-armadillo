@@ -3,6 +3,7 @@ package org.molgenis.armadillo.container;
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.io.ByteArrayInputStream;
@@ -29,6 +30,7 @@ public class FlowerDockerService {
   public void copyDataToContainer(
       String containerName, String destDir, String fileName, InputStream data) {
     try {
+      ensureDirectoryExists(containerName, destDir);
       byte[] bytes = data.readAllBytes();
       InputStream tarStream = createTarArchive(fileName, bytes);
       dockerClient
@@ -43,6 +45,12 @@ public class FlowerDockerService {
     } catch (IOException e) {
       throw new DataPushFailedException(containerName, e);
     }
+  }
+
+  private void ensureDirectoryExists(String containerName, String dir) {
+    ExecCreateCmdResponse exec =
+        dockerClient.execCreateCmd(containerName).withCmd("mkdir", "-p", dir).exec();
+    dockerClient.execStartCmd(exec.getId()).exec(null);
   }
 
   static InputStream createTarArchive(String fileName, byte[] content) throws IOException {
