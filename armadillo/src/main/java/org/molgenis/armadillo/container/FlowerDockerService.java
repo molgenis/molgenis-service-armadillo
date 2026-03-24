@@ -3,9 +3,11 @@ package org.molgenis.armadillo.container;
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.api.model.Frame;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,10 +49,23 @@ public class FlowerDockerService {
     }
   }
 
-  private void ensureDirectoryExists(String containerName, String dir) {
+  private void ensureDirectoryExists(String containerName, String dir) throws IOException {
     ExecCreateCmdResponse exec =
-        dockerClient.execCreateCmd(containerName).withCmd("mkdir", "-p", dir).exec();
-    dockerClient.execStartCmd(exec.getId()).exec(null);
+        dockerClient
+            .execCreateCmd(containerName)
+            .withAttachStdout(true)
+            .withAttachStderr(true)
+            .withCmd("mkdir", "-p", dir)
+            .exec();
+    try {
+      dockerClient
+          .execStartCmd(exec.getId())
+          .exec(new ResultCallback.Adapter<Frame>())
+          .awaitCompletion();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Interrupted while creating directory " + dir, e);
+    }
   }
 
   static InputStream createTarArchive(String fileName, byte[] content) throws IOException {
