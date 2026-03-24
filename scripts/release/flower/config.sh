@@ -19,7 +19,7 @@ fi
 
 ARMADILLO_1_PORT="${ARMADILLO_1_PORT:-8080}"
 ARMADILLO_2_PORT="${ARMADILLO_2_PORT:-8081}"
-ARMADILLO_JAR="$PROJECT_ROOT/build/libs/molgenis-armadillo-5.13.0-SNAPSHOT.jar"
+ARMADILLO_JAR="$(ls -t "$PROJECT_ROOT"/build/libs/molgenis-armadillo-*.jar 2>/dev/null | head -1)"
 ARMADILLO_1_DATA="$SCRIPT_DIR/data1"
 ARMADILLO_2_DATA="$SCRIPT_DIR/data2"
 ARMADILLO_1_URL="http://localhost:$ARMADILLO_1_PORT"
@@ -37,8 +37,8 @@ RESEARCHER_EMAIL="${RESEARCHER_EMAIL:-t.j.cadman@umcg.nl}"
 
 # --- Docker images -----------------------------------------------------------
 
-SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-flwr/superlink:1.27.0}"
-SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-data-test:0.0.1}"
+SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-timmyjc/verified-superlink:test}"
+SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-data-test:0.0.1-debug}"
 FLWR_ARMADILLO_DIR="$PROJECT_ROOT/../molgenis-flwr-armadillo"
 
 # --- Container names ---------------------------------------------------------

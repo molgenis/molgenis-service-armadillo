@@ -17,4 +17,5 @@ log ""
 
 molgenis-flwr-run \
   --signed-fab /tmp/study.sfab \
-  --federation-address 127.0.0.1:9093
+  --federation-address 127.0.0.1:9093 \
+  --stream

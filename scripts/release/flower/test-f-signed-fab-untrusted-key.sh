@@ -44,4 +44,5 @@ log ""
 molgenis-flwr-run \
   --signed-fab "$UNTRUSTED_FAB" \
   --federation-address 127.0.0.1:9093 \
+  --stream \
   --run-config "token-node1='$TOKEN_NODE1' url-node1='$DOCKER_URL_NODE1' token-node2='$TOKEN_NODE2' url-node2='$DOCKER_URL_NODE2'"

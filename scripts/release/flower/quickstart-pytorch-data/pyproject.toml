@@ -12,7 +12,7 @@ dependencies = [
     "flwr-datasets[vision]>=0.5.0",
     "torch==2.4.1",
     "torchvision==0.19.1",
-    "molgenis-flwr-armadillo @ git+ssh://git@github.com/molgenis/molgenis-flwr-armadillo.git@feat/authentication",
+    "molgenis-flwr-armadillo",
 ]
 
 [tool.hatch.metadata]

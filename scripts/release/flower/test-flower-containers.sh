@@ -31,7 +31,7 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
-SUPERNODE_IMAGE="${SUPERNODE_IMAGE:-flwr/supernode:1.27.0}"
+SUPERNODE_IMAGE="${SUPERNODE_IMAGE:-timmyjc/verified-supernode:test}"
 
 # --- Preflight checks --------------------------------------------------------
 
@@ -291,9 +291,20 @@ log "    ./scripts/release/flower/test-c-signed-fab-wrong-project.sh"
 log "    ./scripts/release/flower/test-d-unsigned-fab.sh"
 log "    ./scripts/release/flower/test-e-signed-fab-no-tokens.sh"
 log ""
-log "  View logs:    ./scripts/release/flower/logs.sh"
-log "  Cleanup:      ./scripts/release/flower/cleanup.sh (or Ctrl+C)"
+log "  Cleanup:      Ctrl+C"
+log ""
+log "  Tailing all logs below..."
 log ""
 
-# Wait until interrupted
+# Tail Armadillo logs
+tail -f "$SCRIPT_DIR/armadillo1.log" 2>/dev/null | sed "s/^/[armadillo-1] /" &
+tail -f "$SCRIPT_DIR/armadillo2.log" 2>/dev/null | sed "s/^/[armadillo-2] /" &
+
+# Tail Docker container logs
+for c in "$SUPERLINK" "$SUPERNODE_1" "$SUPERNODE_2" "$CLIENTAPP_1" "$CLIENTAPP_2" "$SERVERAPP"; do
+  if docker inspect "$c" >/dev/null 2>&1; then
+    docker logs --tail 20 -f "$c" 2>&1 | sed "s/^/[$c] /" &
+  fi
+done
+
 wait

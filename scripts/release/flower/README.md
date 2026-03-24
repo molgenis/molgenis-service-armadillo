@@ -43,17 +43,31 @@ print(f'Written /tmp/trusted-entities.yaml with key {kid}')
 "
 ```
 
-## Step 3: Build and Push the Verified Supernode Image
+## Step 3: Build and Push the Docker Images
 
-Armadillo pulls images on container start, so the image must be in a registry.
+Armadillo pulls images on container start, so they must be in a registry.
 
 ```bash
 cd /Users/tcadman/github-repos/ds-molgenis/molgenis-flwr-armadillo
 docker login
-./docker/build-verified-images.sh
+./docker/build-push-all.sh
 ```
 
-This builds and pushes `timmyjc/verified-supernode:test`. If the image already exists on Docker Hub, it skips.
+This builds and pushes:
+- `timmyjc/verified-superlink:test` — patched SuperLink (see below)
+- `timmyjc/superexec-data-test:0.0.1` — patched SuperExec (see below)
+
+### Why custom images?
+
+Both images patch issues in stock Flower 1.27.0:
+
+**verified-superlink** (`docker/verified-superlink.Dockerfile`):
+The stock SuperLink discards the `verifications` dict when a FAB is submitted directly via gRPC (as `molgenis-flwr-run` does). This means supernodes with `--trusted-entities` can never verify FAB signatures. The patch preserves `request.fab.verifications` in the `StartRun` handler so signatures are passed through to supernodes.
+
+**superexec-data-test** (`examples/docker/superexec.Dockerfile`):
+Two patches:
+1. **Baked-in dependencies**: `molgenis-flwr-armadillo` and `molgenis-python-auth` are installed from local source at build time, avoiding `git+https://` fetches at runtime (security: prevents supply chain attacks via modified external packages).
+2. **ServerApp log visibility**: Flower 1.27.0 ([PR #6700](https://github.com/adap/flower/pull/6700)) suppresses ServerApp subprocess stdout/stderr via `subprocess.DEVNULL`, making debugging impossible. The patch removes this suppression so ServerApp logs appear in `docker logs`.
 
 ## Step 4: Sign the Flower App
 

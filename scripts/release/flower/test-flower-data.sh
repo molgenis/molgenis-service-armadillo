@@ -29,7 +29,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 # --- Configuration -----------------------------------------------------------
 
-ARMADILLO_JAR="$PROJECT_ROOT/build/libs/molgenis-armadillo-5.13.0-SNAPSHOT.jar"
+ARMADILLO_JAR="$(ls -t "$PROJECT_ROOT"/build/libs/molgenis-armadillo-*.jar 2>/dev/null | head -1)"
 SUPERLINK_IMAGE="flwr/superlink:1.23.0"
 FLWR_APP_DIR="${FLWR_APP_DIR:-$SCRIPT_DIR/quickstart-pytorch-data}"
 
@@ -55,10 +55,10 @@ CLIENTAPP_1="flower-clientapp-1"
 CLIENTAPP_2="flower-clientapp-2"
 SUPERLINK="flower-test-superlink"
 SERVERAPP="flower-test-serverapp"
-SUPEREXEC_IMAGE="timmyjc/superexec-data-test:0.0.1"
+SUPEREXEC_IMAGE="timmyjc/superexec-data-test:1.23.0"
 
 PROJECT_NAME="test-flower"
-TOKEN_FILE="/tmp/flwr_tokens.json"
+TOKEN_FILE="$(python3 -c 'import tempfile; print(tempfile.gettempdir())')/flwr_tokens.json"
 NODES_CONFIG="$SCRIPT_DIR/flower-nodes.yaml"
 
 # PIDs for cleanup
@@ -347,7 +347,7 @@ put_container $ARMADILLO_1_PORT "$(cat <<'EOF'
 {
   "type": "flower-superexec",
   "name": "flower-clientapp-1",
-  "image": "timmyjc/superexec-data-test:0.0.1",
+  "image": "timmyjc/superexec-data-test:1.23.0",
   "dockerArgs": [
     "--insecure",
     "--plugin-type", "clientapp",
@@ -379,7 +379,7 @@ put_container $ARMADILLO_2_PORT "$(cat <<'EOF'
 {
   "type": "flower-superexec",
   "name": "flower-clientapp-2",
-  "image": "timmyjc/superexec-data-test:0.0.1",
+  "image": "timmyjc/superexec-data-test:1.23.0",
   "dockerArgs": [
     "--insecure",
     "--plugin-type", "clientapp",
