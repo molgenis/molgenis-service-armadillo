@@ -10,11 +10,11 @@ import org.springframework.core.io.Resource;
 
 public interface Commands {
 
-  List<String> listProfiles();
+  List<String> listContainers();
 
-  String getActiveProfileName();
+  String getActiveContainerName();
 
-  void selectProfile(String profileName);
+  void selectContainer(String containerName);
 
   CompletableFuture<RServerResult> evaluate(String expression);
 

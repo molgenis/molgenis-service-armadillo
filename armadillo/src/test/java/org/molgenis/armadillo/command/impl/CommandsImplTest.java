@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.exceptions.UnknownProfileException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.exceptions.UnknownContainerException;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -52,7 +52,7 @@ class CommandsImplTest {
   @Mock PackageService packageService;
   @Mock RExecutorService rExecutorService;
   @Mock ProcessService processService;
-  @Mock ProfileService profileService;
+  @Mock ContainerService containerService;
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
@@ -83,7 +83,7 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService,
+            containerService,
             resourceTokenService);
   }
 
@@ -241,25 +241,25 @@ class CommandsImplTest {
   }
 
   @Test
-  void testGetActiveProfileDefault() {
-    ActiveProfileNameAccessor.resetActiveProfileName();
-    String profileName = commands.getActiveProfileName();
-    assertEquals(ActiveProfileNameAccessor.DEFAULT, profileName);
+  void testGetActiveContainerDefault() {
+    ActiveContainerNameAccessor.resetActiveContainerName();
+    String containerName = commands.getActiveContainerName();
+    assertEquals(ActiveContainerNameAccessor.DEFAULT, containerName);
   }
 
   @Test
-  void testGetActiveProfile() {
-    ActiveProfileNameAccessor.setActiveProfileName("exposome");
-    String profileName = commands.getActiveProfileName();
-    assertEquals("exposome", profileName);
-    ActiveProfileNameAccessor.resetActiveProfileName();
+  void testGetActiveContainer() {
+    ActiveContainerNameAccessor.setActiveContainerName("exposome");
+    String containerName = commands.getActiveContainerName();
+    assertEquals("exposome", containerName);
+    ActiveContainerNameAccessor.resetActiveContainerName();
   }
 
   @Test
-  void testSelectProfileWritesToSession() {
+  void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    ProfileConfig profileConfig =
-        ProfileConfig.create(
+    ContainerConfig containerConfig =
+        ContainerConfig.create(
             "exposome",
             "dummy",
             false,
@@ -274,16 +274,16 @@ class CommandsImplTest {
             null,
             null,
             null);
-    when(profileService.getByName("exposome")).thenReturn(profileConfig);
-    commands.selectProfile("exposome");
-    verify(attrs).setAttribute("profile", "exposome", SCOPE_SESSION);
+    when(containerService.getByName("exposome")).thenReturn(containerConfig);
+    commands.selectContainer("exposome");
+    verify(attrs).setAttribute("container", "exposome", SCOPE_SESSION);
     RequestContextHolder.resetRequestAttributes();
   }
 
   @Test
-  void testSelectUnknownProfile() {
-    when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
-    assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+  void testSelectUnknownContainer() {
+    when(containerService.getByName("unknown")).thenThrow(new UnknownContainerException("unknown"));
+    assertThrows(UnknownContainerException.class, () -> commands.selectContainer("unknown"));
   }
 
   @Test

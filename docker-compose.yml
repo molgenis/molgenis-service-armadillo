@@ -2,7 +2,7 @@
 # NOTE: WHEN USING DOCKER YOU CANNOT DYNAMICALLY MANAGE YOUR PROFILES
 version: "3.4"
 services:
-  # activate this profile by adding --profile armadillo to the `docker-compose --profile armadillo up`
+  # activate this container by adding --container armadillo to the `docker-compose --container armadillo up`
   armadillo:
     image: molgenis/molgenis-armadillo-snapshot:latest
     environment:

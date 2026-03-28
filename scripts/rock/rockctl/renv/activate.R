@@ -896,7 +896,7 @@ local({
   renv_bootstrap_profile_prefix <- function() {
     profile <- renv_bootstrap_profile_get()
     if (!is.null(profile))
-      return(file.path("profiles", profile, "renv"))
+      return(file.path("containers", profile, "renv"))
   }
   
   renv_bootstrap_profile_get <- function() {

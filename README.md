@@ -13,7 +13,7 @@ service provides the following features:
   'resources' framework.
 * **grant users access permission**. We use a central OIDC service like KeyCloak or FusionAuth in combination with a trused identity provider like
   Life Sciences AAI to authenticate users.
-* **configure DataSHIELD analysis profiles**. [DataSHIELD analysis profiles](https://www.datashield.org/help/standard-profiles-and-plaforms) are
+* **configure DataSHIELD analysis containers**. [DataSHIELD analysis containers](https://www.datashield.org/help/standard-containers-and-plaforms) are
   Docker images that contain a collection of multiple [DataSHIELD analysis packages](https://www.datashield.org/help/community-packages).
 
 ![DataSHIELD overview](docs/img/ds-complete-setup.png)

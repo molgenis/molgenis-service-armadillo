@@ -19,7 +19,7 @@ Below we provide a quick start for each type of user:
 Data management can be done in different ways: the Armadillo User Interface, the MolgenisArmadillo R client, or using DsUpload. 
 
 ### User interface
-In the armadillo user interface, data managers can login and manage users, projects, workspaces and profiles. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [usage examples page](examples_usage.md).
+In the armadillo user interface, data managers can login and manage users, projects, workspaces and containers. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [usage examples page](examples_usage.md).
 
 ![ui-projects.png](../img/ui-projects.png){ width="1000" }
 

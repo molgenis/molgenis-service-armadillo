@@ -3,7 +3,7 @@ package org.molgenis.armadillo.command;
 import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 import java.util.concurrent.Executors;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,7 +17,7 @@ public class CommandsConfig {
 
   /**
    * Added TaskExecutor instead of the ExecutorService to copy the request attributes (in particular
-   * the profile definition) from the request to the thread executing the R-command.
+   * the container definition) from the request to the thread executing the R-command.
    */
   @Bean
   @Primary
@@ -28,13 +28,13 @@ public class CommandsConfig {
         runnable -> {
           // this runs in the calling thread
           final SecurityContext securityContext = SecurityContextHolder.getContext();
-          final String profile = ActiveProfileNameAccessor.getActiveProfileName();
+          final String container = ActiveContainerNameAccessor.getActiveContainerName();
           return () -> {
             // this runs in the task thread
             final SecurityContext originalSecurityContext = SecurityContextHolder.getContext();
             try {
               SecurityContextHolder.setContext(securityContext);
-              ActiveProfileNameAccessor.setActiveProfileName(profile);
+              ActiveContainerNameAccessor.setActiveContainerName(container);
               runnable.run();
             } finally {
               SecurityContext emptyContext = createEmptyContext();
@@ -43,7 +43,7 @@ public class CommandsConfig {
               } else {
                 setContext(originalSecurityContext);
               }
-              ActiveProfileNameAccessor.resetActiveProfileName();
+              ActiveContainerNameAccessor.resetActiveContainerName();
             }
           };
         });
