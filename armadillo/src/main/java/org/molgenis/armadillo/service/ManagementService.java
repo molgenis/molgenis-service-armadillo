@@ -6,7 +6,6 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.exceptions.OidcConfigError;
 import org.molgenis.armadillo.metadata.*;
@@ -134,7 +133,8 @@ public class ManagementService {
   // -------------------------------------------------------------------------
 
   private void bootstrap() {
-    String auth = isNullOrEmpty(settings.getIssuerUri()) ? issuerUri.get() : settings.getIssuerUri();
+    String auth =
+        isNullOrEmpty(settings.getIssuerUri()) ? issuerUri.get() : settings.getIssuerUri();
     String client = isNullOrEmpty(settings.getClientId()) ? clientId.get() : settings.getClientId();
     String secret =
         isNullOrEmpty(settings.getClientSecret()) ? clientSecret.get() : settings.getClientSecret();

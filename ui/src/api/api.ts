@@ -308,11 +308,15 @@ export async function previewObject(projectId: string, object: string) {
   );
 }
 
-export async function logout() {
-  const auth = { user: "logout", pwd: new Date().getTime().toString() };
-  return get("/logout").then(() => {
-    authenticate(auth);
-  });
+export async function logout(username: string) {
+  if (username === "admin") {
+    const auth = { user: "logout", pwd: new Date().getTime().toString() };
+    return get("/logout").then(() => {
+      authenticate(auth);
+    });
+  } else {
+    window.location.href = "/oauth-logout";
+  }
 }
 
 export async function authenticate(auth: Auth) {

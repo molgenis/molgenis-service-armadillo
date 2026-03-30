@@ -26,6 +26,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -35,6 +36,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
@@ -49,7 +51,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 // (least dominant). In the 'test' profile none of these are enabled.
 // OAuth2/JWT are only active when an OIDC config has been loaded via ManagementService.reload().
 public class AuthConfig {
-
   private static final CorsConfiguration ALLOW_CORS =
       new CorsConfiguration().applyPermitDefaultValues();
 
@@ -153,6 +154,21 @@ public class AuthConfig {
                 .defaultSuccessUrl("/", true));
     http.oauth2ResourceServer(
         configurer -> configurer.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())));
+    http.logout(
+        (logout) ->
+            logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)));
+  }
+
+  private LogoutSuccessHandler oidcLogoutSuccessHandler(
+      ClientRegistrationRepository clientRegistrationRepository) {
+    OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
+        new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+
+    // Sets the location that the End-User's User Agent will be redirected to
+    // after the logout has been performed at the Provider
+    oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
+
+    return oidcLogoutSuccessHandler;
   }
 
   // -------------------------------------------------------------------------
