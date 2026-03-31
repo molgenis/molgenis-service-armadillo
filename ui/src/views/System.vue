@@ -15,7 +15,7 @@
           recordType="application"
           @proceed="proceedRestartServer"
           @cancel="cancelRestartServer"
-          extraInfo="The website will be down for a short period of time. Try refreshing until it is back up."
+          extraInfo="The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator."
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="updateOidcTriggered"
@@ -24,7 +24,7 @@
           recordType="the authentication server"
           @proceed="saveOidcConfig"
           @cancel="cancelOidcUpdate"
-          extraInfo="Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access."
+          extraInfo="Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access. After configuration is updated, the application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator."
         ></ConfirmationDialog>
       </div>
     </div>
@@ -42,6 +42,7 @@
           :presetClientId="authConfig.clientId"
           :presetClientSecret="authConfig.clientSecret"
           :presetServerUri="authConfig.issuerUri"
+          :key="reloadOidc"
         />
         <OidcConfig
           v-else-if="!isLoading"
@@ -123,12 +124,13 @@ export default defineComponent({
       updateOidcTriggered: false,
       isRestartServerPushed: false,
       configToSave: {},
+      reloadOidc: 0,
     };
   },
   methods: {
     proceedRestartServer() {
       this.warningMessage =
-        "Server will restart now. Please refresh and log back in.";
+        "Server will restart now. Please refresh and log back in. If the application is not reloaded, please contact your administrator.";
       restartServer();
     },
     cancelRestartServer() {
@@ -136,6 +138,7 @@ export default defineComponent({
     },
     cancelOidcUpdate() {
       this.updateOidcTriggered = false;
+      this.reloadOidc++;
     },
     askIfSureUpdateOidc(event: Event) {
       this.updateOidcTriggered = true;
@@ -147,6 +150,7 @@ export default defineComponent({
           this.successMessage = "Successfully updated OIDC config";
           this.authConfig = this.configToSave;
           this.cancelOidcUpdate();
+          this.proceedRestartServer();
         })
         .catch((errrorMsg) => {
           this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;

@@ -30,7 +30,7 @@ describe("System", () => {
 
     });
 
-    test("Verify url/client-id/secret are passed to config", () => {
+    test("Verify url/client-id/secret are passed to config", async () => {
       expect(wrapper.html()).toContain("https://auth.molgenis.org");
       expect(wrapper.html()).toContain("my-client-id");
       expect(wrapper.html()).toContain("VeryS3cretP@ssw0rd");
