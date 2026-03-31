@@ -154,9 +154,6 @@ public class AuthConfig {
                 .defaultSuccessUrl("/", true));
     http.oauth2ResourceServer(
         configurer -> configurer.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())));
-    http.logout(
-        (logout) ->
-            logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)));
   }
 
   private LogoutSuccessHandler oidcLogoutSuccessHandler(
