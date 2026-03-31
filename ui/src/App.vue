@@ -150,7 +150,7 @@ export default defineComponent({
   },
   methods: {
     logoutUser() {
-      logout(this.username).then(() => {
+      logout().then(() => {
         this.username = "";
         this.reloadUser();
       });
