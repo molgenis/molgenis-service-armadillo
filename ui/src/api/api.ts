@@ -321,6 +321,7 @@ export async function authenticate(auth: Auth) {
     } catch (e) {
       if (e instanceof ApiError) throw e;
     }
+    throw new ApiError("Incorrect username or password", response.status);
   }
 
   return handleResponse(response);
