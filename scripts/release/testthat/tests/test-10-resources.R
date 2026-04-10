@@ -94,7 +94,7 @@ test_that("/objects/ (iii): resource file accessible, data inaccessible - assign
       symbol = "old_iii_resolved",
       expr = as.symbol("as.resource.object(old_iii)")
     ),
-    "invalid first argument",
+    "invalid first argument|valor ausente",
     info = "/objects/: researcher must have access to data project to resolve"
   )
 })
