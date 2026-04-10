@@ -32,6 +32,14 @@
                   :successMessage="successMessage"
                   :errorMessage="errorMessage"
                 ></FeedbackMessage>
+                <div
+                  v-if="secondsRemaining > 0"
+                  class="alert alert-warning text-center"
+                >
+                  Account locked due to too many incorrect login attempts. Try
+                  again in
+                  {{ formattedLockoutTime }}.
+                </div>
                 <p class="fw-bold">Login using local account:</p>
                 <form @submit.prevent="login">
                   <div class="input-group mb-3">
@@ -65,7 +73,7 @@
                     <button
                       type="submit"
                       class="btn btn-primary mb-4"
-                      @click="login"
+                      :disabled="secondsRemaining > 0"
                     >
                       Log in
                       <i class="bi bi-box-arrow-right"></i>
@@ -97,7 +105,16 @@ export default defineComponent({
       password: "",
       successMessage: "",
       errorMessage: "",
+      secondsRemaining: 0,
+      lockoutTimer: null as ReturnType<typeof setInterval> | null,
     };
+  },
+  computed: {
+    formattedLockoutTime(): string {
+      const mins = Math.floor(this.secondsRemaining / 60);
+      const secs = this.secondsRemaining % 60;
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    },
   },
   methods: {
     toggleShowLogin() {
@@ -112,14 +129,29 @@ export default defineComponent({
       window.location.href = url;
     },
     login() {
+      if (this.secondsRemaining > 0) return;
       authenticate({ user: this.username, pwd: this.password })
         .then(() => {
           this.$router.push("/");
           this.$emit("loginEvent");
         })
-        .catch((error: Error) => {
-          this.errorMessage = error.message;
+        .catch((error: any) => {
+          if (error.secondsRemaining) {
+            this.secondsRemaining = error.secondsRemaining;
+            this.startLockoutTimer();
+            this.errorMessage = "";
+          } else this.errorMessage = error.message;
         });
+    },
+    startLockoutTimer() {
+      if (this.lockoutTimer) clearInterval(this.lockoutTimer);
+      this.lockoutTimer = setInterval(() => {
+        this.secondsRemaining--;
+        if (this.secondsRemaining <= 0) {
+          clearInterval(this.lockoutTimer!);
+          this.lockoutTimer = null;
+        }
+      }, 1000);
     },
   },
 });
