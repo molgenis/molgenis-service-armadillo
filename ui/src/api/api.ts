@@ -309,6 +309,20 @@ export async function authenticate(auth: Auth) {
       Authorization: `Basic ${btoa(auth.user + ":" + auth.pwd)}`,
     },
   });
+
+if (response.status === 401) {
+    try{
+        const body = await.response.json();
+        if (body.locked) {
+            const error = new ApiError("locked", response.status);
+            (error as any).secondsRemaining = body.secondsRemaining;
+            throw error;
+            }
+        } catch(e) {
+            if (e instanceof ApiError) throw e:
+            }
+        }
+
   return handleResponse(response);
 }
 
