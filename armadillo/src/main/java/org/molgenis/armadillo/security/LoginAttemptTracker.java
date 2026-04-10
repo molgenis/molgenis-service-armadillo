@@ -22,7 +22,7 @@ public class LoginAttemptTracker {
     failedAttempts++;
     if (failedAttempts > FREE_ATTEMPTS) {
       int over = failedAttempts - FREE_ATTEMPTS;
-      long multiplier = (long) Math.pow(2, over - 1);
+      long multiplier = 1L << (over - 1);
       Duration lockout = BASE_LOCKOUT.multipliedBy(multiplier);
       if (lockout.compareTo(MAX_LOCKOUT) > 0) {
         lockout = MAX_LOCKOUT;
