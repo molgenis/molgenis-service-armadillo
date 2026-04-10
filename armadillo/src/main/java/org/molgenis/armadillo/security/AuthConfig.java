@@ -57,7 +57,10 @@ public class AuthConfig {
   @Order(1)
   @Bean
   protected SecurityFilterChain oauthAndBasic(
-      HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
+      HttpSecurity http,
+      @Value("${armadillo.api-key:#{null}}") String authToken,
+      NoPopupBasicAuthenticationEntryPoint noPopupBasicAuthenticationEntryPoint)
+      throws Exception {
     http.authorizeHttpRequests(
         requests ->
             requests
@@ -100,7 +103,7 @@ public class AuthConfig {
                       }
                     })
                 .realmName("Armadillo")
-                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+                .authenticationEntryPoint(noPopupBasicAuthenticationEntryPoint));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
