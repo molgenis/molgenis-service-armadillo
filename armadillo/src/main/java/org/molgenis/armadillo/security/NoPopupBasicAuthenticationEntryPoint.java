@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,7 @@ public class NoPopupBasicAuthenticationEntryPoint extends BasicAuthenticationEnt
       throws IOException {
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-    if (authException instanceof LockedException) {
+    if (tracker.isLocked()) {
       writeLockoutResponse(response);
     }
   }
