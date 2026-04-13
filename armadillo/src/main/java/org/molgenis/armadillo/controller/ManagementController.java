@@ -5,11 +5,14 @@ import static java.util.Objects.requireNonNull;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.FileNotFoundException;
 import java.security.Principal;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.service.ManagementService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "manage", description = "Manage the application and settings")
 @RestController
@@ -30,6 +33,22 @@ public class ManagementController {
   @Operation(summary = "Restart armadillo")
   @PostMapping("app/restart")
   public void restart(Principal principal) {
-    auditor.audit(managementService::restartApplictation, principal, "TRIGGER_RESTART");
+    auditor.audit(managementService::restartApplication, principal, "TRIGGER_RESTART");
+  }
+
+  @Operation(summary = "Restart armadillo")
+  @PostMapping("app/update")
+  public void update(Principal principal) {
+    auditor.audit(
+        () -> {
+          try {
+            managementService.triggerUpdate();
+          } catch (FileNotFoundException e) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
+          }
+        },
+        principal,
+        "TRIGGER_UPDATE");
   }
 }
