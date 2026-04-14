@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.Principal;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.service.ManagementService;
@@ -46,6 +47,8 @@ public class ManagementController {
           } catch (FileNotFoundException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
+          } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
           }
         },
         principal,
