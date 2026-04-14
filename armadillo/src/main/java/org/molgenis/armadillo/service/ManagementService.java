@@ -34,10 +34,13 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementService {
-  @Value("${armadillo.install-script-dir:usr/share/armadillo/application}")
-  String updateScriptDir;
+  @Value("${armadillo.armadillo-home:/usr/share/armadillo/application}")
+  String armadilloHome;
 
-  String installScript = "armadillo-setup.sh";
+  @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
+  String armadilloConfigFile;
+
+  String updateScript = "armadillo-check-update.sh";
 
   public ManagementService() {}
 
@@ -65,9 +68,10 @@ public class ManagementService {
     }
   }
 
-  private JsonElement getLastRelease(JsonArray releases) {
+  private JsonElement getLastRelease() throws IOException, InterruptedException {
+    JsonArray armadilloReleases = getReleases();
     Optional<JsonElement> lastRelease =
-        StreamSupport.stream(releases.spliterator(), false)
+        StreamSupport.stream(armadilloReleases.spliterator(), false)
             .filter(
                 release -> ((JsonObject) release).get("prerelease").getAsString().equals("false"))
             .findFirst();
@@ -85,10 +89,42 @@ public class ManagementService {
     return ((JsonObject) lastRelease).get("tag_name").getAsString();
   }
 
-  public void triggerUpdate() throws FileNotFoundException {
-    downloadInstallScript();
-    // prepare install
-    // trigger run install script
+  public void triggerUpdate() throws IOException, InterruptedException {
+    JsonElement lastRelease = getLastRelease();
+    // todo: replace current update script with one we can use
+    downloadUpdateScript(lastRelease);
+    // todo: add possibility to use last prerelease as well
+    downloadLatestArmadillo(lastRelease, armadilloHome);
+    // pass new config
+    // trigger script for stopping and restarting
+    // make script (try to adjust existing), make sure it will work on current PR, but will usually
+    // use latest release
+    // warning when major release
+  }
+
+  private boolean fileExistsInDir(String filename, String directory) throws IOException {
+    Set<String> foundFiles = listFilesForDir(directory);
+    return foundFiles.contains(filename);
+  }
+
+  private void downloadLatestArmadillo(JsonElement lastRelease, String armadilloAppHome) {
+    String lastVersion = getLastReleaseVersion(lastRelease);
+    String armadilloJar = String.format("molgenis-armadillo-%s.jar", lastVersion.replace("v", ""));
+    String downloadUrl =
+        String.format(
+            "https://github.com/molgenis/molgenis-service-armadillo/releases/download/%s/%s",
+            lastVersion, armadilloJar);
+    String armadilloInstallation = format("%s/%s", armadilloAppHome, armadilloJar);
+    try {
+      if (fileExistsInDir(armadilloJar, armadilloAppHome)) {
+        // todo: LOG INFO update script already found!
+      } else {
+        downloadFile(format(downloadUrl, lastVersion), armadilloInstallation);
+      }
+    } catch (IOException e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
+    }
   }
 
   private Instant getInstantFromDateTime(LocalDateTime dateTime) {
@@ -97,31 +133,29 @@ public class ManagementService {
     return Instant.from(dateTime.atOffset(zoneOffSet));
   }
 
-  private void downloadInstallScript() throws FileNotFoundException {
-    String armadilloInstallScriptUrl =
-        "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/%s/scripts/install/armadillo-setup.sh";
-    String installScriptPath = format("%s/%s", updateScriptDir, installScript);
+  private void downloadUpdateScript(JsonElement lastRelease) {
+    String lastVersion = getLastReleaseVersion(lastRelease);
+    String armadilloUpdateScriptUrl =
+        String.format(
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/%s/scripts/install/%s",
+            lastVersion, updateScript);
+    String updateScriptPath = format("%s/%s", armadilloHome, updateScript);
     try {
-      Set<String> foundFiles = listFilesForDir(updateScriptDir);
-      JsonArray armadilloReleases = getReleases();
-      JsonElement lastRelease = getLastRelease(armadilloReleases);
-      String lastVersion = getLastReleaseVersion(lastRelease);
-      if (containsInstallScript(foundFiles)) {
-        // todo: LOG INFO Install script already found!
-        Path path = Paths.get(installScriptPath);
+      if (fileExistsInDir(updateScript, armadilloHome)) {
+        // todo: LOG INFO update script already found!
+        Path path = Paths.get(updateScriptPath);
         Instant creationDateInstant = getCreationDateOfFile(path).toInstant();
         Instant releaseDateInstant = getInstantFromDateTime(getLastReleaseDate(lastRelease));
         if (creationDateInstant.isBefore(releaseDateInstant)) {
-          downloadFile(format(armadilloInstallScriptUrl, lastVersion), installScriptPath);
+          downloadFile(format(armadilloUpdateScriptUrl, lastVersion), updateScriptPath);
         }
       } else {
-        downloadFile(format(armadilloInstallScriptUrl, lastVersion), installScriptPath);
+        downloadFile(format(armadilloUpdateScriptUrl, lastVersion), updateScriptPath);
       }
+      // todo: download anyway if below 5.13
     } catch (IOException e) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -131,10 +165,6 @@ public class ManagementService {
     } catch (IOException ex) {
       throw new FileNotFoundException(filePath + "not found");
     }
-  }
-
-  private Boolean containsInstallScript(Set<String> fileList) {
-    return fileList.contains(installScript);
   }
 
   private Set<String> listFilesForDir(String dir) throws IOException {
@@ -154,7 +184,7 @@ public class ManagementService {
         fileOutputStream.write(dataBuffer, 0, bytesRead);
       }
     } catch (IOException e) {
-      // todo: handle exception
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 }
