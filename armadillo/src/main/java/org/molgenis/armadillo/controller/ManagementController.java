@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Principal;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,11 +40,11 @@ public class ManagementController {
 
   @Operation(summary = "Restart armadillo")
   @PostMapping("app/update")
-  public void update(Principal principal) {
+  public void update(Principal principal, @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
         () -> {
           try {
-            managementService.triggerUpdate();
+            managementService.triggerUpdate(oidcDetails);
           } catch (FileNotFoundException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
