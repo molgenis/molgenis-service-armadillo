@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +24,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
+import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -89,12 +93,14 @@ public class ManagementService {
     return ((JsonObject) lastRelease).get("tag_name").getAsString();
   }
 
-  public void triggerUpdate() throws IOException, InterruptedException {
+  public void triggerUpdate(OidcDetails oidcDetails) throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
     // todo: replace current update script with one we can use
     downloadUpdateScript(lastRelease);
     // todo: add possibility to use last prerelease as well
+    // todo: progress?
     downloadLatestArmadillo(lastRelease, armadilloHome);
+    updateApplicationConfig(oidcDetails);
     // pass new config
     // trigger script for stopping and restarting
     // make script (try to adjust existing), make sure it will work on current PR, but will usually
@@ -105,6 +111,108 @@ public class ManagementService {
   private boolean fileExistsInDir(String filename, String directory) throws IOException {
     Set<String> foundFiles = listFilesForDir(directory);
     return foundFiles.contains(filename);
+  }
+
+  private String readFile(String fileName) {
+    try (FileInputStream inputStream = new FileInputStream(fileName)) {
+      return IOUtils.toString(inputStream, Charset.defaultCharset());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void updateApplicationConfig(OidcDetails oidcDetails) throws FileNotFoundException {
+    try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
+      StringBuilder newConfig = new StringBuilder();
+      StringBuilder existingConfig = new StringBuilder();
+      String line = br.readLine();
+      boolean providerFound = false;
+      boolean providerMolgenisFound = false;
+      boolean registrationFound = false;
+      boolean registrationMolgenisFound = false;
+      boolean resourceServerFound = false;
+      boolean resourceServerJwtFound = false;
+      boolean resourceServerOpaqueFound = false;
+      boolean clientIdUpdated = false;
+      boolean clientSecretUpdated = false;
+      boolean issuerUriUpdated = false;
+      boolean deviceIssuerUriUpdated = false;
+      boolean deviceClientIdUpdated = false;
+
+      while (line != null) {
+        // for backup
+        existingConfig.append(line);
+        existingConfig.append(System.lineSeparator());
+        line = br.readLine();
+        String alteredLine = line;
+        if (line != null) {
+          if (line.strip().startsWith("#")) {
+            alteredLine = line;
+          } else if (line.contains("provider:")) {
+            providerFound = true;
+            alteredLine = line;
+          } else if (line.contains("registration:")) {
+            registrationFound = true;
+            alteredLine = line;
+          } else if (line.contains("resourceserver:")) {
+            resourceServerFound = true;
+            alteredLine = line;
+          } else if (line.contains("jwt:") && resourceServerFound) {
+            resourceServerJwtFound = true;
+            alteredLine = line;
+          } else if (line.contains("opaquetoken:") && resourceServerFound) {
+            resourceServerOpaqueFound = true;
+            alteredLine = line;
+          } else if (line.contains("molgenis:")) {
+            alteredLine = line;
+            if (providerFound) {
+              providerMolgenisFound = true;
+            }
+            if (registrationFound) {
+              registrationMolgenisFound = true;
+            }
+          } else if (line.contains("issuer-uri:")) {
+            if (providerMolgenisFound && !issuerUriUpdated) {
+              alteredLine = line.split(":")[0] + ": " + oidcDetails.getIssuerUri();
+              issuerUriUpdated = true;
+            } else if (resourceServerJwtFound && !deviceIssuerUriUpdated) {
+              alteredLine = line.split(":")[0] + ": " + oidcDetails.getDeviceIssuerUri();
+              deviceIssuerUriUpdated = true;
+            }
+          } else if (line.contains("client-id:")) {
+            if (registrationMolgenisFound && !clientIdUpdated) {
+              alteredLine = line.split(":")[0] + ": " + oidcDetails.getClientId();
+              clientIdUpdated = true;
+            } else if (resourceServerOpaqueFound && !deviceClientIdUpdated) {
+              alteredLine = line.split(":")[0] + ": " + oidcDetails.getDeviceClientId();
+              deviceClientIdUpdated = true;
+            }
+          } else if (line.contains("client-secret:") && !clientSecretUpdated) {
+            if (registrationMolgenisFound) {
+              alteredLine = line.split(":")[0] + ": " + oidcDetails.getClientSecret();
+              clientSecretUpdated = true;
+            }
+          } else {
+            alteredLine = line;
+          }
+          newConfig.append(alteredLine);
+          newConfig.append(System.lineSeparator());
+        }
+      }
+      String newConfigContent = newConfig.toString();
+      String existingConfigContent = existingConfig.toString();
+      // create backup of application.yml
+      FileUtils.writeStringToFile(
+          new File(armadilloConfigFile + ".bak"),
+          existingConfigContent,
+          Charset.defaultCharset(),
+          false);
+      // write application.yml
+      FileUtils.writeStringToFile(
+          new File(armadilloConfigFile), newConfigContent, Charset.defaultCharset(), false);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void downloadLatestArmadillo(JsonElement lastRelease, String armadilloAppHome) {
