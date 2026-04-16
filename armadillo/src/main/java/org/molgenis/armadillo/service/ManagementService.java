@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,106 +112,106 @@ public class ManagementService {
     return foundFiles.contains(filename);
   }
 
-  private String readFile(String fileName) {
-    try (FileInputStream inputStream = new FileInputStream(fileName)) {
-      return IOUtils.toString(inputStream, Charset.defaultCharset());
+  private void updateApplicationConfig(OidcDetails oidcDetails) throws FileNotFoundException {
+    try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
+      List<String> lines = br.lines().collect(Collectors.toList());
+
+      String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
+      String newConfig = transformConfig(lines, oidcDetails);
+
+      FileUtils.writeStringToFile(
+          new File(armadilloConfigFile + ".bak"), existingConfig, Charset.defaultCharset(), false);
+      FileUtils.writeStringToFile(
+          new File(armadilloConfigFile), newConfig, Charset.defaultCharset(), false);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void updateApplicationConfig(OidcDetails oidcDetails) throws FileNotFoundException {
-    try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
-      StringBuilder newConfig = new StringBuilder();
-      StringBuilder existingConfig = new StringBuilder();
-      String line = br.readLine();
-      boolean providerFound = false;
-      boolean providerMolgenisFound = false;
-      boolean registrationFound = false;
-      boolean registrationMolgenisFound = false;
-      boolean resourceServerFound = false;
-      boolean resourceServerJwtFound = false;
-      boolean resourceServerOpaqueFound = false;
-      boolean clientIdUpdated = false;
-      boolean clientSecretUpdated = false;
-      boolean issuerUriUpdated = false;
-      boolean deviceIssuerUriUpdated = false;
-      boolean deviceClientIdUpdated = false;
+  private String transformConfig(List<String> lines, OidcDetails oidcDetails) {
+    ConfigParseState state = new ConfigParseState();
+    StringBuilder newConfig = new StringBuilder();
 
-      while (line != null) {
-        // for backup
-        existingConfig.append(line);
-        existingConfig.append(System.lineSeparator());
-        line = br.readLine();
-        String alteredLine = line;
-        if (line != null) {
-          if (line.strip().startsWith("#")) {
-            alteredLine = line;
-          } else if (line.contains("provider:")) {
-            providerFound = true;
-            alteredLine = line;
-          } else if (line.contains("registration:")) {
-            registrationFound = true;
-            alteredLine = line;
-          } else if (line.contains("resourceserver:")) {
-            resourceServerFound = true;
-            alteredLine = line;
-          } else if (line.contains("jwt:") && resourceServerFound) {
-            resourceServerJwtFound = true;
-            alteredLine = line;
-          } else if (line.contains("opaquetoken:") && resourceServerFound) {
-            resourceServerOpaqueFound = true;
-            alteredLine = line;
-          } else if (line.contains("molgenis:")) {
-            alteredLine = line;
-            if (providerFound) {
-              providerMolgenisFound = true;
-            }
-            if (registrationFound) {
-              registrationMolgenisFound = true;
-            }
-          } else if (line.contains("issuer-uri:")) {
-            if (providerMolgenisFound && !issuerUriUpdated) {
-              alteredLine = line.split(":")[0] + ": " + oidcDetails.getIssuerUri();
-              issuerUriUpdated = true;
-            } else if (resourceServerJwtFound && !deviceIssuerUriUpdated) {
-              alteredLine = line.split(":")[0] + ": " + oidcDetails.getDeviceIssuerUri();
-              deviceIssuerUriUpdated = true;
-            }
-          } else if (line.contains("client-id:")) {
-            if (registrationMolgenisFound && !clientIdUpdated) {
-              alteredLine = line.split(":")[0] + ": " + oidcDetails.getClientId();
-              clientIdUpdated = true;
-            } else if (resourceServerOpaqueFound && !deviceClientIdUpdated) {
-              alteredLine = line.split(":")[0] + ": " + oidcDetails.getDeviceClientId();
-              deviceClientIdUpdated = true;
-            }
-          } else if (line.contains("client-secret:") && !clientSecretUpdated) {
-            if (registrationMolgenisFound) {
-              alteredLine = line.split(":")[0] + ": " + oidcDetails.getClientSecret();
-              clientSecretUpdated = true;
-            }
-          } else {
-            alteredLine = line;
-          }
-          newConfig.append(alteredLine);
-          newConfig.append(System.lineSeparator());
-        }
-      }
-      String newConfigContent = newConfig.toString();
-      String existingConfigContent = existingConfig.toString();
-      // create backup of application.yml
-      FileUtils.writeStringToFile(
-          new File(armadilloConfigFile + ".bak"),
-          existingConfigContent,
-          Charset.defaultCharset(),
-          false);
-      // write application.yml
-      FileUtils.writeStringToFile(
-          new File(armadilloConfigFile), newConfigContent, Charset.defaultCharset(), false);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    for (String line : lines) {
+      newConfig.append(transformLine(line, state, oidcDetails));
+      newConfig.append(System.lineSeparator());
     }
+    return newConfig.toString();
+  }
+
+  private String transformLine(String line, ConfigParseState state, OidcDetails oidcDetails) {
+    if (line.strip().startsWith("#")) return line;
+
+    if (line.contains("provider:")) {
+      state.providerFound = true;
+      return line;
+    }
+    if (line.contains("registration:")) {
+      state.registrationFound = true;
+      return line;
+    }
+    if (line.contains("resourceserver:")) {
+      state.resourceServerFound = true;
+      return line;
+    }
+    if (line.contains("jwt:") && state.resourceServerFound) {
+      state.resourceServerJwtFound = true;
+      return line;
+    }
+    if (line.contains("opaquetoken:") && state.resourceServerFound) {
+      state.resourceServerOpaqueFound = true;
+      return line;
+    }
+
+    if (line.contains("molgenis:")) {
+      if (state.providerFound) state.providerMolgenisFound = true;
+      if (state.registrationFound) state.registrationMolgenisFound = true;
+      return line;
+    }
+
+    if (line.contains("issuer-uri:")) {
+      if (state.providerMolgenisFound && !state.issuerUriUpdated) {
+        state.issuerUriUpdated = true;
+        return replacedValue(line, oidcDetails.getIssuerUri());
+      }
+      if (state.resourceServerJwtFound && !state.deviceIssuerUriUpdated) {
+        state.deviceIssuerUriUpdated = true;
+        return replacedValue(line, oidcDetails.getDeviceIssuerUri());
+      }
+    }
+
+    if (line.contains("client-id:")) {
+      if (state.registrationMolgenisFound && !state.clientIdUpdated) {
+        state.clientIdUpdated = true;
+        return replacedValue(line, oidcDetails.getClientId());
+      }
+      if (state.resourceServerOpaqueFound && !state.deviceClientIdUpdated) {
+        state.deviceClientIdUpdated = true;
+        return replacedValue(line, oidcDetails.getDeviceClientId());
+      }
+    }
+
+    if (line.contains("client-secret:")
+        && state.registrationMolgenisFound
+        && !state.clientSecretUpdated) {
+      state.clientSecretUpdated = true;
+      return replacedValue(line, oidcDetails.getClientSecret());
+    }
+
+    return line;
+  }
+
+  private String replacedValue(String line, String newValue) {
+    return line.split(":")[0] + ": " + newValue;
+  }
+
+  // Simple mutable state carrier — private inner class or a record (Java 16+)
+  private static class ConfigParseState {
+    boolean providerFound, providerMolgenisFound;
+    boolean registrationFound, registrationMolgenisFound;
+    boolean resourceServerFound, resourceServerJwtFound, resourceServerOpaqueFound;
+    boolean clientIdUpdated, clientSecretUpdated;
+    boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
   }
 
   private void downloadLatestArmadillo(JsonElement lastRelease, String armadilloAppHome) {
