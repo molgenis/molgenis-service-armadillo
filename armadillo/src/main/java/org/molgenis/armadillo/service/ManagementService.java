@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -21,6 +22,7 @@ import java.nio.file.attribute.FileTime;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,6 +35,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
@@ -43,7 +46,36 @@ public class ManagementService {
   @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
   String armadilloConfigFile;
 
+  // DEV/PROD
+  @Value("${armadillo.armadillo-mode:PROD}")
+  String armadilloMode;
+
+  // Constants
   String updateScript = "armadillo-check-update.sh";
+  String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
+  String UPDATE_SCRIPT_URL =
+      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/%s/scripts/install/%s";
+  String RELEASE_DOWNLOAD_URL =
+      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/%s/%s";
+  String PRERELEASE = "prerelease";
+  String FALSE = "false";
+  String PUBLISHED_AT = "published_at";
+  String TAG = "tag_name";
+  String BACKUP_EXT = ".bak";
+  String PROGRESS = "progress";
+  String DONE = "done";
+  String CREATION_TIME = "creationTime";
+  String DOWNLOAD_COMPLETE = "Download complete";
+  String NOT_FOUND = "not found";
+  String PROVIDER = "provider:";
+  String REGISTRATION = "registration:";
+  String RESOURCE_SERVER = "resourceserver:";
+  String MOLGENIS = "molgenis:";
+  String CLIENT_SECRET = "client-secret:";
+  String CLIENT_ID = "client-id:";
+  String ISSUER_URI = "issuer-uri:";
+  String OPAQUE_TOKEN = "opaquetoken:";
+  String JWT = "jwt:";
 
   public ManagementService() {}
 
@@ -52,13 +84,7 @@ public class ManagementService {
   }
 
   private JsonArray getReleases() throws IOException, InterruptedException {
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(
-                URI.create(
-                    "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases"))
-            .GET()
-            .build();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(RELEASE_URL)).GET().build();
     HttpResponse<String> response =
         HttpClient.newBuilder()
             .proxy(ProxySelector.getDefault())
@@ -71,34 +97,33 @@ public class ManagementService {
     }
   }
 
-  private JsonElement getLastRelease() throws IOException, InterruptedException {
+  public JsonElement getLastRelease() throws IOException, InterruptedException {
     JsonArray armadilloReleases = getReleases();
     Optional<JsonElement> lastRelease =
         StreamSupport.stream(armadilloReleases.spliterator(), false)
-            .filter(
-                release -> ((JsonObject) release).get("prerelease").getAsString().equals("false"))
+            .filter(release -> ((JsonObject) release).get(PRERELEASE).getAsString().equals(FALSE))
             .findFirst();
     return lastRelease.get();
   }
 
   private LocalDateTime getLastReleaseDate(JsonElement lastRelease) {
-    String rawDate = ((JsonObject) lastRelease).get("published_at").getAsString();
+    String rawDate = ((JsonObject) lastRelease).get(PUBLISHED_AT).getAsString();
     DateTimeFormatter inputFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
     return LocalDateTime.parse(rawDate, inputFormatter);
   }
 
   private String getLastReleaseVersion(JsonElement lastRelease) {
-    return ((JsonObject) lastRelease).get("tag_name").getAsString();
+    return ((JsonObject) lastRelease).get(TAG).getAsString();
   }
 
   public void triggerUpdate(OidcDetails oidcDetails) throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
     // todo: replace current update script with one we can use
-    downloadUpdateScript(lastRelease);
+    downloadUpdateScript();
     // todo: add possibility to use last prerelease as well
     // todo: progress?
-    downloadLatestArmadillo(lastRelease, armadilloHome);
+    downloadLatestArmadilloWithProgress();
     updateApplicationConfig(oidcDetails);
     // pass new config
     // trigger script for stopping and restarting
@@ -120,7 +145,10 @@ public class ManagementService {
       String newConfig = transformConfig(lines, oidcDetails);
 
       FileUtils.writeStringToFile(
-          new File(armadilloConfigFile + ".bak"), existingConfig, Charset.defaultCharset(), false);
+          new File(armadilloConfigFile + BACKUP_EXT),
+          existingConfig,
+          Charset.defaultCharset(),
+          false);
       FileUtils.writeStringToFile(
           new File(armadilloConfigFile), newConfig, Charset.defaultCharset(), false);
     } catch (IOException e) {
@@ -142,66 +170,66 @@ public class ManagementService {
   private String transformLine(String line, ConfigParseState state, OidcDetails oidcDetails) {
     if (line.strip().startsWith("#")) return line;
 
-    if (line.contains("provider:")) {
+    if (line.contains(PROVIDER)) {
       state.providerFound = true;
       return line;
     }
-    if (line.contains("registration:")) {
+    if (line.contains(REGISTRATION)) {
       state.registrationFound = true;
       return line;
     }
-    if (line.contains("resourceserver:")) {
+    if (line.contains(RESOURCE_SERVER)) {
       state.resourceServerFound = true;
       return line;
     }
-    if (line.contains("jwt:") && state.resourceServerFound) {
+    if (line.contains(JWT) && state.resourceServerFound) {
       state.resourceServerJwtFound = true;
       return line;
     }
-    if (line.contains("opaquetoken:") && state.resourceServerFound) {
+    if (line.contains(OPAQUE_TOKEN) && state.resourceServerFound) {
       state.resourceServerOpaqueFound = true;
       return line;
     }
 
-    if (line.contains("molgenis:")) {
+    if (line.contains(MOLGENIS)) {
       if (state.providerFound) state.providerMolgenisFound = true;
       if (state.registrationFound) state.registrationMolgenisFound = true;
       return line;
     }
 
-    if (line.contains("issuer-uri:")) {
+    if (line.contains(ISSUER_URI)) {
       if (state.providerMolgenisFound && !state.issuerUriUpdated) {
         state.issuerUriUpdated = true;
-        return replacedValue(line, oidcDetails.getIssuerUri());
+        return replaceValue(line, oidcDetails.getIssuerUri());
       }
       if (state.resourceServerJwtFound && !state.deviceIssuerUriUpdated) {
         state.deviceIssuerUriUpdated = true;
-        return replacedValue(line, oidcDetails.getDeviceIssuerUri());
+        return replaceValue(line, oidcDetails.getDeviceIssuerUri());
       }
     }
 
-    if (line.contains("client-id:")) {
+    if (line.contains(CLIENT_ID)) {
       if (state.registrationMolgenisFound && !state.clientIdUpdated) {
         state.clientIdUpdated = true;
-        return replacedValue(line, oidcDetails.getClientId());
+        return replaceValue(line, oidcDetails.getClientId());
       }
       if (state.resourceServerOpaqueFound && !state.deviceClientIdUpdated) {
         state.deviceClientIdUpdated = true;
-        return replacedValue(line, oidcDetails.getDeviceClientId());
+        return replaceValue(line, oidcDetails.getDeviceClientId());
       }
     }
 
-    if (line.contains("client-secret:")
+    if (line.contains(CLIENT_SECRET)
         && state.registrationMolgenisFound
         && !state.clientSecretUpdated) {
       state.clientSecretUpdated = true;
-      return replacedValue(line, oidcDetails.getClientSecret());
+      return replaceValue(line, oidcDetails.getClientSecret());
     }
 
     return line;
   }
 
-  private String replacedValue(String line, String newValue) {
+  private String replaceValue(String line, String newValue) {
     return line.split(":")[0] + ": " + newValue;
   }
 
@@ -214,24 +242,11 @@ public class ManagementService {
     boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
   }
 
-  private void downloadLatestArmadillo(JsonElement lastRelease, String armadilloAppHome) {
+  public boolean isArmadilloUpdateAvailable() throws IOException, InterruptedException {
+    JsonElement lastRelease = getLastRelease();
     String lastVersion = getLastReleaseVersion(lastRelease);
     String armadilloJar = String.format("molgenis-armadillo-%s.jar", lastVersion.replace("v", ""));
-    String downloadUrl =
-        String.format(
-            "https://github.com/molgenis/molgenis-service-armadillo/releases/download/%s/%s",
-            lastVersion, armadilloJar);
-    String armadilloInstallation = format("%s/%s", armadilloAppHome, armadilloJar);
-    try {
-      if (fileExistsInDir(armadilloJar, armadilloAppHome)) {
-        // todo: LOG INFO update script already found!
-      } else {
-        downloadFile(format(downloadUrl, lastVersion), armadilloInstallation);
-      }
-    } catch (IOException e) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
-    }
+    return !fileExistsInDir(armadilloJar, armadilloHome);
   }
 
   private Instant getInstantFromDateTime(LocalDateTime dateTime) {
@@ -240,12 +255,10 @@ public class ManagementService {
     return Instant.from(dateTime.atOffset(zoneOffSet));
   }
 
-  private void downloadUpdateScript(JsonElement lastRelease) {
+  private void downloadUpdateScript() throws IOException, InterruptedException {
+    JsonElement lastRelease = getLastRelease();
     String lastVersion = getLastReleaseVersion(lastRelease);
-    String armadilloUpdateScriptUrl =
-        String.format(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/%s/scripts/install/%s",
-            lastVersion, updateScript);
+    String armadilloUpdateScriptUrl = String.format(UPDATE_SCRIPT_URL, lastVersion, updateScript);
     String updateScriptPath = format("%s/%s", armadilloHome, updateScript);
     try {
       if (fileExistsInDir(updateScript, armadilloHome)) {
@@ -268,27 +281,96 @@ public class ManagementService {
 
   private FileTime getCreationDateOfFile(Path filePath) throws FileNotFoundException {
     try {
-      return (FileTime) Files.getAttribute(filePath, "creationTime");
+      return (FileTime) Files.getAttribute(filePath, CREATION_TIME);
     } catch (IOException ex) {
-      throw new FileNotFoundException(filePath + "not found");
+      throw new FileNotFoundException(filePath + NOT_FOUND);
     }
   }
 
-  private Set<String> listFilesForDir(String dir) throws IOException {
+  public Set<String> listAvailableJars() {
+    return listFilesForDir(armadilloHome).stream()
+        .filter((name) -> name.endsWith(".jar"))
+        .collect(Collectors.toSet());
+  }
+
+  private Set<String> listFilesForDir(String dir) {
     return Stream.of(Objects.requireNonNull(new File(dir).listFiles()))
         .filter(file -> !file.isDirectory())
         .map(File::getName)
         .collect(Collectors.toSet());
   }
 
-  public void downloadFile(String url, String outputFile) {
-    // todo: log download
-    try (BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-        FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-      byte dataBuffer[] = new byte[1024];
-      int bytesRead;
-      while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-        fileOutputStream.write(dataBuffer, 0, bytesRead);
+  public SseEmitter downloadLatestArmadilloWithProgress() throws IOException, InterruptedException {
+    SseEmitter emitter = new SseEmitter(5 * 60 * 1000L); // 5 min timeout
+
+    JsonElement lastRelease = getLastRelease();
+    String lastVersion = getLastReleaseVersion(lastRelease);
+    String armadilloJar = String.format("molgenis-armadillo-%s.jar", lastVersion.replace("v", ""));
+    String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, lastVersion, armadilloJar);
+    String armadilloInstallation = format("%s/%s", armadilloHome, armadilloJar);
+
+    // Run download in background thread — SSE must not block the request thread
+    Thread.ofVirtual()
+        .start(
+            () -> {
+              try {
+                if (fileExistsInDir(armadilloJar, armadilloHome)) {
+                  emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
+                } else {
+                  downloadFile(
+                      downloadUrl,
+                      armadilloInstallation,
+                      progress -> {
+                        try {
+                          emitter.send(
+                              SseEmitter.event().name(PROGRESS).data(String.valueOf(progress)));
+                        } catch (IOException e) {
+                          emitter.completeWithError(e);
+                        }
+                      });
+                }
+                emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
+                emitter.complete();
+              } catch (Exception e) {
+                emitter.completeWithError(e);
+              }
+            });
+
+    return emitter;
+  }
+
+  public void saveNewOidcConfig(OidcDetails oidcDetails) throws FileNotFoundException {
+    updateApplicationConfig(oidcDetails);
+    restartApplication();
+  }
+
+  private void downloadFile(String url, String outputFile) {
+    downloadFile(url, outputFile, progress -> {});
+  }
+
+  private void downloadFile(String url, String outputFile, LongConsumer progressCallback) {
+    try {
+      URLConnection connection = new URL(url).openConnection();
+      long fileSize = connection.getContentLengthLong(); // -1 if unknown
+
+      try (BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+          FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+
+        byte[] dataBuffer = new byte[1024];
+        int bytesRead;
+        long totalRead = 0;
+
+        while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+          fileOutputStream.write(dataBuffer, 0, bytesRead);
+          totalRead += bytesRead;
+
+          if (fileSize > 0) {
+            long percent = (totalRead * 100) / fileSize;
+            progressCallback.accept(percent);
+          } else {
+            progressCallback.accept(totalRead); // emit bytes if size unknown
+          }
+        }
       }
     } catch (IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
