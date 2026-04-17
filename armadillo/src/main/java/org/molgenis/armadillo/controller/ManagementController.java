@@ -48,7 +48,7 @@ public class ManagementController {
     auditor.audit(managementService::restartApplication, principal, "TRIGGER_RESTART");
   }
 
-  @Operation(summary = "Restart armadillo")
+  @Operation(summary = "Update armadillo version")
   @PostMapping("app/update")
   public void update(Principal principal, @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
@@ -81,11 +81,25 @@ public class ManagementController {
         "TRIGGER_UPDATE");
   }
 
-  @Operation(summary = "Check if armadillo update is available")
+  @Operation(summary = "List all available jars")
   @GetMapping("app/list")
   public Set<String> listAvailable(Principal principal) {
     return auditor.audit(
         managementService::listAvailableJars, principal, "LIST_AVAILABLE_VERSIONS");
+  }
+
+  @Operation(summary = "Delete an unused jar")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Jar deleted"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @DeleteMapping("app/delete-jar")
+  public void listAvailable(Principal principal, String version) {
+    auditor.audit(() -> managementService.deleteJar(version), principal, "DELETE_JAR");
   }
 
   @Operation(summary = "Download latest armadillo with progress stream")
@@ -114,6 +128,7 @@ public class ManagementController {
       })
   @PutMapping(value = "auth/oidc-config", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
+  // TODO: will it ever finish?
   public void oidcUpsert(Principal principal, @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
         () -> {
