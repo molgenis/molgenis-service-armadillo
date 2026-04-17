@@ -113,17 +113,16 @@ public class ManagementService {
     return LocalDateTime.parse(rawDate, inputFormatter);
   }
 
-  private String getLastReleaseVersion(JsonElement lastRelease) {
-    return ((JsonObject) lastRelease).get(TAG).getAsString();
+  public String getReleaseVersion(JsonElement release) {
+    return ((JsonObject) release).get(TAG).getAsString();
   }
 
   public void triggerUpdate(OidcDetails oidcDetails) throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
+    String lastVersion = getReleaseVersion(lastRelease);
     // todo: replace current update script with one we can use
     downloadUpdateScript();
-    // todo: add possibility to use last prerelease as well
-    // todo: progress?
-    downloadLatestArmadilloWithProgress();
+    downloadArmadilloJar(lastVersion);
     updateApplicationConfig(oidcDetails);
     // pass new config
     // trigger script for stopping and restarting
@@ -259,7 +258,7 @@ public class ManagementService {
 
   public boolean isArmadilloUpdateAvailable() throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
-    String lastVersion = getLastReleaseVersion(lastRelease);
+    String lastVersion = getReleaseVersion(lastRelease);
     String armadilloJar = getJarFromVersion(lastVersion);
     return !fileExistsInDir(armadilloJar, armadilloHome);
   }
@@ -272,7 +271,7 @@ public class ManagementService {
 
   private void downloadUpdateScript() throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
-    String lastVersion = getLastReleaseVersion(lastRelease);
+    String lastVersion = getReleaseVersion(lastRelease);
     String armadilloUpdateScriptUrl = String.format(UPDATE_SCRIPT_URL, lastVersion, updateScript);
     String updateScriptPath = format("%s/%s", armadilloHome, updateScript);
     try {
@@ -315,13 +314,10 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
-  public SseEmitter downloadLatestArmadilloWithProgress() throws IOException, InterruptedException {
+  public SseEmitter downloadArmadilloJar(String version) throws IOException, InterruptedException {
     SseEmitter emitter = new SseEmitter(5 * 60 * 1000L); // 5 min timeout
-
-    JsonElement lastRelease = getLastRelease();
-    String lastVersion = getLastReleaseVersion(lastRelease);
-    String armadilloJar = getJarFromVersion(lastVersion);
-    String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, lastVersion, armadilloJar);
+    String armadilloJar = getJarFromVersion(version);
+    String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, armadilloJar);
     String armadilloInstallation = format("%s/%s", armadilloHome, armadilloJar);
 
     // Run download in background thread — SSE must not block the request thread
