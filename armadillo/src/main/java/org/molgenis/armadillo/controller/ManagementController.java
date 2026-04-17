@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import com.google.gson.JsonElement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -102,8 +103,8 @@ public class ManagementController {
     auditor.audit(() -> managementService.deleteJar(version), principal, "DELETE_JAR");
   }
 
-  @Operation(summary = "Download latest armadillo with progress stream")
-  @GetMapping(value = "app/download", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @Operation(summary = "Download latest armadillom")
+  @GetMapping(value = "app/download/last", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadLatest(Principal principal) {
     //      const source = new EventSource('/manage/app/download');
     //        source.addEventListener('progress', e => console.log(`${e.data}%`));
@@ -111,7 +112,24 @@ public class ManagementController {
     try {
       // Audit the initiation, not the whole stream
       auditor.audit(() -> null, principal, "TRIGGER_DOWNLOAD_WITH_PROGRESS");
-      return managementService.downloadLatestArmadilloWithProgress();
+      JsonElement lastRelease = managementService.getLastRelease();
+      String lastVersion = managementService.getReleaseVersion(lastRelease);
+      return managementService.downloadArmadilloJar(lastVersion);
+    } catch (IOException | InterruptedException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  @Operation(summary = "Download specified armadillo version")
+  @GetMapping(value = "app/download/last", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public SseEmitter downloadVersion(Principal principal, String version) {
+    //      const source = new EventSource('/manage/app/download');
+    //        source.addEventListener('progress', e => console.log(`${e.data}%`));
+    //        source.addEventListener('done', () => source.close());
+    try {
+      // Audit the initiation, not the whole stream
+      auditor.audit(() -> null, principal, "TRIGGER_DOWNLOAD_WITH_PROGRESS");
+      return managementService.downloadArmadilloJar(version);
     } catch (IOException | InterruptedException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
