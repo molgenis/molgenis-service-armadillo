@@ -55,6 +55,9 @@ public abstract class FlowerSupernodeContainerConfig
   @Nullable
   public abstract String getCreationDate();
 
+  @Nullable
+  public abstract String getTrustedEntitiesPath();
+
   @Override
   @JsonIgnore
   public String getType() {
@@ -73,7 +76,8 @@ public abstract class FlowerSupernodeContainerConfig
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
-      @JsonProperty("creationDate") @Nullable String creationDate) {
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("trustedEntitiesPath") @Nullable String trustedEntitiesPath) {
 
     return builder()
         .name(name)
@@ -87,6 +91,7 @@ public abstract class FlowerSupernodeContainerConfig
         .dockerOptions(dockerOptions)
         .versionId(versionId)
         .creationDate(creationDate)
+        .trustedEntitiesPath(trustedEntitiesPath)
         .build();
   }
 
@@ -121,6 +126,17 @@ public abstract class FlowerSupernodeContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract FlowerSupernodeContainerConfig build();
+    public abstract Builder trustedEntitiesPath(@Nullable String trustedEntitiesPath);
+
+    @Nullable
+    abstract String getTrustedEntitiesPath();
+
+    abstract FlowerSupernodeContainerConfig autoBuild();
+
+    public FlowerSupernodeContainerConfig build() {
+      if (getTrustedEntitiesPath() == null)
+        trustedEntitiesPath("data/system/trusted-entities.yaml");
+      return autoBuild();
+    }
   }
 }
