@@ -264,7 +264,7 @@ public class DockerService {
 
       configurePortBindings(cmd, hostConfig, config);
       configureNetworkMode(hostConfig, config);
-      configureVolumes(hostConfig, config);
+      configureTrustedEntities(hostConfig, config);
 
       cmd.withHostConfig(hostConfig).withName(config.getName());
       configureEnv(cmd, config);
@@ -303,23 +303,14 @@ public class DockerService {
     }
   }
 
-  /** Mounts host paths into the container. Only supported for flower supernodes. */
-  private void configureVolumes(HostConfig hostConfig, ContainerConfig config) {
-    if (!(config instanceof FlowerSupernodeContainerConfig)) return;
-    Map<String, Object> opts = config.getDockerOptions();
-    if (opts == null || !opts.containsKey("volumes")) return;
+  /** Mounts the trusted-entities file into flower supernode containers. */
+  private void configureTrustedEntities(HostConfig hostConfig, ContainerConfig config) {
+    if (!(config instanceof FlowerSupernodeContainerConfig supernode)) return;
+    String hostPath = supernode.getTrustedEntitiesPath();
+    if (hostPath == null) return;
 
-    Object volumesObj = opts.get("volumes");
-    if (!(volumesObj instanceof Map<?, ?> rawMap)) return;
-
-    Bind[] binds =
-        rawMap.entrySet().stream()
-            .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
-            .map(
-                e ->
-                    new Bind((String) e.getKey(), new Volume((String) e.getValue()), AccessMode.ro))
-            .toArray(Bind[]::new);
-    hostConfig.withBinds(binds);
+    hostConfig.withBinds(
+        new Bind(hostPath, new Volume("/app/trusted-entities.yaml"), AccessMode.ro));
   }
 
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
