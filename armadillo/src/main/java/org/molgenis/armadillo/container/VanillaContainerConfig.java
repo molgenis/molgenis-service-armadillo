@@ -9,8 +9,8 @@ import org.molgenis.armadillo.metadata.UpdateSchedule;
 
 @AutoValue
 @JsonTypeName("vanilla")
-// AutoValue requires redeclaring interface methods as abstract - suppress S1161
-@SuppressWarnings("java:S1161")
+// AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
+@SuppressWarnings({"java:S1161", "java:S3038"})
 public abstract class VanillaContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 

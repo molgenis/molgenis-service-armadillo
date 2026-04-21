@@ -8,8 +8,8 @@ import java.util.Map;
 
 @AutoValue
 @JsonTypeName("flower-supernode")
-// AutoValue requires redeclaring interface methods as abstract - suppress S1161
-@SuppressWarnings("java:S1161")
+// AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
+@SuppressWarnings({"java:S1161", "java:S3038"})
 public abstract class FlowerSupernodeContainerConfig
     implements ContainerConfig, OpenContainer, FlowerContainer {
 
