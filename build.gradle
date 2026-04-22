@@ -43,6 +43,8 @@ allprojects {
     version = version.replace("v","")
 }
 
+ext['tomcat.version'] = '10.1.53'
+
 if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
     def x = getGitNameRef().replace("tags/", "")
     println "HEAD is on tag so removing SNAPSHOT: " + x
