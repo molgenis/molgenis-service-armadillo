@@ -5,7 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd;
+import com.github.dockerjava.api.command.ExecCreateCmd;
+import com.github.dockerjava.api.command.ExecCreateCmdResponse;
+import com.github.dockerjava.api.command.ExecStartCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.io.ByteArrayInputStream;
@@ -28,6 +32,10 @@ class FlowerDockerServiceTest {
 
   @Mock DockerClient dockerClient;
   @Mock CopyArchiveToContainerCmd copyCmd;
+  @Mock ExecCreateCmd execCreateCmd;
+  @Mock ExecCreateCmdResponse execCreateCmdResponse;
+  @Mock ExecStartCmd execStartCmd;
+  @Mock ResultCallback.Adapter adapter;
 
   @Captor ArgumentCaptor<InputStream> tarStreamCaptor;
 
@@ -38,8 +46,21 @@ class FlowerDockerServiceTest {
     flowerDockerService = new FlowerDockerService(dockerClient);
   }
 
+  private void mockEnsureDirectoryExists(String containerName) throws InterruptedException {
+    when(dockerClient.execCreateCmd(containerName)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStdout(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStderr(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withCmd("mkdir", "-p", "/tmp/armadillo_data")).thenReturn(execCreateCmd);
+    when(execCreateCmd.exec()).thenReturn(execCreateCmdResponse);
+    when(execCreateCmdResponse.getId()).thenReturn("exec-id");
+    when(dockerClient.execStartCmd("exec-id")).thenReturn(execStartCmd);
+    when(execStartCmd.exec(any())).thenReturn(adapter);
+    when(adapter.awaitCompletion()).thenReturn(adapter);
+  }
+
   @Test
-  void copyDataToContainer_success() {
+  void copyDataToContainer_success() throws InterruptedException {
+    mockEnsureDirectoryExists("my-container");
     when(dockerClient.copyArchiveToContainerCmd("my-container")).thenReturn(copyCmd);
     when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
     when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
@@ -57,7 +78,8 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyDataToContainer_containerNotFound() {
+  void copyDataToContainer_containerNotFound() throws InterruptedException {
+    mockEnsureDirectoryExists("missing");
     when(dockerClient.copyArchiveToContainerCmd("missing")).thenReturn(copyCmd);
     when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
     when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
@@ -73,7 +95,8 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyDataToContainer_dockerError() {
+  void copyDataToContainer_dockerError() throws InterruptedException {
+    mockEnsureDirectoryExists("broken");
     when(dockerClient.copyArchiveToContainerCmd("broken")).thenReturn(copyCmd);
     when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
     when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
