@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -73,10 +76,32 @@ public class ContainerService {
 
     String containerName = containerConfig.getName();
 
+    if (containerConfig instanceof FlowerSupernodeContainerConfig supernode) {
+      createPlaceholderFiles(supernode);
+    }
+
     settings.getContainers().put(containerName, containerConfig);
 
     flushContainerBeans(containerName);
     save();
+  }
+
+  private void createPlaceholderFiles(FlowerSupernodeContainerConfig config) {
+    createFileIfNotExists(config.getCaCertPath());
+    createFileIfNotExists(config.getAuthPrivateKeyPath());
+    createFileIfNotExists(config.getTrustedEntitiesPath());
+  }
+
+  private void createFileIfNotExists(String pathStr) {
+    if (pathStr == null) return;
+    Path path = Path.of(pathStr);
+    if (Files.exists(path)) return;
+    try {
+      Files.createDirectories(path.getParent());
+      Files.createFile(path);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to create placeholder file: " + path, e);
+    }
   }
 
   public java.util.Set<String> getPackageWhitelist(String containerName) {
