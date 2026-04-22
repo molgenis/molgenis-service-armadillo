@@ -58,6 +58,12 @@ public abstract class FlowerSupernodeContainerConfig
   @Nullable
   public abstract String getTrustedEntitiesPath();
 
+  @Nullable
+  public abstract String getCaCertPath();
+
+  @Nullable
+  public abstract String getAuthPrivateKeyPath();
+
   @Override
   @JsonIgnore
   public String getType() {
@@ -77,7 +83,9 @@ public abstract class FlowerSupernodeContainerConfig
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
       @JsonProperty("creationDate") @Nullable String creationDate,
-      @JsonProperty("trustedEntitiesPath") @Nullable String trustedEntitiesPath) {
+      @JsonProperty("trustedEntitiesPath") @Nullable String trustedEntitiesPath,
+      @JsonProperty("caCertPath") @Nullable String caCertPath,
+      @JsonProperty("authPrivateKeyPath") @Nullable String authPrivateKeyPath) {
 
     return builder()
         .name(name)
@@ -92,6 +100,8 @@ public abstract class FlowerSupernodeContainerConfig
         .versionId(versionId)
         .creationDate(creationDate)
         .trustedEntitiesPath(trustedEntitiesPath)
+        .caCertPath(caCertPath)
+        .authPrivateKeyPath(authPrivateKeyPath)
         .build();
   }
 
@@ -128,14 +138,26 @@ public abstract class FlowerSupernodeContainerConfig
 
     public abstract Builder trustedEntitiesPath(@Nullable String trustedEntitiesPath);
 
+    public abstract Builder caCertPath(@Nullable String caCertPath);
+
+    public abstract Builder authPrivateKeyPath(@Nullable String authPrivateKeyPath);
+
     @Nullable
     abstract String getTrustedEntitiesPath();
+
+    @Nullable
+    abstract String getCaCertPath();
+
+    @Nullable
+    abstract String getAuthPrivateKeyPath();
 
     abstract FlowerSupernodeContainerConfig autoBuild();
 
     public FlowerSupernodeContainerConfig build() {
       if (getTrustedEntitiesPath() == null)
-        trustedEntitiesPath("data/system/trusted-entities.yaml");
+        trustedEntitiesPath("data/system/flower/trusted-entities.yaml");
+      if (getCaCertPath() == null) caCertPath("data/system/flower/ca.crt");
+      if (getAuthPrivateKeyPath() == null) authPrivateKeyPath("data/system/flower/credentials");
       return autoBuild();
     }
   }
