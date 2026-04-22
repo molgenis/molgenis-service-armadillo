@@ -15,7 +15,9 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.net.SocketException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -265,7 +267,7 @@ public class DockerService {
 
       configurePortBindings(cmd, hostConfig, config);
       configureNetworkMode(hostConfig, config);
-      configureTrustedEntities(hostConfig, config);
+      configureBindMounts(hostConfig, config);
 
       cmd.withHostConfig(hostConfig).withName(config.getName());
       configureEnv(cmd, config);
@@ -304,15 +306,36 @@ public class DockerService {
     }
   }
 
-  /** Mounts the trusted-entities file into flower supernode containers. */
-  private void configureTrustedEntities(HostConfig hostConfig, ContainerConfig config) {
+  /** Mounts certificate and credential files into flower supernode containers. */
+  private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
     if (!(config instanceof FlowerSupernodeContainerConfig supernode)) return;
-    String hostPath = supernode.getTrustedEntitiesPath();
-    if (hostPath == null) return;
 
-    String absolutePath = Path.of(hostPath).toAbsolutePath().toString();
-    hostConfig.withBinds(
-        new Bind(absolutePath, new Volume("/app/trusted-entities.yaml"), AccessMode.ro));
+    List<Bind> binds = new java.util.ArrayList<>();
+    addBindMount(binds, supernode.getTrustedEntitiesPath(), "/app/trusted-entities.yaml");
+    addBindMount(binds, supernode.getCaCertPath(), "/app/ca.crt");
+    addBindMount(binds, supernode.getAuthPrivateKeyPath(), "/app/credentials");
+
+    if (!binds.isEmpty()) {
+      hostConfig.withBinds(binds);
+    }
+  }
+
+  private void addBindMount(List<Bind> binds, String hostPath, String containerPath) {
+    if (hostPath == null) return;
+    Path path = Path.of(hostPath).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException(String.format("Required file not found: %s", path));
+    }
+    try {
+      if (Files.size(path) == 0) {
+        throw new IllegalStateException(
+            String.format(
+                "Required file is empty: %s — please replace with valid certificate/key", path));
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file: " + path, e);
+    }
+    binds.add(new Bind(path.toString(), new Volume(containerPath), AccessMode.ro));
   }
 
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
