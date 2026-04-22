@@ -16,6 +16,7 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -309,8 +310,9 @@ public class DockerService {
     String hostPath = supernode.getTrustedEntitiesPath();
     if (hostPath == null) return;
 
+    String absolutePath = Path.of(hostPath).toAbsolutePath().toString();
     hostConfig.withBinds(
-        new Bind(hostPath, new Volume("/app/trusted-entities.yaml"), AccessMode.ro));
+        new Bind(absolutePath, new Volume("/app/trusted-entities.yaml"), AccessMode.ro));
   }
 
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
