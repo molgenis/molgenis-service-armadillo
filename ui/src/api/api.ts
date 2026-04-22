@@ -318,6 +318,14 @@ export async function authenticate(auth: Auth) {
         (error as any).secondsRemaining = body.secondsRemaining;
         throw error;
       }
+      if (body.attemptsRemaining !== undefined) {
+        const error = new ApiError(
+          "Incorrect username or password",
+          response.status
+        );
+        (error as any).attemptsRemaining = body.attemptsRemaining;
+        throw error;
+      }
     } catch (e) {
       if (e instanceof ApiError) throw e;
     }
