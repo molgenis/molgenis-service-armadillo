@@ -46,6 +46,11 @@ public class DockerService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
 
+  private static final String CONTAINER_CA_CERT = "/app/ca.crt";
+  private static final String CONTAINER_CREDENTIALS = "/app/credentials";
+  private static final String CONTAINER_TRUSTED_ENTITIES = "/app/trusted-entities.yaml";
+  private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+
   private final DockerClient dockerClient;
   private final ContainerService containerService;
   private final ContainerStatusService containerStatusService;
@@ -311,9 +316,9 @@ public class DockerService {
     if (!(config instanceof FlowerSupernodeContainerConfig supernode)) return;
 
     List<Bind> binds = new java.util.ArrayList<>();
-    addBindMount(binds, supernode.getTrustedEntitiesPath(), "/app/trusted-entities.yaml");
-    addBindMount(binds, supernode.getCaCertPath(), "/app/ca.crt");
-    addBindMount(binds, supernode.getAuthPrivateKeyPath(), "/app/credentials");
+    addBindMount(binds, supernode.getTrustedEntitiesPath(), CONTAINER_TRUSTED_ENTITIES);
+    addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT);
+    addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS);
 
     if (!binds.isEmpty()) {
       hostConfig.withBinds(binds);
@@ -339,8 +344,23 @@ public class DockerService {
   }
 
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
-    List<String> args = config.getDockerArgs();
-    if (args != null && !args.isEmpty()) {
+    List<String> args = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSupernodeContainerConfig) {
+      args.addAll(
+          List.of(
+              "--root-certificates", CONTAINER_CA_CERT,
+              "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
+              "--trusted-entities", CONTAINER_TRUSTED_ENTITIES,
+              "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
+              "--isolation", "process"));
+    }
+
+    if (config.getDockerArgs() != null) {
+      args.addAll(config.getDockerArgs());
+    }
+
+    if (!args.isEmpty()) {
       cmd.withCmd(args.toArray(new String[0]));
     }
   }
