@@ -2,6 +2,7 @@ package org.molgenis.armadillo.service;
 
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 
+import java.io.IOException;
 import java.io.InputStream;
 import org.molgenis.armadillo.container.FlowerDockerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -26,8 +27,11 @@ public class FlowerDataService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public void pushData(String project, String resource, String containerName) {
-    InputStream data = storageService.loadObject(project, resource);
     String fileName = project + "_" + resource.replace("/", "_");
-    flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data);
+    try (InputStream data = storageService.loadObject(project, resource)) {
+      flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read data for " + project + "/" + resource, e);
+    }
   }
 }
