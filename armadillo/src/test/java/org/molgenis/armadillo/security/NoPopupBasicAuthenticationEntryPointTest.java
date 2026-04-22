@@ -31,11 +31,29 @@ class NoPopupBasicAuthenticationEntryPointTest {
   @Test
   void testReturns401WhenNotLocked() throws Exception {
     when(tracker.isLocked()).thenReturn(false);
+    when(tracker.getAttemptsRemaining()).thenReturn(LoginAttemptTracker.FREE_ATTEMPTS);
 
     entryPoint.commence(request, response, new BadCredentialsException("bad"));
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(response, never()).setContentType(anyString());
+  }
+
+  @Test
+  void testReturnsAttemptsRemainingWhenNotLocked() throws Exception {
+    when(tracker.isLocked()).thenReturn(false);
+    when(tracker.getAttemptsRemaining()).thenReturn(3);
+
+    StringWriter stringWriter = new StringWriter();
+    when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
+
+    entryPoint.commence(request, response, new BadCredentialsException("bad"));
+
+    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(response).setContentType("application/json");
+
+    String body = stringWriter.toString();
+    assert body.contains("\"attemptsRemaining\":3");
   }
 
   @Test

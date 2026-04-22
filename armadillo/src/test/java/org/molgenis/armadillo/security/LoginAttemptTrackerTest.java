@@ -50,6 +50,34 @@ class LoginAttemptTrackerTest {
   }
 
   @Test
+  void testAttemptsRemainingDecreasesWithFailures() {
+    assertEquals(LoginAttemptTracker.FREE_ATTEMPTS, tracker.getAttemptsRemaining());
+
+    tracker.recordFailure();
+    assertEquals(LoginAttemptTracker.FREE_ATTEMPTS - 1, tracker.getAttemptsRemaining());
+
+    for (int i = 1; i < LoginAttemptTracker.FREE_ATTEMPTS; i++) {
+      tracker.recordFailure();
+    }
+    assertEquals(0, tracker.getAttemptsRemaining());
+
+    // Should not go below 0
+    tracker.recordFailure();
+    assertEquals(0, tracker.getAttemptsRemaining());
+  }
+
+  @Test
+  void testAttemptsRemainingResetsOnSuccess() {
+    for (int i = 0; i < 3; i++) {
+      tracker.recordFailure();
+    }
+    assertEquals(LoginAttemptTracker.FREE_ATTEMPTS - 3, tracker.getAttemptsRemaining());
+
+    tracker.recordSuccess();
+    assertEquals(LoginAttemptTracker.FREE_ATTEMPTS, tracker.getAttemptsRemaining());
+  }
+
+  @Test
   void testLockoutDurationIncreases() {
     // First lockout: 1 minute
     for (int i = 0; i <= LoginAttemptTracker.FREE_ATTEMPTS; i++) {
