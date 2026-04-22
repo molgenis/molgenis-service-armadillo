@@ -45,4 +45,8 @@ public class LoginAttemptTracker {
   public synchronized Instant getLockedUntil() {
     return lockedUntil;
   }
+
+  public synchronized int getAttemptsRemaining() {
+    return Math.max(0, FREE_ATTEMPTS - failedAttempts);
+  }
 }

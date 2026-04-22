@@ -28,6 +28,12 @@ public class NoPopupBasicAuthenticationEntryPoint extends BasicAuthenticationEnt
 
     if (tracker.isLocked()) {
       writeLockoutResponse(response);
+    } else {
+      int remaining = tracker.getAttemptsRemaining();
+      if (remaining < LoginAttemptTracker.FREE_ATTEMPTS) {
+        response.setContentType("application/json");
+        response.getWriter().write(String.format("{\"attemptsRemaining\":%d}", remaining));
+      }
     }
   }
 
