@@ -103,7 +103,7 @@ public class ManagementController {
     auditor.audit(() -> managementService.deleteJar(version), principal, "DELETE_JAR");
   }
 
-  @Operation(summary = "Download latest armadillom")
+  @Operation(summary = "Download latest armadillo version")
   @GetMapping(value = "app/download/last", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadLatest(Principal principal) {
     //      const source = new EventSource('/manage/app/download');
@@ -121,7 +121,7 @@ public class ManagementController {
   }
 
   @Operation(summary = "Download specified armadillo version")
-  @GetMapping(value = "app/download/last", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @GetMapping(value = "app/download/version", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadVersion(Principal principal, String version) {
     //      const source = new EventSource('/manage/app/download');
     //        source.addEventListener('progress', e => console.log(`${e.data}%`));

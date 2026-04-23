@@ -45,12 +45,24 @@ public class ManagementService {
   @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
   String armadilloConfigFile;
 
+  // TODO: use this
   // DEV/PROD
   @Value("${armadillo.armadillo-mode:PROD}")
   String armadilloMode;
 
+  // By default, it will take the URL of the latest release, for this PR though, that won't work as
+  // the script is newly introduced.
+  // Didn't want to hardcode PR URL, so fallback will be in application.yml
+  // Can be removed in the future, maybe remove before merge of this PR
+  @Value("${armadillo.update-script-url}")
+  String fallbackUpdateScriptUrl;
+
+  // location of update log
+  @Value("${armadillo.update-log}")
+  String updateLog;
+
   // Constants
-  String updateScript = "armadillo-check-update.sh";
+  String updateScript = "armadillo-update.sh";
   String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
   String UPDATE_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/%s/scripts/install/%s";
@@ -117,13 +129,104 @@ public class ManagementService {
     return ((JsonObject) release).get(TAG).getAsString();
   }
 
+  private void runScriptInDifferentThread() {
+    Thread updateThread =
+        new Thread(
+            () -> {
+              try {
+                String command = armadilloHome + "/scripts/install/" + updateScript;
+                File logFile = new File(armadilloHome + "/logs/update.log");
+                logFile.getParentFile().mkdirs();
+                if (!logFile.exists()) logFile.createNewFile();
+
+                Thread logTailer = startLogTailer(logFile);
+                Thread.sleep(200);
+
+                // Double-fork via Python to fully detach from JVM process group
+                String pythonScript =
+                    String.format(
+                        """
+                import os, sys, subprocess
+                if os.fork() > 0:
+                    sys.exit(0)
+                os.setsid()
+                if os.fork() > 0:
+                    sys.exit(0)
+                with open('%s', 'a') as log:
+                    subprocess.run(%s, stdout=log, stderr=log, stdin=subprocess.DEVNULL)
+                """,
+                        logFile.getAbsolutePath(),
+                        buildPythonList(
+                            command, "-p", armadilloHome, "-v", "v5.12.2", "-m", "DEV"));
+
+                ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
+                processBuilder.redirectInput(new File("/dev/null"));
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+
+                System.out.println("Launching double-forked update script...");
+                Process python = processBuilder.start();
+                python.waitFor();
+
+                logTailer.join(5000);
+
+              } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+              }
+            });
+
+    updateThread.setDaemon(false);
+    updateThread.setName("update-armadillo");
+    updateThread.start();
+  }
+
+  // Builds a Python list literal e.g. ['/path/script', '-p', '/home']
+  private String buildPythonList(String... args) {
+    StringBuilder sb = new StringBuilder("[");
+    for (int i = 0; i < args.length; i++) {
+      sb.append("'").append(args[i].replace("'", "\\'")).append("'");
+      if (i < args.length - 1) sb.append(", ");
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  private Thread startLogTailer(File logFile) throws IOException {
+    Thread tailer =
+        new Thread(
+            () -> {
+              try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+                reader.skip(logFile.length());
+                while (!Thread.currentThread().isInterrupted()) {
+                  String line = reader.readLine();
+                  if (line != null) {
+                    System.out.printf("[Script says]: %s%n", line);
+                  } else {
+                    Thread.sleep(100);
+                  }
+                }
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              } catch (IOException e) {
+                System.err.println("Log tailer error: " + e.getMessage());
+              }
+            });
+
+    tailer.setDaemon(true);
+    tailer.setName("update-log-tailer");
+    tailer.start();
+    return tailer;
+  }
+
   public void triggerUpdate(OidcDetails oidcDetails) throws IOException, InterruptedException {
     JsonElement lastRelease = getLastRelease();
     String lastVersion = getReleaseVersion(lastRelease);
     // todo: replace current update script with one we can use
-    downloadUpdateScript();
+    //    downloadUpdateScript();
+    // todo: download to right location in dev mode
     downloadArmadilloJar(lastVersion);
     updateApplicationConfig(oidcDetails);
+    runScriptInDifferentThread();
     // pass new config
     // trigger script for stopping and restarting
     // make script (try to adjust existing), make sure it will work on current PR, but will usually
@@ -270,6 +373,7 @@ public class ManagementService {
   }
 
   private void downloadUpdateScript() throws IOException, InterruptedException {
+    // todo: if not available, download from master
     JsonElement lastRelease = getLastRelease();
     String lastVersion = getReleaseVersion(lastRelease);
     String armadilloUpdateScriptUrl = String.format(UPDATE_SCRIPT_URL, lastVersion, updateScript);
@@ -352,6 +456,7 @@ public class ManagementService {
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws FileNotFoundException {
     updateApplicationConfig(oidcDetails);
+    // todo: need to trigger real restart, this won't do
     restartApplication();
   }
 
