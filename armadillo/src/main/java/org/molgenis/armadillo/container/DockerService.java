@@ -61,6 +61,9 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
+  @Value("${flower.armadillo-url:}")
+  private String flowerArmadilloUrl;
+
   public DockerService(
       DockerClient dockerClient,
       ContainerService containerService,
@@ -305,7 +308,13 @@ public class DockerService {
 
   private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
     if (config instanceof FlowerSuperexecContainerConfig) {
-      cmd.withEnv("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName());
+      var env =
+          new java.util.ArrayList<>(
+              List.of("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName()));
+      if (flowerArmadilloUrl != null && !flowerArmadilloUrl.isEmpty()) {
+        env.add("ARMADILLO_URL=" + flowerArmadilloUrl);
+      }
+      cmd.withEnv(env);
     } else {
       cmd.withEnv("DEBUG=FALSE");
     }
