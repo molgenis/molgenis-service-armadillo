@@ -221,7 +221,8 @@ setup_profiles <- function() {
 
   refresh_profile_info()
 
-  if (!identical(release_env$profile_info$container$status, "RUNNING")) {
+  if (!is.null(release_env$profile_info$container) &&
+      !identical(release_env$profile_info$container$status, "RUNNING")) {
     start_profile(release_env$current_profile)
   }
   seed <- unlist(release_env$profile_info$options$datashield.seed)
