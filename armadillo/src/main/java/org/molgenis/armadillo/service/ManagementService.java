@@ -29,7 +29,9 @@ import org.apache.logging.log4j.LoggingException;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +50,8 @@ public class ManagementService {
 
   @Value("${armadillo.armadillo-mode:PROD}")
   String armadilloMode;
+
+  @Autowired BuildProperties buildProperties;
 
   // location of update log
   private String updateLogPath;
@@ -254,27 +258,31 @@ public class ManagementService {
     return scriptVersionTag;
   }
 
-  public void triggerUpdate(OidcDetails oidcDetails, String version)
-      throws IOException, InterruptedException {
-    String versionToUpdateTo = version;
-    JsonElement release;
-    if (version == null) {
-      release = getLastRelease();
-      versionToUpdateTo = getReleaseVersion(release);
-    } else {
-      release = getReleaseByVersion(version);
-    }
-    // TODO: test this endpoint
-    downloadUpdateScript(release);
-    downloadArmadilloJar(versionToUpdateTo);
-    updateApplicationConfig(oidcDetails);
-    runRestartScriptInDifferentThread(versionToUpdateTo, true);
-    // pass new config
-    // trigger script for stopping and restarting
-    // make script (try to adjust existing), make sure it will work on current PR, but will usually
-    // use latest release
-    // warning when major release
-  }
+  // todo: finalise if we need this
+  //  public void triggerUpdate(OidcDetails oidcDetails, String version)
+  //      throws IOException, InterruptedException {
+  //    String versionToUpdateTo = version;
+  //    System.out.println("version to update to:"+ versionToUpdateTo);
+  //    JsonElement release;
+  //    if (version == null) {
+  //      release = getLastRelease();
+  //      versionToUpdateTo = getReleaseVersion(release);
+  //      System.out.println("version is null");
+  //    } else {
+  //      release = getReleaseByVersion(version);
+  //      System.out.println("get release!");
+  //    }
+  //    downloadUpdateScript(release);
+  //    downloadArmadilloJar(versionToUpdateTo);
+  //    updateApplicationConfig(oidcDetails);
+  //    runRestartScriptInDifferentThread(versionToUpdateTo, true);
+  //    // pass new config
+  //    // trigger script for stopping and restarting
+  //    // make script (try to adjust existing), make sure it will work on current PR, but will
+  // usually
+  //    // use latest release
+  //    // warning when major release
+  //  }
 
   private boolean fileExistsInDir(String filename, String directory) throws IOException {
     Set<String> foundFiles = listFilesForDir(directory);
@@ -377,11 +385,20 @@ public class ManagementService {
   }
 
   public void deleteJar(String version) {
-    File armadilloJar = new File(getJarHome() + File.separator + getJarFromVersion(version));
-    // todo: make sure it's not the jar we're using
-    if (!armadilloJar.delete()) {
-      throw new StorageException("Cannot delete file: " + armadilloJar.getName());
+    String appVersion = buildProperties.getVersion();
+    String fileToDelete = getJarPathFromVersion(version);
+    if (appVersion.equals(version)) {
+      throw new StorageException("Cannot delete file: jar is currently running.");
+    } else {
+      File armadilloJar = new File(fileToDelete);
+      if (!armadilloJar.delete()) {
+        throw new StorageException("Cannot delete file: " + armadilloJar.getName());
+      }
     }
+  }
+
+  private String getJarPathFromVersion(String version) {
+    return getJarHome() + File.separator + getJarFromVersion(version);
   }
 
   private String getJarFromVersion(String version) {
