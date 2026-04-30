@@ -55,23 +55,25 @@ public class ManagementController {
     auditor.audit(managementService::hardRestartApplication, principal, "TRIGGER_HARD_RESTART");
   }
 
-  @Operation(summary = "Update armadillo version")
-  @PostMapping("app/update")
-  public void update(Principal principal, @RequestBody OidcDetails oidcDetails, String version) {
-    auditor.audit(
-        () -> {
-          try {
-            managementService.triggerUpdate(oidcDetails, version);
-          } catch (FileNotFoundException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
-          } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        principal,
-        "UPDATE_ARMADILLO");
-  }
+  // TODO: not sure if we need this or do everything separately in UI?
+  //  @Operation(summary = "Update armadillo version")
+  //  @PostMapping("app/update")
+  //  public void update(Principal principal, @RequestBody OidcDetails oidcDetails, String version)
+  // {
+  //    auditor.audit(
+  //        () -> {
+  //          try {
+  //            managementService.triggerUpdate(oidcDetails, version);
+  //          } catch (FileNotFoundException e) {
+  //            throw new ResponseStatusException(
+  //                HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
+  //          } catch (IOException | InterruptedException e) {
+  //            throw new RuntimeException(e);
+  //          }
+  //        },
+  //        principal,
+  //        "UPDATE_ARMADILLO");
+  //  }
 
   @Operation(summary = "Check if armadillo update is available")
   @GetMapping("app/check-update")
@@ -107,7 +109,13 @@ public class ManagementController {
   @DeleteMapping("app/delete-jar")
   public void listAvailable(Principal principal, String version) {
     auditor.audit(
-        () -> managementService.deleteJar(version),
+        () -> {
+          try {
+            managementService.deleteJar(version);
+          } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
         principal,
         "DELETE_JAR",
         Map.of("VERSION_TO_DELETE", version));
