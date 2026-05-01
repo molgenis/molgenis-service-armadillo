@@ -26,21 +26,12 @@
         </div>
       </div>
       <div>
-        <div class="m-2">
-          <h5><i class="bi bi-hdd"></i> Disk</h5>
-          <div class="progress">
-            <div
-              class="progress-bar bg-success"
-              role="progressbar"
-              aria-label="Success striped example"
-              :style="'width:' + diskspace.percentage + '%'"
-              :aria-valuenow="diskspace.percentage.toString()"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-          Used: {{ diskspace.used }} / {{ diskspace.total }}
-        </div>
+        <DiskSpace
+          :used="diskspace.used"
+          :percentage="diskspace.percentage"
+          :total="diskspace.total"
+          class="m-2"
+        />
         <div class="row">
           <div class="col">
             <MetricsCard :metrics="metrics" item="application" icon="window" />
@@ -88,6 +79,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import MetricsCard from "@/components/MetricsCard.vue";
 import ExtraMetricsEndpoint from "@/components/ExtraMetricsEndpoint.vue";
+import DiskSpace from "@/components/DiskSpace.vue";
 
 export default defineComponent({
   name: "Actuator",
@@ -97,6 +89,7 @@ export default defineComponent({
     FeedbackMessage,
     MetricsCard,
     ExtraMetricsEndpoint,
+    DiskSpace,
   },
   setup() {
     const actuator = ref<ActuatorLink[]>();
@@ -156,10 +149,10 @@ export default defineComponent({
   },
   computed: {
     diskspace(): {
-      total: String;
-      free: String;
-      used: String;
-      percentage: Number;
+      total: string;
+      free: string;
+      used: string;
+      percentage: number;
     } {
       const totalSpace = this.metrics["disk.total"]["measurements"][0].value;
       const freeSpace = this.metrics["disk.free"]["measurements"][0].value;

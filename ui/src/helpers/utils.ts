@@ -8,6 +8,8 @@ import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { getProfileStatus } from "@/api/api";
 
+import type { ProfileStartStatus } from "@/types/api";
+
 export function stringIncludesOtherString(
   completeString: string,
   substring: string
@@ -317,7 +319,9 @@ export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
 
-import type { ProfileStartStatus } from "@/types/api";
+export function getVersionFromJar(jar: string) {
+  return jar.replace("molgenis-armadillo-", "").replace(".jar", "");
+}
 
 export function useProfileStatus() {
   const status: Ref<ProfileStartStatus | null> = ref(null);

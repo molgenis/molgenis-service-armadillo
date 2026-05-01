@@ -1,6 +1,7 @@
 import { ApiError } from "@/helpers/errors";
 import {
   encodeUriComponent,
+  getVersionFromJar,
   objectDeepCopy,
   sanitizeObject,
 } from "@/helpers/utils";
@@ -15,6 +16,7 @@ import {
   Metric,
   HalResponse,
   Metrics,
+  AuthServerConfig,
 } from "@/types/api";
 
 import {
@@ -352,6 +354,12 @@ export async function getFreeDiskSpace(): Promise<number> {
   });
 }
 
+export async function getTotalDiskSpace(): Promise<number> {
+  return get("/actuator/metrics/disk.total").then((data) => {
+    return Number(data.measurements[0].value);
+  });
+}
+
 export async function getWorkspaceDetails(): Promise<Workspaces> {
   return get("/all-workspaces");
 }
@@ -374,4 +382,25 @@ export async function getMetaData(project: string, object: string) {
 
 export async function getProfileStatus(name: string) {
   return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
+}
+
+export async function restartServer() {
+  return post("/manage/app/hard-restart");
+}
+
+export async function getAuthServerConfig(): Promise<AuthServerConfig> {
+  return get("/manage/auth/oidc-config");
+}
+
+export async function putAuthServerConfig(authConfig: AuthServerConfig) {
+  return put("/manage/auth/oidc-config", authConfig);
+}
+
+export async function getAppList() {
+  return get("/manage/app/list");
+}
+
+export async function deleteApplicationJar(jar: string) {
+  const version = getVersionFromJar(jar);
+  return delete_("/manage/app", "delete-jar?version=" + version);
 }
