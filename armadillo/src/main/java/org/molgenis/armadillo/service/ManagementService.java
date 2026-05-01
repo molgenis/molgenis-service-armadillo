@@ -51,6 +51,21 @@ public class ManagementService {
   @Value("${armadillo.armadillo-mode:PROD}")
   String armadilloMode;
 
+  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
+  String clientId;
+
+  @Value("${spring.security.oauth2.client.registration.molgenis.client-secret:#{null}}")
+  String clientSecret;
+
+  @Value("${spring.security.oauth2.client.provider.molgenis.issuer-uri:#{null}}")
+  String issuerUri;
+
+  @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:#{null}}")
+  String deviceIssuerUri;
+
+  @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id:#{null}}")
+  String deviceClientId;
+
   @Autowired BuildProperties buildProperties;
 
   // location of update log
@@ -59,8 +74,6 @@ public class ManagementService {
   // Constants
   String updateScript = "armadillo-reboot.sh";
   String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
-  // 6f815bb32e5677ce17680d262344d2f4e3c6106e
-  // refs/tags/v5.12.2
   String UPDATE_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
   String RELEASE_DOWNLOAD_URL =
@@ -140,6 +153,16 @@ public class ManagementService {
 
   public String getReleaseVersion(JsonElement release) {
     return ((JsonObject) release).get(TAG).getAsString();
+  }
+
+  public Map<String, String> getCurrentOidcConfig() {
+    Map<String, String> currentConfig = new HashMap<>();
+    currentConfig.put("issuerUri", issuerUri);
+    currentConfig.put("clientId", clientId);
+    currentConfig.put("clientSecret", clientSecret);
+    currentConfig.put("deviceClientId", deviceClientId);
+    currentConfig.put("deviceIssuerUri", deviceIssuerUri);
+    return currentConfig;
   }
 
   private File getUpdateLogFile() throws IOException {
@@ -289,7 +312,7 @@ public class ManagementService {
     return foundFiles.contains(filename);
   }
 
-  private void updateApplicationConfig(OidcDetails oidcDetails) throws FileNotFoundException {
+  private void updateApplicationConfig(OidcDetails oidcDetails) {
     try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
       List<String> lines = br.lines().collect(Collectors.toList());
       String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
