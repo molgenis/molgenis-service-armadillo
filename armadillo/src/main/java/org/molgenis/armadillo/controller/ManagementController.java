@@ -97,6 +97,12 @@ public class ManagementController {
         managementService::listAvailableJars, principal, "LIST_AVAILABLE_VERSIONS");
   }
 
+  @Operation(summary = "Get current OIDC config")
+  @GetMapping("auth/oidc-config")
+  public Map<String, String> getOidcConfig(Principal principal) {
+    return auditor.audit(managementService::getCurrentOidcConfig, principal, "GET_OIDC_CONFIG");
+  }
+
   @Operation(summary = "Delete an unused jar")
   @ApiResponses(
       value = {
