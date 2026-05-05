@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -145,6 +146,22 @@ public class ManagementController {
     }
   }
 
+  @Operation(summary = "Get version number of latest release")
+  @GetMapping("app/latest-release-info")
+  public Map getLastReleaseInfo(Principal principal) {
+    return auditor.audit(
+        () -> {
+          try {
+            Gson gson = new Gson();
+            return gson.fromJson(managementService.getLastRelease().toString(), Map.class);
+          } catch (IOException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
+        principal,
+        "GET_RELEASE_VERSION");
+  }
+
   @Operation(summary = "Download specified armadillo version")
   @GetMapping(value = "app/download/version", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadVersion(Principal principal, String version) {
@@ -152,7 +169,7 @@ public class ManagementController {
       // Audit the initiation, not the whole stream
       auditor.audit(
           () -> null, principal, "DOWNLOAD_ARMADILLO", Map.of("ARMADILLO_VERSION", version));
-      return managementService.downloadArmadilloJar(version);
+      return managementService.downloadArmadilloJar(version.replace("v", ""));
     } catch (IOException | InterruptedException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
