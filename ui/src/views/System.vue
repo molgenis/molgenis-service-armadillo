@@ -9,7 +9,7 @@
           :warningMessage="warningMessage"
         ></FeedbackMessage>
         <ConfirmationDialog
-          v-if="isRestartServerPushed"
+          v-if="$refs.appControl && isRestartServerPushed"
           record="armadillo"
           action="restart"
           recordType="application"
@@ -39,51 +39,15 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <div class="card mt-2 mb-2">
-          <h5 class="card-header">
-            <i class="bi bi-window-fullscreen"></i> Application
-          </h5>
-          <div class="card-body">
-            <Alert type="info" :dismissible="false">
-              Update available: v5.12.2
-              <div class="pb-0">
-                <button class="btn btn-sm btn-primary mt-2">
-                  <i class="bi bi-download"></i> Download update
-                </button>
-              </div>
-            </Alert>
-            <div class="row">
-              <div class="col-8 mt-1">
-                <div class="progress">
-                  <div
-                    class="progress-bar progress-bar-striped progress-bar-animated"
-                    role="progressbar"
-                    aria-label="Animated striped example"
-                    aria-valuenow="75"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    style="width: 75%"
-                  ></div>
-                </div>
-              </div>
-              <div class="col-4 fst-italic mb-2">
-                Downloading molgenis-armadillo-5.12.2.jar
-              </div>
-            </div>
-            <button
-              class="btn btn-warning"
-              @click="isRestartServerPushed = true"
-            >
-              <i class="bi bi-arrow-repeat"></i> Soft restart
-            </button>
-            <button
-              class="btn btn-warning"
-              @click="isRestartServerPushed = true"
-            >
-              <i class="bi bi-arrow-repeat"></i> Hard restart
-            </button>
-          </div>
-        </div>
+        <ApplicationControl
+          :currentReleaseVersion="currentVersion"
+          :latestReleaseVersion="latestReleaseVersion"
+          :latestVersionDownloaded="latestVersionDownloaded"
+          :appList="appList"
+          ref="appControl"
+          @error="putErrorMessage"
+          @download-done="loadAppList"
+        />
         <OidcConfig
           v-if="
             !isLoading &&
@@ -136,10 +100,13 @@ import {
   getAppList,
   deleteApplicationJar,
   getVersion,
+  getLatestReleaseInfo,
 } from "@/api/api";
 import { AuthServerConfig } from "@/types/api";
 import OidcConfig from "@/components/OidcConfig.vue";
 import Alert from "@/components/Alert.vue";
+import ApplicationControl from "@/components/ApplicationControl.vue";
+import { getJarFromVersion } from "@/helpers/utils";
 
 export default defineComponent({
   name: "System",
@@ -151,6 +118,7 @@ export default defineComponent({
     Alert,
     DiskSpace,
     Storage,
+    ApplicationControl,
   },
   setup() {
     const router = useRouter();
@@ -161,6 +129,7 @@ export default defineComponent({
     const totalDiskSpace: Ref<number | undefined> = ref();
     const appList: Ref<Array<string>> = ref([]);
     const currentVersion: Ref<string> = ref("");
+    const latestReleaseInfo: Ref<string> = ref("");
 
     onBeforeMount(() => {
       loadAuthConfig();
@@ -168,12 +137,22 @@ export default defineComponent({
       loadAppList();
       getAppList();
       loadVersion();
+      loadLatestReleaseInfo();
     });
     const loadVersion = async () => {
       currentVersion.value = await getVersion().catch((error: string) => {
         errorMessage.value = processErrorMessages(error, "version", router);
         return "";
       });
+    };
+    const loadLatestReleaseInfo = async () => {
+      latestReleaseInfo.value = await getLatestReleaseInfo().catch(
+        (error: string) => {
+          console.log(error);
+          errorMessage.value = processErrorMessages(error, "version", router);
+          return "";
+        }
+      );
     };
     const loadAuthConfig = async () => {
       authConfig.value = await getAuthServerConfig()
@@ -220,6 +199,8 @@ export default defineComponent({
       appList,
       isLoading,
       currentVersion,
+      latestReleaseInfo,
+      loadAppList,
     };
   },
   data() {
@@ -227,21 +208,40 @@ export default defineComponent({
       successMessage: "",
       warningMessage: "",
       updateOidcTriggered: false,
-      isRestartServerPushed: false,
       configToSave: {},
       reloadOidc: 0,
       appToDelete: "",
       deleteJarTriggered: false,
     };
   },
+  computed: {
+    isRestartServerPushed() {
+      return (this.$refs.appControl as any).isRestartServerPushed;
+    },
+    latestReleaseVersion() {
+      return (this.latestReleaseInfo as any).tag_name;
+    },
+    latestVersionDownloaded() {
+      if (this.latestReleaseVersion !== undefined) {
+        return this.appList.includes(
+          getJarFromVersion(this.latestReleaseVersion)
+        );
+      } else {
+        return false;
+      }
+    },
+  },
   methods: {
+    putErrorMessage(e: Event) {
+      this.errorMessage = String(e);
+    },
     proceedRestartServer() {
       this.warningMessage =
         "Server will restart now. Please refresh and log back in. If the application is not reloaded, please contact your administrator.";
       restartServer();
     },
     cancelRestartServer() {
-      this.isRestartServerPushed = false;
+      (this.$refs as any).appControl.makeIsRestartServerPushedFalse();
     },
     cancelOidcUpdate() {
       this.updateOidcTriggered = false;
@@ -256,7 +256,11 @@ export default defineComponent({
       this.appToDelete = String(event);
     },
     deleteJar() {
-      deleteApplicationJar(this.appToDelete);
+      deleteApplicationJar(this.appToDelete).then(() => {
+        this.successMessage = "Succesfully deleted: " + this.appToDelete;
+        this.appToDelete = "";
+        this.loadAppList();
+      });
     },
     cancelDeleteJar() {
       this.deleteJarTriggered = false;

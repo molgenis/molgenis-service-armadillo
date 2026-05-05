@@ -18,6 +18,7 @@
           Available jars:
           <button
             class="btn btn-danger btn-sm float-end"
+            :disabled="appList.length < 2"
             @click="$emit('triggerDelete', appToDelete)"
           >
             <i class="bi bi-trash-fill"></i>
