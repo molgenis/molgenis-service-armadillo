@@ -400,7 +400,16 @@ export async function getAppList() {
   return get("/manage/app/list");
 }
 
+export async function getLatestReleaseInfo() {
+  const version = await get("/manage/app/latest-release-info");
+  return version;
+}
+
 export async function deleteApplicationJar(jar: string) {
   const version = getVersionFromJar(jar);
   return delete_("/manage/app", "delete-jar?version=" + version);
+}
+
+export function downloadJar(version: string): EventSource {
+  return new EventSource("/manage/app/download/version?version=" + version);
 }

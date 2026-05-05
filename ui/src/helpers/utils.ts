@@ -323,6 +323,10 @@ export function getVersionFromJar(jar: string) {
   return jar.replace("molgenis-armadillo-", "").replace(".jar", "");
 }
 
+export function getJarFromVersion(version: string) {
+  return "molgenis-armadillo-" + version.replace("v", "") + ".jar";
+}
+
 export function useProfileStatus() {
   const status: Ref<ProfileStartStatus | null> = ref(null);
   let timer: number | undefined;
