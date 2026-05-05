@@ -75,9 +75,9 @@ public class ManagementService {
   String updateScript = "armadillo-reboot.sh";
   String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
   String UPDATE_SCRIPT_URL =
-      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
+      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v%s/scripts/install/%s";
   String RELEASE_DOWNLOAD_URL =
-      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/%s/%s";
+      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
   String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
   String TAG = "tag_name";
   String BACKUP_EXT = ".bak";
@@ -152,6 +152,7 @@ public class ManagementService {
   }
 
   public String getReleaseVersion(JsonElement release) {
+    System.out.println(((JsonObject) release).get(TAG).getAsString());
     return ((JsonObject) release).get(TAG).getAsString();
   }
 
