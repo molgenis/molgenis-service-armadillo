@@ -152,7 +152,6 @@ public class ManagementService {
   }
 
   public String getReleaseVersion(JsonElement release) {
-    System.out.println(((JsonObject) release).get(TAG).getAsString());
     return ((JsonObject) release).get(TAG).getAsString();
   }
 
@@ -513,7 +512,7 @@ public class ManagementService {
         .start(
             () -> {
               try {
-                if (fileExistsInDir(armadilloJar, armadilloHome)) {
+                if (fileExistsInDir(armadilloJar, getJarHome())) {
                   emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
                 } else {
                   downloadFile(

@@ -130,11 +130,8 @@ export default defineComponent({
     },
     downloadNewRelease() {
       this.downloadPercentage = 0;
-      //TODO: why will it download everything except from the actual release????
-      console.log(this.versionToDownload);
       const source = downloadJar(this.versionToDownload);
       source.addEventListener("progress", (e) => {
-        console.log(e);
         this.downloadPercentage = parseInt(e.data);
       });
       source.addEventListener("done", () => {
@@ -157,7 +154,6 @@ export default defineComponent({
     },
     downloadLatest() {
       if (this.latestReleaseVersion !== undefined) {
-        console.log(this.latestReleaseVersion);
         this.versionToDownload = this.latestReleaseVersion;
         this.downloadNewRelease();
       }

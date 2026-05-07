@@ -5,7 +5,6 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -128,25 +127,7 @@ public class ManagementController {
         Map.of("VERSION_TO_DELETE", version));
   }
 
-  @Operation(summary = "Download latest armadillo version")
-  @GetMapping(value = "app/download/last", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter downloadLatest(Principal principal) {
-    try {
-      // Audit the initiation, not the whole stream
-      auditor.audit(
-          () -> null,
-          principal,
-          "DOWNLOAD_ARMADILLO",
-          Map.of("ARMADILLO_VERSION", "latest release"));
-      JsonElement lastRelease = managementService.getLastRelease();
-      String lastVersion = managementService.getReleaseVersion(lastRelease);
-      return managementService.downloadArmadilloJar(lastVersion);
-    } catch (IOException | InterruptedException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-    }
-  }
-
-  @Operation(summary = "Get version number of latest release")
+  @Operation(summary = "Get info of latest release")
   @GetMapping("app/latest-release-info")
   public Map getLastReleaseInfo(Principal principal) {
     return auditor.audit(
