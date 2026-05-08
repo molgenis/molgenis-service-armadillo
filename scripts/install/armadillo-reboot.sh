@@ -132,8 +132,14 @@ restart_if_down() {
     fi
     restart_armadillo "$OLD_JAR"
     increase_timeout
-    echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
-    restart_if_down
+    if [[ $TIMEOUT -gt 3600 ]]; then
+      TIME_OF_DEATH=$(date)
+      echo "😵 Out of retries. Armadillo should have been revived by now. Time of death: $TIME_OF_DEATH"
+      exit_script
+    else
+      echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
+      restart_if_down
+    fi
   else
     echo "✅ All done. Thank you for flying with MOLGENIS Airways ✈️"
     exit_script
