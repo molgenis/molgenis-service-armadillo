@@ -114,7 +114,7 @@ if [[ $UPDATE == true ]]; then
 fi
 
 increase_timeout() {
-  TIMEOUT=$(( TIMEOUT * TIMEOUT))
+  TIMEOUT=$(( TIMEOUT * 2))
 }
 
 restart_if_down() {
