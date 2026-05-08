@@ -91,12 +91,12 @@ if [[ $UPDATE == true ]]; then
   BUILD_DIR=$ARMADILLO_PATH
   if [ "$MODE" == "PROD" ]; then
     # linux
-    OLD_JAR=$(find armadillo.jar -prune -printf "%l\n")
+    OLD_JAR=$(find "$ARMADILLO_PATH"/armadillo.jar -prune -printf "%l\n")
     else
       # default build path when running with gradle/intellij
       BUILD_DIR="$ARMADILLO_PATH/build/libs"
       # macos
-      OLD_JAR=$(stat -f %Y armadillo.jar)
+      OLD_JAR=$(stat -f %Y "$ARMADILLO_PATH"/armadillo.jar)
   fi
   # replace v if vx.y.z pattern is used for specifying version
   JAR_NAME="molgenis-armadillo-${ARMADILLO_VERSION/v/}.jar"
