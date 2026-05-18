@@ -71,6 +71,15 @@
       <div class="row">
         <div class="col">
           <h5>Restart</h5>
+          <div class="fst-italic mb-2">
+            If your application isn't behaving as it should, a restart might
+            help. With the buttons below you can do a "soft" or "hard" restart.
+            We advice to first try a soft restart, if that doesn't fix your
+            problem, try the hard restart. Keep in mind that in both options,
+            currently running analysis will probably be terminated and that
+            there is a slight risk that the application doesn't start after
+            shutting down, meaning you will have to contact your administrator.
+          </div>
           <button class="btn btn-warning" @click="isRestartServerPushed = true">
             <i class="bi bi-arrow-repeat"></i> Soft restart
           </button>
