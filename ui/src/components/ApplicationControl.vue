@@ -14,7 +14,7 @@
         <div class="pb-0" v-else>
           <button
             class="btn btn-sm btn-success mt-2"
-            @click="$emit('update-app')"
+            @click="$emit('update-app', latestReleaseVersion)"
           >
             <i class="bi bi-play-fill"></i> Update now
           </button>
@@ -57,12 +57,12 @@
       <div class="row mb-3">
         <h5>Update version</h5>
         <div class="col-md-6 col-sm-8">
-          <Dropdown :options="appList" />
+          <Dropdown :options="appList" @update="selectUpdateVersion" />
         </div>
         <div class="col">
           <button
             class="btn btn-primary"
-            @click="$emit('update-app', 'version')"
+            @click="$emit('update-app', updateVersion)"
           >
             <i class="bi bi-arrow-up-circle"></i> Update
           </button>
@@ -114,9 +114,16 @@ export default defineComponent({
       isRestartServerPushed: false,
       versionToDownload: "",
       downloadPercentage: 0,
+      updateVersion: "",
     };
   },
   methods: {
+    selectUpdateVersion(event: Event) {
+      this.updateVersion = event
+        .toString()
+        .replace(".jar", "")
+        .replace("molgenis-armadillo-", "");
+    },
     isValidVersion(version: string) {
       const regex = /v?[0-9]+\.[0-9]+\.[0-9]+/;
       const found = version.match(regex);
