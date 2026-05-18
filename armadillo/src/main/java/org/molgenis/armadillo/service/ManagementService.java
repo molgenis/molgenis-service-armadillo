@@ -13,12 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
@@ -75,7 +70,7 @@ public class ManagementService {
   String updateScript = "armadillo-reboot.sh";
   String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
   String UPDATE_SCRIPT_URL =
-      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/v%s/scripts/install/%s";
+      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
   String RELEASE_DOWNLOAD_URL =
       "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
   String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
@@ -108,7 +103,7 @@ public class ManagementService {
   }
 
   public void hardRestartApplication() {
-    runRestartScriptInDifferentThread("", false);
+    runScriptInDifferentThread(false, "");
   }
 
   private JsonArray getReleases() throws IOException, InterruptedException {
@@ -133,22 +128,6 @@ public class ManagementService {
                 release -> ((JsonObject) release).get("prerelease").getAsString().equals("false"))
             .findFirst();
     return lastRelease.get();
-  }
-
-  public JsonElement getReleaseByVersion(String version) throws IOException, InterruptedException {
-    JsonArray armadilloReleases = getReleases();
-    Optional<JsonElement> release =
-        StreamSupport.stream(armadilloReleases.spliterator(), false)
-            .filter(r -> ((JsonObject) r).get(TAG).getAsString().equals(version))
-            .findFirst();
-    return release.get();
-  }
-
-  private LocalDateTime getLastReleaseDate(JsonElement lastRelease) {
-    String rawDate = ((JsonObject) lastRelease).get("published_at").getAsString();
-    DateTimeFormatter inputFormatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
-    return LocalDateTime.parse(rawDate, inputFormatter);
   }
 
   public String getReleaseVersion(JsonElement release) {
@@ -196,29 +175,24 @@ public class ManagementService {
     return String.format(scriptTemplate, logFilePath, pythonList);
   }
 
-  private void runRestartScriptInDifferentThread(String version, Boolean isUpdate) {
+  private void runScriptInDifferentThread(Boolean isUpdate, String version) {
     Thread updateThread =
         new Thread(
             () -> {
               try {
-                String command;
-                if (Objects.equals(armadilloMode, DEV)) {
-                  command = armadilloHome + "/scripts/install/" + updateScript;
-                } else {
-                  command = armadilloHome + updateScript;
-                }
+                //                String command = armadilloHome + "/scripts/install/" +
+                // updateScript;
+                String command = getJarHome() + "/" + updateScript;
                 File logFile = getUpdateLogFile();
                 Thread logTailer = startLogTailer(logFile);
                 Thread.sleep(200);
-
                 String pythonScript =
                     createPythonScript(command, logFile.getAbsolutePath(), version, isUpdate);
-                // Double-fork via Python to fully detach from JVM process group
-
                 ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
                 processBuilder.redirectInput(new File("/dev/null"));
                 processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
                 processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+                System.out.println("Launching double-forked update script...");
                 Process python = processBuilder.start();
                 python.waitFor();
                 logTailer.join(5000);
@@ -273,8 +247,6 @@ public class ManagementService {
     // if script not available yet on current release:
     if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 14) {
       scriptVersionTag = "6f815bb32e5677ce17680d262344d2f4e3c6106e";
-    } else if (version.startsWith("v")) {
-      scriptVersionTag = "refs/tags/" + version;
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
@@ -428,6 +400,11 @@ public class ManagementService {
     return String.format(ARMADILLO_JAR, version.replace("v", ""));
   }
 
+  public void triggerUpdate(String version) {
+    //    this.runRestartScriptInDifferentThread(version, true);
+    runScriptInDifferentThread(true, version);
+  }
+
   // Simple mutable state carrier — private inner class or a record (Java 16+)
   private static class ConfigParseState {
     boolean providerFound, providerMolgenisFound;
@@ -444,46 +421,22 @@ public class ManagementService {
     return !fileExistsInDir(armadilloJar, armadilloHome);
   }
 
-  private Instant getInstantFromDateTime(LocalDateTime dateTime) {
-    ZoneId zone = ZoneId.systemDefault();
-    ZoneOffset zoneOffSet = zone.getRules().getOffset(dateTime);
-    return Instant.from(dateTime.atOffset(zoneOffSet));
-  }
-
-  private void downloadUpdateScript(JsonElement release) {
-    String version = getReleaseVersion(release);
-    String scriptVersionTag = getScriptVersionTag(version);
+  public void downloadUpdateScript(String armadilloVersion)
+      throws IOException, InterruptedException {
+    armadilloVersion = armadilloVersion.replace("v", "");
+    String scriptVersionTag = getScriptVersionTag(armadilloVersion);
     String armadilloUpdateScriptUrl =
         String.format(UPDATE_SCRIPT_URL, scriptVersionTag, updateScript);
-    String updateScriptPath = format("%s/%s", armadilloHome, updateScript);
-    try {
-      if (fileExistsInDir(updateScript, armadilloHome)) {
-        Path path = Paths.get(updateScriptPath);
-        Instant creationDateInstant = getCreationDateOfFile(path).toInstant();
-        Instant releaseDateInstant = getInstantFromDateTime(getLastReleaseDate(release));
-        if (creationDateInstant.isBefore(releaseDateInstant)) {
-          downloadFile(format(armadilloUpdateScriptUrl, version), updateScriptPath);
-        }
-      } else {
-        downloadFile(format(armadilloUpdateScriptUrl, version), updateScriptPath);
-      }
-    } catch (IOException e) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
-    }
-  }
-
-  private FileTime getCreationDateOfFile(Path filePath) throws FileNotFoundException {
-    try {
-      return (FileTime) Files.getAttribute(filePath, CREATION_TIME);
-    } catch (IOException ex) {
-      throw new FileNotFoundException(filePath + NOT_FOUND);
-    }
+    String updateScriptPath = format("%s/%s", getJarHome(), updateScript);
+    downloadFile(armadilloUpdateScriptUrl, updateScriptPath);
+    // give permissions to run the script
+    File script = new File(updateScriptPath);
+    script.setExecutable(true, false);
   }
 
   private String getJarHome() {
     if (Objects.equals(armadilloMode, DEV)) {
-      return format("%s/build/libs", armadilloHome);
+      return format("%s/build/libs/", armadilloHome);
     } else {
       return format("%s", armadilloHome);
     }
@@ -559,9 +512,7 @@ public class ManagementService {
       if (response.statusCode() != 200) {
         throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
       }
-
       long fileSize = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-
       try (BufferedInputStream in = new BufferedInputStream(response.body());
           FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
 

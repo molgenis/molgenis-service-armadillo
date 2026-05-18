@@ -91,12 +91,12 @@ if [[ $UPDATE == true ]]; then
   BUILD_DIR=$ARMADILLO_PATH
   if [ "$MODE" == "PROD" ]; then
     # linux
-    OLD_JAR=$(find "$ARMADILLO_PATH"/armadillo.jar -prune -printf "%l\n")
+    OLD_JAR=$(find armadillo.jar -prune -printf "%l\n")
     else
       # default build path when running with gradle/intellij
       BUILD_DIR="$ARMADILLO_PATH/build/libs"
       # macos
-      OLD_JAR=$(stat -f %Y "$ARMADILLO_PATH"/armadillo.jar)
+      OLD_JAR=$(stat -f %Y armadillo.jar)
   fi
   # replace v if vx.y.z pattern is used for specifying version
   JAR_NAME="molgenis-armadillo-${ARMADILLO_VERSION/v/}.jar"
@@ -114,7 +114,7 @@ if [[ $UPDATE == true ]]; then
 fi
 
 increase_timeout() {
-  TIMEOUT=$(( TIMEOUT * 2))
+  TIMEOUT=$(( TIMEOUT * TIMEOUT))
 }
 
 restart_if_down() {
@@ -132,14 +132,8 @@ restart_if_down() {
     fi
     restart_armadillo "$OLD_JAR"
     increase_timeout
-    if [[ $TIMEOUT -gt 3600 ]]; then
-      TIME_OF_DEATH=$(date)
-      echo "😵 Out of retries. Armadillo should have been revived by now. Time of death: $TIME_OF_DEATH"
-      exit_script
-    else
-      echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
-      restart_if_down
-    fi
+    echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
+    restart_if_down
   else
     echo "✅ All done. Thank you for flying with MOLGENIS Airways ✈️"
     exit_script
