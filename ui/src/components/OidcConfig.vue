@@ -14,7 +14,7 @@
       <FormInput
         v-if="renderComponent"
         ref="serverUri"
-        label="Server URL"
+        label="Authentication Server URL"
         icon="database-fill"
         :value="presetServerUri"
         :hasCopyButton="true"
@@ -39,6 +39,26 @@
         :value="presetClientSecret"
         :hasCopyButton="true"
         type="password"
+        :isEditMode="isEditMode"
+      />
+      <FormInput
+        v-if="renderComponent"
+        ref="deviceServerUri"
+        label="Device client URI"
+        icon="globe"
+        :value="presetDeviceServerUri"
+        :hasCopyButton="true"
+        type="text"
+        :isEditMode="isEditMode"
+      />
+      <FormInput
+        v-if="renderComponent"
+        ref="deviceClientId"
+        label="Device client ID"
+        icon="robot"
+        :value="presetDeviceClientId"
+        :hasCopyButton="true"
+        type="text"
         :isEditMode="isEditMode"
       />
       <button class="btn btn-danger" v-if="isEditMode" @click="cancelEdit">
@@ -67,6 +87,14 @@ export default defineComponent({
       required: true,
     },
     presetClientSecret: {
+      type: String,
+      required: true,
+    },
+    presetDeviceServerUri: {
+      type: String,
+      required: true,
+    },
+    presetDeviceClientId: {
       type: String,
       required: true,
     },
@@ -104,6 +132,8 @@ export default defineComponent({
         issuerUri: (this.$refs as any).serverUri.mappedValue,
         clientId: (this.$refs as any).clientId.mappedValue,
         clientSecret: (this.$refs as any).clientSecret.mappedValue,
+        deviceIssuerUri: (this.$refs as any).deviceServerUri.mappedValue,
+        deviceClientId: (this.$refs as any).deviceClientId.mappedValue,
       });
     },
   },

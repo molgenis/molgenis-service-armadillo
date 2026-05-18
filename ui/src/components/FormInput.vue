@@ -1,9 +1,9 @@
 <template>
   <div class="mb-3 row">
-    <label class="col-sm-2 col-form-label">
+    <label class="col-sm-3 col-form-label">
       <i :class="`bi bi-${icon}`"></i> {{ label }}
     </label>
-    <div class="col-sm-10">
+    <div class="col-sm-9">
       <div class="input-group">
         <input
           :type="type !== 'password' ? type : showSecret ? 'text' : 'password'"

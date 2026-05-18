@@ -411,5 +411,13 @@ export async function deleteApplicationJar(jar: string) {
 }
 
 export function downloadJar(version: string): EventSource {
-  return new EventSource("/manage/app/download/version?version=" + version);
+  return new EventSource("/manage/app/download?version=" + version);
+}
+
+export function downloadUpdater(version: string) {
+  return post("/manage/updater/download?armadilloVersion=" + version);
+}
+
+export function startUpdate(version: string) {
+  return post("/manage/app/update?version=" + version);
 }

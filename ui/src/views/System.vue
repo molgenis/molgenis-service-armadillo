@@ -27,6 +27,15 @@
           extraInfo="Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access. After configuration is updated, the application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator."
         ></ConfirmationDialog>
         <ConfirmationDialog
+          v-if="updateAppTriggered"
+          record="application"
+          action="update"
+          recordType="armadillo"
+          @proceed="updateApplication"
+          @cancel="cancelAppUpdate"
+          :extraInfo="`The application will be updated to version [${versionToUpdateTo}]. The application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator. If you decide to proceed, try refreshing until the application is back up.`"
+        ></ConfirmationDialog>
+        <ConfirmationDialog
           v-if="deleteJarTriggered"
           :record="appToDelete"
           action="delete"
@@ -47,19 +56,24 @@
           ref="appControl"
           @error="putErrorMessage"
           @download-done="loadAppList"
+          @update-app="triggerUpdate"
         />
         <OidcConfig
           v-if="
             !isLoading &&
             authConfig.issuerUri &&
             authConfig.clientId &&
-            authConfig.clientSecret
+            authConfig.clientSecret &&
+            authConfig.deviceClientId &&
+            authConfig.deviceIssuerUri
           "
           ref="updatedOidcConfig"
           @saveOidcConfig="askIfSureUpdateOidc"
           :presetClientId="authConfig.clientId"
           :presetClientSecret="authConfig.clientSecret"
           :presetServerUri="authConfig.issuerUri"
+          :presetDeviceServerUri="authConfig.deviceIssuerUri"
+          :presetDeviceClientId="authConfig.deviceClientId"
           :key="reloadOidc"
         />
         <OidcConfig
@@ -69,6 +83,8 @@
           presetClientId=""
           presetClientSecret=""
           presetServerUri=""
+          presetDeviceServerUri=""
+          presetDeviceClientId=""
         />
         <Storage
           :appList="appList"
@@ -101,10 +117,11 @@ import {
   deleteApplicationJar,
   getVersion,
   getLatestReleaseInfo,
+  downloadUpdater,
+  startUpdate,
 } from "@/api/api";
 import { AuthServerConfig } from "@/types/api";
 import OidcConfig from "@/components/OidcConfig.vue";
-import Alert from "@/components/Alert.vue";
 import ApplicationControl from "@/components/ApplicationControl.vue";
 import { getJarFromVersion } from "@/helpers/utils";
 
@@ -115,7 +132,6 @@ export default defineComponent({
     FeedbackMessage,
     LoadingSpinner,
     OidcConfig,
-    Alert,
     DiskSpace,
     Storage,
     ApplicationControl,
@@ -212,6 +228,8 @@ export default defineComponent({
       reloadOidc: 0,
       appToDelete: "",
       deleteJarTriggered: false,
+      versionToUpdateTo: "",
+      updateAppTriggered: false,
     };
   },
   computed: {
@@ -232,6 +250,27 @@ export default defineComponent({
     },
   },
   methods: {
+    downloadUpdater,
+    startUpdate,
+    updateApplication() {
+      if (this.versionToUpdateTo !== this.currentVersion) {
+        console.log("update app", this.currentVersion, this.versionToUpdateTo);
+        this.downloadUpdater(this.versionToUpdateTo);
+        this.warningMessage =
+          "Update in progress. The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator.";
+        this.startUpdate(this.versionToUpdateTo);
+      } else {
+        this.warningMessage = `Cannot update: Version [${this.versionToUpdateTo}] already running.`;
+      }
+    },
+    triggerUpdate(version: Event) {
+      this.updateAppTriggered = true;
+      this.versionToUpdateTo = version.toString();
+    },
+    cancelAppUpdate() {
+      this.updateAppTriggered = false;
+      this.versionToUpdateTo = "";
+    },
     putErrorMessage(e: Event) {
       this.errorMessage = String(e);
     },

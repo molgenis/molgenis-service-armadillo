@@ -1,10 +1,6 @@
 <template>
   <div :class="`alert alert-${type} alert-dismissible`" role="alert">
-    <i
-      class="bi bi-info-circle-fill"
-      v-if="type === 'primary' || type === 'info'"
-      >&nbsp;</i
-    >
+    <i class="bi bi-info-circle-fill" v-if="type === 'primary'">&nbsp;</i>
     <i class="bi bi-check-circle-fill" v-else-if="type === 'success'">&nbsp;</i>
     <i
       class="bi bi-exclamation-triangle-fill"
