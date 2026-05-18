@@ -55,25 +55,15 @@ public class ManagementController {
     auditor.audit(managementService::hardRestartApplication, principal, "TRIGGER_HARD_RESTART");
   }
 
-  // TODO: not sure if we need this or do everything separately in UI?
-  //  @Operation(summary = "Update armadillo version")
-  //  @PostMapping("app/update")
-  //  public void update(Principal principal, @RequestBody OidcDetails oidcDetails, String version)
-  // {
-  //    auditor.audit(
-  //        () -> {
-  //          try {
-  //            managementService.triggerUpdate(oidcDetails, version);
-  //          } catch (FileNotFoundException e) {
-  //            throw new ResponseStatusException(
-  //                HttpStatus.BAD_REQUEST, e.getMessage() + ": directory doesn't exist.");
-  //          } catch (IOException | InterruptedException e) {
-  //            throw new RuntimeException(e);
-  //          }
-  //        },
-  //        principal,
-  //        "UPDATE_ARMADILLO");
-  //  }
+  @Operation(summary = "Update armadillo version")
+  @PostMapping("app/update")
+  public void update(Principal principal, String version) {
+    auditor.audit(
+        () -> managementService.triggerUpdate(version),
+        principal,
+        "UPDATE_ARMADILLO",
+        Map.of("ARMADILLO_VERSION", version));
+  }
 
   @Operation(summary = "Check if armadillo update is available")
   @GetMapping("app/check-update")
@@ -144,7 +134,7 @@ public class ManagementController {
   }
 
   @Operation(summary = "Download specified armadillo version")
-  @GetMapping(value = "app/download/version", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @GetMapping(value = "app/download", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadVersion(Principal principal, String version) {
     try {
       // Audit the initiation, not the whole stream
@@ -152,6 +142,22 @@ public class ManagementController {
           () -> null, principal, "DOWNLOAD_ARMADILLO", Map.of("ARMADILLO_VERSION", version));
       return managementService.downloadArmadilloJar(version.replace("v", ""));
     } catch (IOException | InterruptedException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  @Operation(summary = "Download update script")
+  @PostMapping(value = "updater/download")
+  public void downloadUpdateScript(Principal principal, String armadilloVersion) {
+    // Audit the initiation, not the whole stream
+    auditor.audit(
+        () -> null,
+        principal,
+        "DOWNLOAD_UPDATE_SCRIPT",
+        Map.of("ARMADILLO_VERSION", armadilloVersion));
+    try {
+      managementService.downloadUpdateScript(armadilloVersion);
+    } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
