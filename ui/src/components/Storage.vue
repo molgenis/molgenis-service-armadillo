@@ -15,7 +15,7 @@
       </div>
       <div class="row">
         <div class="col-lg-6 mx-auto">
-          Available jars:
+          Available downloads on server:
           <button
             class="btn btn-danger btn-sm float-end"
             :disabled="appList.length < 2"
