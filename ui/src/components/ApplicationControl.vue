@@ -76,7 +76,7 @@
             help. With the buttons below you can do a "soft" or "hard" restart.
             We advice to first try a soft restart, if that doesn't fix your
             problem, try the hard restart. Keep in mind that in both options,
-            currently running analysis will probably be terminated and that
+            currently running analyses will probably be terminated and that
             there is a slight risk that the application doesn't start after
             shutting down, meaning you will have to contact your administrator.
           </div>
