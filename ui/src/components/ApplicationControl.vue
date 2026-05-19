@@ -4,6 +4,7 @@
       <i class="bi bi-window-fullscreen"></i> Application
     </h5>
     <div class="card-body">
+      <h5>Update</h5>
       <Alert v-if="isUpdateAvailable" type="info" :dismissible="false">
         Update available: {{ latestReleaseVersion }}
         <div class="pb-0" v-if="!latestVersionDownloaded">
@@ -30,48 +31,24 @@
         </div>
         <div class="col-4 mb-2">
           <span class="fst-italic"
-            >Downloading molgenis-armadillo-{{ versionToDownload }}.jar </span
-          ><i
+            >Downloading molgenis-armadillo-{{ versionToDownload }}.jar 
+          </span>
+          <i
             class="bi bi-check-circle-fill text-success"
             v-if="downloadPercentage === 100"
-          ></i
-          ><span v-else>{{ downloadPercentage }} %</span>
+          ></i>
+          <span v-else>{{ downloadPercentage }} %</span>
         </div>
       </div>
-      <div class="row">
-        <h5>Download version</h5>
-        <div class="col-md-6 col-sm-8">
-          <FormInput
-            label="Version"
-            :value="versionToDownload"
-            :isEditMode="true"
-            ref="versionInput"
-          />
-        </div>
+            <div class="row">
         <div class="col">
-          <button class="btn btn-primary" @click="downloadVersion">
-            <i class="bi bi-box-arrow-down"></i> Download
-          </button>
-        </div>
-      </div>
-      <div class="row mb-3">
-        <h5>Update version</h5>
-        <div class="col-md-6 col-sm-8">
-          <Dropdown :options="appList" @update="selectUpdateVersion" />
-        </div>
-        <div class="col">
-          <button
-            class="btn btn-primary"
-            @click="$emit('update-app', updateVersion)"
-          >
-            <i class="bi bi-arrow-up-circle"></i> Update
-          </button>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <h5>Restart</h5>
-          <div class="fst-italic mb-2">
+          <h5>Restart
+            <button class="btn btn-sm btn-link" :class="showRestartInfo ? 'text-danger': 'text-info'" @click="showRestartInfo = !showRestartInfo">
+              <i class="bi bi-x-circle-fill" v-if="showRestartInfo"></i>
+              <i class="bi bi-info-circle-fill" v-else></i>
+              </button>
+          </h5>
+          <div class="fst-italic mb-2" v-if="showRestartInfo">
             If your application isn't behaving as it should, a restart might
             help. With the buttons below you can do a "soft" or "hard" restart.
             We advice to first try a soft restart, if that doesn't fix your
@@ -80,15 +57,62 @@
             there is a slight risk that the application doesn't start after
             shutting down, meaning you will have to contact your administrator.
           </div>
-          <button class="btn btn-warning" @click="isRestartServerPushed = true">
-            <i class="bi bi-arrow-repeat"></i> Soft restart
+          <div class="btn-group" role="group" aria-label="Basic outlined example">
+            <button class="btn btn-outline-dark btn-warning" @click="isRestartServerPushed = true">
+              <i class="bi bi-arrow-repeat"></i> Soft restart
+            </button>
+            <button
+              class="btn btn-outline-dark btn-warning"
+              @click="makeIsRestartServerPushedTrue"
+            >
+              <i class="bi bi-power"></i>/<i class="bi bi-play-fill"></i> Hard restart
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <h5>
+          Advanced update &nbsp;
+          <button class="btn btn-outline-primary btn-sm text-start" @click="advancedUpdateCollapsed = !advancedUpdateCollapsed">
+            <i class="bi bi-chevron-down" v-if="advancedUpdateCollapsed"></i>
+            <i class="bi bi-chevron-up" v-else></i>
           </button>
-          <button
-            class="btn btn-warning"
-            @click="makeIsRestartServerPushedTrue"
-          >
-            <i class="bi bi-arrow-repeat"></i> Hard restart
-          </button>
+        </h5>
+      </div>
+      <div class="card"  v-if="!advancedUpdateCollapsed">
+        <div class="card-body">
+          <div class="row mb-2">
+            <h6>Download version</h6>
+            <div class="col-md-6 col-sm-8">
+              <FormInput
+                label="Version number" 
+                :value="versionToDownload"
+                :isEditMode="true"
+                ref="versionInput"
+              />
+              <span class="text-secondary offset-sm-3 fst-italic">x.y.z (e.g. 5.12.2)</span>
+            </div>
+            <div class="col">
+              <button class="btn btn-primary" @click="downloadVersion">
+                <i class="bi bi-box-arrow-down"></i> Download
+              </button>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <h6>Update version</h6>
+            <div class="col-md-6 col-sm-8">
+              <Dropdown :options="appList" @update="selectUpdateVersion" />
+              <span class="text-secondary fst-italic">If the version you want to run is not in this list, download it first</span>
+            </div>
+            <div class="col">
+              <button
+                class="btn btn-primary"
+                @click="$emit('update-app', updateVersion)"
+              >
+                <i class="bi bi-arrow-up-circle"></i> Update
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -124,6 +148,8 @@ export default defineComponent({
       versionToDownload: "",
       downloadPercentage: 0,
       updateVersion: "",
+      advancedUpdateCollapsed: true,
+      showRestartInfo: false
     };
   },
   methods: {
@@ -154,7 +180,6 @@ export default defineComponent({
         this.$emit("download-done");
         source.close();
       });
-      //TODO: error processing?
     },
     downloadVersion() {
       const version = (this.$refs.versionInput as any).mappedValue;
