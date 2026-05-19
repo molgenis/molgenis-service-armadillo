@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-3 row">
+  <div class="row">
     <label class="col-sm-3 col-form-label">
       <i :class="`bi bi-${icon}`"></i> {{ label }}
     </label>
