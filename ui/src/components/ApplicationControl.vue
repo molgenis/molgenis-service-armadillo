@@ -43,19 +43,23 @@
             <div class="row">
         <div class="col">
           <h5>Restart
-            <button class="btn btn-sm btn-link" :class="showRestartInfo ? 'text-danger': 'text-info'" @click="showRestartInfo = !showRestartInfo">
-              <i class="bi bi-x-circle-fill" v-if="showRestartInfo"></i>
-              <i class="bi bi-info-circle-fill" v-else></i>
+            <button class="btn btn-sm btn-link" :class="showRestartInfo ? 'text-secondary': 'text-info'" @click="showRestartInfo = !showRestartInfo">
+              <i class="bi bi-info-circle-fill"></i>
               </button>
           </h5>
-          <div class="fst-italic mb-2" v-if="showRestartInfo">
-            If your application isn't behaving as it should, a restart might
+          <div class="alert alert-info" role="alert" v-if="showRestartInfo">
+            <h6 class="alert-heading">
+              <i class="bi bi-info-circle-fill"></i> Restarting armadillo
+              <button class="btn btn-link text-danger p-0 pe-1 float-end" @click="showRestartInfo = false"><i class="bi bi-x-circle-fill"></i></button>
+            </h6>
+            <hr>
+            <p class="mb-0"> If your application isn't behaving as it should, a restart might
             help. With the buttons below you can do a "soft" or "hard" restart.
             We advice to first try a soft restart, if that doesn't fix your
             problem, try the hard restart. Keep in mind that in both options,
             currently running analyses will probably be terminated and that
             there is a slight risk that the application doesn't start after
-            shutting down, meaning you will have to contact your administrator.
+            shutting down, meaning you will have to contact your administrator.</p>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
             <button class="btn btn-outline-dark btn-warning" @click="isRestartServerPushed = true">
@@ -83,14 +87,19 @@
         <div class="card-body">
           <div class="row mb-2">
             <h6>Download version</h6>
-            <div class="col-md-6 col-sm-8">
+            <div class="col-sm-8 ms-2">
               <FormInput
                 label="Version number" 
                 :value="versionToDownload"
                 :isEditMode="true"
                 ref="versionInput"
+                mb-0
               />
-              <span class="text-secondary offset-sm-3 fst-italic">x.y.z (e.g. 5.12.2)</span>
+              <span class="text-secondary offset-sm-3 fst-italic mt-0">
+                <span class="ms-sm-2">
+                  e.g. 5.12.2
+                </span>
+              </span>
             </div>
             <div class="col">
               <button class="btn btn-primary" @click="downloadVersion">
@@ -100,16 +109,23 @@
           </div>
           <div class="row mb-3">
             <h6>Update version</h6>
-            <div class="col-md-6 col-sm-8">
-              <Dropdown :options="appList" @update="selectUpdateVersion" />
-              <span class="text-secondary fst-italic">If the version you want to run is not in this list, download it first</span>
+            <div class="col-sm-8 ms-2">
+              <div class="row">
+                <div class="col-sm-3 mt-2">
+                  Version number
+                </div>
+                <div class="col-sm-9">
+                  <Dropdown :options="appList" @update="selectUpdateVersion" />
+                  <span class="text-secondary fst-italic">If the version you want to run is not in this list, download it first</span>
+                </div>
+              </div>
             </div>
             <div class="col">
               <button
                 class="btn btn-primary"
                 @click="$emit('update-app', updateVersion)"
               >
-                <i class="bi bi-arrow-up-circle"></i> Update
+                <i class="bi bi-arrow-up-circle"></i> &nbsp;&nbsp;Update &nbsp;&nbsp;
               </button>
             </div>
           </div>

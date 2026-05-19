@@ -20,6 +20,7 @@
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
+        class="mb-3"
       />
       <FormInput
         v-if="renderComponent"
@@ -30,6 +31,7 @@
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
+        class="mb-3"
       />
       <FormInput
         v-if="renderComponent"
@@ -40,6 +42,7 @@
         :hasCopyButton="true"
         type="password"
         :isEditMode="isEditMode"
+        class="mb-3"
       />
       <FormInput
         v-if="renderComponent"
@@ -50,6 +53,7 @@
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
+        class="mb-3"
       />
       <FormInput
         v-if="renderComponent"
@@ -60,6 +64,7 @@
         :hasCopyButton="true"
         type="text"
         :isEditMode="isEditMode"
+        class="mb-3"
       />
       <button class="btn btn-danger" v-if="isEditMode" @click="cancelEdit">
         <i class="bi bi-x-lg"></i> Cancel
