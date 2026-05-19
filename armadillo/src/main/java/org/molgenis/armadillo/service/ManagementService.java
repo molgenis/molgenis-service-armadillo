@@ -192,7 +192,7 @@ public class ManagementService {
                 processBuilder.redirectInput(new File("/dev/null"));
                 processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
                 processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
-                System.out.println("Launching double-forked update script...");
+
                 Process python = processBuilder.start();
                 python.waitFor();
                 logTailer.join(5000);
@@ -252,32 +252,6 @@ public class ManagementService {
     }
     return scriptVersionTag;
   }
-
-  // todo: finalise if we need this
-  //  public void triggerUpdate(OidcDetails oidcDetails, String version)
-  //      throws IOException, InterruptedException {
-  //    String versionToUpdateTo = version;
-  //    System.out.println("version to update to:"+ versionToUpdateTo);
-  //    JsonElement release;
-  //    if (version == null) {
-  //      release = getLastRelease();
-  //      versionToUpdateTo = getReleaseVersion(release);
-  //      System.out.println("version is null");
-  //    } else {
-  //      release = getReleaseByVersion(version);
-  //      System.out.println("get release!");
-  //    }
-  //    downloadUpdateScript(release);
-  //    downloadArmadilloJar(versionToUpdateTo);
-  //    updateApplicationConfig(oidcDetails);
-  //    runRestartScriptInDifferentThread(versionToUpdateTo, true);
-  //    // pass new config
-  //    // trigger script for stopping and restarting
-  //    // make script (try to adjust existing), make sure it will work on current PR, but will
-  // usually
-  //    // use latest release
-  //    // warning when major release
-  //  }
 
   private boolean fileExistsInDir(String filename, String directory) throws IOException {
     Set<String> foundFiles = listFilesForDir(directory);
