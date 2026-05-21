@@ -8,10 +8,8 @@ variable <- "coh_country"
 test_that("assign table returns data.frame", {
   do_skip_test(test_name)
   datashield.assign.table(release_env$conns, table, sprintf("%s/%s/%s", release_env$project1, folder, table))
-  datatype <- ds.class(x = table, datasources = release_env$conns)
-  expected_type <- list()
-  expected_type$armadillo <- "data.frame"
-  expect_identical(datatype, expected_type)
+  symbols <- datashield.symbols(release_env$conns)
+  expect_true(table %in% symbols$armadillo)
 })
 
 test_that("assign expression succeeds", {

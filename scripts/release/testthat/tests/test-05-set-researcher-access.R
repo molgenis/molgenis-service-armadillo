@@ -1,5 +1,5 @@
 # Setup
-test_name <- "set_researcher_access"
+test_name <- "set-researcher-access"
 
 test_that("set researcher access", {
   do_skip_test(test_name)

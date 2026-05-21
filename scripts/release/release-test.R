@@ -27,9 +27,17 @@ release_env$created_projects <- c()
 release_env$admin_demoted <- FALSE
 
 run_tests_for_profile <- function(profile) {
-    release_env$current_profile <- profile
+    if (!is.null(release_env$conns)) {
+      tryCatch(datashield.logout(release_env$conns), error = function(e) {})
+      release_env$conns <- NULL
+    }
 
-    cli_h2(paste0("Testing profile: ", profile))
+    release_env$current_profile <- profile
+    release_env$project1 <- generate_random_project_name()
+
+    cat("\n\n")
+    cli_h1(paste0("Testing profile: ", profile))
+    cli_alert_info(sprintf("Project name: %s", release_env$project1))
     setup_profiles()
 
     testthat::set_max_fails(Inf)
