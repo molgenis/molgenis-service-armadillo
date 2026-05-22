@@ -58,6 +58,13 @@
           @download-done="loadAppList"
           @update-app="triggerUpdate"
         />
+        <Storage
+          :appList="appList"
+          :freeDiskSpace="freeDiskSpace ? freeDiskSpace : undefined"
+          :totalDiskSpace="totalDiskSpace ? totalDiskSpace : undefined"
+          :currentVersion="currentVersion"
+          @triggerDelete="askIfSureDeleteJar"
+        />
         <OidcConfig
           v-if="
             !isLoading &&
@@ -85,13 +92,6 @@
           presetServerUri=""
           presetDeviceServerUri=""
           presetDeviceClientId=""
-        />
-        <Storage
-          :appList="appList"
-          :freeDiskSpace="freeDiskSpace ? freeDiskSpace : undefined"
-          :totalDiskSpace="totalDiskSpace ? totalDiskSpace : undefined"
-          :currentVersion="currentVersion"
-          @triggerDelete="askIfSureDeleteJar"
         />
       </div>
     </div>
