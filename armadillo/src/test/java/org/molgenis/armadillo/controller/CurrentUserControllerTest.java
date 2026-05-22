@@ -10,6 +10,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth
 import com.github.dockerjava.api.DockerClient;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,6 +28,7 @@ class CurrentUserControllerTest extends ArmadilloControllerTestBase {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean ManagementService managementService;
   @MockitoBean OAuth2AuthorizedClientService auth2AuthorizedClientService;
 
   @Test

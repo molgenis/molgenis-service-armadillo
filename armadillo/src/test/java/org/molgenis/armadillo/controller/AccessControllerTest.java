@@ -28,6 +28,7 @@ import org.molgenis.armadillo.metadata.AccessService;
 import org.molgenis.armadillo.metadata.ProjectDetails;
 import org.molgenis.armadillo.metadata.ProjectPermission;
 import org.molgenis.armadillo.metadata.UserDetails;
+import org.molgenis.armadillo.service.ManagementService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -48,6 +49,7 @@ class AccessControllerTest {
   public static final String EXAMPLE_SETTINGS =
       "{\"users\": {\"bofke@email.com\": {\"email\": \"bofke@email.com\"}}, \"projects\": {\"bofkesProject\":{\"name\": \"bofkesProject\"}}, \"permissions\": [{\"email\":  \"bofke@email.com\", \"project\":\"bofkesProject\"}]}";
   @MockitoBean ArmadilloStorageService armadilloStorage;
+  @MockitoBean ManagementService managementService;
 
   @Autowired AuditEventPublisher auditEventPublisher;
   @Autowired MockMvc mockMvc;

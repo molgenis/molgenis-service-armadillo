@@ -15,6 +15,7 @@ import {
   Metric,
   HalResponse,
   Metrics,
+  AuthServerConfig,
 } from "@/types/api";
 
 import {
@@ -247,12 +248,24 @@ export async function getProfiles(): Promise<Profile[]> {
   return get("/ds-profiles");
 }
 
+export async function getAuthServerConfig(): Promise<AuthServerConfig> {
+  return get("/manage/auth/oidc-config");
+}
+
+export async function putAuthServerConfig(authConfig: AuthServerConfig) {
+  return put("/manage/auth/oidc-config", authConfig);
+}
+
 export async function deleteProfile(name: string) {
   return delete_("/ds-profiles", name);
 }
 
 export async function putProfile(profileJson: Profile) {
   return put("/ds-profiles", profileJson);
+}
+
+export async function restartServer() {
+  return post("/manage/app/restart");
 }
 
 export async function startProfile(name: string) {
