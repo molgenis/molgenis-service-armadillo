@@ -34,6 +34,26 @@ In FusionAuth the client-id and opaguetoken client-id can be the same one.
 Device flow can be setup in the same configuration as regular login, in KeyCloak however, this is impossible. That means
 that an additional configuration has to be set up to allow for device flow (as is required for login via DataSHIELD).
 
+## UI
+<div style="border: 1px solid #005EC4; border-radius: 3px; width: 6em; padding-top: 3px;">
+    <span style="background-color:#D4ECFF; padding: 5px 0px 2.5px 5px; border-radius: 3px 0px 0px 3px; ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#353535" class="bi bi-tag" viewBox="0 0 16 16">
+            <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0"/>
+            <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1m0 5.586 7 7L13.586 9l-7-7H2z"/>
+        </svg>
+    </span>
+    <span style="margin: 0 0 0.5em 0; border-left: 3px solid #017FFD; padding: 5px 0 3px 0.5em">5.14.0</span>
+</div>
+!!! info
+    In order to (re)configure an authentication via the UI, python needs to be installed on the Armadillo server. 
+
+After initial configuration, auth server configuration can be adjusted in Armadillo's UI. 
+To do so, navigate to `System > Control`. Scroll to "Authentication server" and fill in the fields. Then save, read
+the message carefully and press "Yes". The server will restart with the new configuration applied.
+
+
+![auth_server.png](../../img/ui/auth_server.png)
+
 ## Setup in FusionAuth
 To configure a client in FusionAuth, add a configuration in Applications on your auth server. 
 The Client Id and Client secret in this application configuration, as well as your auth server will need to be added
