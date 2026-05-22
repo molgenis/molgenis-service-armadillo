@@ -62,12 +62,12 @@
             shutting down, meaning you will have to contact your administrator.</p>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button class="btn btn-outline-dark btn-warning" @click="isRestartServerPushed = true">
+            <button class="btn btn-outline-dark btn-warning" @click="$emit('soft-restart-pushed')">
               <i class="bi bi-arrow-repeat"></i> Soft restart
             </button>
             <button
               class="btn btn-outline-dark btn-warning"
-              @click="makeIsRestartServerPushedTrue"
+              @click="$emit('hard-restart-pushed')"
             >
               <i class="bi bi-power"></i>/<i class="bi bi-play-fill"></i> Hard restart
             </button>
@@ -145,7 +145,7 @@ import Dropdown from "./Dropdown.vue";
 
 export default defineComponent({
   name: "ApplicationControl",
-  emits: ["update-app", "error", "download-done"],
+  emits: ["update-app", "error", "download-done", "soft-restart-pushed", "hard-restart-pushed"],
   components: {
     Alert,
     ProgressBar,
@@ -160,7 +160,6 @@ export default defineComponent({
   },
   data() {
     return {
-      isRestartServerPushed: false,
       versionToDownload: "",
       downloadPercentage: 0,
       updateVersion: "",
@@ -179,12 +178,6 @@ export default defineComponent({
       const regex = /v?[0-9]+\.[0-9]+\.[0-9]+/;
       const found = version.match(regex);
       return found == null ? false : found.length == 1;
-    },
-    makeIsRestartServerPushedTrue() {
-      this.isRestartServerPushed = true;
-    },
-    makeIsRestartServerPushedFalse() {
-      this.isRestartServerPushed = false;
     },
     downloadNewRelease() {
       this.downloadPercentage = 0;
