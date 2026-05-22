@@ -173,7 +173,6 @@ public class ManagementController {
       })
   @PutMapping(value = "auth/oidc-config", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(NO_CONTENT)
-  // TODO: will it ever finish?
   public void oidcUpsert(Principal principal, @RequestBody OidcDetails oidcDetails) {
     auditor.audit(
         () -> {
