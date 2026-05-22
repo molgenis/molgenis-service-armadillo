@@ -384,8 +384,12 @@ export async function getProfileStatus(name: string) {
   return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
 }
 
-export async function restartServer() {
-  return post("/manage/app/hard-restart");
+export async function hardRestartServer() {
+  return post("/manage/app/restart/hard");
+}
+
+export async function softRestartServer() {
+  return post("/manage/app/restart/soft");
 }
 
 export async function getAuthServerConfig(): Promise<AuthServerConfig> {

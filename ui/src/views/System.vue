@@ -9,7 +9,7 @@
           :warningMessage="warningMessage"
         ></FeedbackMessage>
         <ConfirmationDialog
-          v-if="$refs.appControl && isRestartServerPushed"
+          v-if="softRestartTriggered || hardRestartTriggered"
           record="armadillo"
           action="restart"
           recordType="application"
@@ -57,6 +57,8 @@
           @error="putErrorMessage"
           @download-done="loadAppList"
           @update-app="triggerUpdate"
+          @hard-restart-pushed="triggerHardRestart"
+          @soft-restart-pushed="triggerSoftRestart"
         />
         <Storage
           :appList="appList"
@@ -112,13 +114,14 @@ import {
   putAuthServerConfig,
   getFreeDiskSpace,
   getTotalDiskSpace,
-  restartServer,
   getAppList,
   deleteApplicationJar,
   getVersion,
   getLatestReleaseInfo,
   downloadUpdater,
   startUpdate,
+  softRestartServer,
+  hardRestartServer,
 } from "@/api/api";
 import { AuthServerConfig } from "@/types/api";
 import OidcConfig from "@/components/OidcConfig.vue";
@@ -230,12 +233,11 @@ export default defineComponent({
       deleteJarTriggered: false,
       versionToUpdateTo: "",
       updateAppTriggered: false,
+      softRestartTriggered: false,
+      hardRestartTriggered: false
     };
   },
   computed: {
-    isRestartServerPushed() {
-      return (this.$refs.appControl as any).isRestartServerPushed;
-    },
     latestReleaseVersion() {
       return (this.latestReleaseInfo as any).tag_name;
     },
@@ -252,6 +254,12 @@ export default defineComponent({
   methods: {
     downloadUpdater,
     startUpdate,
+    triggerHardRestart() {
+      this.hardRestartTriggered = true;
+    },
+    triggerSoftRestart() {
+      this.softRestartTriggered = true;
+    },
     updateApplication() {
       if (this.versionToUpdateTo !== this.currentVersion) {
         console.log("update app", this.currentVersion, this.versionToUpdateTo);
@@ -277,10 +285,16 @@ export default defineComponent({
     proceedRestartServer() {
       this.warningMessage =
         "Server will restart now. Please refresh and log back in. If the application is not reloaded, please contact your administrator.";
-      restartServer();
+      if (this.softRestartTriggered) {
+        softRestartServer();
+      }
+      if (this.hardRestartTriggered) {
+        hardRestartServer();
+      }
     },
     cancelRestartServer() {
-      (this.$refs as any).appControl.makeIsRestartServerPushedFalse();
+      this.hardRestartTriggered = false;
+      this.softRestartTriggered = false;
     },
     cancelOidcUpdate() {
       this.updateOidcTriggered = false;
