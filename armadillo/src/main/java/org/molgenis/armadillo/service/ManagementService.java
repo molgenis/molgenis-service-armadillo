@@ -2,7 +2,6 @@ package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,7 +17,6 @@ import java.util.*;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LoggingException;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
@@ -68,7 +66,8 @@ public class ManagementService {
 
   // Constants
   String updateScript = "armadillo-reboot.sh";
-  String RELEASE_URL = "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases";
+  String RELEASE_URL =
+      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
   String UPDATE_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
   String RELEASE_DOWNLOAD_URL =
@@ -78,9 +77,7 @@ public class ManagementService {
   String BACKUP_EXT = ".bak";
   String PROGRESS = "progress";
   String DONE = "done";
-  String CREATION_TIME = "creationTime";
   String DOWNLOAD_COMPLETE = "Download complete";
-  String NOT_FOUND = "not found";
   String DEV = "DEV";
 
   public ManagementService(
@@ -106,7 +103,7 @@ public class ManagementService {
     runScriptInDifferentThread(false, "");
   }
 
-  private JsonArray getReleases() throws IOException, InterruptedException {
+  public JsonElement getLastRelease() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(RELEASE_URL)).GET().build();
     HttpResponse<String> response =
         HttpClient.newBuilder()
@@ -114,20 +111,10 @@ public class ManagementService {
             .build()
             .send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() == 200) {
-      return JsonParser.parseString(response.body()).getAsJsonArray();
+      return JsonParser.parseString(response.body()).getAsJsonObject();
     } else {
       throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
     }
-  }
-
-  public JsonElement getLastRelease() throws IOException, InterruptedException {
-    JsonArray armadilloReleases = getReleases();
-    Optional<JsonElement> lastRelease =
-        StreamSupport.stream(armadilloReleases.spliterator(), false)
-            .filter(
-                release -> ((JsonObject) release).get("prerelease").getAsString().equals("false"))
-            .findFirst();
-    return lastRelease.get();
   }
 
   public String getReleaseVersion(JsonElement release) {
@@ -254,7 +241,7 @@ public class ManagementService {
     return scriptVersionTag;
   }
 
-  private boolean fileExistsInDir(String filename, String directory) throws IOException {
+  private boolean fileExistsInDir(String filename, String directory) {
     Set<String> foundFiles = listFilesForDir(directory);
     return foundFiles.contains(filename);
   }
@@ -376,7 +363,6 @@ public class ManagementService {
   }
 
   public void triggerUpdate(String version) {
-    //    this.runRestartScriptInDifferentThread(version, true);
     runScriptInDifferentThread(true, version);
   }
 
@@ -387,13 +373,6 @@ public class ManagementService {
     boolean resourceServerFound, resourceServerJwtFound, resourceServerOpaqueFound;
     boolean clientIdUpdated, clientSecretUpdated;
     boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
-  }
-
-  public boolean isArmadilloUpdateAvailable() throws IOException, InterruptedException {
-    JsonElement lastRelease = getLastRelease();
-    String lastVersion = getReleaseVersion(lastRelease);
-    String armadilloJar = getJarFromVersion(lastVersion);
-    return !fileExistsInDir(armadilloJar, armadilloHome);
   }
 
   public void downloadUpdateScript(String armadilloVersion) {

@@ -65,21 +65,6 @@ public class ManagementController {
         Map.of("ARMADILLO_VERSION", version));
   }
 
-  @Operation(summary = "Check if armadillo update is available")
-  @GetMapping("app/check-update")
-  public boolean checkIfUpdateAvailable(Principal principal) {
-    return auditor.audit(
-        () -> {
-          try {
-            return managementService.isArmadilloUpdateAvailable();
-          } catch (IOException | InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-          }
-        },
-        principal,
-        "CHECK_UPDATE");
-  }
-
   @Operation(summary = "List all available jars")
   @GetMapping("app/list")
   public Set<String> listAvailable(Principal principal) {
