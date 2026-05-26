@@ -31,7 +31,7 @@
         </div>
         <div class="col-4 mb-2">
           <span class="fst-italic"
-            >Downloading molgenis-armadillo-{{ versionToDownload }}.jar 
+            >Downloading molgenis-armadillo-{{ versionToDownload }}.jar
           </span>
           <i
             class="bi bi-check-circle-fill text-success"
@@ -40,36 +40,57 @@
           <span v-else>{{ downloadPercentage }} %</span>
         </div>
       </div>
-            <div class="row">
+      <div class="row">
         <div class="col">
-          <h5>Restart
-            <button class="btn btn-sm btn-link" :class="showRestartInfo ? 'text-secondary': 'text-info'" @click="showRestartInfo = !showRestartInfo">
+          <h5>
+            Restart
+            <button
+              class="btn btn-sm btn-link"
+              :class="showRestartInfo ? 'text-secondary' : 'text-info'"
+              @click="showRestartInfo = !showRestartInfo"
+            >
               <i class="bi bi-info-circle-fill"></i>
-              </button>
+            </button>
           </h5>
           <div class="alert alert-info" role="alert" v-if="showRestartInfo">
             <h6 class="alert-heading">
               <i class="bi bi-info-circle-fill"></i> Restarting armadillo
-              <button class="btn btn-link text-danger p-0 pe-1 float-end" @click="showRestartInfo = false"><i class="bi bi-x-circle-fill"></i></button>
+              <button
+                class="btn btn-link text-danger p-0 pe-1 float-end"
+                @click="showRestartInfo = false"
+              >
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
             </h6>
-            <hr>
-            <p class="mb-0"> If your application isn't behaving as it should, a restart might
-            help. With the buttons below you can do a "soft" or "hard" restart.
-            We advice to first try a soft restart, if that doesn't fix your
-            problem, try the hard restart. Keep in mind that in both options,
-            currently running analyses will probably be terminated and that
-            there is a slight risk that the application doesn't start after
-            shutting down, meaning you will have to contact your administrator.</p>
+            <hr />
+            <p class="mb-0">
+              If your application isn't behaving as it should, a restart might
+              help. With the buttons below you can do a "soft" or "hard"
+              restart. We advice to first try a soft restart, if that doesn't
+              fix your problem, try the hard restart. Keep in mind that in both
+              options, currently running analyses will probably be terminated
+              and that there is a slight risk that the application doesn't start
+              after shutting down, meaning you will have to contact your
+              administrator.
+            </p>
           </div>
-          <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button class="btn btn-outline-dark btn-warning" @click="$emit('soft-restart-pushed')">
+          <div
+            class="btn-group"
+            role="group"
+            aria-label="Basic outlined example"
+          >
+            <button
+              class="btn btn-outline-dark btn-warning"
+              @click="$emit('soft-restart-pushed')"
+            >
               <i class="bi bi-arrow-repeat"></i> Soft restart
             </button>
             <button
               class="btn btn-outline-dark btn-warning"
               @click="$emit('hard-restart-pushed')"
             >
-              <i class="bi bi-power"></i>/<i class="bi bi-play-fill"></i> Hard restart
+              <i class="bi bi-power"></i>/<i class="bi bi-play-fill"></i> Hard
+              restart
             </button>
           </div>
         </div>
@@ -77,28 +98,29 @@
       <div class="row mt-3">
         <h5>
           Advanced update &nbsp;
-          <button class="btn btn-outline-primary btn-sm text-start" @click="advancedUpdateCollapsed = !advancedUpdateCollapsed">
+          <button
+            class="btn btn-outline-primary btn-sm text-start"
+            @click="advancedUpdateCollapsed = !advancedUpdateCollapsed"
+          >
             <i class="bi bi-chevron-down" v-if="advancedUpdateCollapsed"></i>
             <i class="bi bi-chevron-up" v-else></i>
           </button>
         </h5>
       </div>
-      <div class="card"  v-if="!advancedUpdateCollapsed">
+      <div class="card" v-if="!advancedUpdateCollapsed">
         <div class="card-body">
           <div class="row mb-2">
             <h6>Download version</h6>
             <div class="col-sm-8 ms-2">
               <FormInput
-                label="Version number" 
+                label="Version number"
                 :value="versionToDownload"
                 :isEditMode="true"
                 ref="versionInput"
                 mb-0
               />
               <span class="text-secondary offset-sm-3 fst-italic mt-0">
-                <span class="ms-sm-2">
-                  e.g. 5.12.2
-                </span>
+                <span class="ms-sm-2"> e.g. 5.12.2 </span>
               </span>
             </div>
             <div class="col">
@@ -111,12 +133,13 @@
             <h6>Update version</h6>
             <div class="col-sm-8 ms-2">
               <div class="row">
-                <div class="col-sm-3 mt-2">
-                  Version number
-                </div>
+                <div class="col-sm-3 mt-2">Version number</div>
                 <div class="col-sm-9">
                   <Dropdown :options="appList" @update="selectUpdateVersion" />
-                  <span class="text-secondary fst-italic">If the version you want to run is not in this list, download it first</span>
+                  <span class="text-secondary fst-italic"
+                    >If the version you want to run is not in this list,
+                    download it first</span
+                  >
                 </div>
               </div>
             </div>
@@ -125,7 +148,8 @@
                 class="btn btn-primary"
                 @click="$emit('update-app', updateVersion)"
               >
-                <i class="bi bi-arrow-up-circle"></i> &nbsp;&nbsp;Update &nbsp;&nbsp;
+                <i class="bi bi-arrow-up-circle"></i> &nbsp;&nbsp;Update
+                &nbsp;&nbsp;
               </button>
             </div>
           </div>
@@ -145,7 +169,13 @@ import Dropdown from "./Dropdown.vue";
 
 export default defineComponent({
   name: "ApplicationControl",
-  emits: ["update-app", "error", "download-done", "soft-restart-pushed", "hard-restart-pushed"],
+  emits: [
+    "update-app",
+    "error",
+    "download-done",
+    "soft-restart-pushed",
+    "hard-restart-pushed",
+  ],
   components: {
     Alert,
     ProgressBar,
@@ -164,7 +194,7 @@ export default defineComponent({
       downloadPercentage: 0,
       updateVersion: "",
       advancedUpdateCollapsed: true,
-      showRestartInfo: false
+      showRestartInfo: false,
     };
   },
   methods: {
