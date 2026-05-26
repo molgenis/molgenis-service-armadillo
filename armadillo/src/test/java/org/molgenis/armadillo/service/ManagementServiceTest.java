@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -70,30 +69,6 @@ class ManagementServiceTest {
     JsonObject release = new JsonObject();
     release.addProperty("tag_name", "v5.14.0");
     assertEquals("v5.14.0", service.getReleaseVersion(release));
-  }
-
-  // -------------------------------------------------------------------------
-  // getLastRelease — filters out pre-releases
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getLastRelease_returnsFirstNonPrerelease() {
-    String json =
-        """
-                [
-                  {"tag_name":"v6.0.0-beta","prerelease":"true"},
-                  {"tag_name":"v5.14.0","prerelease":"false"}
-                ]
-                """;
-    JsonArray releases = JsonParser.parseString(json).getAsJsonArray();
-
-    var result =
-        releases.asList().stream()
-            .filter(r -> ((JsonObject) r).get("prerelease").getAsString().equals("false"))
-            .findFirst();
-
-    assertTrue(result.isPresent());
-    assertEquals("v5.14.0", ((JsonObject) result.get()).get("tag_name").getAsString());
   }
 
   // -------------------------------------------------------------------------
