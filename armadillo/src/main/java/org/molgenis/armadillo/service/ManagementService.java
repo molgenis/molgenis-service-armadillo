@@ -395,8 +395,7 @@ public class ManagementService {
     return !fileExistsInDir(armadilloJar, armadilloHome);
   }
 
-  public void downloadUpdateScript(String armadilloVersion)
-      throws IOException, InterruptedException {
+  public void downloadUpdateScript(String armadilloVersion) {
     armadilloVersion = armadilloVersion.replace("v", "");
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
     String armadilloUpdateScriptUrl =
