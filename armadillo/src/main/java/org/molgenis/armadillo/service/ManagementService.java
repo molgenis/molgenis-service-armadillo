@@ -175,13 +175,14 @@ public class ManagementService {
     return String.format(scriptTemplate, logFilePath, pythonList);
   }
 
+  // the only arguments that get injected are injected via application.yml from variables that
+  // cannot otherwise be changed
+  @java.lang.SuppressWarnings("squid:S4036")
   private void runScriptInDifferentThread(Boolean isUpdate, String version) {
     Thread updateThread =
         new Thread(
             () -> {
               try {
-                //                String command = armadilloHome + "/scripts/install/" +
-                // updateScript;
                 String command = getJarHome() + "/" + updateScript;
                 File logFile = getUpdateLogFile();
                 Thread logTailer = startLogTailer(logFile);
@@ -197,7 +198,7 @@ public class ManagementService {
                 python.waitFor();
                 logTailer.join(5000);
               } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Script run failed:", e);
               }
             });
     updateThread.setDaemon(false);
