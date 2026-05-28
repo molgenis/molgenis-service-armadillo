@@ -81,9 +81,13 @@ public class ManagementService {
   String DOWNLOAD_COMPLETE = "Download complete";
   String DEV = "DEV";
 
+  private final HttpClient httpClient;
+
   public ManagementService(
       @Value("${stdout.log.path:./logs/armadillo.log}") String logPath,
-      @Value("${update.log.path:#{null}}") String updatePath) {
+      @Value("${update.log.path:#{null}}") String updatePath,
+      HttpClient httpClient) {
+    this.httpClient = httpClient;
     if (updatePath == null) {
       var splittedLogFilepath = logPath.split(File.separator);
       // if updateLog not set, take path of stdout log and put update.log in same dir
@@ -106,11 +110,7 @@ public class ManagementService {
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(RELEASE_URL)).GET().build();
-    HttpResponse<String> response =
-        HttpClient.newBuilder()
-            .proxy(ProxySelector.getDefault())
-            .build()
-            .send(request, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() == 200) {
       return JsonParser.parseString(response.body()).getAsJsonObject();
     } else {
@@ -361,7 +361,7 @@ public class ManagementService {
     return getJarHome() + File.separator + getJarFromVersion(version);
   }
 
-  private String getJarFromVersion(String version) {
+  String getJarFromVersion(String version) {
     return String.format(ARMADILLO_JAR, version.replace("v", ""));
   }
 
@@ -390,7 +390,7 @@ public class ManagementService {
     script.setExecutable(true, false);
   }
 
-  private String getJarHome() {
+  String getJarHome() {
     if (Objects.equals(armadilloMode, DEV)) {
       return format("%s/build/libs/", armadilloHome);
     } else {
@@ -458,7 +458,7 @@ public class ManagementService {
     return (total * 100) / current;
   }
 
-  private void processFile(
+  void processFile(
       FileOutputStream fileOutputStream,
       BufferedInputStream in,
       long fileSize,

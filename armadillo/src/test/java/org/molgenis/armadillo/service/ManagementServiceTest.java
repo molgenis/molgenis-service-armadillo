@@ -5,23 +5,41 @@ import static org.awaitility.Awaitility.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.web.server.ResponseStatusException;
 
 class ManagementServiceTest {
+  @ExtendWith(MockitoExtension.class)
+  @Mock
+  HttpClient httpClient;
+
+  @Mock HttpResponse<String> lastReleaseResponse;
+
+  @Mock HttpResponse<InputStream> inputStreamResponse;
+
+  @Mock HttpHeaders httpHeaders;
 
   ManagementService service;
 
@@ -31,11 +49,10 @@ class ManagementServiceTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    service = new ManagementService("./logs/armadillo.log", null);
+    service = new ManagementService("./logs/armadillo.log", null, httpClient);
 
     // Inject a mock BuildProperties
     BuildProperties buildProperties = mock(BuildProperties.class);
-    when(buildProperties.getVersion()).thenReturn("5.14.0");
     setField(service, "buildProperties", buildProperties);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
@@ -52,7 +69,8 @@ class ManagementServiceTest {
 
   @Test
   void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
-    ManagementService svc = new ManagementService("/var/log/armadillo/armadillo.log", null);
+    ManagementService svc =
+        new ManagementService("/var/log/armadillo/armadillo.log", null, httpClient);
     String path = (String) getField(svc, "updateLogPath");
     assertEquals("/var/log/armadillo/update.log", path);
   }
@@ -60,7 +78,7 @@ class ManagementServiceTest {
   @Test
   void constructor_usesExplicitUpdateLogPath() throws Exception {
     ManagementService svc =
-        new ManagementService("./logs/armadillo.log", "/custom/path/update.log");
+        new ManagementService("./logs/armadillo.log", "/custom/path/update.log", httpClient);
     // When updatePath is explicitly provided it is used directly
     // (the constructor only assigns when updatePath == null)
     String path = (String) getField(svc, "updateLogPath");
@@ -376,7 +394,7 @@ class ManagementServiceTest {
   @Test
   void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
     ManagementService svc =
-        new ManagementService("./logs/armadillo.log", "/custom/path/update.log");
+        new ManagementService("./logs/armadillo.log", "/custom/path/update.log", httpClient);
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set
     assertNull(path);
@@ -681,6 +699,47 @@ class ManagementServiceTest {
     tailer.join(5000); // wait up to 5s for the thread to die naturally
 
     assertThat(tailer.isAlive()).isFalse();
+  }
+
+  @Test
+  void getPercentage_should_calculate_correctly() {
+    assertThat(service.getPercentage(50, 100)).isEqualTo(50);
+    assertThat(service.getPercentage(1, 100)).isEqualTo(1);
+    assertThat(service.getPercentage(100, 100)).isEqualTo(100);
+  }
+
+  @Test
+  void processFile_should_write_bytes_and_report_progress(@TempDir Path tempDir) throws Exception {
+    byte[] data = "hello world".getBytes();
+    BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(data));
+    File out = tempDir.resolve("out.bin").toFile();
+    List<Long> progressUpdates = new ArrayList<>();
+
+    try (FileOutputStream fos = new FileOutputStream(out)) {
+      service.processFile(fos, in, data.length, progressUpdates::add);
+    }
+
+    assertThat(out).hasContent("hello world");
+    assertThat(progressUpdates).isNotEmpty();
+  }
+
+  @Test
+  void getLastRelease_should_return_json_on_200() throws Exception {
+    when(httpClient.<String>send(any(), any())).thenReturn(lastReleaseResponse);
+    when(lastReleaseResponse.statusCode()).thenReturn(200);
+    when(lastReleaseResponse.body()).thenReturn("{\"tag_name\":\"v1.0\"}");
+
+    JsonElement result = service.getLastRelease();
+
+    assertThat(result.getAsJsonObject().get("tag_name").getAsString()).isEqualTo("v1.0");
+  }
+
+  @Test
+  void getLastRelease_should_throw_on_non_200() throws Exception {
+    when(httpClient.<String>send(any(), any())).thenReturn(lastReleaseResponse);
+    when(lastReleaseResponse.statusCode()).thenReturn(404);
+
+    assertThatThrownBy(() -> service.getLastRelease()).isInstanceOf(ResponseStatusException.class);
   }
 
   // -------------------------------------------------------------------------
