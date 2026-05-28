@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -9,6 +11,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,6 +26,8 @@ class ManagementServiceTest {
   ManagementService service;
 
   @TempDir Path tempDir;
+
+  private File logFile;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -35,6 +42,8 @@ class ManagementServiceTest {
     setField(service, "armadilloHome", tempDir.toString());
     setField(service, "armadilloConfigFile", tempDir.resolve("application.yml").toString());
     setField(service, "armadilloMode", "PROD");
+    logFile = tempDir.resolve("test.log").toFile();
+    logFile.createNewFile();
   }
 
   // -------------------------------------------------------------------------
@@ -601,6 +610,78 @@ class ManagementServiceTest {
     String tag = (String) tagMethod.invoke(service, strippedVersion);
 
     assertEquals("refs/tags/v5.14.0", tag);
+  }
+
+  @Test
+  void thread_should_have_correct_name_and_be_daemon() throws Exception {
+    Thread tailer = service.startLogTailer(logFile, line -> {});
+
+    assertThat(tailer.getName()).isEqualTo("update-log-tailer");
+    assertThat(tailer.isDaemon()).isTrue();
+    assertThat(tailer.isAlive()).isTrue();
+
+    tailer.interrupt();
+  }
+
+  @Test
+  void should_pick_up_lines_written_after_start() throws Exception {
+    List<String> captured = new CopyOnWriteArrayList<>();
+
+    Thread tailer = service.startLogTailer(logFile, captured::add);
+
+    // Write lines AFTER the tailer has started (it skips existing content)
+    await().atMost(500, TimeUnit.MILLISECONDS).until(() -> tailer.isAlive());
+
+    try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
+      writer.println("line one");
+      writer.println("line two");
+      writer.flush();
+    }
+
+    await().atMost(2, TimeUnit.SECONDS).until(() -> captured.size() >= 2);
+
+    assertThat(captured).containsExactly("line one", "line two");
+
+    tailer.interrupt();
+  }
+
+  @Test
+  void should_skip_content_already_in_file_at_start() throws Exception {
+    // Write content BEFORE starting the tailer
+    Files.writeString(logFile.toPath(), "pre-existing line\n");
+
+    List<String> captured = new CopyOnWriteArrayList<>();
+    Thread tailer = service.startLogTailer(logFile, captured::add);
+
+    // Give it time to potentially (wrongly) pick up the old line
+    Thread.sleep(300);
+
+    assertThat(captured).isEmpty();
+
+    tailer.interrupt();
+  }
+
+  @Test
+  void should_stop_cleanly_on_interrupt() throws Exception {
+    Thread tailer = service.startLogTailer(logFile, line -> {});
+
+    tailer.interrupt();
+
+    await().atMost(1, TimeUnit.SECONDS).until(() -> !tailer.isAlive());
+
+    assertThat(tailer.isAlive()).isFalse();
+  }
+
+  @Test
+  void should_log_error_on_missing_file() throws Exception {
+    File missing = tempDir.resolve("nonexistent.log").toFile();
+
+    Thread tailer = service.startLogTailer(missing, line -> {});
+
+    // Thread should die quickly after failing to open the file
+    await().atMost(1, TimeUnit.SECONDS).until(() -> !tailer.isAlive());
+
+    assertThat(tailer.isAlive()).isFalse();
   }
 
   // -------------------------------------------------------------------------
