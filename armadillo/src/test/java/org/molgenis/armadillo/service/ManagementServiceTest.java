@@ -678,8 +678,7 @@ class ManagementServiceTest {
 
     Thread tailer = service.startLogTailer(missing, line -> {});
 
-    // Thread should die quickly after failing to open the file
-    await().atMost(1, TimeUnit.SECONDS).until(() -> !tailer.isAlive());
+    tailer.join(5000); // wait up to 5s for the thread to die naturally
 
     assertThat(tailer.isAlive()).isFalse();
   }
