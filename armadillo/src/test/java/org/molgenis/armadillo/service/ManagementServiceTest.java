@@ -30,18 +30,16 @@ import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.web.server.ResponseStatusException;
 
+@ExtendWith(MockitoExtension.class)
 class ManagementServiceTest {
-  @ExtendWith(MockitoExtension.class)
-  @Mock
-  HttpClient httpClient;
+  @Mock HttpClient httpClient;
 
   @Mock HttpResponse<String> lastReleaseResponse;
-
-  @Mock HttpResponse<InputStream> inputStreamResponse;
 
   @Mock HttpHeaders httpHeaders;
 
   ManagementService service;
+  BuildProperties buildProperties;
 
   @TempDir Path tempDir;
 
@@ -52,7 +50,8 @@ class ManagementServiceTest {
     service = new ManagementService("./logs/armadillo.log", null, httpClient);
 
     // Inject a mock BuildProperties
-    BuildProperties buildProperties = mock(BuildProperties.class);
+    buildProperties = mock(BuildProperties.class);
+    //    when(buildProperties.getVersion()).thenReturn("5.14.0");
     setField(service, "buildProperties", buildProperties);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
@@ -124,12 +123,13 @@ class ManagementServiceTest {
 
   @Test
   void deleteJar_throwsWhenDeletingRunningVersion() {
+    when(buildProperties.getVersion()).thenReturn("5.14.0");
     assertThrows(StorageException.class, () -> service.deleteJar("5.14.0"));
   }
 
   @Test
   void deleteJar_deletesJarWhenNotRunning() throws Exception {
-    // Create a fake jar in tempDir
+    when(buildProperties.getVersion()).thenReturn("5.14.0"); // needed: must not equal "5.13.0"
     Path jar = tempDir.resolve("molgenis-armadillo-5.13.0.jar");
     Files.createFile(jar);
 
@@ -140,6 +140,7 @@ class ManagementServiceTest {
 
   @Test
   void deleteJar_throwsWhenFileDoesNotExist() {
+    when(buildProperties.getVersion()).thenReturn("5.14.0");
     assertThrows(StorageException.class, () -> service.deleteJar("1.0.0"));
   }
 
