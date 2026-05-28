@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.time.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,7 +173,7 @@ public class ManagementService {
               try {
                 String command = getJarHome() + "/" + updateScript;
                 File logFile = getUpdateLogFile();
-                Thread logTailer = startLogTailer(logFile);
+                Thread logTailer = startLogTailer(logFile, line -> {});
                 Thread.sleep(200);
                 String pythonScript =
                     createPythonScript(command, logFile.getAbsolutePath(), version, isUpdate);
@@ -204,7 +205,7 @@ public class ManagementService {
     return sb.toString();
   }
 
-  private Thread startLogTailer(File logFile) throws IOException {
+  Thread startLogTailer(File logFile, Consumer<String> lineHandler) throws IOException {
     Thread tailer =
         new Thread(
             () -> {
@@ -214,6 +215,8 @@ public class ManagementService {
                   String line = reader.readLine();
                   if (line == null) {
                     Thread.sleep(100);
+                  } else {
+                    lineHandler.accept(line); // <-- add this
                   }
                 }
               } catch (InterruptedException e) {
