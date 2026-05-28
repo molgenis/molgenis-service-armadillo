@@ -51,7 +51,6 @@ class ManagementServiceTest {
 
     // Inject a mock BuildProperties
     buildProperties = mock(BuildProperties.class);
-    //    when(buildProperties.getVersion()).thenReturn("5.14.0");
     setField(service, "buildProperties", buildProperties);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
@@ -741,6 +740,28 @@ class ManagementServiceTest {
     when(lastReleaseResponse.statusCode()).thenReturn(404);
 
     assertThatThrownBy(() -> service.getLastRelease()).isInstanceOf(ResponseStatusException.class);
+  }
+
+  @Test
+  void getProcessBuilderForRebootScript() throws Exception {
+    String pythonScript = "print('hello world')";
+    ProcessBuilder pb = service.getProcessBuilderForRebootScript(pythonScript);
+    assertThat(pb.command().get(2)).isEqualTo(pythonScript);
+    assertThat(pb.redirectInput().file()).isEqualTo(new File("/dev/null"));
+  }
+
+  @Test
+  void getUpdateScriptPath() {
+    String updateScriptPath = service.getUpdateScriptPath();
+    assertThat(updateScriptPath).isEqualTo(tempDir + "/armadillo-reboot.sh");
+  }
+
+  @Test
+  void getUpdateScriptUrl() {
+    String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
+    assertThat(updateScriptUrl)
+        .isEqualTo(
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/6f815bb32e5677ce17680d262344d2f4e3c6106e/scripts/install/armadillo-reboot.sh");
   }
 
   // -------------------------------------------------------------------------

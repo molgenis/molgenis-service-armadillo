@@ -163,6 +163,14 @@ public class ManagementService {
     return String.format(scriptTemplate, logFilePath, pythonList);
   }
 
+  ProcessBuilder getProcessBuilderForRebootScript(String pythonScript) {
+    ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
+    processBuilder.redirectInput(new File("/dev/null"));
+    processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+    processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+    return processBuilder;
+  }
+
   // the only arguments that get injected are injected via application.yml from variables that
   // cannot otherwise be changed
   @java.lang.SuppressWarnings("squid:S4036")
@@ -177,11 +185,7 @@ public class ManagementService {
                 Thread.sleep(200);
                 String pythonScript =
                     createPythonScript(command, logFile.getAbsolutePath(), version, isUpdate);
-                ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
-                processBuilder.redirectInput(new File("/dev/null"));
-                processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-                processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
-
+                ProcessBuilder processBuilder = getProcessBuilderForRebootScript(pythonScript);
                 Process python = processBuilder.start();
                 python.waitFor();
                 logTailer.join(5000);
@@ -378,13 +382,19 @@ public class ManagementService {
     boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
   }
 
-  public void downloadUpdateScript(String armadilloVersion) {
+  String getUpdateScriptPath() {
+    return format("%s/%s", getJarHome(), updateScript);
+  }
+
+  String getUpdateScriptUrl(String armadilloVersion) {
     armadilloVersion = armadilloVersion.replace("v", "");
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
-    String armadilloUpdateScriptUrl =
-        String.format(UPDATE_SCRIPT_URL, scriptVersionTag, updateScript);
-    String updateScriptPath = format("%s/%s", getJarHome(), updateScript);
-    downloadFile(armadilloUpdateScriptUrl, updateScriptPath);
+    return String.format(UPDATE_SCRIPT_URL, scriptVersionTag, updateScript);
+  }
+
+  public void downloadUpdateScript(String armadilloVersion) {
+    String updateScriptPath = getUpdateScriptPath();
+    downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
     // give permissions to run the script
     File script = new File(updateScriptPath);
     script.setExecutable(true, false);
