@@ -451,6 +451,37 @@ public class ManagementService {
     downloadFile(url, outputFile, progress -> {});
   }
 
+  long getPercentage(long total, long current) {
+    return (total * 100) / current;
+  }
+
+  private void processFile(
+      FileOutputStream fileOutputStream,
+      BufferedInputStream in,
+      long fileSize,
+      LongConsumer progressCallback)
+      throws IOException {
+    byte[] dataBuffer = new byte[8192];
+    int bytesRead;
+    long totalRead = 0;
+    long lastReportedPercent = -1;
+
+    while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
+      fileOutputStream.write(dataBuffer, 0, bytesRead);
+      totalRead += bytesRead;
+
+      if (fileSize > 0) {
+        long percent = getPercentage(totalRead, fileSize);
+        if (percent != lastReportedPercent) {
+          lastReportedPercent = percent;
+          progressCallback.accept(percent);
+        }
+      } else {
+        progressCallback.accept(totalRead);
+      }
+    }
+  }
+
   private void downloadFile(String url, String outputFile, LongConsumer progressCallback) {
     try {
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
@@ -468,26 +499,7 @@ public class ManagementService {
       long fileSize = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
       try (BufferedInputStream in = new BufferedInputStream(response.body());
           FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-
-        byte[] dataBuffer = new byte[8192];
-        int bytesRead;
-        long totalRead = 0;
-        long lastReportedPercent = -1;
-
-        while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-          fileOutputStream.write(dataBuffer, 0, bytesRead);
-          totalRead += bytesRead;
-
-          if (fileSize > 0) {
-            long percent = (totalRead * 100) / fileSize;
-            if (percent != lastReportedPercent) {
-              lastReportedPercent = percent;
-              progressCallback.accept(percent);
-            }
-          } else {
-            progressCallback.accept(totalRead);
-          }
-        }
+        processFile(fileOutputStream, in, fileSize, progressCallback);
       }
     } catch (IOException | InterruptedException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

@@ -3,7 +3,6 @@ package org.molgenis.armadillo.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -627,10 +626,5 @@ class ManagementServiceTest {
       if (clazz.getSuperclass() != null) return findField(clazz.getSuperclass(), name);
       throw e;
     }
-  }
-
-  // Stub to allow partial mocking of getReleases — not used for HTTP tests
-  JsonArray getReleases_forTest() throws IOException, InterruptedException {
-    throw new UnsupportedOperationException("override in spy");
   }
 }
