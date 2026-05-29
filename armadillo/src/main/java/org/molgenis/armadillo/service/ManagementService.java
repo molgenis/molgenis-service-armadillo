@@ -163,6 +163,9 @@ public class ManagementService {
     return String.format(scriptTemplate, logFilePath, pythonList);
   }
 
+  // the only arguments that get injected are injected via application.yml from variables that
+  // cannot otherwise be changed
+  @java.lang.SuppressWarnings("squid:S4036")
   ProcessBuilder getProcessBuilderForRebootScript(String pythonScript) {
     ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
     processBuilder.redirectInput(new File("/dev/null"));
@@ -171,9 +174,6 @@ public class ManagementService {
     return processBuilder;
   }
 
-  // the only arguments that get injected are injected via application.yml from variables that
-  // cannot otherwise be changed
-  @java.lang.SuppressWarnings("squid:S4036")
   private void runScriptInDifferentThread(Boolean isUpdate, String version) {
     Thread updateThread =
         new Thread(
