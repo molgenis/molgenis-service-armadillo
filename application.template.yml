@@ -12,6 +12,14 @@ armadillo:
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
+  # key for retrieving prometheus information
+  # api-key: my-api-key
+  # path where the application is running from, defaults to: /usr/share/armadillo/application
+  # armadillo-home: /your/path/here
+  # path where the application config resides, defaults to: /etc/armadillo/application.yml
+  # armadillo-config-file: /your/path/here/application.yml
+  # mode armadillo is running in (DEV/PROD). Used for updating/restarting/configuring capabilities. Default: PROD
+  # armadillo-mode: DEV
 
 # required settings:
 spring:
@@ -19,7 +27,7 @@ spring:
     user:
       # please change this admin password!
       password: admin
-    ## uncomment oauth2 settings below to enable oidcgit
+    ## uncomment oauth2 settings below to enable oidc
 #    oauth2:
 #      client:
 #        provider:
@@ -51,6 +59,9 @@ storage:
 
 # Needed to download ... this file is reallocated by OPS (defaults 'logs/armadillo.log')
 #stdout.log.path: logs/armadillo.log
+
+# Update log path, defaults to stdout log path and will replace the filename with update.log (to prevent breaking change)
+#update.log.path: logs/update.log
 
 logging:
   level:
