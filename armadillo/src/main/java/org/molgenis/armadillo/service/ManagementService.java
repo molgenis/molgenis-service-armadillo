@@ -83,6 +83,7 @@ public class ManagementService {
 
   private final HttpClient httpClient;
 
+  @Autowired
   public ManagementService(
       @Value("${stdout.log.path:./logs/armadillo.log}") String logPath,
       @Value("${update.log.path:#{null}}") String updatePath,

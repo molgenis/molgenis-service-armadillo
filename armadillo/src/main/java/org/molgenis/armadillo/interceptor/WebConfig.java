@@ -1,5 +1,7 @@
 package org.molgenis.armadillo.interceptor;
 
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
 import org.apache.tomcat.util.buf.EncodedSolidusHandling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,5 +46,10 @@ public class WebConfig implements WebMvcConfigurer {
         factory.addConnectorCustomizers(
             connector ->
                 connector.setEncodedSolidusHandling(EncodedSolidusHandling.DECODE.getValue()));
+  }
+
+  @Bean
+  public HttpClient httpClient() {
+    return HttpClient.newBuilder().proxy(ProxySelector.getDefault()).build();
   }
 }
