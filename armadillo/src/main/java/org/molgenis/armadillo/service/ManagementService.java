@@ -12,15 +12,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
-import java.time.*;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LoggingException;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
+import org.molgenis.armadillo.controller.RebootScriptRunner;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,8 +63,10 @@ public class ManagementService {
   // location of update log
   private String updateLogPath;
 
+  private final RebootScriptRunner scriptRunner;
+
   // Constants
-  String updateScript = "armadillo-reboot.sh";
+  String UPDATE_SCRIPT = "armadillo-reboot.sh";
   String RELEASE_URL =
       "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
   String UPDATE_SCRIPT_URL =
@@ -99,14 +99,16 @@ public class ManagementService {
               + File.separator
               + "update.log";
     }
+    scriptRunner = new RebootScriptRunner(updateLogPath, getJarHome());
   }
 
   public void softRestartApplication() {
     ArmadilloServiceApplication.restart();
   }
 
-  public void hardRestartApplication() {
-    runScriptInDifferentThread(false, "");
+  public void hardRestartApplication() throws IOException {
+    scriptRunner.runRebootScript(
+        getUpdateScriptPath(), "-p", armadilloHome, "-v", "", "-m", armadilloMode);
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
@@ -131,110 +133,6 @@ public class ManagementService {
     currentConfig.put("deviceClientId", deviceClientId);
     currentConfig.put("deviceIssuerUri", deviceIssuerUri);
     return currentConfig;
-  }
-
-  private File getUpdateLogFile() throws IOException {
-    File logFile = new File(updateLogPath);
-    logFile.getParentFile().mkdirs();
-    if (!logFile.exists()) logFile.createNewFile();
-    return logFile;
-  }
-
-  private String createPythonScript(
-      String command, String logFilePath, String version, Boolean isUpdate) {
-    String scriptTemplate =
-        """
-                          import os, sys, subprocess
-                          if os.fork() > 0:
-                              sys.exit(0)
-                          os.setsid()
-                          if os.fork() > 0:
-                              sys.exit(0)
-                          with open('%s', 'a') as log:
-                              subprocess.run(%s, stdout=log, stderr=log, stdin=subprocess.DEVNULL)
-                          """;
-    String pythonList;
-    if (isUpdate) {
-      pythonList =
-          buildPythonList(command, "-p", armadilloHome, "-v", version, "-m", armadilloMode, "-u");
-    } else {
-      pythonList =
-          buildPythonList(command, "-p", armadilloHome, "-v", version, "-m", armadilloMode);
-    }
-    return String.format(scriptTemplate, logFilePath, pythonList);
-  }
-
-  // the only arguments that get injected are injected via application.yml from variables that
-  // cannot otherwise be changed
-  @java.lang.SuppressWarnings("squid:S4036")
-  ProcessBuilder getProcessBuilderForRebootScript(String pythonScript) {
-    ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
-    processBuilder.redirectInput(new File("/dev/null"));
-    processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-    processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
-    return processBuilder;
-  }
-
-  private void runScriptInDifferentThread(Boolean isUpdate, String version) {
-    Thread updateThread =
-        new Thread(
-            () -> {
-              try {
-                String command = getJarHome() + "/" + updateScript;
-                File logFile = getUpdateLogFile();
-                Thread logTailer = startLogTailer(logFile, line -> {});
-                Thread.sleep(200);
-                String pythonScript =
-                    createPythonScript(command, logFile.getAbsolutePath(), version, isUpdate);
-                ProcessBuilder processBuilder = getProcessBuilderForRebootScript(pythonScript);
-                Process python = processBuilder.start();
-                python.waitFor();
-                logTailer.join(5000);
-              } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Script run failed:", e);
-              }
-            });
-    updateThread.setDaemon(false);
-    updateThread.setName("update-armadillo");
-    updateThread.start();
-  }
-
-  // Builds a Python list literal e.g. ['/path/script', '-p', '/home']
-  private String buildPythonList(String... args) {
-    StringBuilder sb = new StringBuilder("[");
-    for (int i = 0; i < args.length; i++) {
-      sb.append("'").append(args[i].replace("'", "\\'")).append("'");
-      if (i < args.length - 1) sb.append(", ");
-    }
-    sb.append("]");
-    return sb.toString();
-  }
-
-  Thread startLogTailer(File logFile, Consumer<String> lineHandler) throws IOException {
-    Thread tailer =
-        new Thread(
-            () -> {
-              try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
-                reader.skip(logFile.length());
-                while (!Thread.currentThread().isInterrupted()) {
-                  String line = reader.readLine();
-                  if (line == null) {
-                    Thread.sleep(100);
-                  } else {
-                    lineHandler.accept(line); // <-- add this
-                  }
-                }
-              } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-              } catch (IOException e) {
-                throw new LoggingException(
-                    format("[UPDATE SCRIPT]: Log tailer error: %s\"", e.getMessage()));
-              }
-            });
-    tailer.setDaemon(true);
-    tailer.setName("update-log-tailer");
-    tailer.start();
-    return tailer;
   }
 
   private String getScriptVersionTag(String version) {
@@ -370,8 +268,9 @@ public class ManagementService {
     return String.format(ARMADILLO_JAR, version.replace("v", ""));
   }
 
-  public void triggerUpdate(String version) {
-    runScriptInDifferentThread(true, version);
+  public void triggerUpdate(String version) throws IOException {
+    scriptRunner.runRebootScript(
+        getUpdateScriptPath(), "-p", armadilloHome, "-v", version, "-m", armadilloMode, "-u");
   }
 
   // Simple mutable state carrier — private inner class or a record (Java 16+)
@@ -384,13 +283,13 @@ public class ManagementService {
   }
 
   String getUpdateScriptPath() {
-    return format("%s/%s", getJarHome(), updateScript);
+    return format("%s/%s", getJarHome(), UPDATE_SCRIPT);
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
     armadilloVersion = armadilloVersion.replace("v", "");
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
-    return String.format(UPDATE_SCRIPT_URL, scriptVersionTag, updateScript);
+    return String.format(UPDATE_SCRIPT_URL, scriptVersionTag, UPDATE_SCRIPT);
   }
 
   public void downloadUpdateScript(String armadilloVersion) {
@@ -403,7 +302,7 @@ public class ManagementService {
 
   String getJarHome() {
     if (Objects.equals(armadilloMode, DEV)) {
-      return format("%s/build/libs/", armadilloHome);
+      return format("%s/build/libs", armadilloHome);
     } else {
       return format("%s", armadilloHome);
     }
@@ -456,7 +355,7 @@ public class ManagementService {
     return emitter;
   }
 
-  public void saveNewOidcConfig(OidcDetails oidcDetails) throws FileNotFoundException {
+  public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
     updateApplicationConfig(oidcDetails);
     hardRestartApplication();
   }

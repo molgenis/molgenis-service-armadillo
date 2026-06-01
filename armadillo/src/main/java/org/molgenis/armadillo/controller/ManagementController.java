@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
@@ -52,14 +51,29 @@ public class ManagementController {
   @Operation(summary = "Hard restart armadillo")
   @PostMapping("app/restart/hard")
   public void hardRestart(Principal principal) {
-    auditor.audit(managementService::hardRestartApplication, principal, "TRIGGER_HARD_RESTART");
+    auditor.audit(
+        () -> {
+          try {
+            managementService.hardRestartApplication();
+          } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
+        principal,
+        "TRIGGER_HARD_RESTART");
   }
 
   @Operation(summary = "Update armadillo version")
   @PostMapping("app/update")
   public void update(Principal principal, String version) {
     auditor.audit(
-        () -> managementService.triggerUpdate(version),
+        () -> {
+          try {
+            managementService.triggerUpdate(version);
+          } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          }
+        },
         principal,
         "UPDATE_ARMADILLO",
         Map.of("ARMADILLO_VERSION", version));
@@ -163,7 +177,7 @@ public class ManagementController {
         () -> {
           try {
             managementService.saveNewOidcConfig(oidcDetails);
-          } catch (FileNotFoundException e) {
+          } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
           }
         },
