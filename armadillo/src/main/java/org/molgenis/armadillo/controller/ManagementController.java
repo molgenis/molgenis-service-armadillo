@@ -34,6 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("manage")
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementController {
+  public static final String ARMADILLO_VERSION = "ARMADILLO_VERSION";
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
 
@@ -76,7 +77,7 @@ public class ManagementController {
         },
         principal,
         "UPDATE_ARMADILLO",
-        Map.of("ARMADILLO_VERSION", version));
+        Map.of(ARMADILLO_VERSION, version));
   }
 
   @Operation(summary = "List all available jars")
@@ -142,7 +143,7 @@ public class ManagementController {
     try {
       // Audit the initiation, not the whole stream
       auditor.audit(
-          () -> null, principal, "DOWNLOAD_ARMADILLO", Map.of("ARMADILLO_VERSION", version));
+          () -> null, principal, "DOWNLOAD_ARMADILLO", Map.of(ARMADILLO_VERSION, version));
       return managementService.downloadArmadilloJar(version.replace("v", ""));
     } catch (IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -161,7 +162,7 @@ public class ManagementController {
         () -> null,
         principal,
         "DOWNLOAD_UPDATE_SCRIPT",
-        Map.of("ARMADILLO_VERSION", armadilloVersion));
+        Map.of(ARMADILLO_VERSION, armadilloVersion));
     try {
       managementService.downloadUpdateScript(armadilloVersion);
     } catch (InterruptedException e) {
