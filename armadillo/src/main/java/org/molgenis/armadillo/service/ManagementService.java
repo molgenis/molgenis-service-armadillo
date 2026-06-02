@@ -299,8 +299,8 @@ public class ManagementService {
   }
 
   public void downloadUpdateScript(String armadilloVersion) throws InterruptedException {
-    String updateScriptPath = getUpdateScriptPath();
     if (isValidVersion(armadilloVersion)) {
+      String updateScriptPath = getUpdateScriptPath();
       downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
       // give permissions to run the script
       File script = new File(updateScriptPath);
@@ -332,8 +332,8 @@ public class ManagementService {
   }
 
   public SseEmitter downloadArmadilloJar(String version) throws IOException, InterruptedException {
-    SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
     if (isValidVersion(version)) {
+      SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
       String armadilloJar = getJarFromVersion(version);
       String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, armadilloJar);
       String armadilloInstallation = getJarHome() + File.separator + armadilloJar;
