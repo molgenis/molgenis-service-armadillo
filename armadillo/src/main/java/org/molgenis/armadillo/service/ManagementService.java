@@ -1,12 +1,12 @@
 package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
+import static org.molgenis.armadillo.controller.FileDownloader.downloadFile;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.*;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -24,7 +24,6 @@ import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -360,10 +359,6 @@ public class ManagementService {
     hardRestartApplication();
   }
 
-  private void downloadFile(String url, String outputFile) {
-    downloadFile(url, outputFile, progress -> {});
-  }
-
   long getPercentage(long total, long current) {
     return (total * 100) / current;
   }
@@ -392,30 +387,6 @@ public class ManagementService {
       } else {
         progressCallback.accept(totalRead);
       }
-    }
-  }
-
-  private void downloadFile(String url, String outputFile, LongConsumer progressCallback) {
-    try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-
-      HttpResponse<InputStream> response =
-          HttpClient.newBuilder()
-              .proxy(ProxySelector.getDefault())
-              .followRedirects(HttpClient.Redirect.NORMAL) // follow GitHub → S3 redirect
-              .build()
-              .send(request, HttpResponse.BodyHandlers.ofInputStream());
-
-      if (response.statusCode() != 200) {
-        throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
-      }
-      long fileSize = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-      try (BufferedInputStream in = new BufferedInputStream(response.body());
-          FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-        processFile(fileOutputStream, in, fileSize, progressCallback);
-      }
-    } catch (IOException | InterruptedException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 }

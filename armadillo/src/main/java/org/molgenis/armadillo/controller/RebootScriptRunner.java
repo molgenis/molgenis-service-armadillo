@@ -25,7 +25,7 @@ public class RebootScriptRunner {
     return logFile;
   }
 
-  public String createPythonScriptForThread(String pythonList, String absoluteLogFilePath) {
+  String createPythonScriptForThread(String pythonList, String absoluteLogFilePath) {
     String scriptTemplate =
         """
                                   import os, sys, subprocess
@@ -86,7 +86,7 @@ public class RebootScriptRunner {
   }
 
   // Builds a Python list literal e.g. ['/path/script', '-p', '/home']
-  public String buildPythonCommand(String... args) {
+  String buildPythonCommand(String... args) {
     StringBuilder sb = new StringBuilder("[");
     for (int i = 0; i < args.length; i++) {
       sb.append("'").append(args[i].replace("'", "\\'")).append("'");
