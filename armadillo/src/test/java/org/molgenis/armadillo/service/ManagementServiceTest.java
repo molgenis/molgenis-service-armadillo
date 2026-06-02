@@ -212,29 +212,6 @@ class ManagementServiceTest {
   }
 
   // -------------------------------------------------------------------------
-  // buildPythonList (private — tested via reflection)
-  // -------------------------------------------------------------------------
-
-  @Test
-  void buildPythonList_formatsCorrectly() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("buildPythonList", String[].class);
-    m.setAccessible(true);
-
-    String result =
-        (String) m.invoke(service, (Object) new String[] {"/path/script", "-p", "/home"});
-    assertEquals("['/path/script', '-p', '/home']", result);
-  }
-
-  @Test
-  void buildPythonList_escapesSingleQuotes() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("buildPythonList", String[].class);
-    m.setAccessible(true);
-
-    String result = (String) m.invoke(service, (Object) new String[] {"it's"});
-    assertEquals("['it\\'s']", result);
-  }
-
-  // -------------------------------------------------------------------------
   // replaceValue (private — tested via reflection)
   // -------------------------------------------------------------------------
 

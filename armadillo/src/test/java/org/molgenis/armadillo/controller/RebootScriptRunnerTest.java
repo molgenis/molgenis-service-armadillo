@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.molgenis.armadillo.TestHelpers.setField;
 
@@ -17,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.boot.info.BuildProperties;
 
 public class RebootScriptRunnerTest {
@@ -121,10 +121,29 @@ public class RebootScriptRunnerTest {
     Path logPath = tempDir.resolve("logs/update.log");
     setField(scriptRunner, "logPath", logPath.toString());
 
-    Method m = ManagementService.class.getDeclaredMethod("getUpdateLogFile");
+    Method m = RebootScriptRunner.class.getDeclaredMethod("getUpdateLogFile");
     m.setAccessible(true);
     File logFile = (File) m.invoke(scriptRunner);
 
     assertTrue(logFile.exists());
+  }
+
+  @Test
+  void buildPythonCommand_formatsCorrectly() throws Exception {
+    Method m = RebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
+    m.setAccessible(true);
+
+    String result =
+        (String) m.invoke(scriptRunner, (Object) new String[] {"/path/script", "-p", "/home"});
+    assertEquals("['/path/script', '-p', '/home']", result);
+  }
+
+  @Test
+  void buildPythonCommand_escapesSingleQuotes() throws Exception {
+    Method m = RebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
+    m.setAccessible(true);
+
+    String result = (String) m.invoke(scriptRunner, (Object) new String[] {"it's"});
+    assertEquals("['it\\'s']", result);
   }
 }
