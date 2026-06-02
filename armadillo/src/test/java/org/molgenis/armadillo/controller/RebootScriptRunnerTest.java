@@ -2,8 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.molgenis.armadillo.TestHelpers.setField;
 
 import java.io.File;
@@ -145,5 +144,53 @@ public class RebootScriptRunnerTest {
 
     String result = (String) m.invoke(scriptRunner, (Object) new String[] {"it's"});
     assertEquals("['it\\'s']", result);
+  }
+
+  @Test
+  void createPythonScript_nonUpdateBranch_doesNotContainUpdateFlag() throws Exception {
+    Method m =
+        RebootScriptRunner.class.getDeclaredMethod(
+            "createPythonScriptForThread", String.class, String.class);
+    m.setAccessible(true);
+
+    String script =
+        (String)
+            m.invoke(
+                scriptRunner,
+                // this is not how you call this method exactly, but invoke cannot handle more
+                // arguments
+                // than the method takes (method takes String...)
+                "/usr/share/armadillo/armadillo-reboot.sh",
+                "-v 5.14.0");
+
+    assertTrue(script.contains("import os, sys, subprocess"));
+    assertTrue(script.contains("5.14.0"));
+    // The '-u' update flag must NOT be present when isUpdate=false
+    assertFalse(script.contains("'-u'"));
+  }
+
+  @Test
+  void createPythonScript_updateBranch_containsUpdateFlag() throws Exception {
+    Method m =
+        RebootScriptRunner.class.getDeclaredMethod(
+            "createPythonScriptForThread", String.class, String.class);
+    m.setAccessible(true);
+    String script =
+        (String) m.invoke(scriptRunner, "/usr/share/armadillo/armadillo-reboot.sh", "-v 5.14.0 -u");
+    assertTrue(script.contains("'-u'"));
+  }
+
+  @Test
+  void createPythonScript_containsArmadilloHomeVersionAndMode() throws Exception {
+    Method m =
+        RebootScriptRunner.class.getDeclaredMethod(
+            "createPythonScriptForThread", String.class, String.class);
+    m.setAccessible(true);
+
+    String script =
+        (String)
+            m.invoke(scriptRunner, "/usr/share/armadillo/armadillo-reboot.sh", "-m PROD -v 5.14.0");
+    assertTrue(script.contains("5.14.0")); // version injected via -v
+    assertTrue(script.contains("PROD")); // mode injected via -m
   }
 }
