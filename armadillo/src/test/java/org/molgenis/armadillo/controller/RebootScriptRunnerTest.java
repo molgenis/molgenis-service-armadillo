@@ -17,11 +17,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.boot.info.BuildProperties;
 
 public class RebootScriptRunnerTest {
-  BuildProperties buildProperties;
-
   @TempDir Path tempDir;
 
   private File logFile;
@@ -157,11 +154,8 @@ public class RebootScriptRunnerTest {
         (String)
             m.invoke(
                 scriptRunner,
-                // this is not how you call this method exactly, but invoke cannot handle more
-                // arguments
-                // than the method takes (method takes String...)
-                "/usr/share/armadillo/armadillo-reboot.sh",
-                "-v 5.14.0");
+                "['/usr/share/armadillo/armadillo-reboot.sh', '-v', '5.14.0']",
+                "./my-log.txt");
 
     assertTrue(script.contains("import os, sys, subprocess"));
     assertTrue(script.contains("5.14.0"));
@@ -176,12 +170,16 @@ public class RebootScriptRunnerTest {
             "createPythonScriptForThread", String.class, String.class);
     m.setAccessible(true);
     String script =
-        (String) m.invoke(scriptRunner, "/usr/share/armadillo/armadillo-reboot.sh", "-v 5.14.0 -u");
+        (String)
+            m.invoke(
+                scriptRunner,
+                "['/usr/share/armadillo/armadillo-reboot.sh', '-v', '5.14.0', '-u']",
+                "./my-log.txt");
     assertTrue(script.contains("'-u'"));
   }
 
   @Test
-  void createPythonScript_containsArmadilloHomeVersionAndMode() throws Exception {
+  void createPythonScript_containsMode() throws Exception {
     Method m =
         RebootScriptRunner.class.getDeclaredMethod(
             "createPythonScriptForThread", String.class, String.class);
@@ -189,8 +187,10 @@ public class RebootScriptRunnerTest {
 
     String script =
         (String)
-            m.invoke(scriptRunner, "/usr/share/armadillo/armadillo-reboot.sh", "-m PROD -v 5.14.0");
-    assertTrue(script.contains("5.14.0")); // version injected via -v
+            m.invoke(
+                scriptRunner,
+                "['/usr/share/armadillo/armadillo-reboot.sh', '-m', 'PROD']",
+                "./my-log.txt");
     assertTrue(script.contains("PROD")); // mode injected via -m
   }
 }
