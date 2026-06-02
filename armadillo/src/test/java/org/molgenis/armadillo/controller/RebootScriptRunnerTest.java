@@ -175,6 +175,7 @@ public class RebootScriptRunnerTest {
                 scriptRunner,
                 "['/usr/share/armadillo/armadillo-reboot.sh', '-v', '5.14.0', '-u']",
                 "./my-log.txt");
+    System.out.println(script);
     assertTrue(script.contains("'-u'"));
   }
 
