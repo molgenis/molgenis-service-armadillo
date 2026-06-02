@@ -14,8 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
-public class FileDownloader {
-  public static void downloadFile(String url, String outputFile) {
+public final class FileDownloader {
+  private FileDownloader() {
+    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+  }
+
+  public static void downloadFile(String url, String outputFile) throws InterruptedException {
     downloadFile(url, outputFile, progress -> {});
   }
 
@@ -50,7 +54,8 @@ public class FileDownloader {
     }
   }
 
-  public static void downloadFile(String url, String outputFile, LongConsumer progressCallback) {
+  public static void downloadFile(String url, String outputFile, LongConsumer progressCallback)
+      throws InterruptedException {
     try {
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
 
@@ -69,7 +74,7 @@ public class FileDownloader {
           FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
         processFile(fileOutputStream, in, fileSize, progressCallback);
       }
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
