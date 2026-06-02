@@ -13,7 +13,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
@@ -24,6 +23,7 @@ import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -65,10 +65,10 @@ public class ManagementService {
   private final RebootScriptRunner scriptRunner;
 
   // Constants
-  String UPDATE_SCRIPT = "armadillo-reboot.sh";
+  String REBOOT_SCRIPT = "armadillo-reboot.sh";
   String RELEASE_URL =
       "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
-  String UPDATE_SCRIPT_URL =
+  String REBOOT_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
   String RELEASE_DOWNLOAD_URL =
       "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
@@ -267,9 +267,16 @@ public class ManagementService {
     return String.format(ARMADILLO_JAR, version.replace("v", ""));
   }
 
+  boolean isValidVersion(String version) {
+    return version.matches("v?\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?");
+  }
+
   public void triggerUpdate(String version) throws IOException {
-    scriptRunner.runRebootScript(
-        getUpdateScriptPath(), "-p", armadilloHome, "-v", version, "-m", armadilloMode, "-u");
+    if (isValidVersion(version)) {
+      scriptRunner.runRebootScript(
+          getUpdateScriptPath(), "-p", armadilloHome, "-v", version, "-m", armadilloMode, "-u");
+    } else
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
   }
 
   // Simple mutable state carrier — private inner class or a record (Java 16+)
@@ -282,21 +289,25 @@ public class ManagementService {
   }
 
   String getUpdateScriptPath() {
-    return format("%s/%s", getJarHome(), UPDATE_SCRIPT);
+    return format("%s/%s", getJarHome(), REBOOT_SCRIPT);
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
     armadilloVersion = armadilloVersion.replace("v", "");
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
-    return String.format(UPDATE_SCRIPT_URL, scriptVersionTag, UPDATE_SCRIPT);
+    return String.format(REBOOT_SCRIPT_URL, scriptVersionTag, REBOOT_SCRIPT);
   }
 
-  public void downloadUpdateScript(String armadilloVersion) {
+  public void downloadUpdateScript(String armadilloVersion) throws InterruptedException {
     String updateScriptPath = getUpdateScriptPath();
-    downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
-    // give permissions to run the script
-    File script = new File(updateScriptPath);
-    script.setExecutable(true, false);
+    if (isValidVersion(armadilloVersion)) {
+      downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
+      // give permissions to run the script
+      File script = new File(updateScriptPath);
+      script.setExecutable(true, false);
+    } else {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
+    }
   }
 
   String getJarHome() {
@@ -321,72 +332,45 @@ public class ManagementService {
   }
 
   public SseEmitter downloadArmadilloJar(String version) throws IOException, InterruptedException {
-    SseEmitter emitter = new SseEmitter(5 * 60 * 1000L); // 5 min timeout
-    String armadilloJar = getJarFromVersion(version);
-    String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, armadilloJar);
-    String armadilloInstallation = getJarHome() + File.separator + armadilloJar;
-    // Run download in background thread — SSE must not block the request thread
-    Thread.ofVirtual()
-        .start(
-            () -> {
-              try {
-                if (fileExistsInDir(armadilloJar, getJarHome())) {
-                  emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
-                } else {
-                  downloadFile(
-                      downloadUrl,
-                      armadilloInstallation,
-                      progress -> {
-                        try {
-                          emitter.send(
-                              SseEmitter.event().name(PROGRESS).data(String.valueOf(progress)));
-                        } catch (IOException e) {
-                          emitter.completeWithError(e);
-                        }
-                      });
+    SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
+    if (isValidVersion(version)) {
+      String armadilloJar = getJarFromVersion(version);
+      String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, armadilloJar);
+      String armadilloInstallation = getJarHome() + File.separator + armadilloJar;
+      // Run download in background thread — SSE must not block the request thread
+      Thread.ofVirtual()
+          .start(
+              () -> {
+                try {
+                  if (fileExistsInDir(armadilloJar, getJarHome())) {
+                    emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
+                  } else {
+                    downloadFile(
+                        downloadUrl,
+                        armadilloInstallation,
+                        progress -> {
+                          try {
+                            emitter.send(
+                                SseEmitter.event().name(PROGRESS).data(String.valueOf(progress)));
+                          } catch (IOException e) {
+                            emitter.completeWithError(e);
+                          }
+                        });
+                  }
+                  emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
+                  emitter.complete();
+                } catch (Exception e) {
+                  emitter.completeWithError(e);
                 }
-                emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
-                emitter.complete();
-              } catch (Exception e) {
-                emitter.completeWithError(e);
-              }
-            });
-    return emitter;
+              });
+      return emitter; // 5 min timeout
+    } else {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
+    }
   }
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
     updateApplicationConfig(oidcDetails);
     hardRestartApplication();
-  }
-
-  long getPercentage(long total, long current) {
-    return (total * 100) / current;
-  }
-
-  void processFile(
-      FileOutputStream fileOutputStream,
-      BufferedInputStream in,
-      long fileSize,
-      LongConsumer progressCallback)
-      throws IOException {
-    byte[] dataBuffer = new byte[8192];
-    int bytesRead;
-    long totalRead = 0;
-    long lastReportedPercent = -1;
-
-    while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-      fileOutputStream.write(dataBuffer, 0, bytesRead);
-      totalRead += bytesRead;
-
-      if (fileSize > 0) {
-        long percent = getPercentage(totalRead, fileSize);
-        if (percent != lastReportedPercent) {
-          lastReportedPercent = percent;
-          progressCallback.accept(percent);
-        }
-      } else {
-        progressCallback.accept(totalRead);
-      }
-    }
   }
 }

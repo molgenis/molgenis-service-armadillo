@@ -124,8 +124,12 @@ public class ManagementController {
           try {
             Gson gson = new Gson();
             return gson.fromJson(managementService.getLastRelease().toString(), Map.class);
-          } catch (IOException | InterruptedException e) {
+          } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, e.getMessage() + ". Thread was interrupted.");
           }
         },
         principal,
@@ -140,8 +144,12 @@ public class ManagementController {
       auditor.audit(
           () -> null, principal, "DOWNLOAD_ARMADILLO", Map.of("ARMADILLO_VERSION", version));
       return managementService.downloadArmadilloJar(version.replace("v", ""));
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, e.getMessage() + ". Thread was interrupted.");
     }
   }
 

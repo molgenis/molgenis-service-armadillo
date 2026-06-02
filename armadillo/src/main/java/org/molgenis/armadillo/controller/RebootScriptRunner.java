@@ -21,7 +21,12 @@ public class RebootScriptRunner {
   private File getUpdateLogFile() throws IOException {
     File logFile = new File(logPath);
     logFile.getParentFile().mkdirs();
-    if (!logFile.exists()) logFile.createNewFile();
+    if (!logFile.exists()) {
+      boolean fileCreated = logFile.createNewFile();
+      if (!fileCreated) {
+        throw new IOException("File cannot be created");
+      }
+    }
     return logFile;
   }
 
@@ -41,8 +46,9 @@ public class RebootScriptRunner {
   }
 
   // the only arguments that get injected are injected via application.yml from variables that
-  // cannot otherwise be changed
-  @java.lang.SuppressWarnings("squid:S4036")
+  // cannot otherwise be changed,
+  // /dev/null is the actual path that the input will need to be redirected to
+  @java.lang.SuppressWarnings({"squid:S4036", "squid:S1075"})
   ProcessBuilder getProcessBuilderForPythonScript(String pythonScript) {
     ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
     processBuilder.redirectInput(new File("/dev/null"));
@@ -58,7 +64,7 @@ public class RebootScriptRunner {
     runScriptInDifferentThread(pythonScript);
   }
 
-  Thread startLogTailer(File logFile, Consumer<String> lineHandler) throws IOException {
+  Thread startLogTailer(File logFile, Consumer<String> lineHandler) {
     Thread tailer =
         new Thread(
             () -> {

@@ -15,8 +15,6 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -523,28 +521,6 @@ class ManagementServiceTest {
   }
 
   @Test
-  void getPercentage_should_calculate_correctly() {
-    assertThat(service.getPercentage(50, 100)).isEqualTo(50);
-    assertThat(service.getPercentage(1, 100)).isEqualTo(1);
-    assertThat(service.getPercentage(100, 100)).isEqualTo(100);
-  }
-
-  @Test
-  void processFile_should_write_bytes_and_report_progress(@TempDir Path tempDir) throws Exception {
-    byte[] data = "hello world".getBytes();
-    BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(data));
-    File out = tempDir.resolve("out.bin").toFile();
-    List<Long> progressUpdates = new ArrayList<>();
-
-    try (FileOutputStream fos = new FileOutputStream(out)) {
-      service.processFile(fos, in, data.length, progressUpdates::add);
-    }
-
-    assertThat(out).hasContent("hello world");
-    assertThat(progressUpdates).isNotEmpty();
-  }
-
-  @Test
   void getLastRelease_should_return_json_on_200() throws Exception {
     when(httpClient.<String>send(any(), any())).thenReturn(lastReleaseResponse);
     when(lastReleaseResponse.statusCode()).thenReturn(200);
@@ -575,5 +551,16 @@ class ManagementServiceTest {
     assertThat(updateScriptUrl)
         .isEqualTo(
             "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/6f815bb32e5677ce17680d262344d2f4e3c6106e/scripts/install/armadillo-reboot.sh");
+  }
+
+  @Test
+  void isValidVersion() {
+    assertTrue(service.isValidVersion("v1.3.1"));
+    assertTrue(service.isValidVersion("v1341.331.12"));
+    assertTrue(service.isValidVersion("13.31.121234"));
+    assertTrue(service.isValidVersion("v5.14.0-SNAPSHOT"));
+    assertTrue(service.isValidVersion("6.1.0-SNAPSHOT"));
+    assertFalse(service.isValidVersion("v1.3a.31a"));
+    assertFalse(service.isValidVersion("print('do something very evil?')"));
   }
 }

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class RebootScriptRunnerTest {
+class RebootScriptRunnerTest {
   @TempDir Path tempDir;
 
   private File logFile;
@@ -59,7 +59,7 @@ public class RebootScriptRunnerTest {
     Thread tailer = scriptRunner.startLogTailer(logFile, captured::add);
 
     // Write lines AFTER the tailer has started (it skips existing content)
-    await().atMost(500, TimeUnit.MILLISECONDS).until(() -> tailer.isAlive());
+    await().atMost(500, TimeUnit.MILLISECONDS).until(tailer::isAlive);
 
     try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
       writer.println("line one");
@@ -119,9 +119,9 @@ public class RebootScriptRunnerTest {
 
     Method m = RebootScriptRunner.class.getDeclaredMethod("getUpdateLogFile");
     m.setAccessible(true);
-    File logFile = (File) m.invoke(scriptRunner);
+    File scriptLogFile = (File) m.invoke(scriptRunner);
 
-    assertTrue(logFile.exists());
+    assertTrue(scriptLogFile.exists());
   }
 
   @Test
@@ -175,7 +175,6 @@ public class RebootScriptRunnerTest {
                 scriptRunner,
                 "['/usr/share/armadillo/armadillo-reboot.sh', '-v', '5.14.0', '-u']",
                 "./my-log.txt");
-    System.out.println(script);
     assertTrue(script.contains("'-u'"));
   }
 
