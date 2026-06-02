@@ -42,7 +42,7 @@ class RebootScriptRunnerTest {
   }
 
   @Test
-  void thread_should_have_correct_name_and_be_daemon() throws Exception {
+  void thread_should_have_correct_name_and_be_daemon() {
     Thread tailer = scriptRunner.startLogTailer(logFile, line -> {});
 
     assertThat(tailer.getName()).isEqualTo("update-log-tailer");
@@ -91,7 +91,7 @@ class RebootScriptRunnerTest {
   }
 
   @Test
-  void should_stop_cleanly_on_interrupt() throws Exception {
+  void should_stop_cleanly_on_interrupt() {
     Thread tailer = scriptRunner.startLogTailer(logFile, line -> {});
 
     tailer.interrupt();

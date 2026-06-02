@@ -14,7 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class FileDownloaderTest {
+class FileDownloaderTest {
 
   @Test
   void getPercentage_should_calculate_correctly() {

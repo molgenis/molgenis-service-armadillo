@@ -234,7 +234,7 @@ export default defineComponent({
       versionToUpdateTo: "",
       updateAppTriggered: false,
       softRestartTriggered: false,
-      hardRestartTriggered: false
+      hardRestartTriggered: false,
     };
   },
   computed: {

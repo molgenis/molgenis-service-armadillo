@@ -19,8 +19,8 @@
           type="button"
           @click="toggleSecret"
         >
-        <i class="bi bi-eye-slash-fill" v-if="showSecret"></i>
-        <i class="bi bi-eye-fill" v-else></i>
+          <i class="bi bi-eye-slash-fill" v-if="showSecret"></i>
+          <i class="bi bi-eye-fill" v-else></i>
         </button>
         <!-- copy here -->
         <button

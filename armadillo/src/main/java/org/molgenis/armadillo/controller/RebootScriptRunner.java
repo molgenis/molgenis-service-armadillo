@@ -102,6 +102,8 @@ public class RebootScriptRunner {
     return sb.toString();
   }
 
+  // the thread cant be child process of application thread, so virtual threads impossible
+  @java.lang.SuppressWarnings({"squid:S6881"})
   void runScriptInDifferentThread(String pythonScript) {
     Thread updateThread =
         new Thread(
