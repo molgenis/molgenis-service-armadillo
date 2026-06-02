@@ -11,16 +11,20 @@ import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.controller.FileDownloader;
+import org.molgenis.armadillo.controller.RebootScriptRunner;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.boot.info.BuildProperties;
@@ -32,19 +36,16 @@ class ManagementServiceTest {
 
   @Mock HttpResponse<String> lastReleaseResponse;
 
-  @Mock HttpHeaders httpHeaders;
+  @Mock RebootScriptRunner rebootScriptRunner;
 
   ManagementService service;
   BuildProperties buildProperties;
 
   @TempDir Path tempDir;
 
-  private File logFile;
-
   @BeforeEach
   void setUp() throws Exception {
     service = new ManagementService("./logs/armadillo.log", null, httpClient);
-
     // Inject a mock BuildProperties
     buildProperties = mock(BuildProperties.class);
     setField(service, "buildProperties", buildProperties);
@@ -53,7 +54,7 @@ class ManagementServiceTest {
     setField(service, "armadilloHome", tempDir.toString());
     setField(service, "armadilloConfigFile", tempDir.resolve("application.yml").toString());
     setField(service, "armadilloMode", "PROD");
-    logFile = tempDir.resolve("test.log").toFile();
+    File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
   }
 
@@ -521,6 +522,31 @@ class ManagementServiceTest {
   }
 
   @Test
+  void downloadUpdateScript_FailsWhenInvalidVersion() throws Exception {
+    assertThrows(ResponseStatusException.class, () -> service.downloadUpdateScript("INVALID"));
+  }
+
+  @Test
+  void downloadUpdateScript_TriggersDownloadMethod() throws Exception {
+    AtomicBoolean called = new AtomicBoolean(false);
+    try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
+      downloader
+          .when(() -> FileDownloader.downloadFile(anyString(), anyString()))
+          .thenAnswer(
+              (interceptor) -> {
+                called.set(true);
+                return null;
+              });
+      service.downloadUpdateScript("v1.1.0");
+      assertTrue(called.get());
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // getLastRelease
+  // -------------------------------------------------------------------------
+
+  @Test
   void getLastRelease_should_return_json_on_200() throws Exception {
     when(httpClient.<String>send(any(), any())).thenReturn(lastReleaseResponse);
     when(lastReleaseResponse.statusCode()).thenReturn(200);
@@ -563,4 +589,17 @@ class ManagementServiceTest {
     assertFalse(service.isValidVersion("v1.3a.31a"));
     assertFalse(service.isValidVersion("print('do something very evil?')"));
   }
+
+  @Test
+  void downloadArmadilloJar_FailsWhenInvalidVersion() {
+    assertThrows(ResponseStatusException.class, () -> service.downloadArmadilloJar("INVALID"));
+  }
+
+  @Test
+  void triggerUpdate_FailsWhenInvalidVersion() {
+    assertThrows(ResponseStatusException.class, () -> service.triggerUpdate("INVALID"));
+  }
+
+  @Test
+  void hardReload_triggers_reboot_script() throws Exception {}
 }

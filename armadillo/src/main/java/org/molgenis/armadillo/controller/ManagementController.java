@@ -164,7 +164,8 @@ public class ManagementController {
         Map.of("ARMADILLO_VERSION", armadilloVersion));
     try {
       managementService.downloadUpdateScript(armadilloVersion);
-    } catch (Exception e) {
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
