@@ -1,14 +1,14 @@
 package org.molgenis.armadillo.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.molgenis.armadillo.TestHelpers.getField;
+import static org.molgenis.armadillo.TestHelpers.setField;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -370,22 +370,6 @@ class ManagementServiceTest {
   }
 
   // -------------------------------------------------------------------------
-  // getUpdateLogFile
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getUpdateLogFile_createsFileIfMissing() throws Exception {
-    Path logPath = tempDir.resolve("logs/update.log");
-    setField(service, "updateLogPath", logPath.toString());
-
-    Method m = ManagementService.class.getDeclaredMethod("getUpdateLogFile");
-    m.setAccessible(true);
-    File logFile = (File) m.invoke(service);
-
-    assertTrue(logFile.exists());
-  }
-
-  // -------------------------------------------------------------------------
   // constructor — explicit updateLogPath IS provided (null branch not taken)
   // -------------------------------------------------------------------------
 
@@ -681,30 +665,5 @@ class ManagementServiceTest {
     assertThat(updateScriptUrl)
         .isEqualTo(
             "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/6f815bb32e5677ce17680d262344d2f4e3c6106e/scripts/install/armadillo-reboot.sh");
-  }
-
-  // -------------------------------------------------------------------------
-  // Helpers
-  // -------------------------------------------------------------------------
-
-  private void setField(Object target, String fieldName, Object value) throws Exception {
-    Field f = findField(target.getClass(), fieldName);
-    f.setAccessible(true);
-    f.set(target, value);
-  }
-
-  private Object getField(Object target, String fieldName) throws Exception {
-    Field f = findField(target.getClass(), fieldName);
-    f.setAccessible(true);
-    return f.get(target);
-  }
-
-  private Field findField(Class<?> clazz, String name) throws NoSuchFieldException {
-    try {
-      return clazz.getDeclaredField(name);
-    } catch (NoSuchFieldException e) {
-      if (clazz.getSuperclass() != null) return findField(clazz.getSuperclass(), name);
-      throw e;
-    }
   }
 }

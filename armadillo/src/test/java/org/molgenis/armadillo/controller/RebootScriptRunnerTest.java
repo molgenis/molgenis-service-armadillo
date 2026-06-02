@@ -2,10 +2,13 @@ package org.molgenis.armadillo.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.molgenis.armadillo.TestHelpers.setField;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.boot.info.BuildProperties;
 
 public class RebootScriptRunnerTest {
@@ -110,5 +114,17 @@ public class RebootScriptRunnerTest {
     tailer.join(5000); // wait up to 5s for the thread to die naturally
 
     assertThat(tailer.isAlive()).isFalse();
+  }
+
+  @Test
+  void getUpdateLogFile_createsFileIfMissing() throws Exception {
+    Path logPath = tempDir.resolve("logs/update.log");
+    setField(scriptRunner, "logPath", logPath.toString());
+
+    Method m = ManagementService.class.getDeclaredMethod("getUpdateLogFile");
+    m.setAccessible(true);
+    File logFile = (File) m.invoke(scriptRunner);
+
+    assertTrue(logFile.exists());
   }
 }
