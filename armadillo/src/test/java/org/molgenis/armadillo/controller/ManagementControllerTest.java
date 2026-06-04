@@ -26,6 +26,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+// false positive all methods have testcases, but mockmvc isn't picked up properly
+@java.lang.SuppressWarnings({"squid:S2699"})
 @WebMvcTest(ManagementController.class)
 @Import(AuthConfig.class)
 @TestPropertySource(
@@ -39,8 +41,6 @@ class ManagementControllerTest {
   @MockitoBean AuditEventPublisher auditor;
   @MockitoBean org.molgenis.armadillo.metadata.AccessService accessService;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
-
-  // ── POST /manage/app/restart/soft ─────────────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
@@ -65,8 +65,6 @@ class ManagementControllerTest {
         .andExpect(status().isUnauthorized());
   }
 
-  // ── POST /manage/app/restart/hard ─────────────────────────────────────────
-
   @Test
   @WithMockUser(roles = "SU")
   void hardRestart_POST() throws Exception {
@@ -89,8 +87,6 @@ class ManagementControllerTest {
         .perform(post("/manage/app/restart/hard").with(csrf()))
         .andExpect(status().isUnauthorized());
   }
-
-  // ── POST /manage/app/update ───────────────────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
@@ -117,8 +113,6 @@ class ManagementControllerTest {
         .andExpect(status().isUnauthorized());
   }
 
-  // ── GET /manage/app/list ──────────────────────────────────────────────────
-
   @Test
   @WithMockUser(roles = "SU")
   void listAvailable_GET() throws Exception {
@@ -140,8 +134,6 @@ class ManagementControllerTest {
   void listAvailable_GET_unauthenticated() throws Exception {
     mockMvc.perform(get("/manage/app/list").with(csrf())).andExpect(status().isUnauthorized());
   }
-
-  // ── DELETE /manage/app/delete-jar ─────────────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
@@ -167,8 +159,6 @@ class ManagementControllerTest {
         .perform(delete("/manage/app/delete-jar").param("version", "1.0.0").with(csrf()))
         .andExpect(status().isUnauthorized());
   }
-
-  // ── GET /manage/app/latest-release-info ───────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
@@ -196,8 +186,6 @@ class ManagementControllerTest {
         .andExpect(status().isUnauthorized());
   }
 
-  // ── POST /manage/updater/download ─────────────────────────────────────────
-
   @Test
   @WithMockUser(roles = "SU")
   void downloadUpdateScript_POST() throws Exception {
@@ -223,8 +211,6 @@ class ManagementControllerTest {
         .perform(post("/manage/updater/download").param("armadilloVersion", "1.2.3").with(csrf()))
         .andExpect(status().isUnauthorized());
   }
-
-  // ── GET /manage/auth/oidc-config ──────────────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
@@ -254,8 +240,6 @@ class ManagementControllerTest {
         .perform(get("/manage/auth/oidc-config").with(csrf()))
         .andExpect(status().isUnauthorized());
   }
-
-  // ── PUT /manage/auth/oidc-config ──────────────────────────────────────────
 
   @Test
   @WithMockUser(roles = "SU")
