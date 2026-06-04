@@ -27,7 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 // false positive all methods have testcases, but mockmvc isn't picked up properly
-@java.lang.SuppressWarnings({"squid:S2699"})
+@java.lang.SuppressWarnings({"java:S2699"})
 @WebMvcTest(ManagementController.class)
 @Import(AuthConfig.class)
 @TestPropertySource(
