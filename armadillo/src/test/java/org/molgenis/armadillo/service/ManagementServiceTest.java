@@ -45,10 +45,8 @@ class ManagementServiceTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    service = new ManagementService("./logs/armadillo.log", null, httpClient);
-    // Inject a mock BuildProperties
     buildProperties = mock(BuildProperties.class);
-    setField(service, "buildProperties", buildProperties);
+    service = new ManagementService("./logs/armadillo.log", null, buildProperties, httpClient);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
     setField(service, "armadilloHome", tempDir.toString());
@@ -65,7 +63,8 @@ class ManagementServiceTest {
   @Test
   void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
     ManagementService svc =
-        new ManagementService("/var/log/armadillo/armadillo.log", null, httpClient);
+        new ManagementService(
+            "/var/log/armadillo/armadillo.log", null, buildProperties, httpClient);
     String path = (String) getField(svc, "updateLogPath");
     assertEquals("/var/log/armadillo/update.log", path);
   }
@@ -73,7 +72,8 @@ class ManagementServiceTest {
   @Test
   void constructor_usesExplicitUpdateLogPath() throws Exception {
     ManagementService svc =
-        new ManagementService("./logs/armadillo.log", "/custom/path/update.log", httpClient);
+        new ManagementService(
+            "./logs/armadillo.log", "/custom/path/update.log", buildProperties, httpClient);
     // When updatePath is explicitly provided it is used directly
     // (the constructor only assigns when updatePath == null)
     String path = (String) getField(svc, "updateLogPath");
@@ -352,7 +352,8 @@ class ManagementServiceTest {
   @Test
   void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
     ManagementService svc =
-        new ManagementService("./logs/armadillo.log", "/custom/path/update.log", httpClient);
+        new ManagementService(
+            "./logs/armadillo.log", "/custom/path/update.log", buildProperties, httpClient);
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set
     assertNull(path);

@@ -57,7 +57,7 @@ public class ManagementService {
   @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id:#{null}}")
   String deviceClientId;
 
-  @Autowired BuildProperties buildProperties;
+  BuildProperties buildProperties;
 
   // location of update log
   private String updateLogPath;
@@ -86,8 +86,10 @@ public class ManagementService {
   public ManagementService(
       @Value("${stdout.log.path:./logs/armadillo.log}") String logPath,
       @Value("${update.log.path:#{null}}") String updatePath,
+      @Autowired BuildProperties buildProperties,
       HttpClient httpClient) {
     this.httpClient = httpClient;
+    this.buildProperties = buildProperties;
     if (updatePath == null) {
       var splittedLogFilepath = logPath.split(File.separator);
       // if updateLog not set, take path of stdout log and put update.log in same dir
