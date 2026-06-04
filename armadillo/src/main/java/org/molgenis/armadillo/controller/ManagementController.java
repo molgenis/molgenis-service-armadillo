@@ -117,6 +117,9 @@ public class ManagementController {
         Map.of("VERSION_TO_DELETE", version));
   }
 
+  // cannot really fix this, it's json, not really map, it contains strings and string arrays,
+  // which is not really a thing in java
+  @java.lang.SuppressWarnings({"squid:S3740"})
   @Operation(summary = "Get info of latest release")
   @GetMapping("app/latest-release-info")
   public Map getLastReleaseInfo(Principal principal) {

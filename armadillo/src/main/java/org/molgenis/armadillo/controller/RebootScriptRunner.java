@@ -2,6 +2,7 @@ package org.molgenis.armadillo.controller;
 
 import java.io.File;
 import java.io.IOException;
+import org.molgenis.armadillo.exceptions.RebootScriptRunFailedException;
 
 public class RebootScriptRunner {
   String logPath;
@@ -80,8 +81,12 @@ public class RebootScriptRunner {
                 ProcessBuilder processBuilder = getProcessBuilderForPythonScript(pythonScript);
                 Process python = processBuilder.start();
                 python.waitFor();
-              } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Script run failed:", e);
+              } catch (IOException e) {
+                throw new RebootScriptRunFailedException("Script run failed:" + e.getMessage());
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RebootScriptRunFailedException(
+                    "Script run interrupted:" + e.getMessage());
               }
             });
     updateThread.setDaemon(false);
