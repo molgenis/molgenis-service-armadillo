@@ -1,13 +1,7 @@
 package org.molgenis.armadillo.controller;
 
-import static java.lang.String.format;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.function.Consumer;
-import org.apache.logging.log4j.LoggingException;
 
 public class RebootScriptRunner {
   String logPath;
@@ -45,8 +39,8 @@ public class RebootScriptRunner {
     return String.format(scriptTemplate, absoluteLogFilePath, pythonList);
   }
 
-  // the only arguments that get injected are injected via application.yml from variables that
-  // cannot otherwise be changed,
+  // The only arguments that get injected are injected via application.yml from variables that
+  // cannot otherwise be changed.
   // /dev/null is the actual path that the input will need to be redirected to
   @java.lang.SuppressWarnings({"squid:S4036", "squid:S1075"})
   ProcessBuilder getProcessBuilderForPythonScript(String pythonScript) {
@@ -62,33 +56,6 @@ public class RebootScriptRunner {
     String pythonScript =
         createPythonScriptForThread(pythonCommand, getUpdateLogFile().getAbsolutePath());
     runScriptInDifferentThread(pythonScript);
-  }
-
-  Thread startLogTailer(File logFile, Consumer<String> lineHandler) {
-    Thread tailer =
-        new Thread(
-            () -> {
-              try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
-                reader.skip(logFile.length());
-                while (!Thread.currentThread().isInterrupted()) {
-                  String line = reader.readLine();
-                  if (line == null) {
-                    Thread.sleep(100);
-                  } else {
-                    lineHandler.accept(line); // <-- add this
-                  }
-                }
-              } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-              } catch (IOException e) {
-                throw new LoggingException(
-                    format("[UPDATE SCRIPT]: Log tailer error: %s\"", e.getMessage()));
-              }
-            });
-    tailer.setDaemon(true);
-    tailer.setName("update-log-tailer");
-    tailer.start();
-    return tailer;
   }
 
   // Builds a Python list literal e.g. ['/path/script', '-p', '/home']
@@ -109,13 +76,10 @@ public class RebootScriptRunner {
         new Thread(
             () -> {
               try {
-                File logFile = getUpdateLogFile();
-                Thread logTailer = startLogTailer(logFile, line -> {});
                 Thread.sleep(200);
                 ProcessBuilder processBuilder = getProcessBuilderForPythonScript(pythonScript);
                 Process python = processBuilder.start();
                 python.waitFor();
-                logTailer.join(5000);
               } catch (IOException | InterruptedException e) {
                 throw new RuntimeException("Script run failed:", e);
               }
