@@ -119,7 +119,7 @@ public class ManagementController {
 
   // cannot really fix this, it's json, not really map, it contains strings and string arrays,
   // which is not really a thing in java
-  @java.lang.SuppressWarnings({"squid:S3740"})
+  @java.lang.SuppressWarnings({"java:S3740"})
   @Operation(summary = "Get info of latest release")
   @GetMapping("app/latest-release-info")
   public Map getLastReleaseInfo(Principal principal) {

@@ -43,7 +43,7 @@ public class RebootScriptRunner {
   // The only arguments that get injected are injected via application.yml from variables that
   // cannot otherwise be changed.
   // /dev/null is the actual path that the input will need to be redirected to
-  @java.lang.SuppressWarnings({"squid:S4036", "squid:S1075"})
+  @java.lang.SuppressWarnings({"java:S4036", "java:S1075"})
   ProcessBuilder getProcessBuilderForPythonScript(String pythonScript) {
     ProcessBuilder processBuilder = new ProcessBuilder("python3", "-c", pythonScript);
     processBuilder.redirectInput(new File("/dev/null"));
@@ -71,7 +71,7 @@ public class RebootScriptRunner {
   }
 
   // the thread cant be child process of application thread, so virtual threads impossible
-  @java.lang.SuppressWarnings({"squid:S6881"})
+  @java.lang.SuppressWarnings({"java:S6881"})
   void runScriptInDifferentThread(String pythonScript) {
     Thread updateThread =
         new Thread(
