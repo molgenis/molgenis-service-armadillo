@@ -23,10 +23,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.controller.FileDownloader;
-import org.molgenis.armadillo.controller.RebootScriptRunner;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
+import org.molgenis.armadillo.storage.FileDownloader;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.web.server.ResponseStatusException;
 

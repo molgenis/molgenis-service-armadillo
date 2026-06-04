@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
-import static org.molgenis.armadillo.controller.FileDownloader.downloadFile;
+import static org.molgenis.armadillo.storage.FileDownloader.downloadFile;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
-import org.molgenis.armadillo.controller.RebootScriptRunner;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;

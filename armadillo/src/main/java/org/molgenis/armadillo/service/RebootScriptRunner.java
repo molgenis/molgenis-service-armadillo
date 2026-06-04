@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.controller;
+package org.molgenis.armadillo.service;
 
 import java.io.File;
 import java.io.IOException;

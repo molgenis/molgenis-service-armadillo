@@ -1,8 +1,8 @@
-package org.molgenis.armadillo.controller;
+package org.molgenis.armadillo.storage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.molgenis.armadillo.controller.FileDownloader.getPercentage;
-import static org.molgenis.armadillo.controller.FileDownloader.processFile;
+import static org.molgenis.armadillo.storage.FileDownloader.getPercentage;
+import static org.molgenis.armadillo.storage.FileDownloader.processFile;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

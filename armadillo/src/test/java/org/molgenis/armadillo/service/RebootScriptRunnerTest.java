@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.controller;
+package org.molgenis.armadillo.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
