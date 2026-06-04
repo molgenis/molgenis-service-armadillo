@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.controller;
+package org.molgenis.armadillo.storage;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
