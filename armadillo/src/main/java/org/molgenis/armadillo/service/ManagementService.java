@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -107,9 +108,22 @@ public class ManagementService {
     ArmadilloServiceApplication.restart();
   }
 
+  String getJavaProcessId() {
+    System.out.println("!!! HERE COMES PID!!!!");
+    return Arrays.stream(ManagementFactory.getRuntimeMXBean().getName().split("@")).toList().get(1);
+  }
+
   public void hardRestartApplication() throws IOException {
     scriptRunner.runRebootScript(
-        getUpdateScriptPath(), "-p", armadilloHome, "-v", "", "-m", armadilloMode);
+        getUpdateScriptPath(),
+        "-p",
+        armadilloHome,
+        "-v",
+        "",
+        "-m",
+        armadilloMode,
+        "-i",
+        getJavaProcessId());
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
@@ -264,7 +278,16 @@ public class ManagementService {
   public void triggerUpdate(String version) throws IOException {
     if (isValidVersion(version)) {
       scriptRunner.runRebootScript(
-          getUpdateScriptPath(), "-p", armadilloHome, "-v", version, "-m", armadilloMode, "-u");
+          getUpdateScriptPath(),
+          "-p",
+          armadilloHome,
+          "-v",
+          version,
+          "-m",
+          armadilloMode,
+          "-u",
+          "-i",
+          getJavaProcessId());
     } else
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
   }
