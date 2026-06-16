@@ -26,8 +26,8 @@
     <!-- Actual table -->
     <Table
       v-else
-      :dataToShow="profiles"
-      :allData="profiles"
+      :dataToShow="containers"
+      :allData="containers"
       :indexToEdit="profileToEditIndex"
       :dataStructure="profilesDataStructure"
       :isSmall="true"
@@ -139,7 +139,7 @@
         </div>
       </template>
       <template #extraColumn="columnProps">
-        <!-- Add buttons for editing/deleting profiles -->
+        <!-- Add buttons for editing/deleting containers -->
         <th scope="row">
           <ButtonGroup
             :buttonIcons="['pencil-fill', 'trash-fill']"
@@ -218,7 +218,7 @@
           type="checkbox"
           :checked="boolProps.data"
           @change="updateAutoUpdate(boolProps.row, boolProps.data)"
-          :disabled="profileToEditIndex !== profiles.indexOf(boolProps.row)"
+          :disabled="profileToEditIndex !== containers.indexOf(boolProps.row)"
         />
       </template>
       <template #customType="{ data, row }">
@@ -278,7 +278,7 @@ export default defineComponent({
     ProfileStatusMessage,
   },
   setup() {
-    const profiles: Ref<Profile[]> = ref([]);
+    const containers: Ref<Profile[]> = ref([]);
     const profilesLoading: Ref<Boolean> = ref(true);
     const errorMessage: Ref<string> = ref("");
     const dockerManagementEnabled: Ref<boolean> = ref(false);
@@ -293,11 +293,11 @@ export default defineComponent({
       await loadProfiles();
     });
     const loadProfiles = async () => {
-      profiles.value = await getProfiles()
-        .then((profiles) => {
-          dockerManagementEnabled.value = "container" in profiles[0];
+      containers.value = await getProfiles()
+        .then((containers) => {
+          dockerManagementEnabled.value = "container" in containers[0];
 
-          return profiles.map((profile) => {
+          return containers.map((profile) => {
             // Extract datashieldSeed
             const datashieldSeed = profile.options["datashield.seed"];
             delete profile.options["datashield.seed"];
@@ -314,7 +314,11 @@ export default defineComponent({
           });
         })
         .catch((error: string) => {
-          errorMessage.value = processErrorMessages(error, "profiles", router);
+          errorMessage.value = processErrorMessages(
+            error,
+            "containers",
+            router
+          );
           return [];
         });
 
@@ -322,7 +326,7 @@ export default defineComponent({
     };
     return {
       profilesLoading,
-      profiles,
+      containers,
       errorMessage,
       loadProfiles,
       dockerManagementEnabled,
@@ -372,7 +376,7 @@ export default defineComponent({
   computed: {
     firstFreePort(): number {
       let port = 6311;
-      while (this.profiles.find((profile) => profile.port === port)) {
+      while (this.containers.find((profile) => profile.port === port)) {
         port++;
       }
       return port;
@@ -380,7 +384,7 @@ export default defineComponent({
     firstFreeSeed(): string {
       let seed = 100000000;
       while (
-        this.profiles.find(
+        this.containers.find(
           (profile) => profile.datashieldSeed == seed.toString()
         )
       ) {
@@ -431,7 +435,7 @@ export default defineComponent({
     profileToEdit() {
       this.profileToEditIndex = this.getEditIndex();
     },
-    profiles: {
+    containers: {
       handler(newProfiles) {
         newProfiles.forEach((profile: Profile) => {
           if (
@@ -465,8 +469,8 @@ export default defineComponent({
     },
     saveEditedProfile() {
       this.clearUserMessages();
-      const profile: Profile = this.profiles[this.profileToEditIndex];
-      const profileNames = this.profiles.map((profile) => {
+      const profile: Profile = this.containers[this.profileToEditIndex];
+      const profileNames = this.containers.map((profile) => {
         return profile.name;
       });
 
@@ -482,7 +486,7 @@ export default defineComponent({
 
       const hostPortCombo = `${profile.host}:${profile.port}`;
 
-      const hasDuplicates = this.profiles.some(
+      const hasDuplicates = this.containers.some(
         (prof) =>
           prof !== profile && `${prof.host}:${prof.port}` === hostPortCombo
       );
@@ -548,7 +552,7 @@ export default defineComponent({
       this.addProfile = false;
     },
     getEditIndex() {
-      const index = this.profiles.findIndex((profile: Profile) => {
+      const index = this.containers.findIndex((profile: Profile) => {
         return profile.name === this.profileToEdit;
       });
       // only change when user is cleared, otherwise it will return -1 when name is altered
@@ -560,7 +564,7 @@ export default defineComponent({
       this.addProfile = true;
       this.clearUserMessages();
 
-      this.profiles.unshift({
+      this.containers.unshift({
         name: "",
         image: "datashield/rock-base:latest",
         versionId: "",
@@ -629,7 +633,7 @@ export default defineComponent({
         this.clearLoading();
       } catch (error) {
         this.clearLoading();
-        this.errorMessage = `Could not load profiles: ${error}.`;
+        this.errorMessage = `Could not load containers: ${error}.`;
       }
     },
   },

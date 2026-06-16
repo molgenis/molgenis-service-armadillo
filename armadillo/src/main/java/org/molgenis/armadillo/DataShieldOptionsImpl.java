@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
+import org.molgenis.armadillo.metadata.ContainerConfig;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.model.RPackage;
 import org.molgenis.r.service.PackageService;
@@ -22,17 +22,17 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@ProfileScope
+@ContainerScope
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final ProfileConfig profileConfig;
+  private final ContainerConfig containerConfig;
   private final PackageService packageService;
 
   @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
   private volatile ImmutableMap<String, String> options;
 
-  public DataShieldOptionsImpl(ProfileConfig profileConfig, PackageService packageService) {
-    this.profileConfig = requireNonNull(profileConfig);
+  public DataShieldOptionsImpl(ContainerConfig containerConfig, PackageService packageService) {
+    this.containerConfig = requireNonNull(containerConfig);
     this.packageService = requireNonNull(packageService);
   }
 
@@ -43,7 +43,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      optionsMap.putAll(profileConfig.getOptions());
+      optionsMap.putAll(containerConfig.getOptions());
       options = ImmutableMap.copyOf(optionsMap);
     }
   }

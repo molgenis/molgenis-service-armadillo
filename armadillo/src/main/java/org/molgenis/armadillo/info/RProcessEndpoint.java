@@ -5,8 +5,8 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
+import org.molgenis.armadillo.metadata.ContainerConfig;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.r.RServerConnection;
 import org.molgenis.r.RServerConnectionFactory;
 import org.molgenis.r.config.EnvironmentConfigProps;
@@ -21,18 +21,18 @@ import org.springframework.stereotype.Component;
 @Endpoint(id = "rserveProcesses")
 public class RProcessEndpoint {
   private final ProcessService processService;
-  private final ProfileService profileService;
+  private final ContainerService containerService;
 
-  public RProcessEndpoint(ProcessService processService, ProfileService profileService) {
+  public RProcessEndpoint(ProcessService processService, ContainerService containerService) {
     this.processService = processService;
-    this.profileService = profileService;
+    this.containerService = containerService;
   }
 
   @ReadOperation
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
-    return profileService.getAll().stream()
-        .map(ProfileConfig::getName)
+    return containerService.getAll().stream()
+        .map(ContainerConfig::getName)
         .map(
             environmentName ->
                 REnvironment.create(
@@ -43,9 +43,9 @@ public class RProcessEndpoint {
 
   <T> T doWithConnection(String environmentName, Function<RServerConnection, T> action) {
     var environment =
-        runAsSystem(profileService::getAll).stream()
+        runAsSystem(containerService::getAll).stream()
             .filter(it -> environmentName.equals(it.getName()))
-            .map(ProfileConfig::toEnvironmentConfigProps)
+            .map(ContainerConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow();
     RServerConnection connection = connect(environment);

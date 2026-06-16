@@ -7,12 +7,12 @@ armadillo:
   docker-run-in-container: true
 
   # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
-  # docker-compose.yml file ie armadillo-dev-" + profileName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
+  # docker-compose.yml file ie armadillo-dev-" + containerName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
   container-prefix: 'dev-'
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
-  profiles:
+  containers:
     - name: default
       image: datashield/rock-base:latest
       port: 8085

@@ -12,7 +12,7 @@ To login to the UI, select the **Institute account (oath2)** button and login us
 
 ### Superuser
 
-You need to have admin or superuser permissions if you want to add projects, users or profiles. This means you need to be granted permission in order to be able to use the UI. If you don't have correct permissions, you will receive the
+You need to have admin or superuser permissions if you want to add projects, users or containers. This means you need to be granted permission in order to be able to use the UI. If you don't have correct permissions, you will receive the
 following error:
 
 ![Error message in case you are not a superuser](../../img/ui/no-superuser.png)
@@ -162,32 +162,32 @@ When users conduct analyses with DataSHIELD, they can save R workspaces on the s
 
 ![Manage workspaces](../../img/ui/workspaces.png)
 
-## Analysis Profiles
+## Analysis Containers
 
-![Armadillo Profiles page](../../img/ui/profiles.png)
+![Armadillo Profiles page](../../img/ui/containers.png)
 
-Since the release of Armadillo 3.0.0, it is possible to create and manage analysis profiles in the user interface, rather than asking system administrators to manage these profiles. You can start ![Armadillo profile start](../../img/ui/start-profile.png){width="35"} and stop ![Armadillo profile start](../../img/ui/stop-profile.png){width="35"} profiles.
+Since the release of Armadillo 3.0.0, it is possible to create and manage analysis containers in the user interface, rather than asking system administrators to manage these containers. You can start ![Armadillo profile start](../../img/ui/start-profile.png){width="35"} and stop ![Armadillo profile start](../../img/ui/stop-profile.png){width="35"} containers.
 
-When you start a profile for the first time, it will take a bit longer to load because the profile needs to be downloaded and installed before it can be started.
+When you start a container for the first time, it will take a bit longer to load because the image needs to be downloaded and installed before it can be started.
 
 ![Stopping a profile](../../img/ui/loading-stop-profile.png)
 
-If you switch to another screen whilst either starting or stopping a profile, the profiles page will no longer show the loading information. It is however still loading, and when it's done, if you reload the page, you will see that your profile started or stopped successfully.
+If you switch to another screen whilst either starting or stopping a container, the containers page will no longer show the loading information. It is however still loading, and when it's done, if you reload the page, you will see that your container started or stopped successfully.
 
-As in the other screens, you can add profiles with the add-button ![Armadillo profile add](../../img/ui/add.png){width="25"}.
+As in the other screens, you can add containers with the add-button ![Armadillo profile add](../../img/ui/add.png){width="25"}.
 
 ![Add a profile](../../img/ui/add-profile.png)
 
-By default, some fields will be set. Please update them to install the correct profile.
+By default, some fields will be set. Please update them to install the correct container.
 
 Possible images can be found on [dockerhub](https://hub.docker.com/search?q=datashield%2Farmadillo-rserver). We recommend selecting one of the
-[DataSHIELD standard profiles](https://wiki.datashield.org/en/opmanag/standard-profiles-and-platforms). The image name of those profiles can be found on the dockerhub link above.
+[DataSHIELD standard containers](https://wiki.datashield.org/en/opmanag/standard-containers-and-platforms). The image name of those containers can be found on the dockerhub link above.
 
-Although the default `port` setting should find an available port, please keep in mind that the port has to be unique, otherwise you cannot start your profile and will receive an error message.
+Although the default `port` setting should find an available port, please keep in mind that the port has to be unique, otherwise you cannot start your container and will receive an error message.
 
 R packages can be whitelisted by adding them to the `package whitelist` column so researchers can use them. 'Whitelisting' a package allows analysts to use it. If you want to whitelist a package, you need to make sure it is installed on the image you selected. Additionally, it is possible to blacklist certain R functions in the `blacklist function` column. This can be useful if certain functions are not allowed to be used on certain data or within certain cohorts.
 
-Sometimes profiles are updated, for example if new features are added or security updates are applied. To manually update a profile, you just need to start and stop the profile and the new version will be installed. 
+Sometimes containers are updated, for example if new features are added or security updates are applied. To manually update a container, you just need to start and stop the container and the new version will be installed. 
 
-From Armadillo v.5.2.0 and higher, it is also possible to automatically update profiles. Edit the profile, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
+From Armadillo v.5.2.0 and higher, it is also possible to automatically update containers. Edit the container, check the 'Auto Update' box and schedule when you would like Armadillo to check for updates. At the scheduled time a check will be performed, and if there is an update available Armadillo will automatically install the latest version. 
 ![Automaticall update profile](../../img/ui/update-profile.png)

@@ -23,8 +23,8 @@ public class JwtDecoderConfig {
 
   static Logger LOG = LoggerFactory.getLogger(JwtDecoderConfig.class);
 
-  @Value("${spring.profiles.active:default}")
-  String activeProfile;
+  @Value("${spring.containers.active:default}")
+  private String activeContainer;
 
   JwtClaimValidator<Collection<String>> getAudienceValidator(
       OAuth2ResourceServerProperties properties) {
@@ -75,7 +75,7 @@ public class JwtDecoderConfig {
         }
       };
     } catch (Exception e) {
-      if ("offline".equals(activeProfile)) {
+      if ("offline".equals(activeContainer)) {
         // allow offline development
         LOG.error("Couldn't configure JWT decoder", e);
         return token -> {
