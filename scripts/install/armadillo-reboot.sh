@@ -2,14 +2,15 @@
 
 echo "🚀 Armadillo Update started, 👩‍🚀 please fasten you're seatbelts, we're about to take off..."
 #### SET OPTS ####
-while getopts "p:v:m:u" flag
+while getopts "p:v:m:i:u" flag
 do
   case "${flag}" in
     p) ARMADILLO_PATH=${OPTARG};;
     v) ARMADILLO_VERSION=${OPTARG};;
     m) MODE=${OPTARG};;
+    i) PID=${OPTARG};;
     u) UPDATE=true;;
-    a*) echo "❌ ERROR: Invalid argument. Only -p (armadillo path), -v (armadillo version), -m (mode: DEV/PROD) and -u (sets update to true) allowed" & exit_script;;
+    a*) echo "❌ ERROR: Invalid argument. Only -p (armadillo path), -v (armadillo version), -m (mode: DEV/PROD), -i (process id: the id of the armadillo process) and -u (sets update to true) allowed" & exit_script;;
   esac
 done
 
@@ -38,7 +39,7 @@ fi
 #### METHODS ####
 link_armadillo_version() {
   echo "ℹ️ Setting version to: $ARMADILLO_VERSION"
-  echo "🧹 Removing old armadillo"
+  echo "🧹 Removing old armadillo: $ARMADILLO_PATH/armadillo.jar"
   rm "$ARMADILLO_PATH/armadillo.jar"
   echo "🔗 Linking new armadillo"
   ln -s -f "$1" "$ARMADILLO_PATH/armadillo.jar"
@@ -47,12 +48,11 @@ link_armadillo_version() {
 restart_armadillo() {
    if [[ "$MODE" == "PROD" ]]; then
       echo "🛑 Stopping Molgenis Armadillo"
-      systemctl stop armadillo
+      kill -SIGTERM ${PID}
       if [[ $UPDATE == true ]]; then
         link_armadillo_version $1
       fi
-      echo "🏁 Starting Molgenis Armadillo 🏎️"
-      systemctl start armadillo
+      echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
     else
       loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
       userID=$( id -u "$loggedInUser" )
@@ -123,8 +123,8 @@ restart_if_down() {
   echo "👩‍🔬 Checking if everything went correctly and if Armadillo is up and running 🏃‍➡️..."
   SERVER_UP="$(lsof -i :8080)"
   echo "STATUS: $SERVER_UP"
-  # retry every x seconds (going up exponentially until started)
-  if [[ ${#SERVER_UP} == 0 ]]; then
+  # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
+  if [[ ${#SERVER_UP} == 0 && $MODE != "PROD" ]]; then
     echo "❌ Restart unsuccessful, trying again..."
     if [[ $OLD_JAR != "" ]]; then
       ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
