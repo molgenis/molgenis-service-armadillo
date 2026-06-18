@@ -188,7 +188,7 @@ class ManagementServiceTest {
     m.setAccessible(true);
 
     String tag = (String) m.invoke(service, "5.13.0");
-    assertEquals("6f815bb32e5677ce17680d262344d2f4e3c6106e", tag);
+    assertEquals("32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb", tag);
   }
 
   @Test
@@ -576,7 +576,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/6f815bb32e5677ce17680d262344d2f4e3c6106e/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
@@ -601,5 +601,8 @@ class ManagementServiceTest {
   }
 
   @Test
-  void hardReload_triggers_reboot_script() throws Exception {}
+  void getJavaProcessId_returns_id() {
+    String name = "52005@My-MacBook-Pro.local";
+    assertEquals("52005", service.getJavaProcessId(name));
+  }
 }
