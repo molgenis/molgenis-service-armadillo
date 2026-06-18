@@ -108,9 +108,12 @@ public class ManagementService {
     ArmadilloServiceApplication.restart();
   }
 
-  String getJavaProcessId() {
-    System.out.println("!!! HERE COMES PID!!!!");
-    return Arrays.stream(ManagementFactory.getRuntimeMXBean().getName().split("@")).toList().get(1);
+  private String getProcessName() {
+    return ManagementFactory.getRuntimeMXBean().getName();
+  }
+
+  String getJavaProcessId(String processName) {
+    return Arrays.stream(processName.split("@")).toList().getFirst();
   }
 
   public void hardRestartApplication() throws IOException {
@@ -123,7 +126,7 @@ public class ManagementService {
         "-m",
         armadilloMode,
         "-i",
-        getJavaProcessId());
+        getJavaProcessId(getProcessName()));
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
@@ -155,7 +158,8 @@ public class ManagementService {
     String scriptVersionTag;
     // if script not available yet on current release:
     if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 14) {
-      scriptVersionTag = "6f815bb32e5677ce17680d262344d2f4e3c6106e";
+      // TODO: update tag
+      scriptVersionTag = "32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb";
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
@@ -287,7 +291,7 @@ public class ManagementService {
           armadilloMode,
           "-u",
           "-i",
-          getJavaProcessId());
+          getJavaProcessId(getProcessName()));
     } else
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
   }
