@@ -2,6 +2,8 @@ package org.molgenis.armadillo.security;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -90,5 +92,20 @@ class LoginAttemptTrackerTest {
     var secondLockout = tracker.getLockedUntil();
 
     assertTrue(secondLockout.isAfter(firstLockout));
+  }
+
+  @Test
+  void testLockoutCappedAtMax() {
+    // 5 free attempts + 6 lockouts. The 6th tier would be 32 minutes (BASE_LOCKOUT << 5),
+    // which exceeds MAX_LOCKOUT (30 minutes), so it must be capped.
+    for (int i = 0; i <= LoginAttemptTracker.FREE_ATTEMPTS + 5; i++) {
+      tracker.recordFailure();
+    }
+
+    Instant lockedUntil = tracker.getLockedUntil();
+    // Capped: must not exceed now + MAX_LOCKOUT...
+    assertFalse(lockedUntil.isAfter(Instant.now().plus(LoginAttemptTracker.MAX_LOCKOUT)));
+    // ...and must be at the cap, not the smaller previous tier.
+    assertTrue(lockedUntil.isAfter(Instant.now().plus(Duration.ofMinutes(29))));
   }
 }
