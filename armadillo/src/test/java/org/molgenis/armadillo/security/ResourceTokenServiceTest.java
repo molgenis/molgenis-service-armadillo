@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
@@ -24,11 +25,22 @@ class ResourceTokenServiceTest {
 
   @BeforeEach
   void setUp() {
+    Clock clock = Clock.fixed(FIXED_NOW, ZoneOffset.UTC);
+
     resourceTokenService = new ResourceTokenService(TOKEN_VALIDITY_SECONDS);
-    resourceTokenService.setClock(Clock.fixed(FIXED_NOW, ZoneOffset.UTC));
+    resourceTokenService.setClock(clock);
 
     RSAPublicKey publicKey = resourceTokenService.getPublicKey();
-    jwtDecoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+
+    // Validate token expiry against the same fixed clock used to mint the token,
+    // otherwise the decoder checks `exp` against real system time and the test
+    // becomes a time bomb once FIXED_NOW passes.
+    JwtTimestampValidator timestampValidator = new JwtTimestampValidator();
+    timestampValidator.setClock(clock);
+
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+    decoder.setJwtValidator(timestampValidator);
+    jwtDecoder = decoder;
   }
 
   @Test
