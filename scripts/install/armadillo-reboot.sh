@@ -124,7 +124,7 @@ restart_if_down() {
   sleep $TIMEOUT
   # check if server up
   echo "👩‍🔬 Checking if everything went correctly and if Armadillo is up and running 🏃‍➡️..."
-  SERVER_UP="$(lsof -i :8080)"
+  SERVER_UP="$(lsof -i :8080 | grep java)"
   echo "STATUS: $SERVER_UP"
   # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
   if [[ ${#SERVER_UP} == 0 ]]; then
