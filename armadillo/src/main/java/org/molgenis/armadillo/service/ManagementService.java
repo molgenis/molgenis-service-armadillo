@@ -58,6 +58,9 @@ public class ManagementService {
   @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id:#{null}}")
   String deviceClientId;
 
+  @Value("${armadillo.docker-run-in-container:false}")
+  private boolean runningInContainer;
+
   BuildProperties buildProperties;
 
   // location of update log
@@ -116,7 +119,15 @@ public class ManagementService {
     return Arrays.stream(processName.split("@")).toList().getFirst();
   }
 
+  void throwWhenRunningInContainer(String method) throws UnsupportedOperationException {
+    if (runningInContainer) {
+      throw new UnsupportedOperationException(
+          "Cannot execute " + method + "because armadillo is running within a docker container");
+    }
+  }
+
   public void hardRestartApplication() throws IOException {
+    throwWhenRunningInContainer("hard restart");
     scriptRunner.runRebootScript(
         getUpdateScriptPath(),
         "-p",
@@ -282,6 +293,7 @@ public class ManagementService {
   }
 
   public void triggerUpdate(String version) throws IOException {
+    throwWhenRunningInContainer("hard restart");
     if (isValidVersion(version)) {
       scriptRunner.runRebootScript(
           getUpdateScriptPath(),
@@ -391,6 +403,7 @@ public class ManagementService {
   }
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
+    throwWhenRunningInContainer("update oidc config");
     updateApplicationConfig(oidcDetails);
     hardRestartApplication();
   }
