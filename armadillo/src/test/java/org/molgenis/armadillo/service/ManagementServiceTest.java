@@ -188,7 +188,7 @@ class ManagementServiceTest {
     m.setAccessible(true);
 
     String tag = (String) m.invoke(service, "5.13.0");
-    assertEquals("32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb", tag);
+    assertEquals("aa1254a0009a93496de0c9d61283c2f77bf2969e", tag);
   }
 
   @Test
@@ -576,7 +576,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/aa1254a0009a93496de0c9d61283c2f77bf2969e/scripts/install/armadillo-reboot.sh");
   }
 
   @Test

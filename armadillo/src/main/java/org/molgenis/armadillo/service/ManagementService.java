@@ -126,7 +126,9 @@ public class ManagementService {
         "-m",
         armadilloMode,
         "-i",
-        getJavaProcessId(getProcessName()));
+        getJavaProcessId(getProcessName()),
+        "-c",
+        armadilloConfigFile.replace("/application.yml", ""));
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
@@ -159,7 +161,7 @@ public class ManagementService {
     // if script not available yet on current release:
     if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 14) {
       // TODO: update tag
-      scriptVersionTag = "32a373702bb1b1a0b8001b3ed9b8d42b0ec1e5cb";
+      scriptVersionTag = "aa1254a0009a93496de0c9d61283c2f77bf2969e";
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
