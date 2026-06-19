@@ -51,6 +51,7 @@ class ManagementServiceTest {
     setField(service, "armadilloHome", tempDir.toString());
     setField(service, "armadilloConfigFile", tempDir.resolve("application.yml").toString());
     setField(service, "armadilloMode", "PROD");
+    setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
   }
@@ -563,6 +564,30 @@ class ManagementServiceTest {
     when(lastReleaseResponse.statusCode()).thenReturn(404);
 
     assertThatThrownBy(() -> service.getLastRelease()).isInstanceOf(ResponseStatusException.class);
+  }
+
+  @Test
+  void hardRestartApplication_throw_error_when_in_docker() throws Exception {
+    setField(service, "runningInContainer", true);
+    assertThrows(UnsupportedOperationException.class, () -> service.hardRestartApplication());
+  }
+
+  @Test
+  void throwWhenRunningInContainer_does_not_throw_error_when_not_in_docker() throws Exception {
+    assertDoesNotThrow(() -> service.throwWhenRunningInContainer("method"));
+  }
+
+  @Test
+  void saveNewOidcConfig_throw_error_when_in_docker() throws Exception {
+    setField(service, "runningInContainer", true);
+    OidcDetails oidcDetails = mock(OidcDetails.class);
+    assertThrows(UnsupportedOperationException.class, () -> service.saveNewOidcConfig(oidcDetails));
+  }
+
+  @Test
+  void triggerUpdate_throw_error_when_in_docker() throws Exception {
+    setField(service, "runningInContainer", true);
+    assertThrows(UnsupportedOperationException.class, () -> service.triggerUpdate("x.y.z"));
   }
 
   @Test
