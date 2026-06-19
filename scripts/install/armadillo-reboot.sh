@@ -127,31 +127,33 @@ restart_if_down() {
   SERVER_UP="$(lsof -i :8080 | grep java)"
   echo "STATUS: $SERVER_UP"
   # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
-  if [[ ${#SERVER_UP} == 0 && $TIMEOUT -gt 30 ]]; then
+  if [[ ${#SERVER_UP} == 0 ]]; then
     echo "❌ Restart unsuccessful, trying again..."
-    # if attempted update failed, try and roll back old jar
-    echo "🛟 Checking if rollback possible (config or application version)"
-    if [[ $OLD_JAR != "" ]]; then
-      ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
-      echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
-      # else if application.yml.bak available with date of today, attempt rollback
-      elif [[ $CONFIG_PATH != "" ]]; then
-        echo "Config path: ${CONFIG_PATH}"
-        if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
-            echo "❌ Backup config not found!"
-            else
-              echo "🛂 Checking if config backup was made recently"
-              DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
-              DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
-              echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
-              echo "CONFIG MADE: ${DATE_CONFIG}"
-              if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
-                echo "🩹 Rolling back old config file"
-                cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
-                rm "$CONFIG_PATH/application.yml"
-                mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
-            fi
-        fi
+    if [[ $TIMEOUT -gt 30 ]]; then
+      echo "🛟 Checking if rollback possible (config or application version)"
+      # if attempted update failed, try and roll back old jar
+      if [[ $OLD_JAR != "" ]]; then
+        ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
+        echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
+        # else if application.yml.bak available with date of today, attempt rollback
+        elif [[ $CONFIG_PATH != "" ]]; then
+          echo "Config path: ${CONFIG_PATH}"
+          if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
+              echo "❌ Backup config not found!"
+              else
+                echo "🛂 Checking if config backup was made recently"
+                DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
+                DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
+                echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
+                echo "CONFIG MADE: ${DATE_CONFIG}"
+                if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
+                  echo "🩹 Rolling back old config file"
+                  cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
+                  rm "$CONFIG_PATH/application.yml"
+                  mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
+              fi
+          fi
+      fi
     fi
 
     restart_armadillo "$OLD_JAR"
