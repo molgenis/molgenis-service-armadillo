@@ -117,7 +117,7 @@ if [[ $UPDATE == true ]]; then
 fi
 
 increase_timeout() {
-  TIMEOUT=$(( TIMEOUT * TIMEOUT))
+  TIMEOUT=$(( TIMEOUT * 2))
 }
 
 restart_if_down() {
@@ -127,7 +127,7 @@ restart_if_down() {
   SERVER_UP="$(lsof -i :8080 | grep java)"
   echo "STATUS: $SERVER_UP"
   # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
-  if [[ ${#SERVER_UP} == 0 ]]; then
+  if [[ ${#SERVER_UP} == 0 && $TIMEOUT -gt 30 ]]; then
     echo "❌ Restart unsuccessful, trying again..."
     # if attempted update failed, try and roll back old jar
     echo "🛟 Checking if rollback possible (config or application version)"
