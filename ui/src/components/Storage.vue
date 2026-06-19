@@ -36,7 +36,10 @@
                   name="appRadio"
                   :value="app"
                   v-model="appToDelete"
-                  :disabled="getVersionFromJar(app) === currentVersion"
+                  :disabled="
+                    getVersionFromJar(app) === currentVersion ||
+                    app == 'armadillo.jar'
+                  "
                 />
                 <label class="form-check-label">
                   {{ app }}
