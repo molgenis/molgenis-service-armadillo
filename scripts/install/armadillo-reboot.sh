@@ -1,18 +1,21 @@
 #!/bin/bash
 
-echo "🚀 Armadillo Update started, 👩‍🚀 please fasten you're seatbelts, we're about to take off..."
+echo "$(date) 🚀 Armadillo Update started, 👩‍🚀 please fasten you're seatbelts, we're about to take off..."
 #### SET OPTS ####
-while getopts "p:v:m:i:u" flag
+while getopts "p:v:m:i:c:u" flag
 do
   case "${flag}" in
     p) ARMADILLO_PATH=${OPTARG};;
     v) ARMADILLO_VERSION=${OPTARG};;
     m) MODE=${OPTARG};;
     i) PID=${OPTARG};;
+    c) CONFIG_PATH=${OPTARG};;
     u) UPDATE=true;;
-    a*) echo "❌ ERROR: Invalid argument. Only -p (armadillo path), -v (armadillo version), -m (mode: DEV/PROD), -i (process id: the id of the armadillo process) and -u (sets update to true) allowed" & exit_script;;
+    a*) echo "❌ ERROR: Invalid argument. Only -p (armadillo path), -v (armadillo version), -m (mode: DEV/PROD), -i (process id: the id of the armadillo process), -c (path where application.yml resides) and -u (sets update to true) allowed" & exit_script;;
   esac
 done
+
+echo "Running with: path: ${ARMADILLO_PATH}, version: ${ARMADILLO_VERSION}, mode: ${MODE}, process id: ${PID}, config path: ${CONFIG_PATH}, update: ${UPDATE}"
 
 exit_script() {
   echo "🪂 Exiting..."
@@ -91,7 +94,7 @@ if [[ $UPDATE == true ]]; then
   BUILD_DIR=$ARMADILLO_PATH
   if [ "$MODE" == "PROD" ]; then
     # linux
-    OLD_JAR=$(find armadillo.jar -prune -printf "%l\n")
+    OLD_JAR=$(find ${ARMADILLO_PATH}/armadillo.jar -prune -printf "%l\n")
     else
       # default build path when running with gradle/intellij
       BUILD_DIR="$ARMADILLO_PATH/build/libs"
@@ -124,12 +127,33 @@ restart_if_down() {
   SERVER_UP="$(lsof -i :8080)"
   echo "STATUS: $SERVER_UP"
   # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
-  if [[ ${#SERVER_UP} == 0 && $MODE != "PROD" ]]; then
+  if [[ ${#SERVER_UP} == 0 ]]; then
     echo "❌ Restart unsuccessful, trying again..."
+    # if attempted update failed, try and roll back old jar
+    echo "🛟 Checking if rollback possible (config or application version)"
     if [[ $OLD_JAR != "" ]]; then
       ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
-      echo "🔄 Rolling back to old version: ${ARMADILLO_VERSION}"
+      echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
+      # else if application.yml.bak available with date of today, attempt rollback
+      elif [[ $CONFIG_PATH != "" ]]; then
+        echo "Config path: ${CONFIG_PATH}"
+        if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
+            echo "❌ Backup config not found!"
+            else
+              echo "🛂 Checking if config backup was made recently"
+              DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
+              DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
+              echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
+              echo "CONFIG MADE: ${DATE_CONFIG}"
+              if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
+                echo "🩹 Rolling back old config file"
+                cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
+                rm "$CONFIG_PATH/application.yml"
+                mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
+            fi
+        fi
     fi
+
     restart_armadillo "$OLD_JAR"
     increase_timeout
     echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
