@@ -29,7 +29,7 @@
         <div class="col-lg-6 mx-auto">
           <div class="card bg-light mt-2 ms-2">
             <div class="card-body">
-              <div class="form-check" v-for="app in appList" :key="app">
+              <div class="form-check" v-for="app in filteredApps" :key="app">
                 <input
                   class="form-check-input"
                   type="radio"
@@ -37,8 +37,7 @@
                   :value="app"
                   v-model="appToDelete"
                   :disabled="
-                    getVersionFromJar(app) === currentVersion ||
-                    app == 'armadillo.jar'
+                    getVersionFromJar(app) === currentVersion
                   "
                 />
                 <label class="form-check-label">
@@ -82,6 +81,9 @@ export default defineComponent({
     };
   },
   computed: {
+    filteredApps(): StringArray {
+      return this.appList.filter((app) => app !== 'armadillo.jar')
+    },
     diskspace(): DiskSpaceType {
       if (this.totalDiskSpace && this.freeDiskSpace) {
         const usedSpace = this.totalDiskSpace - this.freeDiskSpace;
