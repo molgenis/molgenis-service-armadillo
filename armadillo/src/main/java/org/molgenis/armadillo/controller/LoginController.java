@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -14,13 +13,11 @@ import org.springframework.web.servlet.view.RedirectView;
 @Hidden
 public class LoginController {
   @GetMapping("/oauth2/")
-  @ResponseBody
   public RedirectView whenAuthenticatedRedirect() {
     return new RedirectView("/");
   }
 
   @GetMapping("/basic-login")
-  @ResponseBody
   public RedirectView basicLogin(Principal principal) {
     return new RedirectView("/");
   }

@@ -37,11 +37,9 @@ public final class FileDownloader {
     int bytesRead;
     long totalRead = 0;
     long lastReportedPercent = -1;
-
     while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
       fileOutputStream.write(dataBuffer, 0, bytesRead);
       totalRead += bytesRead;
-
       if (fileSize > 0) {
         long percent = getPercentage(totalRead, fileSize);
         if (percent != lastReportedPercent) {
@@ -58,14 +56,12 @@ public final class FileDownloader {
       throws InterruptedException {
     try {
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-
       HttpResponse<InputStream> response =
           HttpClient.newBuilder()
               .proxy(ProxySelector.getDefault())
               .followRedirects(HttpClient.Redirect.NORMAL) // follow GitHub → S3 redirect
               .build()
               .send(request, HttpResponse.BodyHandlers.ofInputStream());
-
       if (response.statusCode() != 200) {
         throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
       }

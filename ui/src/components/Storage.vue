@@ -36,9 +36,7 @@
                   name="appRadio"
                   :value="app"
                   v-model="appToDelete"
-                  :disabled="
-                    getVersionFromJar(app) === currentVersion
-                  "
+                  :disabled="getVersionFromJar(app) === currentVersion"
                 />
                 <label class="form-check-label">
                   {{ app }}
@@ -82,7 +80,7 @@ export default defineComponent({
   },
   computed: {
     filteredApps(): StringArray {
-      return this.appList.filter((app) => app !== 'armadillo.jar')
+      return this.appList.filter((app) => app !== "armadillo.jar");
     },
     diskspace(): DiskSpaceType {
       if (this.totalDiskSpace && this.freeDiskSpace) {
