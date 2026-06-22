@@ -189,7 +189,7 @@ class ManagementServiceTest {
     m.setAccessible(true);
 
     String tag = (String) m.invoke(service, "5.13.0");
-    assertEquals("aa1254a0009a93496de0c9d61283c2f77bf2969e", tag);
+    assertEquals("2b0c42c171c62074ec3fd119187cb24a672040a1", tag);
   }
 
   @Test
@@ -197,8 +197,8 @@ class ManagementServiceTest {
     Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
     m.setAccessible(true);
 
-    String tag = (String) m.invoke(service, "5.14.0");
-    assertEquals("refs/tags/v5.14.0", tag);
+    String tag = (String) m.invoke(service, "5.15.0");
+    assertEquals("refs/tags/v5.15.0", tag);
   }
 
   @Test
@@ -516,10 +516,10 @@ class ManagementServiceTest {
         ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
     tagMethod.setAccessible(true);
 
-    String strippedVersion = "v5.14.0".replace("v", "");
+    String strippedVersion = "v5.15.0".replace("v", "");
     String tag = (String) tagMethod.invoke(service, strippedVersion);
 
-    assertEquals("refs/tags/v5.14.0", tag);
+    assertEquals("refs/tags/v5.15.0", tag);
   }
 
   @Test
@@ -601,7 +601,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/aa1254a0009a93496de0c9d61283c2f77bf2969e/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/2b0c42c171c62074ec3fd119187cb24a672040a1/scripts/install/armadillo-reboot.sh");
   }
 
   @Test

@@ -262,7 +262,6 @@ export default defineComponent({
     },
     updateApplication() {
       if (this.versionToUpdateTo !== this.currentVersion) {
-        console.log("update app", this.currentVersion, this.versionToUpdateTo);
         this.downloadUpdater(this.versionToUpdateTo);
         this.warningMessage =
           "Update in progress. The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator.";
@@ -289,7 +288,9 @@ export default defineComponent({
         softRestartServer();
       }
       if (this.hardRestartTriggered) {
-        hardRestartServer();
+        this.downloadUpdater(this.currentVersion).then(() =>
+          hardRestartServer()
+        );
       }
     },
     cancelRestartServer() {
@@ -319,17 +320,19 @@ export default defineComponent({
       this.deleteJarTriggered = false;
     },
     saveOidcConfig() {
-      putAuthServerConfig(this.configToSave)
-        .then(() => {
-          this.successMessage = "Successfully updated OIDC config";
-          this.authConfig = this.configToSave;
-          this.cancelOidcUpdate();
-          this.proceedRestartServer();
-        })
-        .catch((errrorMsg) => {
-          this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
-          this.cancelOidcUpdate();
-        });
+      this.downloadUpdater(this.currentVersion).then(() => {
+        putAuthServerConfig(this.configToSave)
+          .then(() => {
+            this.successMessage = "Successfully updated OIDC config";
+            this.authConfig = this.configToSave;
+            this.cancelOidcUpdate();
+            this.proceedRestartServer();
+          })
+          .catch((errrorMsg) => {
+            this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
+            this.cancelOidcUpdate();
+          });
+      });
     },
   },
 });

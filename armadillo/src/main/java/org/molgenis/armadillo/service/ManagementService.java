@@ -170,9 +170,8 @@ public class ManagementService {
     String[] versionSplit = version.split("\\.");
     String scriptVersionTag;
     // if script not available yet on current release:
-    if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 14) {
-      // TODO: update tag
-      scriptVersionTag = "aa1254a0009a93496de0c9d61283c2f77bf2969e";
+    if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 15) {
+      scriptVersionTag = "2b0c42c171c62074ec3fd119187cb24a672040a1";
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
@@ -187,6 +186,7 @@ public class ManagementService {
   private void updateApplicationConfig(OidcDetails oidcDetails) {
     try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
       List<String> lines = br.lines().collect(Collectors.toList());
+      //      List<String> lines = br.lines().toList();
       String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
       String newConfig = transformConfig(lines, oidcDetails);
 
@@ -312,11 +312,18 @@ public class ManagementService {
 
   // Simple mutable state carrier — private inner class or a record (Java 16+)
   private static class ConfigParseState {
-    boolean providerFound, providerMolgenisFound;
-    boolean registrationFound, registrationMolgenisFound;
-    boolean resourceServerFound, resourceServerJwtFound, resourceServerOpaqueFound;
-    boolean clientIdUpdated, clientSecretUpdated;
-    boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
+    boolean providerFound;
+    boolean providerMolgenisFound;
+    boolean registrationFound;
+    boolean registrationMolgenisFound;
+    boolean resourceServerFound;
+    boolean resourceServerJwtFound;
+    boolean resourceServerOpaqueFound;
+    boolean clientIdUpdated;
+    boolean clientSecretUpdated;
+    boolean issuerUriUpdated;
+    boolean deviceIssuerUriUpdated;
+    boolean deviceClientIdUpdated;
   }
 
   String getUpdateScriptPath() {
