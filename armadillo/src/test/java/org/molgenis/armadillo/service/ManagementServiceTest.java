@@ -19,6 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -183,31 +185,21 @@ class ManagementServiceTest {
   // getScriptVersionTag (private — tested via reflection)
   // -------------------------------------------------------------------------
 
+  String getTag(String version) throws Exception {
+    Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
+    m.setAccessible(true);
+    return (String) m.invoke(service, version);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"5.15.0", "6.0.0"})
+  void getScriptVersionTag(String version) throws Exception {
+    assertEquals("refs/tags/v" + version, getTag(version));
+  }
+
   @Test
   void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
-    m.setAccessible(true);
-
-    String tag = (String) m.invoke(service, "5.13.0");
-    assertEquals("2b0c42c171c62074ec3fd119187cb24a672040a1", tag);
-  }
-
-  @Test
-  void getScriptVersionTag_returnsRefTagForNewVersions() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
-    m.setAccessible(true);
-
-    String tag = (String) m.invoke(service, "5.15.0");
-    assertEquals("refs/tags/v5.15.0", tag);
-  }
-
-  @Test
-  void getScriptVersionTag_returnsRefTagForVersion6AndAbove() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
-    m.setAccessible(true);
-
-    String tag = (String) m.invoke(service, "6.0.0");
-    assertEquals("refs/tags/v6.0.0", tag);
+    assertEquals("2b0c42c171c62074ec3fd119187cb24a672040a1", getTag("5.13.0"));
   }
 
   // -------------------------------------------------------------------------
@@ -523,7 +515,7 @@ class ManagementServiceTest {
   }
 
   @Test
-  void downloadUpdateScript_FailsWhenInvalidVersion() throws Exception {
+  void downloadUpdateScript_FailsWhenInvalidVersion() {
     assertThrows(ResponseStatusException.class, () -> service.downloadUpdateScript("INVALID"));
   }
 
@@ -534,7 +526,7 @@ class ManagementServiceTest {
       downloader
           .when(() -> FileDownloader.downloadFile(anyString(), anyString()))
           .thenAnswer(
-              (interceptor) -> {
+              interceptor -> {
                 called.set(true);
                 return null;
               });
@@ -573,7 +565,7 @@ class ManagementServiceTest {
   }
 
   @Test
-  void throwWhenRunningInContainer_does_not_throw_error_when_not_in_docker() throws Exception {
+  void throwWhenRunningInContainer_does_not_throw_error_when_not_in_docker() {
     assertDoesNotThrow(() -> service.throwWhenRunningInContainer("method"));
   }
 

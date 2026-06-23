@@ -185,8 +185,7 @@ public class ManagementService {
 
   private void updateApplicationConfig(OidcDetails oidcDetails) {
     try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
-      List<String> lines = br.lines().collect(Collectors.toList());
-      //      List<String> lines = br.lines().toList();
+      List<String> lines = br.lines().toList();
       String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
       String newConfig = transformConfig(lines, oidcDetails);
 
@@ -358,7 +357,7 @@ public class ManagementService {
 
   public Set<String> listAvailableJars() {
     return listFilesForDir(getJarHome()).stream()
-        .filter((name) -> name.endsWith(".jar"))
+        .filter(name -> name.endsWith(".jar"))
         .collect(Collectors.toSet());
   }
 
@@ -369,29 +368,29 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
-  public SseEmitter downloadArmadilloJar(String version) throws IOException, InterruptedException {
+  public SseEmitter downloadArmadilloJar(String version) {
     if (isValidVersion(version)) {
       SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
-      String armadilloJar = getJarFromVersion(version);
-      String downloadUrl = String.format(releaseDownloadUrl, version, armadilloJar);
-      String armadilloInstallation = getJarHome() + File.separator + armadilloJar;
+      String jarToUpdateTo = getJarFromVersion(version);
+      String downloadUrl = String.format(releaseDownloadUrl, version, jarToUpdateTo);
+      String armadilloInstallation = getJarHome() + File.separator + jarToUpdateTo;
       // Run download in background thread — SSE must not block the request thread
       Thread.ofVirtual()
           .start(
               () -> {
                 try {
-                  if (fileExistsInDir(armadilloJar, getJarHome())) {
+                  if (fileExistsInDir(jarToUpdateTo, getJarHome())) {
                     emitter.send(SseEmitter.event().name(progress).data("100")); // already there
                   } else {
                     downloadFile(
                         downloadUrl,
                         armadilloInstallation,
-                        progress -> {
+                        downloadProgress -> {
                           try {
                             emitter.send(
                                 SseEmitter.event()
                                     .name(this.progress)
-                                    .data(String.valueOf(progress)));
+                                    .data(String.valueOf(downloadProgress)));
                           } catch (IOException e) {
                             emitter.completeWithError(e);
                           }
@@ -399,6 +398,9 @@ public class ManagementService {
                   }
                   emitter.send(SseEmitter.event().name(done).data(downloadComplete));
                   emitter.complete();
+                } catch (InterruptedException e) {
+                  Thread.currentThread().interrupt();
+                  emitter.completeWithError(e);
                 } catch (Exception e) {
                   emitter.completeWithError(e);
                 }

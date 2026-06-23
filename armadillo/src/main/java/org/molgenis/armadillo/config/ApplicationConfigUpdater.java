@@ -16,11 +16,18 @@ public class ApplicationConfigUpdater {
 
   // Simple mutable state carrier — private inner class or a record (Java 16+)
   private static class ConfigParseState {
-    boolean providerFound, providerMolgenisFound;
-    boolean registrationFound, registrationMolgenisFound;
-    boolean resourceServerFound, resourceServerJwtFound, resourceServerOpaqueFound;
-    boolean clientIdUpdated, clientSecretUpdated;
-    boolean issuerUriUpdated, deviceIssuerUriUpdated, deviceClientIdUpdated;
+    boolean providerFound;
+    boolean providerMolgenisFound;
+    boolean registrationFound;
+    boolean registrationMolgenisFound;
+    boolean resourceServerFound;
+    boolean resourceServerJwtFound;
+    boolean resourceServerOpaqueFound;
+    boolean clientIdUpdated;
+    boolean clientSecretUpdated;
+    boolean issuerUriUpdated;
+    boolean deviceIssuerUriUpdated;
+    boolean deviceClientIdUpdated;
   }
 
   public ApplicationConfigUpdater(String armadilloConfigFile) {
