@@ -174,3 +174,67 @@ information to get you started and help you get familiarised with our code and w
     We aim to release all our packages (excluding DSUpload) to CRAN, to increase visibility and compatibility. This
     means that documentation and vignettes should be updated in every pull request that changes or updates 
     functionality.
+
+=== ":material-update: System control page"
+
+    Testing the system control page is possible in dev mode on MacOS, if running Armadillo as described here.
+
+    Add the following to your `application.yml`:
+    ```
+    armadillo:
+      armadillo-home: /path/to/molgenis-service-armadillo
+      armadillo-config-file: /path/to/application.yml
+      armadillo-mode: DEV
+    ```
+    
+    1. Create config file for running armadillo globally on your macbook:
+       `sudo nano /Library/LaunchAgents/org.molgenis.armadillo.plist`
+       Add the following (replace `{ARMADILLO_LOCATION}` with the root of your armadillo clone):
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+        <dict>
+            <key>Label</key>
+            <string>org.molgenis.armadillo</string>
+    
+            <key>ProgramArguments</key>
+            <array>
+                <string>/usr/bin/java</string>
+                <string>-jar</string>
+                <string>{ARMADILLO_LOCATION}/armadillo.jar</string>
+            </array>
+            <key>RunAtLoad</key>
+            <true/>
+            <key>KeepAlive</key>
+            <true/> <!-- run the program again if it terminates -->
+            <key>WorkingDirectory</key>
+            <string>{ARMADILLO_LOCATION}/</string>
+            <key>StandardErrorPath</key>
+            <string>{ARMADILLO_LOCATION}/logs/armadillo-global.err</string>
+            <key>StandardOutPath</key>
+            <string>{ARMADILLO_LOCATION}/logs/armadillo-global.out</string>
+        </dict>
+    </plist>
+    ```
+    2. Gradle build armadillo on this PR branch (assuming this will land in `/build/libs`)
+       3. In the root of your armadillo clone (as set in previous config), do the following:
+          (check if version in command below is correct according to your build)
+          ```ln -s build/libs/molgenis-armadillo-5.14.0-SNAPSHOT.jar armadillo.jar```
+       4. Enable the global run of armadillo:
+    ```bash
+    loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+    userID=$( id -u $loggedInUser )
+    launchctl enable gui/${userID}/org.molgenis.armadillo.plist
+    ```
+    5. Run in root of armadillo clone:
+    ``` bash
+    cp scripts/install/armadillo-update.sh .
+    chmod a+x armadillo-update.sh
+    ```
+    6. Start up global armadillo service:
+       ```launchctl bootstrap gui/${userID} /Library/LaunchAgents/org.molgenis.armadillo.plist```
+       7. Go to localhost:8080 to see if armadillo is running
+       8. To get log, run in root of armadillo:
+          `tail -1000f /logs/armadillo-global.out`
+          Logs of the script after bringing armadillo down via update, can be found in: `logs/update.log`. This can't be put in the armadillo log, as armadillo is being brought down and up again, losing this information.
