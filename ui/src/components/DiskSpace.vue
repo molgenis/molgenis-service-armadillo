@@ -5,7 +5,7 @@
       <div
         class="progress-bar bg-success"
         role="progressbar"
-        aria-label="Success striped example"
+        aria-label="diskspace"
         :style="'width:' + percentage + '%'"
         :aria-valuenow="percentage.toString()"
         aria-valuemin="0"
