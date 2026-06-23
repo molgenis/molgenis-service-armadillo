@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.molgenis.armadillo.metadata.OidcDetails;
 
@@ -36,8 +35,7 @@ public class ApplicationConfigUpdater {
 
   public void updateApplicationConfig(OidcDetails oidcDetails) {
     try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
-      List<String> lines = br.lines().collect(Collectors.toList());
-      //      List<String> lines = br.lines().toList();
+      List<String> lines = br.lines().toList();
       String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
       String newConfig = transformConfig(lines, oidcDetails);
 

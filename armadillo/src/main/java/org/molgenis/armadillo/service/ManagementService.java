@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -272,9 +273,14 @@ public class ManagementService {
     if (appVersion.equals(version)) {
       throw new StorageException("Cannot delete file: jar is currently running.");
     } else {
-      File armadilloJar = new File(fileToDelete);
-      if (!armadilloJar.delete()) {
-        throw new StorageException("Cannot delete file: " + armadilloJar.getName());
+      Path path = Paths.get(fileToDelete);
+      try {
+        Files.delete(path);
+      } catch (NoSuchFileException x) {
+        throw new StorageException(format("%s: no such file or directory%n", path));
+      } catch (IOException x) {
+        throw new StorageException(
+            format("Cannot delete file: [%s] because %s.", path.getFileName(), x));
       }
     }
   }
