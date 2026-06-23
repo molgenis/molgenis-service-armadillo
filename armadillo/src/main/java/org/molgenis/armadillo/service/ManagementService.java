@@ -347,7 +347,12 @@ public class ManagementService {
       downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
       // give permissions to run the script
       File script = new File(updateScriptPath);
-      script.setExecutable(true, false);
+      boolean isExecutableSet = script.setExecutable(true, false);
+      if (!isExecutableSet) {
+        throw new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Failed to set file as executable: " + updateScriptPath);
+      }
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
     }

@@ -520,7 +520,7 @@ class ManagementServiceTest {
   }
 
   @Test
-  void downloadUpdateScript_TriggersDownloadMethod() throws Exception {
+  void downloadUpdateScript_FailsWhenRebootScriptMissing() throws Exception {
     AtomicBoolean called = new AtomicBoolean(false);
     try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
       downloader
@@ -530,6 +530,24 @@ class ManagementServiceTest {
                 called.set(true);
                 return null;
               });
+
+      assertThrows(ResponseStatusException.class, () -> service.downloadUpdateScript("v1.1.0"));
+    }
+  }
+
+  @Test
+  void downloadUpdateScript_TriggersDownloadMethod() throws Exception {
+    AtomicBoolean called = new AtomicBoolean(false);
+    Files.createFile(tempDir.resolve("armadillo-reboot.sh"));
+    try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
+      downloader
+          .when(() -> FileDownloader.downloadFile(anyString(), anyString()))
+          .thenAnswer(
+              interceptor -> {
+                called.set(true);
+                return null;
+              });
+
       service.downloadUpdateScript("v1.1.0");
       assertTrue(called.get());
     }
