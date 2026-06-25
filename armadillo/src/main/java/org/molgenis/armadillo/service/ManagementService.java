@@ -283,6 +283,14 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
+  private void updateDownloadProgress(SseEmitter emitter, String progress) {
+    try {
+      emitter.send(SseEmitter.event().name(this.progress).data(progress));
+    } catch (IOException e) {
+      emitter.completeWithError(e);
+    }
+  }
+
   public SseEmitter downloadArmadilloJar(String version) {
     if (isValidVersion(version)) {
       SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
@@ -300,16 +308,8 @@ public class ManagementService {
                     downloadFile(
                         downloadUrl,
                         armadilloInstallation,
-                        downloadProgress -> {
-                          try {
-                            emitter.send(
-                                SseEmitter.event()
-                                    .name(this.progress)
-                                    .data(String.valueOf(downloadProgress)));
-                          } catch (IOException e) {
-                            emitter.completeWithError(e);
-                          }
-                        });
+                        downloadProgress ->
+                            updateDownloadProgress(emitter, String.valueOf(downloadProgress)));
                   }
                   emitter.send(SseEmitter.event().name(done).data(downloadComplete));
                   emitter.complete();
