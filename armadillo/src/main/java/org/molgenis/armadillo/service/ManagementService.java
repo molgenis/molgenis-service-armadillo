@@ -328,7 +328,6 @@ public class ManagementService {
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
     throwWhenRunningInContainer("update oidc config");
-    System.out.println(armadilloConfigFile);
     appConfigUpdater.updateApplicationConfig(oidcDetails);
     hardRestartApplication();
   }
