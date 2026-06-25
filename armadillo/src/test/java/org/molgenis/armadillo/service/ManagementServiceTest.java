@@ -68,15 +68,19 @@ class ManagementServiceTest {
   // Constructor — updateLogPath derivation
   // -------------------------------------------------------------------------
 
+  ManagementService getManagementServiceForConstructor(String logPath, String updatePath) {
+    return new ManagementService(
+        logPath,
+        updatePath,
+        tempDir.resolve("application.yml").toString(),
+        buildProperties,
+        httpClient);
+  }
+
   @Test
   void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
     ManagementService svc =
-        new ManagementService(
-            "/var/log/armadillo/armadillo.log",
-            null,
-            tempDir.resolve("application.yml").toString(),
-            buildProperties,
-            httpClient);
+        getManagementServiceForConstructor("/var/log/armadillo/armadillo.log", null);
     String path = (String) getField(svc, "updateLogPath");
     assertEquals("/var/log/armadillo/update.log", path);
   }
@@ -84,12 +88,7 @@ class ManagementServiceTest {
   @Test
   void constructor_usesExplicitUpdateLogPath() throws Exception {
     ManagementService svc =
-        new ManagementService(
-            "./logs/armadillo.log",
-            "/custom/path/update.log",
-            tempDir.resolve("application.yml").toString(),
-            buildProperties,
-            httpClient);
+        getManagementServiceForConstructor("./logs/armadillo.log", "/custom/path/update.log");
     // When updatePath is explicitly provided it is used directly
     // (the constructor only assigns when updatePath == null)
     String path = (String) getField(svc, "updateLogPath");
