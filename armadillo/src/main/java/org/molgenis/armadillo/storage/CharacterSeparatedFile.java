@@ -118,7 +118,7 @@ public class CharacterSeparatedFile {
     try {
       double d = Double.parseDouble(cell);
       if ((d == Math.floor(d)) && !Double.isInfinite(d) && !cell.contains(".")) {
-        return CharacterSeparatedFile.INT;
+        return hasLeadingZero(cell) ? CharacterSeparatedFile.STRING : CharacterSeparatedFile.INT;
       } else {
         return CharacterSeparatedFile.DOUBLE;
       }
@@ -133,6 +133,11 @@ public class CharacterSeparatedFile {
         return CharacterSeparatedFile.STRING;
       }
     }
+  }
+
+  static boolean hasLeadingZero(String cell) {
+    String digits = (cell.startsWith("-") || cell.startsWith("+")) ? cell.substring(1) : cell;
+    return digits.length() > 1 && digits.charAt(0) == '0';
   }
 
   static String getTypeToSet(String type, String currentType) {
