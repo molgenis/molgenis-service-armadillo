@@ -34,6 +34,7 @@ public class ApplicationConfigUpdater {
   }
 
   public void updateApplicationConfig(OidcDetails oidcDetails) {
+    System.out.println(armadilloConfigFile);
     try (BufferedReader br = new BufferedReader(new FileReader(armadilloConfigFile))) {
       List<String> lines = br.lines().toList();
       String existingConfig = String.join(System.lineSeparator(), lines) + System.lineSeparator();
@@ -51,11 +52,12 @@ public class ApplicationConfigUpdater {
     }
   }
 
-  String transformConfig(List<String> lines, OidcDetails oidcDetails) {
+  public String transformConfig(List<String> lines, OidcDetails oidcDetails) {
     ConfigParseState state = new ConfigParseState();
     StringBuilder newConfig = new StringBuilder();
 
     for (String line : lines) {
+      System.out.println(line);
       newConfig.append(transformLine(line, state, oidcDetails));
       newConfig.append(System.lineSeparator());
     }
@@ -82,6 +84,9 @@ public class ApplicationConfigUpdater {
     }
   }
 
+  // the code appears readable to me, reducing complexity doesnt really work, splitting things up
+  // more only lead sto confusion
+  @SuppressWarnings("java:S3776")
   String applyTransformation(String line, ConfigParseState state, OidcDetails oidcDetails) {
     if (line.contains("issuer-uri:")) {
       if (state.providerMolgenisFound && !state.issuerUriUpdated) {

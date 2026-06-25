@@ -47,7 +47,13 @@ class ManagementServiceTest {
   @BeforeEach
   void setUp() throws Exception {
     buildProperties = mock(BuildProperties.class);
-    service = new ManagementService("./logs/armadillo.log", null, buildProperties, httpClient);
+    service =
+        new ManagementService(
+            "./logs/armadillo.log",
+            null,
+            tempDir.resolve("application.yml").toString(),
+            buildProperties,
+            httpClient);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
     setField(service, "armadilloHome", tempDir.toString());
@@ -66,7 +72,11 @@ class ManagementServiceTest {
   void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
     ManagementService svc =
         new ManagementService(
-            "/var/log/armadillo/armadillo.log", null, buildProperties, httpClient);
+            "/var/log/armadillo/armadillo.log",
+            null,
+            tempDir.resolve("application.yml").toString(),
+            buildProperties,
+            httpClient);
     String path = (String) getField(svc, "updateLogPath");
     assertEquals("/var/log/armadillo/update.log", path);
   }
@@ -75,7 +85,11 @@ class ManagementServiceTest {
   void constructor_usesExplicitUpdateLogPath() throws Exception {
     ManagementService svc =
         new ManagementService(
-            "./logs/armadillo.log", "/custom/path/update.log", buildProperties, httpClient);
+            "./logs/armadillo.log",
+            "/custom/path/update.log",
+            tempDir.resolve("application.yml").toString(),
+            buildProperties,
+            httpClient);
     // When updatePath is explicitly provided it is used directly
     // (the constructor only assigns when updatePath == null)
     String path = (String) getField(svc, "updateLogPath");
@@ -203,118 +217,6 @@ class ManagementServiceTest {
   }
 
   // -------------------------------------------------------------------------
-  // replaceValue (private — tested via reflection)
-  // -------------------------------------------------------------------------
-
-  @Test
-  void replaceValue_replacesValueAfterColon() throws Exception {
-    Method m =
-        ManagementService.class.getDeclaredMethod("replaceValue", String.class, String.class);
-    m.setAccessible(true);
-
-    String result =
-        (String)
-            m.invoke(service, "  issuer-uri: https://old.example.com", "https://new.example.com");
-    assertEquals("  issuer-uri: https://new.example.com", result);
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig / updateApplicationConfig
-  // -------------------------------------------------------------------------
-
-  @Test
-  void updateApplicationConfig_updatesIssuerUri() throws Exception {
-    String yaml =
-        """
-                spring:
-                  security:
-                    oauth2:
-                      client:
-                        provider:
-                          molgenis:
-                            issuer-uri: https://old.example.com
-                        registration:
-                          molgenis:
-                            client-id: old-client
-                            client-secret: old-secret
-                      resourceserver:
-                        jwt:
-                          issuer-uri: https://old-device.example.com
-                        opaquetoken:
-                          client-id: old-device-client
-                """;
-
-    Path configFile = tempDir.resolve("application.yml");
-    Files.writeString(configFile, yaml);
-    setField(service, "armadilloConfigFile", configFile.toString());
-
-    OidcDetails details = mock(OidcDetails.class);
-    when(details.getIssuerUri()).thenReturn("https://new.example.com");
-    when(details.getClientId()).thenReturn("new-client");
-    when(details.getClientSecret()).thenReturn("new-secret");
-    when(details.getDeviceIssuerUri()).thenReturn("https://new-device.example.com");
-    when(details.getDeviceClientId()).thenReturn("new-device-client");
-
-    Method m =
-        ManagementService.class.getDeclaredMethod("updateApplicationConfig", OidcDetails.class);
-    m.setAccessible(true);
-    m.invoke(service, details);
-
-    String updated = Files.readString(configFile);
-    assertTrue(updated.contains("issuer-uri: https://new.example.com"));
-    assertTrue(updated.contains("client-id: new-client"));
-    assertTrue(updated.contains("client-secret: new-secret"));
-    assertTrue(updated.contains("issuer-uri: https://new-device.example.com"));
-    assertTrue(updated.contains("client-id: new-device-client"));
-
-    // Backup file should exist
-    assertTrue(Files.exists(Path.of(configFile + ".bak")));
-  }
-
-  @Test
-  void updateApplicationConfig_preservesComments() throws Exception {
-    String yaml =
-        """
-                # This is a comment
-                spring:
-                  security:
-                    oauth2:
-                      client:
-                        provider:
-                          molgenis:
-                            issuer-uri: https://old.example.com
-                        registration:
-                          molgenis:
-                            client-id: old-client
-                            client-secret: old-secret
-                      resourceserver:
-                        jwt:
-                          issuer-uri: https://old-device.example.com
-                        opaquetoken:
-                          client-id: old-device-client
-                """;
-
-    Path configFile = tempDir.resolve("application.yml");
-    Files.writeString(configFile, yaml);
-    setField(service, "armadilloConfigFile", configFile.toString());
-
-    OidcDetails details = mock(OidcDetails.class);
-    when(details.getIssuerUri()).thenReturn("https://new.example.com");
-    when(details.getClientId()).thenReturn("new-client");
-    when(details.getClientSecret()).thenReturn("new-secret");
-    when(details.getDeviceIssuerUri()).thenReturn("https://new-device.example.com");
-    when(details.getDeviceClientId()).thenReturn("new-device-client");
-
-    Method m =
-        ManagementService.class.getDeclaredMethod("updateApplicationConfig", OidcDetails.class);
-    m.setAccessible(true);
-    m.invoke(service, details);
-
-    String updated = Files.readString(configFile);
-    assertTrue(updated.contains("# This is a comment"));
-  }
-
-  // -------------------------------------------------------------------------
   // getJarHome — DEV vs PROD mode
   // -------------------------------------------------------------------------
 
@@ -345,7 +247,11 @@ class ManagementServiceTest {
   void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
     ManagementService svc =
         new ManagementService(
-            "./logs/armadillo.log", "/custom/path/update.log", buildProperties, httpClient);
+            "./logs/armadillo.log",
+            "/custom/path/update.log",
+            tempDir.resolve("application.yml").toString(),
+            buildProperties,
+            httpClient);
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set
     assertNull(path);
@@ -446,54 +352,6 @@ class ManagementServiceTest {
     boolean jarPresent =
         (boolean) m.invoke(service, "molgenis-armadillo-5.14.0.jar", tempDir.toString());
     assertTrue(jarPresent); // jar found → isArmadilloUpdateAvailable returns false
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — unrelated config lines pass through unchanged
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_preservesUnrelatedLines() throws Exception {
-    String yaml =
-        """
-                        spring:
-                          datasource:
-                            url: jdbc:postgresql://localhost/armadillo
-                          security:
-                            oauth2:
-                              client:
-                                provider:
-                                  molgenis:
-                                    issuer-uri: https://old.example.com
-                                registration:
-                                  molgenis:
-                                    client-id: old-client
-                                    client-secret: old-secret
-                              resourceserver:
-                                jwt:
-                                  issuer-uri: https://old-device.example.com
-                                opaquetoken:
-                                  client-id: old-device-client
-                        """;
-
-    Path configFile = tempDir.resolve("application.yml");
-    Files.writeString(configFile, yaml);
-    setField(service, "armadilloConfigFile", configFile.toString());
-
-    OidcDetails details = mock(OidcDetails.class);
-    when(details.getIssuerUri()).thenReturn("https://new.example.com");
-    when(details.getClientId()).thenReturn("new-client");
-    when(details.getClientSecret()).thenReturn("new-secret");
-    when(details.getDeviceIssuerUri()).thenReturn("https://new-device.example.com");
-    when(details.getDeviceClientId()).thenReturn("new-device-client");
-
-    Method m =
-        ManagementService.class.getDeclaredMethod("updateApplicationConfig", OidcDetails.class);
-    m.setAccessible(true);
-    m.invoke(service, details);
-
-    String updated = Files.readString(configFile);
-    assertTrue(updated.contains("url: jdbc:postgresql://localhost/armadillo"));
   }
 
   // -------------------------------------------------------------------------
