@@ -377,7 +377,7 @@ class ManagementServiceTest {
   }
 
   @Test
-  void downloadUpdateScript_FailsWhenRebootScriptMissing() throws Exception {
+  void downloadUpdateScript_FailsWhenRebootScriptMissing() {
     AtomicBoolean called = new AtomicBoolean(false);
     try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
       downloader
