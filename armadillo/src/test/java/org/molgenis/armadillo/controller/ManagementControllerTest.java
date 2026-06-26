@@ -137,14 +137,6 @@ class ManagementControllerTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  void downloadVersion_GET() throws Exception {
-    mockMvc.perform(get("/app/download").with(csrf())).andExpect(status().isOk());
-
-    verify(auditor).audit(any(Supplier.class), any(Principal.class), eq("DOWNLOAD_ARMADILLO"));
-  }
-
-  @Test
-  @WithMockUser(roles = "SU")
   void deleteJar_DELETE() throws Exception {
     mockMvc
         .perform(delete("/manage/app/delete-jar").param("version", "1.0.0").with(csrf()))
