@@ -13,9 +13,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.security.AuthConfig;
+import org.molgenis.armadillo.security.LoginAttemptTracker;
+import org.molgenis.armadillo.security.NoPopupBasicAuthenticationEntryPoint;
 import org.molgenis.armadillo.service.ManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +44,10 @@ class ManagementControllerTest {
   @MockitoBean AuditEventPublisher auditor;
   @MockitoBean org.molgenis.armadillo.metadata.AccessService accessService;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
+  @MockitoBean LoginAttemptTracker loginAttemptTracker;
+
+  @MockitoBean(answers = Answers.CALLS_REAL_METHODS)
+  NoPopupBasicAuthenticationEntryPoint noPopupBasicAuthenticationEntryPoint;
 
   @Test
   @WithMockUser(roles = "SU")
@@ -312,6 +319,9 @@ class ManagementControllerTest {
                 .content(new Gson().toJson(oidcDetails))
                 .contentType(APPLICATION_JSON)
                 .with(csrf()))
-        .andExpect(status().isUnauthorized());
+        .andExpect(
+            result -> {
+              result.equals("{\"attemptsRemaining\": 4}");
+            });
   }
 }
