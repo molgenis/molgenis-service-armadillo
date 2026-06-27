@@ -1,0 +1,36 @@
+# Opal + Mongo + Rock for the benchmark. Everything is env-interpolated from
+# benchmark.sh / bench.env -- nothing is mutated at runtime. The Rock image is the
+# PUBLISHED, dsBase-version-pinned datashield/rock-base:${DSBASE_VERSION} (matched
+# to the Armadillo profiles and the client lib). Permissive disclosure is set per
+# profile (datashield.privacyControlLevel), not by a custom image build.
+services:
+  opal:
+    image: datashield/opal_citest:${OPAL_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+      - "8080:8080"
+    links:
+      - mongo
+      - rock
+    environment:
+      - OPAL_ADMINISTRATOR_PASSWORD=${OPAL_PASS:-datashield_test&}
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_USER=root
+      - MONGO_PASSWORD=foobar
+      - ROCK_HOSTS=rock:8085
+      - ROCK_ADMINISTRATOR_PASSWORD=foobar
+
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=foobar
+
+  rock:
+    image: ${ROCK_IMAGE:-datashield/rock-base:latest}
+    restart: unless-stopped
+    environment:
+      DEBUG: "FALSE"
