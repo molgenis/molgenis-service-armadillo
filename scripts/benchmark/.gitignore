@@ -1,0 +1,13 @@
+# Local config + installed packages + generated output
+bench.env
+.env
+.Rlib/
+.Rlib_*/
+results/*
+!results/.gitkeep
+data/*
+!data/.gitkeep
+Rplots.pdf
+.Rhistory
+.RData
+.DS_Store
