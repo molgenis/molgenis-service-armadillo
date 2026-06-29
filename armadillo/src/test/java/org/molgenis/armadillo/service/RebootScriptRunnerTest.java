@@ -14,15 +14,12 @@ import org.junit.jupiter.api.io.TempDir;
 class RebootScriptRunnerTest {
   @TempDir Path tempDir;
 
-  private File logFile;
-  private String jarHome;
   RebootScriptRunner scriptRunner;
 
   @BeforeEach
   void setUp() throws Exception {
-    logFile = tempDir.resolve("test.log").toFile();
-    logFile.createNewFile();
-    jarHome = tempDir.resolve("armadillo.jar").toString();
+    File logFile = tempDir.resolve("test.log").toFile();
+    String jarHome = tempDir.resolve("armadillo.jar").toString();
     scriptRunner = new RebootScriptRunner(logFile.getAbsolutePath(), jarHome);
   }
 
