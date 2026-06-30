@@ -72,17 +72,17 @@ restart_armadillo() {
 
 check_version_exists() {
    # Check if jar available
-    VERSION_FOUND=false
+    VERSION_FOUND=0
 
     # check if jar is available
     for entry in "$1"/*
     do
       if [[ "$entry" == *$2 ]]; then
-        VERSION_FOUND=true
+        VERSION_FOUND=1
         echo "ℹ️ Armadillo jar for version $3 available: $entry"
       fi
     done
-    echo $VERSION_FOUND
+    return $VERSION_FOUND
 }
 
 #### HERE IT STARTS ####
