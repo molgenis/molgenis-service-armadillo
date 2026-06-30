@@ -44,6 +44,35 @@ class CharacterSeparatedFileTest {
   }
 
   @Test
+  void testConstructorStoresLeadingZeroColumnAsString() throws IOException, CsvValidationException {
+    String csvData = "id,age\n001,30\n002,25\n";
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
+
+    CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
+
+    assertEquals(
+        List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.INT), csf.getTypes());
+  }
+
+  @Test
+  void testConstructorMixedLeadingZeroColumnStaysString()
+      throws IOException, CsvValidationException {
+    // a column mixing a plain int and a leading-zero value must resolve to string for the
+    // whole column so no leading zeros are lost
+    String csvData = "id,age\n1,30\n002,25\n";
+    Mockito.when(mockFile.getInputStream())
+        .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
+    Mockito.when(mockFile.getOriginalFilename()).thenReturn("test.csv");
+
+    CharacterSeparatedFile csf = new CharacterSeparatedFile(mockFile);
+
+    assertEquals(
+        List.of(CharacterSeparatedFile.STRING, CharacterSeparatedFile.INT), csf.getTypes());
+  }
+
+  @Test
   void testErrorThrownWhenSchemaCannotBeCreated() throws IOException {
     String csvData = "name of person,age\nJohn,30\nJane,25\n";
     Mockito.when(mockFile.getInputStream())
@@ -97,6 +126,14 @@ class CharacterSeparatedFileTest {
   @Test
   void testGetTypeOfCellInt() {
     assertEquals(CharacterSeparatedFile.INT, CharacterSeparatedFile.getTypeOfCell("1"));
+    assertEquals(CharacterSeparatedFile.INT, CharacterSeparatedFile.getTypeOfCell("0"));
+  }
+
+  @Test
+  void testGetTypeOfCellLeadingZeroIsString() {
+    assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("001"));
+    assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("08028"));
+    assertEquals(CharacterSeparatedFile.STRING, CharacterSeparatedFile.getTypeOfCell("-007"));
   }
 
   @Test
