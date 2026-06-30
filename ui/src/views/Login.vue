@@ -32,6 +32,31 @@
                   :successMessage="successMessage"
                   :errorMessage="errorMessage"
                 ></FeedbackMessage>
+                <div
+                  v-if="attemptsRemaining >= 0"
+                  class="alert alert-warning text-center"
+                >
+                  Incorrect username or password.
+                  <span style="white-space: nowrap">
+                    <template v-if="attemptsRemaining === 0"
+                      >Last&nbsp;attempt</template
+                    >
+                    <template v-else
+                      >{{ attemptsRemaining }}&nbsp;{{
+                        attemptsRemaining === 1 ? "attempt" : "attempts"
+                      }}&nbsp;remaining</template
+                    >
+                  </span>
+                  before lockout.
+                </div>
+                <div
+                  v-if="secondsRemaining > 0"
+                  class="alert alert-warning text-center"
+                >
+                  Account locked due to too many incorrect login attempts. Try
+                  again in
+                  {{ formattedLockoutTime }}.
+                </div>
                 <p class="fw-bold">Login using local account:</p>
                 <form @submit.prevent="login">
                   <div class="input-group mb-3">
@@ -65,7 +90,7 @@
                     <button
                       type="submit"
                       class="btn btn-primary mb-4"
-                      @click="login"
+                      :disabled="secondsRemaining > 0"
                     >
                       Log in
                       <i class="bi bi-box-arrow-right"></i>
@@ -97,7 +122,17 @@ export default defineComponent({
       password: "",
       successMessage: "",
       errorMessage: "",
+      attemptsRemaining: -1,
+      secondsRemaining: 0,
+      lockoutTimer: null as ReturnType<typeof setInterval> | null,
     };
+  },
+  computed: {
+    formattedLockoutTime(): string {
+      const mins = Math.floor(this.secondsRemaining / 60);
+      const secs = this.secondsRemaining % 60;
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    },
   },
   methods: {
     toggleShowLogin() {
@@ -112,14 +147,36 @@ export default defineComponent({
       window.location.href = url;
     },
     login() {
+      if (this.secondsRemaining > 0) return;
       authenticate({ user: this.username, pwd: this.password })
         .then(() => {
           this.$router.push("/");
           this.$emit("loginEvent");
         })
-        .catch((error: Error) => {
-          this.errorMessage = error.message;
+        .catch((error: any) => {
+          if (error.secondsRemaining) {
+            this.secondsRemaining = error.secondsRemaining;
+            this.attemptsRemaining = -1;
+            this.startLockoutTimer();
+            this.errorMessage = "";
+          } else if (error.attemptsRemaining !== undefined) {
+            this.attemptsRemaining = error.attemptsRemaining;
+            this.errorMessage = "";
+          } else {
+            this.attemptsRemaining = -1;
+            this.errorMessage = error.message;
+          }
         });
+    },
+    startLockoutTimer() {
+      if (this.lockoutTimer) clearInterval(this.lockoutTimer);
+      this.lockoutTimer = setInterval(() => {
+        this.secondsRemaining--;
+        if (this.secondsRemaining <= 0) {
+          clearInterval(this.lockoutTimer!);
+          this.lockoutTimer = null;
+        }
+      }, 1000);
     },
   },
 });
