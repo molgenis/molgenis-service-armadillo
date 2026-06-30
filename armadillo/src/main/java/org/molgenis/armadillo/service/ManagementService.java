@@ -78,7 +78,6 @@ public class ManagementService {
       "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
   String armadilloJar = "molgenis-armadillo-%s.jar";
   String tag = "tag_name";
-  String backupExt = ".bak";
   String progress = "progress";
   String done = "done";
   String downloadComplete = "Download complete";
@@ -175,7 +174,7 @@ public class ManagementService {
     String scriptVersionTag;
     // if script not available yet on current release:
     if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 15) {
-      scriptVersionTag = "2b0c42c171c62074ec3fd119187cb24a672040a1";
+      scriptVersionTag = "efc53169647fe70ede91fd376274016bdfb46b0b";
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
