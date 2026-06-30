@@ -128,20 +128,7 @@ export function isInt(itemToCheck: number) {
 }
 
 export function isIntArray(listOfItems: StringArray) {
-  let itemIsIntArray = true;
-  listOfItems.forEach((item) => {
-    if (!isDate(item)) {
-      const numberToCheck = parseFloat(item);
-      if (!isInt(numberToCheck)) {
-        itemIsIntArray = false;
-        return;
-      }
-    } else {
-      itemIsIntArray = false;
-      return;
-    }
-  });
-  return itemIsIntArray;
+    return listOfItems.every((item) => isInt(Number(item)));
 }
 
 export function isDate(item: string) {
