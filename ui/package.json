@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",
-    "bootstrap": "5.3.3",
+    "bootstrap": "5.3.8",
     "bootstrap-icons": "1.13.1",
-    "vue": "3.5.13",
-    "vue-router": "^4.0.13"
+    "vue": "3.5.30",
+    "vue-router": "4.6.4"
   },
   "devDependencies": {
     "@babel/core": "7.26.10",
