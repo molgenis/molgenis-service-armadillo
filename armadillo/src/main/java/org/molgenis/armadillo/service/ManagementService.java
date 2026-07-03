@@ -110,6 +110,7 @@ public class ManagementService {
     appConfigUpdater = new ApplicationConfigUpdater(armadilloConfigFile);
   }
 
+  // This will programmatically restart the application.
   public void softRestartApplication() {
     ArmadilloServiceApplication.restart();
   }
@@ -129,6 +130,7 @@ public class ManagementService {
     }
   }
 
+  // This will trigger a script that kills armadillo, after which it will startup again.
   public void hardRestartApplication() throws IOException {
     throwWhenRunningInContainer("hard restart");
     scriptRunner.runRebootScript(
