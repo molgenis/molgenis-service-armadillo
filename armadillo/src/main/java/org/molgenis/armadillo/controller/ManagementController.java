@@ -43,13 +43,16 @@ public class ManagementController {
     this.auditor = auditor;
   }
 
-  @Operation(summary = "Soft restart armadillo")
+  @Operation(
+      summary = "Soft restart armadillo. This will programmatically restart the application.")
   @PostMapping("app/restart/soft")
   public void softRestart(Principal principal) {
     auditor.audit(managementService::softRestartApplication, principal, "TRIGGER_SOFT_RESTART");
   }
 
-  @Operation(summary = "Hard restart armadillo")
+  @Operation(
+      summary =
+          "Hard restart armadillo. This will trigger a script that kills armadillo, after which it will startup again.")
   @PostMapping("app/restart/hard")
   public void hardRestart(Principal principal) {
     auditor.audit(
