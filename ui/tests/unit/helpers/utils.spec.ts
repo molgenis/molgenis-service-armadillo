@@ -187,6 +187,22 @@ describe("utils", () => {
       const actual = isIntArray(["15-Jan-2024", "09-Feb-2024", "31-Dec-2023"]);
       expect(actual).toBe(false);
     });
+    it("should return false for values with leading zeros", () => {
+      const actual = isIntArray(["001", "002", "010"]);
+      expect(actual).toBe(false);
+    });
+    it("should return true for genuine ints including a single zero", () => {
+      const actual = isIntArray(["0", "3", "12"]);
+      expect(actual).toBe(true);
+    });
+    it("should return false for signed values with leading zeros", () => {
+      const actual = isIntArray(["+004", "-007"]);
+      expect(actual).toBe(false);
+    });
+    it("should return true for signed ints without leading zeros", () => {
+      const actual = isIntArray(["-7", "+5"]);
+      expect(actual).toBe(true);
+    });
   });
 
   describe("transformTable", () => {
