@@ -176,7 +176,7 @@ public class ManagementService {
     String scriptVersionTag;
     // if script not available yet on current release:
     if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 15) {
-      scriptVersionTag = "afbf710f1c1ac6ba31239b02bcf84f095b41f157";
+      scriptVersionTag = "11f96b1c227d04ccb8870fafe08dbf3206ca172c";
     } else {
       scriptVersionTag = "refs/tags/v" + version;
     }
