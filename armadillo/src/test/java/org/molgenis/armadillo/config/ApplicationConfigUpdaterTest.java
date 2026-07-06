@@ -1,264 +1,257 @@
 package org.molgenis.armadillo.config;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.molgenis.armadillo.metadata.OidcDetails;
+import org.yaml.snakeyaml.Yaml;
 
+/**
+ * NOTE: This test lives in the same package as ApplicationConfigUpdater on purpose, so it can reach
+ * the package-private fields/methods (config, readConfigFile, updateConfig, writeConfigFile)
+ * directly without reflection.
+ *
+ * <p>OidcDetails is an AutoValue class with no public constructor; instances are built via the
+ * static OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId)
+ * factory (note deviceIssuerUri comes before deviceClientId).
+ */
 class ApplicationConfigUpdaterTest {
 
-  private OidcDetails oidcDetails;
-  private ApplicationConfigUpdater updater;
+  private static final String YAML_CONTENT =
+      "spring:\n"
+          + "  security:\n"
+          + "    oauth2:\n"
+          + "      client:\n"
+          + "        provider:\n"
+          + "          molgenis:\n"
+          + "            issuer-uri: old-issuer\n"
+          + "        registration:\n"
+          + "          molgenis:\n"
+          + "            client-id: old-client-id\n"
+          + "            client-secret: old-secret\n"
+          + "      resourceserver:\n"
+          + "        jwt:\n"
+          + "          issuer-uri: old-device-issuer\n"
+          + "        opaquetoken:\n"
+          + "          client-id: old-device-client-id\n";
 
   @TempDir Path tempDir;
 
+  private Path configFile;
+  private ApplicationConfigUpdater updater;
+
   @BeforeEach
-  void setUp() {
-    oidcDetails = mock(OidcDetails.class);
-    when(oidcDetails.getIssuerUri()).thenReturn("https://new-issuer.example.com");
-    when(oidcDetails.getDeviceIssuerUri()).thenReturn("https://new-device-issuer.example.com");
-    when(oidcDetails.getClientId()).thenReturn("new-client-id");
-    when(oidcDetails.getDeviceClientId()).thenReturn("new-device-client-id");
-    when(oidcDetails.getClientSecret()).thenReturn("new-client-secret");
-
-    updater = new ApplicationConfigUpdater("unused");
+  void setUp() throws IOException {
+    configFile = tempDir.resolve("application.yml");
+    Files.writeString(configFile, YAML_CONTENT);
+    updater = new ApplicationConfigUpdater(configFile.toString());
   }
 
-  // -------------------------------------------------------------------------
-  // replaceValue
-  // -------------------------------------------------------------------------
-
-  @Test
-  void replaceValue_replacesEverythingAfterFirstColon() {
-    String result =
-        updater.replaceValue("    issuer-uri: https://old.example.com", "https://new.example.com");
-    assertEquals("    issuer-uri: https://new.example.com", result);
+  private OidcDetails buildOidcDetails(
+      String issuerUri,
+      String clientId,
+      String clientSecret,
+      String deviceIssuerUri,
+      String deviceClientId) {
+    return OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId);
   }
 
-  @Test
-  void replaceValue_worksWhenValueContainsColons() {
-    // URLs have colons; only the YAML key colon should be used as split point
-    String result =
-        updater.replaceValue(
-            "issuer-uri: https://old.example.com:8080/path", "https://replaced.com");
-    assertEquals("issuer-uri: https://replaced.com", result);
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> getNested(Object map, String... keys) {
+    Object current = map;
+    for (String key : keys) {
+      current = ((Map<String, Object>) current).get(key);
+    }
+    return (Map<String, Object>) current;
   }
 
-  // -------------------------------------------------------------------------
-  // transformConfig — comment lines pass through untouched
-  // -------------------------------------------------------------------------
+  // ---------- readConfigFile ----------
 
   @Test
-  void transformConfig_commentLinesAreNotTransformed() {
-    List<String> lines =
-        List.of(
-            "# issuer-uri: https://should-not-change.com", "  # client-id: also-should-not-change");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("# issuer-uri: https://should-not-change.com"));
-    assertTrue(result.contains("# client-id: also-should-not-change"));
-  }
+  void readConfigFile_loadsYamlIntoConfig() {
+    updater.readConfigFile();
 
-  // -------------------------------------------------------------------------
-  // transformConfig — provider > molgenis > issuer-uri
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_updatesProviderMolgenisIssuerUri() {
-    List<String> lines =
-        Arrays.asList(
-            "        provider:",
-            "          molgenis:",
-            "            issuer-uri: https://old-issuer.example.com");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("issuer-uri: https://new-issuer.example.com"));
-    assertFalse(result.contains("https://old-issuer.example.com"));
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — registration > molgenis > client-id & client-secret
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_updatesRegistrationMolgenisClientId() {
-    List<String> lines =
-        Arrays.asList(
-            "        registration:", "          molgenis:", "            client-id: old-client-id");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("client-id: new-client-id"));
-    assertFalse(result.contains("old-client-id"));
+    assertNotNull(updater.config);
+    assertTrue(updater.config.containsKey("spring"));
+    Map<String, Object> provider =
+        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+    assertEquals("old-issuer", provider.get("issuer-uri"));
   }
 
   @Test
-  void transformConfig_updatesRegistrationMolgenisClientSecret() {
-    List<String> lines =
-        Arrays.asList(
-            "        registration:",
-            "          molgenis:",
-            "            client-secret: old-secret");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("client-secret: new-client-secret"));
-    assertFalse(result.contains("old-secret"));
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — resourceserver > jwt > issuer-uri
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_updatesResourceServerJwtIssuerUri() {
-    List<String> lines =
-        Arrays.asList(
-            "      resourceserver:",
-            "        jwt:",
-            "          issuer-uri: https://old-device-issuer.example.com");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("issuer-uri: https://new-device-issuer.example.com"));
-    assertFalse(result.contains("https://old-device-issuer.example.com"));
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — resourceserver > opaquetoken > client-id
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_updatesResourceServerOpaqueTokenClientId() {
-    List<String> lines =
-        Arrays.asList(
-            "      resourceserver:",
-            "        opaquetoken:",
-            "          client-id: old-device-client-id");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("client-id: new-device-client-id"));
-    assertFalse(result.contains("old-device-client-id"));
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — each field replaced only once (guard flags work)
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_issuerUriUpdatedOnlyOnceForProvider() {
-    List<String> lines =
-        Arrays.asList(
-            "        provider:",
-            "          molgenis:",
-            "            issuer-uri: https://first-old.example.com",
-            // second occurrence — should NOT be replaced
-            "            issuer-uri: https://second-old.example.com");
-    String result = updater.transformConfig(lines, oidcDetails);
-    long updatedCount =
-        Arrays.stream(result.split(System.lineSeparator()))
-            .filter(l -> l.contains("issuer-uri: https://new-issuer.example.com"))
-            .count();
-    assertEquals(1, updatedCount, "Provider issuer-uri must be replaced exactly once");
-    assertTrue(
-        result.contains("https://second-old.example.com"),
-        "Second occurrence should remain unchanged");
-  }
-
-  @Test
-  void transformConfig_clientIdUpdatedOnlyOnceForRegistration() {
-    List<String> lines =
-        Arrays.asList(
-            "        registration:",
-            "          molgenis:",
-            "            client-id: old-client-id-1",
-            "            client-id: old-client-id-2");
-    String result = updater.transformConfig(lines, oidcDetails);
-    long count =
-        Arrays.stream(result.split(System.lineSeparator()))
-            .filter(l -> l.contains("client-id: new-client-id"))
-            .count();
-    assertEquals(1, count);
-  }
-
-  // -------------------------------------------------------------------------
-  // transformConfig — unrelated lines survive unchanged
-  // -------------------------------------------------------------------------
-
-  @Test
-  void transformConfig_doesNotModifyUnrelatedLines() {
-    List<String> lines = Arrays.asList("server:", "  port: 8080", "logging:", "  level: INFO");
-    String result = updater.transformConfig(lines, oidcDetails);
-    assertTrue(result.contains("server:"));
-    assertTrue(result.contains("  port: 8080"));
-    assertTrue(result.contains("logging:"));
-    assertTrue(result.contains("  level: INFO"));
-  }
-
-  // -------------------------------------------------------------------------
-  // Full integration: updateApplicationConfig writes file and backup correctly
-  // -------------------------------------------------------------------------
-
-  @Test
-  void updateApplicationConfig_writesUpdatedFileAndBackup() throws IOException {
-    String nl = System.lineSeparator();
-    String configContent =
-        "spring:"
-            + nl
-            + "  security:"
-            + nl
-            + "    oauth2:"
-            + nl
-            + "      client:"
-            + nl
-            + "        provider:"
-            + nl
-            + "          molgenis:"
-            + nl
-            + "            issuer-uri: https://old-issuer.example.com"
-            + nl
-            + "        registration:"
-            + nl
-            + "          molgenis:"
-            + nl
-            + "            client-id: old-client-id"
-            + nl
-            + "            client-secret: old-secret"
-            + nl
-            + "      resourceserver:"
-            + nl
-            + "        jwt:"
-            + nl
-            + "          issuer-uri: https://old-device-issuer.example.com"
-            + nl
-            + "        opaquetoken:"
-            + nl
-            + "          client-id: old-device-client-id"
-            + nl;
-
-    Path configFile = tempDir.resolve("application.yml");
-    Files.writeString(configFile, configContent);
-
-    ApplicationConfigUpdater fileUpdater = new ApplicationConfigUpdater(configFile.toString());
-    fileUpdater.updateApplicationConfig(oidcDetails);
-
-    // Backup must exist and preserve original content exactly
-    Path backupFile = tempDir.resolve("application.yml.bak");
-    assertTrue(backupFile.toFile().exists(), "Backup file should be created");
-    assertEquals(configContent, Files.readString(backupFile));
-
-    // Updated file must contain all new values
-    String updated = Files.readString(configFile);
-    assertTrue(updated.contains("issuer-uri: https://new-issuer.example.com"));
-    assertTrue(updated.contains("issuer-uri: https://new-device-issuer.example.com"));
-    assertTrue(updated.contains("client-id: new-client-id"));
-    assertTrue(updated.contains("client-secret: new-client-secret"));
-    assertTrue(updated.contains("client-id: new-device-client-id"));
-  }
-
-  @Test
-  void updateApplicationConfig_throwsRuntimeException_whenFileDoesNotExist() {
+  void readConfigFile_missingFile_throwsRuntimeException() {
     ApplicationConfigUpdater badUpdater =
-        new ApplicationConfigUpdater("/nonexistent/path/application.yml");
+        new ApplicationConfigUpdater(tempDir.resolve("does-not-exist.yml").toString());
+
+    assertThrows(RuntimeException.class, badUpdater::readConfigFile);
+  }
+
+  // ---------- updateConfig ----------
+
+  @Test
+  void updateConfig_updatesAllExpectedFieldsInPlace() {
+    updater.readConfigFile();
+
+    OidcDetails oidcDetails =
+        buildOidcDetails(
+            "https://new-issuer",
+            "new-client-id",
+            "new-secret",
+            "https://new-device-issuer",
+            "new-device-client-id");
+
+    updater.updateConfig(oidcDetails);
+
+    Map<String, Object> provider =
+        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+    assertEquals("https://new-issuer", provider.get("issuer-uri"));
+
+    Map<String, Object> registration =
+        getNested(
+            updater.config, "spring", "security", "oauth2", "client", "registration", "molgenis");
+    assertEquals("new-client-id", registration.get("client-id"));
+    assertEquals("new-secret", registration.get("client-secret"));
+
+    Map<String, Object> opaquetoken =
+        getNested(updater.config, "spring", "security", "oauth2", "resourceserver", "opaquetoken");
+    assertEquals("new-device-client-id", opaquetoken.get("client-id"));
+
+    Map<String, Object> jwt =
+        getNested(updater.config, "spring", "security", "oauth2", "resourceserver", "jwt");
+    assertEquals("https://new-device-issuer", jwt.get("issuer-uri"));
+  }
+
+  @Test
+  void updateConfig_doesNotTouchUnrelatedKeys() {
+    updater.readConfigFile();
+    Map<String, Object> springBefore = getNested(updater.config, "spring");
+    assertTrue(springBefore.containsKey("security"));
+
+    updater.updateConfig(buildOidcDetails("i", "c", "s", "di", "dc"));
+
+    // top level "spring" -> "security" structure should still be present/unchanged in shape
+    Map<String, Object> springAfter = getNested(updater.config, "spring");
+    assertTrue(springAfter.containsKey("security"));
+  }
+
+  // ---------- writeConfigFile ----------
+
+  @Test
+  void writeConfigFile_writesReadableYaml() throws IOException {
+    updater.readConfigFile();
+    Path outputFile = tempDir.resolve("output.yml");
+
+    updater.writeConfigFile(outputFile.toString());
+
+    assertTrue(Files.exists(outputFile));
+    Yaml yaml = new Yaml();
+    Map<String, Object> written;
+    try (InputStream in = Files.newInputStream(outputFile)) {
+      written = yaml.load(in);
+    }
+    assertNotNull(written);
+    assertTrue(written.containsKey("spring"));
+  }
+
+  // ---------- updateApplicationConfig (full round trip) ----------
+
+  @Test
+  void updateApplicationConfig_writesBackupWithOriginalValues() throws IOException {
+    OidcDetails oidcDetails =
+        buildOidcDetails(
+            "https://new-issuer",
+            "new-client-id",
+            "new-secret",
+            "https://new-device-issuer",
+            "new-device-client-id");
+
+    updater.updateApplicationConfig(oidcDetails);
+
+    Path backupFile = tempDir.resolve("application.yml.bak");
+    assertTrue(Files.exists(backupFile));
+
+    Yaml yaml = new Yaml();
+    Map<String, Object> backupConfig;
+    try (InputStream in = Files.newInputStream(backupFile)) {
+      backupConfig = yaml.load(in);
+    }
+    Map<String, Object> backupProvider =
+        getNested(backupConfig, "spring", "security", "oauth2", "client", "provider", "molgenis");
+    assertEquals("old-issuer", backupProvider.get("issuer-uri"));
+  }
+
+  @Test
+  void updateApplicationConfig_overwritesOriginalFileWithUpdatedValues() throws IOException {
+    OidcDetails oidcDetails =
+        buildOidcDetails(
+            "https://new-issuer",
+            "new-client-id",
+            "new-secret",
+            "https://new-device-issuer",
+            "new-device-client-id");
+
+    updater.updateApplicationConfig(oidcDetails);
+
+    Yaml yaml = new Yaml();
+    Map<String, Object> updatedConfig;
+    try (InputStream in = Files.newInputStream(configFile)) {
+      updatedConfig = yaml.load(in);
+    }
+
+    Map<String, Object> provider =
+        getNested(updatedConfig, "spring", "security", "oauth2", "client", "provider", "molgenis");
+    assertEquals("https://new-issuer", provider.get("issuer-uri"));
+
+    Map<String, Object> registration =
+        getNested(
+            updatedConfig, "spring", "security", "oauth2", "client", "registration", "molgenis");
+    assertEquals("new-client-id", registration.get("client-id"));
+    assertEquals("new-secret", registration.get("client-secret"));
+
+    Map<String, Object> opaquetoken =
+        getNested(updatedConfig, "spring", "security", "oauth2", "resourceserver", "opaquetoken");
+    assertEquals("new-device-client-id", opaquetoken.get("client-id"));
+
+    Map<String, Object> jwt =
+        getNested(updatedConfig, "spring", "security", "oauth2", "resourceserver", "jwt");
+    assertEquals("https://new-device-issuer", jwt.get("issuer-uri"));
+  }
+
+  @Test
+  void updateApplicationConfig_missingSourceFile_throwsRuntimeException() {
+    ApplicationConfigUpdater badUpdater =
+        new ApplicationConfigUpdater(tempDir.resolve("does-not-exist.yml").toString());
+
+    OidcDetails oidcDetails = buildOidcDetails("i", "c", "s", "di", "dc");
+
     assertThrows(RuntimeException.class, () -> badUpdater.updateApplicationConfig(oidcDetails));
+  }
+
+  @Test
+  void updateConfig_withEmptyOidcDetails_writesEmptyStrings() {
+    updater.readConfigFile();
+
+    // OidcDetails.create() with no args produces the "not configured yet" default: all fields ""
+    updater.updateConfig(OidcDetails.create());
+
+    Map<String, Object> provider =
+        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+    assertEquals("", provider.get("issuer-uri"));
+
+    Map<String, Object> registration =
+        getNested(
+            updater.config, "spring", "security", "oauth2", "client", "registration", "molgenis");
+    assertEquals("", registration.get("client-id"));
+    assertEquals("", registration.get("client-secret"));
   }
 }
