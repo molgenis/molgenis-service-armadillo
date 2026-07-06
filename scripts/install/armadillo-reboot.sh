@@ -117,7 +117,12 @@ if [[ $UPDATE == true ]]; then
 fi
 
 increase_timeout() {
-  TIMEOUT=$(( TIMEOUT * 2))
+  if [[ TIMEOUT -lt 8000 ]]; then
+    TIMEOUT=$(( TIMEOUT * 2))
+    else
+      echo "❌ ERROR: Timeout exceeds 2 hours, giving up..."
+      exit_script
+  fi
 }
 
 restart_if_down() {
