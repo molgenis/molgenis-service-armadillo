@@ -125,8 +125,15 @@ export function isInt(itemToCheck: number) {
   return itemToCheck % 1 === 0;
 }
 
+export function hasLeadingZero(item: string) {
+  const digits = /^[+-]/.test(item) ? item.slice(1) : item;
+  return digits.length > 1 && digits.startsWith("0");
+}
+
 export function isIntArray(listOfItems: StringArray) {
-    return listOfItems.every((item) => isInt(Number(item)));
+  return listOfItems.every(
+    (item) => isInt(Number(item)) && !hasLeadingZero(item)
+  );
 }
 
 export function isDate(item: string) {
