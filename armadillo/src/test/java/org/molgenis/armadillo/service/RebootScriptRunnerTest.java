@@ -17,7 +17,7 @@ class RebootScriptRunnerTest {
   RebootScriptRunner scriptRunner;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     File logFile = tempDir.resolve("test.log").toFile();
     String jarHome = tempDir.resolve("armadillo.jar").toString();
     scriptRunner = new RebootScriptRunner(logFile.getAbsolutePath(), jarHome);

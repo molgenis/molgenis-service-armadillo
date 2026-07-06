@@ -28,22 +28,27 @@ import org.yaml.snakeyaml.Yaml;
 class ApplicationConfigUpdaterTest {
 
   private static final String YAML_CONTENT =
-      "spring:\n"
-          + "  security:\n"
-          + "    oauth2:\n"
-          + "      client:\n"
-          + "        provider:\n"
-          + "          molgenis:\n"
-          + "            issuer-uri: old-issuer\n"
-          + "        registration:\n"
-          + "          molgenis:\n"
-          + "            client-id: old-client-id\n"
-          + "            client-secret: old-secret\n"
-          + "      resourceserver:\n"
-          + "        jwt:\n"
-          + "          issuer-uri: old-device-issuer\n"
-          + "        opaquetoken:\n"
-          + "          client-id: old-device-client-id\n";
+      """
+spring:
+  session: {timeout: 1m}
+  mvc:
+    async: {request-timeout: 36000000}
+  servlet:
+    multipart: {max-file-size: 13000MB, max-request-size: 13000MB}
+  security:
+    user: {password: admin}
+    oauth2:
+      client:
+        provider:
+          molgenis: {issuer-uri: 'old-issuer'}
+        registration:
+          molgenis:
+            client-id: old-client-id
+            client-secret: old-secret
+            authorization-grant-type: [authorization_code, refresh_token]
+      resourceserver:
+        jwt: {issuer-uri: 'old-device-issuer'}
+        opaquetoken: {client-id: old-device-client-id}""";
 
   @TempDir Path tempDir;
 
