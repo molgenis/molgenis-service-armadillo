@@ -150,6 +150,9 @@ show_profile_info <- function() {
     if (length(user_skips) == 0) "None" else paste(user_skips, collapse = ", ")))
   cli_alert_info(sprintf("Skipped (package not available): %s",
     if (length(not_installed) == 0) "None" else paste(not_installed, collapse = ", ")))
+  resource_tests <- c("setup-resources", "resources", "ds-exposome", "ds-omics")
+  cli_alert_info(sprintf("Skipped (admin mode): %s",
+    if (release_env$ADMIN_MODE) paste(resource_tests, collapse = ", ") else "None"))
   cat("\n")
 }
 
