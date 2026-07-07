@@ -1,15 +1,15 @@
 library(dsMediationClient)
 
 # Setup
-test_name <- "ds-mediate"
+test_name <- "dsMediation"
 
 # Assign mediate data (setup, not a test)
-if (!test_name %in% release_env$skip_tests) {
+if (!should_skip_test(test_name) && test_name %in% release_env$installed_ds_packages) {
   datashield.assign.table(release_env$conns, "nonrep", sprintf("%s/2_1-core-1_0/nonrep", release_env$project1))
 }
 
 test_that("ds.mediate returns expected class", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex", family = "gaussian", dataName = "nonrep",
     newobj = "med.fit.1a", datasources = release_env$conns
@@ -28,7 +28,7 @@ test_that("ds.mediate returns expected class", {
 })
 
 test_that("ds.neWeight returns expected class", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.glmSLMA(
     formula = "agebirth_m_y ~ ethn3_m + sex", family = "gaussian", dataName = "nonrep",
     newobj = "med.fit.1b", datasources = release_env$conns
@@ -39,7 +39,7 @@ test_that("ds.neWeight returns expected class", {
 })
 
 test_that("ds.neModel returns expected class", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.neModel(
     formula = "preg_dia ~ ethn3_m0 + ethn3_m1 + sex",
     family = "gaussian", se = "robust", expData = "expData",
@@ -50,7 +50,7 @@ test_that("ds.neModel returns expected class", {
 })
 
 test_that("ds.neImpute returns expected class", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   ds.glmSLMA(
     formula = "preg_dia ~ agebirth_m_y + ethn3_m + sex",
     family = "gaussian", dataName = "nonrep", newobj = "out.fit.1c",
@@ -62,7 +62,7 @@ test_that("ds.neImpute returns expected class", {
 })
 
 test_that("ds.neLht returns expected class", {
-  do_skip_test(test_name)
+  skip_ds_test(test_name)
   lht.out.1b <- ds.neLht(model = "med.out.1b", linfct = c("ethn3_m0=0", "ethn3_m1=0", "ethn3_m0+ethn3_m1=0"),
                           datasources = release_env$conns)
   med_class <- class(lht.out.1b$armadillo)
