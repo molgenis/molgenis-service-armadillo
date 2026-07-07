@@ -59,6 +59,20 @@ class LocalStorageServiceTest {
   }
 
   @Test
+  void testGetFilenameWithoutExtensionDoubleExtension() {
+    assertEquals(
+        "test.very.long.name.tar",
+        localStorageService.getFilenameWithoutExtension("test.very.long.name.tar.gz"));
+  }
+
+  @Test
+  void testGetFilenameWithoutExtensionComplicatedName() {
+    assertEquals(
+        "myFileNameWith*31&821!Symbols",
+        localStorageService.getFilenameWithoutExtension("myFileNameWith*31&821!Symbols.txt"));
+  }
+
+  @Test
   void testCheckObjectExistsChecksExistenceNoSuchObject() {
     assertFalse(localStorageService.objectExists(SOME_PROJECT, SOME_OBJECT_PATH));
   }

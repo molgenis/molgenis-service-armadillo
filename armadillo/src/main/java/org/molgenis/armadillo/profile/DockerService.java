@@ -13,6 +13,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
 import java.net.SocketException;
 import java.time.Instant;
@@ -20,7 +21,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.molgenis.armadillo.exceptions.*;
 import org.molgenis.armadillo.metadata.ProfileConfig;
@@ -43,6 +47,7 @@ public class DockerService {
 
   private final DockerClient dockerClient;
   private final ProfileService profileService;
+  private final ProfileStatusService profileStatusService;
 
   @Value("${armadillo.docker-run-in-container:false}")
   private boolean inContainer;
@@ -50,9 +55,13 @@ public class DockerService {
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
 
-  public DockerService(DockerClient dockerClient, ProfileService profileService) {
+  public DockerService(
+      DockerClient dockerClient,
+      ProfileService profileService,
+      ProfileStatusService profileStatusService) {
     this.dockerClient = dockerClient;
     this.profileService = profileService;
+    this.profileStatusService = profileStatusService;
   }
 
   public Map<String, ContainerInfo> getAllProfileStatuses() {
@@ -98,24 +107,17 @@ public class DockerService {
    */
   String asContainerName(String profileName) {
     if (!inContainer) {
-      LOG.warn("Profile not running in docker container: " + profileName);
+      LOG.warn(String.format("Profile not running in docker container: %s", profileName));
       return profileName;
     }
 
     if (containerPrefix.isEmpty()) {
-      LOG.error("Running in container without prefix: " + profileName);
+      LOG.error(String.format("Running in container without prefix:: %s", profileName));
       return profileName;
     }
 
-    LOG.warn("Profile running in docker container: " + profileName);
+    LOG.warn(String.format("Profile running in docker container: %s", profileName));
     return containerPrefix + profileName + "-1";
-  }
-
-  String asProfileName(String containerName) {
-    if (inContainer) {
-      return containerName.replace("armadillo-docker-compose-", "").replace("-1", "");
-    }
-    return containerName;
   }
 
   public String[] getProfileEnvironmentConfig(String profileName) {
@@ -151,9 +153,11 @@ public class DockerService {
     LOG.info(profileName + " : " + containerName);
 
     var profileConfig = profileService.getByName(profileName);
+    profileStatusService.updateStatus(profileName, null, null, null);
     pullImage(profileConfig);
+    profileStatusService.updateStatus(profileName, "Profile installed", null, null);
     stopContainer(containerName);
-    removeContainer(containerName); // for reinstall
+    removeContainer(containerName);
     installImage(profileConfig);
     startContainer(containerName);
 
@@ -285,7 +289,6 @@ public class DockerService {
   }
 
   private void stopContainer(String containerName) {
-    String profileName = "stoppingContainer has not profileName: " + containerName;
     try {
       dockerClient.stopContainerCmd(containerName).exec();
     } catch (DockerException e) {
@@ -294,16 +297,16 @@ public class DockerService {
             dockerClient.inspectContainerCmd(containerName).exec();
         // should not be a problem if not running
         if (TRUE.equals(containerInfo.getState().getRunning())) {
-          throw new ImageStopFailedException(profileName, e);
+          throw new ImageStopFailedException(containerName, e);
         }
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to stop profile '{}' because it doesn't exist", profileName);
+        LOG.info("Failed to stop profile '{}' because it doesn't exist", containerName);
         // not a problem, its gone
       } catch (Exception e2) {
-        throw new ImageStopFailedException(profileName, e);
+        throw new ImageStopFailedException(containerName, e);
       }
     } catch (Exception e) {
-      throw new ImageStopFailedException(profileName, e);
+      throw new ImageStopFailedException(containerName, e);
     }
   }
 
@@ -315,17 +318,50 @@ public class DockerService {
     try {
       dockerClient
           .pullImageCmd(profileConfig.getImage())
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(5, TimeUnit.MINUTES);
+          .exec(getPullProgress(profileConfig))
+          .awaitCompletion(10, TimeUnit.MINUTES);
+
     } catch (NotFoundException e) {
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     } catch (RuntimeException e) {
       LOG.warn("Couldn't pull image", e);
-      // typically, network offline, for local use we can continue.
+      // Typically, network offline; for local use we can continue.
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ImagePullFailedException(profileConfig.getImage(), e);
     }
+  }
+
+  private PullImageResultCallback getPullProgress(ProfileConfig profileConfig) {
+    final Set<String> seen = ConcurrentHashMap.newKeySet();
+    final Set<String> done = ConcurrentHashMap.newKeySet();
+    final AtomicInteger lastPct = new AtomicInteger(0);
+
+    return new PullImageResultCallback() {
+      @Override
+      public void onNext(PullResponseItem item) {
+        final String id = item.getId();
+        if (id == null) {
+          super.onNext(item);
+          return;
+        }
+
+        seen.add(id);
+        final String status = String.valueOf(item.getStatus());
+
+        if ("Pull complete".equalsIgnoreCase(status) || "Already exists".equalsIgnoreCase(status)) {
+          done.add(id);
+        }
+
+        int completed = done.size();
+        int total = Math.max(1, seen.size());
+
+        profileStatusService.updateStatus(
+            profileConfig.getName(), "Installing profile", completed, total);
+
+        super.onNext(item);
+      }
+    };
   }
 
   public void removeProfile(String profileName) {
@@ -360,8 +396,12 @@ public class DockerService {
     try {
       return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
     } catch (DockerException e) {
-      LOG.warn("Couldn't inspect image", e);
-      // getting image tags is non-essential, don't throw error
+      if (e instanceof NotFoundException) {
+        LOG.warn("Couldn't inspect image, because: " + e.getMessage());
+      } else {
+        LOG.warn("Couldn't inspect image", e);
+        // getting image tags is non-essential, don't throw error
+      }
     }
     return emptyList();
   }

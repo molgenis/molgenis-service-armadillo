@@ -1,19 +1,17 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import ExtraMetricsEndpoint from '@/components/ExtraMetricsEndpoint.vue';
 import { nextTick } from 'vue';
-import * as _api from "@/api/api";
+import { APISettings } from '@/api/config';
 
-const api = _api as any;
-
-(api.get as jest.Mock).mockResolvedValue({ message: 'success' });
-
-jest.mock('@/api/api', () => ({
-  __esModule: true, 
-  get: jest.fn(),
-  handleResponse: jest.fn(),
-}));
-
-(api.get as jest.Mock).mockResolvedValue({ message: 'success' });
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    headers: {
+      get: () => {return "plain/text"}
+    
+    },
+    text: () => Promise.resolve({ message: "success" }),
+  }),
+) as jest.Mock;
 
 jest.mock('@/components/LoadingSpinner.vue', () => {
   const vue = require('vue');
@@ -38,13 +36,6 @@ jest.mock('@/components/FeedbackMessage.vue', () => {
   };
 });
 
-jest.mock('@/api/api', () => ({
-  __esModule: true, 
-  get: jest.fn(),
-  handleResponse: jest.fn(),
-}));
-
-import { get } from '@/api/api';
 
 describe('ExtraMetricsEndpoint.vue', () => {
   const nonTemplatedEndpoint = {
@@ -96,10 +87,10 @@ describe('ExtraMetricsEndpoint.vue', () => {
   it('calls get() and shows result on button click', async () => {
     const wrapper = mountComponent(templatedEndpoint);
     await wrapper.setData({ argumentInput: 'world' });
-
     await wrapper.find('button.btn-success').trigger('click');
-    expect(get).toHaveBeenCalledWith('/api/search/world');
+    expect(fetch).toHaveBeenCalledWith('/api/search/world', {"headers": APISettings.headers, "method": "GET"});
 
+    await nextTick();
     await nextTick();
     await nextTick(); // wait for all state updates
 

@@ -309,6 +309,29 @@ export async function authenticate(auth: Auth) {
       Authorization: `Basic ${btoa(auth.user + ":" + auth.pwd)}`,
     },
   });
+
+  if (response.status === 401) {
+    try {
+      const body = await response.json();
+      if (body.locked) {
+        const error = new ApiError("locked", response.status);
+        (error as any).secondsRemaining = body.secondsRemaining;
+        throw error;
+      }
+      if (body.attemptsRemaining !== undefined) {
+        const error = new ApiError(
+          "Incorrect username or password",
+          response.status
+        );
+        (error as any).attemptsRemaining = body.attemptsRemaining;
+        throw error;
+      }
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
+    throw new ApiError("Incorrect username or password", response.status);
+  }
+
   return handleResponse(response);
 }
 
@@ -362,4 +385,16 @@ export async function deleteUserWorkspace(user: string, workspace: string) {
 
 export async function deleteWorkspaceDirectory(userDirectory: string) {
   return delete_("/workspaces/directory/", `${userDirectory}`);
+}
+
+export async function getMetaData(project: string, object: string) {
+  return get(
+    `/storage/projects/${project}/objects/${encodeUriComponent(
+      object
+    )}/metadata`
+  );
+}
+
+export async function getProfileStatus(name: string) {
+  return get(`/ds-profiles/${encodeURIComponent(name)}/status`);
 }

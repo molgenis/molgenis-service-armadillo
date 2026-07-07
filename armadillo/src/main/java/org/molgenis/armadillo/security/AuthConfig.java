@@ -28,7 +28,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -55,16 +54,18 @@ public class AuthConfig {
   @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
   private String oidcClientId;
 
-  @Bean
   @Order(1)
-  protected SecurityFilterChain oauthAndBasic(HttpSecurity http) throws Exception {
+  @Bean
+  protected SecurityFilterChain oauthAndBasic(
+      HttpSecurity http,
+      @Value("${armadillo.api-key:#{null}}") String authToken,
+      NoPopupBasicAuthenticationEntryPoint noPopupBasicAuthenticationEntryPoint)
+      throws Exception {
     http.authorizeHttpRequests(
         requests ->
             requests
                 .requestMatchers(
                     "/",
-                    "/_docs/**",
-                    "/info",
                     "/index.html",
                     "/logout",
                     "/basic-login",
@@ -76,7 +77,6 @@ public class AuthConfig {
                     "/swagger-ui/**",
                     "/ui/**",
                     "/ds-profiles/status",
-                    "/actuator/prometheus",
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers(EndpointRequest.to(InfoEndpoint.class, HealthEndpoint.class))
@@ -85,6 +85,9 @@ public class AuthConfig {
                 .authenticated());
     http.csrf(AbstractHttpConfigurer::disable);
     http.cors(Customizer.withDefaults());
+    AuthenticationFilter authFilter = new AuthenticationFilter();
+    authFilter.setAuthToken(authToken);
+    http.addFilterAfter(authFilter, BasicAuthenticationFilter.class);
     http.httpBasic(
         httpBasicConfigurer ->
             httpBasicConfigurer
@@ -100,7 +103,7 @@ public class AuthConfig {
                       }
                     })
                 .realmName("Armadillo")
-                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
+                .authenticationEntryPoint(noPopupBasicAuthenticationEntryPoint));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
@@ -113,6 +116,7 @@ public class AuthConfig {
           oauth2 ->
               oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
     }
+
     return http.build();
   }
 
@@ -165,15 +169,16 @@ public class AuthConfig {
   private String userPassword;
 
   @Bean
-  public UserDetailsService userDetailsService() {
+  public UserDetailsService userDetailsService(LoginAttemptTracker tracker) {
     Objects.requireNonNull(userName, "spring.security.user.name is null");
     Objects.requireNonNull(userPassword, "spring.security.user.password is null");
     PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    return new InMemoryUserDetailsManager(
+    return username ->
         User.builder()
             .username(userName)
             .password(encoder.encode(userPassword))
             .roles("SU")
-            .build());
+            .accountLocked(tracker.isLocked())
+            .build();
   }
 }

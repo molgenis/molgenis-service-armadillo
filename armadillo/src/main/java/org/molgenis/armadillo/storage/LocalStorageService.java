@@ -32,6 +32,13 @@ public class LocalStorageService implements StorageService {
     return rootDir;
   }
 
+  @Override
+  public String getFilenameWithoutExtension(String completeFilename) {
+    return completeFilename.contains(".")
+        ? completeFilename.substring(0, completeFilename.lastIndexOf('.'))
+        : completeFilename;
+  }
+
   public LocalStorageService(@Value("${" + ROOT_DIR_PROPERTY + "}") String rootDir) {
     var dir = new File(rootDir);
     if (!dir.isDirectory()) {

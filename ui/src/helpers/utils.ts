@@ -4,6 +4,10 @@ import {
   StringArray,
 } from "@/types/types";
 
+import { Ref, ref, onMounted, onUnmounted, watchEffect } from "vue";
+
+import { getProfileStatus } from "@/api/api";
+
 export function stringIncludesOtherString(
   completeString: string,
   substring: string
@@ -121,21 +125,15 @@ export function isInt(itemToCheck: number) {
   return itemToCheck % 1 === 0;
 }
 
+export function hasLeadingZero(item: string) {
+  const digits = /^[+-]/.test(item) ? item.slice(1) : item;
+  return digits.length > 1 && digits.startsWith("0");
+}
+
 export function isIntArray(listOfItems: StringArray) {
-  let itemIsIntArray = true;
-  listOfItems.forEach((item) => {
-    if (!isDate(item)) {
-      const numberToCheck = parseFloat(item);
-      if (!isInt(numberToCheck)) {
-        itemIsIntArray = false;
-        return;
-      }
-    } else {
-      itemIsIntArray = false;
-      return;
-    }
-  });
-  return itemIsIntArray;
+  return listOfItems.every(
+    (item) => isInt(Number(item)) && !hasLeadingZero(item)
+  );
 }
 
 export function isDate(item: string) {
@@ -307,4 +305,45 @@ export function convertBytes(bytes: number): string {
   }
 
   return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+}
+
+export function toPercentage(amount: number, total: number) {
+  return (100 * amount) / total;
+}
+
+import type { ProfileStartStatus } from "@/types/api";
+
+export function useProfileStatus() {
+  const status: Ref<ProfileStartStatus | null> = ref(null);
+  let timer: number | undefined;
+
+  async function fetchStatus(name: string) {
+    if (!name) return;
+    try {
+      status.value = (await getProfileStatus(name)) as ProfileStartStatus;
+
+      if (status.value?.status === "Profile installed") stopPolling();
+    } catch (e) {
+      console.error("Failed to fetch profile status", e);
+      stopPolling();
+    }
+  }
+
+  function startPolling(name: string, intervalMs = 1000) {
+    stopPolling();
+    if (!name) return;
+    status.value = null;
+    fetchStatus(name);
+    timer = window.setInterval(() => fetchStatus(name), intervalMs);
+  }
+
+  function stopPolling() {
+    if (timer !== undefined) {
+      clearInterval(timer);
+      timer = undefined;
+    }
+  }
+
+  onUnmounted(() => stopPolling());
+  return { status, startPolling, stopPolling };
 }

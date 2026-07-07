@@ -49,7 +49,6 @@ import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -349,17 +348,6 @@ public class DataController {
                     .thenApply(ResponseEntity::ok)
                     .exceptionally(ex -> notFound().build()))
         .orElse(completedFuture(notFound().build()));
-  }
-
-  @Operation(
-      summary = "Debug a command",
-      description = "Debugs a command, bypassing DataSHIELD's security checks. Admin use only.")
-  @PreAuthorize("hasRole('ROLE_SU')")
-  @PostMapping(value = "/debug", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
-  public Object debug(Principal principal, @RequestBody String expression)
-      throws ExecutionException, InterruptedException, REXPMismatchException {
-    auditEventPublisher.audit(principal, DEBUG, Map.of(EXPRESSION, expression));
-    return commands.evaluate(expression).get().asNativeJavaObject();
   }
 
   @PostMapping(value = "select-profile")

@@ -54,6 +54,10 @@ public class ArmadilloStorageService {
     this.localStorageService = localStorageService;
   }
 
+  public String getFilenameWithoutExtension(String fileName) {
+    return this.storageService.getFilenameWithoutExtension(fileName);
+  }
+
   @PreAuthorize("hasRole('ROLE_SU')")
   public void upsertProject(String project) {
     validateProjectName(project);

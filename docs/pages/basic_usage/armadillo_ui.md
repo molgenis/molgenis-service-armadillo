@@ -8,10 +8,13 @@ Armadillo features a user interface, or UI for short.
 
 ![Login screen of Armadillo](../../img/ui/login.png)
 
+### Institutional login
 To login to the UI, select the **Institute account (oath2)** button and login using the institute or organisation login screen you will be redirected to.
 
-### Superuser
+### Username and password
+It is also possible to log into Armadillo using a username and password, but this is not the preferred method. Note that if you enter the wrong details more than five times, you will have to wait one minute to try again. This period will increase exponentially with further failed logins.
 
+### Superuser
 You need to have admin or superuser permissions if you want to add projects, users or profiles. This means you need to be granted permission in order to be able to use the UI. If you don't have correct permissions, you will receive the
 following error:
 
@@ -22,6 +25,7 @@ If you receive this error, contact someone in your institute that is already abl
 To grant a user superuser permissions simply search for that user in the `Users` tab of the UI, and tick the _admin_ checkbox for that user:
 
 ![Grant user superuser rights](../../img/ui/admin.png)
+
 
 ## Projects
 
@@ -78,8 +82,17 @@ Here you can upload files to that folder, or click on the tables (files) to prev
 
 ![Armadillo project file preview](../../img/ui/preview-file.png)
 
+You can also see the metadata of the file you uploaded. For each column, the datatype will be shown in two ways: 
+a more general term (string, integer, decimal, boolean, categorical) and the datatype as it is saved in armadillo 
+(binary for string/categorical, boolean, int32 for integer, double for decimal). For all columns, the number and 
+percentage of missing values will be shown. For categorical values, the different categorical options will be shown in
+the 'levels' column.
+
+![preview-metadata.png](../../img/ui/preview-metadata.png)
+
 To upload files, either drag a file from your file browser to the file upload area, or click the area and select the
-file.
+file. If a csv or tsv file is selected, it's possible to convert them to a `.parquet` file, so it can be used as a 
+table.
 
 ![Armadillo upload a file](../../img/ui/upload-a-file.png)
 
@@ -103,7 +116,7 @@ The URL of your resources should consist of:
 {your url}/storage/projects/{project name}/objects/{name of the folder}%2F{the resource file}
 ```
 
-Here is an example, with some example parameters:
+That means that the following parameters:
 
 ```r
 url = "https://armadillo3.demo.molgenis.net"
@@ -112,7 +125,7 @@ folder = "ewas"
 file = "gse66351_1.rda"
 ```
 
-Which results in the following url:
+Will result in this url:
 
 ```r
 https://armadillo3.demo.molgenis.net/storage/projects/omics/objects/ewas%2Fgse66351_1.rda
@@ -145,6 +158,12 @@ By clicking on the plus button ![Armadillo user add](../../img/ui/add.png){width
 ![Armadillo user add](../../img/ui/add-user.png){width="650"}
 
 Users can be added before they have logged in previously. These users can be added to projects, which will grant them permission to use the data from those projects upon their first login. Researchers should not be set as admin.
+
+## Workspaces
+
+When users conduct analyses with DataSHIELD, they can save R workspaces on the server which saves any new objects they've created in their analysis. These workspaces take up space, and you may want to delete them once a researcher has finished their project. To do so, you can select a workspace and click the 'delete' button. You also have the option to delete all workspaces for one particular user.
+
+![Manage workspaces](../../img/ui/workspaces.png)
 
 ## Analysis Profiles
 

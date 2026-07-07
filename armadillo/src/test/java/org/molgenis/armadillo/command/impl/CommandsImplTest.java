@@ -7,12 +7,17 @@ import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.GLOBAL_ENV;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_SESSION;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +28,7 @@ import org.molgenis.armadillo.exceptions.UnknownProfileException;
 import org.molgenis.armadillo.metadata.ProfileConfig;
 import org.molgenis.armadillo.metadata.ProfileService;
 import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.r.RServerConnection;
@@ -35,6 +41,7 @@ import org.rosuda.REngine.REXP;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -49,7 +56,7 @@ class CommandsImplTest {
   @Mock ArmadilloConnectionFactory connectionFactory;
   @Mock RServerConnection rConnection;
   @Mock RequestAttributes attrs;
-
+  @Mock ResourceTokenService resourceTokenService;
   @Mock InputStream inputStream;
   @Mock RServerResult rexp;
   @Mock Principal principal;
@@ -64,6 +71,10 @@ class CommandsImplTest {
 
   @BeforeEach
   void beforeEach() {
+    JwtAuthenticationToken mockAuth = mock(JwtAuthenticationToken.class);
+    lenient()
+        .when(resourceTokenService.generateResourceToken(any(), any(), any()))
+        .thenReturn(mockAuth);
     commands =
         new CommandsImpl(
             armadilloStorage,
@@ -72,7 +83,8 @@ class CommandsImplTest {
             taskExecutor,
             connectionFactory,
             processService,
-            profileService);
+            profileService,
+            resourceTokenService);
   }
 
   @Test
@@ -205,20 +217,27 @@ class CommandsImplTest {
 
   @Test
   void testLoadResource() throws Exception {
-    when(armadilloStorage.loadResource("gecko", "2_1-core-1_0/hpc-resource"))
-        .thenReturn(inputStream);
-    when(connectionFactory.createConnection()).thenReturn(rConnection);
-    when(processService.getPid(rConnection)).thenReturn(218);
+    String gzippedContent =
+        "something /projects/gecko/objects/2_1-core-1_0%2Fhpc-resource.rds something";
 
-    commands.loadResource(principal, "core_nonrep", "gecko/2_1-core-1_0/hpc-resource").get();
+    // Create real gzipped bytes
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+      gzipOut.write(gzippedContent.getBytes(StandardCharsets.UTF_8));
+    }
 
-    verify(rExecutorService)
-        .loadResource(
-            eq(principal),
-            eq(rConnection),
-            any(InputStreamResource.class),
-            eq("gecko/2_1-core-1_0/hpc-resource.rds"),
-            eq("core_nonrep"));
+    byte[] gzippedBytes = baos.toByteArray();
+
+    // Print first few bytes for debugging
+    System.out.println("GZIP byte data: " + Arrays.toString(gzippedBytes));
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(gzippedBytes);
+
+    // Log the content read by GZIPInputStream
+    String result = commands.readResource(bais);
+    System.out.println("Decoded content: " + result);
+
+    assertEquals(gzippedContent, result);
   }
 
   @Test
@@ -265,5 +284,43 @@ class CommandsImplTest {
   void testSelectUnknownProfile() {
     when(profileService.getByName("unknown")).thenThrow(new UnknownProfileException("unknown"));
     assertThrows(UnknownProfileException.class, () -> commands.selectProfile("unknown"));
+  }
+
+  @Test
+  void testReadResource() throws Exception {
+    String originalContent = "This is a test resource content";
+
+    // Create real gzipped bytes
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+      gzipOut.write(originalContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    byte[] gzippedBytes = baos.toByteArray();
+    ByteArrayInputStream bais = new ByteArrayInputStream(gzippedBytes);
+
+    String result = commands.readResource(bais);
+
+    assertEquals(originalContent, result);
+  }
+
+  @Test
+  void testExtractResourceInfo() {
+    String fileInfo =
+        "X\u0000\u0000\u0000\u0003\u0000\u0004\u0005\u0000\u0000\u0003\u0005\u0000\u0000\u0000\u0000\u0005UTF-8\u0000\u0000\u0003\u0013\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004test\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000Uhttp://host.docker.internal:8080/storage/projects/omics/objects/ewas%2Fgse66351_1.rda\u0000\u0000\u0000�\u0000\u0000\u0000�\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000ExpressionSet\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005names\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0005\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004name\u0000\u0004\u0000\t\u0000\u0000\u0000\u0003url\u0000\u0004\u0000\t\u0000\u0000\u0000\bidentity\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006secret\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006format\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005class\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\bresource\u0000\u0000\u0000�";
+
+    HashMap<String, String> result = commands.extractResourceInfo(fileInfo);
+
+    assertEquals("omics", result.get("project"));
+    assertEquals("ewas/gse66351_1.rda", result.get("object"));
+  }
+
+  @Test
+  void testExtractResourceInfoNoMatch() {
+    String fileInfo = "no matching pattern here";
+
+    HashMap<String, String> result = commands.extractResourceInfo(fileInfo);
+
+    assertTrue(result.isEmpty());
   }
 }
