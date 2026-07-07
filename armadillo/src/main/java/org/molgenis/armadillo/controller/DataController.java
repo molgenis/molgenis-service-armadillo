@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
@@ -48,8 +47,6 @@ import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -397,13 +394,7 @@ public class DataController {
   public ResponseEntity<InputStreamResource> downloadWorkspace(
       @PathVariable String userId, @PathVariable String id, Principal principal) {
     return auditEventPublisher.audit(
-        () -> {
-          try {
-            return downloadUserWorkspace(userId, id);
-          } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-          }
-        },
+        () -> storage.downloadUserWorkspace(userId, id),
         principal,
         "DOWNLOAD_USER_WORKSPACE",
         Map.of(USER, userId, "WORKSPACE", id));
@@ -574,20 +565,6 @@ public class DataController {
     return variableList.size() == 0
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
-  }
-
-  private ResponseEntity<InputStreamResource> downloadUserWorkspace(
-      String userId, String workspaceId) throws IOException {
-    var inputStream = storage.downloadWorkspaceByStringUserId(userId, workspaceId);
-    var fileSize = storage.getWorkspaceFileSizeIfObjectExists(userId, workspaceId);
-    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
-    ContentDisposition contentDisposition =
-        ContentDisposition.attachment().filename(workspaceId + RDATA_EXT).build();
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.setContentDisposition(contentDisposition);
-    httpHeaders.setContentLength(fileSize);
-    httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
-    return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
   }
 
   public static String getSafeUsernameForFileSystem(String user) {

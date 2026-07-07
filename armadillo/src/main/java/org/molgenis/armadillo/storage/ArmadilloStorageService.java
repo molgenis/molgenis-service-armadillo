@@ -26,8 +26,9 @@ import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -427,6 +428,47 @@ public class ArmadilloStorageService {
   public FileInfo getInfo(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getInfo(SHARED_PREFIX + project, object);
+  }
+
+  private ResponseEntity<InputStreamResource> getFile(
+      InputStreamResource inputStreamResource,
+      ContentDisposition contentDisposition,
+      long fileSize) {
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setContentDisposition(contentDisposition);
+    httpHeaders.setContentLength(fileSize);
+    httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+    return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
+  }
+
+  public ResponseEntity<InputStreamResource> downloadUserWorkspace(
+      String userId, String workspaceId) {
+    try {
+      Resource resource = downloadWorkspaceByStringUserId(userId, workspaceId);
+      InputStreamResource inputStreamResource = new InputStreamResource(resource);
+      long fileSize = getWorkspaceFileSizeIfObjectExists(userId, workspaceId);
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(workspaceId + RDATA_EXT).build();
+      return getFile(inputStreamResource, contentDisposition, fileSize);
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
+  }
+
+  public ResponseEntity<InputStreamResource> getObject(String project, String object) {
+    try {
+      var inputStream = loadObject(project, object);
+      var objectParts = object.split("/");
+      var fileName = objectParts[objectParts.length - 1];
+      InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(fileName).build();
+      var fileSize =
+          getFileSizeIfObjectExists(ArmadilloStorageService.SHARED_PREFIX + project, object);
+      return getFile(inputStreamResource, contentDisposition, fileSize);
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")
