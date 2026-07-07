@@ -4,25 +4,43 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.security.Principal;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 class ResourceTokenServiceTest {
+
+  private static final long TOKEN_VALIDITY_SECONDS = 300;
+  private static final Instant FIXED_NOW = Instant.parse("2026-06-18T10:00:00Z");
 
   private ResourceTokenService resourceTokenService;
   private JwtDecoder jwtDecoder;
 
   @BeforeEach
   void setUp() {
-    resourceTokenService = new ResourceTokenService(300);
+    Clock clock = Clock.fixed(FIXED_NOW, ZoneOffset.UTC);
+
+    resourceTokenService = new ResourceTokenService(TOKEN_VALIDITY_SECONDS);
+    resourceTokenService.setClock(clock);
 
     RSAPublicKey publicKey = resourceTokenService.getPublicKey();
-    jwtDecoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+
+    // Validate token expiry against the same fixed clock used to mint the token,
+    // otherwise the decoder checks `exp` against real system time and the test
+    // becomes a time bomb once FIXED_NOW passes.
+    JwtTimestampValidator timestampValidator = new JwtTimestampValidator();
+    timestampValidator.setClock(clock);
+
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+    decoder.setJwtValidator(timestampValidator);
+    jwtDecoder = decoder;
   }
 
   @Test
@@ -49,19 +67,18 @@ class ResourceTokenServiceTest {
     assertThat(jwt.getClaimAsString("resource_project")).isEqualTo("test-project");
     assertThat(jwt.getClaimAsString("resource_object")).isEqualTo("test-object");
 
-    assertThat(jwt.getIssuedAt()).isBeforeOrEqualTo(Instant.now());
-    assertThat(jwt.getExpiresAt()).isAfter(Instant.now());
+    assertThat(jwt.getIssuedAt()).isEqualTo(FIXED_NOW);
+    assertThat(jwt.getExpiresAt()).isEqualTo(FIXED_NOW.plusSeconds(TOKEN_VALIDITY_SECONDS));
   }
 
   @Test
   void generateResourceToken_withJwtAuthenticationToken_usesEmailClaim() {
-    Instant now = Instant.now();
     Jwt incomingJwt =
         Jwt.withTokenValue("dummy")
             .header("alg", "none")
             .claim("email", "jwt-user@example.org")
-            .issuedAt(now)
-            .expiresAt(now.plusSeconds(300))
+            .issuedAt(FIXED_NOW)
+            .expiresAt(FIXED_NOW.plusSeconds(TOKEN_VALIDITY_SECONDS))
             .build();
 
     JwtAuthenticationToken principal = new JwtAuthenticationToken(incomingJwt);

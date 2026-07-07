@@ -8,10 +8,13 @@ Armadillo features a user interface, or UI for short.
 
 ![Login screen of Armadillo](../../img/ui/login.png)
 
+### Institutional login
 To login to the UI, select the **Institute account (oath2)** button and login using the institute or organisation login screen you will be redirected to.
 
-### Superuser
+### Username and password
+It is also possible to log into Armadillo using a username and password, but this is not the preferred method. Note that if you enter the wrong details more than five times, you will have to wait one minute to try again. This period will increase exponentially with further failed logins.
 
+### Superuser
 You need to have admin or superuser permissions if you want to add projects, users or profiles. This means you need to be granted permission in order to be able to use the UI. If you don't have correct permissions, you will receive the
 following error:
 
