@@ -27,7 +27,6 @@ import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -348,8 +347,8 @@ public class ArmadilloStorageService {
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU')")
-  public Resource downloadWorkspaceByStringUserId(String userId, String id) {
-    return storageService.downloadFile(
+  public InputStream downloadWorkspaceByStringUserId(String userId, String id) {
+    return storageService.load(
         USER_PREFIX + getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
   }
 
@@ -431,9 +430,8 @@ public class ArmadilloStorageService {
   }
 
   private ResponseEntity<InputStreamResource> getFile(
-      InputStreamResource inputStreamResource,
-      ContentDisposition contentDisposition,
-      long fileSize) {
+      InputStream inputStream, ContentDisposition contentDisposition, long fileSize) {
+    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentDisposition(contentDisposition);
     httpHeaders.setContentLength(fileSize);
@@ -444,12 +442,11 @@ public class ArmadilloStorageService {
   public ResponseEntity<InputStreamResource> downloadUserWorkspace(
       String userId, String workspaceId) {
     try {
-      Resource resource = downloadWorkspaceByStringUserId(userId, workspaceId);
-      InputStreamResource inputStreamResource = new InputStreamResource(resource);
+      InputStream inputStream = downloadWorkspaceByStringUserId(userId, workspaceId);
       long fileSize = getWorkspaceFileSizeIfObjectExists(userId, workspaceId);
       ContentDisposition contentDisposition =
           ContentDisposition.attachment().filename(workspaceId + RDATA_EXT).build();
-      return getFile(inputStreamResource, contentDisposition, fileSize);
+      return getFile(inputStream, contentDisposition, fileSize);
     } catch (IOException e) {
       throw new FileProcessingException();
     }
@@ -460,12 +457,11 @@ public class ArmadilloStorageService {
       var inputStream = loadObject(project, object);
       var objectParts = object.split("/");
       var fileName = objectParts[objectParts.length - 1];
-      InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
       ContentDisposition contentDisposition =
           ContentDisposition.attachment().filename(fileName).build();
       var fileSize =
           getFileSizeIfObjectExists(ArmadilloStorageService.SHARED_PREFIX + project, object);
-      return getFile(inputStreamResource, contentDisposition, fileSize);
+      return getFile(inputStream, contentDisposition, fileSize);
     } catch (IOException e) {
       throw new FileProcessingException();
     }
