@@ -26,6 +26,7 @@ import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -265,8 +266,12 @@ public class ArmadilloStorageService {
     return USER_PREFIX + principal.getName();
   }
 
+  static String getUserBucketIdentifierFromUserId(String userId) {
+    return userId.replace("@", "__at__");
+  }
+
   static String getUserBucketName(Principal principal) {
-    String userIdentifier = getUser(principal).replace("@", "__at__");
+    String userIdentifier = getUserBucketIdentifierFromUserId(getUser(principal));
     return USER_PREFIX + userIdentifier;
   }
 
@@ -341,6 +346,12 @@ public class ArmadilloStorageService {
     storageService.delete(USER_PREFIX + userId, getWorkspaceObjectName(id));
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public Resource downloadWorkspaceByStringUserId(String userId, String id) {
+    return storageService.downloadFile(
+        USER_PREFIX + getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
+  }
+
   public void saveSystemFile(InputStream is, String name, MediaType mediaType) {
     storageService.save(is, SYSTEM, name, mediaType);
   }
@@ -383,6 +394,11 @@ public class ArmadilloStorageService {
   public long getFileSizeIfObjectExists(String bucketName, String objectName) throws IOException {
     Path filePath = storageService.getPathIfObjectExists(bucketName, objectName);
     return Files.size(filePath);
+  }
+
+  public long getWorkspaceFileSizeIfObjectExists(String userId, String id) throws IOException {
+    return getFileSizeIfObjectExists(
+        USER_PREFIX + getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

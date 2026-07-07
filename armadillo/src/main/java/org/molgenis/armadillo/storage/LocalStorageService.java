@@ -16,6 +16,8 @@ import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
@@ -166,6 +168,21 @@ public class LocalStorageService implements StorageService {
     } catch (IOException e) {
       throw new StorageException(e);
     }
+  }
+
+  public Resource downloadFile(String bucketName, String objectName) {
+    try {
+      Objects.requireNonNull(bucketName);
+      Objects.requireNonNull(objectName);
+      File dir = new File(getPathIfObjectExists(bucketName, objectName).toUri());
+      if (dir.exists()) {
+        Resource resource = new UrlResource(dir.toURI());
+        return resource;
+      }
+    } catch (Exception e) {
+      throw new StorageException(e);
+    }
+    return null;
   }
 
   @Override

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
@@ -34,6 +35,8 @@ public interface StorageService {
   List<ObjectMetadata> listObjects(String bucketName);
 
   InputStream load(String bucketName, String objectName);
+
+  Resource downloadFile(String bucketName, String objectName);
 
   FileInfo getInfo(String bucketName, String objectName);
 
