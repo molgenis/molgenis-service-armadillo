@@ -37,7 +37,8 @@ import org.molgenis.armadillo.model.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -788,6 +789,25 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
+  void testGetFile() {
+    InputStream is = mock(InputStream.class);
+    ContentDisposition cd = mock(ContentDisposition.class);
+    long fileSize = 157L;
+    HttpHeaders hh = armadilloStorage.getHttpHeaders(cd, fileSize);
+    ResponseEntity<InputStreamResource> expected =
+        new ResponseEntity<>(new InputStreamResource(is), hh, HttpStatus.OK);
+    assertEquals(expected, armadilloStorage.getFile(is, cd, fileSize));
+  }
+
+  @Test
+  void testGetHttpHeaders() {
+    ContentDisposition cd = mock(ContentDisposition.class);
+    long fileSize = 157L;
+    HttpHeaders hh = armadilloStorage.getHttpHeaders(cd, fileSize);
+    assertEquals(fileSize, hh.getContentLength());
+  }
+
+  @Test
   @WithMockUser(roles = "SU")
   void testGetFileSizeIfObjectExists() throws IOException {
     MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class);
@@ -839,6 +859,21 @@ class ArmadilloStorageServiceTest {
     when(storageService.getInfo(SHARED_GECKO, srcObj)).thenReturn(info);
     FileInfo actual = armadilloStorage.getInfo("gecko", srcObj);
     assertEquals(info, actual);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetUserBucketName() {
+    when(principal.getName()).thenReturn("my-email@email.com");
+    String actual = getUserBucketName(principal);
+    assertEquals("user-my-email__at__email.com", actual);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetUserBucketIdentifierFromUserId() {
+    String actual = getUserBucketIdentifierFromUserId("email@email.com");
+    assertEquals("email__at__email.com", actual);
   }
 
   // Test: User has ROLE_SU, and storage service returns expected data

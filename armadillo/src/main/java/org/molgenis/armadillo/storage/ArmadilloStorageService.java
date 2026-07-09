@@ -429,13 +429,18 @@ public class ArmadilloStorageService {
     return storageService.getInfo(SHARED_PREFIX + project, object);
   }
 
-  private ResponseEntity<InputStreamResource> getFile(
-      InputStream inputStream, ContentDisposition contentDisposition, long fileSize) {
-    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+  HttpHeaders getHttpHeaders(ContentDisposition contentDisposition, long fileSize) {
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentDisposition(contentDisposition);
     httpHeaders.setContentLength(fileSize);
     httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+    return httpHeaders;
+  }
+
+  ResponseEntity<InputStreamResource> getFile(
+      InputStream inputStream, ContentDisposition contentDisposition, long fileSize) {
+    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+    HttpHeaders httpHeaders = getHttpHeaders(contentDisposition, fileSize);
     return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
   }
 
