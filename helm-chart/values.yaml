@@ -42,6 +42,24 @@ config:
           datashield:
             # the seed can only be 9 digits
             seed: 342325352
+      - name: tulip-donkey 
+        image: datashield/rock-tulip-donkey:latest
+        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
+        port: 8085
+        package-whitelist:
+          - dsBase
+          - resourcer
+          - dsMediation
+          - dsMTLBase
+          - dsSurvival
+          - dsOmics
+          - dsTidyVerse
+        function-blacklist: [ ]
+        options:
+          datashield:
+            # the seed can only be 9 digits
+            seed: 342325352
+
 
 
 image:
