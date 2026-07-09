@@ -67,6 +67,66 @@ Quick smoke:
 ./benchmark.sh --opal-version latest --dsbase-version 6.3.5 --survey --duration 2 --reps 1
 ```
 
+## Remote / multi-server runs (`.env`-driven, resumable)
+
+To compare **local *and* remote** servers, skip `benchmark.sh` (it only starts
+localhost Opal+Armadillo) and drive the R stages directly with `remote_run.sh`.
+All config comes from a single git-ignored `.env` (read by `lib/config.R`) — no
+URLs/credentials are hardcoded. Backends are named `<kind>_<location>[_rserve]`:
+
+```
+opal_local, opal_remote,
+armadillo_local, armadillo_local_rserve,
+armadillo_remote, armadillo_remote_rserve
+```
+
+`.env` keys: `OPAL_{LOCAL,REMOTE}_{URL,USER,PASS}`,
+`ARMA_{LOCAL,REMOTE}_{URL,USER,PASS,AUTH}`, `ARMA_PROFILE`, `ARMA_RSERVE_PROFILE`,
+`BACKENDS`, plus run params (`N_ROWS`, `N_VARS`, `DURATION_SEC`, `REPS`,
+`SPEED_REPS`, `POLL_SLEEP0`). Missing connection keys fail loudly. All datasets are
+always uploaded/assigned (there is no dataset-subsetting knob).
+
+Run one or more stages (config auto-loaded from `.env`):
+
+```bash
+bash remote_run.sh setup.R probe.R
+bash remote_run.sh bench.R plot.R capture.R speed_true.R speed_client.R plot_compute.R
+```
+
+### Resume an interrupted run
+
+Results are written **incrementally** — `bench.R` appends each `(backend, op, rep)`
+cell to `results/rates.csv` the moment it completes, so a crash never loses
+finished cells. To continue, relaunch with `RESUME=1`:
+
+```bash
+RESUME=1 bash remote_run.sh bench.R plot.R capture.R speed_true.R speed_client.R plot_compute.R
+```
+
+`RESUME=1` reads the existing `rates.csv`, **skips every cell already recorded**, and
+appends only the rest. It also backfills a backend that was down: once it recovers,
+add it back to `BACKENDS` and rerun with `RESUME=1` — only that backend's cells run.
+Without `RESUME` a run starts fresh and **overwrites** `rates.csv`. (The speed suite
+is short — just re-run it; only the survey is resumable.)
+
+### Orphaned sessions (run after a kill)
+
+A hard-killed run never reaches `logout_all()`, so its server-side DataSHIELD R
+sessions linger — each holds a profile R-worker slot, so a server (especially a
+shared Opal) can begin **hanging** new commands. Clear them before relaunching:
+
+```bash
+bash remote_run.sh cleanup_sessions.R
+```
+
+### Keep the machine awake
+
+Everything runs locally, so if the laptop sleeps the run and the local servers die
+and connections drop. Prevent sleep from **your own terminal** with
+`caffeinate -dimsu` (a *sandboxed* caffeinate is a no-op — it can't hold the power
+assertion), lid open and on AC power. Verify with
+`pmset -g assertions | grep caffeinate`.
+
 ## Data
 
 The benchmark inflates real dsBaseClient test data (`tests/testthat/data_files`)

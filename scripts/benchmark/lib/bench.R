@@ -4,6 +4,7 @@
 #
 #   POLL_SLEEP0=0.002 Rscript bench.R         # -> results/rates.csv
 #   DURATION_SEC=2 REPS=1 POLL_SLEEP0=0.002 Rscript bench.R   # quick smoke run
+#   RESUME=1 Rscript bench.R                   # continue a crashed run (skip done cells)
 #
 # Each (backend x op x rep) cell runs the op for DURATION_SEC, counting completed
 # calls; reps are independent shuffled blocks. Results are written incrementally
@@ -88,6 +89,24 @@ for (rep in seq_len(REPS)) {
   cells <- c(cells, rep_cells[sample(length(rep_cells))])   # fresh shuffle per rep
 }
 
+# --- Resume support ---------------------------------------------------------
+# RESUME=1 continues a previous run: keep results/rates.csv, skip (backend, op,
+# rep) cells already recorded, and append the rest. Default (unset) starts fresh.
+RESUME <- nzchar(Sys.getenv("RESUME")) && file.exists(OUT_CSV)
+if (RESUME) {
+  prev <- tryCatch(read.csv(OUT_CSV, stringsAsFactors = FALSE), error = function(e) NULL)
+  done_key <- if (!is.null(prev) && all(c("backend", "op", "rep") %in% names(prev)))
+    unique(paste(prev$backend, prev$op, prev$rep, sep = "\t")) else character(0)
+  # A session cell writes login/logout/workspace_load rows (not "session"); use
+  # "login" as its completion proxy.
+  cell_done <- function(cl)
+    paste(cl$be, if (identical(cl$op, "session")) "login" else cl$op, cl$rep, sep = "\t") %in% done_key
+  before <- length(cells)
+  cells  <- Filter(function(cl) !cell_done(cl), cells)
+  cat(sprintf("RESUME: %d of %d cells already recorded; running %d remaining.\n",
+              before - length(cells), before, length(cells)))
+}
+
 cat(sprintf("Running %d cells (%g s each), order reshuffled per repetition...\n",
             length(cells), DURATION_SEC))
 
@@ -100,7 +119,7 @@ heal <- function() {
   for (be in names(conns)) {
     if (backend_alive(be)) next
     message(sprintf("  %s connection lost; healing...", be))
-    if (be == "opal" && nzchar(OPAL_COMPOSE)) {
+    if (backend_kind(be) == "opal" && nzchar(OPAL_COMPOSE)) {
       message("  restarting Opal container (docker compose up -d)...")
       try(system2("docker", c("compose", "-f", OPAL_COMPOSE, "up", "-d"),
                   stdout = FALSE, stderr = FALSE), silent = TRUE)
@@ -133,8 +152,8 @@ run_cell <- function(run) {
 # recorded to a sibling file so missing rows are explained, not silent.
 COLS      <- c("backend", "op", "category", "rep", "count", "elapsed", "rate")
 FAIL_CSV  <- file.path(dirname(OUT_CSV), sub("^rates", "failures", basename(OUT_CSV)))
-append_res  <- open_csv(OUT_CSV,  COLS)
-append_fail <- open_csv(FAIL_CSV, c("backend", "op", "rep", "error"))
+append_res  <- open_csv(OUT_CSV,  COLS, append = RESUME)
+append_fail <- open_csv(FAIL_CSV, c("backend", "op", "rep", "error"), append = RESUME)
 log_fail <- function(be, op, rep, msg)
   append_fail(data.frame(backend = be, op = op, rep = rep, error = gsub("[\r\n,]", " ", msg)))
 

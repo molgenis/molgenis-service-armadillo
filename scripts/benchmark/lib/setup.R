@@ -105,9 +105,9 @@ for (nm in names(tables))
   cat(sprintf("  %-12s %d x %d\n", nm, nrow(tables[[nm]]), ncol(tables[[nm]])))
 
 # --- 2. Upload to Opal ------------------------------------------------------
-upload_opal <- function(tables) {
-  cat("\n== Opal ==\n")
-  o <- opal.login(OPAL_USER, OPAL_PASS, url = OPAL_URL)
+upload_opal <- function(tables, spec) {
+  cat(sprintf("\n== Opal: %s (%s) ==\n", spec$be, spec$url))
+  o <- opal.login(spec$user, spec$pass, url = spec$url)
   on.exit(opal.logout(o), add = TRUE)
 
   if (!opal.project_exists(o, PROJECT)) {
@@ -129,9 +129,13 @@ upload_opal <- function(tables) {
 }
 
 # --- 3. Upload to Armadillo -------------------------------------------------
-upload_arma <- function(tables) {
-  cat("\n== Armadillo ==\n")
-  armadillo.login_basic(ARMA_URL, ARMA_USER, ARMA_PASS)
+upload_arma <- function(tables, spec) {
+  cat(sprintf("\n== Armadillo: %s (%s) ==\n", spec$be, spec$url))
+  if (spec$auth != "basic") {
+    message(sprintf("  skipping upload to %s: only basic-auth upload is supported (auth=%s)",
+                    spec$be, spec$auth)); return(invisible())
+  }
+  armadillo.login_basic(spec$url, spec$user, spec$pass)
   if (!(PROJECT %in% armadillo.list_projects())) {
     cat(sprintf("Creating project '%s'\n", PROJECT))
     armadillo.create_project(PROJECT)
@@ -155,8 +159,16 @@ if (nzchar(Sys.getenv("DRY_RUN"))) {
   quit(save = "no")
 }
 
-upload_opal(tables)
-upload_arma(tables)
+# Upload to every distinct host implied by BACKENDS: each Opal backend is its own
+# host; Armadillo hosts are deduped by location (default + rserve share storage).
+opal_targets <- Filter(function(be) backend_kind(be) == "opal", BACKENDS)
+arma_targets <- paste0("armadillo_", unique(vapply(
+  Filter(function(be) backend_kind(be) == "armadillo", BACKENDS),
+  backend_location, character(1))))
+for (be in opal_targets) tryCatch(upload_opal(tables, backend_spec(be)),
+  error = function(e) message(sprintf("upload to %s failed: %s", be, conditionMessage(e))))
+for (be in arma_targets) tryCatch(upload_arma(tables, backend_spec(be)),
+  error = function(e) message(sprintf("upload to %s failed: %s", be, conditionMessage(e))))
 
 # --- 4. Save a DataSHIELD workspace per backend -----------------------------
 # Logs in (assigning the CNSIM table to D), saves the session as WORKSPACE, logs

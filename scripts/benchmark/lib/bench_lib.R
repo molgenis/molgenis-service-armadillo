@@ -103,9 +103,10 @@ command_compute_ms <- function(conn, res) tryCatch({
 # --- CSV I/O ----------------------------------------------------------------
 # Incremental writer: header now, rows appended as we go (a crash never loses
 # completed rows). Returns an append(df) function bound to `path`/`cols`.
-open_csv <- function(path, cols) {
+open_csv <- function(path, cols, append = FALSE) {
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
-  write.csv(setNames(data.frame(lapply(cols, function(x) character(0))), cols), path, row.names = FALSE)
+  if (!append || !file.exists(path))    # append=TRUE keeps an existing file (resume)
+    write.csv(setNames(data.frame(lapply(cols, function(x) character(0))), cols), path, row.names = FALSE)
   function(df) write.table(df[, cols], path, sep = ",", row.names = FALSE, col.names = FALSE, append = TRUE)
 }
 

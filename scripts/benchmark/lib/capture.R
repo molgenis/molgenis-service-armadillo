@@ -19,7 +19,8 @@ if (!length(conns)) stop("No backends available.")
 
 # Capture/validate on a stable backend (Opal is OOM-prone); the serverside call
 # expressions are backend-independent, so one backend suffices.
-be  <- if ("armadillo" %in% names(conns)) "armadillo" else names(conns)[1]
+arma <- names(conns)[backend_kind(names(conns)) == "armadillo"]
+be   <- if (length(arma)) arma[1] else names(conns)[1]
 cat(sprintf("Capturing serverside primitives on '%s'...\n", be))
 out <- write_primitives(conns[[be]], flatten_ops(be))
 
