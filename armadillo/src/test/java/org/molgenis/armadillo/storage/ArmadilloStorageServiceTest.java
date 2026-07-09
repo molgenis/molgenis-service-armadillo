@@ -1088,4 +1088,91 @@ class ArmadilloStorageServiceTest {
         () -> armadilloStorage.writeParquetFromCsv(projectName, objectName, mockFile, 10));
     FileUtils.deleteDirectory(tempDirWithPrefix.toFile());
   }
+
+  @Test
+  void testDownloadUserWorkspace() throws IOException {
+    String userId = "user@email.com";
+    String bucket = "user-user__at__email.com";
+    String objectName = "test.RData";
+    long fileSize = 12345L;
+    Path pathMock = mock(Path.class);
+
+    when(storageService.load(bucket, objectName)).thenReturn(is);
+    when(storageService.getPathIfObjectExists(bucket, objectName)).thenReturn(pathMock);
+
+    try (MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class)) {
+      mockedFiles.when(() -> Files.size(pathMock)).thenReturn(fileSize);
+
+      ResponseEntity<InputStreamResource> response =
+          armadilloStorage.downloadUserWorkspace(userId, "test");
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertEquals(fileSize, response.getHeaders().getContentLength());
+      assertEquals("test.RData", response.getHeaders().getContentDisposition().getFilename());
+    }
+
+    verify(storageService).load(bucket, objectName);
+  }
+
+  @Test
+  void testDownloadUserWorkspaceThrowsFileProcessingException() throws IOException {
+    String userId = "user@email.com";
+    String bucket = "user-user__at__email.com";
+    String objectName = "test.RData";
+    Path pathMock = mock(Path.class);
+
+    when(storageService.load(bucket, objectName)).thenReturn(is);
+    when(storageService.getPathIfObjectExists(bucket, objectName)).thenReturn(pathMock);
+
+    try (MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class)) {
+      mockedFiles.when(() -> Files.size(pathMock)).thenThrow(new IOException("boom"));
+
+      assertThrows(
+          FileProcessingException.class,
+          () -> armadilloStorage.downloadUserWorkspace(userId, "test"));
+    }
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetObject() throws IOException {
+    String project = "gecko";
+    String object = "folder/test.parquet";
+    long fileSize = 999L;
+    Path pathMock = mock(Path.class);
+
+    mockExistingObject(SHARED_GECKO, object);
+    when(storageService.load(SHARED_GECKO, object)).thenReturn(is);
+    when(storageService.getPathIfObjectExists(SHARED_GECKO, object)).thenReturn(pathMock);
+
+    try (MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class)) {
+      mockedFiles.when(() -> Files.size(pathMock)).thenReturn(fileSize);
+
+      ResponseEntity<InputStreamResource> response = armadilloStorage.getObject(project, object);
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertEquals(fileSize, response.getHeaders().getContentLength());
+      // filename should be just the last path segment, not the full object path
+      assertEquals("test.parquet", response.getHeaders().getContentDisposition().getFilename());
+    }
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void testGetObjectThrowsFileProcessingException() throws IOException {
+    String project = "gecko";
+    String object = "folder/test.parquet";
+    Path pathMock = mock(Path.class);
+
+    mockExistingObject(SHARED_GECKO, object);
+    when(storageService.load(SHARED_GECKO, object)).thenReturn(is);
+    when(storageService.getPathIfObjectExists(SHARED_GECKO, object)).thenReturn(pathMock);
+
+    try (MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class)) {
+      mockedFiles.when(() -> Files.size(pathMock)).thenThrow(new IOException("boom"));
+
+      assertThrows(
+          FileProcessingException.class, () -> armadilloStorage.getObject(project, object));
+    }
+  }
 }
