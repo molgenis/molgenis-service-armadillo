@@ -1,29 +1,26 @@
 package org.molgenis.armadillo.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import org.molgenis.armadillo.metadata.OidcDetails;
-import org.yaml.snakeyaml.Yaml;
 
 public class ApplicationConfigUpdater {
 
   private static final String BACKUP_EXT = ".bak";
 
-  private final String armadilloConfigFile;
+  public static final YAMLFactory yamlFactory = new YAMLFactory();
+  private static final ObjectMapper objectMapper = new ObjectMapper(yamlFactory);
 
-  private LinkedHashMap<
-          String,
-          LinkedHashMap<
-              String,
-              LinkedHashMap<
-                  String,
-                  LinkedHashMap<
-                      String,
-                      LinkedHashMap<
-                          String, LinkedHashMap<String, LinkedHashMap<String, Object>>>>>>>
-      config;
+  private final String armadilloConfigFile;
+  private JsonNode config;
 
   public ApplicationConfigUpdater(String armadilloConfigFile) {
     this.armadilloConfigFile = armadilloConfigFile;
@@ -32,50 +29,45 @@ public class ApplicationConfigUpdater {
   void updateConfig(OidcDetails oidcDetails) {
     String issuerUri = "issuer-uri";
     String clientId = "client-id";
-    String molgenis = "molgenis";
 
-    LinkedHashMap<
-            String,
-            LinkedHashMap<
-                String,
-                LinkedHashMap<
-                    String,
-                    LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>>>>>
-        springConfig = config.get("spring");
-    LinkedHashMap<
-            String,
-            LinkedHashMap<
-                String,
-                LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>>>>
-        securityConfig = springConfig.get("security");
-    LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>> oauthConfig =
-        (LinkedHashMap) securityConfig.get("oauth2");
-    LinkedHashMap<String, LinkedHashMap<String, Object>> clientConfig = oauthConfig.get("client");
+    JsonNode oauthConfig = config.at("/spring/security/oauth2");
+    JsonNode providerMolgenisConfig = oauthConfig.at("/client/provider/molgenis");
+    JsonNode registrationMolgenisConfig = oauthConfig.at("/client/registration/molgenis");
+    JsonNode jwtConfig = oauthConfig.at("/resourceserver/jwt");
+    JsonNode opaqueTokenConfig = oauthConfig.at("/resourceserver/opaquetoken");
 
-    LinkedHashMap<String, LinkedHashMap<String, Object>> providerConfig =
-        (LinkedHashMap) clientConfig.get("provider");
-    LinkedHashMap<String, Object> providerMolgenisConfig = providerConfig.get(molgenis);
+    if (!(providerMolgenisConfig instanceof ObjectNode)) {
+      throw new ConfigUpdateException(
+          "Unable to update provider molgenis config in oauth2 configuration");
+    }
+    ((ObjectNode) providerMolgenisConfig).put(issuerUri, oidcDetails.getIssuerUri());
 
-    LinkedHashMap<String, LinkedHashMap<String, Object>> registrationConfig =
-        (LinkedHashMap) clientConfig.get("registration");
-    LinkedHashMap<String, Object> registrationMolgenisConfig = registrationConfig.get(molgenis);
+    if (!(registrationMolgenisConfig instanceof ObjectNode)) {
+      throw new ConfigUpdateException(
+          "Unable to update registration molgenis config in oauth2 configuration");
+    }
+    ((ObjectNode) registrationMolgenisConfig)
+        .put(clientId, oidcDetails.getClientId())
+        .put("client-secret", oidcDetails.getClientSecret());
 
-    LinkedHashMap<String, LinkedHashMap<String, Object>> resourceserverConfig =
-        oauthConfig.get("resourceserver");
-    LinkedHashMap<String, Object> jwtConfig = resourceserverConfig.get("jwt");
-    LinkedHashMap<String, Object> opaquetokenConfig = resourceserverConfig.get("opaquetoken");
+    if (!(opaqueTokenConfig instanceof ObjectNode)) {
+      throw new ConfigUpdateException(
+          "Unable to update opaquetoken config in oauth2 configuration");
+    }
+    ((ObjectNode) opaqueTokenConfig).put(clientId, oidcDetails.getDeviceClientId());
 
-    providerMolgenisConfig.put(issuerUri, oidcDetails.getIssuerUri());
-    registrationMolgenisConfig.put(clientId, oidcDetails.getClientId());
-    registrationMolgenisConfig.put("client-secret", oidcDetails.getClientSecret());
-    opaquetokenConfig.put(clientId, oidcDetails.getDeviceClientId());
-    jwtConfig.put(issuerUri, oidcDetails.getDeviceIssuerUri());
+    if (!(jwtConfig instanceof ObjectNode)) {
+      throw new ConfigUpdateException("Unable to update jwt config in oauth2 configuration");
+    }
+    ((ObjectNode) jwtConfig).put(issuerUri, oidcDetails.getDeviceIssuerUri());
   }
 
   void writeConfigFile(String path) throws IOException {
-    Yaml yaml = new Yaml();
     FileWriter writer = new FileWriter(path);
-    yaml.dump(config, writer);
+
+    try (YAMLGenerator generator = yamlFactory.createGenerator(writer)) {
+      generator.writeObject(config);
+    }
   }
 
   public void updateApplicationConfig(OidcDetails oidcDetails) {
@@ -85,30 +77,29 @@ public class ApplicationConfigUpdater {
       updateConfig(oidcDetails);
       writeConfigFile(armadilloConfigFile);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new ConfigUpdateException(e);
     }
   }
 
   void readConfigFile() {
-    Yaml yaml = new Yaml();
     try (InputStream in = Files.newInputStream(Paths.get(armadilloConfigFile))) {
-      config = yaml.load(in);
+      config = objectMapper.readTree(in);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new ConfigUpdateException(e);
     }
   }
 
-  public LinkedHashMap<
-          String,
-          LinkedHashMap<
-              String,
-              LinkedHashMap<
-                  String,
-                  LinkedHashMap<
-                      String,
-                      LinkedHashMap<
-                          String, LinkedHashMap<String, LinkedHashMap<String, Object>>>>>>>
-      getConfig() {
-    return new LinkedHashMap<>(config);
+  public Map<String, Object> getConfig() {
+    return objectMapper.convertValue(config, new TypeReference<>() {});
+  }
+
+  private static final class ConfigUpdateException extends RuntimeException {
+    public ConfigUpdateException(String message) {
+      super(message);
+    }
+
+    public ConfigUpdateException(Throwable cause) {
+      super(cause);
+    }
   }
 }
