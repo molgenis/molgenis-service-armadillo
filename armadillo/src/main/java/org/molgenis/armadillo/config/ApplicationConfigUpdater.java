@@ -8,9 +8,12 @@ import org.molgenis.armadillo.metadata.OidcDetails;
 import org.yaml.snakeyaml.Yaml;
 
 public class ApplicationConfigUpdater {
-  String armadilloConfigFile;
-  String backupExt = ".bak";
-  LinkedHashMap<
+
+  private static final String BACKUP_EXT = ".bak";
+
+  private final String armadilloConfigFile;
+
+  private LinkedHashMap<
           String,
           LinkedHashMap<
               String,
@@ -78,7 +81,7 @@ public class ApplicationConfigUpdater {
   public void updateApplicationConfig(OidcDetails oidcDetails) {
     try {
       readConfigFile();
-      writeConfigFile(armadilloConfigFile + backupExt);
+      writeConfigFile(armadilloConfigFile + BACKUP_EXT);
       updateConfig(oidcDetails);
       writeConfigFile(armadilloConfigFile);
     } catch (Exception e) {
@@ -93,5 +96,19 @@ public class ApplicationConfigUpdater {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public LinkedHashMap<
+          String,
+          LinkedHashMap<
+              String,
+              LinkedHashMap<
+                  String,
+                  LinkedHashMap<
+                      String,
+                      LinkedHashMap<
+                          String, LinkedHashMap<String, LinkedHashMap<String, Object>>>>>>>
+      getConfig() {
+    return new LinkedHashMap<>(config);
   }
 }

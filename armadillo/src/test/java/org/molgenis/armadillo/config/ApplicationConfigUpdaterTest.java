@@ -86,10 +86,11 @@ class ApplicationConfigUpdaterTest {
   void readConfigFile_loadsYamlIntoConfig() {
     updater.readConfigFile();
 
-    assertNotNull(updater.config);
-    assertTrue(updater.config.containsKey("spring"));
+    assertNotNull(updater.getConfig());
+    assertTrue(updater.getConfig().containsKey("spring"));
     Map<String, Object> provider =
-        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+        getNested(
+            updater.getConfig(), "spring", "security", "oauth2", "client", "provider", "molgenis");
     assertEquals("old-issuer", provider.get("issuer-uri"));
   }
 
@@ -118,34 +119,42 @@ class ApplicationConfigUpdaterTest {
     updater.updateConfig(oidcDetails);
 
     Map<String, Object> provider =
-        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+        getNested(
+            updater.getConfig(), "spring", "security", "oauth2", "client", "provider", "molgenis");
     assertEquals("https://new-issuer", provider.get("issuer-uri"));
 
     Map<String, Object> registration =
         getNested(
-            updater.config, "spring", "security", "oauth2", "client", "registration", "molgenis");
+            updater.getConfig(),
+            "spring",
+            "security",
+            "oauth2",
+            "client",
+            "registration",
+            "molgenis");
     assertEquals("new-client-id", registration.get("client-id"));
     assertEquals("new-secret", registration.get("client-secret"));
 
     Map<String, Object> opaquetoken =
-        getNested(updater.config, "spring", "security", "oauth2", "resourceserver", "opaquetoken");
+        getNested(
+            updater.getConfig(), "spring", "security", "oauth2", "resourceserver", "opaquetoken");
     assertEquals("new-device-client-id", opaquetoken.get("client-id"));
 
     Map<String, Object> jwt =
-        getNested(updater.config, "spring", "security", "oauth2", "resourceserver", "jwt");
+        getNested(updater.getConfig(), "spring", "security", "oauth2", "resourceserver", "jwt");
     assertEquals("https://new-device-issuer", jwt.get("issuer-uri"));
   }
 
   @Test
   void updateConfig_doesNotTouchUnrelatedKeys() {
     updater.readConfigFile();
-    Map<String, Object> springBefore = getNested(updater.config, "spring");
+    Map<String, Object> springBefore = getNested(updater.getConfig(), "spring");
     assertTrue(springBefore.containsKey("security"));
 
     updater.updateConfig(buildOidcDetails("i", "c", "s", "di", "dc"));
 
     // top level "spring" -> "security" structure should still be present/unchanged in shape
-    Map<String, Object> springAfter = getNested(updater.config, "spring");
+    Map<String, Object> springAfter = getNested(updater.getConfig(), "spring");
     assertTrue(springAfter.containsKey("security"));
   }
 
@@ -250,12 +259,19 @@ class ApplicationConfigUpdaterTest {
     updater.updateConfig(OidcDetails.create());
 
     Map<String, Object> provider =
-        getNested(updater.config, "spring", "security", "oauth2", "client", "provider", "molgenis");
+        getNested(
+            updater.getConfig(), "spring", "security", "oauth2", "client", "provider", "molgenis");
     assertEquals("", provider.get("issuer-uri"));
 
     Map<String, Object> registration =
         getNested(
-            updater.config, "spring", "security", "oauth2", "client", "registration", "molgenis");
+            updater.getConfig(),
+            "spring",
+            "security",
+            "oauth2",
+            "client",
+            "registration",
+            "molgenis");
     assertEquals("", registration.get("client-id"));
     assertEquals("", registration.get("client-secret"));
   }
