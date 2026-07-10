@@ -161,6 +161,10 @@ OUT_CSV   <- Sys.getenv("OUT_CSV", file.path("results", "rates.csv"))
 poll0 <- Sys.getenv("POLL_SLEEP0", "")
 if (nzchar(poll0)) options(datashield.polling.sleep.0 = as.numeric(poll0))
 
+# Round-trip poll interval (seconds), from .env. Held tight (2 ms) for every test
+# so the DSI poll wait stays negligible and does not distort fast local calls.
+SPEED_POLL_TIGHT <- as.numeric(Sys.getenv("SPEED_POLL_TIGHT", "0.002"))
+
 # --- Per-backend helpers ----------------------------------------------------
 # Per-backend reference to the default benchmark table (CNSIM).
 table_a_ref <- function(be) ds_table_ref(be, TABLE_A)
@@ -171,7 +175,7 @@ table_a_ref <- function(be) ds_table_ref(be, TABLE_A)
 .arma_tokens <- new.env(parent = emptyenv())
 arma_token <- function(url) {
   if (is.null(.arma_tokens[[url]]))
-    .arma_tokens[[url]] <- MolgenisArmadillo::armadillo.get_token(url)
+    .arma_tokens[[url]] <- DSMolgenisArmadillo::armadillo.get_credentials(url)@access_token
   .arma_tokens[[url]]
 }
 

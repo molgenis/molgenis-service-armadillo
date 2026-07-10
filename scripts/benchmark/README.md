@@ -37,6 +37,27 @@ and the client `dsBaseClient` is installed at the same version. No runtime
 profile via the `datashield.privacyControlLevel` option in `lib/profiles.R`, so the
 stock pinned image works without a permissive build.
 
+## Memory parity with Opal
+
+Opal's Java server runs with `-Xms1G -Xmx2G -XX:+UseG1GC` (a 2 GB heap), bounded
+inside the Docker VM. The local Armadillo, launched natively via `gradlew`, is
+otherwise unbounded and can grow into host RAM — risking a macOS memory-pressure
+(jetsam) kill of the JVM mid-run. To match Opal and stay safe, launch the Armadillo
+with the same heap via `ARMA_JAVA_OPTS` (default `-Xms1G -Xmx2G -XX:+UseG1GC`):
+
+- `benchmark.sh` applies it automatically to its `gradlew` launch.
+- For the `remote_run.sh` flow (you start the servers yourself), start the local
+  Armadillo with:
+
+  ```bash
+  JAVA_TOOL_OPTIONS="-Xms1G -Xmx2G -XX:+UseG1GC" SERVER_PORT=8081 ./gradlew run
+  ```
+
+The DataSHIELD compute for both backends runs in Docker Rock containers (equally
+VM-bounded), so this heap cap is the one meaningful memory-parity knob. CPU needs no
+pinning: the survey runs cells sequentially (one backend at a time), so backends
+never contend during measurement.
+
 ## Once
 
 ```bash

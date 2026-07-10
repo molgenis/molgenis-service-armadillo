@@ -9,7 +9,7 @@
 #
 #   bash remote_run.sh probe.R
 #   bash remote_run.sh setup.R probe.R bench.R plot.R \
-#                      capture.R speed_true.R speed_client.R plot_compute.R
+#                      capture.R speed_true.R plot_compute.R
 #
 # Named with a 'remote_' prefix so it is permitted to run unsandboxed under the
 # local hook (the R client can't auth through the sandbox proxy).

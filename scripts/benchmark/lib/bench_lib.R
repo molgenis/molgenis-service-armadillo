@@ -4,11 +4,10 @@
 #   bench.R        -- broad throughput survey       -> results/rates.csv
 #   capture.R      -- extract serverside primitives  -> results/primitives.csv
 #   probe.R        -- validate every call form (no timing)
-#   speed_true.R   -- true server compute time (endDate - startDate)
-#   speed_client.R -- client-observed time (high-level call, default poll-sleep)
+#   speed_true.R   -- server compute time + tight-poll round trip
 #
-# The two speed scripts run the SAME single-command serverside calls extracted
-# into results/primitives.csv by capture.R, so the measurements are comparable.
+# speed_true.R times the single-command serverside calls extracted into
+# results/primitives.csv by capture.R.
 # This file owns everything cross-cutting; each script stays top-to-bottom
 # readable and does exactly one thing.
 # ==============================================================================
@@ -129,12 +128,6 @@ submit_primitive <- function(conn, kind, expr, symbol = "p_tmp") {
   else                     dsAssignExpr(conn, symbol, expr, async = TRUE)
 }
 
-# Run one primitive via the high-level DSI call (default poll-sleep) on `conns`.
-run_primitive_hl <- function(conns, kind, expr, symbol = "p_tmp") {
-  if (kind == "aggregate") datashield.aggregate(conns, expr)
-  else                     datashield.assign.expr(conns, symbol, expr)
-}
-
 # Trace the serverside calls each op issues and return the DISTINCT (kind, expr)
 # pairs. Tracing DSI's internals is the hacky part -- it is contained here and
 # ALWAYS untraced on exit. The tracer runs in DSI's namespace, so the recorder is
@@ -203,37 +196,68 @@ write_primitives <- function(conn, ops, path = PRIM_CSV) {
   out
 }
 
-# --- Primitive speed suite (shared by speed_true.R / speed_client.R) ---------
-TIGHT_POLL_SEC <- 0.002         # client poll interval for the low-level round trip
+# --- Primitive speed suite (used by speed_true.R) ----------------------------
+TIGHT_POLL_SEC <- SPEED_POLL_TIGHT   # tight poll interval (s), from .env (SPEED_POLL_TIGHT)
 
-# For each backend x primitive: warm up (untimed), time `reps` reps, append one
-# row per rep to `out`, and print the per-primitive median. `measure(target, kind,
-# expr)` returns a named numeric vector of millisecond metrics; its names must
-# match `metrics` and become the CSV's metric columns. node = TRUE passes the
-# single low-level node conns[[be]][[1]] (async submit + server-timestamp read);
-# node = FALSE passes the high-level connection conns[[be]].
-run_speed_suite <- function(prims, conns, reps, out, metrics, measure, node = FALSE) {
-  cols <- c("backend", "pid", "fn", "kind", "rep", metrics)
-  append_rows <- open_csv(out, cols)
-  cat(sprintf("%d primitives x %d reps x %d backend(s) -> %s\n",
-              nrow(prims), reps, length(conns), out))
-  for (be in names(conns)) {
-    target <- if (node) conns[[be]][[1]] else conns[[be]]
-    cat(sprintf("\n== %s ==\n", be))
-    for (i in seq_len(nrow(prims))) {
+# Fair, interleaved timing. ALL backends are connected up front and kept live, and
+# every primitive is timed on every backend back-to-back within each pass -- so
+# Opal and Armadillo for the same op are measured in the same moment (same network
+# conditions), making the comparison fair rather than block-vs-block. The `reps`
+# total reps per cell are split across SPEED_SETS passes (default 5); the primitive
+# order and backend order are reshuffled each pass (seeded via SEED) to cancel
+# warm-up and slow drift. `measure(target, kind, expr)` returns a named numeric
+# vector of ms metrics matching `metrics`. node = TRUE passes the single low-level
+# node conns[[be]][[1]]; node = FALSE the high-level connection conns[[be]].
+run_speed_suite <- function(prims, backends, reps, out, metrics, measure, node = FALSE) {
+  sets         <- max(1L, as.integer(Sys.getenv("SPEED_SETS", "5")))
+  reps_per_set <- max(1L, reps)          # `reps` (SPEED_REPS) is reps PER pass
+  total        <- sets * reps_per_set    # total per cell = sets x reps
+  set.seed(as.integer(Sys.getenv("SEED", "1")))
+  logindata <- build_logins(backends)
+  cols <- c("backend", "pid", "fn", "kind", "set", "rep", metrics)
+  append_rows <- open_csv(out, cols, append = FALSE)
+
+  connect1 <- function(be) tryCatch(connect_be(be, logindata), error = function(e) {
+    message(sprintf("  connect failed for %s: %s", be, conditionMessage(e))); NULL })
+  conns <- list()
+  for (be in backends) { cn <- connect1(be); if (!is.null(cn)) conns[[be]] <- cn }
+  active <- names(conns)
+  tgt <- function(be) if (node) conns[[be]][[1]] else conns[[be]]
+
+  cat(sprintf("%d primitives x %d sets x %d reps x %d backend(s) = n=%d -> %s\n",
+              nrow(prims), sets, reps_per_set, length(active), total, out))
+
+  np  <- nrow(prims)
+  ky  <- function(be, i) paste(be, i, sep = "\t")
+  acc <- new.env(parent = emptyenv())   # per-cell accumulated metric matrix
+
+  for (s in seq_len(sets)) {
+    cat(sprintf("\n-- set %d/%d --\n", s, sets))
+    for (i in sample(np)) {
       kind <- prims$kind[i]; expr <- prims$expr[i]; fn <- prims$fn[i]
-      try(measure(target, kind, expr), silent = TRUE)            # warm-up (excluded)
-      m <- matrix(NA_real_, reps, length(metrics), dimnames = list(NULL, metrics))
-      for (r in seq_len(reps)) try(m[r, ] <- measure(target, kind, expr), silent = TRUE)
-      row <- data.frame(backend = be, pid = i, fn = fn, kind = kind, rep = seq_len(reps))
-      for (mt in metrics) row[[mt]] <- round(m[, mt], 3)
-      append_rows(row)
-      meds <- apply(m, 2, median, na.rm = TRUE)
-      cat(sprintf("  %-18s %s ms (median, n=%d)\n", fn,
-                  paste(sprintf("%s %7.2f", metrics, meds), collapse = " | "),
-                  sum(!is.na(m[, 1]))))
+      for (be in sample(active)) {
+        if (s == 1L) try(measure(tgt(be), kind, expr), silent = TRUE)  # one warm-up per cell
+        m <- matrix(NA_real_, reps_per_set, length(metrics), dimnames = list(NULL, metrics))
+        for (r in seq_len(reps_per_set))
+          m[r, ] <- tryCatch(measure(tgt(be), kind, expr),
+            error = function(e) { conns[[be]] <<- connect1(be); rep(NA_real_, length(metrics)) })
+        row <- data.frame(backend = be, pid = i, fn = fn, kind = kind, set = s,
+                          rep = (s - 1L) * reps_per_set + seq_len(reps_per_set))
+        for (mt in metrics) row[[mt]] <- round(m[, mt], 3)
+        append_rows(row)
+        k <- ky(be, i); acc[[k]] <- rbind(acc[[k]], m)
+      }
     }
   }
-  logout_all(conns)
+
+  cat(sprintf("\n== medians (n = %d) ==\n", total))
+  for (be in active) for (i in seq_len(np)) {
+    mm <- acc[[ky(be, i)]]; if (is.null(mm)) next
+    meds <- apply(mm, 2, median, na.rm = TRUE)
+    cat(sprintf("  %-22s %-18s %s ms (median, n=%d)\n", be, prims$fn[i],
+                paste(sprintf("%s %7.2f", metrics, meds), collapse = " | "),
+                sum(!is.na(mm[, 1]))))
+  }
+  for (be in active) try(datashield.logout(conns[[be]]), silent = TRUE)
   cat(sprintf("\nWrote %s\n", out))
 }

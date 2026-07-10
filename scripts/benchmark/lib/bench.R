@@ -15,7 +15,7 @@
 #
 # Sibling scripts (all sourcing bench_lib.R): ops.R (the registry), probe.R
 # (validate call forms, no timing), capture.R (extract primitives.csv),
-# speed_true.R / speed_client.R (true vs client time of those primitives).
+# speed_true.R (server compute + round-trip time of those primitives).
 # ==============================================================================
 
 source("bench_lib.R")          # config.R + shared helpers

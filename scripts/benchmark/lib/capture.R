@@ -1,6 +1,6 @@
 # ==============================================================================
 # Extract the single-command serverside primitives the broad op set issues, into
-# results/primitives.csv (the shared contract speed_true.R / speed_client.R read).
+# results/primitives.csv (read by speed_true.R).
 #
 #   ARMA_AUTH=basic Rscript capture.R
 #

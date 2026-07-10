@@ -64,6 +64,7 @@ export OPAL_COMPOSE="$BENCH_DIR/opal/docker-compose.yml"
 export BENCH_LIB="${BENCH_LIB:-$BENCH_DIR/.Rlib}"
 export OUT_CSV="$RESULTS/rates.csv"
 export ARMA_AUTH="${ARMA_AUTH:-basic}"
+export ARMA_JAVA_OPTS="${ARMA_JAVA_OPTS:--Xms1G -Xmx2G -XX:+UseG1GC}"
 
 down() {
   echo "== Tearing down =="
@@ -109,7 +110,7 @@ wait_for "Opal" "${OPAL_URL:-http://localhost:8080}"
 
 # --- Armadillo: gradlew run on 8081 (avoids Opal's 8080) --------------------
 echo "== Armadillo (port ${ARMA_PORT}) =="
-( cd "$ARMADILLO_REPO" && SERVER_PORT="$ARMA_PORT" ./gradlew run > "$RESULTS/armadillo.log" 2>&1 & echo $! > "$RESULTS/armadillo.pid" )
+( cd "$ARMADILLO_REPO" && JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }$ARMA_JAVA_OPTS" SERVER_PORT="$ARMA_PORT" ./gradlew run > "$RESULTS/armadillo.log" 2>&1 & echo $! > "$RESULTS/armadillo.pid" )
 echo "Armadillo PID $(cat "$RESULTS/armadillo.pid") (log: $RESULTS/armadillo.log)"
 wait_for "Armadillo" "${ARMA_URL:-http://localhost:8081}/actuator/health"
 
@@ -122,11 +123,11 @@ run_r profiles.R
 case "$MODE" in
   probe)  echo "== Probe ==";  run_r probe.R;;
   survey) echo "== Survey =="; run_r bench.R; run_r plot.R;;
-  speed)  echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r speed_client.R; run_r plot_compute.R;;
+  speed)  echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_compute.R;;
   all)
     echo "== Probe ==";  run_r probe.R
     echo "== Survey =="; run_r bench.R; run_r plot.R
-    echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r speed_client.R; run_r plot_compute.R;;
+    echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_compute.R;;
 esac
 
 echo "Done. Results + plots in $RESULTS"

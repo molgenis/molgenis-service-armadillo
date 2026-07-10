@@ -11,7 +11,7 @@
 # ==============================================================================
 
 source("bench_lib.R")
-REPS <- as.integer(Sys.getenv("SPEED_REPS", "1000"))
+REPS <- as.integer(Sys.getenv("SPEED_REPS", "4"))   # reps per pass (x SPEED_SETS passes)
 OUT  <- Sys.getenv("SPEED_TRUE_CSV", file.path(dirname(OUT_CSV), "speed_true.csv"))
 
 # One low-level submit -> tight poll -> read true server compute -> fetch.
@@ -25,5 +25,5 @@ measure_true <- function(c1, kind, expr) {
 }
 
 cat("TRUE speed: ")
-run_speed_suite(read_primitives(), build_conns(), REPS, OUT,
+run_speed_suite(read_primitives(), BACKENDS, REPS, OUT,
                 metrics = c("compute_ms", "roundtrip_ms"), measure = measure_true, node = TRUE)
