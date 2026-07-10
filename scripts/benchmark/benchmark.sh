@@ -14,7 +14,7 @@
 # Options:
 #   --arma-rock-image <img>   image the Armadillo profiles run (default from bench.env)
 #   --reps <n> / --duration <s> / --speed-reps <n>
-#   --probe | --survey | --speed | --all   (default: --all)
+#   --probe | --speed | --all   (default: --all)
 #   --skip-setup              skip data upload + workspace save
 #   --down                    tear down Opal + Armadillo and exit
 #   -h | --help
@@ -49,7 +49,6 @@ while [ $# -gt 0 ]; do
     --duration)        DURATION_SEC="$2";   shift 2;;
     --speed-reps)      SPEED_REPS="$2";     shift 2;;
     --probe)           MODE=probe;  shift;;
-    --survey)          MODE=survey; shift;;
     --speed)           MODE=speed;  shift;;
     --all)             MODE=all;    shift;;
     --skip-setup)      SKIP_SETUP=1; shift;;
@@ -122,12 +121,10 @@ run_r profiles.R
 [ "$SKIP_SETUP" = 1 ] || { echo "== Setup =="; run_r setup.R; }
 case "$MODE" in
   probe)  echo "== Probe ==";  run_r probe.R;;
-  survey) echo "== Survey =="; run_r bench.R; run_r plot.R;;
-  speed)  echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_compute.R;;
+  speed)  echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_total.R; run_r speed_dsi.R; run_r plot_dsi.R;;
   all)
     echo "== Probe ==";  run_r probe.R
-    echo "== Survey =="; run_r bench.R; run_r plot.R
-    echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_compute.R;;
+    echo "== Speed ==";  run_r capture.R; run_r speed_true.R; run_r plot_total.R; run_r speed_dsi.R; run_r plot_dsi.R;;
 esac
 
 echo "Done. Results + plots in $RESULTS"

@@ -43,22 +43,27 @@ m$speedup <- m$opal_rt / m$roundtrip_ms
 m$family  <- FAM[m$fn]
 m <- m[is.finite(m$speedup) & !is.na(m$family), ]
 
-agg <- aggregate(speedup ~ family + location + engine, m, mean)
+q <- function(x, p) as.numeric(quantile(x, p, na.rm = TRUE, names = FALSE))
+agg    <- aggregate(speedup ~ family + location + engine, m, median)
+agg$lo <- aggregate(speedup ~ family + location + engine, m, q, 0.25)$speedup
+agg$hi <- aggregate(speedup ~ family + location + engine, m, q, 0.75)$speedup
 agg$family   <- factor(agg$family, levels = rev(FAM_ORDER))
 agg$location <- factor(agg$location, levels = c("remote", "local"), labels = c("remote", "localhost"))
 
 PLOT <- file.path(dirname(OUT_CSV), "total.png")
 p <- ggplot(agg, aes(x = family, y = speedup, fill = engine)) +
   geom_col(position = position_dodge(width = 0.7), width = 0.62) +
+  geom_errorbar(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.7),
+                width = 0.3, linewidth = 0.3) +
   geom_hline(yintercept = 1, linetype = "dashed", colour = "#888") +
   facet_wrap(~ location) +
   coord_flip() +
   scale_fill_manual(values = c("Armadillo-Rock" = "#4285F4", "Armadillo-Rserve" = "#0097A7")) +
-  labs(title = "Total performance — round-trip vs Opal, by category",
-       subtitle = "Mean × faster than Opal per family (median round-trip); dashed line = Opal parity",
+  labs(title = "Round-trip vs Opal, by category",
+       subtitle = "Median × faster than Opal per family; IQR whiskers across the family's ops",
        x = NULL, y = "× faster than Opal", fill = NULL) +
   theme_minimal(base_size = 12) +
   theme(legend.position = "top")
 
-ggsave(PLOT, p, width = 9, height = 4.6, dpi = 150)
+ggsave(PLOT, p, width = 10, height = 4.2, dpi = 150)
 cat(sprintf("Wrote %s\n", PLOT))
