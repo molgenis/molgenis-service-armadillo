@@ -8,6 +8,7 @@ import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.getUserBucketIdentifierFromUserId;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -25,6 +26,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
@@ -51,6 +54,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "DataSHIELD", description = "Core API that interacts with the DataSHIELD environments")
@@ -499,6 +503,33 @@ public class DataController {
         .audit(
             commands.saveWorkspace(principal, id), principal, SAVE_USER_WORKSPACE, Map.of(ID, id))
         .get();
+  }
+
+  @Operation(summary = "Upload a workspace for a specific user")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
+        @ApiResponse(responseCode = "404", description = "Unknown project"),
+        @ApiResponse(responseCode = "409", description = "Object already exists"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(
+      value = "/workspaces/upload/{userId}/{id}",
+      consumes = {MULTIPART_FORM_DATA_VALUE})
+  @ResponseStatus(NO_CONTENT)
+  public void uploadUserWorkspace(
+      Principal principal,
+      @PathVariable String userId,
+      @PathVariable String id,
+      @Valid @RequestParam MultipartFile file)
+      throws IOException {
+    InputStream inputStream = new BufferedInputStream(file.getInputStream());
+    String userBucket = getUserBucketIdentifierFromUserId(userId);
+    auditEventPublisher.audit(
+        () -> storage.saveWorkspace(inputStream, userBucket, id),
+        principal,
+        "UPLOAD_USER_WORKSPACE",
+        Map.of(USER, userId, "WORKSPACE", id));
   }
 
   @Operation(summary = "Load user workspace")

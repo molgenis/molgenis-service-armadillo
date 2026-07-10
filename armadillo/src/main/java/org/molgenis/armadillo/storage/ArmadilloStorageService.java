@@ -266,13 +266,12 @@ public class ArmadilloStorageService {
     return USER_PREFIX + principal.getName();
   }
 
-  static String getUserBucketIdentifierFromUserId(String userId) {
-    return userId.replace("@", "__at__");
+  public static String getUserBucketIdentifierFromUserId(String userId) {
+    return USER_PREFIX + userId.replace("@", "__at__");
   }
 
   static String getUserBucketName(Principal principal) {
-    String userIdentifier = getUserBucketIdentifierFromUserId(getUser(principal));
-    return USER_PREFIX + userIdentifier;
+    return getUserBucketIdentifierFromUserId(getUser(principal));
   }
 
   private static Workspace toWorkspace(ObjectMetadata item) {
@@ -283,11 +282,11 @@ public class ArmadilloStorageService {
         .build();
   }
 
-  private void trySaveWorkspace(ArmadilloWorkspace workspace, Principal principal, String id) {
+  private void trySaveWorkspace(ArmadilloWorkspace workspace, String userId, String id) {
     try {
       storageService.save(
           workspace.createInputStream(),
-          getUserBucketName(principal),
+          userId,
           getWorkspaceObjectName(id),
           APPLICATION_OCTET_STREAM);
     } catch (StorageException e) {
@@ -315,24 +314,33 @@ public class ArmadilloStorageService {
     }
   }
 
-  public void saveWorkspace(InputStream is, Principal principal, String id) {
+  public void saveWorkspaceForCurrentUser(InputStream is, Principal principal, String id) {
+    try {
+      moveWorkspacesIfInOldBucket(principal);
+      String userId = getUserBucketName(principal);
+      saveWorkspace(is, userId, id);
+    } catch (StorageException | FileNotFoundException e) {
+      throw new StorageException(e.getMessage().replace("load", "save"));
+    }
+  }
+
+  public void saveWorkspace(InputStream is, String userId, String id) {
     // Load root dir
     File drive = new File("/");
     long usableSpace = drive.getUsableSpace();
     try {
-      moveWorkspacesIfInOldBucket(principal);
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
 
       long fileSize = workspace.getSize();
       if (usableSpace > fileSize * 2L) {
-        trySaveWorkspace(workspace, principal, id);
+        trySaveWorkspace(workspace, userId, id);
       } else {
         throw new StorageException(
             format(
                 "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
                 getHumanReadableByteCount(fileSize)));
       }
-    } catch (StorageException | FileNotFoundException e) {
+    } catch (StorageException e) {
       throw new StorageException(e.getMessage().replace("load", "save"));
     }
   }
@@ -349,7 +357,7 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU')")
   public InputStream downloadWorkspaceByStringUserId(String userId, String id) {
     return storageService.load(
-        USER_PREFIX + getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
+        getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
   }
 
   public void saveSystemFile(InputStream is, String name, MediaType mediaType) {
@@ -398,7 +406,7 @@ public class ArmadilloStorageService {
 
   public long getWorkspaceFileSizeIfObjectExists(String userId, String id) throws IOException {
     return getFileSizeIfObjectExists(
-        USER_PREFIX + getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
+        getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

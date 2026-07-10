@@ -574,7 +574,7 @@ class ArmadilloStorageServiceTest {
     when(storageService.getWorkSpace(is)).thenReturn(workspaceMock);
     when(workspaceMock.getSize()).thenReturn(12345L);
     when(workspaceMock.createInputStream()).thenReturn(isMock);
-    armadilloStorage.saveWorkspace(is, principal, "test");
+    armadilloStorage.saveWorkspaceForCurrentUser(is, principal, "test");
     verify(storageService).save(isMock, "user-henk", "test.RData", APPLICATION_OCTET_STREAM);
   }
 
@@ -587,7 +587,8 @@ class ArmadilloStorageServiceTest {
         Mockito.mockStatic(UserInformationRetriever.class)) {
       infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       assertThrows(
-          StorageException.class, () -> armadilloStorage.saveWorkspace(is, principal, "test"));
+          StorageException.class,
+          () -> armadilloStorage.saveWorkspaceForCurrentUser(is, principal, "test"));
     }
   }
 
@@ -599,7 +600,7 @@ class ArmadilloStorageServiceTest {
         Mockito.mockStatic(UserInformationRetriever.class)) {
       infoRetriever.when(() -> getUser(principal)).thenReturn(USER_EMAIL);
       try {
-        armadilloStorage.saveWorkspace(is, principal, "test");
+        armadilloStorage.saveWorkspaceForCurrentUser(is, principal, "test");
       } catch (StorageException e) {
         assertEquals(
             "Unable to save workspace. Maximum supported workspace size is 2GB", e.getMessage());
@@ -873,7 +874,7 @@ class ArmadilloStorageServiceTest {
   @WithMockUser(roles = "SU")
   void testGetUserBucketIdentifierFromUserId() {
     String actual = getUserBucketIdentifierFromUserId("email@email.com");
-    assertEquals("email__at__email.com", actual);
+    assertEquals("user-email__at__email.com", actual);
   }
 
   // Test: User has ROLE_SU, and storage service returns expected data
