@@ -15,9 +15,7 @@ config:
         image: datashield/rock-tulip-donkey:latest
         host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc  
         port: 8085 
-        package-whitelist:
-          - dsBase
-          - resourcer
+        package-whitelist: [ ]
         function-blacklist: [ ]
         options:
           datashield:
