@@ -18,6 +18,7 @@ config:
         package-whitelist:
           - dsBase
           - resourcer
+          - dsTidyverse
         function-blacklist: [ ]
         options:
           datashield:
