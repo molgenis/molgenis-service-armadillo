@@ -59,6 +59,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -1176,5 +1177,39 @@ class DataControllerTest extends ArmadilloControllerTestBase {
                 List.of("ROLE_SU"),
                 "sessionId",
                 sessionId)));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testUploadUserWorkspace() throws Exception {
+    String userId = "henk@email.com";
+    String id = "test";
+    String userBucket = ArmadilloStorageService.getUserBucketIdentifierFromUserId(userId);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "workspace.RData", APPLICATION_OCTET_STREAM_VALUE, "dummy content".getBytes());
+
+    mockMvc
+        .perform(
+            multipart("/workspaces/upload/{userId}/{id}", userId, id).file(file).session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).saveWorkspace(any(InputStream.class), eq(userBucket), eq(id));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "UPLOAD_USER_WORKSPACE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "user",
+                userId,
+                "WORKSPACE",
+                id)));
   }
 }
