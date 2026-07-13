@@ -58,9 +58,9 @@
                 :nRows="2"
                 :sortColumns="['user', 'name', 'size', 'lastModified']"
               >
-                <template #extraHeader>
+                <template #extraHeader v-if="selectedUser != 'All workspaces'">
                   <th>
-                    <div class="btn-group" role="group" aria-label="workspace control">
+                    <div class="btn-group" role="group" aria-label="workspace control" v-if="selectedUser != 'All workspaces'">
                       <button
                         type="button"
                         class="btn btn-danger btn-sm bg-danger"
@@ -78,24 +78,10 @@
                     </div>
                   </th>
                 </template>
-                <template #extraColumn="columnProps">
+                <template #extraColumn="columnProps" v-if="selectedUser != 'All workspaces'">
                   <!-- Add buttons for editing/deleting users  -->
-                  <th scope="row">
+                  <th scope="row"  >
                     <input
-                      v-if="selectedUser === 'All workspaces'"
-                      class="form-check-input"
-                      v-model="
-                        userWorkspaces[
-                          getIndexOfAllWorkspaces(
-                            columnProps.item['user'],
-                            columnProps.item['name']
-                          )
-                        ].checked
-                      "
-                      type="checkbox"
-                    />
-                    <input
-                      v-else
                       class="form-check-input"
                       v-model="
                         userWorkspaces[
@@ -107,6 +93,15 @@
                   </th>
                 </template>
               </DataPreviewTable>
+              <FileUpload v-if="selectedUser !='All workspaces'"
+                  class="mb-2"
+                  :project="''"
+                  :object="''"
+                  @upload_success="''"
+                  @upload_error="''"
+                  uniqueClass="file-upload"
+                  :preselectedItem="''"
+                ></FileUpload>
             </div>
           </div>
         </div>
@@ -141,6 +136,7 @@ import {
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
 import { Workspace } from "@/types/api";
+import FileUpload from "@/components/FileUpload.vue";
 
 export default defineComponent({
   name: "Workspaces",
@@ -151,6 +147,7 @@ export default defineComponent({
     LoadingSpinner,
     DataPreviewTable,
     Alert,
+    FileUpload
   },
   setup(_props, { emit }) {
     const selectedUser: Ref = ref("");
@@ -248,9 +245,6 @@ export default defineComponent({
       this.selectedUser = user;
       this.setWorkspaces(user);
     },
-    getUserNameFromFolder(user: string) {
-      return user.replace("user-", "");
-    },
     getIndexOfWorkspace(selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
         return workspace.name === selectedWorkspaceName;
@@ -276,7 +270,7 @@ export default defineComponent({
       this.isDeleteTriggered = false;
     },
     async deleteWorkspace(workspaceName: string) {
-      await deleteUserWorkspace(this.getUserNameFromFolder(this.selectedUser), workspaceName)
+      await deleteUserWorkspace(this.selectedUser, workspaceName)
         .then(() => {
           const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
           this.deleteSuccessMessages.push(successMessage);
@@ -290,7 +284,7 @@ export default defineComponent({
       this.downloadFailures = [];
       this.downloadSuccesses = [];
        this.selectedWorkspaces.forEach((ws) => {
-        downloadWorkspace(ws, this.getUserNameFromFolder(this.getUserNameFromWorkspace(ws))).then(() => {
+        downloadWorkspace(ws, this.selectedUser).then(() => {
           this.downloadSuccesses.push(ws);
           this.successMessage = "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
         }).catch (() => {
