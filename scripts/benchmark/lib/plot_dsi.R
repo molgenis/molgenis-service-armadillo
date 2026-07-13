@@ -32,25 +32,33 @@ agg$hi <- aggregate(lfc ~ op + location + engine, a, q, 0.75)$lfc
 
 ord <- aggregate(lfc ~ op, agg, median)            # order worst -> best
 agg$op       <- factor(agg$op, levels = ord$op[order(ord$lfc)])
-agg$location <- factor(agg$location, levels = c("remote", "local"), labels = c("remote", "localhost"))
+agg$location <- factor(agg$location, levels = c("local", "remote"), labels = c("localhost", "remote"))
 
-brk <- -4:3
-lbl <- c("16x", "8x", "4x", "2x", "Opal", "2x", "4x", "8x")   # |fold|; left slower, right faster
-PLOT <- file.path(dirname(OUT_CSV), "session_dsi.png")
-p <- ggplot(agg, aes(x = op, y = lfc, fill = engine)) +
-  geom_col(position = position_dodge(width = 0.7), width = 0.62) +
-  geom_errorbar(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.7),
-                width = 0.3, linewidth = 0.3) +
-  geom_hline(yintercept = 0, colour = "#888") +
-  facet_wrap(~ location) +
-  coord_flip() +
-  scale_y_continuous(breaks = brk, labels = lbl) +
-  scale_fill_manual(values = c("Armadillo-Rock" = "#4285F4", "Armadillo-Rserve" = "#0097A7")) +
-  labs(title = "Session & I/O vs Opal, by operation",
-       subtitle = "Left of centre = Armadillo slower  ·  right = faster (fold vs Opal); IQR whiskers",
-       x = NULL, y = NULL, fill = NULL) +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "top")
-
-ggsave(PLOT, p, width = 10, height = 4.6, dpi = 150)
-cat(sprintf("Wrote %s\n", PLOT))
+# Symmetric x-range so 0 (Opal parity) sits dead-centre, with padding either side.
+lim <- max(abs(c(agg$lo, agg$hi)), na.rm = TRUE) * 1.06
+brk <- -4:4
+lbl <- c("16x", "8x", "4x", "2x", "Opal", "2x", "4x", "8x", "16x")   # |fold|; left slower, right faster
+# One self-contained figure per location, to sit side-by-side on the slide like
+# the memory/storage pair. Shared axis (lim) keeps them comparable; legend on slide.
+mk <- function(loc, file) {
+  sub <- agg[agg$location == loc, ]
+  p <- ggplot(sub, aes(x = op, y = lfc, fill = engine)) +
+    geom_col(position = position_dodge(width = 0.7), width = 0.62) +
+    geom_errorbar(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.7),
+                  width = 0.3, linewidth = 0.3) +
+    geom_hline(yintercept = 0, colour = "#888") +
+    coord_flip() +
+    scale_y_continuous(breaks = brk, labels = lbl, limits = c(-lim, lim)) +
+    scale_fill_manual(values = c("Armadillo-Rock" = "#4285F4", "Armadillo-Rserve" = "#0097A7")) +
+    labs(title = tools::toTitleCase(loc), x = NULL, y = NULL, fill = NULL) +
+    theme_minimal(base_size = 13, base_family = "IBM Plex Mono") +
+    theme(legend.position = "none", plot.margin = margin(10, 14, 5, 8),
+          plot.title = element_text(size = 12),
+          axis.text.y = element_text(hjust = 0),
+          panel.grid.minor = element_blank())
+  ggsave(file, p, width = 6.6, height = 4.2, dpi = 300, device = ragg::agg_png)
+  cat(sprintf("Wrote %s\n", file))
+}
+OUT_DIR <- dirname(OUT_CSV)
+mk("localhost", file.path(OUT_DIR, "session_local.png"))
+mk("remote",    file.path(OUT_DIR, "session_remote.png"))
