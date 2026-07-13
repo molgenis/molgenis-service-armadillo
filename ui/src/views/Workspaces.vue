@@ -9,7 +9,7 @@
         ></FeedbackMessage>
         <ConfirmationDialog
           v-if="isDeleteTriggered"
-          :record="`${workspacesToDelete.join(', ')}`"
+          :record="`${selectedWorkspaces.join(', ')}`"
           action="delete"
           recordType="workspaces"
           :additionalMessage="`for user [${selectedUser}]`"
@@ -60,13 +60,22 @@
               >
                 <template #extraHeader>
                   <th>
-                    <button
-                      type="button"
-                      class="btn btn-danger btn-sm bg-danger"
-                      @click.prevent="setIsDeleteTriggered"
-                    >
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
+                    <div class="btn-group" role="group" aria-label="workspace control">
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm bg-danger"
+                        @click.prevent="setIsDeleteTriggered"
+                      >
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm bg-primary"
+                        @click.prevent="downloadSelectedWorkspaces"
+                      >
+                        <i class="bi bi-download"></i>
+                      </button>
+                    </div>
                   </th>
                 </template>
                 <template #extraColumn="columnProps">
@@ -127,6 +136,7 @@ import {
   getWorkspaceDetails,
   deleteUserWorkspace,
   deleteWorkspaceDirectory,
+  downloadWorkspace
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
@@ -199,9 +209,21 @@ export default defineComponent({
       successMessage: "",
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
+      downloadSuccesses: [] as StringArray,
+      downloadFailures: [] as StringArray
     };
   },
   methods: {
+    downloadWorkspace,
+    getUserNameFromWorkspace( workspace: string) {
+      let user = "";
+      this.userWorkspaces.forEach((ws) => {
+        if (ws.name === workspace) {
+          user = ws.user as string;
+        };
+      });
+      return user;
+    },
     clearIsDeleteUserWorkspaceDirectoryTriggered() {
       this.isDeleteWorkspaceDirectoryTriggered = false;
     },
@@ -226,8 +248,8 @@ export default defineComponent({
       this.selectedUser = user;
       this.setWorkspaces(user);
     },
-    getUserNameFromFolder() {
-      return this.selectedUser.replace("user-", "");
+    getUserNameFromFolder(user: string) {
+      return user.replace("user-", "");
     },
     getIndexOfWorkspace(selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
@@ -254,7 +276,7 @@ export default defineComponent({
       this.isDeleteTriggered = false;
     },
     async deleteWorkspace(workspaceName: string) {
-      await deleteUserWorkspace(this.getUserNameFromFolder(), workspaceName)
+      await deleteUserWorkspace(this.getUserNameFromFolder(this.selectedUser), workspaceName)
         .then(() => {
           const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
           this.deleteSuccessMessages.push(successMessage);
@@ -264,8 +286,21 @@ export default defineComponent({
           this.deleteErrorMessages.push(errorMessage);
         });
     },
+    async downloadSelectedWorkspaces() {
+      this.downloadFailures = [];
+      this.downloadSuccesses = [];
+       this.selectedWorkspaces.forEach((ws) => {
+        downloadWorkspace(ws, this.getUserNameFromFolder(this.getUserNameFromWorkspace(ws))).then(() => {
+          this.downloadSuccesses.push(ws);
+          this.successMessage = "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
+        }).catch (() => {
+          this.downloadFailures.push(ws)
+          this.errorMessage = "Download failure: " + this.downloadFailures.join(", ");
+        }) 
+      })
+    },
     async deleteSelectedWorkspaces() {
-      for (const workspace of this.workspacesToDelete) {
+      for (const workspace of this.selectedWorkspaces) {
         await this.deleteWorkspace(workspace);
       }
       this.collectDeleteMessages();
@@ -307,7 +342,7 @@ export default defineComponent({
     },
   },
   computed: {
-    workspacesToDelete() {
+    selectedWorkspaces() {
       return this.userWorkspaces
         .filter((ws) => ws.checked)
         .map((ws) => ws.name);
