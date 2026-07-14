@@ -26,7 +26,7 @@ orbs:
 definitions:
   build_config: &build_config
     docker:
-      - image: molgenis/ci-build-armadillo:1.1.6
+      - image: molgenis/ci-build-armadillo:1.1.7
 
     working_directory: ~/repo
     resource_class: large
