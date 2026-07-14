@@ -61,7 +61,7 @@
                 <!-- Placeholder for file upload for uploading complete project in future -->
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
-                <FileUpload
+                <DataUpload
                   class="mb-2"
                   :project="projectId"
                   :object="selectedFolder"
@@ -69,7 +69,7 @@
                   @upload_error="showErrorMessage"
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
-                ></FileUpload>
+                ></DataUpload>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                   <button
                     class="btn btn-primary me-md-2"
@@ -271,7 +271,7 @@ import {
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
-import FileUpload from "@/components/FileUpload.vue";
+import DataUpload from "@/components/DataUpload.vue";
 import FileExplorer from "@/components/FileExplorer.vue";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
@@ -287,7 +287,7 @@ export default defineComponent({
     FeedbackMessage,
     ListGroup,
     LoadingSpinner,
-    FileUpload,
+    DataUpload,
     FileExplorer,
     FolderInput,
     DataPreviewTable,
