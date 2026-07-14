@@ -39,7 +39,7 @@ config:
             seed: 342325353
       - name: tulip
         image: datashield/rock-tulip-donkey:latest
-        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc 
+        host: armadillo-tulipdonkey-molgenis-lemon-donkey.armadillo-tulipdonkey.svc 
         port: 8085
         package-whitelist:
           - dsBase
