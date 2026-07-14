@@ -15,13 +15,18 @@ REPS <- as.integer(Sys.getenv("SPEED_REPS", "4"))   # reps per pass (x SPEED_SET
 OUT  <- Sys.getenv("SPEED_TRUE_CSV", file.path(dirname(OUT_CSV), "speed_true.csv"))
 
 # One low-level submit -> tight poll -> read true server compute -> fetch.
+# roundtrip_ms times only submit + poll + fetch. The compute probe is an extra
+# network round trip (and a DIFFERENT call per backend), so its wall-time is
+# measured and subtracted back out -- it must not inflate or bias the comparison.
 measure_true <- function(c1, kind, expr) {
-  t0  <- Sys.time()
-  res <- submit_primitive(c1, kind, expr)
+  t0    <- Sys.time()
+  res   <- submit_primitive(c1, kind, expr)
   repeat { if (dsIsCompleted(res)) break; Sys.sleep(TIGHT_POLL_SEC) }
-  cms <- command_compute_ms(c1, res)                            # read BEFORE fetch
+  done  <- Sys.time()
+  cms   <- command_compute_ms(c1, res)                          # read BEFORE fetch
+  probe <- secs_since(done)                                     # cost of the probe, excluded below
   dsFetch(res)
-  c(compute_ms = cms, roundtrip_ms = secs_since(t0) * 1000)
+  c(compute_ms = cms, roundtrip_ms = (secs_since(t0) - probe) * 1000)
 }
 
 cat("TRUE speed: ")

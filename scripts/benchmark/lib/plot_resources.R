@@ -12,8 +12,6 @@ source("config.R")
 suppressMessages(library(ggplot2))
 OUT <- dirname(OUT_CSV)
 
-OPAL <- "#9AA0A6"; ARMA <- "#4285F4"
-
 # --- resting memory (GiB), idle. Containers (Opal server+Mongo+Rock, Armadillo
 # Rock/Rserve engines) via `docker stats` RSS. The Armadillo SERVER is a host JVM
 # (not a container), so its full OS-level footprint is measured with macOS
@@ -59,10 +57,9 @@ sto <- data.frame(
 )
 sto$mb <- sto$kb / 1024
 sto$backend <- factor(sto$backend, levels = c("Opal (Mongo)", "Armadillo (Parquet)"))
-p2 <- ggplot(sto, aes(x = backend, y = mb, fill = backend)) +
-  geom_col(width = 0.55) +
+p2 <- ggplot(sto, aes(x = backend, y = mb)) +
+  geom_col(width = 0.55, fill = "#0097A7") +
   geom_text(aes(label = sprintf("%.2f MB", mb)), vjust = -0.4, size = 4.2, fontface = "bold", colour = "#444") +
-  scale_fill_manual(values = c("Opal (Mongo)" = "#0097A7", "Armadillo (Parquet)" = "#0097A7")) +
   scale_x_discrete(labels = function(x) sub(" \\(", "\n(", x)) +
   labs(title = "Data on disk — CNSIM (10,000 rows x 29 cols)",
        x = NULL, y = "MB on disk", fill = NULL) +
