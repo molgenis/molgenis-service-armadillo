@@ -1,4 +1,4 @@
-FROM molgenis/ci-build:1.6.1
+FROM molgenis/ci-build:1.5.1
 USER root
 
 RUN echo "deb https://cran.r-project.org/bin/linux/ubuntu noble-cran40/" >> /etc/apt/sources.list
