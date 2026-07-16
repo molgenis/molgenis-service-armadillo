@@ -280,7 +280,6 @@ import MetaDataPreview from "@/components/MetaDataPreview.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
-  emits: ["triggerUploadFile"],
   components: {
     ButtonGroup,
     ConfirmationDialog,
@@ -487,14 +486,14 @@ export default defineComponent({
       this.createNewFolder = false;
     },
     onUploadSuccess({
-      object,
       filename,
     }: {
       object: string;
       filename: string;
     }) {
+      console.log("success!")
       this.reloadProject();
-      this.successMessage = `Successfully uploaded file [${filename}] into directory [${object}] of project: [${this.projectId}]`;
+      this.successMessage = `Successfully uploaded file [${filename}] into directory [${this.selectedFolder}] of project: [${this.projectId}]`;
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;

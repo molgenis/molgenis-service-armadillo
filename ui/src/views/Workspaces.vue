@@ -93,15 +93,14 @@
                   </th>
                 </template>
               </DataPreviewTable>
-              <FileUpload v-if="selectedUser !='All workspaces'"
-                  class="mb-2"
-                  :project="''"
-                  :object="''"
-                  @upload_success="''"
-                  @upload_error="''"
-                  uniqueClass="file-upload"
-                  :preselectedItem="''"
-                ></FileUpload>
+              <FileUpload v-if="selectedUser !='All workspaces'" 
+                ref="fileUpload" 
+                class="mb-2"
+                uniqueClass="workspace-upload" 
+                :uploadFileMethod="uploadWorkspaceFile" 
+                @upload_error="onError"
+                @upload_success="onSuccess"
+                :acceptedTypes="workspaceExtension"/>
             </div>
           </div>
         </div>
@@ -131,7 +130,8 @@ import {
   getWorkspaceDetails,
   deleteUserWorkspace,
   deleteWorkspaceDirectory,
-  downloadWorkspace
+  downloadWorkspace,
+  uploadWorkspace
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
@@ -207,11 +207,22 @@ export default defineComponent({
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
       downloadSuccesses: [] as StringArray,
-      downloadFailures: [] as StringArray
+      downloadFailures: [] as StringArray,
+      isUploadingFile: false,
+      workspaceId: "",
+      userId: "",
+      workspaceExtension: ".RData"
     };
   },
   methods: {
     downloadWorkspace,
+    uploadWorkspace,
+    getFileName() {
+      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file ? (this.$refs.fileUpload as any).file.name : "";
+    },
+    uploadWorkspaceFile(){
+      return this.uploadWorkspace((this.$refs.fileUpload as any).file, this.selectedUser.replace("user-", ""), this.getFileName().replace(this.workspaceExtension, ""));
+    },
     getUserNameFromWorkspace( workspace: string) {
       let user = "";
       this.userWorkspaces.forEach((ws) => {
@@ -334,8 +345,20 @@ export default defineComponent({
       }
       return workspacesWithUser;
     },
+    onSuccess(filename: string) {
+      //TODO: delete is broken
+      this.successMessage = `Upload success: [${filename}] for user [${this.selectedUser}]`;
+      //TODO: reload doesnt seem to be working?
+      this.loadWorkspaces();
+    },
+    onError(error: string) {
+      this.errorMessage = `Upload failure: cannot upload workspace for user [${this.selectedUser}] because ${error}`;
+    }
   },
   computed: {
+    isNotReadyForUpload() {
+      return this.workspaceId === '' || this.userId === '';
+    },
     selectedWorkspaces() {
       return this.userWorkspaces
         .filter((ws) => ws.checked)

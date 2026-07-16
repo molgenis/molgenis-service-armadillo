@@ -19,6 +19,7 @@
           class="file-upload-field hidden-input"
           @change="handleFileUpload"
           :class="uniqueClass"
+          :accept="acceptedTypes"
           type="file"
         />
       </div>
@@ -59,8 +60,8 @@ export default defineComponent({
   props: {
     uniqueClass: { type: String, required: true },
     triggerUpload: { type: Boolean, default: false },
-    uploadFile: { type: Function, required: true },
-    isUploadingFile: { type: Boolean, required: true}
+    uploadFileMethod: { type: Function, required: true },
+    acceptedTypes: {default: ""}
   },
   emits: ["upload_success", "upload_error", "upload_triggered"],
   components: {
@@ -84,6 +85,7 @@ export default defineComponent({
     isHoveringOverFileUpload: boolean;
     file: undefined | File;
     typeRows: number;
+    isUploadingFile: boolean;
   } {
     return {
       uploadCsvAsParquet: true,
@@ -91,11 +93,30 @@ export default defineComponent({
       isHoveringOverFileUpload: false,
       file: undefined,
       typeRows: 100,
+      isUploadingFile: false
     };
   },
   methods: {
     clearFile() {
       this.file = undefined;
+    },
+    uploadFile() {
+      const fileName = this.getFileName();
+      if (fileName != "") {
+        this.isUploadingFile = true;
+        this.uploadFileMethod() .then(() => {
+        this.isUploadingFile = false;
+          this.$emit("upload_success", {
+            filename: this.getFileName(),
+          });
+        })
+        .catch((error: Error) => {
+          this.isUploadingFile = false;
+          this.$emit("upload_error", error);
+        });
+      } else {
+        this.$emit("upload_error", "No file selected.");
+      }
     },
     handleFileUpload(event: Event) {
       const eventTarget = event.target as HTMLInputElement;
