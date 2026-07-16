@@ -1,12 +1,10 @@
 # Local config + installed packages + generated output
-bench.env
 .env
 .Rlib/
 .Rlib_*/
+.armadillo/
 results/*
 !results/.gitkeep
-data/*
-!data/.gitkeep
 Rplots.pdf
 .Rhistory
 .RData
