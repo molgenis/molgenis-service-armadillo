@@ -91,18 +91,8 @@ run_speed_suite <- function(prims, backends, reps, out, metrics, measure, node =
   cols <- c("backend", "pid", "fn", "kind", "set", "rep", metrics)
   append_rows <- open_csv(out, cols)
 
-  # Retry the initial connect: remote demo servers throw transient 401s, and a
-  # single failure here would drop a backend for the WHOLE suite.
-  connect1 <- function(be, tries = 3) {
-    for (i in seq_len(tries)) {
-      cn <- tryCatch(connect_be(be, logindata), error = function(e) {
-        if (i == tries) message(sprintf("  connect failed for %s: %s", be, conditionMessage(e)))
-        NULL })
-      if (!is.null(cn)) return(cn)
-      Sys.sleep(1)
-    }
-    NULL
-  }
+  connect1 <- function(be) tryCatch(connect_be(be, logindata), error = function(e) {
+    message(sprintf("  connect failed for %s: %s", be, conditionMessage(e))); NULL })
   conns <- list()
   for (be in backends) { cn <- connect1(be); if (!is.null(cn)) conns[[be]] <- cn }
   active <- names(conns)

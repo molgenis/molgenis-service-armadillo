@@ -107,16 +107,8 @@ append_rows <- open_csv(SESS_CSV, c("backend", "op", "set", "rep", "roundtrip_ms
 cat(sprintf("\nSESSION ops: %d in-loop + login/workspace_load, %d sets x %d reps x %d backends -> %s\n",
             length(SESSION_INLOOP), SETS, RPS, length(BACKENDS), SESS_CSV))
 
-connect1 <- function(be, tries = 3) {   # retry transient 401s from remote demo servers
-  for (i in seq_len(tries)) {
-    cn <- tryCatch(connect_be(be, logindata), error = function(e) {
-      if (i == tries) message(sprintf("  connect failed %s: %s", be, conditionMessage(e)))
-      NULL })
-    if (!is.null(cn)) return(cn)
-    Sys.sleep(1)
-  }
-  NULL
-}
+connect1 <- function(be) tryCatch(connect_be(be, logindata), error = function(e) {
+  message(sprintf("  connect failed %s: %s", be, conditionMessage(e))); NULL })
 
 # --- persistent-connection ops, interleaved by op x backend -----------------
 conns <- list()

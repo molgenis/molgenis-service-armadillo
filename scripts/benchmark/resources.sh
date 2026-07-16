@@ -14,7 +14,7 @@
 # ==============================================================================
 set -uo pipefail
 
-ARMA_URL="${ARMA_URL:-http://localhost:8081}"
+ARMA_URL="${ARMA_URL:-http://localhost:8080}"
 ARMA_AUTH="${ARMA_AUTH:-admin:admin}"
 OPAL_CTRS="opal-opal-1 opal-mongo-1 opal-rock-1"
 ARMA_CTRS="default rserve"
