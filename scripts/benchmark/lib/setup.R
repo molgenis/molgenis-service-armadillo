@@ -1,17 +1,14 @@
 # ==============================================================================
-# One-time setup: build the benchmark tables from REAL dsBaseClient test data,
-# upload them to BOTH backends, and save a DataSHIELD workspace on each (so the
-# benchmark can time workspace loading).
+# One-time setup: upload the vendored benchmark tables to BOTH backends.
 #
 #   Rscript setup.R
 #
-# Data comes from the dsBaseClient package's tests/testthat/data_files (see
-# DATA_DIR / DATASETS in config.R). Each dataset is loaded from its .rda and
-# inflated to N_ROWS rows x ~N_VARS columns, mirroring the datasets the
-# dsBaseClient tests use for each function.
+# The tables are pre-built and fixed at 10,000 rows (data/tables.rda, made once
+# by make_data.R from dsBaseClient test data). Each table is (re)uploaded fresh,
+# overwriting any existing copy, so a run always reflects the vendored data.
 #
-# Requires both servers running (see start_servers.sh). Idempotent: tables and
-# workspaces that already exist are left alone (set FORCE=1 to overwrite tables).
+# Requires both servers running. The timed workspace_load in measure.R saves +
+# restores its own workspace, so none is created here.
 # ==============================================================================
 
 source("config.R")
@@ -21,90 +18,14 @@ suppressMessages({
   library(tibble)
 })
 
-force <- nzchar(Sys.getenv("FORCE"))
-set.seed(42)
-
-# --- 1. Build tables from dsBaseClient data ---------------------------------
-# Load the object stored in a dsBaseClient .rda (the object name varies, e.g.
-# "study1"), returning the data frame.
-load_rda <- function(rel) {
-  e  <- new.env()
-  nm <- load(file.path(DATA_DIR, rel), envir = e)
-  e[[nm]]
-}
-
-# Append synthetic columns (numeric / integer / factor in rotation) until the
-# frame has `n_vars` columns. Deterministic under the seed set above.
-pad_to <- function(df, n_vars) {
-  need <- n_vars - ncol(df)
-  if (need <= 0) return(df)
-  n <- nrow(df)
-  extra <- lapply(seq_len(need), function(i) {
-    switch((i - 1) %% 3 + 1,
-           rnorm(n),
-           sample.int(100, n, replace = TRUE),
-           factor(sample(c("a", "b", "c"), n, replace = TRUE)))
-  })
-  names(extra) <- paste0("x", seq_len(need))
-  cbind(df, as.data.frame(extra, stringsAsFactors = FALSE))
-}
-
-# Flat datasets (CNSIM, GAMLSS, ...): upsample rows with replacement to n,
-# preserving distributions / factor levels / NAs. Prepend a unique Opal entity
-# id (`entity_id`, hidden by Opal from the assigned frame) and a `key` join
-# column for ds.merge, then pad to ~N_VARS.
-inflate_flat <- function(df, n, n_vars) {
-  out <- df[sample.int(nrow(df), n, replace = TRUE), , drop = FALSE]
-  rownames(out) <- NULL
-  out <- cbind(entity_id = seq_len(n), key = seq_len(n), out)
-  pad_to(out, n_vars)
-}
-
-# Structured datasets (survival subjects, clustered patients/doctors): tile the
-# frame to >= n rows and offset id_cols per tile so identifiers stay unique
-# (survival) and groups scale up but stay valid (cluster). Add the unique Opal
-# entity id, then pad. Native id columns (e.g. survival `id`) are kept visible.
-inflate_struct <- function(df, n, id_cols, n_vars) {
-  reps  <- ceiling(n / nrow(df))
-  parts <- lapply(seq_len(reps), function(k) {
-    p <- df
-    for (cl in id_cols) {
-      if (!cl %in% names(p)) next
-      v <- p[[cl]]
-      # numeric ids: offset per tile to stay unique; factor/character grouping
-      # ids: suffix the tile index so groups multiply but remain distinct.
-      p[[cl]] <- if (is.numeric(v)) v + (k - 1L) * (max(df[[cl]], na.rm = TRUE) + 1L)
-                 else factor(paste0(as.character(v), "_t", k))
-    }
-    p
-  })
-  out <- do.call(rbind, parts)[seq_len(n), , drop = FALSE]
-  rownames(out) <- NULL
-  out <- cbind(entity_id = seq_len(n), out)
-  pad_to(out, n_vars)
-}
-
-build_tables <- function(n) {
-  tabs <- list()
-  for (d in DATASETS) {
-    raw <- load_rda(d$rda)
-    tab <- if (d$kind == "flat") inflate_flat(raw, n, N_VARS)
-           else                  inflate_struct(raw, n, d$id_cols, N_VARS)
-    if (isTRUE(d$slim))
-      tab <- tab[, c("entity_id", "key", "LAB_TRIG", "GENDER", "LAB_HDL")]
-    tabs[[d$table]] <- tab
-  }
-  tabs
-}
-
-cat(sprintf("Building %d benchmark tables from dsBaseClient data (%d rows)...\n",
-            length(DATASETS), N_ROWS))
-tables <- build_tables(N_ROWS)
-
+if (!file.exists(DATA_FILE))
+  stop("vendored data not found: ", DATA_FILE, " -- run make_data.R first", call. = FALSE)
+load(DATA_FILE)            # -> `tables`, a named list of data frames
+cat(sprintf("Loaded %d tables from %s\n", length(tables), DATA_FILE))
 for (nm in names(tables))
-  cat(sprintf("  %-12s %d x %d\n", nm, nrow(tables[[nm]]), ncol(tables[[nm]])))
+  cat(sprintf("  %-10s %d x %d\n", nm, nrow(tables[[nm]]), ncol(tables[[nm]])))
 
-# --- 2. Upload to Opal ------------------------------------------------------
+# --- Upload to Opal ---------------------------------------------------------
 upload_opal <- function(tables, spec) {
   cat(sprintf("\n== Opal: %s (%s) ==\n", spec$be, spec$url))
   o <- opal.login(spec$user, spec$pass, url = spec$url)
@@ -119,22 +40,15 @@ upload_opal <- function(tables, spec) {
   }
 
   for (tbl in names(tables)) {
-    if (!force && opal.table_exists(o, PROJECT, tbl)) {
-      cat(sprintf("skip (exists): %s.%s\n", PROJECT, tbl)); next
-    }
     opal.table_save(o, as_tibble(tables[[tbl]]), PROJECT, tbl,
                     overwrite = TRUE, force = TRUE, id.name = "entity_id")
     cat(sprintf("uploaded: %s.%s\n", PROJECT, tbl))
   }
 }
 
-# --- 3. Upload to Armadillo -------------------------------------------------
+# --- Upload to Armadillo ----------------------------------------------------
 upload_arma <- function(tables, spec) {
   cat(sprintf("\n== Armadillo: %s (%s) ==\n", spec$be, spec$url))
-  if (spec$auth != "basic") {
-    message(sprintf("  skipping upload to %s: only basic-auth upload is supported (auth=%s)",
-                    spec$be, spec$auth)); return(invisible())
-  }
   armadillo.login_basic(spec$url, spec$user, spec$pass)
   if (!(PROJECT %in% armadillo.list_projects())) {
     cat(sprintf("Creating project '%s'\n", PROJECT))
@@ -142,49 +56,45 @@ upload_arma <- function(tables, spec) {
   }
   existing <- tryCatch(armadillo.list_tables(PROJECT), error = function(e) character(0))
   for (tbl in names(tables)) {
-    exists_tbl <- any(grepl(paste0(FOLDER, "/", tbl, "$"), existing))
-    if (exists_tbl && !force) {
-      cat(sprintf("skip (exists): %s/%s/%s\n", PROJECT, FOLDER, tbl)); next
-    }
-    if (exists_tbl) armadillo.delete_table(PROJECT, FOLDER, tbl)   # force: overwrite
+    if (any(grepl(paste0(FOLDER, "/", tbl, "$"), existing)))
+      armadillo.delete_table(PROJECT, FOLDER, tbl)     # overwrite
     armadillo.upload_table(PROJECT, FOLDER, tables[[tbl]], tbl)
     cat(sprintf("uploaded: %s/%s/%s\n", PROJECT, FOLDER, tbl))
   }
 }
 
-# DRY_RUN=1 builds + reports the tables locally without touching the servers
-# (used to validate inflation shapes; e.g. N_ROWS=1000 DRY_RUN=1 Rscript setup.R).
-if (nzchar(Sys.getenv("DRY_RUN"))) {
-  cat("\nDRY_RUN: tables built locally; skipping upload + workspace save.\n")
-  quit(save = "no")
+# Upload once per distinct host (kind + location). Armadillo's default and rserve
+# profiles share one server/storage, so they collapse to a single upload.
+hosts <- unique(vapply(BACKENDS,
+  function(be) paste0(backend_kind(be), "_", backend_location(be)), character(1)))
+for (h in hosts) {
+  spec   <- backend_spec(h)
+  upload <- if (spec$kind == "opal") upload_opal else upload_arma
+  tryCatch(upload(tables, spec),
+    error = function(e) message(sprintf("upload to %s failed: %s", h, conditionMessage(e))))
 }
 
-# Upload to every distinct host implied by BACKENDS: each Opal backend is its own
-# host; Armadillo hosts are deduped by location (default + rserve share storage).
-opal_targets <- Filter(function(be) backend_kind(be) == "opal", BACKENDS)
-arma_targets <- paste0("armadillo_", unique(vapply(
-  Filter(function(be) backend_kind(be) == "armadillo", BACKENDS),
-  backend_location, character(1))))
-for (be in opal_targets) tryCatch(upload_opal(tables, backend_spec(be)),
-  error = function(e) message(sprintf("upload to %s failed: %s", be, conditionMessage(e))))
-for (be in arma_targets) tryCatch(upload_arma(tables, backend_spec(be)),
-  error = function(e) message(sprintf("upload to %s failed: %s", be, conditionMessage(e))))
-
-# --- 4. Save a DataSHIELD workspace per backend -----------------------------
-# Logs in (assigning the CNSIM table to D), saves the session as WORKSPACE, logs
-# out. datashield.login(restore = WORKSPACE) in the benchmark then has data to
-# load.
-save_workspace <- function(be) {
-  cat(sprintf("\n== Workspace (%s) ==\n", be))
-  ld <- login_for(build_logins(), be)
-  cn <- datashield.login(ld, assign = FALSE)
-  datashield.assign.table(cn, "D", table_a_ref(be))
-  datashield.workspace_save(cn, WORKSPACE)
-  datashield.logout(cn)
-  cat(sprintf("saved workspace '%s' on %s\n", WORKSPACE, be))
+# --- Local Armadillo 'rserve' profile ---------------------------------------
+# The armadillo_local_rserve backend needs an 'rserve' profile on the local
+# Armadillo (the 'default' profile ships with it). Create + start it on
+# RSERVE_IMAGE (dsBase whitelisted, permissive). Remote profiles must pre-exist.
+ensure_local_rserve <- function() {
+  if (!"armadillo_local_rserve" %in% BACKENDS) return(invisible())
+  spec <- backend_spec("armadillo_local")
+  img  <- Sys.getenv("RSERVE_IMAGE", "datashield/rserver_soccer-donkey:latest")
+  port <- as.integer(Sys.getenv("RSERVE_PORT", "6315"))   # default is 6311; rserve on its own port
+  auth <- httr::authenticate(spec$user, spec$pass)
+  cat(sprintf("\n== Armadillo rserve profile '%s' on %s (:%d) ==\n", ARMA_RSERVE_PROFILE, img, port))
+  r <- httr::PUT(paste0(spec$url, "/ds-profiles"), auth, encode = "json",
+                 body = list(name = ARMA_RSERVE_PROFILE, image = img, host = "localhost", port = port,
+                             packageWhitelist = list("dsBase"), functionBlacklist = list(),
+                             options = list(datashield.privacyControlLevel = "permissive")))
+  if (!httr::status_code(r) %in% c(200L, 204L))
+    message(sprintf("  profile create returned %d: %s", httr::status_code(r),
+                    httr::content(r, "text", encoding = "UTF-8")))
+  httr::POST(paste0(spec$url, "/ds-profiles/", ARMA_RSERVE_PROFILE, "/start"), auth)
 }
-for (be in BACKENDS)
-  tryCatch(save_workspace(be), error = function(e)
-    message(sprintf("workspace save skipped on %s (unavailable): %s", be, conditionMessage(e))))
+tryCatch(ensure_local_rserve(), error = function(e)
+  message(sprintf("rserve profile setup skipped: %s", conditionMessage(e))))
 
 cat("\nSetup complete.\n")

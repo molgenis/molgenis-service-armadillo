@@ -1,19 +1,12 @@
 # ==============================================================================
-# Shared configuration for the Opal-vs-Armadillo DataSHIELD benchmark.
-#
-# Config comes from .env (the single source of truth), loaded below. Do not edit
-# URLs/credentials here -- set them in .env. Everything else is derived.
+# Shared config for the Opal-vs-Armadillo DataSHIELD benchmark.
+# .env is the single source of truth (connections + run params); everything here
+# just reads it. Sourced by every stage (directly or via helpers.R).
 # ==============================================================================
 
-# Run against the CRAN (Obiba) release of dsBaseClient from a project-local
-# library, not whatever dev build is installed globally. Install once with:
-#   install.packages("dsBaseClient", lib = ".Rlib",
-#                    repos = "https://cran.obiba.org", dependencies = FALSE)
-# (dependencies resolve from the system library). Override the path with BENCH_LIB.
-# .env is the SINGLE SOURCE OF TRUTH for config (connection + run params). It is
-# read here by the R scripts and never printed. Defaults to ../.env (scripts run
-# from lib/); override the path with ENV_FILE. Parsed in R: no shell evaluation,
-# values literal incl. special chars; inline ' # comments' are stripped.
+# --- Load .env into the environment -----------------------------------------
+# KEY=value lines, parsed in R (no shell eval); '# comments' stripped. Path from
+# ENV_FILE (default ../.env, since stages run from lib/).
 local({
   env_file <- Sys.getenv("ENV_FILE", "../.env")
   if (!file.exists(env_file)) return(invisible())
@@ -25,19 +18,16 @@ local({
   }
 })
 
-LOCAL_LIB <- Sys.getenv("BENCH_LIB", ".Rlib")
-# BENCH_LIB may be a comma-separated list of libraries (first = highest priority),
-# e.g. a patched-package lib followed by .Rlib. Existing dirs are prepended in order.
-LOCAL_LIBS <- trimws(strsplit(LOCAL_LIB, ",")[[1]])
-LOCAL_LIBS <- LOCAL_LIBS[dir.exists(LOCAL_LIBS)]
-if (length(LOCAL_LIBS) > 0) {
-  .libPaths(c(normalizePath(LOCAL_LIBS), .libPaths()))
+# --- Package library --------------------------------------------------------
+# Use the benchmark's project-local library (BENCH_LIB, default .Rlib) built by
+# install_benchmark_dependencies.R, isolated from the global R library. BENCH_LIB
+# may be a comma-separated priority list; existing dirs are prepended.
+libs <- Filter(dir.exists, trimws(strsplit(Sys.getenv("BENCH_LIB", ".Rlib"), ",")[[1]]))
+if (length(libs)) {
+  .libPaths(c(normalizePath(libs), .libPaths()))
 } else {
-  warning(sprintf(paste0("Project library '%s' not found - using the globally ",
-    "installed dsBaseClient, whose version may not match the CRAN release this ",
-    "benchmark targets. Install it with:\n  install.packages('dsBaseClient', ",
-    "lib='%s', repos='https://cran.obiba.org', dependencies=FALSE)"),
-    LOCAL_LIB, LOCAL_LIB), call. = FALSE)
+  warning("BENCH_LIB not found - using the global R library; ",
+          "run install_benchmark_dependencies.R first.", call. = FALSE)
 }
 
 suppressMessages({
@@ -46,30 +36,26 @@ suppressMessages({
   library(DSMolgenisArmadillo)
 })
 
-# --- Connection config (from .env) ------------------------------------------
-# All connection values must be set explicitly (in .env). No silent defaults: a
-# missing value fails loudly. Backends are named <kind>_<location>[_rserve]:
-#   opal_local, opal_remote,
-#   armadillo_local, armadillo_local_rserve,
-#   armadillo_remote, armadillo_remote_rserve
-# Each resolves its connection from a location-specific env prefix:
-#   OPAL_LOCAL_* / OPAL_REMOTE_*   -> URL, USER, PASS
-#   ARMA_LOCAL_* / ARMA_REMOTE_*   -> URL, USER, PASS, AUTH[, TOKEN]
+# --- Backends ---------------------------------------------------------------
+# Backends are named <kind>_<location>[_rserve], e.g. armadillo_remote_rserve.
+# BACKENDS lists which to run; each resolves its connection from location-prefixed
+# .env keys (basic auth): {OPAL,ARMA}_{LOCAL,REMOTE}_{URL,USER,PASS}.
+BACKENDS <- trimws(strsplit(Sys.getenv("BACKENDS",
+  "opal_local,opal_remote,armadillo_local,armadillo_local_rserve,armadillo_remote,armadillo_remote_rserve"),
+  ",")[[1]])
+
+# Compute profile (R engine) per backend -- all must run the same pinned dsBase
+# image for a valid comparison. Armadillo's two profiles are separate backends.
+OPAL_PROFILE        <- Sys.getenv("OPAL_PROFILE",        "default")   # Opal rock
+ARMA_PROFILE        <- Sys.getenv("ARMA_PROFILE",        "default")   # Armadillo rock
+ARMA_RSERVE_PROFILE <- Sys.getenv("ARMA_RSERVE_PROFILE", "rserve")    # Armadillo rserve
+
 require_env <- function(k) {
   v <- Sys.getenv(k)
   if (!nzchar(v)) stop(sprintf("%s is not set -- define it in your .env", k), call. = FALSE)
   v
 }
-
-# The two Armadillo compute profiles, benchmarked as separate backends per host.
-ARMA_PROFILE        <- Sys.getenv("ARMA_PROFILE",        "default")
-ARMA_RSERVE_PROFILE <- Sys.getenv("ARMA_RSERVE_PROFILE", "rserve")
-
-# Path to a local Opal docker compose file; if set, bench.R restarts Opal on a
-# mid-run crash. Leave blank to disable (reconnect-only).
-OPAL_COMPOSE <- Sys.getenv("OPAL_COMPOSE", "")
-
-backend_kind <- function(be) ifelse(grepl("^opal", be), "opal", "armadillo")
+backend_kind     <- function(be) if (grepl("^opal", be)) "opal" else "armadillo"
 backend_location <- function(be) {
   if (grepl("_local", be)) {
     "local"
@@ -80,128 +66,66 @@ backend_location <- function(be) {
   }
 }
 
-# Resolve a backend name to its connection spec. Envs are required only for the
-# backends actually used (this is called per requested backend).
+# Resolve a backend name to {url, user, pass, driver, profile}. Env keys are
+# required only for the backends actually used. Local servers run on localhost at
+# {OPAL,ARMA}_LOCAL_PORT; remote backends give a full *_REMOTE_URL.
 backend_spec <- function(be) {
-  loc <- backend_location(be)
-  if (backend_kind(be) == "opal") {
-    p <- sprintf("OPAL_%s_", toupper(loc))
-    list(be = be, kind = "opal", driver = "OpalDriver",
-         url = require_env(paste0(p, "URL")), user = require_env(paste0(p, "USER")),
-         pass = require_env(paste0(p, "PASS")))
+  kind <- backend_kind(be)
+  loc  <- backend_location(be)
+  p    <- sprintf("%s_%s_", if (kind == "opal") "OPAL" else "ARMA", toupper(loc))
+  url  <- if (loc == "local") {
+    sprintf("http://localhost:%s", require_env(paste0(p, "PORT")))
   } else {
-    p    <- sprintf("ARMA_%s_", toupper(loc))
-    auth <- tolower(Sys.getenv(paste0(p, "AUTH"), "basic"))
-    list(be = be, kind = "armadillo", driver = "ArmadilloDriver",
-         url = require_env(paste0(p, "URL")), user = require_env(paste0(p, "USER")),
-         pass = if (auth == "basic") require_env(paste0(p, "PASS")) else Sys.getenv(paste0(p, "PASS"), ""),
-         auth = auth, token = Sys.getenv(paste0(p, "TOKEN"), ""),
-         profile = if (grepl("_rserve$", be)) ARMA_RSERVE_PROFILE else ARMA_PROFILE)
+    require_env(paste0(p, "URL"))
   }
+  list(be = be, kind = kind,
+       driver  = if (kind == "opal") "OpalDriver" else "ArmadilloDriver",
+       url     = url,
+       user    = require_env(paste0(p, "USER")),
+       pass    = require_env(paste0(p, "PASS")),
+       profile = if (kind == "opal") OPAL_PROFILE
+                 else if (grepl("_rserve$", be)) ARMA_RSERVE_PROFILE else ARMA_PROFILE)
 }
 
 # --- Data -------------------------------------------------------------------
-# Benchmark data is REAL dsBaseClient test data, loaded from the package's
-# tests/testthat/data_files and inflated to N_ROWS x ~N_VARS in setup.R. Each
-# dataset becomes a table on both backends and is assigned to a fixed server
-# symbol that the benchmark calls reference (D = CNSIM, DS = survival, etc.).
-DATA_DIR <- Sys.getenv("DSBASECLIENT_DATA",
-  file.path(Sys.getenv("HOME"), "git-repos/ds-core/dsBaseClient/tests/testthat/data_files"))
+# Tables are vendored (data/tables.rda, fixed 10k rows; see make_data.R). setup.R
+# uploads them into PROJECT[/FOLDER]; the benchmark assigns each to a server symbol
+# (D = CNSIM, D2 = CNSIM_B merge partner, DS = survival, DC = cluster).
+PROJECT   <- Sys.getenv("PROJECT", "perf")
+FOLDER    <- Sys.getenv("FOLDER", "bench")     # Armadillo only (Opal has no folders)
+DATA_FILE <- Sys.getenv("DATA_FILE", file.path("..", "data", "tables.rda"))
 
-PROJECT <- "perf"
-FOLDER  <- "bench"          # Armadillo folder (Opal has no folders)
-N_ROWS  <- as.integer(Sys.getenv("N_ROWS", "100000"))
-N_VARS  <- as.integer(Sys.getenv("N_VARS", "30"))   # target columns per table
+DATASETS <- list(
+  list(table = "CNSIM",    symbol = "D"),
+  list(table = "CNSIM_B",  symbol = "D2"),
+  list(table = "SURVIVAL", symbol = "DS"),
+  list(table = "CLUSTER",  symbol = "DC")
+)
+TABLE_A <- "CNSIM"   # default login table
 
-# How a table name maps to a per-backend reference for datashield.assign.table(),
-# by backend KIND: Opal uses project.table; Armadillo uses project/folder/table.
+# Table name -> per-backend reference: Opal project.table; Armadillo project/folder/table.
 ds_table_ref <- function(be, tbl)
   if (backend_kind(be) == "opal") paste0(PROJECT, ".", tbl) else paste(PROJECT, FOLDER, tbl, sep = "/")
+table_a_ref  <- function(be) ds_table_ref(be, TABLE_A)
 
-# Dataset registry (source of truth for setup.R upload + bench.R assigns):
-#   rda     - path under DATA_DIR of the dsBaseClient .rda to load
-#   table   - uploaded table name (same on both backends)
-#   symbol  - server-side object the benchmark assigns the table to
-#   kind    - row inflation strategy: "flat" samples rows with replacement;
-#             "survival"/"cluster" tile + re-number id_cols so subject/grouping
-#             identifiers stay valid and unique
-#   id_cols - identifier columns re-numbered per tile (structured kinds)
-#   slim    - keep only id/key + a few columns (the merge partner table)
-DATASETS <- list(
-  cnsim    = list(rda = "CNSIM/CNSIM1.rda", table = "CNSIM",   symbol = "D",  kind = "flat"),
-  cnsim_b  = list(rda = "CNSIM/CNSIM1.rda", table = "CNSIM_B", symbol = "D2", kind = "flat", slim = TRUE),
-  survival = list(rda = "SURVIVAL/EXPAND_NO_MISSING/EXPAND_NO_MISSING1.rda",
-                  table = "SURVIVAL", symbol = "DS", kind = "survival", id_cols = c("id")),
-  cluster  = list(rda = "CLUSTER/CLUSTER_SLO1.rda", table = "CLUSTER", symbol = "DC",
-                  kind = "cluster", id_cols = c("idSurgery", "idDoctor"))
-)
+# --- Run parameters ---------------------------------------------------------
+RESULTS_DIR <- Sys.getenv("RESULTS_DIR", "results")   # where CSVs + plots are written
+# Poll interval (s) between "is it done?" checks -- for BOTH DSI's high-level
+# polling (session ops) and the function suite's manual loop (helpers.R). Held
+# tight so the wait stays negligible and doesn't distort fast local timings.
+POLL_SLEEP <- as.numeric(Sys.getenv("POLL_SLEEP", "0.002"))
+options(datashield.polling.sleep.0 = POLL_SLEEP)
 
-# All datasets are ALWAYS active -- every op has the tables it needs. No subsetting
-# knob: the benchmark must always cover the full dataset set.
+# --- Login builder ----------------------------------------------------------
+# Assemble a multi-server DSI logindata object over `backends`; subset per backend
+# with login_for(). All backends use basic auth + a compute profile.
+append_backend <- function(b, spec)
+  b$append(server = spec$be, url = spec$url, user = spec$user, password = spec$pass,
+           table = table_a_ref(spec$be), driver = spec$driver, profile = spec$profile)
 
-# Default login table (build_logins) + workspace save (setup.R). CNSIM is the
-# default; the benchmark assigns every dataset explicitly regardless.
-TABLE_A <- DATASETS$cnsim$table
-
-# --- Benchmark settings -----------------------------------------------------
-DURATION_SEC <- as.numeric(Sys.getenv("DURATION_SEC", "20"))  # seconds per cell
-REPS         <- as.integer(Sys.getenv("REPS", "10"))          # repeats per cell
-SEED         <- as.integer(Sys.getenv("SEED", "1"))           # shuffle seed
-WORKSPACE    <- "perf_ws"                                     # saved in setup.R
-
-# BACKENDS / output path / poll floor are env-overridable so one run can target a
-# subset of backends, write to a separate CSV, and use a non-default DSI poll-sleep.
-BACKENDS  <- trimws(strsplit(Sys.getenv("BACKENDS",
-  "opal_local,opal_remote,armadillo_local,armadillo_local_rserve,armadillo_remote,armadillo_remote_rserve"),
-  ",")[[1]])
-OUT_CSV   <- Sys.getenv("OUT_CSV", file.path("results", "rates.csv"))
-
-# DSI client poll-sleep floor (seconds). Default 50ms; lower it to reduce the
-# client-side wait between "is it done?" checks (helps poll-dominated ops).
-poll0 <- Sys.getenv("POLL_SLEEP0", "")
-if (nzchar(poll0)) options(datashield.polling.sleep.0 = as.numeric(poll0))
-
-# Round-trip poll interval (seconds), from .env. Held tight (2 ms) for every test
-# so the DSI poll wait stays negligible and does not distort fast local calls.
-SPEED_POLL_TIGHT <- as.numeric(Sys.getenv("SPEED_POLL_TIGHT", "0.002"))
-
-# --- Per-backend helpers ----------------------------------------------------
-# Per-backend reference to the default benchmark table (CNSIM).
-table_a_ref <- function(be) ds_table_ref(be, TABLE_A)
-
-# Armadillo OAuth token cache, keyed by host URL (only for non-basic auth).
-# Fetched once, BEFORE any timed datashield.login, so the handshake isn't part of
-# the measured login time (build_logins() does this at benchmark startup).
-.arma_tokens <- new.env(parent = emptyenv())
-arma_token <- function(url) {
-  if (is.null(.arma_tokens[[url]]))
-    .arma_tokens[[url]] <- DSMolgenisArmadillo::armadillo.get_credentials(url)@access_token
-  .arma_tokens[[url]]
-}
-
-# Append one backend's login row from its spec (driver + basic/token auth +
-# profile). The single place that knows the per-backend branching.
-append_backend <- function(b, spec) {
-  if (spec$kind == "opal") {
-    b$append(server = spec$be, url = spec$url, user = spec$user, password = spec$pass,
-             table = table_a_ref(spec$be), driver = "OpalDriver")
-  } else if (spec$auth == "basic") {
-    b$append(server = spec$be, url = spec$url, user = spec$user, password = spec$pass,
-             table = table_a_ref(spec$be), driver = "ArmadilloDriver", profile = spec$profile)
-  } else {
-    tok <- if (nzchar(spec$token)) spec$token else arma_token(spec$url)
-    b$append(server = spec$be, url = spec$url, token = tok,
-             table = table_a_ref(spec$be), driver = "ArmadilloDriver", profile = spec$profile)
-  }
-}
-
-# Build a multi-server logindata object over the requested backends; subset per
-# backend with login_for().
 build_logins <- function(backends = BACKENDS) {
   b <- DSI::newDSLoginBuilder(.silent = TRUE)
   for (be in backends) append_backend(b, backend_spec(be))
   b$build()
 }
-
-# A single-server logindata row for one backend.
 login_for <- function(logindata, be) logindata[logindata$server == be, , drop = FALSE]
