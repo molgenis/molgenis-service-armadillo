@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# Start the verified supernodes and clientapps via the Armadillo API.
+# Start the supernodes and clientapps via the Armadillo API.
 #
 # The supernode/clientapp container configs must already be registered
 # (PUT /containers) — that happens in test-flower-containers.sh.
-#
-# /tmp/trusted-entities.yaml must exist on the host before running this,
-# because the supernode containers bind-mount it.
+# Armadillo mounts trusted-entities.yaml, ca.crt and the supernode auth
+# key from each node's data/system/flower directory; run
+# generate_flower_credentials first to create them.
 #
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
-[ -f /tmp/trusted-entities.yaml ] || fail "/tmp/trusted-entities.yaml not found. Generate it before starting supernodes."
+[ -s "$ARMADILLO_1_FLOWER_DIR/trusted-entities.yaml" ] || fail "$ARMADILLO_1_FLOWER_DIR/trusted-entities.yaml missing. Run generate_flower_credentials first."
 
 # Make sure the supernode/clientapp configs are registered (idempotent PUT).
 "$SCRIPT_DIR/register-flower-containers.sh"

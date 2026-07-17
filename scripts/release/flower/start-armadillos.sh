@@ -17,6 +17,7 @@ java -jar "$ARMADILLO_JAR" \
   --spring.security.user.name=$ADMIN_USER \
   --spring.security.user.password=$ADMIN_PASS \
   --armadillo.docker-management-enabled=true \
+  --flower.armadillo-url="$ARMADILLO_1_FLOWER_URL" \
   --spring.security.oauth2.client.provider.molgenis.issuer-uri="$OIDC_ISSUER_URI" \
   --spring.security.oauth2.client.registration.molgenis.client-id="$OIDC_CLIENT_ID" \
   --spring.security.oauth2.client.registration.molgenis.client-secret="$OIDC_CLIENT_SECRET" \
@@ -34,6 +35,7 @@ java -jar "$ARMADILLO_JAR" \
   --spring.security.user.name=$ADMIN_USER \
   --spring.security.user.password=$ADMIN_PASS \
   --armadillo.docker-management-enabled=true \
+  --flower.armadillo-url="$ARMADILLO_2_FLOWER_URL" \
   --spring.security.oauth2.client.provider.molgenis.issuer-uri="$OIDC_ISSUER_URI" \
   --spring.security.oauth2.client.registration.molgenis.client-id="$OIDC_CLIENT_ID" \
   --spring.security.oauth2.client.registration.molgenis.client-secret="$OIDC_CLIENT_SECRET" \

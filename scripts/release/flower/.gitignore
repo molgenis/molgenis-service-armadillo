@@ -10,3 +10,5 @@ flower-nodes.yaml
 .armadillo-pids
 .env
 .venv/
+certs/
+.flwr-home/

@@ -3,21 +3,23 @@
 # Start Flower + Armadillo infrastructure for manual e2e testing.
 #
 # Sets up:
+#   - TLS certs, supernode auth keys and trusted-entities.yaml
 #   - Two Armadillo instances with OIDC (ports 8080/8081)
-#   - Flower superlink (ports 9091-9093)
-#   - Verified supernode + clientapp configs registered via Armadillo API
-#     (started later by the demo, after trusted-entities.yaml is created)
+#   - Flower superlink with TLS (ports 9091-9093), stock image
+#   - Stock supernode + clientapp configs registered via Armadillo API
 #   - Serverapp superexec
 #   - Test data uploaded to Armadillo storage
 #
-# Then waits for you to submit FABs manually to test scenarios.
+# Then waits for you to run the Hub app test scenarios.
 #
 # Prerequisites:
 #   - Docker running
 #   - Armadillo bootJar built: ./gradlew bootJar
 #   - Java 17+
-#   - timmyjc/verified-supernode:test pushed (see README Step 3)
-#   - timmyjc/superexec-data-test:0.0.1 pushed
+#   - App published on Flower Hub as $HUB_APP and reviewed with your key
+#     (flwr app publish / flwr app review)
+#   - REVIEWER_KEY_ID and REVIEWER_PUBLIC_KEY_FILE set in .env
+#   - "127.0.0.1 host.docker.internal" in /etc/hosts
 #   - Python with torch + torchvision (for test data generation)
 #
 # Usage:
@@ -39,15 +41,15 @@ trap on_exit EXIT
 
 # --- Bring everything up -----------------------------------------------------
 
+generate_flower_credentials
 "$SCRIPT_DIR/prepare-test-data.sh"
-"$SCRIPT_DIR/start-superlink.sh"
+"$SCRIPT_DIR/start-superlink.sh" &
+sleep 3
 "$SCRIPT_DIR/start-armadillos.sh"
 "$SCRIPT_DIR/upload-data.sh"
 "$SCRIPT_DIR/grant-access.sh"
 "$SCRIPT_DIR/register-flower-containers.sh"
-
-log "Supernode and clientapp configs registered but not started."
-log "Create /tmp/trusted-entities.yaml, then run start-supernodes.sh."
+"$SCRIPT_DIR/start-supernodes.sh"
 
 # --- Ready -------------------------------------------------------------------
 
@@ -61,13 +63,16 @@ log "  Armadillo 2:  http://localhost:$ARMADILLO_2_PORT"
 log "  SuperLink:    127.0.0.1:9093"
 log "  Project:      $PROJECT_NAME"
 log ""
-log "  Open a new terminal and run the test scenarios:"
+log "  Authenticate, then open a new terminal and run the test scenarios:"
 log ""
-log "    ./scripts/release/flower/test-a-signed-fab-correct-tokens.sh"
-log "    ./scripts/release/flower/test-b-signed-fab-wrong-token.sh"
-log "    ./scripts/release/flower/test-c-signed-fab-wrong-project.sh"
-log "    ./scripts/release/flower/test-d-unsigned-fab.sh"
-log "    ./scripts/release/flower/test-e-signed-fab-no-tokens.sh"
+log "    molgenis-flwr-authenticate --nodes scripts/release/flower/flower-nodes.yaml"
+log ""
+log "    ./scripts/release/flower/test-a-hub-app-correct-tokens.sh"
+log "    ./scripts/release/flower/test-b-hub-app-wrong-token.sh"
+log "    ./scripts/release/flower/test-c-hub-app-wrong-project.sh"
+log "    ./scripts/release/flower/test-d-unverified-app.sh"
+log "    ./scripts/release/flower/test-e-hub-app-no-tokens.sh"
+log "    ./scripts/release/flower/test-f-hub-app-untrusted-reviewer.sh"
 log ""
 log "  Cleanup:      Ctrl+C"
 log ""

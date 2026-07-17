@@ -35,11 +35,31 @@ OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-b396233b-cdb2-449e-ac5c-a0d28b38f791}"
 OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-nRO_t1_cIpdzRzr-cWBeZg4ckBsMHmX2MlA9SaSg4P8}"
 RESEARCHER_EMAIL="${RESEARCHER_EMAIL:-t.j.cadman@umcg.nl}"
 
-# --- Docker images -----------------------------------------------------------
+# --- Docker images (stock Flower; keep major.minor identical everywhere) -----
 
-SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-timmyjc/verified-superlink:test}"
-SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-data-test:0.0.1-debug}"
+FLWR_VERSION="${FLWR_VERSION:-1.32.1}"
+SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-flwr/superlink:$FLWR_VERSION}"
+SUPERNODE_IMAGE="${SUPERNODE_IMAGE:-flwr/supernode:$FLWR_VERSION}"
+SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-flwr/superexec:$FLWR_VERSION}"
 FLWR_ARMADILLO_DIR="$PROJECT_ROOT/../molgenis-flwr-armadillo"
+
+# --- Flower Hub ---------------------------------------------------------------
+
+HUB_APP="${HUB_APP:-@timmyjc/quickstart-pytorch-armadillo}"
+# Reviewer trust: key id assigned by Flower Hub (see the app page's
+# Verifications section) and the matching Ed25519 OpenSSH public key file.
+REVIEWER_KEY_ID="${REVIEWER_KEY_ID:-}"
+REVIEWER_PUBLIC_KEY_FILE="${REVIEWER_PUBLIC_KEY_FILE:-}"
+
+# --- Flower credentials (mounted into supernodes by Armadillo) ----------------
+
+CERTS_DIR="$SCRIPT_DIR/certs"
+ARMADILLO_1_FLOWER_DIR="$ARMADILLO_1_DATA/system/flower"
+ARMADILLO_2_FLOWER_DIR="$ARMADILLO_2_DATA/system/flower"
+# URL the superexec containers use to reach their Armadillo (requires
+# "127.0.0.1 host.docker.internal" in /etc/hosts for local host-side use)
+ARMADILLO_1_FLOWER_URL="${ARMADILLO_1_FLOWER_URL:-http://host.docker.internal:$ARMADILLO_1_PORT}"
+ARMADILLO_2_FLOWER_URL="${ARMADILLO_2_FLOWER_URL:-http://host.docker.internal:$ARMADILLO_2_PORT}"
 
 # --- Container names ---------------------------------------------------------
 
@@ -53,7 +73,7 @@ SERVERAPP="flower-test-serverapp"
 # --- Flower app --------------------------------------------------------------
 
 PROJECT_NAME="${PROJECT_NAME:-test-flower}"
-FLWR_APP_DIR="${FLWR_APP_DIR:-$SCRIPT_DIR/quickstart-pytorch-data}"
+FLWR_APP_DIR="${FLWR_APP_DIR:-$FLWR_ARMADILLO_DIR/examples/pytorch-armadillo}"
 TOKEN_FILE="$(python3 -c 'import tempfile; print(tempfile.gettempdir())')/flwr_tokens.json"
 NODES_CONFIG="$SCRIPT_DIR/flower-nodes.yaml"
 PID_FILE="$SCRIPT_DIR/.armadillo-pids"
@@ -69,6 +89,67 @@ fi
 
 log()  { echo ">>> $*"; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
+
+write_flwr_cli_config() {
+  # Isolated Flower CLI config with a "local" connection to the TLS superlink.
+  export FLWR_HOME="$SCRIPT_DIR/.flwr-home"
+  mkdir -p "$FLWR_HOME"
+  cat > "$FLWR_HOME/config.toml" <<EOF
+[superlink.local]
+address = "127.0.0.1:9093"
+root-certificates = "$CERTS_DIR/ca.crt"
+EOF
+}
+
+run_config_from_tokens() {
+  python3 - "$TOKEN_FILE" <<'PYEOF'
+import json, sys
+tokens = json.load(open(sys.argv[1]))
+print(" ".join(f"{k}='{v}'" for k, v in tokens.items() if k.startswith("token-")))
+PYEOF
+}
+
+generate_flower_credentials() {
+  # TLS: one CA, one superlink server cert (SANs cover host + containers).
+  # Supernode auth: one Ed25519 OpenSSH keypair per node.
+  # Trust: trusted-entities.yaml listing the Hub reviewer's public key.
+  [ -n "$REVIEWER_KEY_ID" ] || fail "REVIEWER_KEY_ID not set (see the app page's Verifications section on Flower Hub)"
+  [ -f "$REVIEWER_PUBLIC_KEY_FILE" ] || fail "REVIEWER_PUBLIC_KEY_FILE not found: $REVIEWER_PUBLIC_KEY_FILE"
+
+  mkdir -p "$CERTS_DIR" "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"
+
+  if [ ! -f "$CERTS_DIR/ca.crt" ]; then
+    log "Generating CA and SuperLink TLS certificate..."
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+      -nodes -keyout "$CERTS_DIR/ca.key" -out "$CERTS_DIR/ca.crt" \
+      -days 365 -subj "/CN=flower-test-ca" >/dev/null 2>&1
+    openssl req -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+      -nodes -keyout "$CERTS_DIR/server.key" -out "$CERTS_DIR/server.csr" \
+      -subj "/CN=flower-test-superlink" >/dev/null 2>&1
+    openssl x509 -req -in "$CERTS_DIR/server.csr" \
+      -CA "$CERTS_DIR/ca.crt" -CAkey "$CERTS_DIR/ca.key" -CAcreateserial \
+      -out "$CERTS_DIR/server.crt" -days 365 \
+      -extfile <(printf "subjectAltName=DNS:localhost,DNS:host.docker.internal,DNS:%s,IP:127.0.0.1" "$SUPERLINK") \
+      >/dev/null 2>&1
+  fi
+
+  for dir in "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"; do
+    if [ ! -s "$dir/credentials" ]; then
+      log "Generating supernode auth key in $dir..."
+      rm -f "$dir/credentials" "$dir/credentials.pub"
+      ssh-keygen -t ed25519 -q -N "" -f "$dir/credentials"
+    fi
+    cp "$CERTS_DIR/ca.crt" "$dir/ca.crt"
+    python3 - "$REVIEWER_KEY_ID" "$REVIEWER_PUBLIC_KEY_FILE" "$dir/trusted-entities.yaml" <<'PYEOF'
+import sys
+key_id, pub_file, out = sys.argv[1:4]
+pub = open(pub_file).read().strip()
+with open(out, "w") as f:
+    f.write(f"{key_id}: {pub}\n")
+PYEOF
+  done
+  log "Flower credentials ready."
+}
 
 wait_for_armadillo() {
   local port=$1

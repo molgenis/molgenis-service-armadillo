@@ -1,87 +1,67 @@
 # Flower End-to-End Test
 
-This test simulates a real federated learning scenario: two Armadillo nodes with OIDC authentication, verified supernodes that check FAB signatures, and data loaded from Armadillo storage.
+This test simulates a real federated learning scenario using only stock
+Flower components: two Armadillo nodes with OIDC authentication, a TLS
+SuperLink, and supernodes that only run apps pulled from Flower Hub and
+signed by a trusted reviewer.
 
-You manually generate keys, sign the FAB, start the infrastructure, then run each test scenario.
+Trust model: the app is published on Flower Hub (`flwr app publish`) and
+reviewed/signed there (`flwr app review`). Armadillo starts each supernode
+with `--trusted-entities`, listing the reviewer public keys the node
+operator trusts. Supernodes reject any run whose FAB does not carry a
+trusted signature — including FABs pushed directly to the SuperLink, which
+never carry verifications.
 
 ## Prerequisites
 
 - Docker running
 - Java 17+
-- `flwr` CLI: `pip install 'flwr==1.23.0'`
-- `molgenis-flwr-armadillo` installed: `pip install -e /path/to/molgenis-flwr-armadillo`
-- `molgenis-flwr-armadillo` repo checked out alongside this repo
+- `flwr` CLI matching the pinned version: `pip install 'flwr==1.32.1'`
+- `molgenis-flwr-armadillo` installed (for `armadillo-flwr-authenticate`):
+  `pip install -e /path/to/molgenis-flwr-armadillo`
+- `molgenis-flwr-armadillo` repo checked out alongside this repo (the test
+  app lives at `examples/pytorch-armadillo`)
 - Python with `torch` + `torchvision` (for test data generation)
+- `127.0.0.1 host.docker.internal` in `/etc/hosts` (containers and host must
+  agree on each Armadillo's URL for token routing)
 
 ## One-Time Setup
 
+### 1. Build Armadillo
+
 ```bash
 ./gradlew bootJar
-docker login
-./scripts/release/flower/build-push-superexec.sh
 ```
 
-## Step 1: Generate a Consortium Keypair
+### 2. Publish the app on Flower Hub
 
 ```bash
-molgenis-flwr-keygen --name /tmp/consortium
+flwr login supergrid
+flwr app publish ../molgenis-flwr-armadillo/examples/pytorch-armadillo
 ```
 
-Creates `/tmp/consortium.key` (private) and `/tmp/consortium.pub` (public), and prints the `key_id`.
+The publisher in the app's `pyproject.toml` must match your Flower account
+username.
 
-## Step 2: Create `trusted-entities.yaml`
+### 3. Review and sign the app
+
+Register an Ed25519 public key on your Flower profile
+(`https://flower.ai/profile/<username>/`), then:
 
 ```bash
-python3 -c "
-from pathlib import Path; import yaml
-from cryptography.hazmat.primitives.serialization.ssh import load_ssh_public_key
-from molgenis_flwr_armadillo.signing import derive_key_id
-pub = Path('/tmp/consortium.pub').read_bytes()
-kid = derive_key_id(load_ssh_public_key(pub))
-Path('/tmp/trusted-entities.yaml').write_text(yaml.dump({kid: pub.decode()}, default_flow_style=False))
-print(f'Written /tmp/trusted-entities.yaml with key {kid}')
-"
+flwr app review @timmyjc/quickstart-pytorch-armadillo==1.0.0
 ```
 
-## Step 3: Build and Push the Docker Images
+### 4. Configure the reviewer trust in `.env`
 
-Armadillo pulls images on container start, so they must be in a registry.
+Copy `.env.dist` to `.env` and set:
 
-```bash
-cd /Users/tcadman/github-repos/ds-molgenis/molgenis-flwr-armadillo
-docker login
-./docker/build-push-all.sh
-```
+- `REVIEWER_KEY_ID` — the key id shown in the app page's Verifications
+  section on Flower Hub
+- `REVIEWER_PUBLIC_KEY_FILE` — path to the matching Ed25519 OpenSSH public
+  key file
 
-This builds and pushes:
-- `timmyjc/verified-superlink:test` — patched SuperLink (see below)
-- `timmyjc/superexec-data-test:0.0.1` — patched SuperExec (see below)
-
-### Why custom images?
-
-Both images patch issues in stock Flower 1.27.0:
-
-**verified-superlink** (`docker/verified-superlink.Dockerfile`):
-The stock SuperLink discards the `verifications` dict when a FAB is submitted directly via gRPC (as `molgenis-flwr-run` does). This means supernodes with `--trusted-entities` can never verify FAB signatures. The patch preserves `request.fab.verifications` in the `StartRun` handler so signatures are passed through to supernodes.
-
-**superexec-data-test** (`examples/docker/superexec.Dockerfile`):
-Two patches:
-1. **Baked-in dependencies**: `molgenis-flwr-armadillo` and `molgenis-python-auth` are installed from local source at build time, avoiding `git+https://` fetches at runtime (security: prevents supply chain attacks via modified external packages).
-2. **ServerApp log visibility**: Flower 1.27.0 ([PR #6700](https://github.com/adap/flower/pull/6700)) suppresses ServerApp subprocess stdout/stderr via `subprocess.DEVNULL`, making debugging impossible. The patch removes this suppression so ServerApp logs appear in `docker logs`.
-
-## Step 4: Sign the Flower App
-
-Run from the `molgenis-service-armadillo` repo root:
-
-```bash
-cd /Users/tcadman/github-repos/ds-molgenis/molgenis-service-armadillo
-molgenis-flwr-sign \
-  --app-dir scripts/release/flower/quickstart-pytorch-data \
-  --private-key /tmp/consortium.key \
-  --output /tmp/study.sfab
-```
-
-## Step 5: Start the Infrastructure
+## Step 1: Start the Infrastructure
 
 ```bash
 ./scripts/release/flower/test-flower-containers.sh
@@ -89,58 +69,71 @@ molgenis-flwr-sign \
 
 This starts everything and waits:
 
-1. Generates CIFAR10 test data
-2. Starts a SuperLink (ports 9091-9093)
-3. Starts two Armadillo instances with OIDC (ports 8080/8081)
-4. Uploads test data to both Armadillo nodes
-5. Authenticates via browser (`molgenis-flwr-authenticate` — opens a browser for each node)
-6. Creates verified supernodes + clientapps via Armadillo API
-7. Starts a serverapp superexec
+1. Generates TLS certs, supernode auth keys and trusted-entities.yaml
+2. Generates CIFAR10 test data
+3. Starts a TLS SuperLink (ports 9091-9093)
+4. Starts two Armadillo instances with OIDC (ports 8080/8081), each
+   configured with `flower.armadillo-url` so superexec containers know
+   their node's URL
+5. Uploads test data to both Armadillo nodes
+6. Registers and starts supernodes + clientapps via the Armadillo API
 
-Leave it running and open a new terminal for the test scenarios.
+Leave it running and open a new terminal for authentication and the test
+scenarios.
 
-## Step 6: Run the Test Scenarios
-
-Run each scenario from the repo root. Each script reads tokens from the temp file created during authentication.
-
-### Scenario A: Signed FAB + correct tokens (should succeed)
-
-Full end-to-end: signed FAB passes verification, valid tokens authenticate with Armadillo, data loads, training completes.
+## Step 2: Authenticate
 
 ```bash
-./scripts/release/flower/test-a-signed-fab-correct-tokens.sh
+molgenis-flwr-authenticate --nodes scripts/release/flower/flower-nodes.yaml
 ```
 
-### Scenario B: Signed FAB + wrong token (should fail auth)
+Opens a browser for each node; tokens are stored keyed by sanitized URL.
 
-FAB passes signature check but Armadillo rejects the invalid token on data load.
+## Step 3: Run the Test Scenarios
+
+### Scenario A: Hub app + correct tokens (should succeed)
 
 ```bash
-./scripts/release/flower/test-b-signed-fab-wrong-token.sh
+./scripts/release/flower/test-a-hub-app-correct-tokens.sh
 ```
 
-### Scenario C: Signed FAB + wrong project (should fail auth)
-
-Valid tokens but requesting data from a project the user doesn't have access to.
+### Scenario B: Hub app + wrong token (should fail auth)
 
 ```bash
-./scripts/release/flower/test-c-signed-fab-wrong-project.sh
+./scripts/release/flower/test-b-hub-app-wrong-token.sh
 ```
 
-### Scenario D: Unsigned FAB (should be rejected by supernodes)
-
-The verified supernodes reject the FAB because it has no valid signature. Check the supernode logs to confirm.
+### Scenario C: Hub app + wrong project (should fail auth)
 
 ```bash
-./scripts/release/flower/test-d-unsigned-fab.sh
+./scripts/release/flower/test-c-hub-app-wrong-project.sh
 ```
 
-### Scenario E: Signed FAB + no tokens (should fail)
+### Scenario D: app not from the Hub (should be rejected by supernodes)
 
-Signed FAB passes verification but no tokens are provided, so data loading fails.
+A locally-built FAB is pushed directly to the SuperLink; the supernodes
+reject it with FAB_VERIFICATION_ERROR because directly-pushed FABs carry no
+verifications. Check the supernode logs to confirm.
 
 ```bash
-./scripts/release/flower/test-e-signed-fab-no-tokens.sh
+./scripts/release/flower/test-d-unverified-app.sh
+```
+
+### Scenario E: Hub app + no tokens (should fail)
+
+```bash
+./scripts/release/flower/test-e-hub-app-no-tokens.sh
+```
+
+### Scenario F: Hub app signed by an untrusted reviewer (should be rejected)
+
+The app carries a valid Hub reviewer signature, but not from a key listed in
+the nodes' trusted-entities.yaml. The supernodes reject the run with
+FAB_VERIFICATION_ERROR. The script temporarily swaps trusted-entities.yaml
+for a throwaway key, restarts the supernodes, and restores it afterwards.
+
+```bash
+./scripts/release/flower/test-f-hub-app-untrusted-reviewer.sh
 ```
 
 ## Viewing Logs
@@ -150,17 +143,6 @@ Tail all container logs at once:
 ```bash
 ./scripts/release/flower/logs.sh
 ./scripts/release/flower/logs.sh 100    # last 100 lines per container
-```
-
-Individual containers:
-
-```bash
-docker logs -f flower-test-superlink
-docker logs -f flower-supernode-1
-docker logs -f flower-supernode-2
-docker logs -f flower-clientapp-1
-docker logs -f flower-clientapp-2
-docker logs -f flower-test-serverapp
 ```
 
 Armadillo logs:
