@@ -159,12 +159,18 @@ generate_flower_credentials() {
       ssh-keygen -t ecdsa -b 256 -q -N "" -f "$dir/credentials"
     fi
     cp "$CERTS_DIR/ca.crt" "$dir/ca.crt"
+    # REVIEWER_KEY_ID may be a comma-separated list of Hub key ids; each maps
+    # to the same signing public key (the Verifications tab only shows the
+    # username, not the fpk_ id, so listing all your ids avoids guessing).
     python3 - "$REVIEWER_KEY_ID" "$REVIEWER_PUBLIC_KEY_FILE" "$dir/trusted-entities.yaml" <<'PYEOF'
 import sys
-key_id, pub_file, out = sys.argv[1:4]
+key_ids, pub_file, out = sys.argv[1:4]
 pub = open(pub_file).read().strip()
 with open(out, "w") as f:
-    f.write(f"{key_id}: {pub}\n")
+    for kid in key_ids.split(","):
+        kid = kid.strip()
+        if kid:
+            f.write(f"{kid}: {pub}\n")
 PYEOF
   done
   log "Flower credentials ready."

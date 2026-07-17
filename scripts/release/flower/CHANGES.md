@@ -101,3 +101,60 @@ consortium-signing scheme.
   connects `--insecure`.
 - `flwr` CLI can't use passphrase-protected signing keys (loads with
   password=None) — use a no-passphrase Ed25519 key for `flwr app review`.
+- Flower 1.32.1 images run Python 3.13. App deps must match: `torch>=2.6.0`
+  + `torchvision>=0.21.0` (torch 2.4.1 has no cp313 wheels), and
+  `requires-python = ">=3.11"` (flwr needs >=3.11; ">=3.10" fails resolution).
+- Each app version needs its own `flwr app review` — the FAB signature is
+  per-version. Bumping the version means re-publish AND re-review.
+
+## Branch structure (both repos)
+
+molgenis-flwr-armadillo (package):
+- `feat/api-helpers` — library only (helpers/run/tests). CLEANED + force-pushed.
+- `docs/example-app` — the Hub app only. Clean.
+- `test/flower-integration` — merge of both; the branch we test/publish from.
+  Holds the app version bumps (1.0.1 → 1.0.3). NOTE: docs/example-app still
+  needs the version + torch/requires-python bumps ported for its release PR.
+
+molgenis-service-armadillo (this repo):
+- `feat/flower-containers`, `feat/container-data-endpoint` — backend, merged in.
+- `test/flower-release-test` — integration/test branch (these scripts + CHANGES).
+
+## Dependency management (open design question)
+
+Runtime dep-install (`--allow-runtime-dependency-installation`) resolves the
+app's deps in the container each run against the image's Python. Slow (torch
+~800MB), re-resolves per run, and a Flower-image Python bump can break it.
+For arbitrary Hub apps you can't predict deps — options: (a) accept runtime
+install, (b) lock down to a vetted app set with a pre-baked "batteries-included"
+superexec image (runtime-install OFF; Flower ignores the base venv when it IS
+on, so baking only helps with it off), (c) hybrid base image + runtime delta.
+Tim leans toward the middle/pre-baked option. Also: use exact pins (not ranges)
+so every node runs identical versions in a federated run. Decide post-green.
+
+## STATUS — where we left off (2026-07-17, session paused, battery low)
+
+PROVEN WORKING end-to-end via the Hub run of scenario A:
+- Publish + Hub resolution; ServerApp superexec dep install (after torch fix);
+- The `armadillo-tokens` blob: tokens ARE distributed to both nodes in the
+  train/evaluate ConfigRecord (visible in ServerApp logs). Token routing works.
+
+BLOCKED on: supernodes reject the FAB — `The FAB could not be verified.` from
+both nodes. App 1.0.3 IS reviewed/signed on the Hub, so the cause is a KEY
+MISMATCH: there are TWO reviewer keys registered (`fpk_06d91643-...` and
+`fpk_0975557a-...`); `.env` REVIEWER_KEY_ID was set by a guess and likely
+points to the wrong one.
+
+NEXT STEP:
+1. On the app's Verifications tab for 1.0.3, read the signer key id (fpk_...).
+2. Set REVIEWER_KEY_ID in scripts/release/flower/.env to exactly that id, and
+   REVIEWER_PUBLIC_KEY_FILE to that key's .pub (~/.ssh/hub_signing_key.pub, the
+   no-passphrase key that signed it).
+3. RESTART the infra (trusted-entities.yaml is regenerated from .env at
+   startup), re-authenticate, rerun scenario A.
+
+STILL UNVERIFIED after that: supernode FAB acceptance, clientapp dep install,
+push-data data load, training completion. Scenarios B–F not yet run.
+
+Deferred tasks: split orchestrator into human-run numbered steps; port app
+version/dep bumps onto docs/example-app for its PR; consider pre-baked deps.
