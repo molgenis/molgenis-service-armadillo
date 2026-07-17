@@ -101,11 +101,32 @@ root-certificates = "$CERTS_DIR/ca.crt"
 EOF
 }
 
+register_supernode_keys() {
+  # SuperLink runs with --enable-supernode-auth, so each supernode's public
+  # key must be registered before it can activate. Nodes retry activation, so
+  # this can run after they start. Retries until the Control API is reachable.
+  write_flwr_cli_config
+  local pub i
+  for pub in "$ARMADILLO_1_FLOWER_DIR/credentials.pub" "$ARMADILLO_2_FLOWER_DIR/credentials.pub"; do
+    i=0
+    until flwr supernode register "$pub" local >/dev/null 2>&1; do
+      i=$((i + 1))
+      [ $i -ge 30 ] && fail "Failed to register supernode key with SuperLink: $pub"
+      sleep 1
+    done
+    log "Registered supernode key: $pub"
+  done
+}
+
 run_config_from_tokens() {
+  # Emit the single armadillo-tokens run-config key: base64(JSON
+  # {sanitized-url: token}). Matches armadillo-flwr-run and the app's helpers.
   python3 - "$TOKEN_FILE" <<'PYEOF'
-import json, sys
+import base64, json, sys
 tokens = json.load(open(sys.argv[1]))
-print(" ".join(f"{k}='{v}'" for k, v in tokens.items() if k.startswith("token-")))
+mapping = {k[len("token-"):]: v for k, v in tokens.items() if k.startswith("token-")}
+blob = base64.b64encode(json.dumps(mapping).encode()).decode()
+print(f"armadillo-tokens='{blob}'")
 PYEOF
 }
 
@@ -119,25 +140,23 @@ generate_flower_credentials() {
   mkdir -p "$CERTS_DIR" "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"
 
   if [ ! -f "$CERTS_DIR/ca.crt" ]; then
-    log "Generating CA and SuperLink TLS certificate..."
-    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
-      -nodes -keyout "$CERTS_DIR/ca.key" -out "$CERTS_DIR/ca.crt" \
-      -days 365 -subj "/CN=flower-test-ca" >/dev/null 2>&1
-    openssl req -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
-      -nodes -keyout "$CERTS_DIR/server.key" -out "$CERTS_DIR/server.csr" \
-      -subj "/CN=flower-test-superlink" >/dev/null 2>&1
-    openssl x509 -req -in "$CERTS_DIR/server.csr" \
-      -CA "$CERTS_DIR/ca.crt" -CAkey "$CERTS_DIR/ca.key" -CAcreateserial \
-      -out "$CERTS_DIR/server.crt" -days 365 \
-      -extfile <(printf "subjectAltName=DNS:localhost,DNS:host.docker.internal,DNS:%s,IP:127.0.0.1" "$SUPERLINK") \
-      >/dev/null 2>&1
+    # Single self-signed cert used as both server cert and trust root.
+    # LibreSSL (macOS) cannot SHA-256-sign via `x509 -req`, so no CSR chain.
+    log "Generating SuperLink TLS certificate..."
+    printf '[req]\ndistinguished_name=dn\nx509_extensions=v3\nprompt=no\n[dn]\nCN=flower-test-superlink\n[v3]\nsubjectAltName=DNS:localhost,DNS:host.docker.internal,DNS:%s,IP:127.0.0.1\n' "$SUPERLINK" \
+      > "$CERTS_DIR/ssl.cnf"
+    openssl req -x509 -sha256 -newkey rsa:2048 \
+      -nodes -keyout "$CERTS_DIR/server.key" -out "$CERTS_DIR/server.crt" \
+      -days 365 -config "$CERTS_DIR/ssl.cnf" >/dev/null 2>&1
+    cp "$CERTS_DIR/server.crt" "$CERTS_DIR/ca.crt"
   fi
 
   for dir in "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"; do
     if [ ! -s "$dir/credentials" ]; then
       log "Generating supernode auth key in $dir..."
       rm -f "$dir/credentials" "$dir/credentials.pub"
-      ssh-keygen -t ed25519 -q -N "" -f "$dir/credentials"
+      # SuperNode node-auth requires an EC (SECP256R1) key, not ed25519.
+      ssh-keygen -t ecdsa -b 256 -q -N "" -f "$dir/credentials"
     fi
     cp "$CERTS_DIR/ca.crt" "$dir/ca.crt"
     python3 - "$REVIEWER_KEY_ID" "$REVIEWER_PUBLIC_KEY_FILE" "$dir/trusted-entities.yaml" <<'PYEOF'

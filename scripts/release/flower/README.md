@@ -84,7 +84,7 @@ scenarios.
 ## Step 2: Authenticate
 
 ```bash
-molgenis-flwr-authenticate --nodes scripts/release/flower/flower-nodes.yaml
+armadillo-flwr-authenticate --config scripts/release/flower/flower-nodes.yaml
 ```
 
 Opens a browser for each node; tokens are stored keyed by sanitized URL.

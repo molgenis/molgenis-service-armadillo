@@ -43,7 +43,6 @@ done
 
 rm -rf "$ARMADILLO_1_DATA" "$ARMADILLO_2_DATA"
 rm -f "$SCRIPT_DIR/cifar10_train.pt" "$SCRIPT_DIR/cifar10_test.pt"
-rm -f "$NODES_CONFIG"
 rm -f "$SCRIPT_DIR/armadillo1.log" "$SCRIPT_DIR/armadillo2.log" "$SCRIPT_DIR/flwr-run.log"
 
 log "Cleanup done."

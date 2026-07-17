@@ -14,9 +14,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 write_flwr_cli_config
 
 RUN_CONFIG="$(python3 - "$TOKEN_FILE" <<'PYEOF'
-import json, sys
+import base64, json, sys
 tokens = json.load(open(sys.argv[1]))
-print(" ".join(f"{k}='invalid-token'" for k in tokens if k.startswith("token-")))
+mapping = {k[len("token-"):]: "invalid-token" for k in tokens if k.startswith("token-")}
+blob = base64.b64encode(json.dumps(mapping).encode()).decode()
+print(f"armadillo-tokens='{blob}'")
 PYEOF
 )"
 

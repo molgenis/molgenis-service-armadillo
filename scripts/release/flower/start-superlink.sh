@@ -21,16 +21,18 @@ docker run -d --rm \
   --ssl-ca-certfile /app/certs/ca.crt \
   --ssl-certfile /app/certs/server.crt \
   --ssl-keyfile /app/certs/server.key \
+  --enable-supernode-auth \
   --isolation process
 
 sleep 2
 
 log "Starting serverapp superexec..."
+# The ServerAppIo API (9091) uses the SuperLink's --appio-ssl-* certs, which
+# we do not set, so it is plaintext; connect insecurely.
 docker run -d --rm \
-  -v "$CERTS_DIR:/app/certs:ro" \
   --name "$SERVERAPP" \
   "$SUPEREXEC_IMAGE" \
-  --root-certificates /app/certs/ca.crt \
+  --insecure \
   --plugin-type serverapp \
   --appio-api-address host.docker.internal:9091 \
   --allow-runtime-dependency-installation

@@ -49,6 +49,7 @@ sleep 3
 "$SCRIPT_DIR/upload-data.sh"
 "$SCRIPT_DIR/grant-access.sh"
 "$SCRIPT_DIR/register-flower-containers.sh"
+register_supernode_keys
 "$SCRIPT_DIR/start-supernodes.sh"
 
 # --- Ready -------------------------------------------------------------------
@@ -65,7 +66,7 @@ log "  Project:      $PROJECT_NAME"
 log ""
 log "  Authenticate, then open a new terminal and run the test scenarios:"
 log ""
-log "    molgenis-flwr-authenticate --nodes scripts/release/flower/flower-nodes.yaml"
+log "    armadillo-flwr-authenticate --config scripts/release/flower/flower-nodes.yaml"
 log ""
 log "    ./scripts/release/flower/test-a-hub-app-correct-tokens.sh"
 log "    ./scripts/release/flower/test-b-hub-app-wrong-token.sh"
