@@ -8,8 +8,8 @@ import java.util.Map;
 
 @AutoValue
 @JsonTypeName("flower-supernode")
-// AutoValue requires redeclaring interface methods as abstract - suppress S1161
-@SuppressWarnings("java:S1161")
+// AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
+@SuppressWarnings({"java:S1161", "java:S3038"})
 public abstract class FlowerSupernodeContainerConfig
     implements ContainerConfig, OpenContainer, FlowerContainer {
 
@@ -55,6 +55,15 @@ public abstract class FlowerSupernodeContainerConfig
   @Nullable
   public abstract String getCreationDate();
 
+  @Nullable
+  public abstract String getTrustedEntitiesPath();
+
+  @Nullable
+  public abstract String getCaCertPath();
+
+  @Nullable
+  public abstract String getAuthPrivateKeyPath();
+
   @Override
   @JsonIgnore
   public String getType() {
@@ -73,7 +82,10 @@ public abstract class FlowerSupernodeContainerConfig
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
-      @JsonProperty("creationDate") @Nullable String creationDate) {
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("trustedEntitiesPath") @Nullable String trustedEntitiesPath,
+      @JsonProperty("caCertPath") @Nullable String caCertPath,
+      @JsonProperty("authPrivateKeyPath") @Nullable String authPrivateKeyPath) {
 
     return builder()
         .name(name)
@@ -87,6 +99,9 @@ public abstract class FlowerSupernodeContainerConfig
         .dockerOptions(dockerOptions)
         .versionId(versionId)
         .creationDate(creationDate)
+        .trustedEntitiesPath(trustedEntitiesPath)
+        .caCertPath(caCertPath)
+        .authPrivateKeyPath(authPrivateKeyPath)
         .build();
   }
 
@@ -121,6 +136,29 @@ public abstract class FlowerSupernodeContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract FlowerSupernodeContainerConfig build();
+    public abstract Builder trustedEntitiesPath(@Nullable String trustedEntitiesPath);
+
+    public abstract Builder caCertPath(@Nullable String caCertPath);
+
+    public abstract Builder authPrivateKeyPath(@Nullable String authPrivateKeyPath);
+
+    @Nullable
+    abstract String getTrustedEntitiesPath();
+
+    @Nullable
+    abstract String getCaCertPath();
+
+    @Nullable
+    abstract String getAuthPrivateKeyPath();
+
+    abstract FlowerSupernodeContainerConfig autoBuild();
+
+    public FlowerSupernodeContainerConfig build() {
+      if (getTrustedEntitiesPath() == null)
+        trustedEntitiesPath("data/system/flower/trusted-entities.yaml");
+      if (getCaCertPath() == null) caCertPath("data/system/flower/ca.crt");
+      if (getAuthPrivateKeyPath() == null) authPrivateKeyPath("data/system/flower/credentials");
+      return autoBuild();
+    }
   }
 }

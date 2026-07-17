@@ -15,7 +15,10 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -43,6 +46,11 @@ public class DockerService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
 
+  private static final String CONTAINER_CA_CERT = "/app/ca.crt";
+  private static final String CONTAINER_CREDENTIALS = "/app/credentials";
+  private static final String CONTAINER_TRUSTED_ENTITIES = "/app/trusted-entities.yaml";
+  private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+
   private final DockerClient dockerClient;
   private final ContainerService containerService;
   private final ContainerStatusService containerStatusService;
@@ -52,6 +60,9 @@ public class DockerService {
 
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
+
+  @Value("${flower.armadillo-url:}")
+  private String flowerArmadilloUrl;
 
   public DockerService(
       DockerClient dockerClient,
@@ -264,7 +275,7 @@ public class DockerService {
 
       configurePortBindings(cmd, hostConfig, config);
       configureNetworkMode(hostConfig, config);
-      configureVolumes(hostConfig, config);
+      configureBindMounts(hostConfig, config);
 
       cmd.withHostConfig(hostConfig).withName(config.getName());
       configureEnv(cmd, config);
@@ -297,34 +308,68 @@ public class DockerService {
 
   private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
     if (config instanceof FlowerSuperexecContainerConfig) {
-      cmd.withEnv("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName());
+      var env =
+          new java.util.ArrayList<>(
+              List.of("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName()));
+      if (flowerArmadilloUrl != null && !flowerArmadilloUrl.isEmpty()) {
+        env.add("ARMADILLO_URL=" + flowerArmadilloUrl);
+      }
+      cmd.withEnv(env);
     } else {
       cmd.withEnv("DEBUG=FALSE");
     }
   }
 
-  /** Mounts host paths into the container. Only supported for flower supernodes. */
-  private void configureVolumes(HostConfig hostConfig, ContainerConfig config) {
-    if (!(config instanceof FlowerSupernodeContainerConfig)) return;
-    Map<String, Object> opts = config.getDockerOptions();
-    if (opts == null || !opts.containsKey("volumes")) return;
+  /** Mounts certificate and credential files into flower supernode containers. */
+  private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
+    if (!(config instanceof FlowerSupernodeContainerConfig supernode)) return;
 
-    Object volumesObj = opts.get("volumes");
-    if (!(volumesObj instanceof Map<?, ?> rawMap)) return;
+    List<Bind> binds = new java.util.ArrayList<>();
+    addBindMount(binds, supernode.getTrustedEntitiesPath(), CONTAINER_TRUSTED_ENTITIES);
+    addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT);
+    addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS);
 
-    Bind[] binds =
-        rawMap.entrySet().stream()
-            .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
-            .map(
-                e ->
-                    new Bind((String) e.getKey(), new Volume((String) e.getValue()), AccessMode.ro))
-            .toArray(Bind[]::new);
-    hostConfig.withBinds(binds);
+    if (!binds.isEmpty()) {
+      hostConfig.withBinds(binds);
+    }
+  }
+
+  private void addBindMount(List<Bind> binds, String hostPath, String containerPath) {
+    if (hostPath == null) return;
+    Path path = Path.of(hostPath).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException(String.format("Required file not found: %s", path));
+    }
+    try {
+      if (Files.size(path) == 0) {
+        throw new IllegalStateException(
+            String.format(
+                "Required file is empty: %s — please replace with valid certificate/key", path));
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file: " + path, e);
+    }
+    binds.add(new Bind(path.toString(), new Volume(containerPath), AccessMode.ro));
   }
 
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
-    List<String> args = config.getDockerArgs();
-    if (args != null && !args.isEmpty()) {
+    List<String> args = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSupernodeContainerConfig) {
+      args.addAll(
+          List.of(
+              "--root-certificates", CONTAINER_CA_CERT,
+              "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
+              "--trusted-entities", CONTAINER_TRUSTED_ENTITIES,
+              "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
+              "--isolation", "process"));
+    }
+
+    if (config.getDockerArgs() != null) {
+      args.addAll(config.getDockerArgs());
+    }
+
+    if (!args.isEmpty()) {
       cmd.withCmd(args.toArray(new String[0]));
     }
   }

@@ -18,13 +18,17 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -54,6 +58,26 @@ class DockerServiceTest {
   private DockerService dockerService;
 
   @Mock private ContainerStatusService containerStatusService;
+
+  @TempDir Path tempDir;
+
+  private FlowerSupernodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
+      throws IOException {
+    Path caCert = tempDir.resolve("ca.crt");
+    Path credentials = tempDir.resolve("credentials");
+    Path trustedEntities = tempDir.resolve("trusted-entities.yaml");
+    Files.writeString(caCert, "dummy-ca");
+    Files.writeString(credentials, "dummy-key");
+    Files.writeString(trustedEntities, "dummy-entities");
+    return FlowerSupernodeContainerConfig.builder()
+        .name(name)
+        .image("flwr/supernode:1.26.1")
+        .dockerArgs(args)
+        .trustedEntitiesPath(trustedEntities.toString())
+        .caCertPath(caCert.toString())
+        .authPrivateKeyPath(credentials.toString())
+        .build();
+  }
 
   private static class NonBlockingCallback extends PullImageResultCallback {
     @Override
@@ -1177,13 +1201,8 @@ class DockerServiceTest {
   }
 
   @Test
-  void installImage_setsNetworkModeForFlowerContainer() {
-    var config =
-        FlowerSupernodeContainerConfig.builder()
-            .name("flower-supernode")
-            .image("flwr/supernode:1.26.1")
-            .dockerArgs(List.of("--insecure"))
-            .build();
+  void installImage_setsNetworkModeForFlowerContainer() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
 
     var cmd = mock(CreateContainerCmd.class);
     when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
@@ -1246,13 +1265,8 @@ class DockerServiceTest {
   }
 
   @Test
-  void pullImageStartContainer_createsNetworkForFlowerContainer() {
-    var config =
-        FlowerSupernodeContainerConfig.builder()
-            .name("flower-supernode")
-            .image("flwr/supernode:1.26.1")
-            .dockerArgs(List.of("--insecure"))
-            .build();
+  void pullImageStartContainer_createsNetworkForFlowerContainer() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
     when(containerService.getByName("flower-supernode")).thenReturn(config);
 
     var inspectResponse = mock(InspectContainerResponse.class);
@@ -1305,13 +1319,8 @@ class DockerServiceTest {
   }
 
   @Test
-  void pullImageStartContainer_skipsNetworkCreationWhenAlreadyExists() {
-    var config =
-        FlowerSupernodeContainerConfig.builder()
-            .name("flower-supernode")
-            .image("flwr/supernode:1.26.1")
-            .dockerArgs(List.of("--insecure"))
-            .build();
+  void pullImageStartContainer_skipsNetworkCreationWhenAlreadyExists() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
     when(containerService.getByName("flower-supernode")).thenReturn(config);
 
     var inspectResponse = mock(InspectContainerResponse.class);
