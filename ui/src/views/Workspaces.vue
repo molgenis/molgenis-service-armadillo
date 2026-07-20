@@ -30,7 +30,7 @@
       <div class="col-12">
         <button
           class="btn btn-danger"
-          :disabled="!selectedUser || selectedUser === 'All workspaces'"
+          :disabled="!selectedUser || showAllWorkspaces"
           @click="setDeleteUserWorkspaceDirectory"
         >
           <i class="bi bi-trash-fill"></i> Delete directory
@@ -45,7 +45,7 @@
               :listContent="Object.keys(sortedWorkspaces)"
               rowIcon="person-fill"
               rowIconAlt="person-fill"
-              :altIconCondition="showSelectedUser"
+              :altIconCondition="() => {}"
               :preselectedItem="selectedUser"
               :selectionColor="selectedUser ? 'secondary' : 'primary'"
             ></ListGroup>
@@ -58,9 +58,9 @@
                 :nRows="2"
                 :sortColumns="['user', 'name', 'size', 'lastModified']"
               >
-                <template #extraHeader v-if="selectedUser != 'All workspaces'">
+                <template #extraHeader v-if="!showAllWorkspaces">
                   <th>
-                    <div class="btn-group" role="group" aria-label="workspace control" v-if="selectedUser != 'All workspaces'">
+                    <div class="btn-group" role="group" aria-label="workspace control" v-if="!showAllWorkspaces">
                       <button
                         type="button"
                         class="btn btn-danger btn-sm bg-danger"
@@ -78,22 +78,19 @@
                     </div>
                   </th>
                 </template>
-                <template #extraColumn="columnProps" v-if="selectedUser != 'All workspaces'">
+                <template #extraColumn="columnProps" v-if="!showAllWorkspaces">
                   <!-- Add buttons for editing/deleting users  -->
                   <th scope="row"  >
                     <input
                       class="form-check-input"
-                      v-model="
-                        userWorkspaces[
-                          getIndexOfWorkspace(columnProps.item['name'])
-                        ].checked
-                      "
+                      :checked="userWorkspaces[getIndexOfWorkspace(columnProps.item['name'])]?.checked ?? false"
+                      @change="toggleChecked(columnProps.item['name'])"
                       type="checkbox"
                     />
                   </th>
                 </template>
               </DataPreviewTable>
-              <FileUpload v-if="selectedUser !='All workspaces'" 
+              <FileUpload v-if="!showAllWorkspaces" 
                 ref="fileUpload" 
                 class="mb-2"
                 uniqueClass="workspace-upload" 
@@ -149,9 +146,9 @@ export default defineComponent({
     Alert,
     FileUpload
   },
-  setup(_props, { emit }) {
+  setup(_props) {
     const selectedUser: Ref = ref("");
-    const workspaceComponent = useTemplateRef("workspaceComponent");
+    const workspaceComponent = useTemplateRef("workspaceComponent") as any;
     const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     const route = useRoute();
@@ -161,7 +158,7 @@ export default defineComponent({
       watch(
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
-          if (newVal != undefined && newVal !== "") {
+          if (newVal !== undefined && newVal !== "") {
             selectedUser.value = newVal;
           }
         }
@@ -197,6 +194,11 @@ export default defineComponent({
       getAllWorkspaces,
     };
   },
+  watch: {
+    selectedUser() {
+      if (this.$refs.fileUpload) {(this.$refs.fileUpload as any).clearFile();}
+    }
+  },
   data() {
     return {
       loading: false,
@@ -217,11 +219,16 @@ export default defineComponent({
   methods: {
     downloadWorkspace,
     uploadWorkspace,
+    getIndexOfWorkspace(selectedWorkspaceName: string) {
+      return this.userWorkspaces.findIndex((workspace) => {
+        return workspace.name === selectedWorkspaceName;
+      });
+    },
     getFileName() {
       return this.$refs.fileUpload && (this.$refs.fileUpload as any).file ? (this.$refs.fileUpload as any).file.name : "";
     },
     uploadWorkspaceFile(){
-      return this.uploadWorkspace((this.$refs.fileUpload as any).file, this.selectedUser.replace("user-", ""), this.getFileName().replace(this.workspaceExtension, ""));
+      return this.uploadWorkspace((this.$refs.fileUpload as any).file, this.usernameFromFolder, this.getFileName().replace(this.workspaceExtension, ""));
     },
     getUserNameFromWorkspace( workspace: string) {
       let user = "";
@@ -252,14 +259,13 @@ export default defineComponent({
           this.clearIsDeleteUserWorkspaceDirectoryTriggered();
         });
     },
-    changeUser(user: string) {
-      this.selectedUser = user;
-      this.setWorkspaces(user);
-    },
-    getIndexOfWorkspace(selectedWorkspaceName: string) {
-      return this.userWorkspaces.findIndex((workspace) => {
-        return workspace.name === selectedWorkspaceName;
+    resetWorkspaces() {
+      return this.loadWorkspaces().then(() => {
+        this.setWorkspaces(this.selectedUser);
       });
+    },
+    toggleChecked(itemToChange: string) {
+      this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked = !this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked
     },
     getIndexOfAllWorkspaces(user: string, selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
@@ -281,13 +287,13 @@ export default defineComponent({
       this.isDeleteTriggered = false;
     },
     async deleteWorkspace(workspaceName: string) {
-      await deleteUserWorkspace(this.selectedUser, workspaceName)
+      await deleteUserWorkspace(this.usernameFromFolder, workspaceName)
         .then(() => {
-          const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
+          const successMessage = `[${workspaceName}] for user [${this.usernameFromFolder}]`;
           this.deleteSuccessMessages.push(successMessage);
         })
         .catch((error) => {
-          const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`;
+          const errorMessage = `[${workspaceName}] for user [${this.usernameFromFolder}] because ${error}`;
           this.deleteErrorMessages.push(errorMessage);
         });
     },
@@ -309,10 +315,8 @@ export default defineComponent({
         await this.deleteWorkspace(workspace);
       }
       this.collectDeleteMessages();
-      this.loadWorkspaces();
-      this.setWorkspaces(this.selectedUser);
+      this.resetWorkspaces();
     },
-    showSelectedUser() {},
     collectDeleteMessages() {
       var errorCollection = "";
       if (this.deleteSuccessMessages.length > 0) {
@@ -345,17 +349,21 @@ export default defineComponent({
       }
       return workspacesWithUser;
     },
-    onSuccess(filename: string) {
-      //TODO: delete is broken
-      this.successMessage = `Upload success: [${filename}] for user [${this.selectedUser}]`;
-      //TODO: reload doesnt seem to be working?
-      this.loadWorkspaces();
+    async onSuccess(file: {filename: string}) {
+      this.successMessage = `Upload success: [${file.filename}] for user [${this.usernameFromFolder}]`;
+      await this.resetWorkspaces();
     },
     onError(error: string) {
-      this.errorMessage = `Upload failure: cannot upload workspace for user [${this.selectedUser}] because ${error}`;
+      this.errorMessage = `Upload failure: cannot upload workspace for user [${this.usernameFromFolder}] because ${error}`;
     }
   },
   computed: {
+    showAllWorkspaces() {
+      return this.selectedUser === "All workspaces";
+    },
+    usernameFromFolder() {
+      return this.selectedUser.replace("user-", "");
+    },
     isNotReadyForUpload() {
       return this.workspaceId === '' || this.userId === '';
     },
@@ -389,7 +397,7 @@ export default defineComponent({
       );
     },
     filteredWorkspaces() {
-      if (this.selectedUser === "All workspaces") {
+      if (this.showAllWorkspaces) {
         return this.formattedWorkspaces;
       } else {
         return Object.fromEntries(
@@ -403,7 +411,7 @@ export default defineComponent({
       }
     },
     filteredHeaders() {
-      if (this.selectedUser === "All workspaces") {
+      if (this.showAllWorkspaces) {
         return ["user", "name", "size", "lastModified"];
       } else {
         return ["name", "size", "lastModified"];

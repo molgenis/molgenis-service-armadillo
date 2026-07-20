@@ -99,16 +99,18 @@ export default defineComponent({
   methods: {
     clearFile() {
       this.file = undefined;
+      this.isUploadingFile = false;
     },
     uploadFile() {
       const fileName = this.getFileName();
       if (fileName != "") {
         this.isUploadingFile = true;
-        this.uploadFileMethod() .then(() => {
-        this.isUploadingFile = false;
+        this.uploadFileMethod().then(() => {
+          this.isUploadingFile = false;
           this.$emit("upload_success", {
             filename: this.getFileName(),
           });
+          this.clearFile();
         })
         .catch((error: Error) => {
           this.isUploadingFile = false;
