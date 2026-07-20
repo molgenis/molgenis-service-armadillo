@@ -491,7 +491,6 @@ export default defineComponent({
       object: string;
       filename: string;
     }) {
-      console.log("success!")
       this.reloadProject();
       this.successMessage = `Successfully uploaded file [${filename}] into directory [${this.selectedFolder}] of project: [${this.projectId}]`;
     },
