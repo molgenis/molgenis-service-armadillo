@@ -37,7 +37,6 @@ put_container $ARMADILLO_1_PORT "$(cat <<EOF
   "dockerArgs": [
     "--insecure",
     "--plugin-type", "clientapp",
-    "--allow-runtime-dependency-installation",
     "--appio-api-address", "$SUPERNODE_1:9094"
   ]
 }
@@ -69,7 +68,6 @@ put_container $ARMADILLO_2_PORT "$(cat <<EOF
   "dockerArgs": [
     "--insecure",
     "--plugin-type", "clientapp",
-    "--allow-runtime-dependency-installation",
     "--appio-api-address", "$SUPERNODE_2:9094"
   ]
 }

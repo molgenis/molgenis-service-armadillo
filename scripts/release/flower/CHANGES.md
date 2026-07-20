@@ -120,6 +120,38 @@ molgenis-service-armadillo (this repo):
 - `feat/flower-containers`, `feat/container-data-endpoint` — backend, merged in.
 - `test/flower-release-test` — integration/test branch (these scripts + CHANGES).
 
+## Batteries-included superexec image (runtime install removed)
+
+Switched off runtime dependency installation and baked the deps into ONE
+superexec runtime image covering the common ML frameworks. The Dockerfile lives
+in the molgenis-flwr-armadillo repo (`docker/superexec-armadillo.Dockerfile`,
+chore/superexec-image branch): stock `flwr/superexec:1.32.1` + CPU-only
+torch/torchvision + tensorflow-cpu + scikit-learn + xgboost + pandas + the
+molgenis-flwr-armadillo package (--no-deps, so apps import the helpers instead
+of vendoring). One image (`timmyjc/superexec-armadillo:1.32.1`), not one per
+framework, at Tim's request. Armadillo only references the image tag.
+CAVEATS: only torch is pin-verified for py3.13; the others may need pin
+adjustment at build time. TensorFlow + Flower can conflict on protobuf/numpy —
+if the image won't resolve, TF is the likely culprit.
+Verified in the stock image: when the superexec runs WITHOUT
+`--allow-runtime-dependency-installation`, Flower skips `install_app_dependencies`
+and runs the app in the image venv `/python/venv` (serverapp/app.py:214). So
+baked deps are used directly — instant start instead of a 5-10 min per-run
+install, CPU-only (no multi-GB CUDA tree), exact-pinned, one image to scan/sign.
+Changes: `config.sh` SUPEREXEC_IMAGE → `timmyjc/superexec-torch:1.32.1`;
+removed `--allow-runtime-dependency-installation` from the serverapp
+(`start-superlink.sh`) and clientapp (`register-flower-containers.sh`) superexecs
+(the superexec defaults runtime-install OFF and has no `--disable` variant, so
+omitting the flag is enough). SuperNode/SuperLink stay stock (they run no app
+code). App `pyproject.toml`: exact-pinned torch/torchvision, moved sim-only deps
+(`flwr[simulation]`, `flwr-datasets`) to a `[simulation]` optional extra.
+NOTE: the baked image needs NO app republish — with runtime-install off, the
+published 1.0.3 FAB's deps are ignored and come from the image; the FAB carries
+only code. Build/push before running (from the molgenis-flwr-armadillo repo):
+  ./docker/build-push.sh        # timmyjc/superexec-torch:1.32.1
+(Still gated by the FAB-verification/Hub issue above; the image fixes speed, not
+verification.)
+
 ## Dependency management (open design question)
 
 Runtime dep-install (`--allow-runtime-dependency-installation`) resolves the
@@ -155,6 +187,29 @@ NEXT STEP:
 
 STILL UNVERIFIED after that: supernode FAB acceptance, clientapp dep install,
 push-data data load, training completion. Scenarios B–F not yet run.
+
+UPDATE (2026-07-20): token blob PROVEN (tokens reach both nodes). Real blocker
+is FAB verification, and the key-id guessing was a red herring. Root cause:
+the Hub's fetch-fab endpoint returns NO verifications for the app. Confirmed by
+calling the exact function the SuperLink uses:
+  python3 -c "from flwr.supercore.utils import request_download_link; \
+    print(request_download_link('@timmyjc/quickstart-pytorch-armadillo','1.0.3',\
+    'https://api.flower.ai/v1/hub/fetch-fab','fab_url'))"
+Raw POST to https://api.flower.ai/v1/hub/fetch-fab (PLATFORM_API_URL, verified
+in flwr/supercore/constant.py) returns 200 with fab_url for the correct app/
+version but NO "verifications" field. SuperLink `_get_remote_fab`
+(control_servicer.py) then sets `{"valid_license": ""}`, so supernodes log
+"App verification is not supported by the connected SuperLink" and reject with
+FAB_VERIFICATION_ERROR. The web Verifications tab shows the app as verified, but
+fetch-fab does not expose it — a Hub-side discrepancy.
+NEXT: re-run `flwr login supergrid` then `flwr app review ...==1.0.3`, watching
+for a SUCCESSFUL submission (the review kept failing silently on HTTP 401
+"Inactive token"). Re-dump the raw fetch-fab response; if `verifications`
+appears, set trusted-entities to that exact public_key_id and restart. If still
+absent after a confirmed review, it is a Flower Hub issue to escalate — nothing
+on our side can supply a verification the endpoint won't return.
+Self-hosted SuperLink verification support is FINE (it fetches + would attach
+verifications); the gap is purely what the Hub returns.
 
 Deferred tasks: split orchestrator into human-run numbered steps; port app
 version/dep bumps onto docs/example-app for its PR; consider pre-baked deps.

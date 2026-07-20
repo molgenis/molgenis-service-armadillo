@@ -29,13 +29,14 @@ sleep 2
 log "Starting serverapp superexec..."
 # The ServerAppIo API (9091) uses the SuperLink's --appio-ssl-* certs, which
 # we do not set, so it is plaintext; connect insecurely.
+# No --allow-runtime-dependency-installation: deps are baked into the image,
+# so Flower runs the app in the image venv without a live install.
 docker run -d --rm \
   --name "$SERVERAPP" \
   "$SUPEREXEC_IMAGE" \
   --insecure \
   --plugin-type serverapp \
-  --appio-api-address host.docker.internal:9091 \
-  --allow-runtime-dependency-installation
+  --appio-api-address host.docker.internal:9091
 
 wait_for_container_running "$SERVERAPP"
 

@@ -40,7 +40,10 @@ RESEARCHER_EMAIL="${RESEARCHER_EMAIL:-t.j.cadman@umcg.nl}"
 FLWR_VERSION="${FLWR_VERSION:-1.32.1}"
 SUPERLINK_IMAGE="${SUPERLINK_IMAGE:-flwr/superlink:$FLWR_VERSION}"
 SUPERNODE_IMAGE="${SUPERNODE_IMAGE:-flwr/supernode:$FLWR_VERSION}"
-SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-flwr/superexec:$FLWR_VERSION}"
+# Batteries-included superexec (common CPU ML frameworks baked in) so runs start
+# without a live dependency install. Built + pushed from molgenis-flwr-armadillo:
+# ../molgenis-flwr-armadillo/docker/build-push.sh
+SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-armadillo:$FLWR_VERSION}"
 FLWR_ARMADILLO_DIR="$PROJECT_ROOT/../molgenis-flwr-armadillo"
 
 # --- Flower Hub ---------------------------------------------------------------
