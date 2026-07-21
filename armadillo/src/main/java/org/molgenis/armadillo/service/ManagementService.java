@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.*;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
@@ -61,9 +60,6 @@ public class ManagementService {
   BuildProperties buildProperties;
   String armadilloConfigFile;
 
-  // location of update log
-  private String updateLogPath;
-
   private final RebootScriptRunner scriptRunner;
 
   private final ApplicationConfigUpdater appConfigUpdater;
@@ -87,25 +83,14 @@ public class ManagementService {
 
   @Autowired
   public ManagementService(
-      @Value("${stdout.log.path:./logs/armadillo.log}") String logPath,
-      @Value("${update.log.path:#{null}}") String updatePath,
       @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
           String armadilloConfigFile,
       @Autowired BuildProperties buildProperties,
+      @Autowired RebootScriptRunner scriptRunner,
       HttpClient httpClient) {
     this.httpClient = httpClient;
     this.buildProperties = buildProperties;
-    if (updatePath == null) {
-      var splittedLogFilepath = logPath.split(Pattern.quote(File.separator));
-      // if updateLog not set, take path of stdout log and put update.log in same dir
-      updateLogPath =
-          String.join(
-                  File.separator,
-                  Arrays.copyOf(splittedLogFilepath, splittedLogFilepath.length - 1))
-              + File.separator
-              + "update.log";
-    }
-    scriptRunner = new RebootScriptRunner(updateLogPath, getJarHome());
+    this.scriptRunner = scriptRunner;
     this.armadilloConfigFile = armadilloConfigFile;
     appConfigUpdater = new ApplicationConfigUpdater(armadilloConfigFile);
   }

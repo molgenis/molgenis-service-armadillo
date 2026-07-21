@@ -14,13 +14,14 @@ import org.junit.jupiter.api.io.TempDir;
 class RebootScriptRunnerTest {
   @TempDir Path tempDir;
 
-  RebootScriptRunner scriptRunner;
+  PythonRebootScriptRunner scriptRunner;
 
   @BeforeEach
   void setUp() {
     File logFile = tempDir.resolve("test.log").toFile();
     String jarHome = tempDir.resolve("armadillo.jar").toString();
-    scriptRunner = new RebootScriptRunner(logFile.getAbsolutePath(), jarHome);
+    // TODO
+    scriptRunner = new PythonRebootScriptRunner(); // (logFile.getAbsolutePath(), jarHome);
   }
 
   @Test
@@ -36,7 +37,7 @@ class RebootScriptRunnerTest {
     Path logPath = tempDir.resolve("logs/update.log");
     setField(scriptRunner, "logPath", logPath.toString());
 
-    Method m = RebootScriptRunner.class.getDeclaredMethod("getUpdateLogFile");
+    Method m = PythonRebootScriptRunner.class.getDeclaredMethod("getUpdateLogFile");
     m.setAccessible(true);
     File scriptLogFile = (File) m.invoke(scriptRunner);
 
@@ -45,7 +46,8 @@ class RebootScriptRunnerTest {
 
   @Test
   void buildPythonCommand_formatsCorrectly() throws Exception {
-    Method m = RebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
+    Method m =
+        PythonRebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
     m.setAccessible(true);
 
     String result =
@@ -55,7 +57,8 @@ class RebootScriptRunnerTest {
 
   @Test
   void buildPythonCommand_escapesSingleQuotes() throws Exception {
-    Method m = RebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
+    Method m =
+        PythonRebootScriptRunner.class.getDeclaredMethod("buildPythonCommand", String[].class);
     m.setAccessible(true);
 
     String result = (String) m.invoke(scriptRunner, (Object) new String[] {"it's"});
@@ -65,7 +68,7 @@ class RebootScriptRunnerTest {
   @Test
   void createPythonScript_nonUpdateBranch_doesNotContainUpdateFlag() throws Exception {
     Method m =
-        RebootScriptRunner.class.getDeclaredMethod(
+        PythonRebootScriptRunner.class.getDeclaredMethod(
             "createPythonScriptForThread", String.class, String.class);
     m.setAccessible(true);
 
@@ -85,7 +88,7 @@ class RebootScriptRunnerTest {
   @Test
   void createPythonScript_updateBranch_containsUpdateFlag() throws Exception {
     Method m =
-        RebootScriptRunner.class.getDeclaredMethod(
+        PythonRebootScriptRunner.class.getDeclaredMethod(
             "createPythonScriptForThread", String.class, String.class);
     m.setAccessible(true);
     String script =
@@ -100,7 +103,7 @@ class RebootScriptRunnerTest {
   @Test
   void createPythonScript_containsMode() throws Exception {
     Method m =
-        RebootScriptRunner.class.getDeclaredMethod(
+        PythonRebootScriptRunner.class.getDeclaredMethod(
             "createPythonScriptForThread", String.class, String.class);
     m.setAccessible(true);
 
