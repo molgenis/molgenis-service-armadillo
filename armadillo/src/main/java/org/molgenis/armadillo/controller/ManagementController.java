@@ -34,7 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("manage")
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementController {
-  public static final String ARMADILLO_VERSION = "ARMADILLO_VERSION";
+  private static final String ARMADILLO_VERSION = "ARMADILLO_VERSION";
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
 
