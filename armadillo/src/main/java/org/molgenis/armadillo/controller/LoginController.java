@@ -2,7 +2,6 @@ package org.molgenis.armadillo.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
-import java.security.Principal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +17,7 @@ public class LoginController {
   }
 
   @GetMapping("/basic-login")
-  public RedirectView basicLogin(Principal principal) {
+  public RedirectView basicLogin() {
     return new RedirectView("/");
   }
 
