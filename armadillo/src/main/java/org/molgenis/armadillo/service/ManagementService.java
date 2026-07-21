@@ -172,13 +172,21 @@ public class ManagementService {
   }
 
   private String getScriptVersionTag(String version) {
-    String[] versionSplit = version.split("\\.");
-    String scriptVersionTag;
+    // TODO: simplify this after update script is available on version, then it should simply return
+    // refs/tags/vx.y.z
     // if script not available yet on current release:
-    if (Objects.equals(versionSplit[0], "5") && Integer.parseInt(versionSplit[1]) < 15) {
-      scriptVersionTag = "11f96b1c227d04ccb8870fafe08dbf3206ca172c";
-    } else {
-      scriptVersionTag = "refs/tags/v" + version;
+    String scriptVersionTag = "11f96b1c227d04ccb8870fafe08dbf3206ca172c";
+    if (!version.equals("dev")) {
+      version = version.replace("v", "");
+    }
+    String[] versionSplit = version.split("\\.");
+    try {
+      if (Integer.parseInt(versionSplit[0]) > 5
+          || (Integer.parseInt(versionSplit[0]) == 5 && Integer.parseInt(versionSplit[1]) >= 15)) {
+        scriptVersionTag = "refs/tags/v" + version;
+      }
+    } catch (NumberFormatException ignored) {
+      // when dev
     }
     return scriptVersionTag;
   }
@@ -215,7 +223,7 @@ public class ManagementService {
   }
 
   boolean isValidVersion(String version) {
-    return version.matches("v?\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?");
+    return version.matches("v?\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?") || version.equals("dev");
   }
 
   public void triggerUpdate(String version) throws IOException {
@@ -241,7 +249,6 @@ public class ManagementService {
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
-    armadilloVersion = armadilloVersion.replace("v", "");
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
     return String.format(rebootScriptUrl, scriptVersionTag, rebootScript);
   }
