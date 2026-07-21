@@ -49,10 +49,9 @@ class ManagementServiceTest {
     buildProperties = mock(BuildProperties.class);
     service =
         new ManagementService(
-            "./logs/armadillo.log",
-            null,
             tempDir.resolve("application.yml").toString(),
             buildProperties,
+            new PythonRebootScriptRunner(),
             httpClient);
 
     // Point armadilloHome and armadilloConfigFile to temp dir
@@ -70,10 +69,9 @@ class ManagementServiceTest {
 
   ManagementService getManagementServiceForConstructor(String logPath, String updatePath) {
     return new ManagementService(
-        logPath,
-        updatePath,
         tempDir.resolve("application.yml").toString(),
         buildProperties,
+        new PythonRebootScriptRunner(),
         httpClient);
   }
 
@@ -246,10 +244,9 @@ class ManagementServiceTest {
   void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
     ManagementService svc =
         new ManagementService(
-            "./logs/armadillo.log",
-            "/custom/path/update.log",
             tempDir.resolve("application.yml").toString(),
             buildProperties,
+            new PythonRebootScriptRunner(),
             httpClient);
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set

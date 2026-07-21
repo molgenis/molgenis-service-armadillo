@@ -60,9 +60,6 @@ storage:
 # Needed to download ... this file is reallocated by OPS (defaults 'logs/armadillo.log')
 #stdout.log.path: logs/armadillo.log
 
-# Update log path, defaults to stdout log path and will replace the filename with update.log (to prevent breaking change)
-#update.log.path: logs/update.log
-
 logging:
   level:
     ## change to DEBUG to have more details, typically when developing

@@ -5,13 +5,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.molgenis.armadillo.service.RebootScriptRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -26,6 +31,13 @@ class NewManagementControllerTest {
   }
 
   @Autowired MockMvc mockMvc;
+
+  @TestBean(methodName = "rebootScriptRunnerOverride")
+  RebootScriptRunner rebootScriptRunner;
+
+  private static RebootScriptRunner rebootScriptRunnerOverride() {
+    return new RecordingRebootScriptRunner();
+  }
 
   @Test
   void getOidcConfig_GET() throws Exception {
@@ -49,5 +61,19 @@ class NewManagementControllerTest {
   @Test
   void getOidcConfig_GET_unauthenticated() throws Exception {
     mockMvc.perform(get("/manage/auth/oidc-config")).andExpect(status().isUnauthorized());
+  }
+
+  static class RecordingRebootScriptRunner implements RebootScriptRunner {
+
+    private final List<String[]> runconfigs = new ArrayList<>();
+
+    @Override
+    public void runRebootScript(String... args) throws IOException {
+      runconfigs.add(args);
+    }
+
+    public List<String[]> getRecordedRuns() {
+      return runconfigs;
+    }
   }
 }
