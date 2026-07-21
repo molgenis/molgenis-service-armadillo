@@ -112,8 +112,8 @@ export async function handleResponse(response: Response) {
         } else {
           error.message = response.statusText;
         }
-      } catch (e) {
-        error.message = response.statusText;
+      } catch (ignore) {
+        // error will be thrown with proper message
       }
     }
     throw error;

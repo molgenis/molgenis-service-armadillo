@@ -262,7 +262,9 @@ export default defineComponent({
     },
     updateApplication() {
       if (this.versionToUpdateTo !== this.currentVersion) {
-        this.downloadUpdater(this.versionToUpdateTo);
+        this.downloadUpdater(this.versionToUpdateTo).catch((error) => {
+          this.errorMessage = "Cannot download updater, because: " + error;
+        });
         this.warningMessage =
           "Update in progress. The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator.";
         this.startUpdate(this.versionToUpdateTo);
@@ -290,7 +292,9 @@ export default defineComponent({
       if (this.hardRestartTriggered) {
         this.downloadUpdater(this.currentVersion).then(() =>
           hardRestartServer()
-        );
+        ).catch(( error ) => {
+          this.errorMessage = "Cannot download updater, because: " + error;
+        });
       }
     },
     cancelRestartServer() {
@@ -332,6 +336,8 @@ export default defineComponent({
             this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
             this.cancelOidcUpdate();
           });
+      }).catch(( error ) => {
+        this.errorMessage = "Cannot download updater, because: " + error;
       });
     },
   },
