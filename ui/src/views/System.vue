@@ -290,11 +290,11 @@ export default defineComponent({
         softRestartServer();
       }
       if (this.hardRestartTriggered) {
-        this.downloadUpdater(this.currentVersion).then(() =>
-          hardRestartServer()
-        ).catch(( error ) => {
-          this.errorMessage = "Cannot download updater, because: " + error;
-        });
+        this.downloadUpdater(this.currentVersion)
+          .then(() => hardRestartServer())
+          .catch((error) => {
+            this.errorMessage = "Cannot download updater, because: " + error;
+          });
       }
     },
     cancelRestartServer() {
@@ -324,21 +324,23 @@ export default defineComponent({
       this.deleteJarTriggered = false;
     },
     saveOidcConfig() {
-      this.downloadUpdater(this.currentVersion).then(() => {
-        putAuthServerConfig(this.configToSave)
-          .then(() => {
-            this.successMessage = "Successfully updated OIDC config";
-            this.authConfig = this.configToSave;
-            this.cancelOidcUpdate();
-            this.proceedRestartServer();
-          })
-          .catch((errrorMsg) => {
-            this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
-            this.cancelOidcUpdate();
-          });
-      }).catch(( error ) => {
-        this.errorMessage = "Cannot download updater, because: " + error;
-      });
+      this.downloadUpdater(this.currentVersion)
+        .then(() => {
+          putAuthServerConfig(this.configToSave)
+            .then(() => {
+              this.successMessage = "Successfully updated OIDC config";
+              this.authConfig = this.configToSave;
+              this.cancelOidcUpdate();
+              this.proceedRestartServer();
+            })
+            .catch((errrorMsg) => {
+              this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
+              this.cancelOidcUpdate();
+            });
+        })
+        .catch((error) => {
+          this.errorMessage = "Cannot download updater, because: " + error;
+        });
     },
   },
 });
