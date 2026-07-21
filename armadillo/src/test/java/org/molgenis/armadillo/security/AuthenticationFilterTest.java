@@ -63,7 +63,7 @@ class AuthenticationFilterTest {
   }
 
   @Test
-  void testDoFilter_ExceptionHandling_ReturnsUnauthorized() {
+  void testDoFilter_ExceptionHandling_ReturnsUnauthorized() throws Exception {
     when(request.getRequestURI()).thenThrow(new RuntimeException("Test Exception"));
 
     filter.doFilter(request, response, filterChain);
