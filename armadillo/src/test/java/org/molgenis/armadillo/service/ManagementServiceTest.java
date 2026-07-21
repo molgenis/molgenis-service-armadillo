@@ -472,12 +472,29 @@ class ManagementServiceTest {
   }
 
   @Test
+  void getUpdateScriptUrlAfterMerge() {
+    String updateScriptUrl = service.getUpdateScriptUrl("v5.15.1");
+    assertThat(updateScriptUrl)
+        .isEqualTo(
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/v5.15.1/scripts/install/armadillo-reboot.sh");
+  }
+
+  @Test
+  void getUpdateScriptUrlDev() {
+    String updateScriptUrl = service.getUpdateScriptUrl("dev");
+    assertThat(updateScriptUrl)
+        .isEqualTo(
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/11f96b1c227d04ccb8870fafe08dbf3206ca172c/scripts/install/armadillo-reboot.sh");
+  }
+
+  @Test
   void isValidVersion() {
     assertTrue(service.isValidVersion("v1.3.1"));
     assertTrue(service.isValidVersion("v1341.331.12"));
     assertTrue(service.isValidVersion("13.31.121234"));
     assertTrue(service.isValidVersion("v5.14.0-SNAPSHOT"));
     assertTrue(service.isValidVersion("6.1.0-SNAPSHOT"));
+    assertTrue(service.isValidVersion("dev"));
     assertFalse(service.isValidVersion("v1.3a.31a"));
     assertFalse(service.isValidVersion("print('do something very evil?')"));
   }
