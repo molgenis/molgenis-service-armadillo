@@ -28,15 +28,15 @@ public class RebootScriptRunner {
   String createPythonScriptForThread(String pythonList, String absoluteLogFilePath) {
     String scriptTemplate =
         """
-                                  import os, sys, subprocess
-                                  if os.fork() > 0:
-                                      sys.exit(0)
-                                  os.setsid()
-                                  if os.fork() > 0:
-                                      sys.exit(0)
-                                  with open('%s', 'a') as log:
-                                      subprocess.run(%s, stdout=log, stderr=log, stdin=subprocess.DEVNULL)
-                                  """;
+        import os, sys, subprocess
+        if os.fork() > 0:
+            sys.exit(0)
+        os.setsid()
+        if os.fork() > 0:
+            sys.exit(0)
+        with open('%s', 'a') as log:
+            subprocess.run(%s, stdout=log, stderr=log, stdin=subprocess.DEVNULL)
+        """;
     return String.format(scriptTemplate, absoluteLogFilePath, pythonList);
   }
 
