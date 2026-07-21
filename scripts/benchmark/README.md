@@ -7,11 +7,28 @@ Config lives in one git-ignored `.env`; stages are R scripts in `lib/`.
 
 ```bash
 ./install_benchmark_dependencies.R   # R client + tooling into .Rlib
-cp .env.dist .env                    # then fill in URLs / passwords
+cp .env.dist .env                    
 ```
-
 `.env.dist` documents every key. All backends use basic auth. Backends are named
 `<kind>_<location>[_rserve]`; `BACKENDS` picks which run.
+
+The essential keys to fill in are:
+
+OPAL_LOCAL_PORT=8081
+OPAL_LOCAL_USER=administrator
+OPAL_LOCAL_PASS=datashield_test&
+
+OPAL_REMOTE_URL= [listed in vault]
+OPAL_REMOTE_USER= [listed in vault]
+OPAL_REMOTE_PASS= [listed in vault]
+
+ARMA_LOCAL_PORT=8080
+ARMA_LOCAL_USER=admin
+ARMA_LOCAL_PASS=admin
+
+ARMA_REMOTE_URL= [listed in vault]
+ARMA_REMOTE_USER= [listed in vault]
+ARMA_REMOTE_PASS= [listed in vault]
 
 ## Run
 
