@@ -64,13 +64,20 @@ speed_plot <- function(sub, xvar, limits, title) {
 # render localhost + remote PNGs into <out_dir>/<prefix>_{local,remote}.png,
 # sized to match the footprint charts so they line up on the slide.
 speed_save <- function(agg, xvar, limits, out_dir, prefix) {
-  for (loc in c("localhost", "remote")) {
+  present <- unique(as.character(agg$location))
+  for (loc in intersect(c("localhost", "remote"), present)) {
     p <- speed_plot(agg[agg$location == loc, ], xvar, limits, tools::toTitleCase(loc))
     f <- file.path(out_dir, sprintf("%s_%s.png", prefix, if (loc == "localhost") "local" else "remote"))
     ggsave(f, p, width = 6.6, height = 4.2, dpi = 300, device = ragg::agg_png)
     cat(sprintf("Wrote %s\n", f))
   }
 }
+
+# Everything below depends on complete measurement CSVs. If any figure fails it
+# almost always means the benchmark run itself didn't finish (missing or partial
+# results), so wrap the whole stage and report that once instead of surfacing an
+# opaque low-level error.
+tryCatch({
 
 # =============================================================================
 # 1. Total speed by function family (speed_ds_base.csv + folded session ops)
@@ -214,3 +221,8 @@ p2 <- ggplot(sto, aes(x = backend, y = mb)) +
         plot.margin = margin(10, 15, 5, 10))
 ggsave(file.path(OUT, "res_storage.png"), p2, width = 6.6, height = 4.2, dpi = 300, device = ragg::agg_png)
 cat("Wrote", file.path(OUT, "res_storage.png"), "\n")
+
+}, error = function(e) {
+  message("Plotting failed. Check the benchmark run completed correctly.")
+  message("  reason: ", conditionMessage(e))
+})
