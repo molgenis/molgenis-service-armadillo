@@ -16,7 +16,7 @@ public class ApplicationConfigUpdater {
 
   private static final String BACKUP_EXT = ".bak";
 
-  public static final YAMLFactory yamlFactory = new YAMLFactory();
+  private static final YAMLFactory yamlFactory = new YAMLFactory();
   private static final ObjectMapper objectMapper = new ObjectMapper(yamlFactory);
 
   private final String armadilloConfigFile;
