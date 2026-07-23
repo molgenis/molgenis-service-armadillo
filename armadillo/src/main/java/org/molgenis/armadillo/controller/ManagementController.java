@@ -37,6 +37,7 @@ public class ManagementController {
   private static final String ARMADILLO_VERSION = "ARMADILLO_VERSION";
   private final ManagementService managementService;
   private final AuditEventPublisher auditor;
+  private static final Gson gson = new Gson();
 
   public ManagementController(ManagementService managementService, AuditEventPublisher auditor) {
     this.managementService = requireNonNull(managementService);
@@ -126,7 +127,6 @@ public class ManagementController {
     return auditor.audit(
         () -> {
           try {
-            Gson gson = new Gson();
             return gson.fromJson(managementService.getLastRelease().toString(), Map.class);
           } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
