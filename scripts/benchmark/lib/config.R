@@ -37,12 +37,20 @@ suppressMessages({
 })
 
 # --- Backends ---------------------------------------------------------------
-# Backends are named <kind>_<location>[_rserve], e.g. armadillo_remote_rserve.
-# BACKENDS lists which to run; each resolves its connection from location-prefixed
-# .env keys (basic auth): {OPAL,ARMA}_{LOCAL,REMOTE}_{URL,USER,PASS}.
-BACKENDS <- trimws(strsplit(Sys.getenv("BACKENDS",
-  "opal_local,opal_remote,armadillo_local,armadillo_local_rserve,armadillo_remote,armadillo_remote_rserve"),
-  ",")[[1]])
+# Two axes, listed once each: BACKENDS is the engines (opal, armadillo_rock,
+# armadillo_rserve); LOCATIONS is local and/or remote. Their product gives the
+# <kind>_<location>[_rserve] names the rest of the code uses (the engine's _rock/
+# _rserve suffix drops out, and _rserve reappears after the location). Each
+# resolves its connection from location-prefixed .env keys (basic auth):
+# {OPAL,ARMA}_{LOCAL,REMOTE}_{URL,USER,PASS}.
+ENGINES   <- trimws(strsplit(Sys.getenv("BACKENDS",  "opal,armadillo_rock,armadillo_rserve"), ",")[[1]])
+LOCATIONS <- trimws(strsplit(Sys.getenv("LOCATIONS", "local,remote"), ",")[[1]])
+ENGINES   <- ENGINES[nzchar(ENGINES)]
+LOCATIONS <- LOCATIONS[nzchar(LOCATIONS)]
+make_be <- function(engine, loc)
+  paste0(sub("_(rock|rserve)$", "", engine), "_", loc, if (grepl("_rserve$", engine)) "_rserve" else "")
+BACKENDS <- unlist(lapply(LOCATIONS, function(l) vapply(ENGINES, make_be, character(1), loc = l)),
+                   use.names = FALSE)
 
 # Compute profile (R engine) per backend -- all must run the same pinned dsBase
 # image for a valid comparison. Armadillo's two profiles are separate backends.

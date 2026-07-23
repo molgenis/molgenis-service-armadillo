@@ -9,8 +9,10 @@ Config lives in one git-ignored `.env`; stages are R scripts in `lib/`.
 ./install_benchmark_dependencies.R   # R client + tooling into .Rlib
 cp .env.dist .env                    
 ```
-`.env.dist` documents every key. All backends use basic auth. Backends are named
-`<kind>_<location>[_rserve]`; `BACKENDS` picks which run.
+`.env.dist` documents every key. All backends use basic auth. Backends are picked
+on two axes, listed once each: `BACKENDS` (engines: `opal`, `armadillo_rock`,
+`armadillo_rserve`) and `LOCATIONS` (`local`, `remote`). Every engine runs at
+every location.
 
 The essential keys to fill in are:
 
@@ -32,17 +34,36 @@ ARMA_REMOTE_PASS= [listed in vault]
 
 ## Run
 
+`BACKENDS` x `LOCATIONS` (in `.env`) pick which servers to benchmark.
+
+### Run local
+
+```
+BACKENDS=opal,armadillo_rock,armadillo_rserve
+LOCATIONS=local
+```
 ```bash
 ./start_servers.sh                 # local Opal + Armadillo, version-pinned from .env
-# Profiles: the benchmark uses two Armadillo profiles, `default` (Rock) + `rserve`.
-# Locally, `setup.R` adds `rserve` (on RSERVE_IMAGE); `default` ships with Armadillo.
-# On REMOTE servers both must already exist, on the same pinned dsBase image, with
-# `dsBase` whitelisted and `privacyControlLevel = permissive`. Names come from
-# `ARMA_PROFILE` / `ARMA_RSERVE_PROFILE` / `OPAL_PROFILE`.
-
 bash run_benchmark.sh setup.R measure.R plots.R
 ./stop_servers.sh                  # when done
 ```
+
+### Run local + remote
+
+Fill in the `*_REMOTE_*` keys, then add `remote` to the locations:
+
+```
+BACKENDS=opal,armadillo_rock,armadillo_rserve
+LOCATIONS=local,remote
+```
+
+Run the same commands as above.
+
+Profiles: the benchmark uses two Armadillo profiles, `default` (Rock) + `rserve`.
+Locally, `setup.R` adds `rserve` (on RSERVE_IMAGE); `default` ships with Armadillo.
+On REMOTE servers both must already exist, on the same pinned dsBase image, with
+`dsBase` whitelisted and `privacyControlLevel = permissive`. Names come from
+`ARMA_PROFILE` / `ARMA_RSERVE_PROFILE` / `OPAL_PROFILE`.
 
 Stages (run any subset via `run_benchmark.sh <stage>...`):
 
