@@ -69,19 +69,19 @@ public class ManagementService {
   private final ApplicationConfigUpdater appConfigUpdater;
 
   // Constants
-  String rebootScript = "armadillo-reboot.sh";
-  String releaseUrl =
+  private static final String REBOOT_SCRIPT = "armadillo-reboot.sh";
+  private static final String RELEASE_URL =
       "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
-  String rebootScriptUrl =
+  private static final String REBOOT_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
-  String releaseDownloadUrl =
+  private static final String RELEASE_DOWNLOAD_URL =
       "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
-  String armadilloJar = "molgenis-armadillo-%s.jar";
-  String tag = "tag_name";
-  String progress = "progress";
-  String done = "done";
-  String downloadComplete = "Download complete";
-  String dev = "DEV";
+  private static final String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
+  private static final String TAG = "tag_name";
+  private static final String PROGRESS = "progress";
+  private static final String DONE = "done";
+  private static final String DOWNLOAD_COMPLETE = "Download complete";
+  private static final String DEV = "DEV";
 
   private final HttpClient httpClient;
 
@@ -148,7 +148,7 @@ public class ManagementService {
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(releaseUrl)).GET().build();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(RELEASE_URL)).GET().build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() == 200) {
       return JsonParser.parseString(response.body()).getAsJsonObject();
@@ -158,7 +158,7 @@ public class ManagementService {
   }
 
   public String getReleaseVersion(JsonElement release) {
-    return ((JsonObject) release).get(tag).getAsString();
+    return ((JsonObject) release).get(TAG).getAsString();
   }
 
   public Map<String, String> getCurrentOidcConfig() {
@@ -219,7 +219,7 @@ public class ManagementService {
   }
 
   String getJarFromVersion(String version) {
-    return String.format(armadilloJar, version.replace("v", ""));
+    return String.format(ARMADILLO_JAR, version.replace("v", ""));
   }
 
   boolean isValidVersion(String version) {
@@ -245,12 +245,12 @@ public class ManagementService {
   }
 
   String getUpdateScriptPath() {
-    return format("%s/%s", getJarHome(), rebootScript);
+    return format("%s/%s", getJarHome(), REBOOT_SCRIPT);
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
     String scriptVersionTag = getScriptVersionTag(armadilloVersion);
-    return String.format(rebootScriptUrl, scriptVersionTag, rebootScript);
+    return String.format(REBOOT_SCRIPT_URL, scriptVersionTag, REBOOT_SCRIPT);
   }
 
   public void downloadUpdateScript(String armadilloVersion) throws InterruptedException {
@@ -271,7 +271,7 @@ public class ManagementService {
   }
 
   String getJarHome() {
-    if (Objects.equals(armadilloMode, dev)) {
+    if (Objects.equals(armadilloMode, DEV)) {
       return format("%s/build/libs", armadilloHome);
     } else {
       return format("%s", armadilloHome);
@@ -293,7 +293,7 @@ public class ManagementService {
 
   private void updateDownloadProgress(SseEmitter emitter, String progress) {
     try {
-      emitter.send(SseEmitter.event().name(this.progress).data(progress));
+      emitter.send(SseEmitter.event().name(this.PROGRESS).data(progress));
     } catch (IOException e) {
       emitter.completeWithError(e);
     }
@@ -303,7 +303,7 @@ public class ManagementService {
     if (isValidVersion(version)) {
       SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
       String jarToUpdateTo = getJarFromVersion(version);
-      String downloadUrl = String.format(releaseDownloadUrl, version, jarToUpdateTo);
+      String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, jarToUpdateTo);
       String armadilloInstallation = getJarHome() + File.separator + jarToUpdateTo;
       // Run download in background thread — SSE must not block the request thread
       Thread.ofVirtual()
@@ -311,7 +311,7 @@ public class ManagementService {
               () -> {
                 try {
                   if (fileExistsInDir(jarToUpdateTo, getJarHome())) {
-                    emitter.send(SseEmitter.event().name(progress).data("100")); // already there
+                    emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
                   } else {
                     downloadFile(
                         downloadUrl,
@@ -319,7 +319,7 @@ public class ManagementService {
                         downloadProgress ->
                             updateDownloadProgress(emitter, String.valueOf(downloadProgress)));
                   }
-                  emitter.send(SseEmitter.event().name(done).data(downloadComplete));
+                  emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
                   emitter.complete();
                 } catch (InterruptedException e) {
                   Thread.currentThread().interrupt();
