@@ -82,11 +82,11 @@ public class RebootScriptRunner {
                 Process python = processBuilder.start();
                 python.waitFor();
               } catch (IOException e) {
-                throw new RebootScriptRunFailedException("Script run failed:" + e.getMessage());
+                throw new RebootScriptRunFailedException("Script run failed:" + e.getMessage(), e);
               } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RebootScriptRunFailedException(
-                    "Script run interrupted:" + e.getMessage());
+                    "Script run interrupted:" + e.getMessage(), e);
               }
             });
     updateThread.setDaemon(false);
