@@ -38,4 +38,4 @@ dsTidyverse, remove-data, basic-auth
 
 ### CICD 
 - Note CICD only runs test as admin as we cannot connect to an OIDC account.
-- Using `armadillo.get_token` will run locally but fail at CICD.
+- Using `armadillo.get_credentials` will run locally but fail at CICD.
