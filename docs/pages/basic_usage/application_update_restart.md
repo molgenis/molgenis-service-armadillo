@@ -48,7 +48,7 @@ click the button next to Advanced update to reveal the advanced update features:
 ![armadillo_custom_update.png](../../img/ui/armadillo_custom_update.png)
 
 Here any tag available in 
-[the armadillo github repository](https://github.com/molgenis/molgenis-service-armadillo/releases) . 
+[the armadillo github repository](https://github.com/molgenis/molgenis-service-armadillo/releases) can be downloaded.
 After downloading a version, it can be selected in the "Update version" dropdown to update to this specific version 
 after pressing the "Update button".
 
@@ -61,12 +61,12 @@ Within the control screen, it's also possible to restart the armadillo server. T
 ### Soft restart
 This will attempt to restart within the application itself, without truly bringing it down. This button works even if 
 python is not installed on your armadillo. Because armadillo is never truly brought down, risks of it not coming back 
-up are slightly decreased. In the very unlike scenario that Armadillo doesn't come back up, contact your administrator.
+up are slightly decreased. In the very unlikely scenario that Armadillo doesn't come back up, contact your administrator.
 
 ### Hard restart
 This will trigger a full restart of the application, calling a script that will bring armadillo down and later back up. 
 If this process fails, the script will keep attempting to restart 10 times after increasing periods of time 
-(4 seconds, 8 seconds, 16 seconds, etc.). In the very unlike scenario that Armadillo doesn't come back up, contact your
+(4 seconds, 8 seconds, 16 seconds, etc.). In the very unlikely scenario that Armadillo doesn't come back up, contact your
 administrator.
 
 ## Storage
@@ -76,6 +76,5 @@ in use. To do so, scroll to the "Storage" section. Select the version you want t
 ![armadillo_delete_jar.png](../../img/ui/armadillo_delete_jar.png)
 
 ## Authentication server
-The last section on the Control page is "Authentication Server". Information about this can be found in the 
-[Authentication server section](http://127.0.0.1:8000/molgenis-service-armadillo/pages/basic_usage/auth/#ui) of this 
-documentation.
+The last section on the Control page is "Authentication Server". Information about this can be found in the
+[Authentication server section](auth.md#ui) of this documentation.

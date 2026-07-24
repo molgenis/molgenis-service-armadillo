@@ -21,7 +21,7 @@ Depending on your [role](../quick_start.md#quick-start) you have different optio
         <span style="margin: 0 0 0.5em 0; border-left: 3px solid #017FFD; padding: 5px 0 3px 0.5em">5.14.0</span>
     </div>
 
-    To ease some of the system administrators responsibilites, datamanagers can access the Armadillo Control page in the User Interface where they can:    
+    To ease some of the system administrator's and datamanagers responsibilites, datamanagers can access the Armadillo Control page in the User Interface where they can:    
 
     - Configure an [Authentication server](../basic_usage/auth.md)
     - [Update/restart Armadillo](../basic_usage/application_update_restart.md#update)
