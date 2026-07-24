@@ -30,7 +30,7 @@ spring:
           client-id: the-device-flow-client-id
 ```
 Note that both the opaquetoken and the client-id are specified here. 
-In FusionAuth the client-id and opaguetoken client-id can be the same one. 
+In FusionAuth the client-id and opaquetoken client-id will be the same one. 
 Device flow can be setup in the same configuration as regular login, in KeyCloak however, this is impossible. That means
 that an additional configuration has to be set up to allow for device flow (as is required for login via DataSHIELD).
 
@@ -55,7 +55,7 @@ the message carefully and press "Yes". The server will restart with the new conf
 ![auth_server.png](../../img/ui/auth_server.png)
 
 ## Setup in FusionAuth
-To configure a client in FusionAuth, add a configuration in Applications on your auth server. 
+To configure a client in FusionAuth, add a configuration in Applications on your auth server as follows. 
 The Client Id and Client secret in this application configuration, as well as your auth server will need to be added
 in above application.yml.
 
@@ -88,7 +88,7 @@ the settings below.
 - Set valid redirect URLs: http://your-armadillo-url/login/oauth2/code/molgenis
 - Set Valid post logout redirect URIs:  http://your-armadillo-url/logout
 - Client authentication set to On
-- Autorization set to off
+- Authorization set to off
 - Authentication flow: Standard flow, Direct access grants, OAuth 2.0 Device Authorization Grant
 - Login Settings: all off
 - Logout settings: Front channel logout + Backchannel logout session required to on, 

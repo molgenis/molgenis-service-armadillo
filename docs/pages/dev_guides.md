@@ -54,7 +54,7 @@ information to get you started and help you get familiarised with our code and w
     ([molgenis-service-armadillo](https://github.com/molgenis/molgenis-service-armadillo)) is written in Java. In order
     to run it locally you will need the following prerequisites:
 
-    - Java 17 (unless running with Docker)
+    - Java 21 (unless running with Docker)
     - Docker
 
     <h2>Project Structure</h2>
@@ -94,7 +94,7 @@ information to get you started and help you get familiarised with our code and w
     For testing without having to installing Java you can run using docker:
 
     1. Install [docker-compose](https://docs.docker.com/compose/install/)
-    2. Download this [https://github.com/molgenis/molgenis-service-armadillo/blob/master/docker-compose.yml](docker-compose.yml).
+    2. Download this [docker-compose.yml](https://github.com/molgenis/molgenis-service-armadillo/blob/master/docker-compose.yml).
     3. Execute `docker-compose up`
     4. Once it says 'Started', go to http://localhost:8080 to see your Armadillo running.
 
