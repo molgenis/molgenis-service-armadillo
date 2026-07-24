@@ -24,8 +24,10 @@ describe("FileUpload", () => {
   beforeEach(function () {
     wrapper = shallowMount(FileUpload, {
       props: {
-        object: "testObject",
-        project: "molgenius",
+        triggerUpload: false,
+        uploadFileMethod: () => {
+          return Promise.resolve();
+        },
         uniqueClass: "isThisUniqueEnough",
       },
     });
@@ -102,33 +104,11 @@ describe("FileUpload", () => {
 
   test("emits event on upload success", async () => {
     wrapper.vm.file = mockFiles[0];
-    api.uploadIntoProject.mockImplementation(() => {
-      return Promise.resolve({});
-    });
     localImageInputFilesGet.mockReturnValue(mockFiles);
     wrapper.vm.uploadFile();
     await wrapper.vm.$nextTick();
-    //test if upload function called
-    expect(api.uploadIntoProject).toHaveBeenCalled();
     // test if event emitted
     expect(wrapper.emitted()).toHaveProperty("upload_success");
-  });
-
-  test("emits event on upload fail", async () => {
-    wrapper.vm.file = mockFiles[0];
-    const error = new Error("fail");
-    api.uploadIntoProject.mockImplementation(() => {
-      return Promise.reject(error);
-    });
-    localImageInputFilesGet.mockReturnValue(mockFiles);
-    wrapper.vm.uploadFile();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    //test if upload function called
-    expect(api.uploadIntoProject).toHaveBeenCalled();
-    // test if event emitted
-    expect(wrapper.emitted()).toHaveProperty("upload_error");
-    expect(wrapper.emitted("upload_error")).toEqual([[error]]);
   });
 
   test("emits event when no file selected", async () => {

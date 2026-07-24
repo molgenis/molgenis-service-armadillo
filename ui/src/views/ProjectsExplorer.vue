@@ -488,7 +488,6 @@ export default defineComponent({
     onUploadSuccess({
       filename,
     }: {
-      object: string;
       filename: string;
     }) {
       this.reloadProject();
