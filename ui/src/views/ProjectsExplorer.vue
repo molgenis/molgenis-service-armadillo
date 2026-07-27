@@ -485,11 +485,7 @@ export default defineComponent({
     cancelNewFolder() {
       this.createNewFolder = false;
     },
-    onUploadSuccess({
-      filename,
-    }: {
-      filename: string;
-    }) {
+    onUploadSuccess({ filename }: { filename: string }) {
       this.reloadProject();
       this.successMessage = `Successfully uploaded file [${filename}] into directory [${this.selectedFolder}] of project: [${this.projectId}]`;
     },
