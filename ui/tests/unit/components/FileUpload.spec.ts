@@ -94,7 +94,6 @@ describe("FileUpload", () => {
     localImageInputFilesGet.mockReturnValue([]);
     localImageInput.trigger("change");
     await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
     //test if upload function called
     expect(wrapper.emitted()).toHaveProperty("upload_error");
     expect(wrapper.emitted("upload_error")).toEqual([
@@ -113,7 +112,6 @@ describe("FileUpload", () => {
 
   test("emits event when no file selected", async () => {
     wrapper.vm.uploadFile();
-    await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     // test if event emitted
     expect(wrapper.emitted()).toHaveProperty("upload_error");
