@@ -791,13 +791,13 @@ class ArmadilloStorageServiceTest {
 
   @Test
   void testGetFile() {
-    InputStream is = mock(InputStream.class);
+    InputStream inputStream = mock(InputStream.class);
     ContentDisposition cd = mock(ContentDisposition.class);
     long fileSize = 157L;
     HttpHeaders hh = armadilloStorage.getHttpHeaders(cd, fileSize);
     ResponseEntity<InputStreamResource> expected =
-        new ResponseEntity<>(new InputStreamResource(is), hh, HttpStatus.OK);
-    assertEquals(expected, armadilloStorage.getFile(is, cd, fileSize));
+        new ResponseEntity<>(new InputStreamResource(inputStream), hh, HttpStatus.OK);
+    assertEquals(expected, armadilloStorage.getFile(inputStream, cd, fileSize));
   }
 
   @Test
@@ -1091,7 +1091,7 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
-  void testDownloadUserWorkspace() throws IOException {
+  void testDownloadUserWorkspace() {
     String userId = "user@email.com";
     String bucket = "user-user__at__email.com";
     String objectName = "test.RData";
@@ -1116,7 +1116,7 @@ class ArmadilloStorageServiceTest {
   }
 
   @Test
-  void testDownloadUserWorkspaceThrowsFileProcessingException() throws IOException {
+  void testDownloadUserWorkspaceThrowsFileProcessingException() {
     String userId = "user@email.com";
     String bucket = "user-user__at__email.com";
     String objectName = "test.RData";
@@ -1160,7 +1160,7 @@ class ArmadilloStorageServiceTest {
 
   @Test
   @WithMockUser(roles = "SU")
-  void testGetObjectThrowsFileProcessingException() throws IOException {
+  void testGetObjectThrowsFileProcessingException() {
     String project = "gecko";
     String object = "folder/test.parquet";
     Path pathMock = mock(Path.class);
