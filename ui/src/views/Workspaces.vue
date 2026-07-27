@@ -60,7 +60,12 @@
               >
                 <template #extraHeader v-if="!showAllWorkspaces">
                   <th>
-                    <div class="btn-group" role="group" aria-label="workspace control" v-if="!showAllWorkspaces">
+                    <div
+                      class="btn-group"
+                      role="group"
+                      aria-label="workspace control"
+                      v-if="!showAllWorkspaces"
+                    >
                       <button
                         type="button"
                         class="btn btn-danger btn-sm bg-danger"
@@ -80,24 +85,30 @@
                 </template>
                 <template #extraColumn="columnProps" v-if="!showAllWorkspaces">
                   <!-- Add buttons for editing/deleting users  -->
-                  <th scope="row"  >
+                  <th scope="row">
                     <input
                       class="form-check-input"
-                      :checked="userWorkspaces[getIndexOfWorkspace(columnProps.item['name'])]?.checked ?? false"
+                      :checked="
+                        userWorkspaces[
+                          getIndexOfWorkspace(columnProps.item['name'])
+                        ]?.checked ?? false
+                      "
                       @change="toggleChecked(columnProps.item['name'])"
                       type="checkbox"
                     />
                   </th>
                 </template>
               </DataPreviewTable>
-              <FileUpload v-if="!showAllWorkspaces" 
-                ref="fileUpload" 
+              <FileUpload
+                v-if="!showAllWorkspaces"
+                ref="fileUpload"
                 class="mb-2"
-                uniqueClass="workspace-upload" 
-                :uploadFileMethod="uploadWorkspaceFile" 
+                uniqueClass="workspace-upload"
+                :uploadFileMethod="uploadWorkspaceFile"
                 @upload_error="onError"
                 @upload_success="onSuccess"
-                :acceptedTypes="workspaceExtension"/>
+                :acceptedTypes="workspaceExtension"
+              />
             </div>
           </div>
         </div>
@@ -128,7 +139,7 @@ import {
   deleteUserWorkspace,
   deleteWorkspaceDirectory,
   downloadWorkspace,
-  uploadWorkspace
+  uploadWorkspace,
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
@@ -144,7 +155,7 @@ export default defineComponent({
     LoadingSpinner,
     DataPreviewTable,
     Alert,
-    FileUpload
+    FileUpload,
   },
   setup(_props) {
     const selectedUser: Ref = ref("");
@@ -196,8 +207,10 @@ export default defineComponent({
   },
   watch: {
     selectedUser() {
-      if (this.$refs.fileUpload) {(this.$refs.fileUpload as any).clearFile();}
-    }
+      if (this.$refs.fileUpload) {
+        (this.$refs.fileUpload as any).clearFile();
+      }
+    },
   },
   data() {
     return {
@@ -213,7 +226,7 @@ export default defineComponent({
       isUploadingFile: false,
       workspaceId: "",
       userId: "",
-      workspaceExtension: ".RData"
+      workspaceExtension: ".RData",
     };
   },
   methods: {
@@ -225,17 +238,23 @@ export default defineComponent({
       });
     },
     getFileName() {
-      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file ? (this.$refs.fileUpload as any).file.name : "";
+      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file
+        ? (this.$refs.fileUpload as any).file.name
+        : "";
     },
-    uploadWorkspaceFile(){
-      return this.uploadWorkspace((this.$refs.fileUpload as any).file, this.usernameFromFolder, this.getFileName().replace(this.workspaceExtension, ""));
+    uploadWorkspaceFile() {
+      return this.uploadWorkspace(
+        (this.$refs.fileUpload as any).file,
+        this.usernameFromFolder,
+        this.getFileName().replace(this.workspaceExtension, "")
+      );
     },
-    getUserNameFromWorkspace( workspace: string) {
+    getUserNameFromWorkspace(workspace: string) {
       let user = "";
       this.userWorkspaces.forEach((ws) => {
         if (ws.name === workspace) {
           user = ws.user as string;
-        };
+        }
       });
       return user;
     },
@@ -265,7 +284,8 @@ export default defineComponent({
       });
     },
     toggleChecked(itemToChange: string) {
-      this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked = !this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked
+      this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked =
+        !this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked;
     },
     getIndexOfAllWorkspaces(user: string, selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
@@ -300,15 +320,19 @@ export default defineComponent({
     async downloadSelectedWorkspaces() {
       this.downloadFailures = [];
       this.downloadSuccesses = [];
-       this.selectedWorkspaces.forEach((ws) => {
-        downloadWorkspace(ws, this.selectedUser).then(() => {
-          this.downloadSuccesses.push(ws);
-          this.successMessage = "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
-        }).catch (() => {
-          this.downloadFailures.push(ws)
-          this.errorMessage = "Download failure: " + this.downloadFailures.join(", ");
-        }) 
-      })
+      this.selectedWorkspaces.forEach((ws) => {
+        downloadWorkspace(ws, this.selectedUser)
+          .then(() => {
+            this.downloadSuccesses.push(ws);
+            this.successMessage =
+              "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
+          })
+          .catch(() => {
+            this.downloadFailures.push(ws);
+            this.errorMessage =
+              "Download failure: " + this.downloadFailures.join(", ");
+          });
+      });
     },
     async deleteSelectedWorkspaces() {
       for (const workspace of this.selectedWorkspaces) {
@@ -349,13 +373,13 @@ export default defineComponent({
       }
       return workspacesWithUser;
     },
-    async onSuccess(file: {filename: string}) {
+    async onSuccess(file: { filename: string }) {
       this.successMessage = `Upload success: [${file.filename}] for user [${this.usernameFromFolder}]`;
       await this.resetWorkspaces();
     },
     onError(error: string) {
       this.errorMessage = `Upload failure: cannot upload workspace for user [${this.usernameFromFolder}] because ${error}`;
-    }
+    },
   },
   computed: {
     showAllWorkspaces() {
@@ -365,7 +389,7 @@ export default defineComponent({
       return this.selectedUser.replace("user-", "");
     },
     isNotReadyForUpload() {
-      return this.workspaceId === '' || this.userId === '';
+      return this.workspaceId === "" || this.userId === "";
     },
     selectedWorkspaces() {
       return this.userWorkspaces

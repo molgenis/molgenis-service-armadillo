@@ -20,12 +20,7 @@ export type BootstrapType =
   | "dark";
 
 export type TypeString =
-  | "string"
-  | "number"
-  | "boolean"
-  | "array"
-  | "date"
-  | "object";
+  "string" | "number" | "boolean" | "array" | "date" | "object";
 export type StringArray = string[];
 
 interface Dictionary<T> {

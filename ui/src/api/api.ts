@@ -408,7 +408,10 @@ function downloadURI(uri: string, name: string) {
 }
 
 export async function downloadWorkspace(workspace: string, user: string) {
-  downloadURI(`/workspaces/download/${user}/${workspace}`, user + workspace + ".RData");
+  downloadURI(
+    `/workspaces/download/${user}/${workspace}`,
+    user + workspace + ".RData"
+  );
 }
 
 export async function uploadWorkspace(
@@ -420,4 +423,3 @@ export async function uploadWorkspace(
   formData.append("file", fileToUpload);
   return postFormData(`/workspaces/upload/${userId}/${workspaceId}`, formData);
 }
-

@@ -61,7 +61,7 @@ export default defineComponent({
     uniqueClass: { type: String, required: true },
     triggerUpload: { type: Boolean, default: false },
     uploadFileMethod: { type: Function, required: true },
-    acceptedTypes: {default: ""}
+    acceptedTypes: { default: "" },
   },
   emits: ["upload_success", "upload_error", "upload_triggered"],
   components: {
@@ -93,7 +93,7 @@ export default defineComponent({
       isHoveringOverFileUpload: false,
       file: undefined,
       typeRows: 100,
-      isUploadingFile: false
+      isUploadingFile: false,
     };
   },
   methods: {
@@ -105,17 +105,18 @@ export default defineComponent({
       const fileName = this.getFileName();
       if (fileName != "") {
         this.isUploadingFile = true;
-        this.uploadFileMethod().then(() => {
-          this.isUploadingFile = false;
-          this.$emit("upload_success", {
-            filename: this.getFileName(),
+        this.uploadFileMethod()
+          .then(() => {
+            this.isUploadingFile = false;
+            this.$emit("upload_success", {
+              filename: this.getFileName(),
+            });
+            this.clearFile();
+          })
+          .catch((error: Error) => {
+            this.isUploadingFile = false;
+            this.$emit("upload_error", error);
           });
-          this.clearFile();
-        })
-        .catch((error: Error) => {
-          this.isUploadingFile = false;
-          this.$emit("upload_error", error);
-        });
       } else {
         this.$emit("upload_error", "No file selected.");
       }

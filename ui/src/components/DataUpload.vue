@@ -1,6 +1,14 @@
 <template>
   <div>
-    <FileUpload ref="fileUpload" :uniqueClass="uniqueClass" :triggerUpload="triggerUpload" :uploadFileMethod="uploadDataFile" :isUploadingFile="isUploadingFile" @upload_error="emitError" @upload_success="emitSuccess"/>
+    <FileUpload
+      ref="fileUpload"
+      :uniqueClass="uniqueClass"
+      :triggerUpload="triggerUpload"
+      :uploadFileMethod="uploadDataFile"
+      :isUploadingFile="isUploadingFile"
+      @upload_error="emitError"
+      @upload_success="emitSuccess"
+    />
     <div
       v-if="getFileName().endsWith('.csv') || getFileName().endsWith('.tsv')"
       class="row mb-3 small border-top mt-3 pt-2"
@@ -17,10 +25,9 @@
             Convert file to parquet upon upload
           </label>
           <div>
-            <small id="csv-help" class="form-text text-muted" >
+            <small id="csv-help" class="form-text text-muted">
               Converts file so that it can be read as table by DataSHIELD,
-              however if you have another use case you may want to uncheck
-              this.
+              however if you have another use case you may want to uncheck this.
             </small>
           </div>
         </div>
@@ -49,7 +56,7 @@ import FileUpload from "@/components/FileUpload.vue";
 export default defineComponent({
   name: "DataUpload",
   components: {
-    FileUpload
+    FileUpload,
   },
   props: {
     object: { type: String, required: true },
@@ -60,8 +67,8 @@ export default defineComponent({
   emits: ["upload_success", "upload_error"],
   computed: {
     file(): any {
-      return this.$refs.fileUpload ? this.$refs.fileUpload as any : ""
-    }
+      return this.$refs.fileUpload ? (this.$refs.fileUpload as any) : "";
+    },
   },
   data(): {
     uploadCsvAsParquet: boolean;
@@ -73,27 +80,28 @@ export default defineComponent({
       uploadCsvAsParquet: true,
       uploadDone: false,
       typeRows: 100,
-      isUploadingFile: false
+      isUploadingFile: false,
     };
   },
   methods: {
     emitSuccess() {
       this.$emit("upload_success", {
-          filename: this.getFileName(),
+        filename: this.getFileName(),
       });
     },
     emitError(error: string) {
       this.$emit("upload_error", error);
     },
     getFileName() {
-      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file ? (this.$refs.fileUpload as any).file.name : "";
+      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file
+        ? (this.$refs.fileUpload as any).file.name
+        : "";
     },
     uploadDataFile() {
       const fileName = this.getFileName();
       this.isUploadingFile = true;
       if (
-        (fileName.endsWith(".tsv") ||
-          fileName.endsWith(".csv")) &&
+        (fileName.endsWith(".tsv") || fileName.endsWith(".csv")) &&
         this.uploadCsvAsParquet
       ) {
         return uploadCsvIntoProject(
@@ -103,11 +111,7 @@ export default defineComponent({
           this.typeRows
         );
       } else {
-        return uploadIntoProject(
-          this.file.file,
-          this.object,
-          this.project
-        );
+        return uploadIntoProject(this.file.file, this.object, this.project);
       }
     },
     dragover(event: Event) {
