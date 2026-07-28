@@ -3,16 +3,23 @@ package org.molgenis.armadillo;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication(scanBasePackages = "org.molgenis")
 @EnableRetry
-public class ArmadilloServiceApplication {
+public class ArmadilloServiceApplication implements ApplicationContextAware {
   private static ConfigurableApplicationContext context;
 
   public static void main(String[] args) {
-    context = SpringApplication.run(ArmadilloServiceApplication.class, args);
+    SpringApplication.run(ArmadilloServiceApplication.class, args);
+  }
+
+  @Override
+  public void setApplicationContext(ApplicationContext context) {
+    ArmadilloServiceApplication.context = (ConfigurableApplicationContext) context;
   }
 
   public static void restart() {
