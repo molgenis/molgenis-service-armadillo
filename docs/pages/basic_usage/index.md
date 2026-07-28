@@ -7,6 +7,7 @@ Depending on your [role](../quick_start.md#quick-start) you have different optio
     A [data manager](../quick_start.md#data-manager) will typically interact with Armadillo in multiple ways:
     
     - Using the [Armadillo User Interface (UI)](../basic_usage/armadillo_ui.md)
+    - Creating [views/subsets in the Armadillo User Interface (UI)](pages/basic_usage/armadillo_subsets.md)
     - Using a R client [MolgenisArmadillo](../basic_usage/molgenis_armadillo.md)
     - Using [dsUpload](../basic_usage/dsupload_dsdictionaries.md) (R) to upload data with the help of predefined harmonised data dictionaries ([ds-dictionaries](../basic_usage/dsupload_dsdictionaries.md)).
 
