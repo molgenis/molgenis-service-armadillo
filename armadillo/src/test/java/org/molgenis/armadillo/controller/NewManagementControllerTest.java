@@ -2,13 +2,15 @@ package org.molgenis.armadillo.controller;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -28,12 +30,21 @@ class NewManagementControllerTest {
 
   @TempDir static java.nio.file.Path storageDir;
 
+  @TempDir static Path tempDir;
+
   @DynamicPropertySource
   static void storageProperties(DynamicPropertyRegistry registry) {
     registry.add("storage.root-dir", () -> storageDir.toString());
   }
 
   @Autowired MockMvc mockMvc;
+
+  @TestBean(methodName = "jarHomeOverride")
+  String jarHome;
+
+  private static String jarHomeOverride() {
+    return tempDir.toAbsolutePath().toString();
+  }
 
   @TestBean(methodName = "rebootScriptRunnerOverride")
   RebootScriptRunner rebootScriptRunner;
@@ -73,7 +84,7 @@ class NewManagementControllerTest {
         .andExpect(status().isUnauthorized());
   }
 
-  @Test
+  // TODO: add non-admin user
   void softRestart_POST() throws Exception {
     mockMvc
         .perform(post("/manage/app/restart/soft").with(csrf()).with(httpBasic("admin", "password")))
@@ -83,6 +94,28 @@ class NewManagementControllerTest {
         .atMost(5, SECONDS)
         .until(
             () -> !((RecordingRebootScriptRunner) rebootScriptRunner).getRecordedRuns().isEmpty());
+  }
+
+  @Test
+  void deleteJar_DELETE() throws Exception {
+    File tempJar = tempDir.resolve("molgenis-armadillo-1.0.0.jar").toFile();
+    if (!tempJar.createNewFile()) {
+      fail("Unable to create molgenis-armadillo-1.0.0.jar");
+    }
+
+    assertTrue(tempJar.exists());
+
+    mockMvc
+        .perform(
+            delete("/manage/app/delete-jar")
+                .param("version", "1.0.0")
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isOk());
+
+    //    verify(auditor).audit(any(Runnable.class), any(Principal.class), eq("DELETE_JAR"), any());
+
+    assertFalse(tempJar.exists());
   }
 
   static class RecordingRebootScriptRunner implements RebootScriptRunner {
