@@ -21,6 +21,7 @@ import org.molgenis.armadillo.config.ApplicationConfigUpdater;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,21 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementService {
+
+  // Constants
+  private static final String REBOOT_SCRIPT = "armadillo-reboot.sh";
+  private static final String RELEASE_URL =
+      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
+  private static final String REBOOT_SCRIPT_URL =
+      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
+  private static final String RELEASE_DOWNLOAD_URL =
+      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
+  private static final String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
+  private static final String TAG = "tag_name";
+  private static final String PROGRESS = "progress";
+  private static final String DONE = "done";
+  private static final String DOWNLOAD_COMPLETE = "Download complete";
+
   @Value("${armadillo.armadillo-home:/usr/share/armadillo/application}")
   String armadilloHome;
 
@@ -61,23 +77,8 @@ public class ManagementService {
   String armadilloConfigFile;
 
   private final RebootScriptRunner scriptRunner;
-
   private final ApplicationConfigUpdater appConfigUpdater;
-
-  // Constants
-  private static final String REBOOT_SCRIPT = "armadillo-reboot.sh";
-  private static final String RELEASE_URL =
-      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
-  private static final String REBOOT_SCRIPT_URL =
-      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
-  private static final String RELEASE_DOWNLOAD_URL =
-      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
-  private static final String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
-  private static final String TAG = "tag_name";
-  private static final String PROGRESS = "progress";
-  private static final String DONE = "done";
-  private static final String DOWNLOAD_COMPLETE = "Download complete";
-  private static final String DEV = "DEV";
+  private final String jarHome;
 
   private final HttpClient httpClient;
 
@@ -87,11 +88,13 @@ public class ManagementService {
           String armadilloConfigFile,
       @Autowired BuildProperties buildProperties,
       @Autowired RebootScriptRunner scriptRunner,
-      HttpClient httpClient) {
+      HttpClient httpClient,
+      @Qualifier("jarHome") String jarHome) {
     this.httpClient = httpClient;
     this.buildProperties = buildProperties;
     this.scriptRunner = scriptRunner;
     this.armadilloConfigFile = armadilloConfigFile;
+    this.jarHome = jarHome;
     appConfigUpdater = new ApplicationConfigUpdater(armadilloConfigFile);
   }
 
@@ -200,7 +203,7 @@ public class ManagementService {
   }
 
   private String getJarPathFromVersion(String version) {
-    return getJarHome() + File.separator + getJarFromVersion(version);
+    return jarHome + File.separator + getJarFromVersion(version);
   }
 
   String getJarFromVersion(String version) {
@@ -230,7 +233,7 @@ public class ManagementService {
   }
 
   String getUpdateScriptPath() {
-    return format("%s/%s", getJarHome(), REBOOT_SCRIPT);
+    return format("%s/%s", jarHome, REBOOT_SCRIPT);
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
@@ -255,16 +258,8 @@ public class ManagementService {
     }
   }
 
-  String getJarHome() {
-    if (Objects.equals(armadilloMode, DEV)) {
-      return format("%s/build/libs", armadilloHome);
-    } else {
-      return format("%s", armadilloHome);
-    }
-  }
-
   public Set<String> listAvailableJars() {
-    return listFilesForDir(getJarHome()).stream()
+    return listFilesForDir(jarHome).stream()
         .filter(name -> name.endsWith(".jar"))
         .collect(Collectors.toSet());
   }
@@ -278,7 +273,7 @@ public class ManagementService {
 
   private void updateDownloadProgress(SseEmitter emitter, String progress) {
     try {
-      emitter.send(SseEmitter.event().name(this.PROGRESS).data(progress));
+      emitter.send(SseEmitter.event().name(PROGRESS).data(progress));
     } catch (IOException e) {
       emitter.completeWithError(e);
     }
@@ -289,13 +284,13 @@ public class ManagementService {
       SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
       String jarToUpdateTo = getJarFromVersion(version);
       String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, jarToUpdateTo);
-      String armadilloInstallation = getJarHome() + File.separator + jarToUpdateTo;
+      String armadilloInstallation = jarHome + File.separator + jarToUpdateTo;
       // Run download in background thread — SSE must not block the request thread
       Thread.ofVirtual()
           .start(
               () -> {
                 try {
-                  if (fileExistsInDir(jarToUpdateTo, getJarHome())) {
+                  if (fileExistsInDir(jarToUpdateTo, jarHome)) {
                     emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
                   } else {
                     downloadFile(

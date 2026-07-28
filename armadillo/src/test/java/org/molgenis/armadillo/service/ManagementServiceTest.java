@@ -33,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementServiceTest {
+
   @Mock HttpClient httpClient;
 
   @Mock HttpResponse<String> lastReleaseResponse;
@@ -51,8 +52,9 @@ class ManagementServiceTest {
         new ManagementService(
             tempDir.resolve("application.yml").toString(),
             buildProperties,
-            new PythonRebootScriptRunner(),
-            httpClient);
+            new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
+            httpClient,
+            tempDir.toString());
 
     // Point armadilloHome and armadilloConfigFile to temp dir
     setField(service, "armadilloHome", tempDir.toString());
@@ -67,26 +69,25 @@ class ManagementServiceTest {
   // Constructor — updateLogPath derivation
   // -------------------------------------------------------------------------
 
-  ManagementService getManagementServiceForConstructor(String logPath, String updatePath) {
+  ManagementService getManagementServiceForConstructor() {
     return new ManagementService(
         tempDir.resolve("application.yml").toString(),
         buildProperties,
-        new PythonRebootScriptRunner(),
-        httpClient);
+        new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
+        httpClient,
+        tempDir.toString());
   }
 
   @Test
   void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
-    ManagementService svc =
-        getManagementServiceForConstructor("/var/log/armadillo/armadillo.log", null);
+    ManagementService svc = getManagementServiceForConstructor();
     String path = (String) getField(svc, "updateLogPath");
     assertEquals("/var/log/armadillo/update.log", path);
   }
 
   @Test
   void constructor_usesExplicitUpdateLogPath() throws Exception {
-    ManagementService svc =
-        getManagementServiceForConstructor("./logs/armadillo.log", "/custom/path/update.log");
+    ManagementService svc = getManagementServiceForConstructor();
     // When updatePath is explicitly provided it is used directly
     // (the constructor only assigns when updatePath == null)
     String path = (String) getField(svc, "updateLogPath");
@@ -246,8 +247,9 @@ class ManagementServiceTest {
         new ManagementService(
             tempDir.resolve("application.yml").toString(),
             buildProperties,
-            new PythonRebootScriptRunner(),
-            httpClient);
+            new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
+            httpClient,
+            tempDir.toString());
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set
     assertNull(path);

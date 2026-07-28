@@ -1,48 +1,24 @@
 package org.molgenis.armadillo.service;
 
-import static java.lang.String.format;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import org.molgenis.armadillo.exceptions.RebootScriptRunFailedException;
-import org.springframework.beans.factory.annotation.Value;
 
 public class PythonRebootScriptRunner implements RebootScriptRunner {
-
-  @Value("${armadillo.armadillo-mode:PROD}")
-  String armadilloMode;
-
-  @Value("${armadillo.armadillo-home:/usr/share/armadillo/application}")
-  String armadilloHome;
-
-  @Value("${stdout.log.path:./logs/armadillo.log}")
-  String configuredLogPath;
-
-  String dev = "DEV";
 
   String logPath;
   String jarHome;
 
-  public PythonRebootScriptRunner() {
+  public PythonRebootScriptRunner(String configuredLogPath, String jarHome) {
     var splitLogFilepath = configuredLogPath.split(Pattern.quote(File.separator));
     this.logPath =
         String.join(File.separator, Arrays.copyOf(splitLogFilepath, splitLogFilepath.length - 1))
             + File.separator
             + "update.log";
 
-    this.jarHome = getJarHome();
-  }
-
-  // TODO
-  String getJarHome() {
-    if (Objects.equals(armadilloMode, dev)) {
-      return format("%s/build/libs", armadilloHome);
-    } else {
-      return format("%s", armadilloHome);
-    }
+    this.jarHome = jarHome;
   }
 
   private File getUpdateLogFile() throws IOException {
@@ -57,7 +33,7 @@ public class PythonRebootScriptRunner implements RebootScriptRunner {
     return logFile;
   }
 
-  public String createPythonScriptForThread(String pythonList, String absoluteLogFilePath) {
+  private String createPythonScriptForThread(String pythonList, String absoluteLogFilePath) {
     String scriptTemplate =
         """
         import os, sys, subprocess
