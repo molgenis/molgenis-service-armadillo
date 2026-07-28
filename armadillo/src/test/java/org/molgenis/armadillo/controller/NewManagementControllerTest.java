@@ -1,11 +1,14 @@
 package org.molgenis.armadillo.controller;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -63,12 +66,31 @@ class NewManagementControllerTest {
     mockMvc.perform(get("/manage/auth/oidc-config")).andExpect(status().isUnauthorized());
   }
 
+  @Test
+  void softRestart_POST_forbidden_for_non_su() throws Exception {
+    mockMvc
+        .perform(post("/manage/app/restart/soft").with(csrf()))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void softRestart_POST() throws Exception {
+    mockMvc
+        .perform(post("/manage/app/restart/soft").with(csrf()).with(httpBasic("admin", "password")))
+        .andExpect(status().isOk());
+
+    await()
+        .atMost(5, SECONDS)
+        .until(
+            () -> !((RecordingRebootScriptRunner) rebootScriptRunner).getRecordedRuns().isEmpty());
+  }
+
   static class RecordingRebootScriptRunner implements RebootScriptRunner {
 
     private final List<String[]> runconfigs = new ArrayList<>();
 
     @Override
-    public void runRebootScript(String... args) throws IOException {
+    public void runRebootScript(String... args) {
       runconfigs.add(args);
     }
 
