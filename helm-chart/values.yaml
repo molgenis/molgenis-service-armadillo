@@ -12,15 +12,10 @@ config:
     container-prefix: 'dev-'
     profiles:
       - name: default 
-      #  image: datashield/rock-base:latest
-      #  #host: rock-molgenis-rock.armadillo-rock.svc
-      #  host: rock-molgenis-rock.armadillo-rock.svc
-        image: datashield/rock-dolomite-xenon:latest
-        host: xenon-molgenis-xenon.armadillo-xenon.svc
+        image: datashield/rock-tulip-donkey:latest
+        host: lemondonkey-molgenis-lemondonkey.armadillo-lemondonkey.svc  
         port: 8085 
-        package-whitelist:
-          - dsBase
-          - resourcer
+        package-whitelist: [ ]
         function-blacklist: [ ]
         options:
           datashield:
@@ -41,7 +36,25 @@ config:
         options:
           datashield:
             # the seed can only be 9 digits
-            seed: 342325352
+            seed: 342325353
+      - name: tulip
+        image: datashield/rock-tulip-donkey:latest
+        host: armadillo-tulipdonkey-molgenis-lemon-donkey.armadillo-tulipdonkey.svc 
+        port: 8085
+        package-whitelist:
+          - dsBase
+          - resourcer
+          - dsTidyverse
+          - dsMediation
+          - dsMTLBase
+          - dsSurvival
+          - dsOmics
+        function-blacklist: [ ]
+        options:
+          datashield:
+            # the seed can only be 9 digits
+            seed: 342325359
+
 
 
 image:
