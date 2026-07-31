@@ -7,6 +7,7 @@ import Login from "@/views/Login.vue";
 import Actuator from "@/views/Actuator.vue";
 import Workspaces from "@/views/Workspaces.vue";
 import RemoteFiles from "@/views/RemoteFiles.vue";
+import Request from "@/views/Request.vue";
 
 const routes = [
   {
@@ -53,6 +54,16 @@ const routes = [
     name: "logs",
     component: RemoteFiles,
   },
+  {
+    path: "/request/:requestId/:userId?/:projectId?/:folderId?/:fileId?/:variables?",
+    name: "request",
+    component: Request
+  },
+  {
+    path: "/request",
+    name: "request",
+    component: Request
+  }
 ];
 
 const router = createRouter({
