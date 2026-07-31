@@ -128,6 +128,7 @@ export default defineComponent({
         Workspaces: "string",
         Profiles: "string",
         Insight: ["Metrics", "Logs"],
+        Request: "string"
       },
       tabIcons: [
         "clipboard2-data",
@@ -135,6 +136,7 @@ export default defineComponent({
         "person-workspace",
         "shield-shaded",
         "brilliance",
+        "cart-check"
       ],
     };
   },
