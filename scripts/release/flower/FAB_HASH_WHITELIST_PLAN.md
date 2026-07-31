@@ -66,13 +66,28 @@ which:
 3. prints a ready-to-paste `{app_id, app_version, fab_hash}` YAML entry.
 
 **Where it's checked:** inside the SuperExec container, via Flower's own plugin extension
-point — a `VerifiedClientAppExecPlugin(ClientAppExecPlugin)` overriding `select_task` to
-reject any candidate `Task` whose `.fab_hash` (already present on the protobuf, computed
-server-side by the SuperLink from the actual submitted bytes — not attacker-influenceable)
-isn't in the whitelist. No Flower code is patched — this is Flower's own published plugin
-mechanism, invoked via a custom entrypoint (`run_superexec(plugin_class=...)`, the same
-function stock `flower-superexec`'s CLI calls internally) instead of the stock CLI's
-hardcoded plugin choice.
+point — a `VerifiedClientAppExecPlugin(ClientAppExecPlugin)` overriding `launch_task(token,
+task)` (not `select_task` — see below) to check `task.fab_hash` (already present on the
+protobuf, computed server-side by the SuperLink from the actual submitted bytes — not
+attacker-influenceable) against the whitelist before actually launching anything. No Flower
+code is patched — this is Flower's own published plugin mechanism, invoked via a custom
+entrypoint (`run_superexec(plugin_class=...)`, the same function stock `flower-superexec`'s
+CLI calls internally) instead of the stock CLI's hardcoded plugin choice.
+
+**Rejection needs to be loud, not silent.** Initial design had `select_task` just skip
+non-whitelisted tasks — but `select_task` runs *before* the task is claimed, so there's no
+token to report anything back with; a skipped task just sits pending until Flower's own
+generic task-TTL eventually expires it, indistinguishable from "no compute node available."
+Better: let `select_task` behave normally (claim proceeds as usual), then override
+`launch_task` — if `task.fab_hash` is whitelisted, call `super().launch_task(...)` to actually
+run it; if not, call the ClientAppIo API's `PushTaskOutput` RPC directly (the same RPC a real
+ClientApp uses to report its own completion) with `sub_status=SubStatus.FAILED` and
+`details="FAB hash <hash> is not on the approved whitelist"`. This uses the claim `token`
+already available in `launch_task`'s signature to authenticate the call, and surfaces as a
+normal app failure to whoever submitted the run (`flwr log`/`flwr run --stream`) instead of a
+silent hang. Needs its own small gRPC connection to the same local AppIO address (the plugin
+already receives `appio_api_address`/`insecure`/`root_certificates_path` in its constructor,
+just not a ready-made stub) — self-contained, no changes to Flower itself.
 
 **Where it's stored:** a static YAML whitelist file mounted into the SuperExec container,
 exactly like `trusted-entities.yaml` is mounted into the SuperNode today (same
@@ -82,8 +97,12 @@ exactly like `trusted-entities.yaml` is mounted into the SuperNode today (same
 
 **`molgenis-flwr-armadillo` repo:**
 
-1. `VerifiedClientAppExecPlugin(ClientAppExecPlugin)` — `select_task` checks `task.fab_hash`
-   against a whitelist loaded at startup; logs rejections.
+1. `VerifiedClientAppExecPlugin(ClientAppExecPlugin)` — overrides `launch_task(token, task)`:
+   checks `task.fab_hash` against a whitelist loaded at startup; if whitelisted, delegates to
+   `super().launch_task(...)`; if not, opens its own gRPC connection to the local AppIO address
+   and calls `PushTaskOutput(sub_status=SubStatus.FAILED, details=...)` using `token`, then
+   returns `LaunchResult.failed(...)` for local logging too. `select_task` is left at its
+   default behaviour.
 2. Thin entrypoint module (e.g. `molgenis_flwr_armadillo/verified_superexec.py`) — parses the
    same CLI args as stock `flower-superexec` plus a new `--fab-whitelist PATH`, calls
    `run_superexec(plugin_class=VerifiedClientAppExecPlugin, stub_class=ClientAppIoStub, ...)`.
@@ -92,16 +111,40 @@ exactly like `trusted-entities.yaml` is mounted into the SuperNode today (same
 4. `molgenis_approve_flwr_app` CLI as described above.
 
 **`molgenis-service-armadillo` repo (this repo)** — the Flower backend code currently only
-exists on `feat/flower-containers`/`test/flower-release-test`:
+exists on `feat/flower-containers`/`test/flower-release-test` (confirmed byte-identical
+between the two branches for all files below, as of this review):
 
 1. Add `fabWhitelistPath` to `FlowerSuperexecContainerConfig` (mirrors `trustedEntitiesPath`
    on `FlowerSupernodeContainerConfig`), default e.g. `data/system/flower/fab-whitelist.yaml`.
-2. Extend `DockerService.configureBindMounts` to handle `FlowerSuperexecContainerConfig` too,
-   reusing `addBindMount` as-is.
+   Also add the equivalent `createPlaceholderFiles`-style case in `ContainerService.upsert`
+   (currently only fires `if (containerConfig instanceof FlowerSupernodeContainerConfig)`).
+2. Extend `DockerService.configureBindMounts` to handle `FlowerSuperexecContainerConfig` too
+   (currently an early return: `if (!(config instanceof FlowerSupernodeContainerConfig
+   supernode)) return;` — superexec gets *no* bind mounts at all today).
+   **Caveat found during review:** `addBindMount` throws on a zero-byte file ("Required file is
+   empty") — correct for certs/keys, but a brand-new, not-yet-populated whitelist is a
+   legitimate empty state, not a misconfiguration. Decide before implementing whether that's
+   acceptable (force at least one approved entry before a SuperExec can start at all — arguably
+   the right fail-closed default) or whether the empty-file check needs to be skippable for
+   this specific mount.
 3. Extend `DockerService.configureDockerCmd` to append `--fab-whitelist <container-path>` for
-   superexec containers (mirrors supernode's auto-appended `--trusted-entities`).
+   superexec containers.
+   **Also remove `"--trusted-entities", CONTAINER_TRUSTED_ENTITIES` from the SuperNode's
+   auto-appended args in the same method.** This is not optional cleanup — since Hub never
+   returns `verifications` regardless of app or license status (confirmed: this fails 100% of
+   the time, for every app, not intermittently), leaving `--trusted-entities` in place means
+   the SuperNode hard-rejects every Hub-run app *before* it ever reaches the SuperExec
+   whitelist check. `--root-certificates`, `--auth-supernode-private-key`, `--isolation
+   process` are unrelated (TLS/node-identity/process-isolation) and stay as they are.
+   Once removed, `trustedEntitiesPath`/its bind mount/its placeholder-file creation become
+   dead configuration and should be removed too, not left in place implying a check that no
+   longer happens.
+   Side effect of removing it worth knowing: the SuperNode's own startup-time YAML/key
+   validation for that file goes away (fine, unused), and the explicit `FAB_VERIFICATION_ERROR`
+   reply message it used to insert on rejection disappears entirely — no longer relevant once
+   the SuperExec-side `PushTaskOutput` fix (above) is the one reporting failures instead.
 4. Point the superexec container config at the new custom image instead of stock
-   `flwr/superexec:1.32.1`.
+   `flwr/superexec:1.32.1` (a config value, not a code change).
 
 **Deferred / phase 2:** `POST /flower/whitelisted-apps` Armadillo endpoint where the DM posts
 the *already-computed* `{app_id, app_version, fab_hash}` triple (never raw app+version —
@@ -114,10 +157,12 @@ mode, narrow try/catch scope, plain-text body). No outbound network call from Ar
 
 ## Known limitations, carried forward deliberately
 
-- A rejected task just silently never launches — `select_task` returning `None` isn't relayed
-  back over the Flower protocol to whoever submitted the run (`LaunchResult`/
-  `_handle_launch_result`: `FAILED` only logs locally on the node). The submitter sees a hung
-  run, not a clear error.
+- ~~A rejected task just silently never launches~~ — resolved by the `launch_task` +
+  `PushTaskOutput(sub_status=FAILED)` design above. (First draft of this plan had the check in
+  `select_task`, which returning `None` isn't relayed back over the Flower protocol at all —
+  `LaunchResult`/`_handle_launch_result`'s `FAILED` only logs locally on the node, so the
+  submitter would've just seen a hung run. Worth remembering *why* `launch_task` was chosen
+  instead, in case this gets "simplified" back to `select_task` later.)
 - Revoking an app+version doesn't stop already-launched tasks, only gates future ones.
 - Whitelist is per-SuperExec-container (per node), not per-project. The existing per-project
   RBAC on `/flower/push-data` (`FlowerController`/`FlowerDataService`) still separately gates
