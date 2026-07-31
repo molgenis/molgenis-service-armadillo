@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
@@ -48,7 +49,7 @@ public class ManagementController {
       summary = "Soft restart armadillo. This will programmatically restart the application.")
   @PostMapping("app/restart/soft")
   public void softRestart(Principal principal) {
-    auditor.audit(managementService::softRestartApplication, principal, "TRIGGER_SOFT_RESTART");
+    auditor.audit(managementService::softRestartApplication, principal, TRIGGER_SOFT_RESTART);
   }
 
   @Operation(
@@ -65,7 +66,7 @@ public class ManagementController {
           }
         },
         principal,
-        "TRIGGER_HARD_RESTART");
+        TRIGGER_HARD_RESTART);
   }
 
   @Operation(summary = "Update armadillo version")
@@ -80,21 +81,20 @@ public class ManagementController {
           }
         },
         principal,
-        "UPDATE_ARMADILLO",
+        UPDATE_ARMADILLO,
         Map.of(ARMADILLO_VERSION, version));
   }
 
   @Operation(summary = "List all available jars")
   @GetMapping("app/list")
   public Set<String> listAvailable(Principal principal) {
-    return auditor.audit(
-        managementService::listAvailableJars, principal, "LIST_AVAILABLE_VERSIONS");
+    return auditor.audit(managementService::listAvailableJars, principal, LIST_AVAILABLE_VERSIONS);
   }
 
   @Operation(summary = "Get current OIDC config")
   @GetMapping("auth/oidc-config")
   public Map<String, String> getOidcConfig(Principal principal) {
-    return auditor.audit(managementService::getCurrentOidcConfig, principal, "GET_OIDC_CONFIG");
+    return auditor.audit(managementService::getCurrentOidcConfig, principal, GET_OIDC_CONFIG);
   }
 
   @Operation(summary = "Delete an unused jar")
@@ -117,7 +117,7 @@ public class ManagementController {
           }
         },
         principal,
-        "DELETE_JAR",
+        DELETE_JAR,
         Map.of("VERSION_TO_DELETE", version));
   }
 
@@ -137,28 +137,27 @@ public class ManagementController {
           }
         },
         principal,
-        "GET_RELEASE_VERSION");
+        GET_RELEASE_VERSION);
   }
 
   @Operation(summary = "Download specified armadillo version")
   @GetMapping(value = "app/download", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter downloadVersion(Principal principal, String version) {
     // Audit the initiation, not the whole stream
-    auditor.audit(() -> null, principal, "DOWNLOAD_ARMADILLO", Map.of(ARMADILLO_VERSION, version));
+    auditor.audit(() -> null, principal, DOWNLOAD_ARMADILLO, Map.of(ARMADILLO_VERSION, version));
     return managementService.downloadArmadilloJar(version.replace("v", ""));
   }
 
   @Operation(summary = "Download update script")
   @PostMapping(value = "updater/download")
+  @ResponseStatus(HttpStatus.CREATED)
   public void downloadUpdateScript(Principal principal, String armadilloVersion) {
     // Audit the initiation, not the whole stream
     auditor.audit(
-        () -> null,
-        principal,
-        "DOWNLOAD_UPDATE_SCRIPT",
-        Map.of(ARMADILLO_VERSION, armadilloVersion));
+        () -> null, principal, DOWNLOAD_UPDATE_SCRIPT, Map.of(ARMADILLO_VERSION, armadilloVersion));
     try {
       managementService.downloadUpdateScript(armadilloVersion);
+
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -186,7 +185,7 @@ public class ManagementController {
           }
         },
         principal,
-        "UPDATE_OIDC_CONFIG",
+        UPDATE_OIDC_CONFIG,
         Map.of("OIDC_DETAILS", oidcDetails));
   }
 }

@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.ApplicationConfigFile;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.storage.FileDownloader;
@@ -38,27 +39,28 @@ class ManagementServiceTest {
 
   @Mock HttpResponse<String> lastReleaseResponse;
 
-  @Mock RebootScriptRunner rebootScriptRunner;
-
   ManagementService service;
   BuildProperties buildProperties;
 
   @TempDir Path tempDir;
+  private String applicationConfigFile;
 
   @BeforeEach
   void setUp() throws Exception {
     buildProperties = mock(BuildProperties.class);
+    applicationConfigFile = tempDir.resolve("application.yml").toString();
     service =
         new ManagementService(
-            tempDir.resolve("application.yml").toString(),
+            applicationConfigFile,
             buildProperties,
             new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
             httpClient,
-            tempDir.toString());
+            tempDir.toString(),
+            new ApplicationConfigFile(applicationConfigFile));
 
     // Point armadilloHome and armadilloConfigFile to temp dir
     setField(service, "armadilloHome", tempDir.toString());
-    setField(service, "armadilloConfigFile", tempDir.resolve("application.yml").toString());
+    setField(service, "armadilloConfigFile", applicationConfigFile);
     setField(service, "armadilloMode", "PROD");
     setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
@@ -71,11 +73,12 @@ class ManagementServiceTest {
 
   ManagementService getManagementServiceForConstructor() {
     return new ManagementService(
-        tempDir.resolve("application.yml").toString(),
+        applicationConfigFile,
         buildProperties,
         new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
         httpClient,
-        tempDir.toString());
+        tempDir.toString(),
+        new ApplicationConfigFile(applicationConfigFile));
   }
 
   @Test
@@ -245,11 +248,12 @@ class ManagementServiceTest {
   void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
     ManagementService svc =
         new ManagementService(
-            tempDir.resolve("application.yml").toString(),
+            applicationConfigFile,
             buildProperties,
             new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
             httpClient,
-            tempDir.toString());
+            tempDir.toString(),
+            new ApplicationConfigFile(applicationConfigFile));
     String path = (String) getField(svc, "updateLogPath");
     // updatePath != null → the if-block is skipped → updateLogPath is never set
     assertNull(path);

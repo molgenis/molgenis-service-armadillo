@@ -38,4 +38,11 @@ public class AppConfig {
   public HttpClient httpClient() {
     return HttpClient.newBuilder().proxy(ProxySelector.getDefault()).build();
   }
+
+  @Bean
+  ConfigFile configUpdater(
+      @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
+          String armadilloConfigFile) {
+    return new ApplicationConfigFile(armadilloConfigFile);
+  }
 }
