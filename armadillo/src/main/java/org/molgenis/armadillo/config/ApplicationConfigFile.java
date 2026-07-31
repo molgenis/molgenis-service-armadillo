@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import org.molgenis.armadillo.metadata.OidcDetails;
 
-public class ApplicationConfigUpdater {
+public class ApplicationConfigFile implements ConfigFile {
 
   private static final String BACKUP_EXT = ".bak";
 
@@ -22,11 +22,11 @@ public class ApplicationConfigUpdater {
   private final String armadilloConfigFile;
   private JsonNode config;
 
-  public ApplicationConfigUpdater(String armadilloConfigFile) {
+  public ApplicationConfigFile(String armadilloConfigFile) {
     this.armadilloConfigFile = armadilloConfigFile;
   }
 
-  void updateConfig(OidcDetails oidcDetails) {
+  public void write(OidcDetails oidcDetails) {
     String issuerUri = "issuer-uri";
     String clientId = "client-id";
 
@@ -62,7 +62,7 @@ public class ApplicationConfigUpdater {
     ((ObjectNode) jwtConfig).put(issuerUri, oidcDetails.getDeviceIssuerUri());
   }
 
-  void writeConfigFile(String path) throws IOException {
+  void write(String path) throws IOException {
     FileWriter writer = new FileWriter(path);
 
     try (YAMLGenerator generator = yamlFactory.createGenerator(writer)) {
@@ -70,18 +70,19 @@ public class ApplicationConfigUpdater {
     }
   }
 
-  public void updateApplicationConfig(OidcDetails oidcDetails) {
+  @Override
+  public void update(OidcDetails oidcDetails) {
     try {
-      readConfigFile();
-      writeConfigFile(armadilloConfigFile + BACKUP_EXT);
-      updateConfig(oidcDetails);
-      writeConfigFile(armadilloConfigFile);
+      read();
+      write(armadilloConfigFile + BACKUP_EXT);
+      write(oidcDetails);
+      write(armadilloConfigFile);
     } catch (Exception e) {
       throw new ConfigUpdateException(e);
     }
   }
 
-  void readConfigFile() {
+  void read() {
     try (InputStream in = Files.newInputStream(Paths.get(armadilloConfigFile))) {
       config = objectMapper.readTree(in);
     } catch (IOException e) {
@@ -89,7 +90,12 @@ public class ApplicationConfigUpdater {
     }
   }
 
+  @Override
   public Map<String, Object> getConfig() {
+    if (config == null) {
+      read();
+    }
+
     return objectMapper.convertValue(config, new TypeReference<>() {});
   }
 

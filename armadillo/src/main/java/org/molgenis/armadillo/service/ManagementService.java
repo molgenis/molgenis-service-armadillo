@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
-import org.molgenis.armadillo.config.ApplicationConfigUpdater;
+import org.molgenis.armadillo.config.ConfigFile;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +77,7 @@ public class ManagementService {
   String armadilloConfigFile;
 
   private final RebootScriptRunner scriptRunner;
-  private final ApplicationConfigUpdater appConfigUpdater;
+  private final ConfigFile appConfigFile;
   private final String jarHome;
 
   private final HttpClient httpClient;
@@ -89,13 +89,14 @@ public class ManagementService {
       @Autowired BuildProperties buildProperties,
       @Autowired RebootScriptRunner scriptRunner,
       HttpClient httpClient,
-      @Qualifier("jarHome") String jarHome) {
+      @Qualifier("jarHome") String jarHome,
+      ConfigFile configFile) {
     this.httpClient = httpClient;
     this.buildProperties = buildProperties;
     this.scriptRunner = scriptRunner;
     this.armadilloConfigFile = armadilloConfigFile;
     this.jarHome = jarHome;
-    appConfigUpdater = new ApplicationConfigUpdater(armadilloConfigFile);
+    this.appConfigFile = configFile;
   }
 
   // This will programmatically restart the application.
@@ -225,9 +226,9 @@ public class ManagementService {
           version,
           "-m",
           armadilloMode,
-          "-u",
           "-i",
-          getJavaProcessId(getProcessName()));
+          getJavaProcessId(getProcessName()),
+          "-u");
     } else
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
   }
@@ -316,7 +317,7 @@ public class ManagementService {
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
     throwWhenRunningInContainer("update oidc config");
-    appConfigUpdater.updateApplicationConfig(oidcDetails);
+    appConfigFile.update(oidcDetails);
     hardRestartApplication();
   }
 }
