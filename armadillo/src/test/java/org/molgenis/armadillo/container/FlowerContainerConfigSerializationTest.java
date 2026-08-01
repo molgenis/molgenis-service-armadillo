@@ -186,6 +186,34 @@ class FlowerContainerConfigSerializationTest {
   }
 
   @Test
+  void superexecDefaultsFabWhitelistPathToNameNamespacedFile() {
+    FlowerSuperexecContainerConfig config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-project-1")
+            .image("timmyjc/superexec-test:0.0.1")
+            .build();
+
+    assertEquals(
+        "data/system/flower/flower-project-1-fab-whitelist.yaml", config.getFabWhitelistPath());
+  }
+
+  @Test
+  void superexecDefaultFabWhitelistPathsDontCollideAcrossContainers() {
+    FlowerSuperexecContainerConfig projectOne =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-project-1")
+            .image("timmyjc/superexec-test:0.0.1")
+            .build();
+    FlowerSuperexecContainerConfig projectTwo =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-project-2")
+            .image("timmyjc/superexec-test:0.0.1")
+            .build();
+
+    assertNotEquals(projectOne.getFabWhitelistPath(), projectTwo.getFabWhitelistPath());
+  }
+
+  @Test
   void flowerConfigsImplementFlowerContainer() {
     FlowerSupernodeContainerConfig supernode =
         FlowerSupernodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();

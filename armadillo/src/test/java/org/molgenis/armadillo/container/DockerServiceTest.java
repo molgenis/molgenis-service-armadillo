@@ -65,17 +65,26 @@ class DockerServiceTest {
       throws IOException {
     Path caCert = tempDir.resolve("ca.crt");
     Path credentials = tempDir.resolve("credentials");
-    Path trustedEntities = tempDir.resolve("trusted-entities.yaml");
     Files.writeString(caCert, "dummy-ca");
     Files.writeString(credentials, "dummy-key");
-    Files.writeString(trustedEntities, "dummy-entities");
     return FlowerSupernodeContainerConfig.builder()
         .name(name)
         .image("flwr/supernode:1.26.1")
         .dockerArgs(args)
-        .trustedEntitiesPath(trustedEntities.toString())
         .caCertPath(caCert.toString())
         .authPrivateKeyPath(credentials.toString())
+        .build();
+  }
+
+  private FlowerSuperexecContainerConfig flowerSuperexecConfig(
+      String name, List<String> args, String fabWhitelistContent) throws IOException {
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    Files.writeString(fabWhitelist, fabWhitelistContent);
+    return FlowerSuperexecContainerConfig.builder()
+        .name(name)
+        .image("flwr/superexec:1.32.1")
+        .dockerArgs(args)
+        .fabWhitelistPath(fabWhitelist.toString())
         .build();
   }
 
@@ -1262,6 +1271,145 @@ class DockerServiceTest {
     dockerService.installImage(config);
 
     verify(cmd, never()).withCmd(any(String[].class));
+  }
+
+  @Test
+  void installImage_supernodeBindsCertsAndOmitsTrustedEntitiesArg() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of());
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
+    verify(cmd).withHostConfig(hostConfigCaptor.capture());
+    var mountedPaths =
+        hostConfigCaptor.getValue().getBinds() == null
+            ? List.<String>of()
+            : List.of(hostConfigCaptor.getValue().getBinds()).stream()
+                .map(bind -> bind.getVolume().getPath())
+                .toList();
+    assertEquals(List.of("/app/ca.crt", "/app/credentials"), mountedPaths);
+
+    var cmdCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(cmd).withCmd(cmdCaptor.capture());
+    var args = List.of(cmdCaptor.getValue());
+    assertTrue(args.containsAll(List.of("--root-certificates", "--auth-supernode-private-key")));
+    assertFalse(args.contains("--trusted-entities"));
+  }
+
+  @Test
+  void installImage_superexecBindsFabWhitelistAndSetsArg() throws IOException {
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/superexec:1.32.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyList())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
+    verify(cmd).withHostConfig(hostConfigCaptor.capture());
+    var mountedPaths =
+        List.of(hostConfigCaptor.getValue().getBinds()).stream()
+            .map(bind -> bind.getVolume().getPath())
+            .toList();
+    assertEquals(List.of("/app/fab-whitelist.yaml"), mountedPaths);
+
+    var cmdCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(cmd).withCmd(cmdCaptor.capture());
+    assertArrayEquals(
+        new String[] {"--fab-whitelist", "/app/fab-whitelist.yaml"}, cmdCaptor.getValue());
+  }
+
+  @Test
+  void installImage_superexecAllowsEmptyFabWhitelist() throws IOException {
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/superexec:1.32.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyList())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    assertDoesNotThrow(() -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_superexecMissingFabWhitelistFileThrows() {
+    // allowEmpty must only waive the empty-file check, never the existence check — otherwise a
+    // wrong/missing whitelist path would silently start a superexec with no enforcement mount.
+    var config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .dockerArgs(List.of())
+            .fabWhitelistPath(tempDir.resolve("does-not-exist.yaml").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeMissingCaCertThrows() {
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(tempDir.resolve("does-not-exist.crt").toString())
+            .authPrivateKeyPath(tempDir.resolve("credentials").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeEmptyCaCertThrows() throws IOException {
+    Path emptyCert = tempDir.resolve("empty-ca.crt");
+    Files.createFile(emptyCert);
+    Path credentials = tempDir.resolve("credentials");
+    Files.writeString(credentials, "dummy-key");
+
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(emptyCert.toString())
+            .authPrivateKeyPath(credentials.toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeMissingAuthPrivateKeyThrows() throws IOException {
+    Path caCert = tempDir.resolve("ca.crt");
+    Files.writeString(caCert, "dummy-ca");
+
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(caCert.toString())
+            .authPrivateKeyPath(tempDir.resolve("does-not-exist-credentials").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
   }
 
   @Test
