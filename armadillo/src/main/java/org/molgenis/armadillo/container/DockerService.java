@@ -48,7 +48,7 @@ public class DockerService {
 
   private static final String CONTAINER_CA_CERT = "/app/ca.crt";
   private static final String CONTAINER_CREDENTIALS = "/app/credentials";
-  private static final String CONTAINER_TRUSTED_ENTITIES = "/app/trusted-entities.yaml";
+  private static final String CONTAINER_FAB_WHITELIST = "/app/fab-whitelist.yaml";
   private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
 
   private final DockerClient dockerClient;
@@ -320,28 +320,36 @@ public class DockerService {
     }
   }
 
-  /** Mounts certificate and credential files into flower supernode containers. */
+  /** Mounts certificate/credential files or the FAB whitelist into flower containers. */
   private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
-    if (!(config instanceof FlowerSupernodeContainerConfig supernode)) return;
-
     List<Bind> binds = new java.util.ArrayList<>();
-    addBindMount(binds, supernode.getTrustedEntitiesPath(), CONTAINER_TRUSTED_ENTITIES);
-    addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT);
-    addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS);
+
+    if (config instanceof FlowerSupernodeContainerConfig supernode) {
+      addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT, false);
+      addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS, false);
+    } else if (config instanceof FlowerSuperexecContainerConfig superexec) {
+      addBindMount(binds, superexec.getFabWhitelistPath(), CONTAINER_FAB_WHITELIST, true);
+    }
 
     if (!binds.isEmpty()) {
       hostConfig.withBinds(binds);
     }
   }
 
-  private void addBindMount(List<Bind> binds, String hostPath, String containerPath) {
+  /**
+   * Adds a read-only bind mount, failing closed on a missing file. An empty file is rejected unless
+   * {@code allowEmpty} — certs/keys are always a misconfiguration when empty, but an empty FAB
+   * whitelist is a legitimate "nothing approved yet" state.
+   */
+  private void addBindMount(
+      List<Bind> binds, String hostPath, String containerPath, boolean allowEmpty) {
     if (hostPath == null) return;
     Path path = Path.of(hostPath).toAbsolutePath();
     if (!Files.exists(path)) {
       throw new IllegalStateException(String.format("Required file not found: %s", path));
     }
     try {
-      if (Files.size(path) == 0) {
+      if (!allowEmpty && Files.size(path) == 0) {
         throw new IllegalStateException(
             String.format(
                 "Required file is empty: %s — please replace with valid certificate/key", path));
@@ -360,9 +368,10 @@ public class DockerService {
           List.of(
               "--root-certificates", CONTAINER_CA_CERT,
               "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
-              "--trusted-entities", CONTAINER_TRUSTED_ENTITIES,
               "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
               "--isolation", "process"));
+    } else if (config instanceof FlowerSuperexecContainerConfig) {
+      args.addAll(List.of("--fab-whitelist", CONTAINER_FAB_WHITELIST));
     }
 
     if (config.getDockerArgs() != null) {

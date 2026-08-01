@@ -78,6 +78,8 @@ public class ContainerService {
 
     if (containerConfig instanceof FlowerSupernodeContainerConfig supernode) {
       createPlaceholderFiles(supernode);
+    } else if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
+      createPlaceholderFiles(superexec);
     }
 
     settings.getContainers().put(containerName, containerConfig);
@@ -89,7 +91,10 @@ public class ContainerService {
   private void createPlaceholderFiles(FlowerSupernodeContainerConfig config) {
     createFileIfNotExists(config.getCaCertPath());
     createFileIfNotExists(config.getAuthPrivateKeyPath());
-    createFileIfNotExists(config.getTrustedEntitiesPath());
+  }
+
+  private void createPlaceholderFiles(FlowerSuperexecContainerConfig config) {
+    createFileIfNotExists(config.getFabWhitelistPath());
   }
 
   private void createFileIfNotExists(String pathStr) {

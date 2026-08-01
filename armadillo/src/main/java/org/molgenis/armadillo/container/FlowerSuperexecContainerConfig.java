@@ -55,6 +55,9 @@ public abstract class FlowerSuperexecContainerConfig
   @Nullable
   public abstract String getCreationDate();
 
+  @Nullable
+  public abstract String getFabWhitelistPath();
+
   @Override
   @JsonIgnore
   public String getType() {
@@ -73,7 +76,8 @@ public abstract class FlowerSuperexecContainerConfig
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
-      @JsonProperty("creationDate") @Nullable String creationDate) {
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("fabWhitelistPath") @Nullable String fabWhitelistPath) {
 
     return builder()
         .name(name)
@@ -87,6 +91,7 @@ public abstract class FlowerSuperexecContainerConfig
         .dockerOptions(dockerOptions)
         .versionId(versionId)
         .creationDate(creationDate)
+        .fabWhitelistPath(fabWhitelistPath)
         .build();
   }
 
@@ -121,6 +126,20 @@ public abstract class FlowerSuperexecContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract FlowerSuperexecContainerConfig build();
+    public abstract Builder fabWhitelistPath(@Nullable String fabWhitelistPath);
+
+    abstract String getName();
+
+    @Nullable
+    abstract String getFabWhitelistPath();
+
+    abstract FlowerSuperexecContainerConfig autoBuild();
+
+    public FlowerSuperexecContainerConfig build() {
+      if (getFabWhitelistPath() == null) {
+        fabWhitelistPath("data/system/flower/" + getName() + "-fab-whitelist.yaml");
+      }
+      return autoBuild();
+    }
   }
 }
