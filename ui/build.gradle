@@ -4,23 +4,30 @@ plugins {
 }
 
 def nodeSpec = {
-    version = '16.16.0'
-    yarnVersion = '1.22.22'
-    npmVersion = "8.17.0"
+    version = '24.18.1'
+    npmVersion = '11.16.0'
     download = true
 }
 
 node {
     with nodeSpec
 }
+task corepackEnable(type: NpmTask) {
+    args = ['exec', '--', 'corepack', 'enable']
+}
 
-task format(type: YarnTask, dependsOn: yarn_install) {
-    args = ['run', 'format']
+task yarnInstall(type: NpmTask, dependsOn: corepackEnable) {
+    args = ['exec', '--', 'corepack', 'yarn', 'install', '--immutable']
+}
+
+task format(type: NpmTask, dependsOn: yarnInstall) {
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'format']
     inputs.files(fileTree('src'))
     outputs.dir('src')
 }
 
-task mybuild(type: YarnTask, dependsOn: yarn_install) {
+task mybuild(type: NpmTask, dependsOn: yarnInstall) {
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'build']
     inputs.file('package.json')
     inputs.files(fileTree('src'))
     inputs.files(fileTree('public'))
@@ -31,13 +38,11 @@ task mybuild(type: YarnTask, dependsOn: yarn_install) {
     inputs.file('tsconfig.node.json')
     inputs.file('index.html')
     outputs.dir('dist')
-
     outputs.cacheIf { false }
-    args = ['run', 'build']
 }
 
-task test(type: YarnTask, dependsOn: mybuild) {
-    args = ['run', 'test']
+task test(type: NpmTask, dependsOn: mybuild) {
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'test']
 }
 
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
