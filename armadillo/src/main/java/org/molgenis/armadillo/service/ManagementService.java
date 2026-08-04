@@ -158,7 +158,7 @@ public class ManagementService {
     // TODO: simplify this after update script is available on version, then it should simply return
     // refs/tags/vx.y.z
     // if script not available yet on current release:
-    String scriptVersionTag = "11f96b1c227d04ccb8870fafe08dbf3206ca172c";
+    String scriptVersionTag = "3f3cffbaaa61121c5f9b10021e0e40412aaadc65";
     if (!version.equals("dev")) {
       version = version.replace("v", "");
     }
