@@ -142,28 +142,27 @@ restart_if_down() {
       if [[ $OLD_JAR != "" ]]; then
         ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
         echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
-        # else if application.yml.bak available with date of today, attempt rollback
-        elif [[ $CONFIG_PATH != "" ]]; then
-          echo "Config path: ${CONFIG_PATH}"
-          if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
-              echo "❌ Backup config not found!"
-              else
-                echo "🛂 Checking if config backup was made recently"
-                DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
-                DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
-                echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
-                echo "CONFIG MADE: ${DATE_CONFIG}"
-                if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
-                  echo "🩹 Rolling back old config file"
-                  cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
-                  rm "$CONFIG_PATH/application.yml"
-                  mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
-              fi
+        restart_armadillo OLD_JAR
+      # else if application.yml.bak available with date of today, attempt rollback
+      elif [[ $CONFIG_PATH != "" ]]; then
+        echo "Config path: ${CONFIG_PATH}"
+        if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
+          echo "❌ Backup config not found!"
+        else
+          echo "🛂 Checking if config backup was made recently"
+          DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
+          DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
+          echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
+          echo "CONFIG MADE: ${DATE_CONFIG}"
+          if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
+            echo "🩹 Rolling back old config file"
+            cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
+            rm "$CONFIG_PATH/application.yml"
+            mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
           fi
+        fi
       fi
     fi
-
-    restart_armadillo
     increase_timeout
     echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
     restart_if_down
