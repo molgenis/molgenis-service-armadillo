@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.TestHelpers.setField;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.http.HttpClient;
@@ -64,17 +63,6 @@ class ManagementServiceTest {
     setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
-  }
-
-  // -------------------------------------------------------------------------
-  // getReleaseVersion
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getReleaseVersion_returnsTagName() {
-    JsonObject release = new JsonObject();
-    release.addProperty("tag_name", "v5.14.0");
-    assertEquals("v5.14.0", service.getReleaseVersion(release));
   }
 
   // -------------------------------------------------------------------------

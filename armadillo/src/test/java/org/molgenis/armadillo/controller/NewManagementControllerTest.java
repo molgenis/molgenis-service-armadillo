@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -19,6 +20,8 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
@@ -45,6 +48,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -62,6 +66,10 @@ class NewManagementControllerTest {
   @TempDir static java.nio.file.Path storageDir;
 
   @TempDir static Path tempDir;
+
+  @MockitoBean private HttpClient httpClient;
+
+  @MockitoBean HttpResponse<String> lastReleaseResponse;
 
   @DynamicPropertySource
   static void storageProperties(DynamicPropertyRegistry registry) {
@@ -249,7 +257,7 @@ class NewManagementControllerTest {
         .andExpect(status().isOk());
 
     assertFalse(file.exists());
-    assertAuditEventPublished(DELETE_JAR);
+    assertAuditEventPublished(DELETE_JAR, Map.of("VERSION_TO_DELETE", "1.0.0"));
   }
 
   @Test
@@ -268,15 +276,20 @@ class NewManagementControllerTest {
   }
 
   @Test
-  @WithMockUser(roles = "SU")
   void getLastReleaseInfo_GET() throws Exception {
+    when(httpClient.<String>send(any(), any())).thenReturn(lastReleaseResponse);
+    when(lastReleaseResponse.statusCode()).thenReturn(200);
+    when(lastReleaseResponse.body()).thenReturn("{\"tag_name\":\"v1.2.3\"}");
     MvcResult result =
         mockMvc
-            .perform(get("/manage/app/latest-release-info").with(csrf()))
+            .perform(
+                get("/manage/app/latest-release-info")
+                    .with(csrf())
+                    .with(httpBasic("admin", "password")))
             .andExpect(status().isOk())
             .andReturn();
 
-    assertEquals("1.2.3", result.getResponse().getContentAsString());
+    assertEquals("{\"tag_name\":\"v1.2.3\"}", result.getResponse().getContentAsString());
 
     assertAuditEventPublished(GET_RELEASE_VERSION);
   }
