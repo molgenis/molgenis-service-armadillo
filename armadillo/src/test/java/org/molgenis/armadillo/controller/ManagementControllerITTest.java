@@ -295,6 +295,28 @@ class ManagementControllerITTest {
   }
 
   @Test
+  void getLastReleaseInfo_GET_throwsIoError() throws Exception {
+    when(httpClient.<String>send(any(), any())).thenThrow(IOException.class);
+    mockMvc
+        .perform(
+            get("/manage/app/latest-release-info")
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void getLastReleaseInfo_GET_throwsInterruptedError() throws Exception {
+    when(httpClient.<String>send(any(), any())).thenThrow(InterruptedException.class);
+    mockMvc
+        .perform(
+            get("/manage/app/latest-release-info")
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   @WithMockUser(roles = "USER")
   void getLastReleaseInfo_GET_forbidden_for_non_su() throws Exception {
     mockMvc
@@ -309,6 +331,32 @@ class ManagementControllerITTest {
         .andExpect(status().isUnauthorized());
   }
 
+  //  @Test
+  //  void downloadVersion_GET() throws Exception {
+  //    try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
+  //      downloader
+  //              .when(() -> FileDownloader.downloadFile(anyString(), anyString(),
+  // any(LongConsumer.class)))
+  //              .thenAnswer(
+  //                      interceptor -> {
+  //                        Path path = tempDir.resolve("molgenis-armadillo-5.12.2.jar");
+  //                        Files.write(path, "Hello world".getBytes());
+  //                        return null;
+  //                      });
+  //
+  //      mockMvc
+  //              .perform(
+  //                      get("/manage/app/download?version=v5.12.2")
+  //                              .with(csrf())
+  //                              .with(httpBasic("admin", "password")))
+  //              .andExpect(status().isOk());
+  //
+  //      String actual =
+  // Files.readString(Path.of(tempDir.resolve("molgenis-armadillo-5.12.2.jar").toString()));
+  //      assertEquals("Hello world", actual);
+  //    }
+  //  }
+
   @Test
   void downloadUpdateScript_POST() throws Exception {
     try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
@@ -316,7 +364,6 @@ class ManagementControllerITTest {
           .when(() -> FileDownloader.downloadFile(anyString(), anyString()))
           .thenAnswer(
               interceptor -> {
-                System.out.println();
                 Path path = tempDir.resolve("armadillo-reboot.sh");
                 Files.write(path, "Hello world".getBytes());
                 return null;
@@ -332,6 +379,25 @@ class ManagementControllerITTest {
 
       String actual = Files.readString(Path.of(tempDir.resolve("armadillo-reboot.sh").toString()));
       assertEquals("Hello world", actual);
+    }
+
+    assertAuditEventPublished(DOWNLOAD_UPDATE_SCRIPT, Map.of("ARMADILLO_VERSION", "1.2.3"));
+  }
+
+  @Test
+  void downloadUpdateScript_POST_throws_exception() throws Exception {
+    try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
+      downloader
+          .when(() -> FileDownloader.downloadFile(anyString(), anyString()))
+          .thenThrow(InterruptedException.class);
+
+      mockMvc
+          .perform(
+              post("/manage/updater/download")
+                  .param("armadilloVersion", "1.2.3")
+                  .with(csrf())
+                  .with(httpBasic("admin", "password")))
+          .andExpect(status().isBadRequest());
     }
 
     assertAuditEventPublished(DOWNLOAD_UPDATE_SCRIPT, Map.of("ARMADILLO_VERSION", "1.2.3"));
