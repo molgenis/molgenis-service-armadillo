@@ -44,8 +44,12 @@ link_armadillo_version() {
   echo "ℹ️ Setting version to: $ARMADILLO_VERSION"
   echo "🧹 Removing old armadillo: $ARMADILLO_PATH/armadillo.jar"
   rm "$ARMADILLO_PATH/armadillo.jar"
+  LINK_INFO=$(ls -la "$ARMADILLO_PATH/armadillo.jar")
+  echo "Is it gone? Link: $LINK_INFO"
   echo "🔗 Linking new armadillo"
   ln -s -f "$1" "$ARMADILLO_PATH/armadillo.jar"
+  LINK_INFO=$(ls -la "$ARMADILLO_PATH/armadillo.jar")
+  echo "🖇️ Linked version: $LINK_INFO"
 }
 
 restart_armadillo() {
