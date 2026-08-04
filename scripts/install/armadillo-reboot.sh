@@ -54,7 +54,7 @@ restart_armadillo() {
    if [[ "$MODE" == "PROD" ]]; then
       echo "🛑 Stopping Molgenis Armadillo"
       kill -SIGTERM ${PID}
-      if [[ $UPDATE == true ]]; then
+      if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
         link_armadillo_version $1
       fi
       echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
@@ -163,6 +163,7 @@ restart_if_down() {
         fi
       fi
     fi
+    restart_armadillo ""
     increase_timeout
     echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
     restart_if_down
