@@ -25,7 +25,7 @@ import org.yaml.snakeyaml.Yaml;
  * static OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId)
  * factory (note deviceIssuerUri comes before deviceClientId).
  */
-class ApplicationConfigUpdaterTest {
+class ApplicationConfigFileTest {
 
   private static final String YAML_CONTENT =
       """
@@ -53,13 +53,13 @@ class ApplicationConfigUpdaterTest {
   @TempDir Path tempDir;
 
   private Path configFile;
-  private ApplicationConfigUpdater updater;
+  private ApplicationConfigFile updater;
 
   @BeforeEach
   void setUp() throws IOException {
     configFile = tempDir.resolve("application.yml");
     Files.writeString(configFile, YAML_CONTENT);
-    updater = new ApplicationConfigUpdater(configFile.toString());
+    updater = new ApplicationConfigFile(configFile.toString());
   }
 
   private OidcDetails buildOidcDetails(
@@ -84,7 +84,7 @@ class ApplicationConfigUpdaterTest {
 
   @Test
   void readConfigFile_loadsYamlIntoConfig() {
-    updater.readConfigFile();
+    updater.read();
 
     assertNotNull(updater.getConfig());
     assertTrue(updater.getConfig().containsKey("spring"));
@@ -96,17 +96,17 @@ class ApplicationConfigUpdaterTest {
 
   @Test
   void readConfigFile_missingFile_throwsRuntimeException() {
-    ApplicationConfigUpdater badUpdater =
-        new ApplicationConfigUpdater(tempDir.resolve("does-not-exist.yml").toString());
+    ApplicationConfigFile badUpdater =
+        new ApplicationConfigFile(tempDir.resolve("does-not-exist.yml").toString());
 
-    assertThrows(RuntimeException.class, badUpdater::readConfigFile);
+    assertThrows(RuntimeException.class, badUpdater::read);
   }
 
   // ---------- updateConfig ----------
 
   @Test
-  void updateConfig_updatesAllExpectedFieldsInPlace() {
-    updater.readConfigFile();
+  void writeConfig_File_updatesAllExpectedFieldsInPlace() {
+    updater.read();
 
     OidcDetails oidcDetails =
         buildOidcDetails(
@@ -116,7 +116,7 @@ class ApplicationConfigUpdaterTest {
             "https://new-device-issuer",
             "new-device-client-id");
 
-    updater.updateConfig(oidcDetails);
+    updater.write(oidcDetails);
 
     Map<String, Object> provider =
         getNested(
@@ -146,12 +146,12 @@ class ApplicationConfigUpdaterTest {
   }
 
   @Test
-  void updateConfig_doesNotTouchUnrelatedKeys() {
-    updater.readConfigFile();
+  void writeConfig_File_doesNotTouchUnrelatedKeys() {
+    updater.read();
     Map<String, Object> springBefore = getNested(updater.getConfig(), "spring");
     assertTrue(springBefore.containsKey("security"));
 
-    updater.updateConfig(buildOidcDetails("i", "c", "s", "di", "dc"));
+    updater.write(buildOidcDetails("i", "c", "s", "di", "dc"));
 
     // top level "spring" -> "security" structure should still be present/unchanged in shape
     Map<String, Object> springAfter = getNested(updater.getConfig(), "spring");
@@ -162,10 +162,10 @@ class ApplicationConfigUpdaterTest {
 
   @Test
   void writeConfigFile_writesReadableYaml() throws IOException {
-    updater.readConfigFile();
+    updater.read();
     Path outputFile = tempDir.resolve("output.yml");
 
-    updater.writeConfigFile(outputFile.toString());
+    updater.write(outputFile.toString());
 
     assertTrue(Files.exists(outputFile));
     Yaml yaml = new Yaml();
@@ -180,7 +180,7 @@ class ApplicationConfigUpdaterTest {
   // ---------- updateApplicationConfig (full round trip) ----------
 
   @Test
-  void updateApplicationConfig_writesBackupWithOriginalValues() throws IOException {
+  void update_writesBackupWithOriginalValues() throws IOException {
     OidcDetails oidcDetails =
         buildOidcDetails(
             "https://new-issuer",
@@ -189,7 +189,7 @@ class ApplicationConfigUpdaterTest {
             "https://new-device-issuer",
             "new-device-client-id");
 
-    updater.updateApplicationConfig(oidcDetails);
+    updater.update(oidcDetails);
 
     Path backupFile = tempDir.resolve("application.yml.bak");
     assertTrue(Files.exists(backupFile));
@@ -205,7 +205,7 @@ class ApplicationConfigUpdaterTest {
   }
 
   @Test
-  void updateApplicationConfig_overwritesOriginalFileWithUpdatedValues() throws IOException {
+  void update_overwritesOriginalFileWithUpdatedValues() throws IOException {
     OidcDetails oidcDetails =
         buildOidcDetails(
             "https://new-issuer",
@@ -214,7 +214,7 @@ class ApplicationConfigUpdaterTest {
             "https://new-device-issuer",
             "new-device-client-id");
 
-    updater.updateApplicationConfig(oidcDetails);
+    updater.update(oidcDetails);
 
     Yaml yaml = new Yaml();
     Map<String, Object> updatedConfig;
@@ -242,21 +242,21 @@ class ApplicationConfigUpdaterTest {
   }
 
   @Test
-  void updateApplicationConfig_missingSourceFile_throwsRuntimeException() {
-    ApplicationConfigUpdater badUpdater =
-        new ApplicationConfigUpdater(tempDir.resolve("does-not-exist.yml").toString());
+  void update_missingSourceFile_throwsRuntimeException() {
+    ApplicationConfigFile badUpdater =
+        new ApplicationConfigFile(tempDir.resolve("does-not-exist.yml").toString());
 
     OidcDetails oidcDetails = buildOidcDetails("i", "c", "s", "di", "dc");
 
-    assertThrows(RuntimeException.class, () -> badUpdater.updateApplicationConfig(oidcDetails));
+    assertThrows(RuntimeException.class, () -> badUpdater.update(oidcDetails));
   }
 
   @Test
-  void updateConfig_withEmptyOidcDetails_writesEmptyStrings() {
-    updater.readConfigFile();
+  void writeConfig_File_withEmptyOidcDetails_writesEmptyStrings() {
+    updater.read();
 
     // OidcDetails.create() with no args produces the "not configured yet" default: all fields ""
-    updater.updateConfig(OidcDetails.create());
+    updater.write(OidcDetails.create());
 
     Map<String, Object> provider =
         getNested(

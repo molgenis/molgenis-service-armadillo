@@ -3,11 +3,9 @@ package org.molgenis.armadillo.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.TestHelpers.getField;
 import static org.molgenis.armadillo.TestHelpers.setField;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.http.HttpClient;
@@ -25,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.molgenis.armadillo.config.ApplicationConfigFile;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.storage.FileDownloader;
@@ -33,78 +32,37 @@ import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementServiceTest {
+
   @Mock HttpClient httpClient;
 
   @Mock HttpResponse<String> lastReleaseResponse;
-
-  @Mock RebootScriptRunner rebootScriptRunner;
 
   ManagementService service;
   BuildProperties buildProperties;
 
   @TempDir Path tempDir;
+  private String applicationConfigFile;
 
   @BeforeEach
   void setUp() throws Exception {
     buildProperties = mock(BuildProperties.class);
+    applicationConfigFile = tempDir.resolve("application.yml").toString();
     service =
         new ManagementService(
-            "./logs/armadillo.log",
-            null,
-            tempDir.resolve("application.yml").toString(),
+            applicationConfigFile,
             buildProperties,
-            httpClient);
+            new PythonRebootScriptRunner("./logs/armadillo.log"),
+            httpClient,
+            tempDir.toString(),
+            new ApplicationConfigFile(applicationConfigFile));
 
     // Point armadilloHome and armadilloConfigFile to temp dir
     setField(service, "armadilloHome", tempDir.toString());
-    setField(service, "armadilloConfigFile", tempDir.resolve("application.yml").toString());
+    setField(service, "armadilloConfigFile", applicationConfigFile);
     setField(service, "armadilloMode", "PROD");
     setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
-  }
-
-  // -------------------------------------------------------------------------
-  // Constructor — updateLogPath derivation
-  // -------------------------------------------------------------------------
-
-  ManagementService getManagementServiceForConstructor(String logPath, String updatePath) {
-    return new ManagementService(
-        logPath,
-        updatePath,
-        tempDir.resolve("application.yml").toString(),
-        buildProperties,
-        httpClient);
-  }
-
-  @Test
-  void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
-    ManagementService svc =
-        getManagementServiceForConstructor("/var/log/armadillo/armadillo.log", null);
-    String path = (String) getField(svc, "updateLogPath");
-    assertEquals("/var/log/armadillo/update.log", path);
-  }
-
-  @Test
-  void constructor_usesExplicitUpdateLogPath() throws Exception {
-    ManagementService svc =
-        getManagementServiceForConstructor("./logs/armadillo.log", "/custom/path/update.log");
-    // When updatePath is explicitly provided it is used directly
-    // (the constructor only assigns when updatePath == null)
-    String path = (String) getField(svc, "updateLogPath");
-    // null branch not taken → path stays null (constructor doesn't set it)
-    assertNull(path);
-  }
-
-  // -------------------------------------------------------------------------
-  // getReleaseVersion
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getReleaseVersion_returnsTagName() {
-    JsonObject release = new JsonObject();
-    release.addProperty("tag_name", "v5.14.0");
-    assertEquals("v5.14.0", service.getReleaseVersion(release));
   }
 
   // -------------------------------------------------------------------------
@@ -213,47 +171,6 @@ class ManagementServiceTest {
   @Test
   void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
     assertEquals("11f96b1c227d04ccb8870fafe08dbf3206ca172c", getTag("5.13.0"));
-  }
-
-  // -------------------------------------------------------------------------
-  // getJarHome — DEV vs PROD mode
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getJarHome_returnsBuildLibsInDevMode() throws Exception {
-    setField(service, "armadilloMode", "DEV");
-    Method m = ManagementService.class.getDeclaredMethod("getJarHome");
-    m.setAccessible(true);
-
-    String jarHome = (String) m.invoke(service);
-    assertTrue(jarHome.endsWith("build/libs"));
-  }
-
-  @Test
-  void getJarHome_returnsArmadilloHomeInProdMode() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getJarHome");
-    m.setAccessible(true);
-
-    String jarHome = (String) m.invoke(service);
-    assertEquals(tempDir.toString(), jarHome);
-  }
-
-  // -------------------------------------------------------------------------
-  // constructor — explicit updateLogPath IS provided (null branch not taken)
-  // -------------------------------------------------------------------------
-
-  @Test
-  void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
-    ManagementService svc =
-        new ManagementService(
-            "./logs/armadillo.log",
-            "/custom/path/update.log",
-            tempDir.resolve("application.yml").toString(),
-            buildProperties,
-            httpClient);
-    String path = (String) getField(svc, "updateLogPath");
-    // updatePath != null → the if-block is skipped → updateLogPath is never set
-    assertNull(path);
   }
 
   // -------------------------------------------------------------------------

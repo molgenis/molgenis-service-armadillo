@@ -64,6 +64,7 @@ nav:
       - "Migrate Armadillo 2 to 3": pages/install_management/armadillo_migrate_2_to_3.md
       - "Migrate Armadillo 3 to 4": pages/install_management/armadillo_migrate_3_to_4.md
       - "Migrate Armadillo 4 to 5": pages/install_management/armadillo_migrate_4_to_5.md
+  - "Armadillo vs Opal": pages/armadillo_vs_opal.md
   - "Developer guides": pages/dev_guides.md
   - "License": pages/license.md
   - "FAQ": pages/faq.md

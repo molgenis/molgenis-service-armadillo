@@ -65,6 +65,7 @@ test_that("get projects info", {
 
 test_that("get project users", {
   do_skip_test(test_name)
+  skip_if(release_env$ADMIN_MODE, "No researcher assigned to project in admin mode")
   users <- armadillo.get_project_users(release_env$project1)
   expect_type(users, "list")
   expect_match(users[[1]], "@", fixed = TRUE)

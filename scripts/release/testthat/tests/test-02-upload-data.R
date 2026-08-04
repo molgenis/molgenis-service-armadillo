@@ -36,8 +36,6 @@ test_that("upload test data", {
 test_that("upload tidyverse test data", {
   do_skip_test(test_name)
   armadillo.upload_table(release_env$project1, "tidyverse", mtcars)
-  # Create grouped version for group_by tests
-
   mtcars_group <- mtcars %>% group_by(cyl)
   armadillo.upload_table(release_env$project1, "tidyverse", mtcars_group)
   succeed()

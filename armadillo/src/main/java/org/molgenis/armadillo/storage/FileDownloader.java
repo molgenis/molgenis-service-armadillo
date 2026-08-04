@@ -15,6 +15,13 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
 public final class FileDownloader {
+
+  public static final HttpClient HTTP_CLIENT =
+      HttpClient.newBuilder()
+          .proxy(ProxySelector.getDefault())
+          .followRedirects(HttpClient.Redirect.NORMAL) // follow GitHub → S3 redirect
+          .build();
+
   private FileDownloader() {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
@@ -57,11 +64,7 @@ public final class FileDownloader {
     try {
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
       HttpResponse<InputStream> response =
-          HttpClient.newBuilder()
-              .proxy(ProxySelector.getDefault())
-              .followRedirects(HttpClient.Redirect.NORMAL) // follow GitHub → S3 redirect
-              .build()
-              .send(request, HttpResponse.BodyHandlers.ofInputStream());
+          HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
       if (response.statusCode() != 200) {
         throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
       }
