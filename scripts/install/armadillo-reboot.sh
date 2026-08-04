@@ -55,7 +55,6 @@ restart_armadillo() {
       echo "🛑 Stopping Molgenis Armadillo"
       kill -SIGTERM ${PID}
       if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
-        echo "*$1*"
         link_armadillo_version $1
       fi
       echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
@@ -65,7 +64,7 @@ restart_armadillo() {
       echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
       echo "Killing the armadillo 🔪"
       launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
-      if [[ $UPDATE == true ]]; then
+      if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
         link_armadillo_version $1
       fi
       echo "Attempting revival 🍃 (violence is never the solution) "
