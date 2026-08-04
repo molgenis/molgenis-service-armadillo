@@ -46,6 +46,7 @@ nav:
   - Basic Usage:
       - pages/basic_usage/index.md
       - "Armadillo User Interface": pages/basic_usage/armadillo_ui.md
+      - "Creating views/subsets": pages/basic_usage/armadillo_subsets.md
       - "Central Analysis Server (CAS)": pages/basic_usage/central_analysis_server.md
       - "DSMolgenisArmadillo": pages/basic_usage/ds_molgenis_armadillo.md
       - "MolgenisArmadillo": pages/basic_usage/molgenis_armadillo.md
