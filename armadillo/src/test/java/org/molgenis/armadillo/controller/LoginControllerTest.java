@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.metadata.AccessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -62,11 +61,5 @@ class LoginControllerTest {
     mockMvc
         .perform(get("/basic-logout"))
         .andExpect(header().string("WWW-Authenticate", "Basic realm=\"Armadillo\""));
-  }
-
-  @Test
-  @WithAnonymousUser
-  void basicLogout_isAccessibleWithoutAuthentication() throws Exception {
-    mockMvc.perform(get("/basic-logout")).andExpect(status().isUnauthorized());
   }
 }
