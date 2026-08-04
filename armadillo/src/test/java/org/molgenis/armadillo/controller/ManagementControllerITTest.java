@@ -55,7 +55,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-class NewManagementControllerTest {
+class ManagementControllerITTest {
 
   public static final Gson GSON = new Gson();
   @MockitoSpyBean AuditEventPublisher auditor;
