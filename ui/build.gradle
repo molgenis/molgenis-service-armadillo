@@ -12,12 +12,17 @@ def nodeSpec = {
 node {
     with nodeSpec
 }
-task corepackEnable(type: NpmTask) {
-    args = ['exec', '--', 'corepack', 'enable']
+
+task installCorepack(type: NpmTask) {
+    args = ['install', '--global', 'corepack']
+}
+
+task corepackEnable(type: NpmTask, dependsOn: installCorepack) {
+    args = ['exec', '--yes', '--', 'corepack', 'enable']
 }
 
 task yarnInstall(type: NpmTask, dependsOn: corepackEnable) {
-    args = ['exec', '--', 'corepack', 'yarn', 'install', '--immutable']
+    args = ['exec', '--yes', '--', 'corepack', 'yarn', 'install', '--immutable']
 }
 
 task format(type: NpmTask, dependsOn: yarnInstall) {
