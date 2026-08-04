@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.FileDownloader.downloadFile;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -44,7 +43,6 @@ public class ManagementService {
   private static final String RELEASE_DOWNLOAD_URL =
       "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
   private static final String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
-  private static final String TAG = "tag_name";
   private static final String PROGRESS = "progress";
   private static final String DONE = "done";
   private static final String DOWNLOAD_COMPLETE = "Download complete";
@@ -144,10 +142,6 @@ public class ManagementService {
     } else {
       throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
     }
-  }
-
-  public String getReleaseVersion(JsonElement release) {
-    return ((JsonObject) release).get(TAG).getAsString();
   }
 
   public Map<String, String> getCurrentOidcConfig() {
