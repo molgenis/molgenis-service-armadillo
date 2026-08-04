@@ -170,7 +170,7 @@ class ManagementServiceTest {
 
   @Test
   void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
-    assertEquals("11f96b1c227d04ccb8870fafe08dbf3206ca172c", getTag("5.13.0"));
+    assertEquals("3f3cffbaaa61121c5f9b10021e0e40412aaadc65", getTag("5.13.0"));
   }
 
   // -------------------------------------------------------------------------
@@ -385,7 +385,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/11f96b1c227d04ccb8870fafe08dbf3206ca172c/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/3f3cffbaaa61121c5f9b10021e0e40412aaadc65/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
@@ -401,7 +401,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("dev");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/11f96b1c227d04ccb8870fafe08dbf3206ca172c/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/3f3cffbaaa61121c5f9b10021e0e40412aaadc65/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
