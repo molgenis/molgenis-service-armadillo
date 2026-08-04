@@ -8,22 +8,20 @@ import org.molgenis.armadillo.exceptions.RebootScriptRunFailedException;
 
 public class PythonRebootScriptRunner implements RebootScriptRunner {
 
-  String logPath;
-  String jarHome;
+  private final String logPath;
 
-  public PythonRebootScriptRunner(String configuredLogPath, String jarHome) {
+  public PythonRebootScriptRunner(String configuredLogPath) {
     var splitLogFilepath = configuredLogPath.split(Pattern.quote(File.separator));
     this.logPath =
         String.join(File.separator, Arrays.copyOf(splitLogFilepath, splitLogFilepath.length - 1))
             + File.separator
             + "update.log";
-
-    this.jarHome = jarHome;
   }
 
   private File getUpdateLogFile() throws IOException {
     File logFile = new File(logPath);
     logFile.getParentFile().mkdirs();
+
     if (!logFile.exists()) {
       boolean fileCreated = logFile.createNewFile();
       if (!fileCreated) {

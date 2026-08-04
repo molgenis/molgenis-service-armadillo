@@ -55,7 +55,7 @@ class PythonRebootScriptRunnerTest {
     private String lastScriptExecution;
 
     public RecordingPythonRebootScriptRunner(String configuredLogPath, String jarHome) {
-      super(configuredLogPath, jarHome);
+      super(configuredLogPath);
     }
 
     @Override

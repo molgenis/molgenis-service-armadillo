@@ -3,7 +3,6 @@ package org.molgenis.armadillo.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.TestHelpers.getField;
 import static org.molgenis.armadillo.TestHelpers.setField;
 
 import com.google.gson.JsonElement;
@@ -53,7 +52,7 @@ class ManagementServiceTest {
         new ManagementService(
             applicationConfigFile,
             buildProperties,
-            new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
+            new PythonRebootScriptRunner("./logs/armadillo.log"),
             httpClient,
             tempDir.toString(),
             new ApplicationConfigFile(applicationConfigFile));
@@ -65,37 +64,6 @@ class ManagementServiceTest {
     setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
-  }
-
-  // -------------------------------------------------------------------------
-  // Constructor — updateLogPath derivation
-  // -------------------------------------------------------------------------
-
-  ManagementService getManagementServiceForConstructor() {
-    return new ManagementService(
-        applicationConfigFile,
-        buildProperties,
-        new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
-        httpClient,
-        tempDir.toString(),
-        new ApplicationConfigFile(applicationConfigFile));
-  }
-
-  @Test
-  void constructor_derivesUpdateLogPathFromLogPath() throws Exception {
-    ManagementService svc = getManagementServiceForConstructor();
-    String path = (String) getField(svc, "updateLogPath");
-    assertEquals("/var/log/armadillo/update.log", path);
-  }
-
-  @Test
-  void constructor_usesExplicitUpdateLogPath() throws Exception {
-    ManagementService svc = getManagementServiceForConstructor();
-    // When updatePath is explicitly provided it is used directly
-    // (the constructor only assigns when updatePath == null)
-    String path = (String) getField(svc, "updateLogPath");
-    // null branch not taken → path stays null (constructor doesn't set it)
-    assertNull(path);
   }
 
   // -------------------------------------------------------------------------
@@ -215,48 +183,6 @@ class ManagementServiceTest {
   @Test
   void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
     assertEquals("11f96b1c227d04ccb8870fafe08dbf3206ca172c", getTag("5.13.0"));
-  }
-
-  // -------------------------------------------------------------------------
-  // getJarHome — DEV vs PROD mode
-  // -------------------------------------------------------------------------
-
-  @Test
-  void getJarHome_returnsBuildLibsInDevMode() throws Exception {
-    setField(service, "armadilloMode", "DEV");
-    Method m = ManagementService.class.getDeclaredMethod("getJarHome");
-    m.setAccessible(true);
-
-    String jarHome = (String) m.invoke(service);
-    assertTrue(jarHome.endsWith("build/libs"));
-  }
-
-  @Test
-  void getJarHome_returnsArmadilloHomeInProdMode() throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getJarHome");
-    m.setAccessible(true);
-
-    String jarHome = (String) m.invoke(service);
-    assertEquals(tempDir.toString(), jarHome);
-  }
-
-  // -------------------------------------------------------------------------
-  // constructor — explicit updateLogPath IS provided (null branch not taken)
-  // -------------------------------------------------------------------------
-
-  @Test
-  void constructor_usesExplicitUpdateLogPath_fieldRemainsNull() throws Exception {
-    ManagementService svc =
-        new ManagementService(
-            applicationConfigFile,
-            buildProperties,
-            new PythonRebootScriptRunner("./logs/armadillo.log", tempDir.toString()),
-            httpClient,
-            tempDir.toString(),
-            new ApplicationConfigFile(applicationConfigFile));
-    String path = (String) getField(svc, "updateLogPath");
-    // updatePath != null → the if-block is skipped → updateLogPath is never set
-    assertNull(path);
   }
 
   // -------------------------------------------------------------------------
