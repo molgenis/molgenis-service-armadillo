@@ -55,6 +55,7 @@ restart_armadillo() {
       echo "🛑 Stopping Molgenis Armadillo"
       kill -SIGTERM ${PID}
       if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
+        echo "*$1*"
         link_armadillo_version $1
       fi
       echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
@@ -142,7 +143,7 @@ restart_if_down() {
       if [[ $OLD_JAR != "" ]]; then
         ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
         echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
-        restart_armadillo OLD_JAR
+        restart_armadillo $OLD_JAR
       # else if application.yml.bak available with date of today, attempt rollback
       elif [[ $CONFIG_PATH != "" ]]; then
         echo "Config path: ${CONFIG_PATH}"
