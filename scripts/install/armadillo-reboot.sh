@@ -136,7 +136,7 @@ restart_if_down() {
   # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
   if [[ ${#SERVER_UP} == 0 ]]; then
     echo "❌ Restart unsuccessful, trying again..."
-    if [[ $TIMEOUT -gt 60 ]]; then
+    if [[ $TIMEOUT -gt 30 ]]; then
       echo "🛟 Checking if rollback possible (config or application version)"
       # if attempted update failed, try and roll back old jar
       if [[ $OLD_JAR != "" ]]; then
@@ -163,7 +163,7 @@ restart_if_down() {
       fi
     fi
 
-    restart_armadillo "$OLD_JAR"
+    restart_armadillo
     increase_timeout
     echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
     restart_if_down
