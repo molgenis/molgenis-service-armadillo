@@ -107,7 +107,7 @@ public class ManagementController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @DeleteMapping("app/delete-jar")
-  public void listAvailable(Principal principal, String version) {
+  public void deleteJar(Principal principal, String version) {
     auditor.audit(
         () -> {
           try {
