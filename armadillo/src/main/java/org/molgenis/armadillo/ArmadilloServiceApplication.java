@@ -23,6 +23,7 @@ public class ArmadilloServiceApplication implements ApplicationContextAware {
   }
 
   public static void restart() {
+    // programmatically trigger restart, will not reload application.yml
     ApplicationArguments args = context.getBean(ApplicationArguments.class);
 
     Thread thread =
