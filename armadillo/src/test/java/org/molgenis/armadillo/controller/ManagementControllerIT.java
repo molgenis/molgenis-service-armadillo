@@ -3,6 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.function.Predicate.not;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -13,7 +14,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.gson.Gson;
@@ -39,7 +42,9 @@ import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.config.ConfigFile;
 import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.service.RebootScriptRunner;
+import org.molgenis.armadillo.service.RecordingJarDownloader;
 import org.molgenis.armadillo.storage.FileDownloader;
+import org.molgenis.armadillo.storage.JarDownloader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -55,7 +60,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-class ManagementControllerITTest {
+class ManagementControllerIT {
 
   public static final Gson GSON = new Gson();
   @MockitoSpyBean AuditEventPublisher auditor;
@@ -70,6 +75,13 @@ class ManagementControllerITTest {
   @MockitoBean private HttpClient httpClient;
 
   @MockitoBean HttpResponse<String> lastReleaseResponse;
+
+  @TestBean(methodName = "jarDownloaderOverride")
+  JarDownloader jarDownloader;
+
+  private static JarDownloader jarDownloaderOverride() {
+    return new RecordingJarDownloader();
+  }
 
   @DynamicPropertySource
   static void storageProperties(DynamicPropertyRegistry registry) {
@@ -102,6 +114,7 @@ class ManagementControllerITTest {
   @BeforeEach
   void setUp() throws IOException {
     ((RecordingRebootScriptRunner) rebootScriptRunner).runconfigs.clear();
+    jarDownloader = new RecordingJarDownloader();
 
     try (Stream<Path> walk = Files.walk(tempDir)) {
       List<Path> files = walk.filter(not(tempDir::equals)).toList();
@@ -109,6 +122,30 @@ class ManagementControllerITTest {
         Files.delete(file);
       }
     }
+  }
+
+  @Test
+  void downloadVersion_GET() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/manage/app/download")
+                    .param("version", "v5.12.2")
+                    .with(csrf())
+                    .with(httpBasic("admin", "password")))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+    await()
+        .atMost(5, SECONDS)
+        .until(() -> Files.exists(tempDir.resolve("molgenis-armadillo-5.12.2.jar")));
+
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("event:done")));
+
+    assertEquals(
+        "Hello world!!", Files.readString(tempDir.resolve("molgenis-armadillo-5.12.2.jar")));
   }
 
   @Test
@@ -330,32 +367,6 @@ class ManagementControllerITTest {
         .perform(get("/manage/app/latest-release-info").with(csrf()))
         .andExpect(status().isUnauthorized());
   }
-
-  //  @Test
-  //  void downloadVersion_GET() throws Exception {
-  //    try (MockedStatic<FileDownloader> downloader = Mockito.mockStatic(FileDownloader.class)) {
-  //      downloader
-  //              .when(() -> FileDownloader.downloadFile(anyString(), anyString(),
-  // any(LongConsumer.class)))
-  //              .thenAnswer(
-  //                      interceptor -> {
-  //                        Path path = tempDir.resolve("molgenis-armadillo-5.12.2.jar");
-  //                        Files.write(path, "Hello world".getBytes());
-  //                        return null;
-  //                      });
-  //
-  //      mockMvc
-  //              .perform(
-  //                      get("/manage/app/download?version=v5.12.2")
-  //                              .with(csrf())
-  //                              .with(httpBasic("admin", "password")))
-  //              .andExpect(status().isOk());
-  //
-  //      String actual =
-  // Files.readString(Path.of(tempDir.resolve("molgenis-armadillo-5.12.2.jar").toString()));
-  //      assertEquals("Hello world", actual);
-  //    }
-  //  }
 
   @Test
   void downloadUpdateScript_POST() throws Exception {

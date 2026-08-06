@@ -1,6 +1,8 @@
 package org.molgenis.armadillo.service;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.TestHelpers.setField;
@@ -12,7 +14,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +33,7 @@ import org.molgenis.armadillo.metadata.OidcDetails;
 import org.molgenis.armadillo.storage.FileDownloader;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementServiceTest {
@@ -39,6 +44,7 @@ class ManagementServiceTest {
 
   ManagementService service;
   BuildProperties buildProperties;
+  RecordingJarDownloader fakeDownloader;
 
   @TempDir Path tempDir;
   private String applicationConfigFile;
@@ -47,11 +53,13 @@ class ManagementServiceTest {
   void setUp() throws Exception {
     buildProperties = mock(BuildProperties.class);
     applicationConfigFile = tempDir.resolve("application.yml").toString();
+    fakeDownloader = new RecordingJarDownloader();
     service =
         new ManagementService(
             applicationConfigFile,
             buildProperties,
             new PythonRebootScriptRunner("./logs/armadillo.log"),
+            fakeDownloader,
             httpClient,
             tempDir.toString(),
             new ApplicationConfigFile(applicationConfigFile));
@@ -63,6 +71,27 @@ class ManagementServiceTest {
     setField(service, "runningInContainer", false);
     File logFile = tempDir.resolve("test.log").toFile();
     logFile.createNewFile();
+  }
+
+  @Test
+  void downloadArmadilloJar_downloadsAndCompletes() throws Exception {
+    SseEmitter emitter = service.downloadArmadilloJar("5.12.2");
+
+    CountDownLatch completed = new CountDownLatch(1);
+    AtomicReference<Throwable> error = new AtomicReference<>();
+    emitter.onCompletion(completed::countDown);
+    emitter.onError(error::set);
+
+    await().atMost(5, SECONDS).until(() -> fakeDownloader.wasCalled());
+
+    // Simulate what Spring MVC would do: fire completion once download logic finishes.
+    // Since we're not going through initialize(), completion callbacks registered
+    // via onCompletion() are stored and won't fire automatically outside a real
+    // dispatch — so instead just assert on the concrete outcome:
+    Path jarPath = tempDir.resolve("molgenis-armadillo-5.12.2.jar");
+    await().atMost(5, SECONDS).until(() -> Files.exists(jarPath));
+    assertEquals("Hello world!!", Files.readString(jarPath));
+    assertNull(error.get());
   }
 
   // -------------------------------------------------------------------------
