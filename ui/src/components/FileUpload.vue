@@ -19,6 +19,7 @@
           class="file-upload-field hidden-input"
           @change="handleFileUpload"
           :class="uniqueClass"
+          :accept="acceptedTypes"
           type="file"
         />
       </div>
@@ -40,45 +41,10 @@
         <button
           v-if="!isUploadingFile"
           class="btn btn-primary btn-sm float-end me-3"
-          @click="uploadFile"
+          @click="uploadFile()"
         >
           <i class="bi bi-upload"></i> Upload
         </button>
-      </div>
-      <div
-        v-if="file.name.endsWith('.csv') || file.name.endsWith('.tsv')"
-        class="row mb-3 small border-top mt-3 pt-2"
-      >
-        <div class="col">
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="csv-checkbox"
-              v-model="uploadCsvAsParquet"
-            />
-            <label class="form-check-label" for="csv-checkbox"
-              >Convert file to parquet upon upload</label
-            >
-            <small id="csv-help" class="form-text text-muted"
-              >Converts file so that it can be read as table by DataSHIELD,
-              however if you have another use case you may want to uncheck
-              this.</small
-            >
-          </div>
-        </div>
-        <label v-if="uploadCsvAsParquet" for="typeRows" class="form-label"
-          >Determine types based on:</label
-        >
-        <div class="col-4" v-if="uploadCsvAsParquet">
-          <input
-            type="text"
-            id="typeRows"
-            class="form-control form-control-sm"
-            v-model="typeRows"
-          />
-        </div>
-        <div class="col-8" v-if="uploadCsvAsParquet">lines</div>
       </div>
     </div>
   </div>
@@ -88,15 +54,14 @@
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { defineComponent } from "vue";
 import { truncate } from "@/helpers/utils";
-import { uploadIntoProject, uploadCsvIntoProject } from "@/api/api";
 
 export default defineComponent({
   name: "FileUpload",
   props: {
-    object: { type: String, required: true },
-    project: { type: String, required: true },
     uniqueClass: { type: String, required: true },
     triggerUpload: { type: Boolean, default: false },
+    uploadFileMethod: { type: Function, required: true },
+    acceptedTypes: { default: "" },
   },
   emits: ["upload_success", "upload_error", "upload_triggered"],
   components: {
@@ -118,22 +83,43 @@ export default defineComponent({
     uploadCsvAsParquet: boolean;
     uploadDone: boolean;
     isHoveringOverFileUpload: boolean;
-    isUploadingFile: boolean;
     file: undefined | File;
     typeRows: number;
+    isUploadingFile: boolean;
   } {
     return {
       uploadCsvAsParquet: true,
       uploadDone: false,
       isHoveringOverFileUpload: false,
-      isUploadingFile: false,
       file: undefined,
       typeRows: 100,
+      isUploadingFile: false,
     };
   },
   methods: {
     clearFile() {
       this.file = undefined;
+      this.isUploadingFile = false;
+    },
+    uploadFile() {
+      const fileName = this.getFileName();
+      if (fileName != "") {
+        this.isUploadingFile = true;
+        this.uploadFileMethod()
+          .then(() => {
+            this.isUploadingFile = false;
+            this.$emit("upload_success", {
+              filename: this.getFileName(),
+            });
+            this.clearFile();
+          })
+          .catch((error: Error) => {
+            this.isUploadingFile = false;
+            this.$emit("upload_error", error);
+          });
+      } else {
+        this.$emit("upload_error", "No file selected.");
+      }
     },
     handleFileUpload(event: Event) {
       const eventTarget = event.target as HTMLInputElement;
@@ -149,47 +135,6 @@ export default defineComponent({
     },
     getFileName() {
       return this.file && this.file.name ? this.file.name : "";
-    },
-    handleUploadResponse(response) {
-      response
-        .then(() => {
-          this.isUploadingFile = false;
-          this.$emit("upload_success", {
-            object: this.object,
-            filename: this.getFileName(),
-          });
-        })
-        .catch((error: Error) => {
-          this.isUploadingFile = false;
-          this.$emit("upload_error", error);
-        });
-    },
-    uploadFile() {
-      if (this.file && this.file.name) {
-        this.isUploadingFile = true;
-        if (
-          (this.file.name.endsWith(".tsv") ||
-            this.file.name.endsWith(".csv")) &&
-          this.uploadCsvAsParquet
-        ) {
-          const response = uploadCsvIntoProject(
-            this.file,
-            this.object,
-            this.project,
-            this.typeRows
-          );
-          this.handleUploadResponse(response);
-        } else {
-          const response = uploadIntoProject(
-            this.file,
-            this.object,
-            this.project
-          );
-          this.handleUploadResponse(response);
-        }
-      } else {
-        this.$emit("upload_error", "No file selected.");
-      }
     },
     dragover(event: Event) {
       event.preventDefault();

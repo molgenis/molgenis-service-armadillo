@@ -7,8 +7,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.getLastCommandLocation;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.*;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.getUserBucketIdentifierFromUserId;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
 import static org.obiba.datashield.core.DSMethodType.ASSIGN;
 import static org.springframework.http.HttpStatus.*;
@@ -26,6 +26,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
@@ -47,11 +49,13 @@ import org.molgenis.r.RServerResult;
 import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "DataSHIELD", description = "Core API that interacts with the DataSHIELD environments")
@@ -391,6 +395,17 @@ public class DataController {
         Map.of());
   }
 
+  @Operation(summary = "Download a user workspace")
+  @GetMapping(value = "/workspaces/download/{userId}/{id}")
+  public ResponseEntity<InputStreamResource> downloadWorkspace(
+      @PathVariable String userId, @PathVariable String id, Principal principal) {
+    return auditEventPublisher.audit(
+        () -> storage.downloadUserWorkspace(userId, id),
+        principal,
+        "DOWNLOAD_USER_WORKSPACE",
+        Map.of(USER, userId, "WORKSPACE", id));
+  }
+
   @Operation(summary = "Get user workspaces")
   @GetMapping(value = "/workspaces", produces = APPLICATION_JSON_VALUE)
   public List<Workspace> getWorkspaces(Principal principal) {
@@ -490,6 +505,33 @@ public class DataController {
         .audit(
             commands.saveWorkspace(principal, id), principal, SAVE_USER_WORKSPACE, Map.of(ID, id))
         .get();
+  }
+
+  @Operation(summary = "Upload a workspace for a specific user")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Object uploaded successfully"),
+        @ApiResponse(responseCode = "404", description = "Unknown project"),
+        @ApiResponse(responseCode = "409", description = "Object already exists"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(
+      value = "/workspaces/upload/{userId}/{id}",
+      consumes = {MULTIPART_FORM_DATA_VALUE})
+  @ResponseStatus(NO_CONTENT)
+  public void uploadUserWorkspace(
+      Principal principal,
+      @PathVariable String userId,
+      @PathVariable String id,
+      @Valid @RequestParam MultipartFile file)
+      throws IOException {
+    InputStream inputStream = new BufferedInputStream(file.getInputStream());
+    String userBucket = getUserBucketIdentifierFromUserId(userId);
+    auditEventPublisher.audit(
+        () -> storage.saveWorkspace(inputStream, userBucket, id),
+        principal,
+        "UPLOAD_USER_WORKSPACE",
+        Map.of(USER, userId, "WORKSPACE", id));
   }
 
   @Operation(summary = "Load user workspace")
