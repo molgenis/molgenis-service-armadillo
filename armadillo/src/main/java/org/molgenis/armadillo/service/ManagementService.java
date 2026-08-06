@@ -19,6 +19,7 @@ import org.molgenis.armadillo.ArmadilloServiceApplication;
 import org.molgenis.armadillo.config.ConfigFile;
 import org.molgenis.armadillo.exceptions.StorageException;
 import org.molgenis.armadillo.metadata.OidcDetails;
+import org.molgenis.armadillo.storage.JarDownloader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,6 +78,7 @@ public class ManagementService {
   private final RebootScriptRunner scriptRunner;
   private final ConfigFile appConfigFile;
   private final String jarHome;
+  private final JarDownloader jarDownloader;
 
   private final HttpClient httpClient;
 
@@ -86,6 +88,7 @@ public class ManagementService {
           String armadilloConfigFile,
       @Autowired BuildProperties buildProperties,
       @Autowired RebootScriptRunner scriptRunner,
+      @Autowired JarDownloader jarDownloader,
       HttpClient httpClient,
       @Qualifier("jarHome") String jarHome,
       ConfigFile configFile) {
@@ -95,6 +98,7 @@ public class ManagementService {
     this.armadilloConfigFile = armadilloConfigFile;
     this.jarHome = jarHome;
     this.appConfigFile = configFile;
+    this.jarDownloader = jarDownloader;
   }
 
   // This will programmatically restart the application.
@@ -288,7 +292,7 @@ public class ManagementService {
                   if (fileExistsInDir(jarToUpdateTo, jarHome)) {
                     emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
                   } else {
-                    downloadFile(
+                    jarDownloader.downloadFile(
                         downloadUrl,
                         armadilloInstallation,
                         downloadProgress ->
