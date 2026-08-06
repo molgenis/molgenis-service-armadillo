@@ -19,8 +19,7 @@ class PythonRebootScriptRunnerTest {
   @BeforeEach
   void setUp() {
     logFile = tempDir.resolve("update.log").toFile();
-    String jarHome = tempDir.resolve("armadillo.jar").toString();
-    scriptRunner = new RecordingPythonRebootScriptRunner(logFile.getAbsolutePath(), jarHome);
+    scriptRunner = new RecordingPythonRebootScriptRunner(logFile.getAbsolutePath());
   }
 
   @Test
@@ -54,7 +53,7 @@ class PythonRebootScriptRunnerTest {
 
     private String lastScriptExecution;
 
-    public RecordingPythonRebootScriptRunner(String configuredLogPath, String jarHome) {
+    public RecordingPythonRebootScriptRunner(String configuredLogPath) {
       super(configuredLogPath);
     }
 

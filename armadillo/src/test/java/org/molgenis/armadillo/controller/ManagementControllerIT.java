@@ -298,6 +298,19 @@ class ManagementControllerIT {
   }
 
   @Test
+  void deleteJar_DELETE_throws_error() throws Exception {
+    mockMvc
+        .perform(
+            delete("/manage/app/delete-jar")
+                .param("version", "1.0.0")
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isBadRequest());
+
+    assertAuditEventPublished(DELETE_JAR, Map.of("VERSION_TO_DELETE", "1.0.0"));
+  }
+
+  @Test
   @WithMockUser(roles = "USER")
   void deleteJar_DELETE_forbidden_for_non_su() throws Exception {
     mockMvc
