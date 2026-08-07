@@ -57,6 +57,11 @@ class ManagementServiceTest {
     service =
         new ManagementService(
             applicationConfigFile,
+            "https://auth.example.com",
+            "my-client",
+            "secret123",
+            "https://device.auth.example.com",
+            "device-client",
             buildProperties,
             new PythonRebootScriptRunner("./logs/armadillo.log"),
             fakeDownloader,
@@ -100,14 +105,7 @@ class ManagementServiceTest {
 
   @Test
   void getCurrentOidcConfig_returnsAllFields() throws Exception {
-    setField(service, "issuerUri", "https://auth.example.com");
-    setField(service, "clientId", "my-client");
-    setField(service, "clientSecret", "secret123");
-    setField(service, "deviceClientId", "device-client");
-    setField(service, "deviceIssuerUri", "https://device.auth.example.com");
-
     var config = service.getCurrentOidcConfig();
-
     assertEquals("https://auth.example.com", config.get("issuerUri"));
     assertEquals("my-client", config.get("clientId"));
     assertEquals("secret123", config.get("clientSecret"));

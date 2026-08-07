@@ -54,21 +54,6 @@ public class ManagementService {
   @Value("${armadillo.armadillo-mode:PROD}")
   String armadilloMode;
 
-  @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
-  String clientId;
-
-  @Value("${spring.security.oauth2.client.registration.molgenis.client-secret:#{null}}")
-  String clientSecret;
-
-  @Value("${spring.security.oauth2.client.provider.molgenis.issuer-uri:#{null}}")
-  String issuerUri;
-
-  @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:#{null}}")
-  String deviceIssuerUri;
-
-  @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id:#{null}}")
-  String deviceClientId;
-
   @Value("${armadillo.docker-run-in-container:false}")
   private boolean runningInContainer;
 
@@ -82,10 +67,22 @@ public class ManagementService {
 
   private final HttpClient httpClient;
 
+  private final OidcDetails currentOidcDetails;
+
   @Autowired
   public ManagementService(
       @Value("${armadillo.armadillo-config-file:/etc/armadillo/application.yml}")
           String armadilloConfigFile,
+      @Value("${spring.security.oauth2.client.provider.molgenis.issuer-uri:#{null}}")
+          String issuerUri,
+      @Value("${spring.security.oauth2.client.registration.molgenis.client-id:#{null}}")
+          String clientId,
+      @Value("${spring.security.oauth2.client.registration.molgenis.client-secret:#{null}}")
+          String clientSecret,
+      @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:#{null}}")
+          String deviceIssuerUri,
+      @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id:#{null}}")
+          String deviceClientId,
       @Autowired BuildProperties buildProperties,
       @Autowired RebootScriptRunner scriptRunner,
       @Autowired JarDownloader jarDownloader,
@@ -99,6 +96,8 @@ public class ManagementService {
     this.jarHome = jarHome;
     this.appConfigFile = configFile;
     this.jarDownloader = jarDownloader;
+    currentOidcDetails =
+        OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId);
   }
 
   // This will programmatically restart the application.
@@ -149,13 +148,7 @@ public class ManagementService {
   }
 
   public Map<String, String> getCurrentOidcConfig() {
-    Map<String, String> currentConfig = new HashMap<>();
-    currentConfig.put("issuerUri", issuerUri);
-    currentConfig.put("clientId", clientId);
-    currentConfig.put("clientSecret", clientSecret);
-    currentConfig.put("deviceClientId", deviceClientId);
-    currentConfig.put("deviceIssuerUri", deviceIssuerUri);
-    return currentConfig;
+    return currentOidcDetails.get();
   }
 
   private String getScriptVersionTag(String version) {
