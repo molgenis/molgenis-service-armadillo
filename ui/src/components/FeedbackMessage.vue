@@ -11,6 +11,14 @@
     >
       <strong>Success: </strong> {{ successMsg }}
     </Alert>
+    <Alert
+      v-show="warningMsg"
+      type="warning"
+      class="mt-1"
+      @clear="clearWarning"
+    >
+      <strong>Warning: </strong> {{ warningMsg }}
+    </Alert>
   </div>
 </template>
 
@@ -26,11 +34,13 @@ export default defineComponent({
   props: {
     successMessage: String,
     errorMessage: String,
+    warningMessage: String,
   },
   data() {
     return {
       successMsg: this.successMessage,
       errorMsg: this.errorMessage,
+      warningMsg: this.warningMessage,
     };
   },
   methods: {
@@ -39,6 +49,9 @@ export default defineComponent({
     },
     clearError() {
       this.errorMsg = "";
+    },
+    clearWarning() {
+      this.warningMsg = "";
     },
   },
   watch: {
@@ -49,6 +62,9 @@ export default defineComponent({
       setTimeout(() => {
         this.successMsg = "";
       }, 5000);
+    },
+    warningMessage: function (newVal) {
+      this.warningMsg = newVal;
     },
     errorMessage: function (newVal) {
       this.errorMsg = newVal;
