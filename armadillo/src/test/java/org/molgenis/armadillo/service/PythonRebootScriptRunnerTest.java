@@ -47,8 +47,14 @@ class PythonRebootScriptRunnerTest {
   }
 
   @Test
-  void getUpdateLogFile_throwsException() {
-    scriptRunner = new RecordingPythonRebootScriptRunner("/path/does/not/exist");
+  void getUpdateLogFile_throwsException() throws IOException {
+    // create a regular file, then treat it as if it were a parent directory
+    File blockingFile = tempDir.resolve("not-a-directory").toFile();
+    assertTrue(blockingFile.createNewFile());
+
+    String badLogPath = blockingFile.toPath().resolve("update.log").toString();
+    scriptRunner = new RecordingPythonRebootScriptRunner(badLogPath);
+
     assertThrows(IOException.class, () -> scriptRunner.runRebootScript());
   }
 
