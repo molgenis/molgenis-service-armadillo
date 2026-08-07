@@ -248,7 +248,7 @@ public class ManagementService {
     }
   }
 
-  public Set<String> listAvailableJars() {
+  public Set<String> listLocallyAvailableJars() {
     return listFilesForDir(jarHome).stream()
         .filter(name -> name.endsWith(".jar"))
         .collect(Collectors.toSet());

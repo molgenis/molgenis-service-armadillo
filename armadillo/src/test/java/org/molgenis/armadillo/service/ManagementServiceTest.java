@@ -145,22 +145,22 @@ class ManagementServiceTest {
   // -------------------------------------------------------------------------
 
   @Test
-  void listAvailableJars_returnsOnlyJarFiles() throws Exception {
+  void listLocallyAvailableJars_returnsOnlyJarFiles() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
     Files.createFile(tempDir.resolve("armadillo-reboot.sh"));
     Files.createFile(tempDir.resolve("application.yml"));
 
-    var jars = service.listAvailableJars();
+    var jars = service.listLocallyAvailableJars();
 
     assertEquals(1, jars.size());
     assertTrue(jars.contains("molgenis-armadillo-5.14.0.jar"));
   }
 
   @Test
-  void listAvailableJars_returnsEmptySetWhenNoJars() throws Exception {
+  void listLocallyAvailableJars_returnsEmptySetWhenNoJars() throws Exception {
     Files.createFile(tempDir.resolve("some-other-file.txt"));
 
-    var jars = service.listAvailableJars();
+    var jars = service.listLocallyAvailableJars();
 
     assertTrue(jars.isEmpty());
   }
@@ -170,11 +170,11 @@ class ManagementServiceTest {
   // -------------------------------------------------------------------------
 
   @Test
-  void listAvailableJars_returnsMultipleJars() throws Exception {
+  void listLocallyAvailableJars_returnsMultipleJars() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.13.0.jar"));
 
-    var jars = service.listAvailableJars();
+    var jars = service.listLocallyAvailableJars();
 
     assertEquals(2, jars.size());
   }
@@ -267,11 +267,11 @@ class ManagementServiceTest {
   // -------------------------------------------------------------------------
 
   @Test
-  void listAvailableJars_excludesSubdirectories() throws Exception {
+  void listLocallyAvailableJars_excludesSubdirectories() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
     Files.createDirectory(tempDir.resolve("subdir.jar")); // a directory named like a jar
 
-    var jars = service.listAvailableJars();
+    var jars = service.listLocallyAvailableJars();
 
     assertEquals(1, jars.size());
     assertTrue(jars.contains("molgenis-armadillo-5.14.0.jar"));

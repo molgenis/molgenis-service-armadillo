@@ -87,8 +87,9 @@ public class ManagementController {
 
   @Operation(summary = "List all available jars")
   @GetMapping("app/list")
-  public Set<String> listAvailable(Principal principal) {
-    return auditor.audit(managementService::listAvailableJars, principal, LIST_AVAILABLE_VERSIONS);
+  public Set<String> listLocallyAvailableJars(Principal principal) {
+    return auditor.audit(
+        managementService::listLocallyAvailableJars, principal, LIST_AVAILABLE_VERSIONS);
   }
 
   @Operation(summary = "Get current OIDC config")
