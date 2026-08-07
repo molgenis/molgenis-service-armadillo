@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 @AutoValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,6 +36,16 @@ public abstract class OidcDetails implements Persistable {
   @JsonProperty("deviceClientId")
   @Nullable
   public abstract String getDeviceClientId();
+
+  public Map<String, String> get() {
+    Map<String, String> config = new HashMap<>();
+    config.put("issuerUri", getIssuerUri());
+    config.put("clientId", getClientId());
+    config.put("clientSecret", getClientSecret());
+    config.put("deviceClientId", getDeviceClientId());
+    config.put("deviceIssuerUri", getDeviceIssuerUri());
+    return config;
+  }
 
   /** Creates an empty instance used as a default when no config has been persisted yet. */
   public static OidcDetails create() {
