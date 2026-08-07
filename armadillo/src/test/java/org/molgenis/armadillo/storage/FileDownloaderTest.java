@@ -139,8 +139,9 @@ class FileDownloaderTest {
     }
     String url = "http://localhost:" + freePort + "/unreachable";
     File outFile = tempDir.resolve("nofile.bin").toFile();
+    String outPath = outFile.getAbsolutePath();
 
-    assertThatThrownBy(() -> FileDownloader.downloadFile(url, outFile.getAbsolutePath()))
+    assertThatThrownBy(() -> FileDownloader.downloadFile(url, outPath))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(HttpStatusCode.valueOf(400));
