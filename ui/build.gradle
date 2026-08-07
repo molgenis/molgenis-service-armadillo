@@ -39,7 +39,7 @@ task mybuild(type: NpmTask, dependsOn: yarnInstall) {
     inputs.file('vite.config.js')
     inputs.file('tsconfig.json')
     inputs.file('shims-vue.d.ts')
-    inputs.file('jest.config.js')
+    inputs.file('jest.config.cjs')
     inputs.file('tsconfig.node.json')
     inputs.file('index.html')
     outputs.dir('dist')
