@@ -175,7 +175,7 @@ public class ManagementService {
   }
 
   // this is intended behaviour
-  @java.lang.SuppressWarnings({"java:S2083"})
+  @java.lang.SuppressWarnings({"javasecurity:S2083"})
   public void deleteJar(String version) {
     String appVersion = buildProperties.getVersion();
     String fileToDelete = getJarPathFromVersion(version);
