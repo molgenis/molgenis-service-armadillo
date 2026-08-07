@@ -48,7 +48,7 @@ class PythonRebootScriptRunnerTest {
 
   @Test
   void getUpdateLogFile_throwsException() {
-    scriptRunner = new RecordingPythonRebootScriptRunner("");
+    scriptRunner = new RecordingPythonRebootScriptRunner("/path/does/not/exist");
     assertThrows(IOException.class, () -> scriptRunner.runRebootScript());
   }
 
