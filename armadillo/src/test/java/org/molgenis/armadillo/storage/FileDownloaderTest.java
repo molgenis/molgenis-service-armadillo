@@ -119,7 +119,9 @@ class FileDownloaderTest {
     String url = "http://localhost:" + server.getAddress().getPort() + "/missing";
     File outFile = tempDir.resolve("shouldnotexist.bin").toFile();
 
-    assertThatThrownBy(() -> FileDownloader.downloadFile(url, outFile.getAbsolutePath()))
+    String outPath = outFile.getAbsolutePath();
+
+    assertThatThrownBy(() -> FileDownloader.downloadFile(url, outPath))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(HttpStatusCode.valueOf(404));
