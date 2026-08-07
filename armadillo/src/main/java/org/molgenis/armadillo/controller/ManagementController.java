@@ -108,6 +108,8 @@ public class ManagementController {
             content = @Content(schema = @Schema(hidden = true)))
       })
   @DeleteMapping("app/delete-jar")
+  // this is intended behaviour
+  @java.lang.SuppressWarnings({"java:S2083"})
   public void deleteJar(Principal principal, String version) {
     auditor.audit(
         () -> {
