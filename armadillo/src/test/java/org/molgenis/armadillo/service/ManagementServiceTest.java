@@ -104,7 +104,7 @@ class ManagementServiceTest {
   // -------------------------------------------------------------------------
 
   @Test
-  void getCurrentOidcConfig_returnsAllFields() throws Exception {
+  void getCurrentOidcConfig_returnsAllFields() {
     var config = service.getCurrentOidcConfig();
     assertEquals("https://auth.example.com", config.get("issuerUri"));
     assertEquals("my-client", config.get("clientId"));
