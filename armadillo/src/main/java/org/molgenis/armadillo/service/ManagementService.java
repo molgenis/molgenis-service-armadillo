@@ -174,6 +174,8 @@ public class ManagementService {
     return foundFiles.contains(filename);
   }
 
+  // this is intended behaviour
+  @java.lang.SuppressWarnings({"java:S2083"})
   public void deleteJar(String version) {
     String appVersion = buildProperties.getVersion();
     String fileToDelete = getJarPathFromVersion(version);
