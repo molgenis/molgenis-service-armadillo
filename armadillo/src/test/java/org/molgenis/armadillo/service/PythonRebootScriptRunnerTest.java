@@ -38,6 +38,12 @@ class PythonRebootScriptRunnerTest {
   }
 
   @Test
+  void getUpdateLogFile_throwsException() throws IOException {
+    scriptRunner = new RecordingPythonRebootScriptRunner("");
+    assertThrows(IOException.class, () -> scriptRunner.runRebootScript());
+  }
+
+  @Test
   void createPythonScript_nonUpdateBranch_doesNotContainUpdateFlag() throws IOException {
     scriptRunner.runRebootScript("armadillo-reboot.sh", "-v", "5.14.0");
     String script = scriptRunner.getLastScriptExecution();
