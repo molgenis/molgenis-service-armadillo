@@ -2272,6 +2272,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tsconfig/node-lts@npm:^24.0.0":
+  version: 24.0.0
+  resolution: "@tsconfig/node-lts@npm:24.0.0"
+  checksum: 10/579b1f3d4d613794a143f87876b01cd23c8acbe725f8ccf68db7486edd250320b270b3df9659ca65e0c8f46d9ba75eb2bd11a9b5ae05ce55ec3ba7f1d5c113e9
+  languageName: node
+  linkType: hard
+
 "@tsconfig/node10@npm:^1.0.7":
   version: 1.0.12
   resolution: "@tsconfig/node10@npm:1.0.12"
@@ -6459,6 +6466,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.29.7"
     "@babel/preset-typescript": "npm:7.29.7"
     "@popperjs/core": "npm:2.11.8"
+    "@tsconfig/node-lts": "npm:^24.0.0"
     "@types/jest": "npm:29.5.14"
     "@types/node": "npm:^22"
     "@types/vue": "npm:^2.0.0"

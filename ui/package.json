@@ -2,7 +2,6 @@
   "name": "ui",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -22,6 +21,7 @@
     "@babel/core": "7.29.7",
     "@babel/preset-env": "^7.29.7",
     "@babel/preset-typescript": "7.29.7",
+    "@tsconfig/node-lts": "^24.0.0",
     "@types/jest": "29.5.14",
     "@types/node": "^22",
     "@types/vue": "^2.0.0",
