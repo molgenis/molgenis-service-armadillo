@@ -207,20 +207,7 @@ tasks.register('installLocalGitHook', Copy) {
     from new File(rootProject.rootDir, 'pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
     filePermissions {
-        user {
-            read = true
-            execute = true
-            write = true
-        }
-        group {
-            read = true
-            execute = true
-            write = true
-        }
-        other {
-            read = true
-            execute = true
-        }
+        unix(0775)
     }
 }
 build.dependsOn installLocalGitHook
