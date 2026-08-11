@@ -130,24 +130,11 @@ project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghTo
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'
 def tagName = project.version.toString()
-//if (version.toString().endsWith('-SNAPSHOT')) {
-//    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
-//    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
-//    tagName = "${project.version.toString()}-${ext.hash}"
-//}
+
 tasks.register('ci', WriteProperties) {
     destinationFile.set(file('build/ci.properties'))
     property 'TAG_NAME', tagName
 }
-//
-//docker {
-//    name imageName
-//    tags tagName
-//    dockerfile file('Dockerfile')
-//    files bootJar.archiveFile
-//    buildArgs(['JAR_FILE': "${bootJar.archiveFile.get().asFile.name}"])
-//}
-//dockerPrepare.dependsOn bootJar
 
 // Docker build and push tasks using Docker CLI (Gradle 9 compatible)
 tasks.register('dockerBuild', Exec) {
@@ -182,7 +169,7 @@ tasks.register('dockerClean', Delete) {
 }
 
 //merge test reports
-task jacocoMergedReport(type: JacocoReport) {
+tasks.register('jacocoMergedReport', org.gradle.testing.jacoco.tasks.JacocoReport) {
     dependsOn project.getTasksByName(":armadillo:test", true)
     dependsOn project.getTasksByName(":r:test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
@@ -216,7 +203,7 @@ sonar {
 }
 
 //install pre-commit hook
-task installLocalGitHook(type: Copy) {
+tasks.register('installLocalGitHook', Copy) {
     from new File(rootProject.rootDir, 'pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
     filePermissions {
@@ -238,7 +225,7 @@ task installLocalGitHook(type: Copy) {
 }
 build.dependsOn installLocalGitHook
 
-task myNyxDiagnostics() {
+tasks.register('myNyxDiagnostics') {
     // https://mooltiverse.github.io/nyx/guide/user/introduction/usage/#accessing-the-nyx-state-extra-project-property-from-build-scripts
     dependsOn nyxInfer
     doLast {
