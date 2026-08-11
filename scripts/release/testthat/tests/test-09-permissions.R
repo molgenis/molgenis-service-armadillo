@@ -42,6 +42,24 @@ expect_forbidden <- function(method, endpoint, body = NULL) {
   )
 }
 
+# Assert an endpoint returns 403, for handlers that only accept text/plain.
+# Sending JSON to those is rejected with 415 before authorisation is reached.
+expect_forbidden_text <- function(method, endpoint, body) {
+  auth_header <- get_auth_header("bearer", release_env$token)
+  response <- dispatch_method(
+    method, build_url(endpoint), body,
+    c(httr::content_type("text/plain"), httr::add_headers(auth_header))
+  )
+  status <- httr::status_code(response)
+  testthat::expect(
+    status == 403,
+    sprintf(
+      "%s %s is not closed to role-less users: got HTTP %d (expected 403 Forbidden)",
+      method, endpoint, status
+    )
+  )
+}
+
 # ---- Admin-only endpoints ----
 # These endpoints require ROLE_SU. Researchers should always get 403.
 
@@ -281,5 +299,62 @@ test_that("researcher cannot load table from project without permission", {
     httr::add_headers(auth_header)
   )
   expect_equal(httr::status_code(response), 403)
+})
+
+# ---- Users with no roles ----
+# Regression test for the class-level @PreAuthorize on DataController: an
+# authenticated principal with zero authorities must be denied every endpoint.
+
+test_that("DataSHIELD endpoints are closed to users without roles", {
+  do_skip_test(test_name)
+  skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
+
+  # Roles are resolved per request, so revoking projects makes the existing
+  # token role-less straight away.
+  set_user(FALSE, list())
+
+  # Guard: prove the principal really has no authorities, so a 403 below
+  # cannot be passing for some unrelated reason.
+  principal <- httr::content(make_request("GET", "my/principal"))
+  expect_length(principal$authorities, 0)
+
+  table <- sprintf("%s/2_1-core-1_0/nonrep", release_env$project1)
+  table_enc <- utils::URLencode(table, reserved = TRUE)
+
+  # Metadata and discovery
+  expect_forbidden("GET", "packages")
+  expect_forbidden("GET", "tables")
+  expect_forbidden("GET", "resources")
+  expect_forbidden("GET", "symbols")
+  expect_forbidden("GET", "profiles")
+  expect_forbidden("GET", "methods/assign")
+  expect_forbidden("GET", "methods/aggregate")
+  expect_forbidden("GET", "lastcommand")
+  expect_forbidden("GET", "lastresult")
+
+  # Existence checks
+  expect_forbidden("HEAD", sprintf("tables/%s", table))
+  expect_forbidden("HEAD", sprintf("resources/%s/test/nonexistent", release_env$project1))
+
+  # Loading data
+  expect_forbidden("POST", sprintf("load-table?symbol=tbl&table=%s", table_enc))
+  expect_forbidden("POST", sprintf("load-resource?symbol=res&resource=%s", table_enc))
+
+  # Assignment and execution (text/plain bodies)
+  expect_forbidden_text("POST", "symbols/tbl", "mtcars")
+  expect_forbidden_text("POST", "execute", "meanDS(D$age)")
+  expect_forbidden_text("POST", "select-profile", release_env$profile)
+  expect_forbidden("DELETE", "symbols/tbl")
+
+  # Workspaces
+  expect_forbidden("GET", "workspaces")
+  expect_forbidden("GET", "all-workspaces")
+  expect_forbidden("POST", "workspaces/regression-test-ws")
+  expect_forbidden("POST", "load-workspace?id=regression-test-ws")
+  expect_forbidden("DELETE", "workspaces/regression-test-ws")
+  expect_forbidden("DELETE", "workspaces/nonexistent-user/regression-test-ws")
+  expect_forbidden("DELETE", "workspaces/directory/nonexistent-user")
+
+  set_user(FALSE, list(release_env$project1))
 })
 

@@ -52,6 +52,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,6 +62,7 @@ import org.springframework.web.server.ResponseStatusException;
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "http")
 @SecurityRequirement(name = "JSESSIONID")
+@PreAuthorize("isAuthenticated() and !authentication.authorities.empty")
 @RestController
 @Validated
 public class DataController {

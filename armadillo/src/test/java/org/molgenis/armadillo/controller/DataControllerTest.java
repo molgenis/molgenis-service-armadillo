@@ -1212,4 +1212,10 @@ class DataControllerTest extends ArmadilloControllerTestBase {
                 "WORKSPACE",
                 id)));
   }
+
+  @Test
+  @WithMockUser(roles = {})
+  void getWorkspaces_noAuthorities_isForbidden() throws Exception {
+    mockMvc.perform(get("/workspaces")).andExpect(status().isForbidden());
+  }
 }
