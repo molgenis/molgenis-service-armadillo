@@ -76,7 +76,7 @@ jobs:
 
       - run:
           name: build and push armadillo java docker images for the preview
-          command: ./gradlew -s --no-daemon dockerPush ci
+          command: ./gradlew --no-daemon dockerPush ci
 
       - run:
           name: build, test, push docker
