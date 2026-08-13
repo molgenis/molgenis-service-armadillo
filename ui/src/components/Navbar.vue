@@ -3,9 +3,9 @@
     <div class="container-fluid">
       <a class="navbar-brand align-middle" href="#">
         <img
-          src="/armadillo-logo.png"
+          src="/uncan-white.png"
           alt="molgenis"
-          width="35"
+          height="45"
           class="d-inline-block me-2"
         />
         Armadillo portal <small class="text-secondary">{{ version }}</small>
@@ -153,4 +153,13 @@ export default defineComponent({
 .dropdown-menu {
   left: 0;
 }
+.navbar.navbar-dark.bg-dark {
+  background-color: #7a39c4!important;
+}
+
+.btn.btn-dark {
+  background-color: #7a39c4;
+  border-color: #7a39c4;
+}
+
 </style>

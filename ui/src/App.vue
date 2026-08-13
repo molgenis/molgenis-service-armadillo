@@ -173,3 +173,19 @@ export default defineComponent({
   },
 });
 </script>
+
+<style>
+.btn.btn-primary {
+  background-color: #ac3cb4!important;
+  border-color: #ac3cb4;
+}
+
+div,p,input {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+</style>
