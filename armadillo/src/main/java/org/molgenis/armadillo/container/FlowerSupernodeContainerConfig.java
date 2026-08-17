@@ -56,9 +56,6 @@ public abstract class FlowerSupernodeContainerConfig
   public abstract String getCreationDate();
 
   @Nullable
-  public abstract String getTrustedEntitiesPath();
-
-  @Nullable
   public abstract String getCaCertPath();
 
   @Nullable
@@ -83,7 +80,6 @@ public abstract class FlowerSupernodeContainerConfig
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
       @JsonProperty("creationDate") @Nullable String creationDate,
-      @JsonProperty("trustedEntitiesPath") @Nullable String trustedEntitiesPath,
       @JsonProperty("caCertPath") @Nullable String caCertPath,
       @JsonProperty("authPrivateKeyPath") @Nullable String authPrivateKeyPath) {
 
@@ -99,7 +95,6 @@ public abstract class FlowerSupernodeContainerConfig
         .dockerOptions(dockerOptions)
         .versionId(versionId)
         .creationDate(creationDate)
-        .trustedEntitiesPath(trustedEntitiesPath)
         .caCertPath(caCertPath)
         .authPrivateKeyPath(authPrivateKeyPath)
         .build();
@@ -136,14 +131,9 @@ public abstract class FlowerSupernodeContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract Builder trustedEntitiesPath(@Nullable String trustedEntitiesPath);
-
     public abstract Builder caCertPath(@Nullable String caCertPath);
 
     public abstract Builder authPrivateKeyPath(@Nullable String authPrivateKeyPath);
-
-    @Nullable
-    abstract String getTrustedEntitiesPath();
 
     @Nullable
     abstract String getCaCertPath();
@@ -154,8 +144,6 @@ public abstract class FlowerSupernodeContainerConfig
     abstract FlowerSupernodeContainerConfig autoBuild();
 
     public FlowerSupernodeContainerConfig build() {
-      if (getTrustedEntitiesPath() == null)
-        trustedEntitiesPath("data/system/flower/trusted-entities.yaml");
       if (getCaCertPath() == null) caCertPath("data/system/flower/ca.crt");
       if (getAuthPrivateKeyPath() == null) authPrivateKeyPath("data/system/flower/credentials");
       return autoBuild();

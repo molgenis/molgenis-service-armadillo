@@ -55,6 +55,12 @@ public abstract class FlowerSuperexecContainerConfig
   @Nullable
   public abstract String getCreationDate();
 
+  @Nullable
+  public abstract String getFabWhitelistPath();
+
+  @Nullable
+  public abstract List<WhitelistedApp> getFabWhitelist();
+
   @Override
   @JsonIgnore
   public String getType() {
@@ -73,7 +79,9 @@ public abstract class FlowerSuperexecContainerConfig
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
       @JsonProperty("versionId") @Nullable String versionId,
-      @JsonProperty("creationDate") @Nullable String creationDate) {
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("fabWhitelistPath") @Nullable String fabWhitelistPath,
+      @JsonProperty("fabWhitelist") @Nullable List<WhitelistedApp> fabWhitelist) {
 
     return builder()
         .name(name)
@@ -87,6 +95,8 @@ public abstract class FlowerSuperexecContainerConfig
         .dockerOptions(dockerOptions)
         .versionId(versionId)
         .creationDate(creationDate)
+        .fabWhitelistPath(fabWhitelistPath)
+        .fabWhitelist(fabWhitelist)
         .build();
   }
 
@@ -121,6 +131,28 @@ public abstract class FlowerSuperexecContainerConfig
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    public abstract FlowerSuperexecContainerConfig build();
+    public abstract Builder fabWhitelistPath(@Nullable String fabWhitelistPath);
+
+    public abstract Builder fabWhitelist(@Nullable List<WhitelistedApp> fabWhitelist);
+
+    abstract String getName();
+
+    @Nullable
+    abstract String getFabWhitelistPath();
+
+    @Nullable
+    abstract List<WhitelistedApp> getFabWhitelist();
+
+    abstract FlowerSuperexecContainerConfig autoBuild();
+
+    public FlowerSuperexecContainerConfig build() {
+      if (getFabWhitelistPath() == null) {
+        fabWhitelistPath("data/system/flower/" + getName() + "-fab-whitelist.yaml");
+      }
+      if (getFabWhitelist() == null) {
+        fabWhitelist(List.of());
+      }
+      return autoBuild();
+    }
   }
 }

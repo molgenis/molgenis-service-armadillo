@@ -60,6 +60,7 @@ dependencies {
     implementation("org.apache.parquet:parquet-common:1.15.1")
     implementation("com.opencsv:opencsv:5.10")
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
     //Overrides docker-java's sub-dependency to fix compatibility issues with apple ARM chips
     //https://github.com/docker-java/docker-java/issues/1876 -->
