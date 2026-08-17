@@ -26,6 +26,7 @@ public sealed interface ContainerResponse {
 
   String image();
 
+  @Nullable
   Integer port();
 
   @Nullable
@@ -47,7 +48,7 @@ public sealed interface ContainerResponse {
       String type,
       String name,
       String image,
-      Integer port,
+      @Nullable Integer port,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
@@ -60,7 +61,7 @@ public sealed interface ContainerResponse {
       String type,
       String name,
       String image,
-      Integer port,
+      @Nullable Integer port,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
