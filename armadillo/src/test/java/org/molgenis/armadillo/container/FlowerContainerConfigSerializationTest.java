@@ -189,8 +189,8 @@ class FlowerContainerConfigSerializationTest {
             .image("timmyjc/superexec-test:0.0.1")
             .fabWhitelist(
                 List.of(
-                    new WhitelistedApp("@publisher/app", "1.0.0", "a".repeat(64)),
-                    new WhitelistedApp("@publisher/other-app", "2.1.0", "b".repeat(64))))
+                    new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64)),
+                    new WhitelistedApp("publisher/other-app", "2.1.0", "b".repeat(64))))
             .build();
 
     String json = OBJECT_MAPPER.writeValueAsString(original);
