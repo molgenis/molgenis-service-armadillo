@@ -488,13 +488,13 @@ class ContainerServiceTest {
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .fabWhitelistPath(fabWhitelist.toString())
-            .fabWhitelist(List.of(new WhitelistedApp("@publisher/app", "1.0.0", "a".repeat(64))))
+            .fabWhitelist(List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))))
             .build();
 
     containerService.upsert(config);
 
     String content = Files.readString(fabWhitelist);
-    assertTrue(content.contains("fab_id: \"@publisher/app\""));
+    assertTrue(content.contains("fab_id: \"publisher/app\""));
     assertTrue(content.contains("fab_version: \"1.0.0\""));
     assertTrue(content.contains("fab_hash: \"" + "a".repeat(64) + "\""));
   }
@@ -511,11 +511,11 @@ class ContainerServiceTest {
             .build());
 
     containerService.addFabWhitelistEntry(
-        "flower-clientapp-1", "@publisher/app", "1.0.0", "a".repeat(64));
+        "flower-clientapp-1", "publisher/app", "1.0.0", "a".repeat(64));
 
     var updated = (FlowerSuperexecContainerConfig) containerService.getByName("flower-clientapp-1");
     assertEquals(
-        List.of(new WhitelistedApp("@publisher/app", "1.0.0", "a".repeat(64))),
+        List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))),
         updated.getFabWhitelist());
   }
 
@@ -528,15 +528,15 @@ class ContainerServiceTest {
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .fabWhitelistPath(fabWhitelist.toString())
-            .fabWhitelist(List.of(new WhitelistedApp("@publisher/app", "1.0.0", "a".repeat(64))))
+            .fabWhitelist(List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))))
             .build());
 
     containerService.addFabWhitelistEntry(
-        "flower-clientapp-1", "@publisher/app", "1.0.0", "b".repeat(64));
+        "flower-clientapp-1", "publisher/app", "1.0.0", "b".repeat(64));
 
     var updated = (FlowerSuperexecContainerConfig) containerService.getByName("flower-clientapp-1");
     assertEquals(
-        List.of(new WhitelistedApp("@publisher/app", "1.0.0", "b".repeat(64))),
+        List.of(new WhitelistedApp("publisher/app", "1.0.0", "b".repeat(64))),
         updated.getFabWhitelist());
   }
 
@@ -555,7 +555,7 @@ class ContainerServiceTest {
         InvalidFabWhitelistEntryException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "flower-clientapp-1", "@publisher/app", "1.0.0", "not-a-hash"));
+                "flower-clientapp-1", "publisher/app", "1.0.0", "not-a-hash"));
   }
 
   @Test
@@ -577,6 +577,31 @@ class ContainerServiceTest {
   }
 
   @Test
+  void addFabWhitelistEntry_acceptsRealFabIdFormatWithoutAtPrefix(@TempDir Path tempDir) {
+    // Regression test: flwr.cli.config_utils.get_metadata_from_config builds fab_id as
+    // "publisher/name" — no leading "@" (that only appears in Hub specifiers like
+    // "@account/app", never in a FAB's own declared metadata). Confirmed against a real
+    // FAB (2026-08-17); a stricter "@publisher/name" pattern would reject every
+    // legitimately-approved app.
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .build());
+
+    assertDoesNotThrow(
+        () ->
+            containerService.addFabWhitelistEntry(
+                "flower-clientapp-1",
+                "timmyjc/quickstart-pytorch-armadillo",
+                "1.0.3",
+                "a".repeat(64)));
+  }
+
+  @Test
   void addFabWhitelistEntry_rejectsNonSuperexecContainer() {
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
 
@@ -584,7 +609,7 @@ class ContainerServiceTest {
         IllegalArgumentException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "default", "@publisher/app", "1.0.0", "a".repeat(64)));
+                "default", "publisher/app", "1.0.0", "a".repeat(64)));
   }
 
   @Test
@@ -595,7 +620,7 @@ class ContainerServiceTest {
         UnknownContainerException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "does-not-exist", "@publisher/app", "1.0.0", "a".repeat(64)));
+                "does-not-exist", "publisher/app", "1.0.0", "a".repeat(64)));
   }
 
   @Test
