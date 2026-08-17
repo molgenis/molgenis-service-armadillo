@@ -3,11 +3,15 @@
 # Start Flower + Armadillo infrastructure for manual e2e testing.
 #
 # Sets up:
-#   - TLS certs, supernode auth keys and trusted-entities.yaml
+#   - TLS certs and supernode auth keys
 #   - Two Armadillo instances with OIDC (ports 8080/8081)
 #   - Flower superlink with TLS (ports 9091-9093), stock image
-#   - Stock supernode + clientapp configs registered via Armadillo API
-#   - Serverapp superexec
+#   - The Hub app's FAB fetched, hashed and approved into each clientapp's
+#     FAB whitelist (see FAB_HASH_WHITELIST_PLAN.md)
+#   - Supernode + clientapp configs registered via Armadillo API (clientapp
+#     runs our whitelist-enforcing SuperExec image; supernode is stock)
+#   - Serverapp superexec (same image, --entrypoint override back to stock
+#     flower-superexec — ServerApp-side trust isn't in scope for the whitelist)
 #   - Test data uploaded to Armadillo storage
 #
 # Then waits for you to run the Hub app test scenarios.
@@ -16,9 +20,9 @@
 #   - Docker running
 #   - Armadillo bootJar built: ./gradlew bootJar
 #   - Java 17+
-#   - App published on Flower Hub as $HUB_APP and reviewed with your key
-#     (flwr app publish / flwr app review)
-#   - REVIEWER_KEY_ID and REVIEWER_PUBLIC_KEY_FILE set in .env
+#   - App published on Flower Hub as $HUB_APP==$HUB_APP_VERSION
+#     (flwr app publish) — review/signing is NOT required, trust is now the
+#     FAB-hash whitelist, not Hub's reviewer signature
 #   - "127.0.0.1 host.docker.internal" in /etc/hosts
 #   - Python with torch + torchvision (for test data generation)
 #

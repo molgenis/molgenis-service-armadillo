@@ -18,4 +18,4 @@ log "Scenario C: Hub app + wrong project"
 log "Expected: data loading fails with HTTP 403/404 from Armadillo"
 log ""
 
-flwr run "$HUB_APP" local --stream --run-config "$RUN_CONFIG project='no-such-project'"
+flwr run "$HUB_APP==$HUB_APP_VERSION" local --stream --run-config "$RUN_CONFIG project='no-such-project'"

@@ -2,8 +2,8 @@
 #
 # Scenario B: Hub app + wrong token (should fail auth)
 #
-# The app passes the supernodes' signature check but Armadillo rejects the
-# invalid token on data load.
+# The app's hash is whitelisted so the SuperExec launches it, but Armadillo
+# rejects the invalid token on data load.
 #
 set -euo pipefail
 
@@ -26,4 +26,4 @@ log "Scenario B: Hub app + wrong token"
 log "Expected: data loading fails with HTTP 401 from Armadillo"
 log ""
 
-flwr run "$HUB_APP" local --stream --run-config "$RUN_CONFIG"
+flwr run "$HUB_APP==$HUB_APP_VERSION" local --stream --run-config "$RUN_CONFIG"

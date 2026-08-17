@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Scenario F: Hub app signed by a reviewer the nodes do not trust
-# (should be rejected by supernodes)
+# Scenario F: previously-approved hash removed from the whitelist
+# (should be rejected)
 #
-# The app on Flower Hub carries a valid reviewer signature, but the
-# supernodes' trusted-entities.yaml is temporarily replaced with a
-# different key, so _verify_fab finds no trusted signature and the run is
-# rejected with FAB_VERIFICATION_ERROR. Check the supernode logs to
-# confirm. The original trusted-entities.yaml is restored afterwards.
+# Swaps each clientapp's fab-whitelist.yaml for one with an unrelated
+# (bogus) entry, restarts the clientapp containers so the plugin re-reads it
+# at startup, then runs the same app that Scenario A approved. The SuperExec
+# plugin now finds no matching fab_hash and rejects via PushTaskOutput.
+# Restores the original whitelist afterwards.
 #
 set -euo pipefail
 
@@ -15,31 +15,40 @@ source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
 write_flwr_cli_config
 
-TMP_KEY="$(mktemp -d)/untrusted"
-ssh-keygen -t ed25519 -q -N "" -f "$TMP_KEY"
+WHITELIST_1="$ARMADILLO_1_FLOWER_DIR/$CLIENTAPP_1-fab-whitelist.yaml"
+WHITELIST_2="$ARMADILLO_2_FLOWER_DIR/$CLIENTAPP_2-fab-whitelist.yaml"
 
 restore() {
-  for dir in "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"; do
-    if [ -f "$dir/trusted-entities.yaml.bak" ]; then
-      mv "$dir/trusted-entities.yaml.bak" "$dir/trusted-entities.yaml"
+  for f in "$WHITELIST_1" "$WHITELIST_2"; do
+    if [ -f "$f.bak" ]; then
+      mv "$f.bak" "$f"
     fi
   done
-  docker restart "$SUPERNODE_1" "$SUPERNODE_2" >/dev/null
-  log "Restored original trusted-entities.yaml on both nodes."
+  docker restart "$CLIENTAPP_1" "$CLIENTAPP_2" >/dev/null
+  log "Restored the original whitelist on both clientapp containers."
 }
 trap restore EXIT
 
-for dir in "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"; do
-  cp "$dir/trusted-entities.yaml" "$dir/trusted-entities.yaml.bak"
-  printf "untrusted-test-key: %s\n" "$(cat "$TMP_KEY.pub")" > "$dir/trusted-entities.yaml"
+for f in "$WHITELIST_1" "$WHITELIST_2"; do
+  cp "$f" "$f.bak"
+  cat > "$f" <<'EOF'
+- fab_id: '@nobody/unrelated-app'
+  fab_version: '0.0.1'
+  fab_hash: '0000000000000000000000000000000000000000000000000000000000000000'
+EOF
 done
 
-log "Restarting supernodes with untrusted-only trusted-entities.yaml..."
-docker restart "$SUPERNODE_1" "$SUPERNODE_2" >/dev/null
-sleep 5
+log "Restarting clientapp containers with an unrelated-only whitelist..."
+docker restart "$CLIENTAPP_1" "$CLIENTAPP_2" >/dev/null
+sleep 3
 
-log "Scenario F: Hub app signed by an untrusted reviewer"
-log "Expected: supernodes reject the run (FAB_VERIFICATION_ERROR in supernode logs)"
+log "Scenario F: previously-approved app, now removed from the whitelist"
+log "Expected: SuperExec rejects the run — check clientapp container logs for"
+log "'is not on the approved whitelist'"
 log ""
 
-flwr run "$HUB_APP" local --stream || true
+flwr run "$HUB_APP==$HUB_APP_VERSION" local --stream || true
+
+log ""
+log "--- $CLIENTAPP_1 logs ---"
+docker logs "$CLIENTAPP_1" 2>&1 | tail -30

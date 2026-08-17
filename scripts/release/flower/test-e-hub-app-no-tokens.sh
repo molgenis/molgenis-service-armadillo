@@ -2,8 +2,8 @@
 #
 # Scenario E: Hub app + no tokens (should fail)
 #
-# The app passes the supernodes' signature check but no tokens are provided,
-# so data loading fails in the clientapp.
+# The app's hash is whitelisted so the SuperExec launches it, but no tokens
+# are provided, so data loading fails in the clientapp.
 #
 set -euo pipefail
 
@@ -15,4 +15,4 @@ log "Scenario E: Hub app + no tokens"
 log "Expected: clientapp fails with 'No token found for URL'"
 log ""
 
-flwr run "$HUB_APP" local --stream
+flwr run "$HUB_APP==$HUB_APP_VERSION" local --stream

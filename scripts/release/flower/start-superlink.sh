@@ -31,8 +31,16 @@ log "Starting serverapp superexec..."
 # we do not set, so it is plaintext; connect insecurely.
 # No --allow-runtime-dependency-installation: deps are baked into the image,
 # so Flower runs the app in the image venv without a live install.
+# --entrypoint overrides back to stock flower-superexec for this one
+# container: $SUPEREXEC_IMAGE's default entrypoint (armadillo-flwr-superexec)
+# is hardcoded to the whitelist-enforcing ClientApp plugin and has no
+# --plugin-type flag at all — ServerApp-side trust isn't in scope for the
+# whitelist (see FAB_HASH_WHITELIST_PLAN.md's known limitations). Both
+# binaries are on PATH in the same image, so this needs no separate build —
+# see the explanation in the whitelist plan / session notes for why.
 docker run -d --rm \
   --name "$SERVERAPP" \
+  --entrypoint flower-superexec \
   "$SUPEREXEC_IMAGE" \
   --insecure \
   --plugin-type serverapp \

@@ -47,12 +47,15 @@ SUPEREXEC_IMAGE="${SUPEREXEC_IMAGE:-timmyjc/superexec-armadillo:$FLWR_VERSION}"
 FLWR_ARMADILLO_DIR="$PROJECT_ROOT/../molgenis-flwr-armadillo"
 
 # --- Flower Hub ---------------------------------------------------------------
+#
+# App trust no longer depends on Hub review/signing (see FAB_HASH_WHITELIST_PLAN.md)
+# — Hub is used only for app distribution. app_version is pinned (not "latest")
+# because the whitelist is keyed by content hash: fetch-fab must resolve the
+# exact same FAB every time or the approved hash won't match what the SuperLink
+# hands out.
 
 HUB_APP="${HUB_APP:-@timmyjc/quickstart-pytorch-armadillo}"
-# Reviewer trust: key id assigned by Flower Hub (see the app page's
-# Verifications section) and the matching Ed25519 OpenSSH public key file.
-REVIEWER_KEY_ID="${REVIEWER_KEY_ID:-}"
-REVIEWER_PUBLIC_KEY_FILE="${REVIEWER_PUBLIC_KEY_FILE:-}"
+HUB_APP_VERSION="${HUB_APP_VERSION:-1.0.3}"
 
 # --- Flower credentials (mounted into supernodes by Armadillo) ----------------
 
@@ -136,9 +139,9 @@ PYEOF
 generate_flower_credentials() {
   # TLS: one CA, one superlink server cert (SANs cover host + containers).
   # Supernode auth: one Ed25519 OpenSSH keypair per node.
-  # Trust: trusted-entities.yaml listing the Hub reviewer's public key.
-  [ -n "$REVIEWER_KEY_ID" ] || fail "REVIEWER_KEY_ID not set (see the app page's Verifications section on Flower Hub)"
-  [ -f "$REVIEWER_PUBLIC_KEY_FILE" ] || fail "REVIEWER_PUBLIC_KEY_FILE not found: $REVIEWER_PUBLIC_KEY_FILE"
+  # (No trusted-entities.yaml here anymore — app trust is now the FAB-hash
+  # whitelist, approved per superexec container via fetch_fab/approve_fab_entry_json
+  # below, not a supernode-side credential.)
 
   mkdir -p "$CERTS_DIR" "$ARMADILLO_1_FLOWER_DIR" "$ARMADILLO_2_FLOWER_DIR"
 
@@ -162,21 +165,53 @@ generate_flower_credentials() {
       ssh-keygen -t ecdsa -b 256 -q -N "" -f "$dir/credentials"
     fi
     cp "$CERTS_DIR/ca.crt" "$dir/ca.crt"
-    # REVIEWER_KEY_ID may be a comma-separated list of Hub key ids; each maps
-    # to the same signing public key (the Verifications tab only shows the
-    # username, not the fpk_ id, so listing all your ids avoids guessing).
-    python3 - "$REVIEWER_KEY_ID" "$REVIEWER_PUBLIC_KEY_FILE" "$dir/trusted-entities.yaml" <<'PYEOF'
-import sys
-key_ids, pub_file, out = sys.argv[1:4]
-pub = open(pub_file).read().strip()
-with open(out, "w") as f:
-    for kid in key_ids.split(","):
-        kid = kid.strip()
-        if kid:
-            f.write(f"{kid}: {pub}\n")
-PYEOF
   done
   log "Flower credentials ready."
+}
+
+fetch_fab() {
+  # Downloads the FAB Hub actually serves for app_id/app_version via the
+  # unauthenticated fetch-fab API (see FAB_HASH_WHITELIST_PLAN.md) and echoes
+  # the local path. Deliberately does NOT use `flwr app review` — that bundles
+  # the download with the full reviewer sign/submit flow, which needs Hub
+  # reviewer credentials we don't want this to depend on. Downloading the
+  # exact served FAB (not a local `flwr build`) matters: FAB builds aren't
+  # guaranteed byte-identical, so a locally-rebuilt FAB could hash differently
+  # from what the SuperLink actually hands out.
+  local app_id=$1
+  local app_version=$2
+  local out_dir=$3
+  mkdir -p "$out_dir"
+
+  local response fab_url fab_file
+  response=$(curl -sS -X POST https://api.flower.ai/v1/hub/fetch-fab \
+    -H "Content-Type: application/json" \
+    -d "{\"app_id\":\"$app_id\",\"app_version\":\"$app_version\",\"flwr_version\":\"$FLWR_VERSION\"}")
+
+  fab_url=$(echo "$response" | python3 -c "import sys,json; print(json.load(sys.stdin)['fab_url'])" 2>/dev/null)
+  [ -n "$fab_url" ] || fail "fetch-fab did not return a fab_url for $app_id==$app_version. Response: $response"
+
+  fab_file="$out_dir/$(echo "$app_id" | tr '@/' '__')-$app_version.fab"
+  curl -sS -o "$fab_file" "$fab_url"
+  [ -s "$fab_file" ] || fail "Downloaded FAB is empty: $fab_file"
+
+  echo "$fab_file"
+}
+
+approve_fab_entry_json() {
+  # Hashes + reads metadata from a FAB via the same molgenis_flwr_armadillo
+  # function armadillo-flwr-approve-app uses, returning
+  # {"fabId":...,"fabVersion":...,"fabHash":...} for a PUT /containers body
+  # (camelCase — the REST API/containers.json use the WhitelistedApp record's
+  # own field names, only the on-disk whitelist YAML is snake_case).
+  local fab_file=$1
+  python3 -c "
+import json
+from pathlib import Path
+from molgenis_flwr_armadillo.approve_app import approve_app
+entry = approve_app(Path('$fab_file'))
+print(json.dumps({'fabId': entry['fab_id'], 'fabVersion': entry['fab_version'], 'fabHash': entry['fab_hash']}))
+"
 }
 
 wait_for_armadillo() {

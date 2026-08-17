@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 #
-# Scenario D: app not from the Hub (should be rejected by supernodes)
+# Scenario D: app whose FAB hash is not on the whitelist (should be rejected)
 #
-# The FAB is built locally and pushed directly to the SuperLink. The stock
-# SuperLink strips verifications from directly-submitted FABs, so the
-# supernodes' trusted-entities check rejects the run with
-# FAB_VERIFICATION_ERROR before any app code executes. Check the supernode
-# logs to confirm.
-#
-# The same rejection applies to any Hub app whose signers are not listed in
-# trusted-entities.yaml.
+# Pushes a freshly-built FAB of the same app straight to the SuperLink
+# instead of pulling the Hub-served one. FAB builds aren't byte-deterministic
+# (timestamps, archive ordering), so even identical source produces a
+# different hash from the one register-flower-containers.sh approved — the
+# SuperExec plugin's launch_task rejects it via PushTaskOutput before any app
+# code runs. Check the clientapp container logs to confirm (NOT the supernode
+# — the whitelist check happens at the SuperExec, not the SuperNode).
 #
 set -euo pipefail
 
@@ -19,8 +18,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
 write_flwr_cli_config
 
-log "Scenario D: locally-built app pushed directly (not via Hub)"
-log "Expected: supernodes reject the run (FAB_VERIFICATION_ERROR in supernode logs)"
+log "Scenario D: freshly-built (unwhitelisted) FAB pushed directly"
+log "Expected: SuperExec rejects the run — check clientapp container logs for"
+log "'is not on the approved whitelist'"
 log ""
 
-flwr run "$FLWR_APP_DIR" local --stream
+flwr run "$FLWR_APP_DIR" local --stream || true
+
+log ""
+log "--- $CLIENTAPP_1 logs ---"
+docker logs "$CLIENTAPP_1" 2>&1 | tail -30
