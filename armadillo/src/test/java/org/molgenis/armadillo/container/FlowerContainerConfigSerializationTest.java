@@ -171,6 +171,36 @@ class FlowerContainerConfigSerializationTest {
   }
 
   @Test
+  void superexecDefaultsFabWhitelistToEmptyList() {
+    FlowerSuperexecContainerConfig config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-project-1")
+            .image("timmyjc/superexec-test:0.0.1")
+            .build();
+
+    assertEquals(List.of(), config.getFabWhitelist());
+  }
+
+  @Test
+  void superexecWithFabWhitelistRoundTrips() throws Exception {
+    FlowerSuperexecContainerConfig original =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-project-1")
+            .image("timmyjc/superexec-test:0.0.1")
+            .fabWhitelist(
+                List.of(
+                    new WhitelistedApp("@publisher/app", "1.0.0", "a".repeat(64)),
+                    new WhitelistedApp("@publisher/other-app", "2.1.0", "b".repeat(64))))
+            .build();
+
+    String json = OBJECT_MAPPER.writeValueAsString(original);
+    FlowerSuperexecContainerConfig deserialized =
+        OBJECT_MAPPER.readValue(json, FlowerSuperexecContainerConfig.class);
+
+    assertEquals(original, deserialized);
+  }
+
+  @Test
   void flowerConfigsAreNotUpdatableContainers() {
     FlowerSupernodeContainerConfig supernode =
         FlowerSupernodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();
