@@ -409,7 +409,7 @@ function downloadURI(uri: string, name: string) {
 
 export async function downloadWorkspace(workspace: string, user: string) {
   downloadURI(
-    `/workspaces/download/${user}/${workspace}`,
+    `/workspaces/download/${user.replace("user-", "")}/${workspace.replace(":", "%3A")}`,
     user + workspace + ".RData"
   );
 }
