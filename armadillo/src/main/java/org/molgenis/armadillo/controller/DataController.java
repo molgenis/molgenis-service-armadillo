@@ -397,6 +397,7 @@ public class DataController {
 
   @Operation(summary = "Download a user workspace")
   @GetMapping(value = "/workspaces/download/{userId}/{id}")
+  @PreAuthorize("hasRole('ROLE_SU')")
   public ResponseEntity<InputStreamResource> downloadWorkspace(
       @PathVariable String userId, @PathVariable String id, Principal principal) {
     return auditEventPublisher.audit(
@@ -415,6 +416,7 @@ public class DataController {
 
   @Operation(summary = "Get all workspaces")
   @GetMapping(value = "/all-workspaces", produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ROLE_SU')")
   public Map<String, List<Workspace>> getAllUserWorkspaces(Principal principal) {
     return auditEventPublisher.audit(
         storage::listAllUserWorkspaces, principal, GET_ALL_USER_WORKSPACES, Map.of());
@@ -446,6 +448,7 @@ public class DataController {
         @ApiResponse(responseCode = "401", description = "Permission denied.")
       })
   @DeleteMapping(value = "/workspaces/{user}/{id}")
+  @PreAuthorize("hasRole('ROLE_SU')")
   @ResponseStatus(NO_CONTENT)
   public void removeUserWorkspace(
       @PathVariable String user, @PathVariable String id, Principal principal) {
@@ -493,6 +496,7 @@ public class DataController {
   @Operation(summary = "Save user workspace")
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
+  @PreAuthorize("hasRole('ROLE_SU')")
   public void saveUserWorkspace(
       @Pattern(
               regexp = WORKSPACE_ID_FORMAT_REGEX,
