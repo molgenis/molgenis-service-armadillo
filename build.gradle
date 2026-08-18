@@ -205,7 +205,7 @@ tasks.register('jacocoMergedReport', org.gradle.testing.jacoco.tasks.JacocoRepor
 //push to sonarqube
 sonar {
     properties {
-        property 'sonar.gradle.skipCompile', 'true'
+        property "sonar.scanner.skipJreProvisioning", "true"
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
