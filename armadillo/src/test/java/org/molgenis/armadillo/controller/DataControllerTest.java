@@ -1224,8 +1224,6 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void testUploadUserWorkspaceWithWrongExtension() throws Exception {
     String userId = "henk@email.com";
     String id = "test";
-    String userBucket = ArmadilloStorageService.getUserBucketIdentifierFromUserId(userId);
-
     MockMultipartFile file =
         new MockMultipartFile(
             "file", "workspace.csv", APPLICATION_OCTET_STREAM_VALUE, "dummy content".getBytes());

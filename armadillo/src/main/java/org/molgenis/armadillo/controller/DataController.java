@@ -73,6 +73,7 @@ public class DataController {
   public static final String TABLE_RESOURCE_REGEX =
       "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
   public static final String PATH_FORMAT = "%s/%s";
+  public static final String WORKSPACE = "WORKSPACE";
 
   private final Commands commands;
   private final ArmadilloStorageService storage;
@@ -404,7 +405,7 @@ public class DataController {
         () -> storage.downloadUserWorkspace(userId, id),
         principal,
         "DOWNLOAD_USER_WORKSPACE",
-        Map.of(USER, userId, "WORKSPACE", id));
+        Map.of(USER, userId, WORKSPACE, id));
   }
 
   @Operation(summary = "Get user workspaces")
@@ -536,10 +537,10 @@ public class DataController {
           () -> storage.saveWorkspace(inputStream, userBucket, id),
           principal,
           "UPLOAD_USER_WORKSPACE",
-          Map.of(USER, userId, "WORKSPACE", id));
+          Map.of(USER, userId, WORKSPACE, id));
     } else {
       auditEventPublisher.audit(
-          principal, "UPLOAD_USER_WORKSPACE_FAILURE", Map.of(USER, userId, "WORKSPACE", id));
+          principal, "UPLOAD_USER_WORKSPACE_FAILURE", Map.of(USER, userId, WORKSPACE, id));
       throw new ResponseStatusException(BAD_REQUEST, "Workspace should be an .RData file");
     }
   }
