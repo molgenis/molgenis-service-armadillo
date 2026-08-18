@@ -71,11 +71,6 @@ configure_test <- function() {
     exit_test(sprintf("URL [%s] doesn't exist", armadillo_url))
   }
 
-  as_docker_container <- FALSE
-  if ("Y" == Sys.getenv("AS_DOCKER_CONTAINER", "N")) {
-    as_docker_container <- TRUE
-  }
-
   service_location <- remove_slash_if_added(Sys.getenv("GIT_CLONE_PATH"))
   if (service_location == "") {
     service_location <- dirname(dirname(normalizePath(".")))
@@ -120,13 +115,10 @@ configure_test <- function() {
 
   auth_type <- get_auth_type(ADMIN_MODE)
 
-  # Override to TRUE - assume containers are managed externally (already running)
-  as_docker_container <- TRUE
-
   container <- Sys.getenv("CONTAINER")
   if (container == "") {
-    cli_alert_warning("Container not set, defaulting to xenon.")
-    container <- "xenon"
+    cli_alert_warning("Container not set, defaulting to default.")
+    container <- "default"
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
@@ -141,17 +133,6 @@ configure_test <- function() {
     debug <- TRUE
   }
 
-  # default container settings in case a container is missing
-  container_defaults <- data.frame(
-    name = c("xenon", "rock"),
-    container = c("datashield/rock-dolomite-xenon:latest", "datashield/rock-base:latest"),
-    port = c("", ""),
-    # Multiple packages can be concatenated using ,, then using stri_split_fixed() to break them up again
-    # Not adding dsBase since that is always(?) required
-    whitelist = c("resourcer,dsMediation,dsMTLBase", ""),
-    blacklist = c("", "")
-  )
-
   options(timeout = 300)
 
   release_env$skip_tests <- skip_tests
@@ -164,18 +145,12 @@ configure_test <- function() {
   release_env$dest <- dest
   release_env$version <- version
   release_env$auth_type <- auth_type
-  release_env$as_docker_container <- as_docker_container
   release_env$ADMIN_MODE <- ADMIN_MODE
   release_env$container <- container
   release_env$default_parquet_path <- default_parquet_path
   release_env$rda_dir <- rda_dir
   release_env$update_auto <- update_auto
-  release_env$container_defaults <- container_defaults
   release_env$rda_url <- rda_url
   release_env$debug <- debug
 
-  # Generate random project name (actual creation happens in test-03)
-  cli_progress_step("Generating random project name")
-  release_env$project1 <- generate_random_project_name()
-  cli_progress_done()
 }
