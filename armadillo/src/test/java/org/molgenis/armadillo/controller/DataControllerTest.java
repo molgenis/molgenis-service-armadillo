@@ -1218,4 +1218,36 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   void getWorkspaces_noAuthorities_isForbidden() throws Exception {
     mockMvc.perform(get("/workspaces")).andExpect(status().isForbidden());
   }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testUploadUserWorkspaceWithWrongExtension() throws Exception {
+    String userId = "henk@email.com";
+    String id = "test";
+    String userBucket = ArmadilloStorageService.getUserBucketIdentifierFromUserId(userId);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "workspace.csv", APPLICATION_OCTET_STREAM_VALUE, "dummy content".getBytes());
+
+    mockMvc
+        .perform(
+            multipart("/workspaces/upload/{userId}/{id}", userId, id).file(file).session(session))
+        .andExpect(status().isBadRequest());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "UPLOAD_USER_WORKSPACE_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "user",
+                userId,
+                "WORKSPACE",
+                id)));
+  }
 }

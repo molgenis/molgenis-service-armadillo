@@ -529,13 +529,19 @@ public class DataController {
       @PathVariable String id,
       @Valid @RequestParam MultipartFile file)
       throws IOException {
-    InputStream inputStream = new BufferedInputStream(file.getInputStream());
-    String userBucket = getUserBucketIdentifierFromUserId(userId);
-    auditEventPublisher.audit(
-        () -> storage.saveWorkspace(inputStream, userBucket, id),
-        principal,
-        "UPLOAD_USER_WORKSPACE",
-        Map.of(USER, userId, "WORKSPACE", id));
+    if (requireNonNull(file.getOriginalFilename()).endsWith(RDATA_EXT)) {
+      InputStream inputStream = new BufferedInputStream(file.getInputStream());
+      String userBucket = getUserBucketIdentifierFromUserId(userId);
+      auditEventPublisher.audit(
+          () -> storage.saveWorkspace(inputStream, userBucket, id),
+          principal,
+          "UPLOAD_USER_WORKSPACE",
+          Map.of(USER, userId, "WORKSPACE", id));
+    } else {
+      auditEventPublisher.audit(
+          principal, "UPLOAD_USER_WORKSPACE_FAILURE", Map.of(USER, userId, "WORKSPACE", id));
+      throw new ResponseStatusException(BAD_REQUEST, "Workspace should be an .RData file");
+    }
   }
 
   @Operation(summary = "Load user workspace")
