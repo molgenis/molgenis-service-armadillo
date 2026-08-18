@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.service;
 
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
+import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +34,7 @@ public class FlowerDataService {
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public void pushData(String project, String resource, String containerName) {
-    var config = containerService.getByName(containerName);
+    var config = runAsSystem(() -> containerService.getByName(containerName));
     if (!(config instanceof FlowerSuperexecContainerConfig)) {
       throw new IllegalArgumentException(
           "Container '" + containerName + "' is not a Flower clientapp container");
