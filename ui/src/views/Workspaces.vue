@@ -320,14 +320,12 @@ export default defineComponent({
     async downloadSelectedWorkspaces() {
       this.downloadFailures = [];
       this.downloadSuccesses = [];
-      this.selectedWorkspaces.forEach((ws) => {
-        downloadWorkspace(ws, this.selectedUser)
-          .then(() => {
-            this.downloadSuccesses.push(ws);
+      this.selectedWorkspaces.forEach(async (ws) => {
+          downloadWorkspace(ws, this.selectedUser).then(() => {
+            this.downloadSuccesses.push(ws); 
             this.successMessage =
               "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
-          })
-          .catch(() => {
+          }).catch((error) => {
             this.downloadFailures.push(ws);
             this.errorMessage =
               "Download failure: " + this.downloadFailures.join(", ");
