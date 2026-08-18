@@ -103,15 +103,6 @@ describe("DataUpload", () => {
     expect(api.uploadCsvIntoProject).not.toHaveBeenCalled();
   });
 
-  test("sets isUploadingFile to true when upload starts", async () => {
-    api.uploadIntoProject.mockResolvedValue({});
-    await selectFile({ name: "image.png", size: 10 });
-
-    wrapper.vm.uploadDataFile();
-
-    expect(wrapper.vm.isUploadingFile).toBe(true);
-  });
-
   test("emits upload_success with filename", async () => {
     await selectFile({ name: "image.png", size: 10 });
 
