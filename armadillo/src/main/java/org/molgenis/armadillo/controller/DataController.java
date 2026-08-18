@@ -521,6 +521,7 @@ public class DataController {
   @PostMapping(
       value = "/workspaces/upload/{userId}/{id}",
       consumes = {MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize("hasRole('ROLE_SU')")
   @ResponseStatus(NO_CONTENT)
   public void uploadUserWorkspace(
       Principal principal,
