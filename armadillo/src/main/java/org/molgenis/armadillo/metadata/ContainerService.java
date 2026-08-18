@@ -30,7 +30,12 @@ import org.springframework.stereotype.Service;
 public class ContainerService {
 
   private static final Pattern FAB_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
-  private static final Pattern FAB_ID_PATTERN = Pattern.compile("^@[\\w-]+/[\\w-]+$");
+  // Matches Flower's own fab_id format (publisher/name — see
+  // get_metadata_from_config in flwr.cli.config_utils), which has no leading
+  // "@". The "@" only appears in Hub *specifiers* (@account/app, used in
+  // `flwr run`/`fetch-fab` calls), never in a FAB's own declared metadata —
+  // confirmed against a real FAB, not assumed.
+  private static final Pattern FAB_ID_PATTERN = Pattern.compile("^[\\w-]+/[\\w-]+$");
 
   private static final ObjectMapper FAB_WHITELIST_YAML_MAPPER =
       new ObjectMapper(new YAMLFactory())
@@ -173,7 +178,7 @@ public class ContainerService {
   private void validateFabId(String fabId) {
     if (!FAB_ID_PATTERN.matcher(fabId).matches()) {
       throw new InvalidFabWhitelistEntryException(
-          "fabId must look like '@publisher/name', got: " + fabId);
+          "fabId must look like 'publisher/name', got: " + fabId);
     }
   }
 
