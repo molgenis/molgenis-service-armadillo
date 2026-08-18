@@ -80,19 +80,13 @@ export default defineComponent({
     },
   },
   data(): {
-    uploadCsvAsParquet: boolean;
-    uploadDone: boolean;
     isHoveringOverFileUpload: boolean;
     file: undefined | File;
-    typeRows: number;
     isUploadingFile: boolean;
   } {
     return {
-      uploadCsvAsParquet: true,
-      uploadDone: false,
       isHoveringOverFileUpload: false,
       file: undefined,
-      typeRows: 100,
       isUploadingFile: false,
     };
   },

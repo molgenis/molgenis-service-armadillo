@@ -5,7 +5,6 @@
       :uniqueClass="uniqueClass"
       :triggerUpload="triggerUpload"
       :uploadFileMethod="uploadDataFile"
-      :isUploadingFile="isUploadingFile"
       @upload_error="emitError"
       @upload_success="emitSuccess"
     />
@@ -74,13 +73,11 @@ export default defineComponent({
     uploadCsvAsParquet: boolean;
     uploadDone: boolean;
     typeRows: number;
-    isUploadingFile: boolean;
   } {
     return {
       uploadCsvAsParquet: true,
       uploadDone: false,
       typeRows: 100,
-      isUploadingFile: false,
     };
   },
   methods: {
@@ -99,7 +96,7 @@ export default defineComponent({
     },
     uploadDataFile() {
       const fileName = this.getFileName();
-      this.isUploadingFile = true;
+      (this.$refs as any).fileUpload.isUploadingFile = true;
       if (
         (fileName.endsWith(".tsv") || fileName.endsWith(".csv")) &&
         this.uploadCsvAsParquet
