@@ -136,38 +136,28 @@ tasks.register('ci', WriteProperties) {
     property 'TAG_NAME', tagName
 }
 
-
-tasks.register('dockerPrepare') {
-    dependsOn installDist
-    doLast {
-        def installLib = file("build/install/${project.name}/lib")
-        def depsDir = file("build/docker/deps")
-        def appDir = file("build/docker/app")
-        delete(depsDir, appDir)
-        depsDir.mkdirs()
-        appDir.mkdirs()
-        def projectVersion = project.version.toString().replace("v", "")
-        installLib.eachFile { f ->
-            def isProjectJar = f.name.contains(projectVersion)
-            java.nio.file.Files.copy(f.toPath(), new File(isProjectJar ? appDir : depsDir, f.name).toPath())
-        }
-    }
-}
-
-
 // Docker build and push tasks using Docker CLI (Gradle 9 compatible)
 tasks.register('dockerBuild', Exec) {
     dependsOn bootJar
-    dependsOn dockerPrepare
+
     description = 'Build Docker image using Docker CLI'
 
     doFirst {
-        logger.lifecycle("Building Docker image: ${imageName}:${tagName} and ${imageName}:latest")
-        logger.lifecycle("Using JAR file: ${bootJar.archiveFile.get().asFile.name}")
+        def jar = bootJar.archiveFile.get().asFile
+        def jarRelativePath = "build/libs/${jar.name}"
+
+        logger.lifecycle("Building Docker image: ${imageName}:${tagName}")
+        logger.lifecycle("Using JAR file: ${jar}")
+        logger.lifecycle("Docker JAR path: ${jarRelativePath}")
+        logger.lifecycle("JAR exists: ${jar.exists()}")
+
+        if (!jar.exists()) {
+            throw new GradleException("JAR file does not exist: ${jar}")
+        }
     }
 
     commandLine 'docker', 'build',
-            '--build-arg', "JAR_FILE=${bootJar.archiveFile.get().asFile.name}",
+            '--build-arg', "JAR_FILE=build/libs/${bootJar.archiveFileName.get()}",
             '-t', "${imageName}:${tagName}",
             '.'
 }
