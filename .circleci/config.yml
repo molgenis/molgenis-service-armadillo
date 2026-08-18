@@ -75,9 +75,8 @@ jobs:
             git config url.https://.insteadOf git://
 
       - run:
-          name: Build Armadillo and R CICD image
-          command: |
-            ./gradlew docker ci
+          name: build and push armadillo java docker images for the preview
+          command: ./gradlew --no-daemon dockerPush ci
 
       - run:
           name: build, test, push docker
