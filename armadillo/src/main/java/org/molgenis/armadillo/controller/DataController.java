@@ -496,7 +496,6 @@ public class DataController {
   @Operation(summary = "Save user workspace")
   @PostMapping(value = "/workspaces/{id}", produces = TEXT_PLAIN_VALUE)
   @ResponseStatus(CREATED)
-  @PreAuthorize("hasRole('ROLE_SU')")
   public void saveUserWorkspace(
       @Pattern(
               regexp = WORKSPACE_ID_FORMAT_REGEX,
