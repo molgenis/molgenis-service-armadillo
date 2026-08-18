@@ -31,8 +31,8 @@ ADMIN_PASS="${ADMIN_PASS:-admin}"
 # --- OIDC (auth.molgenis.org) ------------------------------------------------
 
 OIDC_ISSUER_URI="${OIDC_ISSUER_URI:-https://auth.molgenis.org}"
-OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-b396233b-cdb2-449e-ac5c-a0d28b38f791}"
-OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-nRO_t1_cIpdzRzr-cWBeZg4ckBsMHmX2MlA9SaSg4P8}"
+OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-}"
+OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"
 RESEARCHER_EMAIL="${RESEARCHER_EMAIL:-t.j.cadman@umcg.nl}"
 
 # --- Docker images (stock Flower; keep major.minor identical everywhere) -----
@@ -95,6 +95,9 @@ fi
 
 log()  { echo ">>> $*"; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
+
+[ -n "$OIDC_CLIENT_ID" ] || fail "OIDC_CLIENT_ID not set. Copy .env.dist to .env and fill in your OIDC test client's credentials."
+[ -n "$OIDC_CLIENT_SECRET" ] || fail "OIDC_CLIENT_SECRET not set. Copy .env.dist to .env and fill in your OIDC test client's credentials."
 
 write_flwr_cli_config() {
   # Isolated Flower CLI config with a "local" connection to the TLS superlink.
