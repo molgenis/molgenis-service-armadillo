@@ -25,7 +25,6 @@
                   this user interface, please contact an administrator.
                 </div>
               </Alert>
-              {{ errorMessage }}
               <router-view />
             </div>
             <Login @loginEvent="reloadUser" v-else />
@@ -81,6 +80,7 @@ export default defineComponent({
     });
 
     const loadUser = async () => {
+      isUnauthorised.value = false;
       await getPrincipal()
         .then((principal) => {
           isAuthenticated.value = principal.authenticated;

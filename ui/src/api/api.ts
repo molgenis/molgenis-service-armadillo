@@ -95,7 +95,9 @@ export async function handleResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 500) {
       error.message = response.statusText;
-    } else if (response.status === 403 || response.status === 401) {
+    } else if (response.status === 401) {
+      error.message = "Invalid username or password";
+    } else if (response.status === 403) {
       error.message =
         "You are logged in, but you don't have permissions to access the Armadillo user interface";
     } else if (response.status === 404) {
