@@ -244,7 +244,7 @@ class CommandsImpl implements Commands {
           @Override
           protected Void doWithConnection(RServerConnection connection) {
             rExecutorService.saveWorkspace(
-                connection, is -> armadilloStorage.saveWorkspace(is, principal, id));
+                connection, is -> armadilloStorage.saveWorkspaceForCurrentUser(is, principal, id));
             return null;
           }
         });
