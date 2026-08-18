@@ -321,11 +321,13 @@ export default defineComponent({
       this.downloadFailures = [];
       this.downloadSuccesses = [];
       this.selectedWorkspaces.forEach(async (ws) => {
-          downloadWorkspace(ws, this.selectedUser).then(() => {
-            this.downloadSuccesses.push(ws); 
+        downloadWorkspace(ws, this.selectedUser)
+          .then(() => {
+            this.downloadSuccesses.push(ws);
             this.successMessage =
               "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
-          }).catch((error) => {
+          })
+          .catch((error) => {
             this.downloadFailures.push(ws);
             this.errorMessage =
               "Download failure: " + this.downloadFailures.join(", ");
