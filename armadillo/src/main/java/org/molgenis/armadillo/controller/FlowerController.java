@@ -18,13 +18,10 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.container.FlowerContainerTokenStore;
-import org.molgenis.armadillo.exceptions.InvalidContainerTokenException;
 import org.molgenis.armadillo.service.FlowerDataService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,15 +35,10 @@ public class FlowerController {
 
   private final FlowerDataService flowerDataService;
   private final AuditEventPublisher auditor;
-  private final FlowerContainerTokenStore containerTokenStore;
 
-  public FlowerController(
-      FlowerDataService flowerDataService,
-      AuditEventPublisher auditor,
-      FlowerContainerTokenStore containerTokenStore) {
+  public FlowerController(FlowerDataService flowerDataService, AuditEventPublisher auditor) {
     this.flowerDataService = flowerDataService;
     this.auditor = auditor;
-    this.containerTokenStore = containerTokenStore;
   }
 
   @Operation(
@@ -63,9 +55,7 @@ public class FlowerController {
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "403",
-            description =
-                "Forbidden - user lacks project researcher role, or the container token"
-                    + " header is missing/invalid",
+            description = "Forbidden - user lacks project researcher role",
             content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(
             responseCode = "404",
@@ -78,21 +68,16 @@ public class FlowerController {
       })
   @PostMapping("push-data")
   @ResponseStatus(NO_CONTENT)
-  public void pushData(
-      Principal principal,
-      @RequestHeader(value = "X-Armadillo-Container-Token", required = false) String containerToken,
-      @Valid @RequestBody PushDataRequest request) {
-    String containerName =
-        containerTokenStore
-            .resolve(containerToken)
-            .orElseThrow(InvalidContainerTokenException::new);
+  public void pushData(Principal principal, @Valid @RequestBody PushDataRequest request) {
     auditor.audit(
-        () -> flowerDataService.pushData(request.project(), request.resource(), containerName),
+        () ->
+            flowerDataService.pushData(
+                request.project(), request.resource(), request.containerName()),
         principal,
         FLOWER_PUSH_DATA,
         Map.of(
             PROJECT, request.project(),
             RESOURCE, request.resource(),
-            CONTAINER, containerName));
+            CONTAINER, request.containerName()));
   }
 }
