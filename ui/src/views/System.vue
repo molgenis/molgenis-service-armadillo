@@ -10,9 +10,8 @@
         ></FeedbackMessage>
         <ConfirmationDialog
           v-if="softRestartTriggered || hardRestartTriggered"
-          record="armadillo"
-          action="restart"
-          recordType="application"
+          :action="softRestartTriggered ? 'soft restart' : 'hard restart'"
+          recordType="the armadillo application"
           @proceed="proceedRestartServer"
           @cancel="cancelRestartServer"
           extraInfo="The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator."
@@ -28,9 +27,8 @@
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="updateAppTriggered"
-          record="application"
+          recordType="the armadillo application"
           action="update"
-          recordType="armadillo"
           @proceed="updateApplication"
           @cancel="cancelAppUpdate"
           :extraInfo="`The application will be updated to version [${versionToUpdateTo}]. The application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator. If you decide to proceed, try refreshing until the application is back up.`"
