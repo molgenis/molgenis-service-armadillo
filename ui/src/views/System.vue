@@ -304,8 +304,30 @@ export default defineComponent({
       this.reloadOidc++;
     },
     askIfSureUpdateOidc(event: Event) {
-      this.updateOidcTriggered = true;
-      this.configToSave = event;
+      if (!this.throwErrorIfOidcValuesEmpty(event as AuthServerConfig)) {
+        this.updateOidcTriggered = true;
+        this.configToSave = event;
+      }
+    },
+    showOidcValueEmptyError(emptyValue: string) {
+      this.errorMessage = `Cannot update OIDC config: ${emptyValue} cannot be empty`;
+      this.cancelOidcUpdate();
+    },
+    throwErrorIfOidcValuesEmpty(oidcValues: AuthServerConfig) {
+      if (oidcValues.issuerUri === "") {
+        this.showOidcValueEmptyError("issuer uri");
+      } else if (oidcValues.clientId === "") {
+        this.showOidcValueEmptyError("client id");
+      } else if (oidcValues.clientSecret === "") {
+        this.showOidcValueEmptyError("client secret");
+      } else if (oidcValues.deviceClientId === "") {
+        this.showOidcValueEmptyError("device client id");
+      } else if (oidcValues.deviceIssuerUri === "") {
+        this.showOidcValueEmptyError("device issuer uri");
+      } else {
+        return false;
+      }
+      return true;
     },
     askIfSureDeleteJar(event: Event) {
       this.deleteJarTriggered = true;
