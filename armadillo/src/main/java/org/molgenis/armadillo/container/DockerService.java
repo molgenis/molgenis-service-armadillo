@@ -56,7 +56,6 @@ public class DockerService {
   private final DockerClient dockerClient;
   private final ContainerService containerService;
   private final ContainerStatusService containerStatusService;
-  private final FlowerContainerTokenStore containerTokenStore;
 
   @Value("${armadillo.docker-run-in-container:false}")
   private boolean inContainer;
@@ -70,12 +69,10 @@ public class DockerService {
   public DockerService(
       DockerClient dockerClient,
       ContainerService containerService,
-      ContainerStatusService containerStatusService,
-      FlowerContainerTokenStore containerTokenStore) {
+      ContainerStatusService containerStatusService) {
     this.dockerClient = dockerClient;
     this.containerService = containerService;
     this.containerStatusService = containerStatusService;
-    this.containerTokenStore = containerTokenStore;
   }
 
   public Map<String, ContainerInfo> getAllContainerStatuses() {
@@ -318,14 +315,12 @@ public class DockerService {
             "flower.armadillo-url is not configured — required so Flower clientapp containers"
                 + " can reach Armadillo, please set it in application.yml");
       }
-      String containerToken = containerTokenStore.mint(config.getName());
       var env =
           new java.util.ArrayList<>(
               List.of(
                   "DEBUG=FALSE",
                   "ARMADILLO_CONTAINER_NAME=" + config.getName(),
-                  "ARMADILLO_URL=" + flowerArmadilloUrl,
-                  "ARMADILLO_CONTAINER_TOKEN=" + containerToken));
+                  "ARMADILLO_URL=" + flowerArmadilloUrl));
       cmd.withEnv(env);
     } else {
       cmd.withEnv("DEBUG=FALSE");
@@ -498,7 +493,6 @@ public class DockerService {
 
   public void removeContainerDeleteImage(String containerName) {
     stopAndRemoveContainer(containerName);
-    containerTokenStore.remove(containerName);
     String imageId = containerService.getByName(containerName).getLastImageId();
     try {
       deleteImageIfUnused(imageId);

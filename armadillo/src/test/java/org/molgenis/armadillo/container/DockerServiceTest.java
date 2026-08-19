@@ -58,7 +58,6 @@ class DockerServiceTest {
   private DockerService dockerService;
 
   @Mock private ContainerStatusService containerStatusService;
-  @Mock private FlowerContainerTokenStore containerTokenStore;
 
   @TempDir Path tempDir;
 
@@ -103,9 +102,7 @@ class DockerServiceTest {
 
   @BeforeEach
   void setup() {
-    dockerService =
-        new DockerService(
-            dockerClient, containerService, containerStatusService, containerTokenStore);
+    dockerService = new DockerService(dockerClient, containerService, containerStatusService);
     ReflectionTestUtils.setField(
         dockerService, "flowerArmadilloUrl", "https://armadillo.example.org");
 
@@ -455,10 +452,7 @@ class DockerServiceTest {
         .thenReturn(mock(CreateContainerCmd.class, RETURNS_DEEP_STUBS));
     when(dockerClient.startContainerCmd(any())).thenReturn(mock(StartContainerCmd.class));
 
-    var spyService =
-        spy(
-            new DockerService(
-                dockerClient, containerService, containerStatusService, containerTokenStore));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
     doThrow(new ImageRemoveFailedException("sha256:old", "in use"))
         .when(spyService)
         .deleteImageIfUnused("sha256:old");
@@ -487,10 +481,7 @@ class DockerServiceTest {
         .thenReturn(mock(CreateContainerCmd.class, RETURNS_DEEP_STUBS));
     when(dockerClient.startContainerCmd(any())).thenReturn(mock(StartContainerCmd.class));
 
-    var spyService =
-        spy(
-            new DockerService(
-                dockerClient, containerService, containerStatusService, containerTokenStore));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
     doNothing()
         .when(spyService)
         .updateImageMetaData(anyString(), Mockito.<String>any(), anyString());
@@ -793,10 +784,7 @@ class DockerServiceTest {
     when(config.getLastImageId()).thenReturn(imageId);
     when(containerService.getByName(containerName)).thenReturn(config);
 
-    var spyService =
-        spy(
-            new DockerService(
-                dockerClient, containerService, containerStatusService, containerTokenStore));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
     doNothing().when(spyService).stopAndRemoveContainer(containerName);
     doNothing().when(spyService).deleteImageIfUnused(imageId);
 
@@ -804,7 +792,6 @@ class DockerServiceTest {
     verify(spyService).stopAndRemoveContainer(containerName);
     verify(containerService).getByName(containerName);
     verify(spyService).deleteImageIfUnused(imageId);
-    verify(containerTokenStore).remove(containerName);
   }
 
   @Test
@@ -816,10 +803,7 @@ class DockerServiceTest {
     when(config.getLastImageId()).thenReturn(imageId);
     when(containerService.getByName(containerName)).thenReturn(config);
 
-    var spyService =
-        spy(
-            new DockerService(
-                dockerClient, containerService, containerStatusService, containerTokenStore));
+    var spyService = spy(new DockerService(dockerClient, containerService, containerStatusService));
 
     doNothing().when(spyService).stopAndRemoveContainer(containerName);
 
@@ -1355,28 +1339,6 @@ class DockerServiceTest {
     verify(cmd).withCmd(cmdCaptor.capture());
     assertArrayEquals(
         new String[] {"--fab-whitelist", "/app/fab-whitelist.yaml"}, cmdCaptor.getValue());
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  void installImage_superexecMintsAndSetsContainerToken() throws IOException {
-    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
-    when(containerTokenStore.mint("flower-clientapp-1")).thenReturn("minted-token");
-
-    var cmd = mock(CreateContainerCmd.class);
-    when(dockerClient.createContainerCmd("flwr/superexec:1.32.1")).thenReturn(cmd);
-    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
-    when(cmd.withName(anyString())).thenReturn(cmd);
-    when(cmd.withEnv(anyList())).thenReturn(cmd);
-    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    var containerResponse = mock(CreateContainerResponse.class);
-    when(cmd.exec()).thenReturn(containerResponse);
-
-    dockerService.installImage(config);
-
-    var envCaptor = ArgumentCaptor.forClass(List.class);
-    verify(cmd).withEnv(envCaptor.capture());
-    assertTrue(envCaptor.getValue().contains("ARMADILLO_CONTAINER_TOKEN=minted-token"));
   }
 
   @Test
