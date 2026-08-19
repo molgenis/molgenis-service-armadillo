@@ -429,6 +429,10 @@ export async function getAppList() {
   return get("/manage/app/list");
 }
 
+export async function getSupportEmail() {
+  return get("/insight/support-email");
+}
+
 export async function getLatestReleaseInfo() {
   const version = await get("/manage/app/latest-release-info");
   return version;
