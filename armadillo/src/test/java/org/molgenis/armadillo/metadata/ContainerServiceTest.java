@@ -7,15 +7,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DefaultContainerFactory;
+import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.container.FlowerSupernodeContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerUpdater;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
@@ -344,6 +349,99 @@ class ContainerServiceTest {
     containerService.initialize();
 
     assertEquals(Set.of("dsBase", "dsOmics"), containerService.getPackageWhitelist("default"));
+  }
+
+  @Test
+  void upsert_createsPlaceholderFilesForFlowerSupernode(@TempDir Path tempDir) {
+    var containersMetadata = ContainersMetadata.create();
+    containersMetadata
+        .getContainers()
+        .put(
+            "default",
+            VanillaContainerConfig.create(
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
+
+    var containerService =
+        new ContainerService(
+            new DummyContainersLoader(containersMetadata),
+            initialContainerConfigs,
+            containerScope,
+            List.of(),
+            mock(DefaultContainerFactory.class),
+            List.of());
+    containerService.initialize();
+
+    Path caCert = tempDir.resolve("ca.crt");
+    Path credentials = tempDir.resolve("credentials");
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.32.1")
+            .caCertPath(caCert.toString())
+            .authPrivateKeyPath(credentials.toString())
+            .build();
+
+    containerService.upsert(config);
+
+    assertTrue(Files.exists(caCert));
+    assertTrue(Files.exists(credentials));
+  }
+
+  @Test
+  void upsert_createsPlaceholderFileForFlowerSuperexec(@TempDir Path tempDir) {
+    var containersMetadata = ContainersMetadata.create();
+    containersMetadata
+        .getContainers()
+        .put(
+            "default",
+            VanillaContainerConfig.create(
+                "default",
+                "image",
+                "localhost",
+                6311,
+                null,
+                null,
+                null,
+                List.of(),
+                Map.of(),
+                null,
+                null,
+                null,
+                null));
+
+    var containerService =
+        new ContainerService(
+            new DummyContainersLoader(containersMetadata),
+            initialContainerConfigs,
+            containerScope,
+            List.of(),
+            mock(DefaultContainerFactory.class),
+            List.of());
+    containerService.initialize();
+
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    var config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .build();
+
+    containerService.upsert(config);
+
+    assertTrue(Files.exists(fabWhitelist));
   }
 
   @Test

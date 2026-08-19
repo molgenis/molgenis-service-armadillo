@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.ContainerInfo;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.controller.ContainerResponse.DatashieldResponse;
 import org.molgenis.armadillo.controller.ContainerResponse.DefaultResponse;
@@ -84,5 +86,19 @@ class ContainerResponseTest {
             "datashieldROptions",
             Map.of("datashield.seed", "123456789")),
         dsResponse.specificContainerOptions());
+  }
+
+  @Test
+  void create_forFlowerContainerHasNullPort() {
+    var config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .build();
+
+    ContainerResponse response = ContainerResponse.create(config, null);
+
+    assertTrue(response instanceof DefaultResponse);
+    assertNull(((DefaultResponse) response).port());
   }
 }

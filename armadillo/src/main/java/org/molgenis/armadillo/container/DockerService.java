@@ -7,6 +7,7 @@ import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.command.CreateNetworkCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
@@ -15,7 +16,10 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -43,6 +47,12 @@ public class DockerService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
 
+  private static final String CONTAINER_CA_CERT = "/app/ca.crt";
+  private static final String CONTAINER_CREDENTIALS = "/app/credentials";
+  private static final String CONTAINER_FAB_WHITELIST = "/app/fab-whitelist.yaml";
+  private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+  private static final String FLOWER_NETWORK_NAME = "flower-network";
+
   private final DockerClient dockerClient;
   private final ContainerService containerService;
   private final ContainerStatusService containerStatusService;
@@ -52,6 +62,9 @@ public class DockerService {
 
   @Value("${armadillo.container-prefix:''}")
   private String containerPrefix;
+
+  @Value("${flower.armadillo-url:}")
+  private String flowerArmadilloUrl;
 
   public DockerService(
       DockerClient dockerClient,
@@ -157,6 +170,9 @@ public class DockerService {
     containerStatusService.updateStatus(containerName, "Container installed", null, null);
     stopContainer(dockerContainerName);
     removeContainer(dockerContainerName);
+    if (containerConfig instanceof FlowerContainer) {
+      createNetworkIfNotExists(FLOWER_NETWORK_NAME);
+    }
     installImage(containerConfig);
     startContainer(dockerContainerName);
 
@@ -250,27 +266,137 @@ public class DockerService {
     }
   }
 
-  void installImage(ContainerConfig containerConfig) {
-    if (containerConfig.getImage() == null) {
-      throw new MissingImageException(containerConfig.getImage());
+  void installImage(ContainerConfig config) {
+    if (config.getImage() == null) {
+      throw new MissingImageException(config.getImage());
     }
 
-    // if rock is in the image name, it's rock
-    int imageExposed = containerConfig.getImage().contains("rock") ? 8085 : 6311;
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(config.getImage())) {
+      HostConfig hostConfig =
+          new HostConfig().withRestartPolicy(RestartPolicy.unlessStoppedRestart());
+
+      configurePortBindings(cmd, hostConfig, config);
+      configureNetworkMode(hostConfig, config);
+      configureBindMounts(hostConfig, config);
+
+      cmd.withHostConfig(hostConfig).withName(config.getName());
+      configureEnv(cmd, config);
+      configureDockerCmd(cmd, config);
+
+      cmd.exec();
+    } catch (DockerException e) {
+      throw new ImageStartFailedException(config.getImage(), e);
+    }
+  }
+
+  /** Binds container port to host. Skipped when port is null (e.g. flower containers). */
+  private void configurePortBindings(
+      CreateContainerCmd cmd, HostConfig hostConfig, ContainerConfig config) {
+    if (config.getPort() == null) return;
+
+    int imageExposed = config.getImage().contains("rock") ? 8085 : 6311;
     ExposedPort exposed = ExposedPort.tcp(imageExposed);
     Ports portBindings = new Ports();
-    portBindings.bind(exposed, Ports.Binding.bindPort(containerConfig.getPort()));
-    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(containerConfig.getImage())) {
-      cmd.withExposedPorts(exposed)
-          .withHostConfig(
-              new HostConfig()
-                  .withPortBindings(portBindings)
-                  .withRestartPolicy(RestartPolicy.unlessStoppedRestart()))
-          .withName(containerConfig.getName())
-          .withEnv("DEBUG=FALSE")
-          .exec();
-    } catch (DockerException e) {
-      throw new ImageStartFailedException(containerConfig.getImage(), e);
+    portBindings.bind(exposed, Ports.Binding.bindPort(config.getPort()));
+    hostConfig.withPortBindings(portBindings);
+    cmd.withExposedPorts(exposed);
+  }
+
+  private void configureNetworkMode(HostConfig hostConfig, ContainerConfig config) {
+    if (config instanceof FlowerContainer) {
+      hostConfig.withNetworkMode(FLOWER_NETWORK_NAME);
+    }
+  }
+
+  private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
+    if (config instanceof FlowerSuperexecContainerConfig) {
+      if (flowerArmadilloUrl == null || flowerArmadilloUrl.isEmpty()) {
+        throw new IllegalStateException(
+            "flower.armadillo-url is not configured — required so Flower clientapp containers"
+                + " can reach Armadillo, please set it in application.yml");
+      }
+      var env =
+          new java.util.ArrayList<>(
+              List.of(
+                  "DEBUG=FALSE",
+                  "ARMADILLO_CONTAINER_NAME=" + config.getName(),
+                  "ARMADILLO_URL=" + flowerArmadilloUrl));
+      cmd.withEnv(env);
+    } else {
+      cmd.withEnv("DEBUG=FALSE");
+    }
+  }
+
+  /** Mounts certificate/credential files or the FAB whitelist into flower containers. */
+  private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
+    List<Bind> binds = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSupernodeContainerConfig supernode) {
+      addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT, false);
+      addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS, false);
+    } else if (config instanceof FlowerSuperexecContainerConfig superexec) {
+      addBindMount(binds, superexec.getFabWhitelistPath(), CONTAINER_FAB_WHITELIST, true);
+    }
+
+    if (!binds.isEmpty()) {
+      hostConfig.withBinds(binds);
+    }
+  }
+
+  /**
+   * Adds a read-only bind mount, failing closed on a missing file. An empty file is rejected unless
+   * {@code allowEmpty} — certs/keys are always a misconfiguration when empty, but an empty FAB
+   * whitelist is a legitimate "nothing approved yet" state.
+   */
+  private void addBindMount(
+      List<Bind> binds, String hostPath, String containerPath, boolean allowEmpty) {
+    if (hostPath == null) return;
+    Path path = Path.of(hostPath).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException(String.format("Required file not found: %s", path));
+    }
+    try {
+      if (!allowEmpty && Files.size(path) == 0) {
+        throw new IllegalStateException(
+            String.format(
+                "Required file is empty: %s — please replace with valid certificate/key", path));
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file: " + path, e);
+    }
+    binds.add(new Bind(path.toString(), new Volume(containerPath), AccessMode.ro));
+  }
+
+  private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
+    List<String> args = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSupernodeContainerConfig) {
+      args.addAll(
+          List.of(
+              "--root-certificates", CONTAINER_CA_CERT,
+              "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
+              "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
+              "--isolation", "process"));
+    } else if (config instanceof FlowerSuperexecContainerConfig) {
+      args.addAll(List.of("--fab-whitelist", CONTAINER_FAB_WHITELIST));
+    }
+
+    if (config.getDockerArgs() != null) {
+      args.addAll(config.getDockerArgs());
+    }
+
+    if (!args.isEmpty()) {
+      cmd.withCmd(args.toArray(new String[0]));
+    }
+  }
+
+  private void createNetworkIfNotExists(String networkName) {
+    List<Network> networks = dockerClient.listNetworksCmd().withNameFilter(networkName).exec();
+    if (networks.isEmpty()) {
+      LOG.info("Creating docker network '{}'", networkName);
+      try (CreateNetworkCmd cmd = dockerClient.createNetworkCmd()) {
+        cmd.withName(networkName).withDriver("bridge").exec();
+      }
     }
   }
 
