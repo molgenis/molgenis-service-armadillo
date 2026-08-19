@@ -7,6 +7,7 @@ import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.command.CreateNetworkCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
@@ -50,6 +51,7 @@ public class DockerService {
   private static final String CONTAINER_CREDENTIALS = "/app/credentials";
   private static final String CONTAINER_FAB_WHITELIST = "/app/fab-whitelist.yaml";
   private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+  private static final String FLOWER_NETWORK_NAME = "flower-network";
 
   private final DockerClient dockerClient;
   private final ContainerService containerService;
@@ -169,7 +171,7 @@ public class DockerService {
     stopContainer(dockerContainerName);
     removeContainer(dockerContainerName);
     if (containerConfig instanceof FlowerContainer) {
-      createNetworkIfNotExists(FlowerContainer.NETWORK_NAME);
+      createNetworkIfNotExists(FLOWER_NETWORK_NAME);
     }
     installImage(containerConfig);
     startContainer(dockerContainerName);
@@ -302,7 +304,7 @@ public class DockerService {
 
   private void configureNetworkMode(HostConfig hostConfig, ContainerConfig config) {
     if (config instanceof FlowerContainer) {
-      hostConfig.withNetworkMode(FlowerContainer.NETWORK_NAME);
+      hostConfig.withNetworkMode(FLOWER_NETWORK_NAME);
     }
   }
 
@@ -392,7 +394,9 @@ public class DockerService {
     List<Network> networks = dockerClient.listNetworksCmd().withNameFilter(networkName).exec();
     if (networks.isEmpty()) {
       LOG.info("Creating docker network '{}'", networkName);
-      dockerClient.createNetworkCmd().withName(networkName).withDriver("bridge").exec();
+      try (CreateNetworkCmd cmd = dockerClient.createNetworkCmd()) {
+        cmd.withName(networkName).withDriver("bridge").exec();
+      }
     }
   }
 

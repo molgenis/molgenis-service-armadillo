@@ -516,7 +516,8 @@ class DockerServiceTest {
     when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1204,7 +1205,8 @@ class DockerServiceTest {
     when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1221,13 +1223,14 @@ class DockerServiceTest {
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
     when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
     var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
     verify(cmd).withHostConfig(hostConfigCaptor.capture());
-    assertEquals(FlowerContainer.NETWORK_NAME, hostConfigCaptor.getValue().getNetworkMode());
+    assertEquals("flower-network", hostConfigCaptor.getValue().getNetworkMode());
   }
 
   @Test
@@ -1244,7 +1247,8 @@ class DockerServiceTest {
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
     when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1268,7 +1272,8 @@ class DockerServiceTest {
     when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1285,7 +1290,8 @@ class DockerServiceTest {
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyString())).thenReturn(cmd);
     when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1316,7 +1322,8 @@ class DockerServiceTest {
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyList())).thenReturn(cmd);
     when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     dockerService.installImage(config);
 
@@ -1344,7 +1351,8 @@ class DockerServiceTest {
     when(cmd.withName(anyString())).thenReturn(cmd);
     when(cmd.withEnv(anyList())).thenReturn(cmd);
     when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
-    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+    var containerResponse = mock(CreateContainerResponse.class);
+    when(cmd.exec()).thenReturn(containerResponse);
 
     assertDoesNotThrow(() -> dockerService.installImage(config));
   }
@@ -1441,18 +1449,18 @@ class DockerServiceTest {
 
     var listNetworksCmd = mock(ListNetworksCmd.class);
     when(dockerClient.listNetworksCmd()).thenReturn(listNetworksCmd);
-    when(listNetworksCmd.withNameFilter(FlowerContainer.NETWORK_NAME)).thenReturn(listNetworksCmd);
+    when(listNetworksCmd.withNameFilter("flower-network")).thenReturn(listNetworksCmd);
     when(listNetworksCmd.exec()).thenReturn(List.of());
 
     var createNetworkCmd = mock(CreateNetworkCmd.class);
     when(dockerClient.createNetworkCmd()).thenReturn(createNetworkCmd);
-    when(createNetworkCmd.withName(FlowerContainer.NETWORK_NAME)).thenReturn(createNetworkCmd);
+    when(createNetworkCmd.withName("flower-network")).thenReturn(createNetworkCmd);
     when(createNetworkCmd.withDriver("bridge")).thenReturn(createNetworkCmd);
 
     dockerService.pullImageStartContainer("flower-supernode");
 
     verify(dockerClient).createNetworkCmd();
-    verify(createNetworkCmd).withName(FlowerContainer.NETWORK_NAME);
+    verify(createNetworkCmd).withName("flower-network");
   }
 
   @Test
@@ -1495,7 +1503,7 @@ class DockerServiceTest {
 
     var listNetworksCmd = mock(ListNetworksCmd.class);
     when(dockerClient.listNetworksCmd()).thenReturn(listNetworksCmd);
-    when(listNetworksCmd.withNameFilter(FlowerContainer.NETWORK_NAME)).thenReturn(listNetworksCmd);
+    when(listNetworksCmd.withNameFilter("flower-network")).thenReturn(listNetworksCmd);
     var existingNetwork = mock(com.github.dockerjava.api.model.Network.class);
     when(listNetworksCmd.exec()).thenReturn(List.of(existingNetwork));
 
