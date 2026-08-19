@@ -1350,8 +1350,16 @@ class DockerServiceTest {
   }
 
   @Test
-  void installImage_superexecMissingArmadilloUrlThrows() throws IOException {
+  void installImage_superexecEmptyArmadilloUrlThrows() throws IOException {
     ReflectionTestUtils.setField(dockerService, "flowerArmadilloUrl", "");
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_superexecNullArmadilloUrlThrows() throws IOException {
+    ReflectionTestUtils.setField(dockerService, "flowerArmadilloUrl", null);
     var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
 
     assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
