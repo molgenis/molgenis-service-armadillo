@@ -41,6 +41,7 @@ class ContainerResponseTest {
     assertEquals("vanilla", defaultResponse.type());
     assertEquals("default", defaultResponse.name());
     assertEquals("image", defaultResponse.image());
+    assertEquals("localhost", defaultResponse.host());
     assertEquals(6311, defaultResponse.port());
     assertEquals(123L, defaultResponse.imageSize());
     assertEquals("2024-01-01", defaultResponse.installDate());
@@ -71,6 +72,7 @@ class ContainerResponseTest {
     assertEquals("ds", dsResponse.type());
     assertEquals("ds", dsResponse.name());
     assertEquals("image", dsResponse.image());
+    assertEquals("localhost", dsResponse.host());
     assertEquals(6311, dsResponse.port());
     assertEquals(info, dsResponse.containerInfo());
     assertEquals(
