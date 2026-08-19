@@ -33,26 +33,28 @@ public class PackageServiceImpl implements PackageService {
   public static final String FIELD_ASSIGN_METHODS = "AssignMethods";
   public static final String FIELD_OPTIONS = "Options";
   public static final String COMMAND_INSTALLED_PACKAGES =
-      "library(\"magrittr\")\n"
+      "local({\n"
+          + "  library(\"magrittr\")\n"
           + "\n"
-          + "to_df <- function(lst) {\n"
-          + "  tibble::as_tibble(lapply(lst, function(x) t(tibble::as_tibble(x))))\n"
-          + "}\n"
-          + "\n"
-          + "read_datashield_inst <- function(package) {\n"
-          + "  file <- system.file(\"DATASHIELD\", package = package$Package)\n"
-          + "  if (file == \"\") package\n"
-          + "  else {\n"
-          + "    from_file <- as.list(unlist(tibble::as_tibble(read.dcf(file))))\n"
-          + "    result <- append(as.list(package), as.list(from_file))\n"
-          + "    result[!is.na(result)]\n"
+          + "  to_df <- function(lst) {\n"
+          + "    tibble::as_tibble(lapply(lst, function(x) t(tibble::as_tibble(x))))\n"
           + "  }\n"
-          + "}\n"
           + "\n"
-          + "installed.packages(fields = c('AssignMethods', 'AggregateMethods', 'Options')) %>%\n"
-          + "  tibble::as_tibble() %>%\n"
-          + "  dplyr::rowwise() %>%\n"
-          + "  dplyr::do(to_df(read_datashield_inst(.)))\n";
+          + "  read_datashield_inst <- function(package) {\n"
+          + "    file <- system.file(\"DATASHIELD\", package = package$Package)\n"
+          + "    if (file == \"\") package\n"
+          + "    else {\n"
+          + "      from_file <- as.list(unlist(tibble::as_tibble(read.dcf(file))))\n"
+          + "      result <- append(as.list(package), as.list(from_file))\n"
+          + "      result[!is.na(result)]\n"
+          + "    }\n"
+          + "  }\n"
+          + "\n"
+          + "  installed.packages(fields = c('AssignMethods', 'AggregateMethods', 'Options')) %>%\n"
+          + "    tibble::as_tibble() %>%\n"
+          + "    dplyr::rowwise() %>%\n"
+          + "    dplyr::do(to_df(read_datashield_inst(.)))\n"
+          + "})\n";
 
   @Override
   public List<RPackage> getInstalledPackages(RServerConnection connection) {
