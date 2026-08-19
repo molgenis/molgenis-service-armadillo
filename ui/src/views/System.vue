@@ -14,7 +14,7 @@
           recordType="the armadillo application"
           @proceed="proceedRestartServer"
           @cancel="cancelRestartServer"
-          extraInfo="The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator."
+          :extraInfo="`The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator [${supportEmail}].`"
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="updateOidcTriggered"
@@ -23,7 +23,7 @@
           recordType="the authentication server"
           @proceed="saveOidcConfig"
           @cancel="cancelOidcUpdate"
-          extraInfo="Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access. After configuration is updated, the application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator."
+          :extraInfo="`Changing the authentication settings can affect whether users can login. If you change the authentication server, ensure that all of your current users are registered in the new server so that they continue to have access. After configuration is updated, the application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator [${supportEmail}].`"
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="updateAppTriggered"
@@ -31,7 +31,7 @@
           action="update"
           @proceed="updateApplication"
           @cancel="cancelAppUpdate"
-          :extraInfo="`The application will be updated to version [${versionToUpdateTo}]. The application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator. If you decide to proceed, try refreshing until the application is back up.`"
+          :extraInfo="`The application will be updated to version [${versionToUpdateTo}]. The application will be restarted. In the very unlikely case that the application doesn't come back up, please contact your administrator [${supportEmail}]. If you decide to proceed, try refreshing until the application is back up.`"
         ></ConfirmationDialog>
         <ConfirmationDialog
           v-if="deleteJarTriggered"
@@ -110,6 +110,7 @@ import { processErrorMessages } from "@/helpers/errorProcessing";
 import {
   getAuthServerConfig,
   putAuthServerConfig,
+  getSupportEmail,
   getFreeDiskSpace,
   getTotalDiskSpace,
   getAppList,
@@ -147,9 +148,11 @@ export default defineComponent({
     const appList: Ref<Array<string>> = ref([]);
     const currentVersion: Ref<string> = ref("");
     const latestReleaseInfo: Ref<string> = ref("");
+    const supportEmail: Ref<string> = ref("");
 
     onBeforeMount(() => {
       loadAuthConfig();
+      loadSupportEmail();
       loadDiskSpace();
       loadAppList();
       getAppList();
@@ -188,6 +191,21 @@ export default defineComponent({
         return {};
       });
     };
+
+    const loadSupportEmail = async () => {
+      getSupportEmail()
+        .then((response) => {
+          supportEmail.value = response.email;
+        })
+        .catch((error: string) => {
+          errorMessage.value = processErrorMessages(
+            error,
+            "support email",
+            router
+          );
+          return {};
+        });
+    };
     const loadDiskSpace = async () => {
       freeDiskSpace.value = await getFreeDiskSpace().catch((error: string) => {
         errorMessage.value = processErrorMessages(
@@ -218,6 +236,7 @@ export default defineComponent({
       currentVersion,
       latestReleaseInfo,
       loadAppList,
+      supportEmail,
     };
   },
   data() {
