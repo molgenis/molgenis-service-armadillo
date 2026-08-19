@@ -106,10 +106,10 @@ test_that("profiles endpoints are admin-only", {
     list(name = "nonexistent-test-profile", image = "dummy", host = "localhost", port = 6311),
     auto_unbox = TRUE
   )
-  expect_forbidden("PUT", "ds-profiles", profile_body)
-  expect_forbidden("DELETE", "ds-profiles/nonexistent-test-profile")
-  expect_forbidden("POST", "ds-profiles/default/start")
-  expect_forbidden("POST", "ds-profiles/default/stop")
+  expect_forbidden("PUT", "containers", profile_body)
+  expect_forbidden("DELETE", "containers/nonexistent-test-profile")
+  expect_forbidden("POST", "containers/default/start")
+  expect_forbidden("POST", "containers/default/stop")
 })
 
 test_that("insight endpoints are admin-only", {
