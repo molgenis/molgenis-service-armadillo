@@ -103,7 +103,7 @@ test_that("profiles endpoints are admin-only", {
   skip_if(release_env$ADMIN_MODE, "Cannot test researcher restrictions as admin")
 
   profile_body <- jsonlite::toJSON(
-    list(name = "nonexistent-test-profile", image = "dummy", host = "localhost", port = 6311),
+    list(type = "ds", name = "nonexistent-test-profile", image = "dummy", host = "localhost", port = 6311),
     auto_unbox = TRUE
   )
   expect_forbidden("PUT", "containers", profile_body)
@@ -343,7 +343,7 @@ test_that("DataSHIELD endpoints are closed to users without roles", {
   # Assignment and execution (text/plain bodies)
   expect_forbidden_text("POST", "symbols/tbl", "mtcars")
   expect_forbidden_text("POST", "execute", "meanDS(D$age)")
-  expect_forbidden_text("POST", "select-profile", release_env$profile)
+  expect_forbidden_text("POST", "select-profile", release_env$current_container)
   expect_forbidden("DELETE", "symbols/tbl")
 
   # Workspaces
