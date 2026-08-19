@@ -99,10 +99,6 @@ class ManagementServiceTest {
     assertNull(error.get());
   }
 
-  // -------------------------------------------------------------------------
-  // getCurrentOidcConfig
-  // -------------------------------------------------------------------------
-
   @Test
   void getCurrentOidcConfig_returnsAllFields() {
     var config = service.getCurrentOidcConfig();
@@ -112,10 +108,6 @@ class ManagementServiceTest {
     assertEquals("device-client", config.get("deviceClientId"));
     assertEquals("https://device.auth.example.com", config.get("deviceIssuerUri"));
   }
-
-  // -------------------------------------------------------------------------
-  // deleteJar
-  // -------------------------------------------------------------------------
 
   @Test
   void deleteJar_throwsWhenDeletingRunningVersion() {
@@ -140,10 +132,6 @@ class ManagementServiceTest {
     assertThrows(StorageException.class, () -> service.deleteJar("1.0.0"));
   }
 
-  // -------------------------------------------------------------------------
-  // listAvailableJars
-  // -------------------------------------------------------------------------
-
   @Test
   void listLocallyAvailableJars_returnsOnlyJarFiles() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
@@ -165,10 +153,6 @@ class ManagementServiceTest {
     assertTrue(jars.isEmpty());
   }
 
-  // -------------------------------------------------------------------------
-  // isArmadilloUpdateAvailable — via listAvailableJars
-  // -------------------------------------------------------------------------
-
   @Test
   void listLocallyAvailableJars_returnsMultipleJars() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
@@ -178,10 +162,6 @@ class ManagementServiceTest {
 
     assertEquals(2, jars.size());
   }
-
-  // -------------------------------------------------------------------------
-  // getScriptVersionTag (private — tested via reflection)
-  // -------------------------------------------------------------------------
 
   String getTag(String version) throws Exception {
     Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
@@ -199,10 +179,6 @@ class ManagementServiceTest {
   void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
     assertEquals("3f3cffbaaa61121c5f9b10021e0e40412aaadc65", getTag("5.13.0"));
   }
-
-  // -------------------------------------------------------------------------
-  // getJarFromVersion (private — tested via reflection)
-  // -------------------------------------------------------------------------
 
   @Test
   void getJarFromVersion_stripsVPrefix() throws Exception {
@@ -222,10 +198,6 @@ class ManagementServiceTest {
     assertEquals("molgenis-armadillo-5.14.0.jar", jar);
   }
 
-  // -------------------------------------------------------------------------
-  // getJarPathFromVersion (private — tested via reflection)
-  // -------------------------------------------------------------------------
-
   @Test
   void getJarPathFromVersion_composesCorrectPath() throws Exception {
     Method m = ManagementService.class.getDeclaredMethod("getJarPathFromVersion", String.class);
@@ -234,10 +206,6 @@ class ManagementServiceTest {
     String path = (String) m.invoke(service, "5.14.0");
     assertEquals(tempDir + File.separator + "molgenis-armadillo-5.14.0.jar", path);
   }
-
-  // -------------------------------------------------------------------------
-  // fileExistsInDir (private — tested via reflection)
-  // -------------------------------------------------------------------------
 
   @Test
   void fileExistsInDir_returnsTrueWhenFilePresent() throws Exception {
@@ -262,10 +230,6 @@ class ManagementServiceTest {
     assertFalse(exists);
   }
 
-  // -------------------------------------------------------------------------
-  // listAvailableJars — subdirectories with .jar-like names are excluded
-  // -------------------------------------------------------------------------
-
   @Test
   void listLocallyAvailableJars_excludesSubdirectories() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
@@ -277,10 +241,6 @@ class ManagementServiceTest {
     assertTrue(jars.contains("molgenis-armadillo-5.14.0.jar"));
     assertFalse(jars.contains("subdir.jar"));
   }
-
-  // -------------------------------------------------------------------------
-  // isArmadilloUpdateAvailable — jar already present (no HTTP call needed)
-  // -------------------------------------------------------------------------
 
   @Test
   void isArmadilloUpdateAvailable_jarPresentMeansNoUpdateNeeded() throws Exception {
@@ -296,10 +256,6 @@ class ManagementServiceTest {
         (boolean) m.invoke(service, "molgenis-armadillo-5.14.0.jar", tempDir.toString());
     assertTrue(jarPresent); // jar found → isArmadilloUpdateAvailable returns false
   }
-
-  // -------------------------------------------------------------------------
-  // downloadUpdateScript — 'v' prefix is stripped before version tag lookup
-  // -------------------------------------------------------------------------
 
   @Test
   void downloadUpdateScript_stripsVPrefixBeforeVersionTagLookup() throws Exception {
@@ -353,10 +309,6 @@ class ManagementServiceTest {
       assertTrue(called.get());
     }
   }
-
-  // -------------------------------------------------------------------------
-  // getLastRelease
-  // -------------------------------------------------------------------------
 
   @Test
   void getLastRelease_should_return_json_on_200() throws Exception {

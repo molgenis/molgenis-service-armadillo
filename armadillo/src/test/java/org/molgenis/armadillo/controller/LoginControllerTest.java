@@ -19,10 +19,6 @@ class LoginControllerTest {
   @MockitoBean AccessService accessService;
   @Autowired MockMvc mockMvc;
 
-  // -------------------------------------------------------------------------
-  // GET /oauth2/
-  // -------------------------------------------------------------------------
-
   @Test
   @WithMockUser
   void whenAuthenticatedRedirect_redirectsToRoot() throws Exception {
@@ -32,10 +28,6 @@ class LoginControllerTest {
         .andExpect(redirectedUrl("/"));
   }
 
-  // -------------------------------------------------------------------------
-  // GET /basic-login
-  // -------------------------------------------------------------------------
-
   @Test
   @WithMockUser
   void basicLogin_redirectsToRoot() throws Exception {
@@ -44,10 +36,6 @@ class LoginControllerTest {
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/"));
   }
-
-  // -------------------------------------------------------------------------
-  // GET /basic-logout
-  // -------------------------------------------------------------------------
 
   @Test
   @WithMockUser

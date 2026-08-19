@@ -80,8 +80,6 @@ class ApplicationConfigFileTest {
     return (Map<String, Object>) current;
   }
 
-  // ---------- readConfigFile ----------
-
   @Test
   void readConfigFile_loadsYamlIntoConfig() {
     updater.read();
@@ -101,8 +99,6 @@ class ApplicationConfigFileTest {
 
     assertThrows(RuntimeException.class, badUpdater::read);
   }
-
-  // ---------- updateConfig ----------
 
   @Test
   void writeConfig_File_updatesAllExpectedFieldsInPlace() {
@@ -158,8 +154,6 @@ class ApplicationConfigFileTest {
     assertTrue(springAfter.containsKey("security"));
   }
 
-  // ---------- writeConfigFile ----------
-
   @Test
   void writeConfigFile_writesReadableYaml() throws IOException {
     updater.read();
@@ -176,8 +170,6 @@ class ApplicationConfigFileTest {
     assertNotNull(written);
     assertTrue(written.containsKey("spring"));
   }
-
-  // ---------- updateApplicationConfig (full round trip) ----------
 
   @Test
   void update_writesBackupWithOriginalValues() throws IOException {
