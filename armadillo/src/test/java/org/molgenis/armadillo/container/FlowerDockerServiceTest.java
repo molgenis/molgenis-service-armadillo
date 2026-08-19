@@ -10,6 +10,8 @@ import com.github.dockerjava.api.command.CopyArchiveToContainerCmd;
 import com.github.dockerjava.api.command.ExecCreateCmd;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.command.ExecStartCmd;
+import com.github.dockerjava.api.command.InspectExecCmd;
+import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.io.ByteArrayInputStream;
@@ -31,11 +33,14 @@ import org.molgenis.armadillo.exceptions.DataPushFailedException;
 class FlowerDockerServiceTest {
 
   @Mock DockerClient dockerClient;
+  @Mock DockerService dockerService;
   @Mock CopyArchiveToContainerCmd copyCmd;
   @Mock ExecCreateCmd execCreateCmd;
   @Mock ExecCreateCmdResponse execCreateCmdResponse;
   @Mock ExecStartCmd execStartCmd;
   @Mock ResultCallback.Adapter adapter;
+  @Mock InspectExecCmd inspectExecCmd;
+  @Mock InspectExecResponse inspectExecResponse;
 
   @Captor ArgumentCaptor<InputStream> tarStreamCaptor;
 
@@ -43,10 +48,11 @@ class FlowerDockerServiceTest {
 
   @BeforeEach
   void setup() {
-    flowerDockerService = new FlowerDockerService(dockerClient);
+    flowerDockerService = new FlowerDockerService(dockerClient, dockerService);
   }
 
   private void mockEnsureDirectoryExists(String containerName) throws InterruptedException {
+    when(dockerService.asContainerName(containerName)).thenReturn(containerName);
     when(dockerClient.execCreateCmd(containerName)).thenReturn(execCreateCmd);
     when(execCreateCmd.withAttachStdout(true)).thenReturn(execCreateCmd);
     when(execCreateCmd.withAttachStderr(true)).thenReturn(execCreateCmd);
@@ -56,6 +62,9 @@ class FlowerDockerServiceTest {
     when(dockerClient.execStartCmd("exec-id")).thenReturn(execStartCmd);
     when(execStartCmd.exec(any())).thenReturn(adapter);
     when(adapter.awaitCompletion()).thenReturn(adapter);
+    when(dockerClient.inspectExecCmd("exec-id")).thenReturn(inspectExecCmd);
+    when(inspectExecCmd.exec()).thenReturn(inspectExecResponse);
+    when(inspectExecResponse.getExitCodeLong()).thenReturn(0L);
   }
 
   @Test
@@ -108,6 +117,60 @@ class FlowerDockerServiceTest {
         DataPushFailedException.class,
         () ->
             flowerDockerService.copyDataToContainer("broken", "/tmp/armadillo_data", "file", data));
+  }
+
+  @Test
+  void copyDataToContainer_resolvesDockerContainerName() throws InterruptedException {
+    when(dockerService.asContainerName("logical-name")).thenReturn("prefix-logical-name-1");
+    when(dockerClient.execCreateCmd("prefix-logical-name-1")).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStdout(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStderr(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withCmd("mkdir", "-p", "/tmp/armadillo_data")).thenReturn(execCreateCmd);
+    when(execCreateCmd.exec()).thenReturn(execCreateCmdResponse);
+    when(execCreateCmdResponse.getId()).thenReturn("exec-id");
+    when(dockerClient.execStartCmd("exec-id")).thenReturn(execStartCmd);
+    when(execStartCmd.exec(any())).thenReturn(adapter);
+    when(adapter.awaitCompletion()).thenReturn(adapter);
+    when(dockerClient.inspectExecCmd("exec-id")).thenReturn(inspectExecCmd);
+    when(inspectExecCmd.exec()).thenReturn(inspectExecResponse);
+    when(inspectExecResponse.getExitCodeLong()).thenReturn(0L);
+    when(dockerClient.copyArchiveToContainerCmd("prefix-logical-name-1")).thenReturn(copyCmd);
+    when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
+    when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
+
+    InputStream data = new ByteArrayInputStream("data".getBytes());
+
+    flowerDockerService.copyDataToContainer("logical-name", "/tmp/armadillo_data", "file", data);
+
+    verify(dockerClient).execCreateCmd("prefix-logical-name-1");
+    verify(dockerClient).copyArchiveToContainerCmd("prefix-logical-name-1");
+  }
+
+  @Test
+  void copyDataToContainer_mkdirNonZeroExitCodeThrows() throws InterruptedException {
+    when(dockerService.asContainerName("my-container")).thenReturn("my-container");
+    when(dockerClient.execCreateCmd("my-container")).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStdout(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withAttachStderr(true)).thenReturn(execCreateCmd);
+    when(execCreateCmd.withCmd("mkdir", "-p", "/tmp/armadillo_data")).thenReturn(execCreateCmd);
+    when(execCreateCmd.exec()).thenReturn(execCreateCmdResponse);
+    when(execCreateCmdResponse.getId()).thenReturn("exec-id");
+    when(dockerClient.execStartCmd("exec-id")).thenReturn(execStartCmd);
+    when(execStartCmd.exec(any())).thenReturn(adapter);
+    when(adapter.awaitCompletion()).thenReturn(adapter);
+    when(dockerClient.inspectExecCmd("exec-id")).thenReturn(inspectExecCmd);
+    when(inspectExecCmd.exec()).thenReturn(inspectExecResponse);
+    when(inspectExecResponse.getExitCodeLong()).thenReturn(1L);
+
+    InputStream data = new ByteArrayInputStream("data".getBytes());
+
+    assertThrows(
+        DataPushFailedException.class,
+        () ->
+            flowerDockerService.copyDataToContainer(
+                "my-container", "/tmp/armadillo_data", "file", data));
+
+    verify(dockerClient, never()).copyArchiveToContainerCmd(any());
   }
 
   @Test
