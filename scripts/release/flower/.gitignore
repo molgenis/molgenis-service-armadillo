@@ -1,0 +1,14 @@
+data1/
+data2/
+*.log
+*.pt
+__pycache__/
+*.pyc
+data/
+molgenis_flwr_armadillo/
+flower-nodes.yaml
+.armadillo-pids
+.env
+.venv/
+certs/
+.flwr-home/

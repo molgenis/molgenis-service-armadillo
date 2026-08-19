@@ -18,13 +18,17 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -54,6 +58,35 @@ class DockerServiceTest {
   private DockerService dockerService;
 
   @Mock private ContainerStatusService containerStatusService;
+
+  @TempDir Path tempDir;
+
+  private FlowerSupernodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
+      throws IOException {
+    Path caCert = tempDir.resolve("ca.crt");
+    Path credentials = tempDir.resolve("credentials");
+    Files.writeString(caCert, "dummy-ca");
+    Files.writeString(credentials, "dummy-key");
+    return FlowerSupernodeContainerConfig.builder()
+        .name(name)
+        .image("flwr/supernode:1.26.1")
+        .dockerArgs(args)
+        .caCertPath(caCert.toString())
+        .authPrivateKeyPath(credentials.toString())
+        .build();
+  }
+
+  private FlowerSuperexecContainerConfig flowerSuperexecConfig(
+      String name, List<String> args, String fabWhitelistContent) throws IOException {
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    Files.writeString(fabWhitelist, fabWhitelistContent);
+    return FlowerSuperexecContainerConfig.builder()
+        .name(name)
+        .image("flwr/superexec:1.32.1")
+        .dockerArgs(args)
+        .fabWhitelistPath(fabWhitelist.toString())
+        .build();
+  }
 
   private static class NonBlockingCallback extends PullImageResultCallback {
     @Override
@@ -1155,5 +1188,301 @@ class DockerServiceTest {
     assertThrows(
         ImagePullFailedException.class, () -> dockerService.pullImageStartContainer("default"));
     assertTrue(Thread.currentThread().isInterrupted(), "thread interrupt flag should be set");
+  }
+
+  @Test
+  void installImage_skipsPortBindingsWhenPortIsNull() {
+    var config = mock(ContainerConfig.class);
+    when(config.getImage()).thenReturn("flwr/supernode:1.26.1");
+    when(config.getPort()).thenReturn(null);
+    when(config.getName()).thenReturn("flower-supernode");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    verify(cmd, never()).withExposedPorts(any(ExposedPort.class));
+  }
+
+  @Test
+  void installImage_setsNetworkModeForFlowerContainer() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
+    verify(cmd).withHostConfig(hostConfigCaptor.capture());
+    assertEquals(FlowerContainer.NETWORK_NAME, hostConfigCaptor.getValue().getNetworkMode());
+  }
+
+  @Test
+  void installImage_setsDockerArgsAsCmd() {
+    var config = mock(ContainerConfig.class);
+    when(config.getImage()).thenReturn("flwr/supernode:1.26.1");
+    when(config.getPort()).thenReturn(null);
+    when(config.getName()).thenReturn("flower-supernode");
+    when(config.getDockerArgs()).thenReturn(List.of("--insecure", "--superlink", "host:9092"));
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var cmdCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(cmd).withCmd(cmdCaptor.capture());
+    assertArrayEquals(
+        new String[] {"--insecure", "--superlink", "host:9092"}, cmdCaptor.getValue());
+  }
+
+  @Test
+  void installImage_skipsDockerCmdWhenArgsEmpty() {
+    var config = mock(ContainerConfig.class);
+    when(config.getImage()).thenReturn("datashield/rock:latest");
+    when(config.getPort()).thenReturn(6311);
+    when(config.getName()).thenReturn("default");
+    when(config.getDockerArgs()).thenReturn(List.of());
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("datashield/rock:latest")).thenReturn(cmd);
+    when(cmd.withExposedPorts(any(ExposedPort.class))).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    verify(cmd, never()).withCmd(any(String[].class));
+  }
+
+  @Test
+  void installImage_supernodeBindsCertsAndOmitsTrustedEntitiesArg() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of());
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/supernode:1.26.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyString())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
+    verify(cmd).withHostConfig(hostConfigCaptor.capture());
+    var mountedPaths =
+        hostConfigCaptor.getValue().getBinds() == null
+            ? List.<String>of()
+            : List.of(hostConfigCaptor.getValue().getBinds()).stream()
+                .map(bind -> bind.getVolume().getPath())
+                .toList();
+    assertEquals(List.of("/app/ca.crt", "/app/credentials"), mountedPaths);
+
+    var cmdCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(cmd).withCmd(cmdCaptor.capture());
+    var args = List.of(cmdCaptor.getValue());
+    assertTrue(args.containsAll(List.of("--root-certificates", "--auth-supernode-private-key")));
+    assertFalse(args.contains("--trusted-entities"));
+  }
+
+  @Test
+  void installImage_superexecBindsFabWhitelistAndSetsArg() throws IOException {
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/superexec:1.32.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyList())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    dockerService.installImage(config);
+
+    var hostConfigCaptor = ArgumentCaptor.forClass(HostConfig.class);
+    verify(cmd).withHostConfig(hostConfigCaptor.capture());
+    var mountedPaths =
+        List.of(hostConfigCaptor.getValue().getBinds()).stream()
+            .map(bind -> bind.getVolume().getPath())
+            .toList();
+    assertEquals(List.of("/app/fab-whitelist.yaml"), mountedPaths);
+
+    var cmdCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(cmd).withCmd(cmdCaptor.capture());
+    assertArrayEquals(
+        new String[] {"--fab-whitelist", "/app/fab-whitelist.yaml"}, cmdCaptor.getValue());
+  }
+
+  @Test
+  void installImage_superexecAllowsEmptyFabWhitelist() throws IOException {
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "");
+
+    var cmd = mock(CreateContainerCmd.class);
+    when(dockerClient.createContainerCmd("flwr/superexec:1.32.1")).thenReturn(cmd);
+    when(cmd.withHostConfig(any(HostConfig.class))).thenReturn(cmd);
+    when(cmd.withName(anyString())).thenReturn(cmd);
+    when(cmd.withEnv(anyList())).thenReturn(cmd);
+    when(cmd.withCmd(any(String[].class))).thenReturn(cmd);
+    when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
+
+    assertDoesNotThrow(() -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_superexecMissingFabWhitelistFileThrows() {
+    // allowEmpty must only waive the empty-file check, never the existence check — otherwise a
+    // wrong/missing whitelist path would silently start a superexec with no enforcement mount.
+    var config =
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .dockerArgs(List.of())
+            .fabWhitelistPath(tempDir.resolve("does-not-exist.yaml").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeMissingCaCertThrows() {
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(tempDir.resolve("does-not-exist.crt").toString())
+            .authPrivateKeyPath(tempDir.resolve("credentials").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeEmptyCaCertThrows() throws IOException {
+    Path emptyCert = tempDir.resolve("empty-ca.crt");
+    Files.createFile(emptyCert);
+    Path credentials = tempDir.resolve("credentials");
+    Files.writeString(credentials, "dummy-key");
+
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(emptyCert.toString())
+            .authPrivateKeyPath(credentials.toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_supernodeMissingAuthPrivateKeyThrows() throws IOException {
+    Path caCert = tempDir.resolve("ca.crt");
+    Files.writeString(caCert, "dummy-ca");
+
+    var config =
+        FlowerSupernodeContainerConfig.builder()
+            .name("flower-supernode")
+            .image("flwr/supernode:1.26.1")
+            .dockerArgs(List.of())
+            .caCertPath(caCert.toString())
+            .authPrivateKeyPath(tempDir.resolve("does-not-exist-credentials").toString())
+            .build();
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
+  }
+
+  @Test
+  void pullImageStartContainer_createsNetworkForFlowerContainer() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
+    when(containerService.getByName("flower-supernode")).thenReturn(config);
+
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("flower-supernode").exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("sha256:abc123");
+
+    var listNetworksCmd = mock(ListNetworksCmd.class);
+    when(dockerClient.listNetworksCmd()).thenReturn(listNetworksCmd);
+    when(listNetworksCmd.withNameFilter(FlowerContainer.NETWORK_NAME)).thenReturn(listNetworksCmd);
+    when(listNetworksCmd.exec()).thenReturn(List.of());
+
+    var createNetworkCmd = mock(CreateNetworkCmd.class);
+    when(dockerClient.createNetworkCmd()).thenReturn(createNetworkCmd);
+    when(createNetworkCmd.withName(FlowerContainer.NETWORK_NAME)).thenReturn(createNetworkCmd);
+    when(createNetworkCmd.withDriver("bridge")).thenReturn(createNetworkCmd);
+
+    dockerService.pullImageStartContainer("flower-supernode");
+
+    verify(dockerClient).createNetworkCmd();
+    verify(createNetworkCmd).withName(FlowerContainer.NETWORK_NAME);
+  }
+
+  @Test
+  void pullImageStartContainer_skipsNetworkCreationForNonFlowerContainer() {
+    var config =
+        VanillaContainerConfig.create(
+            "default",
+            "image:tag",
+            "localhost",
+            6311,
+            null,
+            null,
+            null,
+            List.of(),
+            Map.of(),
+            null,
+            null,
+            null,
+            null);
+    when(containerService.getByName("default")).thenReturn(config);
+
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("default").exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("sha256:abc123");
+
+    dockerService.pullImageStartContainer("default");
+
+    verify(dockerClient, never()).listNetworksCmd();
+    verify(dockerClient, never()).createNetworkCmd();
+  }
+
+  @Test
+  void pullImageStartContainer_skipsNetworkCreationWhenAlreadyExists() throws IOException {
+    var config = flowerSupernodeConfig("flower-supernode", List.of("--insecure"));
+    when(containerService.getByName("flower-supernode")).thenReturn(config);
+
+    var inspectResponse = mock(InspectContainerResponse.class);
+    when(dockerClient.inspectContainerCmd("flower-supernode").exec()).thenReturn(inspectResponse);
+    when(inspectResponse.getImageId()).thenReturn("sha256:abc123");
+
+    var listNetworksCmd = mock(ListNetworksCmd.class);
+    when(dockerClient.listNetworksCmd()).thenReturn(listNetworksCmd);
+    when(listNetworksCmd.withNameFilter(FlowerContainer.NETWORK_NAME)).thenReturn(listNetworksCmd);
+    var existingNetwork = mock(com.github.dockerjava.api.model.Network.class);
+    when(listNetworksCmd.exec()).thenReturn(List.of(existingNetwork));
+
+    dockerService.pullImageStartContainer("flower-supernode");
+
+    verify(dockerClient, never()).createNetworkCmd();
   }
 }
