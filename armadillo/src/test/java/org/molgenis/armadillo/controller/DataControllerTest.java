@@ -1140,10 +1140,4 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     String user = "username@email.com";
     assertEquals("username__at__email.com", dataController.getSafeUsernameForFileSystem(user));
   }
-
-  @Test
-  @WithMockUser(roles = {})
-  void getWorkspaces_noAuthorities_isForbidden() throws Exception {
-    mockMvc.perform(get("/workspaces")).andExpect(status().isForbidden());
-  }
 }

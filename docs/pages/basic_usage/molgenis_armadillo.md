@@ -50,7 +50,7 @@ Below some basic operations to get you started using MolgenisArmadillo:
         armadillo.login(
             armadillo = "https://armadillo.test.molgenis.org"
         )
-        #token <- armadillo.get_credentials("https://armadillo.test.molgenis.org")
+        #token <- armadillo.get_token("https://armadillo.test.molgenis.org")
 
         # armadillo.login will create a session and store the credentials in the environment.
 

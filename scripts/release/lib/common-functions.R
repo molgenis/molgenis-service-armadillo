@@ -120,31 +120,19 @@ do_skip_test <- function(test_name) {
   }
 }
 
-skip_if_no_package <- function(package_name) {
-  testthat::skip_if(
-    !package_name %in% release_env$installed_ds_packages,
-    sprintf("Package '%s' not installed in container '%s'",
-            package_name, release_env$current_container)
-  )
-}
-
-skip_ds_test <- function(test_name) {
+skip_if_no_resources <- function(test_name) {
   do_skip_test(test_name)
-  skip_if_no_package(test_name)
-}
-
-skip_if_no_resources <- function(test_name, package = NULL) {
-  do_skip_test(test_name)
-  testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
+  # TODO: re-enable once resource tests work in admin mode
+  # testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
   testthat::skip_if(!"resourcer" %in% release_env$container_info$specificContainerOptions$packageWhitelist,
                     sprintf("resourcer not available for container: %s", release_env$current_container))
-  if (!is.null(package)) skip_if_no_package(package)
 }
 
 skip_if_localhosts <- function(url, test_name) {
   do_skip_test(test_name)
-  testthat::skip_if(grepl("localhost", url),
-                    "Skipping test on localhost")
+  # TODO: re-enable when version number can be reliably retrieved over localhost
+  testthat::skip_if(!"localhost" %in% url,
+                    sprintf("version cannot be retrieved locally"))
 }
 
 read_parquet_with_message <- function(file_path, dest) {

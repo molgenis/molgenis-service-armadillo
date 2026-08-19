@@ -1,3 +1,90 @@
+generate_project_port <- function(current_project_ports) {
+  starting_port <- 6312
+  while (starting_port %in% current_project_ports) {
+    starting_port <- starting_port + 1
+  }
+  return(starting_port)
+}
+
+obtain_existing_container_information <- function() {
+  responses <- get_from_api_with_header("containers", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
+  response_df <- data.frame(matrix(ncol = 5, nrow = 0, dimnames = list(NULL, c("name", "container", "port", "seed", "online"))))
+  for (response in responses) {
+    ds_options <- response$specificContainerOptions$datashieldROptions
+    if ("datashield.seed" %in% names(ds_options)) {
+      datashield_seed <- ds_options$datashield.seed
+    } else {
+      datashield_seed <- NA
+    }
+
+    response_df[nrow(response_df) + 1, ] <- c(response$name, response$image, response$port, datashield_seed, response$dockerStatus$status)
+  }
+  return(response_df)
+}
+
+return_list_without_empty <- function(to_empty_list) {
+  return(to_empty_list[to_empty_list != ""])
+}
+
+create_container <- function(container_name) {
+  if (container_name %in% release_env$container_defaults$name) {
+    cli_progress_step(sprintf("Creating container: %s", container_name))
+    container_default <- release_env$container_defaults[release_env$container_defaults$name == container_name, ]
+    current_containers <- obtain_existing_container_information()
+    new_container_seed <- generate_random_project_seed(current_containers$seed)
+    whitelist <- as.list(stri_split_fixed(paste("dsBase", container_default$whitelist, sep = ","), ",")[[1]])
+    blacklist <- as.list(stri_split_fixed(container_default$blacklist, ",")[[1]])
+    port <- container_default$port
+    if (port == "") {
+      port <- generate_project_port(current_containers$port)
+    }
+    args <- list(
+      type = "ds",
+      name = container_name,
+      image = container_default$container,
+      host = "localhost",
+      port = port,
+      packageWhitelist = return_list_without_empty(whitelist),
+      functionBlacklist = return_list_without_empty(blacklist),
+      datashieldROptions = list(datashield.seed = new_container_seed)
+    )
+    response <- put_to_api("containers", release_env$token, release_env$auth_type, body_args = args, url = release_env$armadillo_url)
+    if (response$status_code == 204) {
+      cli_progress_done()
+      start_container(container_name)
+    } else {
+      exit_test(sprintf("Unable to create container: %s , errored %s", container_name, response$status_code))
+    }
+  } else {
+    exit_test(sprintf("Unable to create container: %s , unknown container", container_name))
+  }
+}
+
+generate_random_project_seed <- function(current_project_seeds) {
+  random_seed <- round(runif(1, min = 100000000, max = 999999999))
+  if (!random_seed %in% current_project_seeds) {
+    return(random_seed)
+  } else {
+    generate_random_project_seed(current_project_seeds)
+  }
+}
+
+create_container_if_not_available <- function(container_name, available_containers) {
+  if (!container_name %in% available_containers) {
+    cli_alert_info(sprintf("Unable to locate container %s, attempting to create.", container_name))
+    create_container(container_name)
+  }
+  start_container_if_not_running(container_name)
+}
+
+start_container_if_not_running <- function(container_name) {
+  response <- get_from_api_with_header(paste0("containers/", container_name), release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
+  if (!response$dockerStatus$status == "RUNNING") {
+    cli_alert_info(sprintf("Detected container %s not running", container_name))
+    start_container(container_name)
+  }
+}
+
 start_container <- function(container_name) {
   auth_header <- get_auth_header(release_env$auth_type, release_env$token)
   cli_progress_step(sprintf("Starting container: %s", container_name))
@@ -16,146 +103,6 @@ start_container <- function(container_name) {
   }
 }
 
-
-get_installed_packages <- function() {
-  auth_header <- get_auth_header(release_env$auth_type, release_env$token)
-  base_url <- release_env$armadillo_url
-
-  h <- httr::handle(base_url)
-  auth_config <- httr::add_headers(auth_header)
-
-  select_response <- POST(
-    paste0(base_url, "select-profile"),
-    body = release_env$current_container,
-    encode = "raw",
-    config = c(httr::content_type("text/plain"), auth_config),
-    handle = h
-  )
-  if (select_response$status_code != 204) {
-    cli_alert_warning(sprintf(
-      "Failed to select container '%s' (status %s), package detection may be incomplete",
-      release_env$current_container, select_response$status_code
-    ))
-  }
-
-  response <- GET(
-    paste0(base_url, "packages"),
-    config = c(auth_config),
-    handle = h
-  )
-  if (response$status_code != 200) {
-    cli_alert_warning("Failed to fetch packages from API")
-    return(list())
-  }
-
-  content(response)
-}
-
-extract_ds_package_names <- function(packages) {
-  ds_packages <- character(0)
-  for (pkg in packages) {
-    if (!is.null(pkg$assignMethods) || !is.null(pkg$aggregateMethods)) {
-      ds_packages <- c(ds_packages, pkg$name)
-    }
-  }
-  ds_packages
-}
-
-refresh_container_info <- function() {
-  release_env$container_info <- get_from_api_with_header(
-    paste0("containers/", release_env$current_container),
-    release_env$token, release_env$auth_type,
-    release_env$armadillo_url, release_env$user
-  )
-}
-
-update_container_whitelist <- function(new_whitelist) {
-  args <- list(
-    type = "ds",
-    name = release_env$current_container,
-    image = release_env$container_info$image,
-    host = release_env$container_info$host,
-    port = release_env$container_info$port,
-    packageWhitelist = as.list(new_whitelist),
-    functionBlacklist = as.list(unlist(release_env$container_info$specificContainerOptions$functionBlacklist)),
-    datashieldROptions = release_env$container_info$specificContainerOptions$datashieldROptions
-  )
-  put_to_api(
-    "containers", release_env$token, release_env$auth_type,
-    body_args = args, url = release_env$armadillo_url
-  )
-}
-
-detect_and_whitelist_packages <- function() {
-  initialise_empty_whitelist()
-
-  ds_packages <- detect_installed_ds_packages()
-
-  update_whitelist_if_needed(ds_packages)
-
-  release_env$installed_ds_packages <- ds_packages
-}
-
-initialise_empty_whitelist <- function() {
-  current_whitelist <- unlist(release_env$container_info$specificContainerOptions$packageWhitelist)
-  if (length(current_whitelist) > 0) return()
-
-  cli_alert_info("Whitelist empty, initialising with dsBase")
-  response <- update_container_whitelist(c("dsBase"))
-  if (response$status_code == 204) {
-    refresh_container_info()
-  }
-}
-
-detect_installed_ds_packages <- function() {
-  cli_progress_step("Detecting installed DataShield packages")
-  packages <- get_installed_packages()
-  ds_packages <- extract_ds_package_names(packages)
-  if (length(ds_packages) == 0) {
-    cli_progress_done(result = "failed")
-    exit_test(sprintf("No DataShield packages detected for container '%s'",
-      release_env$current_container))
-  }
-  cli_progress_done()
-  ds_packages
-}
-
-update_whitelist_if_needed <- function(ds_packages) {
-  current_whitelist <- unlist(release_env$container_info$specificContainerOptions$packageWhitelist)
-  missing <- setdiff(ds_packages, current_whitelist)
-  if (length(missing) == 0) return()
-
-  cli_alert_info(sprintf("Auto-whitelisting: %s", paste(missing, collapse = ", ")))
-  response <- update_container_whitelist(union(current_whitelist, ds_packages))
-  if (response$status_code == 204) {
-    cli_alert_success("Container whitelist updated")
-    refresh_container_info()
-  } else {
-    cli_alert_warning(sprintf("Failed to update whitelist (status %s)", response$status_code))
-  }
-}
-
-show_container_info <- function() {
-  image <- release_env$container_info$image
-  ds_packages <- release_env$installed_ds_packages
-
-  all_ds_tests <- c("dsBase", "dsMediation", "dsSurvival", "dsMTLBase", "dsExposome", "dsOmics", "dsTidyverse")
-
-  user_skips <- release_env$skip_tests[release_env$skip_tests != ""]
-  not_installed <- setdiff(all_ds_tests, ds_packages)
-
-  cat("\n")
-  cli_alert_info(sprintf("Image: %s", image))
-  cli_alert_info(sprintf("DS packages: %s", paste(ds_packages, collapse = ", ")))
-  cli_alert_info(sprintf("Skipped by user: %s",
-    if (length(user_skips) == 0) "None" else paste(user_skips, collapse = ", ")))
-  cli_alert_info(sprintf("Skipped (package not available): %s",
-    if (length(not_installed) == 0) "None" else paste(not_installed, collapse = ", ")))
-  resource_tests <- c("setup-resources", "resources", "ds-exposome", "ds-omics")
-  cli_alert_info(sprintf("Skipped (admin mode): %s",
-    if (release_env$ADMIN_MODE) paste(resource_tests, collapse = ", ") else "None"))
-  cat("\n")
-}
 
 close_connections <- function() {
   if (is.null(release_env$conns)) {
@@ -223,19 +170,26 @@ setup_containers <- function() {
     return()
   }
 
-  refresh_container_info()
-
-  if (!is.null(release_env$container_info$dockerStatus) &&
-      !identical(release_env$container_info$dockerStatus$status, "RUNNING")) {
-    start_container(release_env$current_container)
+  if (!release_env$as_docker_container) {
+    create_container_if_not_available(release_env$current_container, release_env$available_containers)
   }
-  seed <- unlist(release_env$container_info$specificContainerOptions$datashieldROptions$datashield.seed)
+  container_info <- get_from_api_with_header(paste0("containers/", release_env$current_container), release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
+  if (!release_env$as_docker_container) {
+    start_container_if_not_running("default")
+  }
+  seed <- unlist(container_info$specificContainerOptions$datashieldROptions$datashield.seed)
+  whitelist <- unlist(container_info$specificContainerOptions$packageWhitelist)
   if (is.null(seed)) {
-    cli_alert_warning(sprintf("Seed of container [%s] is NULL, please set it in UI container tab and restart the container",
-      release_env$current_container))
+    cli_alert_warning(sprintf("Seed of container [%s] is NULL, please set it in UI container tab and restart the container", release_env$current_container))
     wait_for_input(release_env$interactive)
+  }
+  if (!"resourcer" %in% whitelist) {
+    cli_alert_warning(sprintf("Whitelist of container [%s] does not contain resourcer, please add it and restart the container", release_env$current_container))
+    wait_for_input(release_env$interactive)
+  }
+
+  if (is.null(seed) || !"resourcer" %in% whitelist) {
     exit_test("Container not properly configured")
   }
-  detect_and_whitelist_packages()
-  show_container_info()
+  release_env$container_info <- container_info
 }

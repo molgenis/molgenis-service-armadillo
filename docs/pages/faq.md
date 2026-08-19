@@ -56,11 +56,11 @@
     library(MolgenisArmadillo)
     library(resourcer)
 
-    token <- armadillo.get_credentials("http://localhost:8080/")
+    token <- armadillo.get_token("http://localhost:8080/")
 
     resGSE1 <- resourcer::newResource(
       name = "GSE66351_1",
-      secret = token@access_token,
+      secret = token,
       url = "http://host.docker.internal:8080/storage/projects/omics/objects/test%2Fgse66351_1.rda",
       format = "ExpressionSet"
     )
@@ -73,13 +73,13 @@
     library(DSMolgenisArmadillo)
     library(dsBaseClient)
 
-    token <- armadillo.get_credentials("http://localhost:8080/")
+    token <- armadillo.get_token("http://localhost:8080/")
 
     builder <- DSI::newDSLoginBuilder()
     builder$append(
       server = "local",
       url = "http://localhost:8080/",
-      token = token@access_token,
+      token = token,
       driver = "ArmadilloDriver",
       profile = "uniform",
       resource = "omics/ewas/GSE66351_1"

@@ -28,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -57,10 +58,7 @@ public class AuthConfig {
   @Order(1)
   @Bean
   protected SecurityFilterChain oauthAndBasic(
-      HttpSecurity http,
-      @Value("${armadillo.api-key:#{null}}") String authToken,
-      NoPopupBasicAuthenticationEntryPoint noPopupBasicAuthenticationEntryPoint)
-      throws Exception {
+      HttpSecurity http, @Value("${armadillo.api-key:#{null}}") String authToken) throws Exception {
     http.authorizeHttpRequests(
         requests ->
             requests
@@ -104,7 +102,7 @@ public class AuthConfig {
                       }
                     })
                 .realmName("Armadillo")
-                .authenticationEntryPoint(noPopupBasicAuthenticationEntryPoint));
+                .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint()));
     if (oidcClientId != null) {
       http.oauth2Login(
           oauth2Login ->
@@ -170,16 +168,15 @@ public class AuthConfig {
   private String userPassword;
 
   @Bean
-  public UserDetailsService userDetailsService(LoginAttemptTracker tracker) {
+  public UserDetailsService userDetailsService() {
     Objects.requireNonNull(userName, "spring.security.user.name is null");
     Objects.requireNonNull(userPassword, "spring.security.user.password is null");
     PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    return username ->
+    return new InMemoryUserDetailsManager(
         User.builder()
             .username(userName)
             .password(encoder.encode(userPassword))
             .roles("SU")
-            .accountLocked(tracker.isLocked())
-            .build();
+            .build());
   }
 }

@@ -87,10 +87,10 @@ resources_ref <- tribble(
   ~file_name, ~path, ~url,
   basename(release_env$rda_dir), release_env$rda_dir, release_env$rda_url
 )
-if (!should_skip_test("dsExposome")) {
+if (!should_skip_test("ds-exposome")) {
   resources_ref <- bind_rows(resources_ref, release_env$exposome_ref[, c("file_name", "path", "url")])
 }
-if (!should_skip_test("dsOmics")) {
+if (!should_skip_test("ds-omics")) {
   resources_ref <- bind_rows(resources_ref, release_env$omics_ref[, c("file_name", "path", "url")])
 }
 

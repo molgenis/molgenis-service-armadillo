@@ -30,8 +30,8 @@ For more detailed information please visit [DSMolgenisArmadillo](https://molgeni
         # specify server url
         armadillo_url <- "https://armadillo.test.molgenis.org"
 
-        # get credentials from central authentication server
-        token <- armadillo.get_credentials(armadillo_url)
+        # get token from central authentication server
+        token <- armadillo.get_token(armadillo_url)
 
 
         # build the login dataframe
@@ -39,7 +39,7 @@ For more detailed information please visit [DSMolgenisArmadillo](https://molgeni
         builder$append(
             server = "armadillo",
             url = armadillo_url,
-            token = token@access_token,
+            token = token,
             table = "workshop1/2_1-core-1_0/nonrep",
             driver = "ArmadilloDriver"
         )

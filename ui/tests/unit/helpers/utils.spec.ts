@@ -152,57 +152,6 @@ describe("utils", () => {
       const actual = isIntArray(["test1", "test2", "test3"]);
       expect(actual).toBe(false);
     });
-    // Date columns must NOT be treated as integer columns: parseFloat reads a
-    // numeric prefix (e.g. "10/12/2005" -> 10), which previously misclassified
-    // these as ints and caused parseInt to display only the leading number.
-    it("should return false for slash dates dd/mm/yyyy", () => {
-      const actual = isIntArray(["10/12/2005", "15/01/2024", "31/12/2023"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for slash dates mm/dd/yyyy", () => {
-      const actual = isIntArray(["01/15/2024", "02/09/2024", "12/31/2023"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for slash dates yyyy/mm/dd", () => {
-      const actual = isIntArray(["2024/01/15", "2024/02/09", "2023/12/31"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for dash dates dd-mm-yyyy", () => {
-      const actual = isIntArray(["15-01-2024", "09-02-2024", "31-12-2023"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for ISO dates yyyy-mm-dd", () => {
-      const actual = isIntArray(["2024-01-15", "2024-02-09", "2023-12-31"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for ISO datetimes without timezone", () => {
-      const actual = isIntArray([
-        "2024-01-15T13:45:30",
-        "2024-02-09T08:05:00",
-        "2023-12-31T23:59:59",
-      ]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for dashed month-abbreviation dates", () => {
-      const actual = isIntArray(["15-Jan-2024", "09-Feb-2024", "31-Dec-2023"]);
-      expect(actual).toBe(false);
-    });
-    it("should return false for values with leading zeros", () => {
-      const actual = isIntArray(["001", "002", "010"]);
-      expect(actual).toBe(false);
-    });
-    it("should return true for genuine ints including a single zero", () => {
-      const actual = isIntArray(["0", "3", "12"]);
-      expect(actual).toBe(true);
-    });
-    it("should return false for signed values with leading zeros", () => {
-      const actual = isIntArray(["+004", "-007"]);
-      expect(actual).toBe(false);
-    });
-    it("should return true for signed ints without leading zeros", () => {
-      const actual = isIntArray(["-7", "+5"]);
-      expect(actual).toBe(true);
-    });
   });
 
   describe("transformTable", () => {

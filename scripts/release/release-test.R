@@ -27,17 +27,9 @@ release_env$created_projects <- c()
 release_env$admin_demoted <- FALSE
 
 run_tests_for_container <- function(container) {
-    if (!is.null(release_env$conns)) {
-      tryCatch(datashield.logout(release_env$conns), error = function(e) {})
-      release_env$conns <- NULL
-    }
-
     release_env$current_container <- container
-    release_env$project1 <- generate_random_project_name()
 
-    cat("\n\n")
-    cli_h1(paste0("Testing container: ", container))
-    cli_alert_info(sprintf("Project name: %s", release_env$project1))
+    cli_h2(paste0("Testing container: ", container))
     setup_containers()
 
     testthat::set_max_fails(Inf)

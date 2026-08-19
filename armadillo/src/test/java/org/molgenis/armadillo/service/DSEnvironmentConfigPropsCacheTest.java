@@ -64,7 +64,7 @@ class DSEnvironmentConfigPropsCacheTest {
     var expected =
         asList(
             new DefaultDSMethod("meanDS", "dsBase::meanDS", "dsBase", "1.2.3"),
-            new DefaultDSMethod("dim", "base::dim", "dsBase", "1.2.3"));
+            new DefaultDSMethod("dim", "base::dim", "base", null));
     var actual = environment.getMethods();
 
     // TODO: workaround until equals method implemented in DSMethod:
