@@ -50,8 +50,6 @@ export type ProjectsExplorerData = {
   loading_preview: boolean;
   loading_metadata: boolean;
   projectContent: Record<string, string[]>;
-  selectedFile: string;
-  selectedFolder: string;
   createLinkFromTarget: boolean;
   createLinkFromSrc: boolean;
   currentTab: string;
