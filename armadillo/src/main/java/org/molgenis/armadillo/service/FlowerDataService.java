@@ -39,7 +39,8 @@ public class FlowerDataService {
       throw new IllegalArgumentException(
           "Container '" + containerName + "' is not a Flower clientapp container");
     }
-    String fileName = project + "_" + resource.replace("/", "_");
+    // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
+    String fileName = project + "_" + resource.replace("/", "%2F");
     try (InputStream data = storageService.loadObject(project, resource)) {
       flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data);
     } catch (IOException e) {
