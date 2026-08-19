@@ -47,7 +47,7 @@ class FlowerDataServiceTest {
   }
 
   @Test
-  void pushData_sanitizesResourcePath() {
+  void pushData_encodesResourcePath() {
     when(containerService.getByName("container-1"))
         .thenReturn(mock(FlowerSuperexecContainerConfig.class));
     InputStream data = new ByteArrayInputStream("content".getBytes());
@@ -56,7 +56,25 @@ class FlowerDataServiceTest {
     flowerDataService.pushData("proj", "data/train", "container-1");
 
     verify(flowerDockerService)
-        .copyDataToContainer("container-1", "/tmp/armadillo_data", "proj_data_train", data);
+        .copyDataToContainer("container-1", "/tmp/armadillo_data", "proj_data%2Ftrain", data);
+  }
+
+  @Test
+  void pushData_doesNotCollideOnSlashVsUnderscore() {
+    when(containerService.getByName("container-1"))
+        .thenReturn(mock(FlowerSuperexecContainerConfig.class));
+    InputStream dataA = new ByteArrayInputStream("a".getBytes());
+    InputStream dataB = new ByteArrayInputStream("b".getBytes());
+    when(storageService.loadObject("proj", "data/train")).thenReturn(dataA);
+    when(storageService.loadObject("proj", "data_train")).thenReturn(dataB);
+
+    flowerDataService.pushData("proj", "data/train", "container-1");
+    flowerDataService.pushData("proj", "data_train", "container-1");
+
+    verify(flowerDockerService)
+        .copyDataToContainer("container-1", "/tmp/armadillo_data", "proj_data%2Ftrain", dataA);
+    verify(flowerDockerService)
+        .copyDataToContainer("container-1", "/tmp/armadillo_data", "proj_data_train", dataB);
   }
 
   @Test

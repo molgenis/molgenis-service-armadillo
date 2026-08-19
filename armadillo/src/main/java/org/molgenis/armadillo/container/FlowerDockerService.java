@@ -24,19 +24,22 @@ import org.springframework.stereotype.Service;
 public class FlowerDockerService {
 
   private final DockerClient dockerClient;
+  private final DockerService dockerService;
 
-  public FlowerDockerService(DockerClient dockerClient) {
+  public FlowerDockerService(DockerClient dockerClient, DockerService dockerService) {
     this.dockerClient = dockerClient;
+    this.dockerService = dockerService;
   }
 
   public void copyDataToContainer(
       String containerName, String destDir, String fileName, InputStream data) {
+    String dockerContainerName = dockerService.asContainerName(containerName);
     try {
-      ensureDirectoryExists(containerName, destDir);
+      ensureDirectoryExists(dockerContainerName, destDir);
       byte[] bytes = data.readAllBytes();
       InputStream tarStream = createTarArchive(fileName, bytes);
       dockerClient
-          .copyArchiveToContainerCmd(containerName)
+          .copyArchiveToContainerCmd(dockerContainerName)
           .withTarInputStream(tarStream)
           .withRemotePath(destDir)
           .exec();
@@ -49,10 +52,10 @@ public class FlowerDockerService {
     }
   }
 
-  private void ensureDirectoryExists(String containerName, String dir) throws IOException {
+  private void ensureDirectoryExists(String dockerContainerName, String dir) throws IOException {
     ExecCreateCmdResponse exec =
         dockerClient
-            .execCreateCmd(containerName)
+            .execCreateCmd(dockerContainerName)
             .withAttachStdout(true)
             .withAttachStderr(true)
             .withCmd("mkdir", "-p", dir)
@@ -65,6 +68,10 @@ public class FlowerDockerService {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new IOException("Interrupted while creating directory " + dir, e);
+    }
+    Long exitCode = dockerClient.inspectExecCmd(exec.getId()).exec().getExitCodeLong();
+    if (exitCode == null || exitCode != 0) {
+      throw new IOException("Failed to create directory " + dir + " (exit code " + exitCode + ")");
     }
   }
 
