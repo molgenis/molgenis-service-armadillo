@@ -84,19 +84,20 @@ public class DSEnvironmentCache {
 
   /**
    * Method strings come in two forms: either without a package ('meanDS'), meaning they belong to
-   * the current package, or with a name and a package ('dim=base::dim'), meaning they are part of
-   * the package described in the string.
+   * the current package, or with a name and a package ('dim=base::dim'), meaning the implementation
+   * lives in another package. In both cases the method is attributed to the declaring DataSHIELD
+   * package, matching Opal's behaviour.
    */
   private static DefaultDSMethod toDsMethod(RPackage rPackage, String method) {
     if (method.contains("=")) {
-      return toExternalDsMethod(method);
+      return toExternalDsMethod(rPackage, method);
     } else {
       return new DefaultDSMethod(
           method, format("%s::%s", rPackage.name(), method), rPackage.name(), rPackage.version());
     }
   }
 
-  private static DefaultDSMethod toExternalDsMethod(String method) {
+  private static DefaultDSMethod toExternalDsMethod(RPackage rPackage, String method) {
     String[] nonDsBaseMethod = method.split("=");
     if (nonDsBaseMethod.length != 2) {
       throw new IllegalRMethodStringException(method);
@@ -107,7 +108,8 @@ public class DSEnvironmentCache {
       throw new IllegalRMethodStringException(method);
     }
 
-    return new DefaultDSMethod(nonDsBaseMethod[0], nonDsBaseMethod[1], functionParts[0], null);
+    return new DefaultDSMethod(
+        nonDsBaseMethod[0], nonDsBaseMethod[1], rPackage.name(), rPackage.version());
   }
 
   private boolean isPackageWhitelisted(String rPackageName) {

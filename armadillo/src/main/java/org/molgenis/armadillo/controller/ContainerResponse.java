@@ -26,7 +26,8 @@ public sealed interface ContainerResponse {
 
   String image();
 
-  @Nullable
+  String host();
+
   Integer port();
 
   @Nullable
@@ -48,7 +49,8 @@ public sealed interface ContainerResponse {
       String type,
       String name,
       String image,
-      @Nullable Integer port,
+      String host,
+      Integer port,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
@@ -61,7 +63,8 @@ public sealed interface ContainerResponse {
       String type,
       String name,
       String image,
-      @Nullable Integer port,
+      String host,
+      Integer port,
       @Nullable Long imageSize,
       @Nullable String installDate,
       @Nullable String lastImageId,
@@ -79,6 +82,7 @@ public sealed interface ContainerResponse {
           ds.getType(),
           ds.getName(),
           ds.getImage(),
+          ds.getHost(),
           ds.getPort(),
           ds.getImageSize(),
           ds.getInstallDate(),
@@ -95,6 +99,7 @@ public sealed interface ContainerResponse {
         config.getType(),
         config.getName(),
         config.getImage(),
+        config.getHost(),
         config.getPort(),
         config.getImageSize(),
         config.getInstallDate(),
