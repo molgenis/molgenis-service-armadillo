@@ -103,6 +103,8 @@ class DockerServiceTest {
   @BeforeEach
   void setup() {
     dockerService = new DockerService(dockerClient, containerService, containerStatusService);
+    ReflectionTestUtils.setField(
+        dockerService, "flowerArmadilloUrl", "https://armadillo.example.org");
 
     PullImageCmd pullImageCmd = mock(PullImageCmd.class);
     lenient().when(dockerClient.pullImageCmd(anyString())).thenReturn(pullImageCmd);
@@ -1345,6 +1347,14 @@ class DockerServiceTest {
     when(cmd.exec()).thenReturn(mock(CreateContainerResponse.class));
 
     assertDoesNotThrow(() -> dockerService.installImage(config));
+  }
+
+  @Test
+  void installImage_superexecMissingArmadilloUrlThrows() throws IOException {
+    ReflectionTestUtils.setField(dockerService, "flowerArmadilloUrl", "");
+    var config = flowerSuperexecConfig("flower-clientapp-1", List.of(), "dummy-entries");
+
+    assertThrows(IllegalStateException.class, () -> dockerService.installImage(config));
   }
 
   @Test

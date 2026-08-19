@@ -308,12 +308,17 @@ public class DockerService {
 
   private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
     if (config instanceof FlowerSuperexecContainerConfig) {
+      if (flowerArmadilloUrl == null || flowerArmadilloUrl.isEmpty()) {
+        throw new IllegalStateException(
+            "flower.armadillo-url is not configured — required so Flower clientapp containers"
+                + " can reach Armadillo, please set it in application.yml");
+      }
       var env =
           new java.util.ArrayList<>(
-              List.of("DEBUG=FALSE", "ARMADILLO_CONTAINER_NAME=" + config.getName()));
-      if (flowerArmadilloUrl != null && !flowerArmadilloUrl.isEmpty()) {
-        env.add("ARMADILLO_URL=" + flowerArmadilloUrl);
-      }
+              List.of(
+                  "DEBUG=FALSE",
+                  "ARMADILLO_CONTAINER_NAME=" + config.getName(),
+                  "ARMADILLO_URL=" + flowerArmadilloUrl));
       cmd.withEnv(env);
     } else {
       cmd.withEnv("DEBUG=FALSE");
