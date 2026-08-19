@@ -64,9 +64,11 @@ export default defineComponent({
       }, 5000);
     },
     warningMessage: function (newVal) {
+      window.scrollTo(0, 0);
       this.warningMsg = newVal;
     },
     errorMessage: function (newVal) {
+      window.scrollTo(0, 0);
       this.errorMsg = newVal;
     },
   },
