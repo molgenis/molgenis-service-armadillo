@@ -80,6 +80,7 @@ export default defineComponent({
     });
 
     const loadUser = async () => {
+      isUnauthorised.value = false;
       await getPrincipal()
         .then((principal) => {
           isAuthenticated.value = principal.authenticated;

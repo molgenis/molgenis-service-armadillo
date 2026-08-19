@@ -15,17 +15,19 @@ plugins {
     id 'org.springframework.boot' version '3.5.16'
     id "io.spring.dependency-management" version "1.1.7"
     id "java"
-    id "org.sonarqube" version "4.4.1.3373"
+    id("org.sonarqube") version "7.4.0.8496"
     id 'maven-publish'
     id 'application'
     id "jacoco"
-    id 'com.palantir.docker' version '0.36.0'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
 }
 
-targetCompatibility = '21'
-sourceCompatibility = '21'
+java {
+    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
 
 println "Project previous version (nyx): " + rootProject.nyxState.releaseScope.previousVersion
 
@@ -94,8 +96,6 @@ String getGitNameRef() {
     return gitCommitHash
 }
 
-// configure artifact
-mainClassName = 'org.molgenis.armadillo.ArmadilloServiceApplication'
 dependencies {
     implementation project(':armadillo')
 }
@@ -107,7 +107,6 @@ springBoot {
     buildInfo()
 }
 bootJar {
-    mainClass = mainClassName
     manifest {
         attributes(
                 'Specification-Version': project.version.toString(),
@@ -122,7 +121,7 @@ bootJar {
 
 //define run
 application {
-    mainClass.set(rootProject.mainClassName)
+    mainClass.set('org.molgenis.armadillo.ArmadilloServiceApplication')
 }
 
 //define release
@@ -131,27 +130,56 @@ project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghTo
 //define docker image
 def imageName = 'docker.io/molgenis/molgenis-armadillo'
 def tagName = project.version.toString()
-if (version.toString().endsWith('-SNAPSHOT')) {
-    ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
-    imageName = "docker.io/molgenis/molgenis-armadillo-snapshot"
-    tagName = "${project.version.toString()}-${ext.hash}"
-}
-task ci(type: WriteProperties) {
-    outputFile file('build/ci.properties')
+
+tasks.register('ci', WriteProperties) {
+    destinationFile.set(file('build/ci.properties'))
     property 'TAG_NAME', tagName
 }
 
-docker {
-    name imageName
-    tags tagName
-    dockerfile file('Dockerfile')
-    files bootJar.archiveFile
-    buildArgs(['JAR_FILE': "${bootJar.archiveFile.get().asFile.name}"])
+// Docker build and push tasks using Docker CLI (Gradle 9 compatible)
+tasks.register('dockerBuild', Exec) {
+    dependsOn bootJar
+
+    description = 'Build Docker image using Docker CLI'
+
+    doFirst {
+        def jar = bootJar.archiveFile.get().asFile
+        def jarRelativePath = "build/libs/${jar.name}"
+
+        logger.lifecycle("Building Docker image: ${imageName}:${tagName}")
+        logger.lifecycle("Using JAR file: ${jar}")
+        logger.lifecycle("Docker JAR path: ${jarRelativePath}")
+        logger.lifecycle("JAR exists: ${jar.exists()}")
+
+        if (!jar.exists()) {
+            throw new GradleException("JAR file does not exist: ${jar}")
+        }
+    }
+
+    commandLine 'docker', 'build',
+            '--build-arg', "JAR_FILE=build/libs/${bootJar.archiveFileName.get()}",
+            '-t', "${imageName}:${tagName}",
+            '.'
 }
-dockerPrepare.dependsOn bootJar
+
+tasks.register('dockerPush', Exec) {
+    dependsOn dockerBuild
+    description = 'Push Docker image to registry using Docker CLI'
+
+    doFirst {
+        logger.lifecycle("Pushing Docker image: ${imageName} with tags: ${tagName}, latest")
+    }
+
+    commandLine 'docker', 'push', imageName, '--all-tags'
+}
+
+tasks.register('dockerClean', Delete) {
+    description = 'Clean JAR files from project root directory'
+    delete fileTree(dir: projectDir, include: '*.jar')
+}
 
 //merge test reports
-task jacocoMergedReport(type: JacocoReport) {
+tasks.register('jacocoMergedReport', org.gradle.testing.jacoco.tasks.JacocoReport) {
     dependsOn project.getTasksByName(":armadillo:test", true)
     dependsOn project.getTasksByName(":r:test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
@@ -177,8 +205,7 @@ task jacocoMergedReport(type: JacocoReport) {
 //push to sonarqube
 sonar {
     properties {
-        // Uncomment when upgrading to sonar 5.x
-        // property 'sonar.gradle.skipCompile', 'true'
+        property "sonar.scanner.skipJreProvisioning", "true"
         property 'sonar.projectName', 'armadillo-service'
         property 'sonar.projectKey', 'org.molgenis:armadillo-service'
         property 'sonar.coverage.jacoco.xmlReportPaths', "${projectDir}/build/reports/jacoco/jacocoMergedReport/jacocoMergedReport.xml"
@@ -186,14 +213,16 @@ sonar {
 }
 
 //install pre-commit hook
-task installLocalGitHook(type: Copy) {
+tasks.register('installLocalGitHook', Copy) {
     from new File(rootProject.rootDir, 'pre-commit')
     into { new File(rootProject.rootDir, '.git/hooks') }
-    fileMode 0775
+    filePermissions {
+        unix(0775)
+    }
 }
 build.dependsOn installLocalGitHook
 
-task myNyxDiagnostics() {
+tasks.register('myNyxDiagnostics') {
     // https://mooltiverse.github.io/nyx/guide/user/introduction/usage/#accessing-the-nyx-state-extra-project-property-from-build-scripts
     dependsOn nyxInfer
     doLast {

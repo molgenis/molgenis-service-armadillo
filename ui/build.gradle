@@ -4,9 +4,8 @@ plugins {
 }
 
 def nodeSpec = {
-    version = '16.16.0'
-    yarnVersion = '1.22.22'
-    npmVersion = "8.17.0"
+    version = '24.18.1'
+    npmVersion = '11.16.0'
     download = true
 }
 
@@ -14,34 +13,51 @@ node {
     with nodeSpec
 }
 
-task format(type: YarnTask, dependsOn: yarn_install) {
-    args = ['run', 'format']
+tasks.register('installCorepack', NpmTask) {
+    args = ['install', '--global', 'corepack']
+}
+
+tasks.register('corepackEnable', NpmTask) {
+    dependsOn installCorepack
+    args = ['exec', '--yes', '--', 'corepack', 'enable']
+}
+
+tasks.register('yarnInstall', NpmTask) {
+    dependsOn corepackEnable
+    args = ['exec', '--yes', '--', 'corepack', 'yarn', 'install', '--immutable']
+}
+
+tasks.register('format', NpmTask) {
+    dependsOn yarnInstall
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'format']
     inputs.files(fileTree('src'))
     outputs.dir('src')
 }
 
-task mybuild(type: YarnTask, dependsOn: yarn_install) {
+tasks.register('mybuild', NpmTask) {
+    dependsOn yarnInstall
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'build']
     inputs.file('package.json')
     inputs.files(fileTree('src'))
     inputs.files(fileTree('public'))
     inputs.file('vite.config.js')
     inputs.file('tsconfig.json')
     inputs.file('shims-vue.d.ts')
-    inputs.file('jest.config.js')
+    inputs.file('jest.config.cjs')
     inputs.file('tsconfig.node.json')
     inputs.file('index.html')
     outputs.dir('dist')
-
     outputs.cacheIf { false }
-    args = ['run', 'build']
 }
 
-task test(type: YarnTask, dependsOn: mybuild) {
-    args = ['run', 'test']
+tasks.register('test', NpmTask) {
+    dependsOn mybuild
+    args = ['exec', '--', 'corepack', 'yarn', 'run', 'test']
 }
 
 /* convert build files into one apps.jar that we can use as a dependency in the java part */
-task createJar(type: Zip, dependsOn: mybuild) {
+tasks.register('createJar', Zip) {
+    dependsOn mybuild
     archiveBaseName = 'ui'
     archiveExtension = 'jar'
     destinationDirectory = file("${buildDir}/build/libs")
@@ -49,9 +65,6 @@ task createJar(type: Zip, dependsOn: mybuild) {
     into('public')
 }
 createJar.dependsOn test
-
-//first mybuild, than createJar
-build.dependsOn "createJar"
 
 clean.doLast {
     project.delete(files("dist"))
