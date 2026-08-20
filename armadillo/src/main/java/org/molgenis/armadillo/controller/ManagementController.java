@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
@@ -75,9 +77,19 @@ public class ManagementController {
     auditor.audit(
         () -> {
           try {
-            managementService.triggerUpdate(version);
+            if (managementService.isValidJar(version)) {
+              //                  managementService.triggerUpdate(version);
+            } else {
+              throw new ResponseStatusException(
+                  HttpStatus.BAD_REQUEST,
+                  format(
+                      "Cannot update Molgenis Armadillo to version [%s], because downloaded version does not match released version. Please try throwing away the version and redownloading it before updating again. If the problem persists, please contact the administrator.",
+                      version));
+            }
           } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+          } catch (NoSuchAlgorithmException | InterruptedException e) {
+            throw new RuntimeException(e);
           }
         },
         principal,
