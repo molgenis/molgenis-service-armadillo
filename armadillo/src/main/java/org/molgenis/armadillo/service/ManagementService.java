@@ -3,6 +3,9 @@ package org.molgenis.armadillo.service;
 import static java.lang.String.format;
 import static org.molgenis.armadillo.storage.FileDownloader.downloadFile;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import java.io.*;
@@ -12,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,6 +43,8 @@ public class ManagementService {
   private static final String REBOOT_SCRIPT = "armadillo-reboot.sh";
   private static final String RELEASE_URL =
       "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
+  private static final String TAG_URL =
+      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/tags/";
   private static final String REBOOT_SCRIPT_URL =
       "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
   private static final String RELEASE_DOWNLOAD_URL =
@@ -137,8 +143,8 @@ public class ManagementService {
         armadilloConfigFile.replace("/application.yml", ""));
   }
 
-  public JsonElement getLastRelease() throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(RELEASE_URL)).GET().build();
+  private JsonElement getReleaseFromGithub(String url) throws IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() == 200) {
       return JsonParser.parseString(response.body()).getAsJsonObject();
@@ -147,13 +153,21 @@ public class ManagementService {
     }
   }
 
+  public JsonElement getReleaseTag(String tag) throws IOException, InterruptedException {
+    return getReleaseFromGithub(TAG_URL + tag);
+  }
+
+  public JsonElement getLastRelease() throws IOException, InterruptedException {
+    return getReleaseFromGithub(RELEASE_URL);
+  }
+
   public Map<String, String> getCurrentOidcConfig() {
     return currentOidcDetails.get();
   }
 
   private String getScriptVersionTag(String version) {
     // if script not available yet on current release:
-    String scriptVersionTag = "3f3cffbaaa61121c5f9b10021e0e40412aaadc65";
+    String scriptVersionTag = "215bd20b87067c30745a615fed72ac00457592c1";
     if (!version.equals("dev")) {
       version = version.replace("v", "");
     }
@@ -261,6 +275,34 @@ public class ManagementService {
         .filter(file -> !file.isDirectory())
         .map(File::getName)
         .collect(Collectors.toSet());
+  }
+
+  private String getJarSha(String jarPath) throws IOException {
+    ByteSource byteSource = com.google.common.io.Files.asByteSource(new File(jarPath));
+    HashCode hc = byteSource.hash(Hashing.sha256());
+    return hc.toString();
+  }
+
+  public Boolean isValidJar(String version)
+      throws NoSuchAlgorithmException, IOException, InterruptedException {
+    Boolean isValid = Boolean.FALSE;
+    String jarName = getJarFromVersion(version);
+    String jarSha = getJarSha(armadilloHome + "/" + jarName);
+    String tag = version.startsWith("v") ? version : "v" + version;
+    JsonElement githubRelease = getReleaseTag(tag);
+    String githubSha =
+        String.valueOf(
+            githubRelease
+                .getAsJsonObject()
+                .get("assets")
+                .getAsJsonArray()
+                .get(0)
+                .getAsJsonObject()
+                .get("digest"));
+    if (Objects.equals(githubSha, jarSha)) {
+      isValid = Boolean.TRUE;
+    }
+    return isValid;
   }
 
   private void updateDownloadProgress(SseEmitter emitter, String progress) {
