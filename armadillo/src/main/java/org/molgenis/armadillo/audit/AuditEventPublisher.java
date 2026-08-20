@@ -65,6 +65,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String LIST_CONTAINERS_STATUS = "LIST_CONTAINERS_STATUS";
   public static final String UPSERT_CONTAINER = "UPSERT_CONTAINER";
   public static final String DELETE_CONTAINER = "DELETE_CONTAINER";
+  public static final String ADD_FAB_WHITELIST_ENTRY = "ADD_FAB_WHITELIST_ENTRY";
   public static final String GET_CONTAINER = "GET_CONTAINER";
   public static final String START_CONTAINER = "START_CONTAINER";
   public static final String STOP_CONTAINER = "STOP_CONTAINER";

@@ -1,6 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Objects.requireNonNull;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.ADD_FAB_WHITELIST_ENTRY;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_CONTAINER;
@@ -31,6 +32,7 @@ import org.molgenis.armadillo.metadata.ContainerService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -216,6 +218,36 @@ public class ContainersController {
         principal,
         UPSERT_CONTAINER,
         Map.of(CONTAINER, containerConfig));
+  }
+
+  @Operation(summary = "Add or replace a FAB-hash whitelist entry on a Flower clientapp container")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Whitelist entry added or replaced"),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid fabId, fabVersion or fabHash",
+            content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(hidden = true)))
+      })
+  @PostMapping(value = "{name}/fab-whitelist", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void addFabWhitelistEntry(
+      Principal principal,
+      @PathVariable String name,
+      @Valid @RequestBody FabWhitelistEntryRequest request) {
+    auditor.audit(
+        () -> {
+          containers.addFabWhitelistEntry(
+              name, request.fabId(), request.fabVersion(), request.fabHash());
+          return null;
+        },
+        principal,
+        ADD_FAB_WHITELIST_ENTRY,
+        Map.of(CONTAINER, name));
   }
 
   @Operation(
