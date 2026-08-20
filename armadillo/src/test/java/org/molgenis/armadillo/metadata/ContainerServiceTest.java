@@ -479,24 +479,49 @@ class ContainerServiceTest {
   }
 
   @Test
-  void upsert_writesFabWhitelistToYamlFile(@TempDir Path tempDir) throws java.io.IOException {
+  void addFabWhitelistEntry_writesFabWhitelistToYamlFile(@TempDir Path tempDir)
+      throws java.io.IOException {
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
-
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
-    var config =
+    containerService.upsert(
         FlowerSuperexecContainerConfig.builder()
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .fabWhitelistPath(fabWhitelist.toString())
-            .fabWhitelist(List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))))
-            .build();
+            .build());
 
-    containerService.upsert(config);
+    containerService.addFabWhitelistEntry(
+        "flower-clientapp-1", "publisher/app", "1.0.0", "a".repeat(64));
 
     String content = Files.readString(fabWhitelist);
     assertTrue(content.contains("fab_id: \"publisher/app\""));
     assertTrue(content.contains("fab_version: \"1.0.0\""));
     assertTrue(content.contains("fab_hash: \"" + "a".repeat(64) + "\""));
+  }
+
+  @Test
+  void upsert_ofExistingSuperexecContainerDoesNotOverwriteFabWhitelistFile(@TempDir Path tempDir)
+      throws java.io.IOException {
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .build());
+    containerService.addFabWhitelistEntry(
+        "flower-clientapp-1", "publisher/app", "1.0.0", "a".repeat(64));
+    String before = Files.readString(fabWhitelist);
+
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.2")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .build());
+
+    assertEquals(before, Files.readString(fabWhitelist));
   }
 
   @Test
@@ -577,12 +602,50 @@ class ContainerServiceTest {
   }
 
   @Test
+  void addFabWhitelistEntry_rejectsBlankFabVersion(@TempDir Path tempDir) {
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .build());
+
+    assertThrows(
+        InvalidFabWhitelistEntryException.class,
+        () ->
+            containerService.addFabWhitelistEntry(
+                "flower-clientapp-1", "publisher/app", " ", "a".repeat(64)));
+  }
+
+  @Test
+  void addFabWhitelistEntry_replacesEntryWithNullFabVersionWithoutThrowing(@TempDir Path tempDir) {
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(fabWhitelist.toString())
+            .fabWhitelist(List.of(new WhitelistedApp("publisher/app", null, "a".repeat(64))))
+            .build());
+
+    assertDoesNotThrow(
+        () ->
+            containerService.addFabWhitelistEntry(
+                "flower-clientapp-1", "publisher/app", "1.0.0", "b".repeat(64)));
+
+    var updated = (FlowerSuperexecContainerConfig) containerService.getByName("flower-clientapp-1");
+    assertEquals(
+        List.of(
+            new WhitelistedApp("publisher/app", null, "a".repeat(64)),
+            new WhitelistedApp("publisher/app", "1.0.0", "b".repeat(64))),
+        updated.getFabWhitelist());
+  }
+
+  @Test
   void addFabWhitelistEntry_acceptsRealFabIdFormatWithoutAtPrefix(@TempDir Path tempDir) {
-    // Regression test: flwr.cli.config_utils.get_metadata_from_config builds fab_id as
-    // "publisher/name" — no leading "@" (that only appears in Hub specifiers like
-    // "@account/app", never in a FAB's own declared metadata). Confirmed against a real
-    // FAB (2026-08-17); a stricter "@publisher/name" pattern would reject every
-    // legitimately-approved app.
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
     containerService.upsert(

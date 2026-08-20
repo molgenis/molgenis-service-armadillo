@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,11 +31,6 @@ import org.springframework.stereotype.Service;
 public class ContainerService {
 
   private static final Pattern FAB_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
-  // Matches Flower's own fab_id format (publisher/name — see
-  // get_metadata_from_config in flwr.cli.config_utils), which has no leading
-  // "@". The "@" only appears in Hub *specifiers* (@account/app, used in
-  // `flwr run`/`fetch-fab` calls), never in a FAB's own declared metadata —
-  // confirmed against a real FAB, not assumed.
   private static final Pattern FAB_ID_PATTERN = Pattern.compile("^[\\w-]+/[\\w-]+$");
 
   private static final ObjectMapper FAB_WHITELIST_YAML_MAPPER =
@@ -97,7 +93,6 @@ public class ContainerService {
       createPlaceholderFiles(supernode);
     } else if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
       createPlaceholderFiles(superexec);
-      writeFabWhitelistFile(superexec);
     }
 
     settings.getContainers().put(containerName, containerConfig);
@@ -127,10 +122,6 @@ public class ContainerService {
     }
   }
 
-  /**
-   * Overwrites the FAB whitelist file with the config's current {@code fabWhitelist}, so the file a
-   * SuperExec container reads always matches what's stored in {@code containers.json}.
-   */
   private void writeFabWhitelistFile(FlowerSuperexecContainerConfig config) {
     try {
       FAB_WHITELIST_YAML_MAPPER.writeValue(
@@ -141,11 +132,6 @@ public class ContainerService {
     }
   }
 
-  /**
-   * Adds or replaces an approved app on a Flower SuperExec container's FAB-hash whitelist. Replaces
-   * any existing entry for the same {@code (fabId, fabVersion)} — re-approving a declared version
-   * supersedes its previous hash rather than accumulating a second one.
-   */
   public void addFabWhitelistEntry(
       String containerName, String fabId, String fabVersion, String fabHash) {
     ContainerConfig existing = getByName(containerName);
@@ -157,15 +143,21 @@ public class ContainerService {
 
     validateFabHash(fabHash);
     validateFabId(fabId);
+    validateFabVersion(fabVersion);
 
     List<WhitelistedApp> updatedWhitelist =
         superexec.getFabWhitelist().stream()
             .filter(
-                entry -> !(entry.fabId().equals(fabId) && entry.fabVersion().equals(fabVersion)))
+                entry ->
+                    !(entry.fabId().equals(fabId)
+                        && Objects.equals(entry.fabVersion(), fabVersion)))
             .collect(Collectors.toCollection(ArrayList::new));
     updatedWhitelist.add(new WhitelistedApp(fabId, fabVersion, fabHash));
 
-    upsert(superexec.toBuilder().fabWhitelist(updatedWhitelist).build());
+    FlowerSuperexecContainerConfig updated =
+        superexec.toBuilder().fabWhitelist(updatedWhitelist).build();
+    upsert(updated);
+    writeFabWhitelistFile(updated);
   }
 
   private void validateFabHash(String fabHash) {
@@ -179,6 +171,12 @@ public class ContainerService {
     if (!FAB_ID_PATTERN.matcher(fabId).matches()) {
       throw new InvalidFabWhitelistEntryException(
           "fabId must look like 'publisher/name', got: " + fabId);
+    }
+  }
+
+  private void validateFabVersion(String fabVersion) {
+    if (fabVersion == null || fabVersion.isBlank()) {
+      throw new InvalidFabWhitelistEntryException("fabVersion must not be blank");
     }
   }
 
