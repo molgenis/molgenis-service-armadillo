@@ -58,6 +58,7 @@ restart_armadillo() {
         link_armadillo_version $1
       fi
       echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
+      restart_if_down
     else
       loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
       userID=$( id -u "$loggedInUser" )
@@ -69,6 +70,7 @@ restart_armadillo() {
       fi
       echo "Attempting revival 🍃 (violence is never the solution) "
       launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+      restart_if_down
   fi
 }
 
@@ -172,5 +174,3 @@ restart_if_down() {
     exit_script
   fi
 }
-
-restart_if_down
