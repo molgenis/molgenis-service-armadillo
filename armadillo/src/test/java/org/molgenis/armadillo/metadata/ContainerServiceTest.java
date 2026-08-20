@@ -594,11 +594,12 @@ class ContainerServiceTest {
             .fabWhitelistPath(fabWhitelist.toString())
             .build());
 
+    String fabHash = "a".repeat(64);
     assertThrows(
         InvalidFabWhitelistEntryException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "flower-clientapp-1", "not-an-app-id", "1.0.0", "a".repeat(64)));
+                "flower-clientapp-1", "not-an-app-id", "1.0.0", fabHash));
   }
 
   @Test
@@ -612,11 +613,12 @@ class ContainerServiceTest {
             .fabWhitelistPath(fabWhitelist.toString())
             .build());
 
+    String fabHash = "a".repeat(64);
     assertThrows(
         InvalidFabWhitelistEntryException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "flower-clientapp-1", "publisher/app", " ", "a".repeat(64)));
+                "flower-clientapp-1", "publisher/app", " ", fabHash));
   }
 
   @Test
@@ -668,22 +670,22 @@ class ContainerServiceTest {
   void addFabWhitelistEntry_rejectsNonSuperexecContainer() {
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
 
+    String fabHash = "a".repeat(64);
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            containerService.addFabWhitelistEntry(
-                "default", "publisher/app", "1.0.0", "a".repeat(64)));
+        () -> containerService.addFabWhitelistEntry("default", "publisher/app", "1.0.0", fabHash));
   }
 
   @Test
   void addFabWhitelistEntry_throwsForUnknownContainer() {
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
 
+    String fabHash = "a".repeat(64);
     assertThrows(
         UnknownContainerException.class,
         () ->
             containerService.addFabWhitelistEntry(
-                "does-not-exist", "publisher/app", "1.0.0", "a".repeat(64)));
+                "does-not-exist", "publisher/app", "1.0.0", fabHash));
   }
 
   @Test
