@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,10 +14,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
+import org.molgenis.armadillo.exceptions.InvalidFabWhitelistEntryException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +29,13 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ContainerService {
+
+  private static final Pattern FAB_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
+  private static final Pattern FAB_ID_PATTERN = Pattern.compile("^[\\w-]+/[\\w-]+$");
+
+  private static final ObjectMapper FAB_WHITELIST_YAML_MAPPER =
+      new ObjectMapper(new YAMLFactory())
+          .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
@@ -106,6 +119,64 @@ public class ContainerService {
       Files.createFile(path);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create placeholder file: " + path, e);
+    }
+  }
+
+  private void writeFabWhitelistFile(FlowerSuperexecContainerConfig config) {
+    try {
+      FAB_WHITELIST_YAML_MAPPER.writeValue(
+          Path.of(config.getFabWhitelistPath()).toFile(), config.getFabWhitelist());
+    } catch (IOException e) {
+      throw new IllegalStateException(
+          "Failed to write FAB whitelist file: " + config.getFabWhitelistPath(), e);
+    }
+  }
+
+  public void addFabWhitelistEntry(
+      String containerName, String fabId, String fabVersion, String fabHash) {
+    ContainerConfig existing = getByName(containerName);
+
+    if (!(existing instanceof FlowerSuperexecContainerConfig superexec)) {
+      throw new IllegalArgumentException(
+          "Container '" + containerName + "' is not a Flower clientapp container");
+    }
+
+    validateFabHash(fabHash);
+    validateFabId(fabId);
+    validateFabVersion(fabVersion);
+
+    List<WhitelistedApp> updatedWhitelist =
+        superexec.getFabWhitelist().stream()
+            .filter(
+                entry ->
+                    !(entry.fabId().equals(fabId)
+                        && Objects.equals(entry.fabVersion(), fabVersion)))
+            .collect(Collectors.toCollection(ArrayList::new));
+    updatedWhitelist.add(new WhitelistedApp(fabId, fabVersion, fabHash));
+
+    FlowerSuperexecContainerConfig updated =
+        superexec.toBuilder().fabWhitelist(updatedWhitelist).build();
+    upsert(updated);
+    writeFabWhitelistFile(updated);
+  }
+
+  private void validateFabHash(String fabHash) {
+    if (!FAB_HASH_PATTERN.matcher(fabHash).matches()) {
+      throw new InvalidFabWhitelistEntryException(
+          "fabHash must be a 64-character hexadecimal SHA-256 hash, got: " + fabHash);
+    }
+  }
+
+  private void validateFabId(String fabId) {
+    if (!FAB_ID_PATTERN.matcher(fabId).matches()) {
+      throw new InvalidFabWhitelistEntryException(
+          "fabId must look like 'publisher/name', got: " + fabId);
+    }
+  }
+
+  private void validateFabVersion(String fabVersion) {
+    if (fabVersion == null || fabVersion.isBlank()) {
+      throw new InvalidFabWhitelistEntryException("fabVersion must not be blank");
     }
   }
 
