@@ -50,30 +50,6 @@ link_armadillo_version() {
   echo "🖇️ Linked version: $LINK_INFO"
 }
 
-restart_armadillo() {
-   if [[ "$MODE" == "PROD" ]]; then
-      echo "🛑 Stopping Molgenis Armadillo"
-      kill -SIGTERM ${PID}
-      if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
-        link_armadillo_version $1
-      fi
-      echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
-      restart_if_down
-    else
-      loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
-      userID=$( id -u "$loggedInUser" )
-      echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
-      echo "Killing the armadillo 🔪"
-      launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
-      if [[ $UPDATE == true ]] && [[ $1 != "" ]]; then
-        link_armadillo_version $1
-      fi
-      echo "Attempting revival 🍃 (violence is never the solution) "
-      launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
-      restart_if_down
-  fi
-}
-
 check_version_exists() {
    # Check if jar available
     VERSION_FOUND=0
@@ -87,6 +63,97 @@ check_version_exists() {
       fi
     done
     return $VERSION_FOUND
+}
+
+increase_timeout() {
+  if [[ TIMEOUT -lt 8000 ]]; then
+    TIMEOUT=$(( TIMEOUT * 2))
+    else
+      echo "❌ ERROR: Timeout exceeds 2 hours, giving up..."
+      exit_script
+  fi
+}
+
+# NOTE: restart_armadillo used to be its own function. It has been inlined at every
+# call site below (and inside restart_if_down) so each call site can fall straight
+# into restart_if_down instead of returning up a call stack. Each inlined copy drops
+# the "if $UPDATE==true && $1 != ''" link check, since at every call site we already
+# know statically whether $1 is empty or not.
+restart_if_down() {
+  sleep $TIMEOUT
+  # check if server up
+  echo "👩‍🔬 Checking if everything went correctly and if Armadillo is up and running 🏃‍➡️..."
+  SERVER_UP="$(lsof -i :8080 | grep java)"
+  echo "STATUS: $SERVER_UP"
+  # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
+  if [[ ${#SERVER_UP} == 0 ]]; then
+    echo "❌ Restart unsuccessful, trying again..."
+    if [[ $TIMEOUT -gt 30 ]]; then
+      echo "🛟 Checking if rollback possible (config or application version)"
+      # if attempted update failed, try and roll back old jar
+      if [[ $OLD_JAR != "" ]]; then
+        ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
+        echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
+        # was: restart_armadillo $OLD_JAR
+        # $1 ($OLD_JAR) is always non-empty here (we're inside the "$OLD_JAR != """ branch),
+        # so the link step is kept unconditionally.
+        if [[ "$MODE" == "PROD" ]]; then
+          echo "🛑 Stopping Molgenis Armadillo"
+          kill -SIGTERM ${PID}
+          link_armadillo_version "$OLD_JAR"
+          echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
+        else
+          loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+          userID=$( id -u "$loggedInUser" )
+          echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
+          echo "Killing the armadillo 🔪"
+          launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+          link_armadillo_version "$OLD_JAR"
+          echo "Attempting revival 🍃 (violence is never the solution) "
+          launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+        fi
+      # else if application.yml.bak available with date of today, attempt rollback
+      elif [[ $CONFIG_PATH != "" ]]; then
+        echo "Config path: ${CONFIG_PATH}"
+        if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
+          echo "❌ Backup config not found!"
+        else
+          echo "🛂 Checking if config backup was made recently"
+          DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
+          DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
+          echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
+          echo "CONFIG MADE: ${DATE_CONFIG}"
+          if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
+            echo "🩹 Rolling back old config file"
+            cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
+            rm "$CONFIG_PATH/application.yml"
+            mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
+          fi
+        fi
+      fi
+    fi
+    # was: restart_armadillo ""
+    # $1 is always empty here, so the link step is dropped entirely.
+    if [[ "$MODE" == "PROD" ]]; then
+      echo "🛑 Stopping Molgenis Armadillo"
+      kill -SIGTERM ${PID}
+      echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
+    else
+      loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+      userID=$( id -u "$loggedInUser" )
+      echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
+      echo "Killing the armadillo 🔪"
+      launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+      echo "Attempting revival 🍃 (violence is never the solution) "
+      launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+    fi
+    increase_timeout
+    echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
+    restart_if_down
+  else
+    echo "✅ All done. Thank you for flying with MOLGENIS Airways ✈️"
+    exit_script
+  fi
 }
 
 #### HERE IT STARTS ####
@@ -110,67 +177,46 @@ if [[ $UPDATE == true ]]; then
   VERSION_FOUND=$( check_version_exists "$BUILD_DIR" "$JAR_NAME" "$ARMADILLO_VERSION" )
   if [[ $VERSION_FOUND ]];
     then
-      restart_armadillo "$BUILD_DIR/$JAR_NAME"
+      # was: restart_armadillo "$BUILD_DIR/$JAR_NAME"
+      # $1 is non-empty and we're inside "$UPDATE == true", so the link step is kept unconditionally.
+      if [[ "$MODE" == "PROD" ]]; then
+        echo "🛑 Stopping Molgenis Armadillo"
+        kill -SIGTERM ${PID}
+        link_armadillo_version "$BUILD_DIR/$JAR_NAME"
+        echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
+        restart_if_down
+      else
+        loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+        userID=$( id -u "$loggedInUser" )
+        echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
+        echo "Killing the armadillo 🔪"
+        launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+        link_armadillo_version "$BUILD_DIR/$JAR_NAME"
+        echo "Attempting revival 🍃 (violence is never the solution) "
+        launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+        restart_if_down
+      fi
     else
       echo "❌ ERROR: No jar available for version $ARMADILLO_VERSION. Please download it."
       exit_script
   fi
 else
     echo "Nothing fancy, just a restart"
-    restart_armadillo ""
-fi
-
-increase_timeout() {
-  if [[ TIMEOUT -lt 8000 ]]; then
-    TIMEOUT=$(( TIMEOUT * 2))
+    # was: restart_armadillo ""
+    # $1 is always empty here, so the link step is dropped entirely.
+    if [[ "$MODE" == "PROD" ]]; then
+      echo "🛑 Stopping Molgenis Armadillo"
+      kill -SIGTERM ${PID}
+      echo "🏁🏎️ Molgenis Armadillo will (hopefully) start back up automatically 🤞🏻"
+      restart_if_down
     else
-      echo "❌ ERROR: Timeout exceeds 2 hours, giving up..."
-      exit_script
-  fi
-}
-
-restart_if_down() {
-  sleep $TIMEOUT
-  # check if server up
-  echo "👩‍🔬 Checking if everything went correctly and if Armadillo is up and running 🏃‍➡️..."
-  SERVER_UP="$(lsof -i :8080 | grep java)"
-  echo "STATUS: $SERVER_UP"
-  # retry every x seconds (going up exponentially until started), only in dev mode, prod will restart differently
-  if [[ ${#SERVER_UP} == 0 ]]; then
-    echo "❌ Restart unsuccessful, trying again..."
-    if [[ $TIMEOUT -gt 30 ]]; then
-      echo "🛟 Checking if rollback possible (config or application version)"
-      # if attempted update failed, try and roll back old jar
-      if [[ $OLD_JAR != "" ]]; then
-        ARMADILLO_VERSION=$(echo "$OLD_JAR" | grep -oE "\d+\.\d+\.\d+")
-        echo "🩹 Rolling back to old version: ${ARMADILLO_VERSION}"
-        restart_armadillo $OLD_JAR
-      # else if application.yml.bak available with date of today, attempt rollback
-      elif [[ $CONFIG_PATH != "" ]]; then
-        echo "Config path: ${CONFIG_PATH}"
-        if [ ! -f "${CONFIG_PATH}"/application.yml.bak ]; then
-          echo "❌ Backup config not found!"
-        else
-          echo "🛂 Checking if config backup was made recently"
-          DATE_CONFIG_BACKUP=$(date -r "$CONFIG_PATH"/application.yml.bak "+%m-%d-%Y %H:%M")
-          DATE_CONFIG=$(date -r "$CONFIG_PATH"/application.yml "+%m-%d-%Y %H:%M")
-          echo "BACKUP MADE: ${DATE_CONFIG_BACKUP}"
-          echo "CONFIG MADE: ${DATE_CONFIG}"
-          if [[ $DATE_CONFIG_BACKUP == "$DATE_CONFIG" ]]; then
-            echo "🩹 Rolling back old config file"
-            cp "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml.bak.bak"
-            rm "$CONFIG_PATH/application.yml"
-            mv "$CONFIG_PATH/application.yml.bak" "$CONFIG_PATH/application.yml"
-          fi
-        fi
-      fi
+      loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+      userID=$( id -u "$loggedInUser" )
+      echo "🔃 Working in dev mode, make sure you're running armadillo globally on your mac using launchctl..."
+      echo "Killing the armadillo 🔪"
+      launchctl bootout "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+      echo "Attempting revival 🍃 (violence is never the solution) "
+      launchctl bootstrap "gui/${userID}" /Library/LaunchAgents/org.molgenis.armadillo.plist
+      restart_if_down
     fi
-    restart_armadillo ""
-    increase_timeout
-    echo "🧪 Checking again in $TIMEOUT seconds... ⏰"
-    restart_if_down
-  else
-    echo "✅ All done. Thank you for flying with MOLGENIS Airways ✈️"
-    exit_script
-  fi
-}
+fi
