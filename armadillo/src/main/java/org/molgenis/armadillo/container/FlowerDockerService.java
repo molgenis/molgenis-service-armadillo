@@ -45,9 +45,7 @@ public class FlowerDockerService {
           .exec();
     } catch (NotFoundException e) {
       throw new ContainerNotFoundException(containerName, e);
-    } catch (DockerException e) {
-      throw new DataPushFailedException(containerName, e);
-    } catch (IOException e) {
+    } catch (DockerException | IOException e) {
       throw new DataPushFailedException(containerName, e);
     }
   }

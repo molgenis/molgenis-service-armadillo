@@ -33,8 +33,8 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_success() {
-    when(containerService.getByName("flower-client-1"))
-        .thenReturn(mock(FlowerSuperexecContainerConfig.class));
+    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    when(containerService.getByName("flower-client-1")).thenReturn(flowerClient);
     InputStream data = new ByteArrayInputStream("content".getBytes());
     when(storageService.loadObject("myproject", "train.parquet")).thenReturn(data);
 
@@ -48,8 +48,8 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_encodesResourcePath() {
-    when(containerService.getByName("container-1"))
-        .thenReturn(mock(FlowerSuperexecContainerConfig.class));
+    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    when(containerService.getByName("container-1")).thenReturn(flowerClient);
     InputStream data = new ByteArrayInputStream("content".getBytes());
     when(storageService.loadObject("proj", "data/train")).thenReturn(data);
 
@@ -61,8 +61,8 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_doesNotCollideOnSlashVsUnderscore() {
-    when(containerService.getByName("container-1"))
-        .thenReturn(mock(FlowerSuperexecContainerConfig.class));
+    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    when(containerService.getByName("container-1")).thenReturn(flowerClient);
     InputStream dataA = new ByteArrayInputStream("a".getBytes());
     InputStream dataB = new ByteArrayInputStream("b".getBytes());
     when(storageService.loadObject("proj", "data/train")).thenReturn(dataA);
@@ -79,7 +79,8 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_rejectsNonFlowerContainer() {
-    when(containerService.getByName("default")).thenReturn(mock(DatashieldContainerConfig.class));
+    var datashieldContainer = mock(DatashieldContainerConfig.class);
+    when(containerService.getByName("default")).thenReturn(datashieldContainer);
 
     assertThrows(
         IllegalArgumentException.class,
