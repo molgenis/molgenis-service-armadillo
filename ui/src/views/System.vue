@@ -121,6 +121,7 @@ import {
   startUpdate,
   softRestartServer,
   hardRestartServer,
+  get,
 } from "@/api/api";
 import { AuthServerConfig } from "@/types/api";
 import OidcConfig from "@/components/OidcConfig.vue";
@@ -362,20 +363,41 @@ export default defineComponent({
     cancelDeleteJar() {
       this.deleteJarTriggered = false;
     },
+    async isValidOidcUri(configToSave: AuthServerConfig) {
+      // check if provided auth server uri is a valid auth server
+      return get(configToSave.issuerUri + "/.well-known/openid-configuration")
+        .then((response) => {
+          if (response.issuer === configToSave.issuerUri) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        .catch(() => {
+          return false;
+        });
+    },
     saveOidcConfig() {
       this.downloadUpdater(this.currentVersion)
-        .then(() => {
-          putAuthServerConfig(this.configToSave)
-            .then(() => {
-              this.successMessage = "Successfully updated OIDC config";
-              this.authConfig = this.configToSave;
-              this.cancelOidcUpdate();
-              this.proceedRestartServer();
-            })
-            .catch((errrorMsg) => {
-              this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
-              this.cancelOidcUpdate();
-            });
+        .then(async () => {
+          const isValidIssuer = await this.isValidOidcUri(this.configToSave);
+          if (isValidIssuer) {
+            putAuthServerConfig(this.configToSave)
+              .then(() => {
+                this.successMessage = "Successfully updated OIDC config";
+                this.authConfig = this.configToSave;
+                this.cancelOidcUpdate();
+                this.proceedRestartServer();
+              })
+              .catch((errrorMsg) => {
+                this.errorMessage = `Cannot update OIDC config, because: ${errrorMsg}.`;
+                this.cancelOidcUpdate();
+              });
+          } else {
+            this.errorMessage =
+              "Cannot update OIDC config, because: issuer server URI invalid: " +
+              (this.configToSave as AuthServerConfig).issuerUri;
+          }
         })
         .catch((error) => {
           this.errorMessage = "Cannot download updater, because: " + error;
