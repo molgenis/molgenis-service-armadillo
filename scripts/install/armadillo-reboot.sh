@@ -113,7 +113,7 @@ if [[ $UPDATE == true ]]; then
       echo "❌ ERROR: No jar available for version $ARMADILLO_VERSION. Please download it."
       exit_script
   fi
-  else
+else
     echo "Nothing fancy, just a restart"
     restart_armadillo ""
 fi
