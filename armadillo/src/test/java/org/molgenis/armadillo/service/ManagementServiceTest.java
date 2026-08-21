@@ -269,6 +269,11 @@ class ManagementServiceTest {
   }
 
   @Test
+  void throwWhenRunningInContainer_does_not_throw_error_when_not_in_production() {
+    assertDoesNotThrow(() -> service.throwWhenNotLinuxInProd("method"));
+  }
+
+  @Test
   void saveNewOidcConfig_throw_error_when_in_docker() throws Exception {
     setField(service, "runningInContainer", true);
     OidcDetails oidcDetails = mock(OidcDetails.class);

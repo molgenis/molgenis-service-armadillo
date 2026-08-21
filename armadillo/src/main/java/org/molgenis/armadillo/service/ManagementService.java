@@ -102,6 +102,11 @@ public class ManagementService {
     return Arrays.stream(processName.split("@")).toList().getFirst();
   }
 
+  void throwIfNotSupported(String method) {
+    throwWhenRunningInContainer(method);
+    throwWhenNotLinuxInProd(method);
+  }
+
   void throwWhenRunningInContainer(String method) throws UnsupportedOperationException {
     if (runningInContainer) {
       throw new UnsupportedOperationException(
@@ -109,8 +114,18 @@ public class ManagementService {
     }
   }
 
+  void throwWhenNotLinuxInProd(String method) {
+    String os = System.getProperty("os.name");
+    if (Objects.equals(this.armadilloMode, "PROD") && !Objects.equals(os, "Linux")) {
+      throw new UnsupportedOperationException(
+          "Cannot execute "
+              + method
+              + "because this is only possible to do in production under Linux");
+    }
+  }
+
   public void hardRestartApplication() throws IOException {
-    throwWhenRunningInContainer("hard restart");
+    throwIfNotSupported("hard restart");
     scriptRunner.runRebootScript(
         updateScriptDownloader.getUpdateScriptPath(),
         "-p",
@@ -166,7 +181,7 @@ public class ManagementService {
   }
 
   public void triggerUpdate(String version) throws IOException {
-    throwWhenRunningInContainer("hard restart");
+    throwIfNotSupported("hard restart");
     if (isValidVersion(version)) {
       scriptRunner.runRebootScript(
           updateScriptDownloader.getUpdateScriptPath(),
@@ -226,7 +241,7 @@ public class ManagementService {
   }
 
   public void saveNewOidcConfig(OidcDetails oidcDetails) throws IOException {
-    throwWhenRunningInContainer("update oidc config");
+    throwIfNotSupported("update oidc config");
     appConfigFile.update(oidcDetails);
     hardRestartApplication();
   }
