@@ -1,11 +1,14 @@
 package org.molgenis.armadillo.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongConsumer;
 import org.molgenis.armadillo.storage.JarDownloader;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * Test double for {@link JarDownloader}. Records every invocation so tests can assert on what was
@@ -14,7 +17,14 @@ import org.molgenis.armadillo.storage.JarDownloader;
  */
 public class RecordingJarDownloader implements JarDownloader {
 
+  private static final String PROGRESS = "progress";
+  private static final String DONE = "done";
+  private static final String DOWNLOAD_COMPLETE = "Download complete";
+
   private final List<Call> calls = new ArrayList<>();
+
+  /** Directory downloadArmadilloJar() writes into. */
+  private String jarHome;
 
   /** Content to write to outputFile on each call. Null means "don't write anything". */
   private String contentToWrite = "Hello world!!";
@@ -24,6 +34,19 @@ public class RecordingJarDownloader implements JarDownloader {
 
   /** If set, this exception is thrown instead of doing anything else. */
   private InterruptedException exceptionToThrow;
+
+  /** Value returned by isValidJar(). */
+  private boolean validJarResult = true;
+
+  public RecordingJarDownloader() {}
+
+  public RecordingJarDownloader(String jarHome) {
+    this.jarHome = jarHome;
+  }
+
+  public void setJarHome(String jarHome) {
+    this.jarHome = jarHome;
+  }
 
   @Override
   public void downloadFile(String url, String outputFile) throws InterruptedException {
@@ -48,6 +71,47 @@ public class RecordingJarDownloader implements JarDownloader {
     }
 
     progressToReport.forEach(progressCallback::accept);
+  }
+
+  @Override
+  public SseEmitter downloadArmadilloJar(String version) {
+    SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
+    String jarName = "molgenis-armadillo-" + version.replace("v", "") + ".jar";
+    String outputFile = jarHome + File.separator + jarName;
+    Thread.ofVirtual()
+        .start(
+            () -> {
+              try {
+                downloadFile(
+                    "recorded://" + version,
+                    outputFile,
+                    progress -> {
+                      try {
+                        emitter.send(
+                            SseEmitter.event().name(PROGRESS).data(String.valueOf(progress)));
+                      } catch (IOException e) {
+                        emitter.completeWithError(e);
+                      }
+                    });
+                emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
+                emitter.complete();
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                emitter.completeWithError(e);
+              } catch (Exception e) {
+                emitter.completeWithError(e);
+              }
+            });
+    return emitter;
+  }
+
+  @Override
+  public Boolean isValidJar(String version) {
+    return validJarResult;
+  }
+
+  public void withValidJar(boolean valid) {
+    this.validJarResult = valid;
   }
 
   public void throwInterruptedException() {

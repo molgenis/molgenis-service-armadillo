@@ -285,7 +285,9 @@ export default defineComponent({
         });
         this.warningMessage =
           "Update in progress. The website will be down for a short period of time. Try refreshing until it is back up. In the very unlikely case your server doesn't come back up, contact your administrator.";
-        this.startUpdate(this.versionToUpdateTo);
+        this.startUpdate(this.versionToUpdateTo).catch((error) => {
+          this.errorMessage = "Update failed, because: " + error;
+        });
       } else {
         this.warningMessage = `Cannot update: Version [${this.versionToUpdateTo}] already running.`;
       }

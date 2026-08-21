@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -49,11 +47,17 @@ class ManagementServiceTest {
   @TempDir Path tempDir;
   private String applicationConfigFile;
 
+  GithubApi githubApi;
+  UpdateScriptDownloader updateScriptDownloader;
+
   @BeforeEach
   void setUp() throws Exception {
     buildProperties = mock(BuildProperties.class);
     applicationConfigFile = tempDir.resolve("application.yml").toString();
-    fakeDownloader = new RecordingJarDownloader();
+    fakeDownloader = new RecordingJarDownloader(tempDir.toString());
+    githubApi = new GithubApi(httpClient);
+    updateScriptDownloader = new UpdateScriptDownloader(tempDir.toString());
+
     service =
         new ManagementService(
             applicationConfigFile,
@@ -65,17 +69,10 @@ class ManagementServiceTest {
             buildProperties,
             new PythonRebootScriptRunner("./logs/armadillo.log"),
             fakeDownloader,
-            httpClient,
+            githubApi,
+            updateScriptDownloader,
             tempDir.toString(),
             new ApplicationConfigFile(applicationConfigFile));
-
-    // Point armadilloHome and armadilloConfigFile to temp dir
-    setField(service, "armadilloHome", tempDir.toString());
-    setField(service, "armadilloConfigFile", applicationConfigFile);
-    setField(service, "armadilloMode", "PROD");
-    setField(service, "runningInContainer", false);
-    File logFile = tempDir.resolve("test.log").toFile();
-    logFile.createNewFile();
   }
 
   @Test
@@ -163,23 +160,6 @@ class ManagementServiceTest {
     assertEquals(2, jars.size());
   }
 
-  String getTag(String version) throws Exception {
-    Method m = ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
-    m.setAccessible(true);
-    return (String) m.invoke(service, version);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"5.15.0", "6.0.0"})
-  void getScriptVersionTag(String version) throws Exception {
-    assertEquals("refs/tags/v" + version, getTag(version));
-  }
-
-  @Test
-  void getScriptVersionTag_returnsCommitHashForOldVersions() throws Exception {
-    assertEquals("3f3cffbaaa61121c5f9b10021e0e40412aaadc65", getTag("5.13.0"));
-  }
-
   @Test
   void getJarFromVersion_stripsVPrefix() throws Exception {
     Method m = ManagementService.class.getDeclaredMethod("getJarFromVersion", String.class);
@@ -208,29 +188,6 @@ class ManagementServiceTest {
   }
 
   @Test
-  void fileExistsInDir_returnsTrueWhenFilePresent() throws Exception {
-    Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
-
-    Method m =
-        ManagementService.class.getDeclaredMethod("fileExistsInDir", String.class, String.class);
-    m.setAccessible(true);
-
-    boolean exists =
-        (boolean) m.invoke(service, "molgenis-armadillo-5.14.0.jar", tempDir.toString());
-    assertTrue(exists);
-  }
-
-  @Test
-  void fileExistsInDir_returnsFalseWhenFileAbsent() throws Exception {
-    Method m =
-        ManagementService.class.getDeclaredMethod("fileExistsInDir", String.class, String.class);
-    m.setAccessible(true);
-
-    boolean exists = (boolean) m.invoke(service, "missing.jar", tempDir.toString());
-    assertFalse(exists);
-  }
-
-  @Test
   void listLocallyAvailableJars_excludesSubdirectories() throws Exception {
     Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
     Files.createDirectory(tempDir.resolve("subdir.jar")); // a directory named like a jar
@@ -240,35 +197,6 @@ class ManagementServiceTest {
     assertEquals(1, jars.size());
     assertTrue(jars.contains("molgenis-armadillo-5.14.0.jar"));
     assertFalse(jars.contains("subdir.jar"));
-  }
-
-  @Test
-  void isArmadilloUpdateAvailable_jarPresentMeansNoUpdateNeeded() throws Exception {
-    // fileExistsInDir is the gating predicate: method returns !fileExistsInDir(...)
-    // Verify the predicate returns true when the jar file is on disk
-    Files.createFile(tempDir.resolve("molgenis-armadillo-5.14.0.jar"));
-
-    Method m =
-        ManagementService.class.getDeclaredMethod("fileExistsInDir", String.class, String.class);
-    m.setAccessible(true);
-
-    boolean jarPresent =
-        (boolean) m.invoke(service, "molgenis-armadillo-5.14.0.jar", tempDir.toString());
-    assertTrue(jarPresent); // jar found → isArmadilloUpdateAvailable returns false
-  }
-
-  @Test
-  void downloadUpdateScript_stripsVPrefixBeforeVersionTagLookup() throws Exception {
-    // downloadUpdateScript does version.replace("v", "") then calls getScriptVersionTag.
-    // Verify the resulting tag is correct for a version string that starts with 'v'.
-    Method tagMethod =
-        ManagementService.class.getDeclaredMethod("getScriptVersionTag", String.class);
-    tagMethod.setAccessible(true);
-
-    String strippedVersion = "v5.15.0".replace("v", "");
-    String tag = (String) tagMethod.invoke(service, strippedVersion);
-
-    assertEquals("refs/tags/v5.15.0", tag);
   }
 
   @Test
@@ -364,7 +292,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/3f3cffbaaa61121c5f9b10021e0e40412aaadc65/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/215bd20b87067c30745a615fed72ac00457592c1/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
@@ -380,7 +308,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("dev");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/3f3cffbaaa61121c5f9b10021e0e40412aaadc65/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/215bd20b87067c30745a615fed72ac00457592c1/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
