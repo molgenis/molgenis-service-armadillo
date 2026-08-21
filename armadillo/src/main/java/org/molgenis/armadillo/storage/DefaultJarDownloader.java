@@ -101,7 +101,7 @@ public class DefaultJarDownloader implements JarDownloader {
                     .getAsJsonObject()
                     .get("digest"))
             .replace("sha256:", "")
-            .replaceAll("\"", "");
+            .replace("\"", "");
     if (Objects.equals(githubSha, jarSha)) {
       isValid = Boolean.TRUE;
     }

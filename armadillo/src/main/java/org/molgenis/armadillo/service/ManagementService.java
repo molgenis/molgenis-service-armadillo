@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -214,8 +213,7 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
-  public Boolean isValidJar(String version)
-      throws NoSuchAlgorithmException, IOException, InterruptedException {
+  public Boolean isValidJar(String version) throws IOException, InterruptedException {
     return jarDownloader.isValidJar(version);
   }
 

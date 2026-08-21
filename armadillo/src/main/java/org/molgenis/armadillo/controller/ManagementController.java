@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
@@ -88,8 +87,10 @@ public class ManagementController {
             }
           } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-          } catch (NoSuchAlgorithmException | InterruptedException e) {
-            throw new RuntimeException(e);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, e.getMessage() + ". Thread was interrupted.");
           }
         },
         principal,
