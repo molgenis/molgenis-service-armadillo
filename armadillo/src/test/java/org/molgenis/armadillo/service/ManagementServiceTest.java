@@ -51,7 +51,7 @@ class ManagementServiceTest {
   UpdateScriptDownloader updateScriptDownloader;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     buildProperties = mock(BuildProperties.class);
     applicationConfigFile = tempDir.resolve("application.yml").toString();
     fakeDownloader = new RecordingJarDownloader(tempDir.toString());
