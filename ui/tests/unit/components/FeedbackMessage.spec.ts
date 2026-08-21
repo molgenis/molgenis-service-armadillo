@@ -9,6 +9,7 @@ describe("FeedbackMessage", () => {
       props: {
         successMessage: "Hello world",
         errorMessage: "Destructing world in 3...2...1",
+        warningMessage: "Warning, warning! We'll destruct if you're not careful!"
       },
     });
   });
@@ -16,6 +17,7 @@ describe("FeedbackMessage", () => {
     // Assert the rendered text of the component
     expect(wrapper.text()).toContain("Hello world");
     expect(wrapper.text()).toContain("Destructing world in 3...2...1");
+    expect(wrapper.text()).toContain("Warning, warning! We'll destruct if you're not careful!");
   });
   test("clears success message after 5 seconds", () => {
     wrapper.vm.successMsg = "Something else";
