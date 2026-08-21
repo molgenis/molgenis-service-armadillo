@@ -1,22 +1,20 @@
 package org.molgenis.armadillo.service;
 
 import static java.lang.String.format;
-import static org.molgenis.armadillo.storage.FileDownloader.downloadFile;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.molgenis.armadillo.ArmadilloServiceApplication;
@@ -29,7 +27,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,20 +36,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ManagementService {
 
-  // Constants
-  private static final String REBOOT_SCRIPT = "armadillo-reboot.sh";
-  private static final String RELEASE_URL =
-      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/latest";
-  private static final String TAG_URL =
-      "https://api.github.com/repos/molgenis/molgenis-service-armadillo/releases/tags/";
-  private static final String REBOOT_SCRIPT_URL =
-      "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/%s/scripts/install/%s";
-  private static final String RELEASE_DOWNLOAD_URL =
-      "https://github.com/molgenis/molgenis-service-armadillo/releases/download/v%s/%s";
   private static final String ARMADILLO_JAR = "molgenis-armadillo-%s.jar";
-  private static final String PROGRESS = "progress";
-  private static final String DONE = "done";
-  private static final String DOWNLOAD_COMPLETE = "Download complete";
 
   @Value("${armadillo.armadillo-home:/usr/share/armadillo/application}")
   String armadilloHome;
@@ -70,9 +54,8 @@ public class ManagementService {
   private final ConfigFile appConfigFile;
   private final String jarHome;
   private final JarDownloader jarDownloader;
-
-  private final HttpClient httpClient;
-
+  private final GithubApi githubApi;
+  private final UpdateScriptDownloader updateScriptDownloader;
   private final OidcDetails currentOidcDetails;
 
   @Autowired
@@ -92,21 +75,22 @@ public class ManagementService {
       @Autowired BuildProperties buildProperties,
       @Autowired RebootScriptRunner scriptRunner,
       @Autowired JarDownloader jarDownloader,
-      HttpClient httpClient,
+      @Autowired GithubApi githubApi,
+      @Autowired UpdateScriptDownloader updateScriptDownloader,
       @Qualifier("jarHome") String jarHome,
       ConfigFile configFile) {
-    this.httpClient = httpClient;
     this.buildProperties = buildProperties;
     this.scriptRunner = scriptRunner;
     this.armadilloConfigFile = armadilloConfigFile;
     this.jarHome = jarHome;
     this.appConfigFile = configFile;
     this.jarDownloader = jarDownloader;
+    this.githubApi = githubApi;
+    this.updateScriptDownloader = updateScriptDownloader;
     currentOidcDetails =
         OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId);
   }
 
-  // This will programmatically restart the application.
   public void softRestartApplication() {
     ArmadilloServiceApplication.restart();
   }
@@ -126,11 +110,10 @@ public class ManagementService {
     }
   }
 
-  // This will trigger a script that kills armadillo, after which it will startup again.
   public void hardRestartApplication() throws IOException {
     throwWhenRunningInContainer("hard restart");
     scriptRunner.runRebootScript(
-        getUpdateScriptPath(),
+        updateScriptDownloader.getUpdateScriptPath(),
         "-p",
         armadilloHome,
         "-v",
@@ -143,49 +126,12 @@ public class ManagementService {
         armadilloConfigFile.replace("/application.yml", ""));
   }
 
-  private JsonElement getReleaseFromGithub(String url) throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    if (response.statusCode() == 200) {
-      return JsonParser.parseString(response.body()).getAsJsonObject();
-    } else {
-      throw new ResponseStatusException(HttpStatusCode.valueOf(response.statusCode()));
-    }
-  }
-
-  public JsonElement getReleaseTag(String tag) throws IOException, InterruptedException {
-    return getReleaseFromGithub(TAG_URL + tag);
-  }
-
   public JsonElement getLastRelease() throws IOException, InterruptedException {
-    return getReleaseFromGithub(RELEASE_URL);
+    return githubApi.getLastRelease();
   }
 
   public Map<String, String> getCurrentOidcConfig() {
     return currentOidcDetails.get();
-  }
-
-  private String getScriptVersionTag(String version) {
-    // if script not available yet on current release:
-    String scriptVersionTag = "215bd20b87067c30745a615fed72ac00457592c1";
-    if (!version.equals("dev")) {
-      version = version.replace("v", "");
-    }
-    String[] versionSplit = version.split("\\.");
-    try {
-      if (Integer.parseInt(versionSplit[0]) > 5
-          || (Integer.parseInt(versionSplit[0]) == 5 && Integer.parseInt(versionSplit[1]) >= 15)) {
-        scriptVersionTag = "refs/tags/v" + version;
-      }
-    } catch (NumberFormatException ignored) {
-      // when dev
-    }
-    return scriptVersionTag;
-  }
-
-  private boolean fileExistsInDir(String filename, String directory) {
-    Set<String> foundFiles = listFilesForDir(directory);
-    return foundFiles.contains(filename);
   }
 
   // this is intended behaviour
@@ -224,7 +170,7 @@ public class ManagementService {
     throwWhenRunningInContainer("hard restart");
     if (isValidVersion(version)) {
       scriptRunner.runRebootScript(
-          getUpdateScriptPath(),
+          updateScriptDownloader.getUpdateScriptPath(),
           "-p",
           armadilloHome,
           "-v",
@@ -234,31 +180,22 @@ public class ManagementService {
           "-i",
           getJavaProcessId(getProcessName()),
           "-u");
-    } else
+    } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
+    }
   }
 
   String getUpdateScriptPath() {
-    return format("%s/%s", jarHome, REBOOT_SCRIPT);
+    return updateScriptDownloader.getUpdateScriptPath();
   }
 
   String getUpdateScriptUrl(String armadilloVersion) {
-    String scriptVersionTag = getScriptVersionTag(armadilloVersion);
-    return String.format(REBOOT_SCRIPT_URL, scriptVersionTag, REBOOT_SCRIPT);
+    return updateScriptDownloader.getUpdateScriptUrl(armadilloVersion);
   }
 
   public void downloadUpdateScript(String armadilloVersion) throws InterruptedException {
     if (isValidVersion(armadilloVersion)) {
-      String updateScriptPath = getUpdateScriptPath();
-      downloadFile(getUpdateScriptUrl(armadilloVersion), updateScriptPath);
-      // give permissions to run the script
-      File script = new File(updateScriptPath);
-      boolean isExecutableSet = script.setExecutable(true, false);
-      if (!isExecutableSet) {
-        throw new ResponseStatusException(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Failed to set file as executable: " + updateScriptPath);
-      }
+      updateScriptDownloader.downloadUpdateScript(armadilloVersion);
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
     }
@@ -277,72 +214,14 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
-  private String getJarSha(String jarPath) throws IOException {
-    ByteSource byteSource = com.google.common.io.Files.asByteSource(new File(jarPath));
-    HashCode hc = byteSource.hash(Hashing.sha256());
-    return hc.toString();
-  }
-
   public Boolean isValidJar(String version)
       throws NoSuchAlgorithmException, IOException, InterruptedException {
-    Boolean isValid = Boolean.FALSE;
-    String jarName = getJarFromVersion(version);
-    String jarSha = getJarSha(armadilloHome + "/" + jarName);
-    String tag = version.startsWith("v") ? version : "v" + version;
-    JsonElement githubRelease = getReleaseTag(tag);
-    String githubSha =
-        String.valueOf(
-            githubRelease
-                .getAsJsonObject()
-                .get("assets")
-                .getAsJsonArray()
-                .get(0)
-                .getAsJsonObject()
-                .get("digest"));
-    if (Objects.equals(githubSha, jarSha)) {
-      isValid = Boolean.TRUE;
-    }
-    return isValid;
-  }
-
-  private void updateDownloadProgress(SseEmitter emitter, String progress) {
-    try {
-      emitter.send(SseEmitter.event().name(PROGRESS).data(progress));
-    } catch (IOException e) {
-      emitter.completeWithError(e);
-    }
+    return jarDownloader.isValidJar(version);
   }
 
   public SseEmitter downloadArmadilloJar(String version) {
     if (isValidVersion(version)) {
-      SseEmitter emitter = new SseEmitter(5 * 60 * 1000L);
-      String jarToUpdateTo = getJarFromVersion(version);
-      String downloadUrl = String.format(RELEASE_DOWNLOAD_URL, version, jarToUpdateTo);
-      String armadilloInstallation = jarHome + File.separator + jarToUpdateTo;
-      // Run download in background thread — SSE must not block the request thread
-      Thread.ofVirtual()
-          .start(
-              () -> {
-                try {
-                  if (fileExistsInDir(jarToUpdateTo, jarHome)) {
-                    emitter.send(SseEmitter.event().name(PROGRESS).data("100")); // already there
-                  } else {
-                    jarDownloader.downloadFile(
-                        downloadUrl,
-                        armadilloInstallation,
-                        downloadProgress ->
-                            updateDownloadProgress(emitter, String.valueOf(downloadProgress)));
-                  }
-                  emitter.send(SseEmitter.event().name(DONE).data(DOWNLOAD_COMPLETE));
-                  emitter.complete();
-                } catch (InterruptedException e) {
-                  Thread.currentThread().interrupt();
-                  emitter.completeWithError(e);
-                } catch (Exception e) {
-                  emitter.completeWithError(e);
-                }
-              });
-      return emitter; // 5 min timeout
+      return jarDownloader.downloadArmadilloJar(version);
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specified version is not valid");
     }

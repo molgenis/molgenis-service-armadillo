@@ -78,7 +78,7 @@ public class ManagementController {
         () -> {
           try {
             if (managementService.isValidJar(version)) {
-              //                  managementService.triggerUpdate(version);
+              managementService.triggerUpdate(version);
             } else {
               throw new ResponseStatusException(
                   HttpStatus.BAD_REQUEST,

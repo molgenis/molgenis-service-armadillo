@@ -80,7 +80,7 @@ class ManagementControllerIT {
   JarDownloader jarDownloader;
 
   private static JarDownloader jarDownloaderOverride() {
-    return new RecordingJarDownloader();
+    return new RecordingJarDownloader(tempDir.toAbsolutePath().toString());
   }
 
   @DynamicPropertySource
