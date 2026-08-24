@@ -129,6 +129,7 @@ public class DefaultJarDownloader implements JarDownloader {
       throw new IOException("Hashing interrupted for " + jarPath, e);
     } finally {
       executor.shutdownNow();
+      executor.close();
     }
   }
 

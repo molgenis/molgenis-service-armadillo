@@ -62,10 +62,6 @@ class DefaultJarDownloaderTest {
     Thread.interrupted();
   }
 
-  // ---------------------------------------------------------------------
-  // performDownload
-  // ---------------------------------------------------------------------
-
   @Test
   void performDownload_downloadsJarWhenNotPresentAndCompletes() throws Exception {
     SseEmitter emitter = mock(SseEmitter.class);
@@ -118,7 +114,7 @@ class DefaultJarDownloaderTest {
   }
 
   @Test
-  void performDownload_completesWithErrorOnInterruptedException() throws Exception {
+  void performDownload_completesWithErrorOnInterruptedException() {
     SseEmitter emitter = mock(SseEmitter.class);
 
     try (MockedStatic<FileDownloader> fileDownloader = mockStatic(FileDownloader.class)) {
@@ -138,7 +134,7 @@ class DefaultJarDownloaderTest {
   }
 
   @Test
-  void performDownload_completesWithErrorOnUnexpectedException() throws Exception {
+  void performDownload_completesWithErrorOnUnexpectedException() {
     SseEmitter emitter = mock(SseEmitter.class);
     RuntimeException failure = new RuntimeException("network exploded");
 
@@ -153,10 +149,6 @@ class DefaultJarDownloaderTest {
     verify(emitter).completeWithError(failure);
     verify(emitter, never()).complete();
   }
-
-  // ---------------------------------------------------------------------
-  // isValidJar
-  // ---------------------------------------------------------------------
 
   @Test
   void isValidJar_returnsTrue_whenShaMatchesGithub() throws Exception {
@@ -178,10 +170,6 @@ class DefaultJarDownloaderTest {
 
     assertThat(jarDownloader.isValidJar(VERSION)).isFalse();
   }
-
-  // ---------------------------------------------------------------------
-  // doesJarFit
-  // ---------------------------------------------------------------------
 
   @Test
   void doesJarFit_delegatesToDiskSpaceChecker() throws Exception {
@@ -207,10 +195,6 @@ class DefaultJarDownloaderTest {
     }
   }
 
-  // ---------------------------------------------------------------------
-  // downloadFile passthrough methods
-  // ---------------------------------------------------------------------
-
   @Test
   void downloadFile_delegatesToFileDownloaderWithoutProgressCallback() throws Exception {
     try (MockedStatic<FileDownloader> fileDownloader = mockStatic(FileDownloader.class)) {
@@ -234,10 +218,6 @@ class DefaultJarDownloaderTest {
                   "http://example.org/x.jar", "/tmp/x.jar", progressCallback));
     }
   }
-
-  // ---------------------------------------------------------------------
-  // helpers
-  // ---------------------------------------------------------------------
 
   private static String sha256Hex(byte[] content) throws NoSuchAlgorithmException {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
