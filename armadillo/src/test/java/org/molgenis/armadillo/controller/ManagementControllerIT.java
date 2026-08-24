@@ -62,7 +62,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 class ManagementControllerIT {
-  String FAIL_VERSION = RecordingJarDownloader.getFailVersion();
+  private final String FAIL_VERSION = RecordingJarDownloader.getFailVersion();
 
   public static final Gson GSON = new Gson();
   @MockitoSpyBean AuditEventPublisher auditor;
