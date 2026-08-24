@@ -21,7 +21,6 @@ In case of using dsOmics this setup can be rather bigger. Please [contact](../co
 
 * Java 21 JRE or JDK
 * Docker
-* Python 3 (to enable auth server reconfiguration and updating capabilities in the UI)
 
 In addition to these, there are other optional components you may wish to install, such as setting up nginx as a reverse proxy.
 
