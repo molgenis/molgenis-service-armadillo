@@ -14,8 +14,8 @@ public interface JarDownloader {
   SseEmitter downloadArmadilloJar(String version);
 
   /** Verifies the locally installed jar's SHA-256 against the GitHub release digest. */
-  Boolean isValidJar(String version) throws IOException, InterruptedException;
+  boolean isValidJar(String version) throws IOException, InterruptedException;
 
   /** Verifies if the size of the jarFile will fit on the fileSystem */
-  Boolean doesJarFit(String version) throws IOException, InterruptedException;
+  boolean doesJarFit(String version) throws IOException, InterruptedException;
 }

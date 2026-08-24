@@ -109,13 +109,13 @@ public class RecordingJarDownloader implements JarDownloader {
   }
 
   @Override
-  public Boolean isValidJar(String version) {
+  public boolean isValidJar(String version) {
     // specific version for testing if will throw error when jar isnt valid
     return !Objects.equals(version, FAIL_VERSION);
   }
 
   @Override
-  public Boolean doesJarFit(String version) {
+  public boolean doesJarFit(String version) {
     // specific version for testing if will throw error when jar doesnt fit
     return !Objects.equals(version, FAIL_VERSION);
   }
