@@ -67,7 +67,7 @@ class ManagementServiceTest {
             "https://device.auth.example.com",
             "device-client",
             buildProperties,
-            new PythonRebootScriptRunner("./logs/armadillo.log"),
+            new DefaultRebootScriptRunner("./logs/armadillo.log"),
             fakeDownloader,
             githubApi,
             updateScriptDownloader,
@@ -298,7 +298,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/4227ae10e9391871287fefa0da96490dd723f611/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
@@ -314,7 +314,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("dev");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/4227ae10e9391871287fefa0da96490dd723f611/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh");
   }
 
   @Test

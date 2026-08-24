@@ -4,7 +4,7 @@ import static java.lang.String.format;
 
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
-import org.molgenis.armadillo.service.PythonRebootScriptRunner;
+import org.molgenis.armadillo.service.DefaultRebootScriptRunner;
 import org.molgenis.armadillo.service.RebootScriptRunner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +18,7 @@ public class AppConfig {
   @Bean
   RebootScriptRunner rebootScriptRunner(
       @Value("${stdout.log.path:./logs/armadillo.log}") String configuredLogPath) {
-    return new PythonRebootScriptRunner(configuredLogPath);
+    return new DefaultRebootScriptRunner(configuredLogPath);
   }
 
   @Bean

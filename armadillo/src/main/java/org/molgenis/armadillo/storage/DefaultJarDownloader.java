@@ -7,8 +7,12 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.*;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,7 +91,7 @@ public class DefaultJarDownloader implements JarDownloader {
     Boolean isValid = Boolean.FALSE;
     String jarName = getJarFromVersion(version);
     // NB: mirrors pre-refactor behaviour of checking armadilloHome rather than jarHome
-    String jarSha = getJarSha(armadilloHome + "/" + jarName);
+    String jarSha = getJarSha(jarHome + "/" + jarName);
     String githubSha = githubApi.getFromJarAsset(version, "digest").replace("sha256:", "");
     if (Objects.equals(githubSha, jarSha)) {
       isValid = Boolean.TRUE;
@@ -96,9 +100,36 @@ public class DefaultJarDownloader implements JarDownloader {
   }
 
   private String getJarSha(String jarPath) throws IOException {
-    ByteSource byteSource = com.google.common.io.Files.asByteSource(new File(jarPath));
-    HashCode hc = byteSource.hash(Hashing.sha256());
-    return hc.toString();
+    Path path = Paths.get(jarPath);
+
+    if (!Files.isRegularFile(path)) {
+      throw new IOException(
+          "Not a regular file: " + jarPath + " (isDirectory=" + Files.isDirectory(path) + ")");
+    }
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      Future<String> future =
+          executor.submit(
+              () -> {
+                ByteSource byteSource = com.google.common.io.Files.asByteSource(path.toFile());
+                HashCode hc = byteSource.hash(Hashing.sha256());
+                return hc.toString();
+              });
+      return future.get(30, TimeUnit.SECONDS); // fail fast instead of hanging forever
+    } catch (TimeoutException e) {
+      throw new IOException(
+          "Hashing timed out after 30s for "
+              + jarPath
+              + " — check if it's a pipe/device/network mount",
+          e);
+    } catch (ExecutionException e) {
+      throw new IOException("Hashing failed for " + jarPath, e.getCause());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Hashing interrupted for " + jarPath, e);
+    } finally {
+      executor.shutdownNow();
+    }
   }
 
   private String getJarFromVersion(String version) {

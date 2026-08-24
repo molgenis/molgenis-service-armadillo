@@ -32,7 +32,7 @@ public class UpdateScriptDownloader {
 
   private String getScriptVersionTag(String version) {
     // if script not available yet on current release:
-    String scriptVersionTag = "4227ae10e9391871287fefa0da96490dd723f611";
+    String scriptVersionTag = "9f0c9b53e773ac54940d29d160712c6e61a485b6";
     if (!version.equals("dev")) {
       version = version.replace("v", "");
     }
