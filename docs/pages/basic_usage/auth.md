@@ -44,8 +44,6 @@ that an additional configuration has to be set up to allow for device flow (as i
     </span>
     <span style="margin: 0 0 0.5em 0; border-left: 3px solid #017FFD; padding: 5px 0 3px 0.5em">5.14.0</span>
 </div>
-!!! info
-    In order to (re)configure an authentication via the UI, python needs to be installed on the Armadillo server. 
 
 After initial configuration, auth server configuration can be adjusted in Armadillo's UI. 
 To do so, navigate to `System > Control`. Scroll to "Authentication server" and fill in the fields. Then save, read
