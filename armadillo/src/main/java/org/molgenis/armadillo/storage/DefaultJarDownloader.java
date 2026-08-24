@@ -90,7 +90,6 @@ public class DefaultJarDownloader implements JarDownloader {
   public boolean isValidJar(String version) throws IOException, InterruptedException {
     boolean isValid = false;
     String jarName = getJarFromVersion(version);
-    // NB: mirrors pre-refactor behaviour of checking armadilloHome rather than jarHome
     String jarSha = getJarSha(jarHome + "/" + jarName);
     String githubSha = githubApi.getFromJarAsset(version, "digest").replace("sha256:", "");
     if (Objects.equals(githubSha, jarSha)) {

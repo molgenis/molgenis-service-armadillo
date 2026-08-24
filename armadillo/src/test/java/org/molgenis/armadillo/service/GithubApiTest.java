@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.google.gson.JsonElement;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -83,5 +84,20 @@ class GithubApiTest {
     when(response.statusCode()).thenReturn(500);
 
     assertThrows(ResponseStatusException.class, () -> githubApi.getReleaseVersion("v1.0.0"));
+  }
+
+  @Test
+  void getFromJarAsset() throws IOException, InterruptedException {
+    ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+    when(httpClient.<String>send(requestCaptor.capture(), any())).thenReturn(response);
+    when(response.statusCode()).thenReturn(200);
+    when(response.body())
+        .thenReturn(
+            "{\"tag_name\":\"v5.12.2\", \"assets\":[{\"digest\": \"sha256:7db94f2d85624f0703c0c3107b8a4997437ad09076320abf8dde55b72db7394a\", \"size\": 143781205}]}");
+
+    assertEquals(
+        "sha256:7db94f2d85624f0703c0c3107b8a4997437ad09076320abf8dde55b72db7394a",
+        githubApi.getFromJarAsset("v5.12.2", "digest"));
+    assertEquals("143781205", githubApi.getFromJarAsset("v5.12.2", "size"));
   }
 }
