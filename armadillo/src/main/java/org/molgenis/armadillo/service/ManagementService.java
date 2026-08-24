@@ -56,7 +56,6 @@ public class ManagementService {
   private final GithubApi githubApi;
   private final UpdateScriptDownloader updateScriptDownloader;
   private final OidcDetails currentOidcDetails;
-  private FileService fileService;
 
   @Autowired
   public ManagementService(
@@ -90,7 +89,6 @@ public class ManagementService {
     this.updateScriptDownloader = updateScriptDownloader;
     currentOidcDetails =
         OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId);
-    this.fileService = fileService;
   }
 
   public void softRestartApplication() {
