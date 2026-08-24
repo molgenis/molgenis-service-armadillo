@@ -229,11 +229,11 @@ public class ManagementService {
         .collect(Collectors.toSet());
   }
 
-  public Boolean doesJarFit(String version) throws IOException, InterruptedException {
+  public boolean doesJarFit(String version) throws IOException, InterruptedException {
     return jarDownloader.doesJarFit(version);
   }
 
-  public Boolean isValidJar(String version) throws IOException, InterruptedException {
+  public boolean isValidJar(String version) throws IOException, InterruptedException {
     return jarDownloader.isValidJar(version);
   }
 

@@ -87,14 +87,14 @@ public class DefaultJarDownloader implements JarDownloader {
   }
 
   @Override
-  public Boolean isValidJar(String version) throws IOException, InterruptedException {
-    Boolean isValid = Boolean.FALSE;
+  public boolean isValidJar(String version) throws IOException, InterruptedException {
+    boolean isValid = false;
     String jarName = getJarFromVersion(version);
     // NB: mirrors pre-refactor behaviour of checking armadilloHome rather than jarHome
     String jarSha = getJarSha(jarHome + "/" + jarName);
     String githubSha = githubApi.getFromJarAsset(version, "digest").replace("sha256:", "");
     if (Objects.equals(githubSha, jarSha)) {
-      isValid = Boolean.TRUE;
+      isValid = true;
     }
     return isValid;
   }
@@ -147,7 +147,7 @@ public class DefaultJarDownloader implements JarDownloader {
         .collect(Collectors.toSet());
   }
 
-  public Boolean doesJarFit(String version) throws IOException, InterruptedException {
+  public boolean doesJarFit(String version) throws IOException, InterruptedException {
     String fileSize = githubApi.getFromJarAsset(version, "size");
     return DiskSpaceChecker.fitsOnDisk(Long.parseLong(fileSize));
   }
