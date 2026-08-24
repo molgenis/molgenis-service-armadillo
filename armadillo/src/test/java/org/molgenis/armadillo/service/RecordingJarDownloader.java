@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.LongConsumer;
 import org.molgenis.armadillo.storage.JarDownloader;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -20,6 +21,7 @@ public class RecordingJarDownloader implements JarDownloader {
   private static final String PROGRESS = "progress";
   private static final String DONE = "done";
   private static final String DOWNLOAD_COMPLETE = "Download complete";
+  private static final String FAIL_VERSION = "5.13.2";
 
   private final List<Call> calls = new ArrayList<>();
 
@@ -35,9 +37,6 @@ public class RecordingJarDownloader implements JarDownloader {
   /** If set, this exception is thrown instead of doing anything else. */
   private InterruptedException exceptionToThrow;
 
-  /** Value returned by isValidJar(). */
-  private boolean validJarResult = true;
-
   public RecordingJarDownloader() {}
 
   public RecordingJarDownloader(String jarHome) {
@@ -46,6 +45,10 @@ public class RecordingJarDownloader implements JarDownloader {
 
   public void setJarHome(String jarHome) {
     this.jarHome = jarHome;
+  }
+
+  public static String getFailVersion() {
+    return FAIL_VERSION;
   }
 
   @Override
@@ -107,11 +110,14 @@ public class RecordingJarDownloader implements JarDownloader {
 
   @Override
   public Boolean isValidJar(String version) {
-    return validJarResult;
+    // specific version for testing if will throw error when jar isnt valid
+    return !Objects.equals(version, FAIL_VERSION);
   }
 
-  public void withValidJar(boolean valid) {
-    this.validJarResult = valid;
+  @Override
+  public Boolean doesJarFit(String version) {
+    // specific version for testing if will throw error when jar doesnt fit
+    return !Objects.equals(version, FAIL_VERSION);
   }
 
   public void throwInterruptedException() {

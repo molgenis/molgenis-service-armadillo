@@ -158,10 +158,16 @@ public class ManagementController {
 
   @Operation(summary = "Download specified armadillo version")
   @GetMapping(value = "app/download", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter downloadVersion(Principal principal, String version) {
+  public SseEmitter downloadVersion(Principal principal, String version)
+      throws IOException, InterruptedException {
     // Audit the initiation, not the whole stream
     auditor.audit(() -> null, principal, DOWNLOAD_ARMADILLO, Map.of(ARMADILLO_VERSION, version));
-    return managementService.downloadArmadilloJar(version.replace("v", ""));
+    if (managementService.doesJarFit(version)) {
+      return managementService.downloadArmadilloJar(version.replace("v", ""));
+    } else {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot download version, insufficient diskspace.");
+    }
   }
 
   @Operation(summary = "Download update script")

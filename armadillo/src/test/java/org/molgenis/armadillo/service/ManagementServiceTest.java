@@ -57,7 +57,7 @@ class ManagementServiceTest {
     fakeDownloader = new RecordingJarDownloader(tempDir.toString());
     githubApi = new GithubApi(httpClient);
     updateScriptDownloader = new UpdateScriptDownloader(tempDir.toString());
-
+    FileService fileServiceMock = mock(FileService.class);
     service =
         new ManagementService(
             applicationConfigFile,
@@ -71,6 +71,7 @@ class ManagementServiceTest {
             fakeDownloader,
             githubApi,
             updateScriptDownloader,
+            fileServiceMock,
             tempDir.toString(),
             new ApplicationConfigFile(applicationConfigFile));
   }

@@ -1,5 +1,6 @@
 package org.molgenis.armadillo.controller;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.function.Predicate.not;
 import static org.awaitility.Awaitility.await;
@@ -61,6 +62,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 class ManagementControllerIT {
+  String FAIL_VERSION = RecordingJarDownloader.getFailVersion();
 
   public static final Gson GSON = new Gson();
   @MockitoSpyBean AuditEventPublisher auditor;
@@ -146,6 +148,19 @@ class ManagementControllerIT {
 
     assertEquals(
         "Hello world!!", Files.readString(tempDir.resolve("molgenis-armadillo-5.12.2.jar")));
+  }
+
+  @Test
+  void downloadVersion_GET_throws_when_diskspace_full() throws Exception {
+    mockMvc
+        .perform(
+            get("/manage/app/download")
+                .param("version", FAIL_VERSION)
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            status().reason(containsString("Cannot download version, insufficient diskspace")));
   }
 
   @Test
@@ -240,6 +255,24 @@ class ManagementControllerIT {
     mockMvc
         .perform(post("/manage/app/update").param("version", "1.2.3").with(csrf()))
         .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void update_POST_throws_when_invalid_jar() throws Exception {
+    mockMvc
+        .perform(
+            post("/manage/app/update")
+                .param("version", FAIL_VERSION)
+                .with(csrf())
+                .with(httpBasic("admin", "password")))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            status()
+                .reason(
+                    containsString(
+                        format(
+                            "Cannot update Molgenis Armadillo to version [%s], because downloaded version does not match released version",
+                            FAIL_VERSION))));
   }
 
   @Test

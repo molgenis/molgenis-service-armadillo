@@ -5,7 +5,6 @@ import static java.lang.String.format;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import com.google.gson.JsonElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -89,19 +88,7 @@ public class DefaultJarDownloader implements JarDownloader {
     String jarName = getJarFromVersion(version);
     // NB: mirrors pre-refactor behaviour of checking armadilloHome rather than jarHome
     String jarSha = getJarSha(armadilloHome + "/" + jarName);
-    String tag = version.startsWith("v") ? version : "v" + version;
-    JsonElement githubRelease = githubApi.getReleaseTag(tag);
-    String githubSha =
-        String.valueOf(
-                githubRelease
-                    .getAsJsonObject()
-                    .get("assets")
-                    .getAsJsonArray()
-                    .get(0)
-                    .getAsJsonObject()
-                    .get("digest"))
-            .replace("sha256:", "")
-            .replace("\"", "");
+    String githubSha = githubApi.getFromJarAsset(version, "digest").replace("sha256:", "");
     if (Objects.equals(githubSha, jarSha)) {
       isValid = Boolean.TRUE;
     }
@@ -127,6 +114,11 @@ public class DefaultJarDownloader implements JarDownloader {
         .filter(file -> !file.isDirectory())
         .map(File::getName)
         .collect(Collectors.toSet());
+  }
+
+  public Boolean doesJarFit(String version) throws IOException, InterruptedException {
+    String fileSize = githubApi.getFromJarAsset(version, "size");
+    return DiskSpaceChecker.fitsOnDisk(Long.parseLong(fileSize));
   }
 
   private void updateDownloadProgress(SseEmitter emitter, String progress) {
