@@ -51,7 +51,6 @@ public class GithubApi {
                 .get(0)
                 .getAsJsonObject()
                 .get(key))
-        .replace("sha256:", "")
         .replace("\"", "");
   }
 
